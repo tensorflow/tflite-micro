@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,14 @@ inline uint32_t TicksToMs(int32_t ticks) {
   _ticks_per_second =
       _ticks_per_second > 0 ? _ticks_per_second : 1;  // zero divide prevention
   return static_cast<uint32_t>(1000.0f * static_cast<float>(ticks) /
+                               static_cast<float>(_ticks_per_second));
+}
+
+inline uint64_t TicksToUs(int32_t ticks) {
+  uint64_t _ticks_per_second = ticks_per_second();
+  _ticks_per_second =
+      _ticks_per_second > 0 ? _ticks_per_second : 1;  // zero divide prevention
+  return static_cast<uint64_t>(1000000.0f * static_cast<float>(ticks) /
                                static_cast<float>(_ticks_per_second));
 }
 
