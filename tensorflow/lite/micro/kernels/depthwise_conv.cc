@@ -24,6 +24,11 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+#if defined(TFLM_USE_RISCV_VECTOR)
+#include "tensorflow/lite/micro/kernels/riscv_vector/conv_rvv.h"
+#endif
+
+
 namespace tflite {
 namespace {
 
@@ -109,6 +114,36 @@ TfLiteStatus DepthwiseConvEval(TfLiteContext* context, TfLiteNode* node) {
           break;
         }
         case kTfLiteInt8: {
+#if defined(TFLM_USE_RISCV_VECTOR)
+#ifdef USE_TFLM_COMPRESSION
+          TFLITE_DCHECK(weights_comp_td == nullptr && bias_comp_td == nullptr);
+          if (weights_comp_td != nullptr || bias_comp_td != nullptr) 
+          {
+              MicroPrintf("ERROR: RVV path does not support compressed weights/bias yet.");
+              return kTfLiteError;
+          }
+#endif // USE_TFLM_COMPRESSION
+          // Check bias type is compatible (as per your original check)
+          if (bias != nullptr && bias->type != kTfLiteInt32) {
+            MicroPrintf("RVV kernel requires Int32 bias, got %s", TfLiteTypeGetName(bias->type));
+            return kTfLiteError;
+         }
+
+         // Call the optimized RVV kernel with the *new* correct parameters
+         DepthwiseConvPerChannelRVV(
+            DepthwiseConvParamsQuantized(params, data),          // const ConvParams& params
+            data.per_channel_output_multiplier,         // const int32_t* output_multiplier
+            data.per_channel_output_shift,              // const int32_t* output_shift
+            tflite::micro::GetTensorShape(input),       // const RuntimeShape& input_shape
+            tflite::micro::GetTensorData<int8_t>(input), // const int8_t* input_data
+            tflite::micro::GetTensorShape(filter),      // const RuntimeShape& filter_shape
+            tflite::micro::GetTensorData<int8_t>(filter),// const int8_t* filter_data
+            tflite::micro::GetTensorShape(bias),        // const RuntimeShape& bias_shape
+            tflite::micro::GetOptionalTensorData<int32_t>(bias), // const int32_t* bias_data
+            tflite::micro::GetTensorShape(output),      // const RuntimeShape& output_shape
+            tflite::micro::GetTensorData<int8_t>(output) // int8_t* output_data
+         );
+#else
           reference_integer_ops::DepthwiseConvPerChannel(
               DepthwiseConvParamsQuantized(params, data),
               data.per_channel_output_multiplier, data.per_channel_output_shift,
@@ -129,6 +164,7 @@ TfLiteStatus DepthwiseConvEval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
+#endif
           break;
         }
         default:

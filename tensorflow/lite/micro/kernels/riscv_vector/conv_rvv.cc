@@ -191,3 +191,176 @@ void ConvPerChannelRVV(const ConvParams& params,
         }
     }
 }
+
+void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
+    const int32_t* output_multiplier,
+    const int32_t* output_shift,
+    const RuntimeShape& input_shape,
+    const int8_t* input_data,
+    const RuntimeShape& filter_shape,
+    const int8_t* filter_data,
+    const RuntimeShape& bias_shape, const int32_t* bias_data,
+    const RuntimeShape& output_shape, int8_t* output_data)
+{
+    const int32_t input_offset = params.input_offset;
+    const int stride_width = params.stride_width;
+    const int stride_height = params.stride_height;
+    const int dilation_width_factor = params.dilation_width_factor;
+    const int dilation_height_factor = params.dilation_height_factor;
+    const int pad_width = params.padding_values.width;
+    const int pad_height = params.padding_values.height;
+    const int depth_multiplier = params.depth_multiplier;
+    const int32_t output_offset = params.output_offset;
+    const int32_t output_activation_min = params.quantized_activation_min;
+    const int32_t output_activation_max = params.quantized_activation_max;
+
+    const int output_depth = MatchingDim(filter_shape, 3, output_shape, 3);
+
+    const int input_batches = input_shape.Dims(0);
+    const int input_height = input_shape.Dims(1);
+    const int input_width = input_shape.Dims(2);
+    const int input_depth = input_shape.Dims(3);
+    const int filter_height = filter_shape.Dims(1);
+    const int filter_width = filter_shape.Dims(2);
+
+    const int output_height = output_shape.Dims(1);
+    const int output_width = output_shape.Dims(2);
+
+    const int input_ch_stride = 1;
+    const int input_w_stride = input_depth;
+    const int input_h_stride = input_width * input_w_stride;
+    const int input_b_stride = input_height * input_h_stride;
+
+    const int filter_ch_stride = 1;
+    const int filter_w_stride = output_depth;
+    const int filter_h_stride = filter_width * filter_w_stride;
+
+    const int output_ch_stride = 1;
+    const int output_w_stride = output_depth;
+    const int output_h_stride = output_width * output_w_stride;
+    const int output_b_stride = output_height * output_h_stride;
+
+    int32_t temp_requant_buffer[MAX_VL_E32M4_ZVL128B] __attribute__((aligned(16)));
+
+    const int16_t s_input_offset_s16 = static_cast<int16_t>(input_offset);
+    const int32_t s_output_offset_s32 = output_offset;
+    const int32_t s_output_activation_min_s32 = output_activation_min;
+    const int32_t s_output_activation_max_s32 = output_activation_max;
+
+    for (int batch = 0; batch < input_batches; ++batch) {
+        const int8_t* input_batch_base = input_data + batch * input_b_stride;
+        int8_t* output_batch_base = output_data + batch * output_b_stride;
+        for (int out_y = 0; out_y < output_height; ++out_y) {
+            const int in_y_origin = (out_y * stride_height) - pad_height;
+            for (int in_channel = 0; in_channel < input_depth; ++in_channel) {
+                for (int m = 0; m < depth_multiplier; ++m) {
+                    const int output_channel = m + in_channel * depth_multiplier;
+                    const int32_t scalar_multiplier = output_multiplier[output_channel];
+                    const int32_t scalar_output_shift = output_shift[output_channel];
+                    const int effective_right_shift = 31 - scalar_output_shift;
+
+                    const int32_t bias_val = bias_data ? bias_data[output_channel] : 0;
+
+                    int8_t* output_channel_row_base = output_batch_base
+                                                      + out_y * output_h_stride
+                                                      + output_channel * output_ch_stride;
+
+                    const ptrdiff_t output_x_stride_bytes = output_w_stride * sizeof(int8_t);
+
+                    size_t current_out_x = 0;
+                    while (current_out_x < (size_t)output_width) {
+
+                        size_t vl = __riscv_vsetvl_e32m4(output_width - current_out_x);
+                        assert(vl <= MAX_VL_E32M4_ZVL128B && "Vector length exceeds temporary buffer size");
+
+                        vint32m4_t v_acc_s32;
+                        if (bias_data) {
+                             v_acc_s32 = __riscv_vmv_v_x_i32m4(bias_val, vl);
+                        } else {
+                             v_acc_s32 = __riscv_vmv_v_x_i32m4(0, vl);
+                        }
+
+
+                        vuint32m4_t v_idx = __riscv_vid_v_u32m4(vl);
+                        vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(
+                            __riscv_vadd_vx_u32m4(v_idx, (uint32_t)current_out_x, vl));
+                        vint32m4_t v_in_x_origin_base = __riscv_vsub_vx_i32m4(
+                            __riscv_vmul_vx_i32m4(v_out_x, stride_width, vl),
+                            pad_width, vl);
+
+                        for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
+                            const int in_y = in_y_origin + dilation_height_factor * filter_y;
+                            const bool is_y_inside_image = (in_y >= 0) && (in_y < input_height);
+
+                            if (!is_y_inside_image) continue;
+
+                             const int8_t* filter_y_base = filter_data
+                                    + filter_y * filter_h_stride;
+
+                            for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
+
+                                const int in_x_offset = dilation_width_factor * filter_x;
+                                vint32m4_t v_in_x = __riscv_vadd_vx_i32m4(v_in_x_origin_base, in_x_offset, vl);
+
+                                vbool8_t v_mask_ge_zero = __riscv_vmsge_vx_i32m4_b8(v_in_x, 0, vl);
+                                vbool8_t v_mask_lt_width = __riscv_vmslt_vx_i32m4_b8(v_in_x, input_width, vl);
+                                vbool8_t v_active_lane_mask_b8 = __riscv_vmand_mm_b8(v_mask_ge_zero, v_mask_lt_width, vl);
+
+                                uint32_t first_mask_bit = __riscv_vfirst_m_b8(v_active_lane_mask_b8, vl);
+                                if (first_mask_bit == (uint32_t)-1 && vl > 0) continue;
+
+                                const int8_t* filter_ptr = filter_y_base
+                                                          + filter_x * filter_w_stride
+                                                          + output_channel * filter_ch_stride;
+                                int8_t s_filter_val_s8 = *filter_ptr;
+                                int16_t s_filter_val_s16 = static_cast<int16_t>(s_filter_val_s8);
+
+                                int32_t base_in_x_for_vector0 = (int32_t)current_out_x * stride_width - pad_width + in_x_offset;
+                                const int8_t* input_base_ptr = input_batch_base
+                                                               + in_y * input_h_stride
+                                                               + base_in_x_for_vector0 * input_w_stride
+                                                               + in_channel * input_ch_stride;
+
+                                ptrdiff_t input_x_stride_bytes = (ptrdiff_t)stride_width * input_w_stride * sizeof(int8_t);
+
+                                vint8m1_t v_input_s8 = __riscv_vlse8_v_i8m1_m(v_active_lane_mask_b8, input_base_ptr, input_x_stride_bytes, vl);
+
+                                vint16m2_t v_input_s16 = __riscv_vsext_vf2_i16m2_m(v_active_lane_mask_b8, v_input_s8, vl);
+                                vint16m2_t v_input_plus_offset_s16 = __riscv_vadd_vx_i16m2_m(v_active_lane_mask_b8, v_input_s16, s_input_offset_s16, vl);
+
+                                v_acc_s32 = __riscv_vwmacc_vx_i32m4_m(v_active_lane_mask_b8, v_acc_s32, s_filter_val_s16, v_input_plus_offset_s16, vl);
+                            }
+                        }
+
+                        // Store accumulator to buffer for scalar requantization
+                        __riscv_vse32_v_i32m4(temp_requant_buffer, v_acc_s32, vl);
+
+                        // Scalar requantization loop (inefficient but avoids 64-bit vector types)
+                        for (size_t i = 0; i < vl; ++i) {
+                            temp_requant_buffer[i] = multi_64bit(
+                                temp_requant_buffer[i],
+                                scalar_multiplier,
+                                effective_right_shift);
+                        }
+
+                        // Load result back from buffer
+                        vint32m4_t v_res32 = __riscv_vle32_v_i32m4(temp_requant_buffer, vl);
+
+                        // Vectorized Offset, Clamping, Narrowing
+                        v_res32 = __riscv_vadd_vx_i32m4(v_res32, s_output_offset_s32, vl);
+                        v_res32 = __riscv_vmax_vx_i32m4(v_res32, s_output_activation_min_s32, vl);
+                        v_res32 = __riscv_vmin_vx_i32m4(v_res32, s_output_activation_max_s32, vl);
+
+                        vint16m2_t v_res16 = __riscv_vnclip_wx_i16m2(v_res32, 0, __RISCV_VXRM_RNU, vl);
+                        vint8m1_t v_out_s8 = __riscv_vnclip_wx_i8m1(v_res16, 0, __RISCV_VXRM_RNU, vl);
+
+                        int8_t* output_strip_base_ptr = output_channel_row_base + current_out_x * output_w_stride;
+                        __riscv_vsse8_v_i8m1(output_strip_base_ptr, output_x_stride_bytes, v_out_s8, vl);
+
+                        current_out_x += vl;
+                    }
+                }
+            }
+        }
+    }
+}
