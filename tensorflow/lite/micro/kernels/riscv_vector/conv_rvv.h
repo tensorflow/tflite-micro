@@ -8,10 +8,6 @@
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/runtime_shape.h"
-// #include "fixedpoint/fixedpoint.h"
-// #include "tensorflow/lite/core/macros.h"
-// #include "tensorflow/lite/kernels/internal/cppmath.h"
-// #include "tensorflow/lite/kernels/internal/types.h"
 
 using namespace tflite;
 
