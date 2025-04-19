@@ -101,8 +101,8 @@ void ConvPerChannelRVV(const ConvParams& params,
 
                 // Calculate rounding constants for requantization
                 int64_t rounding_val = (effective_right_shift > 0) ? (INT64_C(1) << (effective_right_shift - 1)) : 0;
-                int32_t rounding_lo = (int32_t)rounding_val;
-                int32_t rounding_hi = (int32_t)(rounding_val >> 32);
+                int32_t rounding_lo = static_cast<int32_t>(rounding_val);
+                int32_t rounding_hi = static_cast<int32_t>((rounding_val >> 32));
 
                 // Calculate output pointer and stride for this channel row
                 int8_t* output_channel_base = output_row_base + out_channel * output_ch_stride;
@@ -110,7 +110,7 @@ void ConvPerChannelRVV(const ConvParams& params,
 
                 // Process output width in vector chunks
                 size_t current_out_x = 0;
-                while (current_out_x < (size_t)output_width) 
+                while (current_out_x < static_cast<size_t>(output_width)) 
                 {
                     // Set vector length for this iteration
                     size_t vl = __riscv_vsetvl_e32m4(output_width - current_out_x);
@@ -128,7 +128,7 @@ void ConvPerChannelRVV(const ConvParams& params,
 
                     // Calculate base input x coordinates for the vector lanes
                     vuint32m4_t v_idx = __riscv_vid_v_u32m4(vl);
-                    vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vadd_vx_u32m4(v_idx, (uint32_t)current_out_x, vl));
+                    vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vadd_vx_u32m4(v_idx, static_cast<uint32_t>(current_out_x), vl));
                     vint32m4_t v_in_x_origin_base = __riscv_vsub_vx_i32m4(__riscv_vmul_vx_i32m4(v_out_x, stride_width, vl), pad_width, vl);
 
                     // Loop over filter height
@@ -160,10 +160,10 @@ void ConvPerChannelRVV(const ConvParams& params,
                             vbool8_t v_active_lane_mask_b8 = __riscv_vmand_mm_b8(v_mask_ge_zero, v_mask_lt_width, vl);
 
                             // Calculate base input pointer and stride for vector load
-                            int32_t base_in_x_for_vector0 = (int32_t)current_out_x * stride_width - pad_width + in_x_offset;
+                            int32_t base_in_x_for_vector0 = static_cast<int32_t>(current_out_x) * stride_width - pad_width + in_x_offset;
                             const int8_t* input_base_for_y_x_patch = input_batch_base + (in_y * input_h_stride) + (base_in_x_for_vector0 * input_w_stride) +
                                                                      (group_start_input_channel * input_ch_stride);
-                            ptrdiff_t input_x_stride_bytes = (ptrdiff_t)stride_width * input_w_stride * sizeof(int8_t);
+                            ptrdiff_t input_x_stride_bytes = static_cast<ptrdiff_t>(stride_width) * input_w_stride * sizeof(int8_t);
 
                             // Loop over input channels for this filter tap
                             for (int ic = 0; ic < filter_input_depth; ++ic) 
@@ -326,8 +326,8 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
 
                     // Calculate rounding constants for requantization
                     int64_t rounding_val = (effective_right_shift > 0) ? (INT64_C(1) << (effective_right_shift - 1)) : 0;
-                    int32_t rounding_lo = (int32_t)rounding_val;
-                    int32_t rounding_hi = (int32_t)(rounding_val >> 32);
+                    int32_t rounding_lo = static_cast<int32_t>(rounding_val);
+                    int32_t rounding_hi = static_cast<int32_t>((rounding_val) >> 32);
 
                     // Calculate output pointer and stride for this channel row
                     int8_t* output_channel_row_base = output_batch_base + out_y * output_h_stride + output_channel * output_ch_stride;
@@ -335,7 +335,7 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
 
                     // Process output width in vector chunks
                     size_t current_out_x = 0;
-                    while (current_out_x < (size_t)output_width) 
+                    while (current_out_x < static_cast<size_t>(output_width)) 
                     {
                         // Set vector length for this iteration
                         size_t vl = __riscv_vsetvl_e32m4(output_width - current_out_x);
@@ -353,7 +353,7 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
 
                         // Calculate base input x coordinates for the vector lanes
                         vuint32m4_t v_idx = __riscv_vid_v_u32m4(vl);
-                        vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vadd_vx_u32m4(v_idx, (uint32_t)current_out_x, vl));
+                        vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vadd_vx_u32m4(v_idx, static_cast<uint32_t>(current_out_x), vl));
                         vint32m4_t v_in_x_origin_base = __riscv_vsub_vx_i32m4(__riscv_vmul_vx_i32m4(v_out_x, stride_width, vl), pad_width, vl);
 
                         // Loop over filter height
@@ -383,7 +383,7 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
 
                                 // Skip MAC calculation if all lanes are masked off for this tap
                                 uint32_t first_mask_bit = __riscv_vfirst_m_b8(v_active_lane_mask_b8, vl);
-                                if (first_mask_bit == (uint32_t)-1 && vl > 0)
+                                if (first_mask_bit == static_cast<uint32_t>(-1) && vl > 0)
                                     continue;
 
                                 // Load scalar filter value for this tap and output channel
@@ -392,10 +392,10 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
                                 int16_t s_filter_val_s16 = static_cast<int16_t>(s_filter_val_s8);
 
                                 // Calculate base input pointer and stride for vector load (using in_channel)
-                                int32_t base_in_x_for_vector0 = (int32_t)current_out_x * stride_width - pad_width + in_x_offset;
+                                int32_t base_in_x_for_vector0 = static_cast<int32_t>(current_out_x) * stride_width - pad_width + in_x_offset;
                                 const int8_t* input_base_ptr =
                                   input_batch_base + in_y * input_h_stride + base_in_x_for_vector0 * input_w_stride + in_channel * input_ch_stride;
-                                ptrdiff_t input_x_stride_bytes = (ptrdiff_t)stride_width * input_w_stride * sizeof(int8_t);
+                                ptrdiff_t input_x_stride_bytes = static_cast<ptrdiff_t>(stride_width) * input_w_stride * sizeof(int8_t);
 
                                 // Load input vector (masked, strided), widen, add offset
                                 vint8m1_t v_input_s8 = __riscv_vlse8_v_i8m1_m(v_active_lane_mask_b8, input_base_ptr, input_x_stride_bytes, vl);
