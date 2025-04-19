@@ -1,27 +1,44 @@
+#include <riscv_vector.h>
+
 #include <algorithm>
 #include <cassert>
-#include <cstdint>
 #include <cstddef>
-#include <limits> 
-
-#include <riscv_vector.h>
+#include <cstdint>
+#include <limits>
 
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 using namespace tflite;
 
-void ConvPerChannelRVV(
-    const ConvParams& params, const int32_t* output_multiplier,
-    const int32_t* output_shift, const RuntimeShape& input_shape,
-    const int8_t* input_data, const RuntimeShape& filter_shape,
-    const int8_t* filter_data, const RuntimeShape& bias_shape,
-    const int32_t* bias_data, const RuntimeShape& output_shape,
-    int8_t* output_data)
-{
-    MicroPrintf("[PEANUT MICROSYSTEMS] ConvPerChannelRVV");
+#define MAX_VL_E32M4_ZVL128B 16
 
-    // Extract convolution parameters
+inline int32_t multi_64bit(int32_t x, int32_t quantized_multiplier, int shift) 
+{
+    int64_t acc = static_cast<int64_t>(x) * static_cast<int64_t>(quantized_multiplier);
+
+    const int64_t rounding = (shift > 0) ? (INT64_C(1) << (shift - 1)) : INT64_C(0);
+    acc += rounding;
+
+    acc = acc >> shift;
+
+    acc = std::max(acc, static_cast<int64_t>(std::numeric_limits<int32_t>::min()));
+    acc = std::min(acc, static_cast<int64_t>(std::numeric_limits<int32_t>::max()));
+
+    return static_cast<int32_t>(acc);
+}
+
+
+void ConvPerChannelRVV(const ConvParams& params,
+                       const int32_t* output_multiplier,
+                       const int32_t* output_shift,
+                       const RuntimeShape& input_shape,
+                       const int8_t* input_data,
+                       const RuntimeShape& filter_shape,
+                       const int8_t* filter_data,
+                       const RuntimeShape& bias_shape, const int32_t* bias_data,
+                       const RuntimeShape& output_shape, int8_t* output_data)
+{
     const int32_t input_offset = params.input_offset;
     const int stride_width = params.stride_width;
     const int stride_height = params.stride_height;
@@ -33,185 +50,142 @@ void ConvPerChannelRVV(
     const int32_t output_activation_min = params.quantized_activation_min;
     const int32_t output_activation_max = params.quantized_activation_max;
 
-    // Extract dimensions from input, filter, and output shapes
     const int input_batches = input_shape.Dims(0);
     const int input_height = input_shape.Dims(1);
     const int input_width = input_shape.Dims(2);
     const int input_depth = input_shape.Dims(3);
-    const int filter_output_depth = filter_shape.Dims(0);
     const int filter_height = filter_shape.Dims(1);
     const int filter_width = filter_shape.Dims(2);
     const int filter_input_depth = filter_shape.Dims(3);
-    const int output_batches = output_shape.Dims(0);
     const int output_height = output_shape.Dims(1);
     const int output_width = output_shape.Dims(2);
-    const int output_depth_dim = output_shape.Dims(3);
+    const int output_depth = output_shape.Dims(3);
 
-    // Determine the actual number of batches and output channels to process
-    const int batches = std::min(input_batches, output_batches);
-    const int output_depth = std::min(filter_output_depth, output_depth_dim);
-
-    // Calculate group information for grouped/depthwise convolutions
     const int groups = input_depth / filter_input_depth;
     const int filters_per_group = output_depth / groups;
 
-    // Prepare input offset as int16_t for vector operations
-    const int16_t input_offset_s16 = static_cast<int16_t>(input_offset);
-
-    // Calculate memory strides for navigating input, filter, and output tensors
     const int input_ch_stride = 1;
-    const int input_w_stride = input_depth * input_ch_stride;
+    const int input_w_stride = input_depth;
     const int input_h_stride = input_width * input_w_stride;
     const int input_b_stride = input_height * input_h_stride;
     const int filter_ch_stride = 1;
-    const int filter_w_stride = filter_input_depth * filter_ch_stride;
+    const int filter_w_stride = filter_input_depth;
     const int filter_h_stride = filter_width * filter_w_stride;
     const int filter_o_stride = filter_height * filter_h_stride;
     const int output_ch_stride = 1;
-    const int output_w_stride = output_depth * output_ch_stride;
+    const int output_w_stride = output_depth;
     const int output_h_stride = output_width * output_w_stride;
     const int output_b_stride = output_height * output_h_stride;
 
-    for (int batch = 0; batch < batches; ++batch) 
-    {
-        // Get base pointers for the current batch's input and output data
+    int32_t temp_requant_buffer[MAX_VL_E32M4_ZVL128B] __attribute__((aligned(16)));
+
+    const int16_t s_input_offset_s16 = static_cast<int16_t>(input_offset);
+    const int32_t s_output_offset_s32 = output_offset;
+    const int32_t s_output_activation_min_s32 = output_activation_min;
+    const int32_t s_output_activation_max_s32 = output_activation_max;
+
+    for (int batch = 0; batch < input_batches; ++batch) {
         const int8_t* input_batch_base = input_data + batch * input_b_stride;
         int8_t* output_batch_base = output_data + batch * output_b_stride;
 
-        for (int out_y = 0; out_y < output_height; ++out_y) 
-        {
-            // Calculate the starting row index in the input tensor corresponding to the current output row
+        for (int out_y = 0; out_y < output_height; ++out_y) {
             const int in_y_origin = (out_y * stride_height) - pad_height;
+            int8_t* output_row_base = output_batch_base + out_y * output_h_stride;
 
-            for (int out_x = 0; out_x < output_width; ++out_x) 
-            {
-                // Calculate the starting column index in the input tensor corresponding to the current output column
-                const int in_x_origin = (out_x * stride_width) - pad_width;
+            for (int out_channel = 0; out_channel < output_depth; ++out_channel) {
+                const int group = out_channel / filters_per_group;
+                const int group_start_input_channel = group * filter_input_depth;
+                const int8_t* filter_oc_base = filter_data + out_channel * filter_o_stride;
 
-                for (int out_channel = 0; out_channel < output_depth; ++out_channel) 
-                {
-                    // Determine the group index and starting input channel for the current output channel
-                    const int group = out_channel / filters_per_group;
-                    const int group_start_input_channel = group * filter_input_depth;
+                const int32_t scalar_multiplier = output_multiplier[out_channel];
+                const int32_t scalar_output_shift = output_shift[out_channel];
+                const int scalar_right_shift = 31 - scalar_output_shift;
+                const int32_t bias_val = bias_data ? bias_data[out_channel] : 0;
 
-                    // Initialize the accumulator for the current output pixel and channel
-                    int32_t acc = 0;
+                int8_t* output_channel_base = output_row_base + out_channel * output_ch_stride;
+                const ptrdiff_t output_x_stride_bytes = output_w_stride * sizeof(int8_t);
 
-                    // Get the base pointer for the filter data corresponding to the current output channel
-                    const int8_t* filter_oc_base = filter_data + out_channel * filter_o_stride;
+                size_t current_out_x = 0;
+                while (current_out_x < (size_t)output_width) {
+                    size_t vl = __riscv_vsetvl_e32m4(output_width - current_out_x);
+                    assert(vl <= MAX_VL_E32M4_ZVL128B && "Vector length exceeds temporary buffer size");
 
-                    for (int filter_y = 0; filter_y < filter_height; ++filter_y) 
-                    {
-                        // Calculate the corresponding row index in the input tensor
+                    vint32m4_t v_acc_s32 = __riscv_vmv_v_x_i32m4(0, vl);
+
+                    vuint32m4_t v_idx = __riscv_vid_v_u32m4(vl); // [0, 1, ..., vl-1]
+                    vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(
+                        __riscv_vadd_vx_u32m4(v_idx, (uint32_t)current_out_x, vl));
+                    vint32m4_t v_in_x_origin_base = __riscv_vsub_vx_i32m4(
+                        __riscv_vmul_vx_i32m4(v_out_x, stride_width, vl),
+                        pad_width, vl);
+
+                    for (int filter_y = 0; filter_y < filter_height; ++filter_y) {
                         const int in_y = in_y_origin + dilation_height_factor * filter_y;
+                        const bool is_y_inside_image = (in_y >= 0) && (in_y < input_height);
 
-                        // Get the base pointer for the current filter row
-                        const int8_t* filter_y_base = filter_oc_base + filter_y * filter_h_stride;
+                        if (!is_y_inside_image) continue;
 
-                        for (int filter_x = 0; filter_x < filter_width; ++filter_x) 
-                        {
-                            // Calculate the corresponding column index in the input tensor
-                            const int in_x = in_x_origin + dilation_width_factor * filter_x;
+                        const int8_t* filter_y_base = filter_oc_base + (filter_y * filter_h_stride);
 
-                            // Get the base pointer for the current filter column
-                            const int8_t* filter_x_base = filter_y_base + filter_x * filter_w_stride;
+                        for (int filter_x = 0; filter_x < filter_width; ++filter_x) {
+                            const int in_x_offset = dilation_width_factor * filter_x;
+                            const int8_t* filter_patch_base = filter_y_base + (filter_x * filter_w_stride);
 
-                            // Check if the calculated input patch position is within the input tensor boundaries
-                            const bool is_point_inside_image =
-                                (in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
-                                (in_y < input_height);
+                            vint32m4_t v_in_x = __riscv_vadd_vx_i32m4(v_in_x_origin_base, in_x_offset, vl);
 
-                            // Skip computation if the current filter patch position is outside the input boundaries
-                            if (!is_point_inside_image) 
-                            continue;
+                            vbool8_t v_mask_ge_zero = __riscv_vmsge_vx_i32m4_b8(v_in_x, 0, vl);
+                            vbool8_t v_mask_lt_width = __riscv_vmslt_vx_i32m4_b8(v_in_x, input_width, vl);
+                            vbool8_t v_active_lane_mask_b8 = __riscv_vmand_mm_b8(v_mask_ge_zero, v_mask_lt_width, vl);
 
-                            // Calculate the memory offset to the start of the relevant input data patch
-                            const int input_offset_addr = (in_y * input_h_stride) + (in_x * input_w_stride) + (group_start_input_channel * input_ch_stride);
-                            // Get pointers to the start of the input patch and corresponding filter data
-                            const int8_t* input_ptr = input_batch_base + input_offset_addr;
-                            const int8_t* filter_ptr = filter_x_base;
+                            int32_t base_in_x_for_vector0 = (int32_t)current_out_x * stride_width - pad_width + in_x_offset;
+                            const int8_t* input_base_for_y_x0 = input_batch_base
+                                                                + (in_y * input_h_stride)
+                                                                + (base_in_x_for_vector0 * input_w_stride)
+                                                                + (group_start_input_channel * input_ch_stride);
 
-                            // Initialize variables for the vector processing loop over input channels for this patch
-                            size_t channels_remaining = filter_input_depth;
-                            int32_t patch_acc = 0;
+                            ptrdiff_t input_x_stride_bytes = (ptrdiff_t)stride_width * input_w_stride * sizeof(int8_t);
 
-                            // Perform vector MAC operation if there are channels to process for this patch
-                            if (channels_remaining > 0)
-                            {
-                                // Initialize a 32-bit vector accumulator (m4) to zeros
-                                size_t vlmax_for_acc = __riscv_vsetvlmax_e32m4();
-                                vint32m4_t v_acc_s32 = __riscv_vmv_v_x_i32m4(0, vlmax_for_acc);
+                            for (int ic = 0; ic < filter_input_depth; ++ic) {
+                                int8_t s_filter_val_s8 = filter_patch_base[ic * filter_ch_stride];
+                                int16_t s_filter_val_s16 = static_cast<int16_t>(s_filter_val_s8);
 
-                                // Process input channels in vector chunks until all are done
-                                while (channels_remaining > 0)
-                                {
-                                    // Set the vector length for the current iteration
-                                    size_t current_vl = __riscv_vsetvl_e8m1(channels_remaining);
+                                const int8_t* input_ic_ptr = input_base_for_y_x0 + (ic * input_ch_stride);
 
-                                    // Load 8-bit input and filter data chunks into m1 vectors
-                                    vint8m1_t v_input_s8 = __riscv_vle8_v_i8m1(input_ptr, current_vl);
-                                    vint8m1_t v_filter_s8 = __riscv_vle8_v_i8m1(filter_ptr, current_vl);
+                                vint8m1_t v_input_s8 = __riscv_vlse8_v_i8m1_m(v_active_lane_mask_b8, input_ic_ptr, input_x_stride_bytes, vl);
+                                vint16m2_t v_input_s16 = __riscv_vsext_vf2_i16m2_m(v_active_lane_mask_b8, v_input_s8, vl);
+                                vint16m2_t v_input_plus_offset_s16 = __riscv_vadd_vx_i16m2_m(v_active_lane_mask_b8, v_input_s16, s_input_offset_s16, vl);
 
-                                    // Widen 8-bit vectors (m1) to 16-bit vectors (m2)
-                                    vint16m2_t v_input_s16 = __riscv_vsext_vf2_i16m2(v_input_s8, current_vl);
-                                    vint16m2_t v_filter_s16 = __riscv_vsext_vf2_i16m2(v_filter_s8, current_vl);
-
-                                    // Add the input offset to the widened 16-bit input vector
-                                    v_input_s16 = __riscv_vadd_vx_i16m2(v_input_s16, input_offset_s16, current_vl);
-
-                                    // Perform widening multiply-accumulate: 16m2 * 16m2 -> 32m4, accumulating into v_acc_s32
-                                    v_acc_s32 = __riscv_vwmacc_vv_i32m4(v_acc_s32, v_filter_s16, v_input_s16, current_vl);
-
-                                    // Advance input and filter pointers and decrement remaining channel count
-                                    input_ptr += current_vl;
-                                    filter_ptr += current_vl;
-                                    channels_remaining -= current_vl;
-                                }
-
-                                // Reduce the final 32-bit vector accumulator to a scalar sum
-                                size_t vl_for_reduce = __riscv_vsetvl_e32m4(filter_input_depth);
-                                vint32m1_t v_zero_reduction = __riscv_vmv_s_x_i32m1(0, 1);
-                                vint32m1_t v_sum_reduction = __riscv_vredsum_vs_i32m4_i32m1(
-                                                                v_acc_s32,
-                                                                v_zero_reduction,
-                                                                vl_for_reduce);
-
-                                // Extract the scalar reduction result into patch_acc
-                                patch_acc = __riscv_vmv_x_s_i32m1_i32(v_sum_reduction);
+                                v_acc_s32 = __riscv_vwmacc_vx_i32m4_m(v_active_lane_mask_b8, v_acc_s32, s_filter_val_s16, v_input_plus_offset_s16, vl);
                             }
-
-                            // Accumulate the result from the processed patch into the overall accumulator
-                            acc += patch_acc;
                         }
                     }
 
-                    // Add bias value
+                    vint32m4_t v_res32 = v_acc_s32;
                     if (bias_data) {
-                    acc += bias_data[out_channel];
+                        v_res32 = __riscv_vadd_vx_i32m4(v_res32, bias_val, vl);
                     }
 
-                    // Apply per-channel requantization to the accumulated value
-                    const int32_t current_multiplier = output_multiplier[out_channel];
-                    const int32_t current_shift = output_shift[out_channel];
-                    const int64_t total_shift = 31 - current_shift;
-                    const int64_t round_val = (total_shift > 0) ? (static_cast<int64_t>(1) << (total_shift - 1)) : 0LL;
-                    int64_t result64 = static_cast<int64_t>(acc) * static_cast<int64_t>(current_multiplier);
-                    result64 += round_val; // Add rounding value
-                    result64 = result64 >> total_shift; // Perform the shift
-                    result64 = std::max(result64, static_cast<int64_t>(std::numeric_limits<int32_t>::min()));
-                    result64 = std::min(result64, static_cast<int64_t>(std::numeric_limits<int32_t>::max()));
-                    acc = static_cast<int32_t>(result64);
+                    __riscv_vse32_v_i32m4(temp_requant_buffer, v_res32, vl);
 
-                    // Add the output offset to the requantized value
-                    acc += output_offset;
+                    for (size_t i = 0; i < vl; ++i) {
+                        temp_requant_buffer[i] = multi_64bit(
+                            temp_requant_buffer[i],
+                            scalar_multiplier,
+                            scalar_right_shift);
+                    }
 
-                    // Clamp the result to the final activation range
-                    acc = std::max(acc, output_activation_min);
-                    acc = std::min(acc, output_activation_max);
+                    v_res32 = __riscv_vle32_v_i32m4(temp_requant_buffer, vl);
+                    v_res32 = __riscv_vadd_vx_i32m4(v_res32, s_output_offset_s32, vl);
+                    v_res32 = __riscv_vmax_vx_i32m4(v_res32, s_output_activation_min_s32, vl);
+                    v_res32 = __riscv_vmin_vx_i32m4(v_res32, s_output_activation_max_s32, vl);
 
-                    // Calculate the memory offset for the output pixel and store the final 8-bit result
-                    const int output_offset_addr = (out_y * output_h_stride) + (out_x * output_w_stride) + (out_channel * output_ch_stride);
-                    output_batch_base[output_offset_addr] = static_cast<int8_t>(acc);
+                    vint16m2_t v_res16 = __riscv_vnclip_wx_i16m2(v_res32, 0, __RISCV_VXRM_RNU, vl);
+                    vint8m1_t v_out_s8 = __riscv_vnclip_wx_i8m1(v_res16, 0, __RISCV_VXRM_RNU, vl);
+
+                    int8_t* output_strip_base_ptr = output_channel_base + current_out_x * output_w_stride;
+                    __riscv_vsse8_v_i8m1(output_strip_base_ptr, output_x_stride_bytes, v_out_s8, vl);
+
+                    current_out_x += vl;
                 }
             }
         }
