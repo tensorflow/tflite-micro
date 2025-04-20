@@ -23,6 +23,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+#if defined(TFLM_USE_RISCV_VECTOR)
+#include "tensorflow/lite/micro/kernels/riscv_vector/fully_connected_rvv.h"
+#endif
+
 namespace tflite {
 namespace {
 
@@ -181,49 +185,112 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
           break;
         }
         case kTfLiteInt8: {
-          data.is_per_channel
-              ? tflite::reference_integer_ops::FullyConnectedPerChannel(
-                    FullyConnectedParamsQuantized(data),
-                    data.per_channel_output_multiplier,
-                    reinterpret_cast<const int*>(data.per_channel_output_shift),
-                    tflite::micro::GetTensorShape(input),
-                    tflite::micro::GetTensorData<int8_t>(input),
-                    tflite::micro::GetTensorShape(filter),
+          if (data.is_per_channel)
+          {
+#if defined(TFLM_USE_RISCV_VECTOR)
 #ifdef USE_TFLM_COMPRESSION
-                    tflite::micro::GetTensorData<int8_t>(
-                        micro_context, filter, weights_comp_td,
-                        data.weights_scratch_index),
-                    tflite::micro::GetTensorShape(bias),
-                    tflite::micro::GetOptionalTensorData<int32_t>(
-                        micro_context, bias, bias_comp_td,
-                        data.bias_scratch_index),
-#else   // USE_TFLM_COMPRESSION
-                    tflite::micro::GetTensorData<int8_t>(filter),
-                    tflite::micro::GetTensorShape(bias),
-                    tflite::micro::GetOptionalTensorData<int32_t>(bias),
-#endif  // USE_TFLM_COMPRESSION
-                    tflite::micro::GetTensorShape(output),
-                    tflite::micro::GetTensorData<int8_t>(output))
-              : tflite::reference_integer_ops::FullyConnected(
-                    FullyConnectedParamsQuantized(data),
-                    tflite::micro::GetTensorShape(input),
-                    tflite::micro::GetTensorData<int8_t>(input),
-                    tflite::micro::GetTensorShape(filter),
+             // Check if compression is enabled for weights or bias when RVV is active
+             TFLITE_DCHECK(weights_comp_td == nullptr && bias_comp_td == nullptr);
+             if (weights_comp_td != nullptr || bias_comp_td != nullptr)
+             {
+                 MicroPrintf("ERROR: RVV path does not support compressed weights/bias yet for FullyConnected.");
+                 return kTfLiteError;
+             }
+#endif // USE_TFLM_COMPRESSION
+            // RVV kernel requires int32 bias
+            if (bias != nullptr && bias->type != kTfLiteInt32) {
+                MicroPrintf("RVV kernel for FullyConnected requires Int32 bias for per-channel, got %s", TfLiteTypeGetName(bias->type));
+                return kTfLiteError;
+            }
+            FullyConnectedPerChannelRVV(
+                 FullyConnectedParamsQuantized(data),
+                 data.per_channel_output_multiplier,
+                 reinterpret_cast<const int*>(data.per_channel_output_shift),
+                 tflite::micro::GetTensorShape(input),
+                 tflite::micro::GetTensorData<int8_t>(input),
+                 tflite::micro::GetTensorShape(filter),
+                 tflite::micro::GetTensorData<int8_t>(filter),
+                 tflite::micro::GetTensorShape(bias),
+                 tflite::micro::GetOptionalTensorData<int32_t>(bias),
+                 tflite::micro::GetTensorShape(output),
+                 tflite::micro::GetTensorData<int8_t>(output)
+            );
+#else // defined(TFLM_USE_RISCV_VECTOR)
+             tflite::reference_integer_ops::FullyConnectedPerChannel(
+                 FullyConnectedParamsQuantized(data),
+                 data.per_channel_output_multiplier,
+                 reinterpret_cast<const int*>(data.per_channel_output_shift),
+                 tflite::micro::GetTensorShape(input),
+                 tflite::micro::GetTensorData<int8_t>(input),
+                 tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
-                    tflite::micro::GetTensorData<int8_t>(
-                        micro_context, filter, weights_comp_td,
-                        data.weights_scratch_index),
-                    tflite::micro::GetTensorShape(bias),
-                    tflite::micro::GetOptionalTensorData<int32_t>(
-                        micro_context, bias, bias_comp_td,
-                        data.bias_scratch_index),
+                 tflite::micro::GetTensorData<int8_t>(
+                     micro_context, filter, weights_comp_td,
+                     data.weights_scratch_index),
+                 tflite::micro::GetTensorShape(bias),
+                 tflite::micro::GetOptionalTensorData<int32_t>(
+                     micro_context, bias, bias_comp_td,
+                     data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
-                    tflite::micro::GetTensorData<int8_t>(filter),
-                    tflite::micro::GetTensorShape(bias),
-                    tflite::micro::GetOptionalTensorData<int32_t>(bias),
+                 tflite::micro::GetTensorData<int8_t>(filter),
+                 tflite::micro::GetTensorShape(bias),
+                 tflite::micro::GetOptionalTensorData<int32_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
-                    tflite::micro::GetTensorShape(output),
-                    tflite::micro::GetTensorData<int8_t>(output));
+                 tflite::micro::GetTensorShape(output),
+                 tflite::micro::GetTensorData<int8_t>(output));
+#endif // defined(TFLM_USE_RISCV_VECTOR)
+          }
+          else // if (!data.is_per_channel)
+          {
+#if defined(TFLM_USE_RISCV_VECTOR)
+#ifdef USE_TFLM_COMPRESSION
+             // Check if compression is enabled for weights or bias when RVV is active
+             TFLITE_DCHECK(weights_comp_td == nullptr && bias_comp_td == nullptr);
+             if (weights_comp_td != nullptr || bias_comp_td != nullptr)
+             {
+                 MicroPrintf("ERROR: RVV path does not support compressed weights/bias yet for FullyConnected.");
+                 return kTfLiteError;
+             }
+#endif // USE_TFLM_COMPRESSION
+            // RVV kernel requires int32 bias
+            if (bias != nullptr && bias->type != kTfLiteInt32) {
+                MicroPrintf("RVV kernel for FullyConnected requires Int32 bias, got %s", TfLiteTypeGetName(bias->type));
+                return kTfLiteError;
+            }
+            FullyConnectedRVV(
+                FullyConnectedParamsQuantized(data),
+                tflite::micro::GetTensorShape(input),
+                tflite::micro::GetTensorData<int8_t>(input),
+                tflite::micro::GetTensorShape(filter),
+                tflite::micro::GetTensorData<int8_t>(filter),
+                tflite::micro::GetTensorShape(bias),
+                tflite::micro::GetOptionalTensorData<int32_t>(bias),
+                tflite::micro::GetTensorShape(output),
+                tflite::micro::GetTensorData<int8_t>(output)
+            );
+#else // defined(TFLM_USE_RISCV_VECTOR)
+            tflite::reference_integer_ops::FullyConnected(
+                 FullyConnectedParamsQuantized(data),
+                 tflite::micro::GetTensorShape(input),
+                 tflite::micro::GetTensorData<int8_t>(input),
+                 tflite::micro::GetTensorShape(filter),
+#ifdef USE_TFLM_COMPRESSION
+                 tflite::micro::GetTensorData<int8_t>(
+                     micro_context, filter, weights_comp_td,
+                     data.weights_scratch_index),
+                 tflite::micro::GetTensorShape(bias),
+                 tflite::micro::GetOptionalTensorData<int32_t>(
+                     micro_context, bias, bias_comp_td,
+                     data.bias_scratch_index),
+#else   // USE_TFLM_COMPRESSION
+                 tflite::micro::GetTensorData<int8_t>(filter),
+                 tflite::micro::GetTensorShape(bias),
+                 tflite::micro::GetOptionalTensorData<int32_t>(bias),
+#endif  // USE_TFLM_COMPRESSION
+                 tflite::micro::GetTensorShape(output),
+                 tflite::micro::GetTensorData<int8_t>(output));
+#endif // defined(TFLM_USE_RISCV_VECTOR)
+          }
           break;
         }
         default: {

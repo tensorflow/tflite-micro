@@ -21,9 +21,6 @@ limitations under the License.
 
 namespace tflite {
 namespace reference_integer_ops {
-
-// [PEANUT] It seems like the only difference between these are the data types and formats.
-//            We are mainly working on 8-bit data, so the below function is most important
 inline void DepthwiseConvPerChannel(
     const DepthwiseParams& params, const int32_t* output_multiplier,
     const int32_t* output_shift, const RuntimeShape& input_shape,
@@ -33,20 +30,13 @@ inline void DepthwiseConvPerChannel(
     int8_t* output_data) {
   // Get parameters.
   // TODO(b/141565753): Re-introduce ScopedProfilingLabel on Micro.
-  // [PEANUT] Lots of Offset() calls. These map multi-dimensional indices to a one-dimensional index in the data buffers. More details in types.h
-  // [PEANUT] Offset() defined in tflite-micro/lite/kernels/internal/runtime_shape.h
   const int stride_width = params.stride_width;
   const int stride_height = params.stride_height;
-  // [PEANUT] I think dilation refers to this: https://towardsdatascience.com/a-primer-on-atrous-convolutions-and-depth-wise-separable-convolutions-443b106919f5/
   const int dilation_width_factor = params.dilation_width_factor;
   const int dilation_height_factor = params.dilation_height_factor;
-  // [PEANUT] Amount to 0-pad the input. This affects low pixel indices. High indices beyond input height and width are always treated as 0.
   const int pad_width = params.padding_values.width;
   const int pad_height = params.padding_values.height;
-  // [PEANUT] It seems like each input channel maps to "depth_multiplier" consecutive output channels
   const int depth_multiplier = params.depth_multiplier;
-
-  // [PEANUT] Activation clamping
   const int32_t input_offset = params.input_offset;
   const int32_t output_offset = params.output_offset;
   const int32_t output_activation_min = params.quantized_activation_min;
@@ -57,15 +47,6 @@ inline void DepthwiseConvPerChannel(
   TFLITE_DCHECK_EQ(filter_shape.DimensionsCount(), 4);
   TFLITE_DCHECK_EQ(output_shape.DimensionsCount(), 4);
 
-  MicroPrintf("[PEANUT MICROSYSTEMS] Using base depthwise conv");
-
-  // [PEANUT] Input/output/filter dimensions
-  // [PEANUT] Input shape (batches, height, width, in-depth)
-  // [PEANUT] Output shape (batches, height, width, out-depth)
-  // [PEANUT] Filter shape (1?, height, width, out-depth)
-  // [PEANUT] These shapes also match how the data is stored in memory: 
-  //            batch-major, then row-major, then column-major. 
-  //            Channels are last. Refer to RuntimeShape.
   TFLITE_DCHECK_LE(output_activation_min, output_activation_max);
   const int batches = MatchingDim(input_shape, 0, output_shape, 0);
   const int output_depth = MatchingDim(filter_shape, 3, output_shape, 3);
@@ -93,8 +74,7 @@ inline void DepthwiseConvPerChannel(
                 const int in_x = in_x_origin + dilation_width_factor * filter_x;
                 const int in_y =
                     in_y_origin + dilation_height_factor * filter_y;
-                // Zero padding by omitting the areas outside the image
-                // [PEANUT] The branches may be a bottleneck
+                // Zero padding by omitting the areas outside the image.
                 const bool is_point_inside_image =
                     (in_x >= 0) && (in_x < input_width) && (in_y >= 0) &&
                     (in_y < input_height);
@@ -126,13 +106,10 @@ inline void DepthwiseConvPerChannel(
             if (bias_data) {
               acc += bias_data[output_channel];
             }
-            // [PEANUT] This is analogous to the output_shift in our example
-            // [PEANUT] tflite-micro/tensorflow/lite/kernels/internal/common.cc
             acc = MultiplyByQuantizedMultiplier(
                 acc, output_multiplier[output_channel],
                 output_shift[output_channel]);
             acc += output_offset;
-            // [PEANUT] Clamp output
             acc = std::max(acc, output_activation_min);
             acc = std::min(acc, output_activation_max);
             output_data[Offset(output_shape, batch, out_y, out_x,
