@@ -23,6 +23,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+#include "tensorflow/lite/micro/kernels/riscv_vector/fully_connected_rvv.h"
+
 namespace tflite {
 namespace {
 
@@ -182,7 +184,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
         }
         case kTfLiteInt8: {
           data.is_per_channel
-              ? tflite::reference_integer_ops::FullyConnectedPerChannel(
+              ? FullyConnectedPerChannelRVV(
                     FullyConnectedParamsQuantized(data),
                     data.per_channel_output_multiplier,
                     reinterpret_cast<const int*>(data.per_channel_output_shift),
@@ -204,7 +206,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
                     tflite::micro::GetTensorShape(output),
                     tflite::micro::GetTensorData<int8_t>(output))
-              : tflite::reference_integer_ops::FullyConnected(
+              : FullyConnectedRVV(
                     FullyConnectedParamsQuantized(data),
                     tflite::micro::GetTensorShape(input),
                     tflite::micro::GetTensorData<int8_t>(input),
