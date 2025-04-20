@@ -24,6 +24,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+#include "tensorflow/lite/micro/kernels/riscv_vector/conv_rvv.h"
+
 namespace tflite {
 namespace {
 
@@ -109,7 +111,7 @@ TfLiteStatus DepthwiseConvEval(TfLiteContext* context, TfLiteNode* node) {
           break;
         }
         case kTfLiteInt8: {
-          reference_integer_ops::DepthwiseConvPerChannel(
+          DepthwiseConvPerChannelRVV(
               DepthwiseConvParamsQuantized(params, data),
               data.per_channel_output_multiplier, data.per_channel_output_shift,
               tflite::micro::GetTensorShape(input),
