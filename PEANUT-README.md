@@ -14,3 +14,13 @@ To run with informative Peanut Microsystems-specific logs, add a PEANUT_MICRO_LO
         -DPEANUT_MICRO_LOG
 
 The main purpose for this flag is to sanity-check which implementations are used and to determine model architectures, including input and output shapes.
+
+## Testing
+
+To test, follow the same steps as above, but instead of *hello_world*, run
+    
+    make -f tensorflow/lite/micro/tools/make/Makefile TARGET=riscv32_vector test
+
+## Issues
+
+Sometimes, when modifying the kernels, the compiler/build system will use objects from the previous compilation, meaning the new code will not run. Make sure to sanity check that your code is actually being used.
