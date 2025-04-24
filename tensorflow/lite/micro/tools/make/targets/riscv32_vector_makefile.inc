@@ -62,7 +62,6 @@ include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc
 MICROLITE_CC_SRCS += \
   tensorflow/lite/micro/kernels/riscv_vector/conv_rvv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/fully_connected_rvv.cc \
-  tensorflow/lite/micro/kernels/riscv_vector/softmax_rvv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/conv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/depthwise_conv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/fully_connected.cc \
