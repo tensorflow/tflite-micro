@@ -9,6 +9,7 @@
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
+
 inline vint32m4_t SRDMH_vv_i32m4(vint32m4_t v_a, vint32m4_t v_b, size_t vl)
 {
     const int32_t s_int32_min = INT32_MIN;
@@ -20,23 +21,33 @@ inline vint32m4_t SRDMH_vv_i32m4(vint32m4_t v_a, vint32m4_t v_b, size_t vl)
 
     vint32m4_t v_prod_lo = __riscv_vmul_vv_i32m4(v_a, v_b, vl);
     vint32m4_t v_prod_hi = __riscv_vmulh_vv_i32m4(v_a, v_b, vl);
-
-    const int32_t s_nudge_val = (INT32_C(1) << 30);
     vuint32m4_t v_prod_lo_u = __riscv_vreinterpret_v_i32m4_u32m4(v_prod_lo);
-    vuint32m4_t v_sum_lo_u = __riscv_vadd_vx_u32m4(v_prod_lo_u, s_nudge_val, vl);
 
+    const int32_t s_nudge_pos = (1 << 30);
+    const int32_t s_nudge_neg = 1 - (1 << 30);
+    vint32m4_t v_a_sign = __riscv_vsra_vx_i32m4(v_a, 31, vl);
+    vint32m4_t v_b_sign = __riscv_vsra_vx_i32m4(v_b, 31, vl);
+    vbool8_t v_prod_non_negative_mask = __riscv_vmseq_vv_i32m4_b8(v_a_sign, v_b_sign, vl);
+
+    vint32m4_t v_nudge = __riscv_vmv_v_x_i32m4(s_nudge_neg, vl);
+    v_nudge = __riscv_vmerge_vxm_i32m4(v_nudge, s_nudge_pos, v_prod_non_negative_mask, vl);
+    vuint32m4_t v_nudge_u = __riscv_vreinterpret_v_i32m4_u32m4(v_nudge);
+
+    vuint32m4_t v_sum_lo_u = __riscv_vadd_vv_u32m4(v_prod_lo_u, v_nudge_u, vl);
     vbool8_t v_carry_mask = __riscv_vmsltu_vv_u32m4_b8(v_sum_lo_u, v_prod_lo_u, vl);
-    vint32m4_t v_sum_hi = __riscv_vadd_vx_i32m4_m(v_carry_mask, v_prod_hi, 1, vl);
+    vint32m4_t v_nudge_hi = __riscv_vsra_vx_i32m4(v_nudge, 31, vl);
+    vint32m4_t v_sum_hi = __riscv_vadd_vv_i32m4(v_prod_hi, v_nudge_hi, vl);
+    v_sum_hi = __riscv_vadd_vx_i32m4_m(v_carry_mask, v_sum_hi, 1, vl);
 
     vuint32m4_t v_sum_lo_shifted_u = __riscv_vsrl_vx_u32m4(v_sum_lo_u, 31, vl);
     vint32m4_t v_sum_hi_shifted = __riscv_vsll_vx_i32m4(v_sum_hi, 1, vl);
-
     vint32m4_t v_result_before_sat = __riscv_vor_vv_i32m4(v_sum_hi_shifted, __riscv_vreinterpret_v_u32m4_i32m4(v_sum_lo_shifted_u), vl);
 
     vint32m4_t v_result = __riscv_vmerge_vxm_i32m4(v_result_before_sat, s_int32_max, v_overflow_mask, vl);
 
     return v_result;
 }
+
 
 inline vint32m4_t SRDMH_vx_i32m4(vint32m4_t v_a, int32_t s_b, size_t vl)
 {
@@ -50,22 +61,31 @@ inline vint32m4_t SRDMH_vx_i32m4(vint32m4_t v_a, int32_t s_b, size_t vl)
     } else
     {
         vint32m4_t v_zero = __riscv_vmv_v_x_i32m4(0, vl);
-        v_overflow_mask = __riscv_vmslt_vv_i32m4_b8(v_zero, v_zero, vl); // Create all-false mask
+        v_overflow_mask = __riscv_vmslt_vv_i32m4_b8(v_zero, v_zero, vl);
     }
 
     vint32m4_t v_prod_lo = __riscv_vmul_vx_i32m4(v_a, s_b, vl);
     vint32m4_t v_prod_hi = __riscv_vmulh_vx_i32m4(v_a, s_b, vl);
-
-    const int32_t s_nudge_val = (INT32_C(1) << 30);
     vuint32m4_t v_prod_lo_u = __riscv_vreinterpret_v_i32m4_u32m4(v_prod_lo);
-    vuint32m4_t v_sum_lo_u = __riscv_vadd_vx_u32m4(v_prod_lo_u, s_nudge_val, vl);
 
+    const int32_t s_nudge_pos = (1 << 30);
+    const int32_t s_nudge_neg = 1 - (1 << 30);
+    vint32m4_t v_a_sign = __riscv_vsra_vx_i32m4(v_a, 31, vl);
+    int32_t s_b_sign = s_b >> 31;
+    vbool8_t v_prod_non_negative_mask = __riscv_vmseq_vx_i32m4_b8(v_a_sign, s_b_sign, vl);
+
+    vint32m4_t v_nudge = __riscv_vmv_v_x_i32m4(s_nudge_neg, vl);
+    v_nudge = __riscv_vmerge_vxm_i32m4(v_nudge, s_nudge_pos, v_prod_non_negative_mask, vl);
+    vuint32m4_t v_nudge_u = __riscv_vreinterpret_v_i32m4_u32m4(v_nudge);
+
+    vuint32m4_t v_sum_lo_u = __riscv_vadd_vv_u32m4(v_prod_lo_u, v_nudge_u, vl);
     vbool8_t v_carry_mask = __riscv_vmsltu_vv_u32m4_b8(v_sum_lo_u, v_prod_lo_u, vl);
-    vint32m4_t v_sum_hi = __riscv_vadd_vx_i32m4_m(v_carry_mask, v_prod_hi, 1, vl);
+    vint32m4_t v_nudge_hi = __riscv_vsra_vx_i32m4(v_nudge, 31, vl);
+    vint32m4_t v_sum_hi = __riscv_vadd_vv_i32m4(v_prod_hi, v_nudge_hi, vl);
+    v_sum_hi = __riscv_vadd_vx_i32m4_m(v_carry_mask, v_sum_hi, 1, vl);
 
     vuint32m4_t v_sum_lo_shifted_u = __riscv_vsrl_vx_u32m4(v_sum_lo_u, 31, vl);
     vint32m4_t v_sum_hi_shifted = __riscv_vsll_vx_i32m4(v_sum_hi, 1, vl);
-
     vint32m4_t v_result_before_sat = __riscv_vor_vv_i32m4(v_sum_hi_shifted, __riscv_vreinterpret_v_u32m4_i32m4(v_sum_lo_shifted_u), vl);
 
     vint32m4_t v_result = __riscv_vmerge_vxm_i32m4(v_result_before_sat, s_int32_max, v_overflow_mask, vl);
@@ -85,22 +105,26 @@ inline vint32m4_t SRMPOT_vx_i32m4(vint32m4_t v_vec, int shift, size_t vl)
 
         if (s_shift >= 31) {
              vbool8_t v_pos_mask = __riscv_vmsgt_vx_i32m4_b8(v_vec, 0, vl);
-             vint32m4_t v_res = __riscv_vmv_v_x_i32m4(s_min_val, vl);
+             vbool8_t v_neg_mask = __riscv_vmslt_vx_i32m4_b8(v_vec, 0, vl);
+             vbool8_t v_zero_mask = __riscv_vmseq_vx_i32m4_b8(v_vec, 0, vl);
+             vint32m4_t v_res = __riscv_vmv_v_x_i32m4(0, vl);
              v_res = __riscv_vmerge_vxm_i32m4(v_res, s_max_val, v_pos_mask, vl);
+             v_res = __riscv_vmerge_vxm_i32m4(v_res, s_min_val, v_neg_mask, vl);
+             v_res = __riscv_vmerge_vxm_i32m4(v_res, 0, v_zero_mask, vl);
              return v_res;
+        } else {
+            const int32_t s_pos_thresh = s_max_val >> s_shift;
+            const int32_t s_neg_thresh = s_min_val >> s_shift;
+
+            vbool8_t v_pos_ovfl_mask = __riscv_vmsgt_vx_i32m4_b8(v_vec, s_pos_thresh, vl);
+            vbool8_t v_neg_ovfl_mask = __riscv_vmslt_vx_i32m4_b8(v_vec, s_neg_thresh, vl);
+
+            vint32m4_t v_shifted = __riscv_vsll_vx_i32m4(v_vec, s_shift, vl);
+
+            vint32m4_t v_result = __riscv_vmerge_vxm_i32m4(v_shifted, s_max_val, v_pos_ovfl_mask, vl);
+            v_result = __riscv_vmerge_vxm_i32m4(v_result, s_min_val, v_neg_ovfl_mask, vl);
+            return v_result;
         }
-
-        const int32_t s_pos_thresh = s_max_val >> s_shift;
-        const int32_t s_neg_thresh = s_min_val >> s_shift;
-
-        vbool8_t v_pos_ovfl_mask = __riscv_vmsgt_vx_i32m4_b8(v_vec, s_pos_thresh, vl);
-        vbool8_t v_neg_ovfl_mask = __riscv_vmslt_vx_i32m4_b8(v_vec, s_neg_thresh, vl);
-
-        vint32m4_t v_shifted = __riscv_vsll_vx_i32m4(v_vec, s_shift, vl);
-
-        vint32m4_t v_result = __riscv_vmerge_vxm_i32m4(v_shifted, s_max_val, v_pos_ovfl_mask, vl);
-        v_result = __riscv_vmerge_vxm_i32m4(v_result, s_min_val, v_neg_ovfl_mask, vl);
-        return v_result;
 
     } else if (shift == 0) {
          return v_vec;
@@ -134,11 +158,19 @@ inline vint32m4_t SRMPOT_vx_i32m4(vint32m4_t v_vec, int shift, size_t vl)
 }
 
 
+inline vint32m4_t MultiplyByQuantizedMultiplierGreaterThanOne_vx_i32m4(
+    vint32m4_t v_x, int32_t quantized_multiplier, int left_shift, size_t vl) {
+
+    vint32m4_t v_a = SRMPOT_vx_i32m4(v_x, -left_shift, vl);
+    return SRDMH_vx_i32m4(v_a, quantized_multiplier, vl);
+}
+
+
 vint32m4_t vectorized_exp_on_negative_values(vint32m4_t v_a_q5_26, size_t vl)
 {
     const int kInputIntegerBits = 5;
-    const int kInputFractionalBits = 32 - 1 - kInputIntegerBits; // 26
-    const int kOutputFractionalBits = 31; // 32 - 1 - 0
+    const int kInputFractionalBits = 32 - 1 - kInputIntegerBits;
+    const int kOutputFractionalBits = 31;
 
     const int32_t s_kOneQuarter_q5_26 = INT32_C(1) << (kInputFractionalBits - 2);
     const int32_t s_mask_val = s_kOneQuarter_q5_26 - 1;
@@ -233,8 +265,8 @@ void SoftmaxInt8RVV(const tflite::SoftmaxParams& params,
     const int32_t input_beta_left_shift = params.input_left_shift;
     const int diff_min = params.diff_min;
     static const int kAccumulationIntegerBits = 12;
-    static const int kAccumulationFractionalBits = 32 - 1 - kAccumulationIntegerBits; // 19
-    static const int kExpOutputFractionalBits = 31; // 32 - 1 - 0
+    static const int kAccumulationFractionalBits = 32 - 1 - kAccumulationIntegerBits;
+    static const int kExpOutputFractionalBits = 31;
 
     const int trailing_dim = input_shape.DimensionsCount() - 1;
     const int outer_size = tflite::MatchingFlatSizeSkipDim(input_shape, trailing_dim, output_shape);
@@ -275,15 +307,12 @@ void SoftmaxInt8RVV(const tflite::SoftmaxParams& params,
 
             vbool8_t v_diff_mask = __riscv_vmsge_vx_i32m4_b8(v_diff_s32, diff_min, vl);
 
-            vint32m4_t v_diff_rescaled_q5_26;
-            {
-              vint32m4_t v_shifted_diff = __riscv_vsll_vx_i32m4(v_diff_s32, input_beta_left_shift, vl);
-              v_diff_rescaled_q5_26 = SRDMH_vx_i32m4(v_shifted_diff, input_beta_multiplier, vl);
-            }
+            vint32m4_t v_diff_rescaled_q5_26 = MultiplyByQuantizedMultiplierGreaterThanOne_vx_i32m4(
+                v_diff_s32, input_beta_multiplier, input_beta_left_shift, vl);
 
             vint32m4_t v_exp_val_q0_31 = vectorized_exp_on_negative_values(v_diff_rescaled_q5_26, vl);
 
-            const int rescale_shift_exp_to_accum = kExpOutputFractionalBits - kAccumulationFractionalBits; // 31 - 19 = 12
+            const int rescale_shift_exp_to_accum = kExpOutputFractionalBits - kAccumulationFractionalBits;
             vint32m4_t v_exp_term_q12_19 = SRMPOT_vx_i32m4(v_exp_val_q0_31, rescale_shift_exp_to_accum, vl);
 
             vint32m4_t v_zero_q12_19 = __riscv_vmv_v_x_i32m4(0, vl);
@@ -301,8 +330,6 @@ void SoftmaxInt8RVV(const tflite::SoftmaxParams& params,
 
         const int output_bits = sizeof(OutputT) * 8;
         const int exponent = num_bits_over_unit + 31 - output_bits;
-
-
 
         const OutputT output_min = std::numeric_limits<OutputT>::min();
         const OutputT output_max = std::numeric_limits<OutputT>::max();
@@ -326,11 +353,8 @@ void SoftmaxInt8RVV(const tflite::SoftmaxParams& params,
 
             vbool8_t v_diff_mask = __riscv_vmsge_vx_i32m4_b8(v_diff_s32, diff_min, vl);
 
-            vint32m4_t v_diff_rescaled_q5_26;
-            {
-              vint32m4_t v_shifted_diff = __riscv_vsll_vx_i32m4(v_diff_s32, input_beta_left_shift, vl);
-              v_diff_rescaled_q5_26 = SRDMH_vx_i32m4(v_shifted_diff, input_beta_multiplier, vl);
-            }
+            vint32m4_t v_diff_rescaled_q5_26 = MultiplyByQuantizedMultiplierGreaterThanOne_vx_i32m4(
+                v_diff_s32, input_beta_multiplier, input_beta_left_shift, vl);
 
             vint32m4_t v_exp_in_q0_31 = vectorized_exp_on_negative_values(v_diff_rescaled_q5_26, vl);
 
