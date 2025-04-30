@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdarg>
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_log.h"
