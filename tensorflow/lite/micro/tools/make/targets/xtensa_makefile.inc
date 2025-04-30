@@ -35,7 +35,6 @@ endif
 TARGET_ARCH_DEFINES := -D$(shell echo $(TARGET_ARCH) | tr [a-z] [A-Z])
 
 PLATFORM_FLAGS = \
-  -stdlib=libc++ \
   -DTF_LITE_MCU_DEBUG_LOG \
   -DTF_LITE_USE_CTIME \
   --xtensa-core=$(XTENSA_CORE) \
@@ -47,6 +46,11 @@ export PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/bin:$(PA
 TARGET_TOOLCHAIN_PREFIX := xt-
 CXX_TOOL := clang++
 CC_TOOL := clang
+
+# Building with C++17 requires libc++
+ifneq ($(CC_VER11), true)
+  PLATFORM_FLAGS += -stdlib=libc++
+endif
 
 # Unused exception related symbols make their way into a binary that links
 # against TFLM as described in https://github.com/tensorflow/tensorflow/issues/47575.

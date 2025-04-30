@@ -15,6 +15,7 @@
 #include "tensorflow/lite/micro/hexdump.h"
 
 #include <array>
+#include <cstdint>
 
 #include "tensorflow/lite/micro/span.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -22,8 +23,8 @@
 constexpr tflite::Span<const char> input{
     "This is an input string for testing."};
 
-const tflite::Span<const std::byte> region{
-    reinterpret_cast<const std::byte*>(input.data()), input.size()};
+const tflite::Span<const uint8_t> region{
+    reinterpret_cast<const uint8_t*>(input.data()), input.size()};
 
 // clang-format off
 constexpr tflite::Span<const char> expected{
