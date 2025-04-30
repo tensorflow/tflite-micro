@@ -47,6 +47,11 @@ TARGET_TOOLCHAIN_PREFIX := xt-
 CXX_TOOL := clang++
 CC_TOOL := clang
 
+# Building with C++17 requires libc++
+ifneq ($(CC_VER11), true)
+  PLATFORM_FLAGS += -stdlib=libc++
+endif
+
 # Unused exception related symbols make their way into a binary that links
 # against TFLM as described in https://github.com/tensorflow/tensorflow/issues/47575.
 # We have two options to avoid this. The first involves using -stdlib=libc++ and
