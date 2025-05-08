@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component_viewer schemaVersion="1.2.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="Component_Viewer.xsd">
+<component name="CMSIS-Driver VIO" version="1.0.0"/>
+
+  <objects>
+    <object name="VIO Object">
+      <var name="i" type="int32_t" value="0"/>
+
+      <read name="SignalIn"  type="uint32_t" symbol="vioSignalIn"/>
+      <read name="SignalOut" type="uint32_t" symbol="vioSignalOut"/>
+      <read name="Value"     type="int32_t"  symbol="vioValue" size="__size_of(&quot;vioValue&quot;)"/>
+
+      <out name="CMSIS-Driver VIO">
+        <item property="Signal Bits (Input)"  value="%x[SignalIn]"/>
+        <item property="Signal Bits (Output)" value="%x[SignalOut]"/>
+        <item property="Value Array">
+           <list name="i" start="0" limit="Value._count">
+             <item property="Value[%d[i]]"  value="%d[Value[i]]"/>
+           </list>
+        </item>
+      </out>
+
+    </object>
+
+  </objects>
+
+</component_viewer>

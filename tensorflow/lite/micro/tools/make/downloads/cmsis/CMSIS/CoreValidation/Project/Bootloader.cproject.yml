@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/schemas/projmgr/1.5.0/tools/projmgr/schemas/cproject.schema.json
+
+project:
+  layers:
+    - layer: ../Layer/App/Bootloader_Cortex-M/App.clayer.yml
+
+    - layer: ../Layer/Target/CM23S/Target.clayer.yml
+      for-context:
+        - +CM23NS
+
+    - layer: ../Layer/Target/CM33S/Target.clayer.yml
+      for-context:
+        - +CM33NS
+
+    - layer: ../Layer/Target/CM35PS/Target.clayer.yml
+      for-context:
+        - +CM35PNS
+
+    - layer: ../Layer/Target/CM52S/Target.clayer.yml
+      for-context:
+        - +CM52NS
+
+    - layer: ../Layer/Target/CM55S/Target.clayer.yml
+      for-context:
+        - +CM55NS
+
+    - layer: ../Layer/Target/CM85S/Target.clayer.yml
+      for-context:
+        - +CM85NS

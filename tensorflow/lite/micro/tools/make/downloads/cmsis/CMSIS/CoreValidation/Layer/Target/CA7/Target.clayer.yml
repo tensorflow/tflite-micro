@@ -1,0 +1,37 @@
+layer:
+  type: Target
+  description: CA7 target components and files
+
+  components:
+    # [Cvendor::] Cclass [&Cbundle] :Cgroup [:Csub] [&Cvariant] [@[>=]Cversion]
+    - component: ARM::CMSIS:CORE
+    - component: Device:Startup
+    - component: Device:IRQ Controller:GIC
+
+  misc:
+    - for-compiler: IAR
+      Link: [--config generic_cortex.icf]
+
+  linker:
+    - script: RTE/Device/ARMCA7/ARMCA7_ac6.sct
+      for-compiler:
+        - AC6
+    - script: RTE/Device/ARMCA7/ARMCA7_gcc.ld
+      for-compiler:
+        - GCC
+    - script: RTE/Device/ARMCA7/ARMCA7_clang.ld
+      for-compiler:
+        - CLANG
+    - script: RTE/Device/ARMCA7/ARMCA7_iar.icf
+      for-compiler:
+        - IAR
+    - regions: RTE/Device/ARMCA7/mem_ARMCA7.h
+      for-compiler:
+        - AC6
+        - GCC
+        - CLANG
+
+  groups:
+    - group: FVP
+      files:
+        - file: ./model_config.txt

@@ -1,0 +1,260 @@
+/**
+\defgroup vio_interface_gr VIO
+\brief API for Virtual I/O (VIO) (%cmsis_vio.h)
+\details 
+
+The VIO software component is a virtual I/O abstraction for peripherals that are typically used in example projects. It
+enables developers to move from an evaluation kit to custom hardware and helps to scale project examples at large to many
+development boards:
+
+\image html vioRationale.png "Virtual I/O provides a generic API for examples and testing"
+
+<b>VIO API</b>
+
+The following header file defines the Application Programming Interface (API) for VIO:
+  - \b %cmsis_vio.h : API for VIO
+
+<b>VIO User Code Templates</b>
+
+The VIO software component contains two user code templates with different purposes:
+  - VIO:Custom: This file is an empty stub with all functions that are defined in the header file that can be used to
+    implement the VIO layer for the hardware that is used in the application.
+  - VIO:Virtual: This file uses a fixed memory location to emulate the VIO functionality and can be used off-the-shelf.
+
+<b>VIO Memory Location Structure</b>
+
+For testing purposes, it is required to have fixed memory locations that are used to read/store values. In the VIO:Virtual
+template file (\b %vio.c), an exemplary implementation is shown:
+
+\code
+// Input, output variables
+__USED uint32_t vioSignalIn;                // Memory for incoming signal
+__USED uint32_t vioSignalOut;               // Memory for outgoing signal
+__USED int32_t  vioValue[VIO_VALUE_NUM];    // Memory for value used in vioGetValue/vioSetValue
+\endcode
+
+Use these memory locations to monitor or set the variables as required in the application.
+
+Two defines are available that help to disconnect the actual peripherals and enable virtual I/Os: \c CMSIS_VIN and
+\c CMSIS_VOUT. They help to write code that can be used in testing environments without real hardware access. The following
+implementation example shows such code:
+
+<b>Code Example (VIO Implementation)</b>
+\code
+// Initialize test input, output.
+void vioInit (void) {
+#if !defined CMSIS_VIN
+// Add user variables here:
+ 
+#endif
+#if !defined CMSIS_VOUT
+// Add user variables here:
+ 
+#endif
+ 
+  vioSignalIn  = 0U;
+  vioSignalOut = 0U;
+ 
+  memset(vioValue, 0, sizeof(vioValue));
+ 
+#if !defined CMSIS_VOUT
+// Add user code here:
+// <code vioInit output>
+ 
+  BSP_LED_Init(LED_BLUE);
+  BSP_LED_Init(LED_RED);
+  BSP_LED_Init(LED_GREEN);
+// </code>
+#endif
+ 
+#if !defined CMSIS_VIN
+// Add user code here:
+// <code vioInit input>
+ 
+  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
+// </code>
+#endif
+ 
+  return;
+}
+\endcode
+
+<b>Memory display in IDEs</b>
+
+Arm Keil MDK uses the provided SCVD file to display the VIO signals in Component Viewer:
+
+\image html vioComponentViewer.png
+
+@{
+*/
+
+/**
+\defgroup vioSignals_gr  Signals
+\ingroup vio_interface_gr
+\brief Signal related defines.
+\details
+@{
+\def vioLED0
+\def vioLED1
+\def vioLED2
+\def vioLED3
+\def vioLED4
+\def vioLED5
+\def vioLED6
+\def vioLED7
+\def vioLEDon
+\def vioLEDoff
+\def vioBUTTON0
+\def vioBUTTON1
+\def vioBUTTON2
+\def vioBUTTON3
+\def vioJOYup
+\def vioJOYdown
+\def vioJOYleft
+\def vioJOYright
+\def vioJOYselect
+\def vioJOYall
+@}
+*/
+
+/**
+\defgroup vioValueIDs_gr  Value IDs
+\ingroup vio_interface_gr
+\brief Value Identifier related defines.
+\details
+@{
+\def vioAIN0 
+\def vioAIN1 
+\def vioAIN2 
+\def vioAIN3 
+\def vioAOUT0
+@}
+*/
+
+
+void vioInit (void) {};
+/**
+\fn void vioInit (void)
+\details
+The function \b vioInit initializes the VIO interface. Use it to initialize any connected hardware that is used to
+map VIO signals. 
+
+\b Code \b Example:
+\code
+#include "cmsis_vio.h"                  // ::CMSIS Driver:VIO
+ 
+int main (void) {
+ 
+  // System Initialization
+  SystemCoreClockUpdate();
+  vioInit();
+  // ...
+ 
+}
+\endcode
+***************************************************************************************************************************/
+
+void vioSetSignal (uint32_t mask, uint32_t signal) {};
+/**
+\fn void vioSetSignal (uint32_t mask, uint32_t signal)
+\details
+The function \b vioSetSignal set a \a signal to an output specified by \a mask. Use this function to map VIOs to actual
+hardware for displaying signals on a target board.
+
+Refer to \ref vioSignals_gr for information about the possible \a mask and \a signal values.
+
+\b Code \b Example:
+\code
+#include "cmsis_vio.h"                  // ::CMSIS Driver:VIO
+ 
+int main (void) {
+ 
+  vioInit();
+  vioSetSignal(vioLED0, vioLEDon);
+  // ...
+  vioSetSignal(vioLED0, vioLEDoff);
+}
+\endcode
+***************************************************************************************************************************/
+
+uint32_t vioGetSignal (uint32_t mask) {
+  return (0);
+};
+/**
+\fn uint32_t vioGetSignal (uint32_t mask)
+\details
+The function \b vioGetSignal retrieves a signal from an input identified by \a mask. Use this function to read data from any
+input that is provided.
+
+Refer to \ref vioSignals_gr for information about the possible \a mask values.
+
+\b Code \b Example:
+\code
+#include "cmsis_vio.h"                  // ::CMSIS Driver:VIO
+ 
+int main (void) {
+  uint32_t state;
+  uint32_t last = 0U;
+ 
+  vioInit();
+  for (;;) {
+    state = (vioGetSignal (vioBUTTON0)); // Get pressed button state
+    if (state != last){
+      if (state == vioBUTTON0){
+        // do something
+      }
+    }
+    last = state;
+  }
+}
+\endcode
+***************************************************************************************************************************/
+
+void vioSetValue (uint32_t id, int32_t value) {};
+/**
+\fn void vioSetValue (uint32_t id, int32_t value)
+\details
+The function \b vioSetValue set the \a value to the output identified by \a id. Use this function to set states of I/Os for
+example.
+
+Refer to \ref vioValueIDs_gr for information about \a id.
+
+\b Code \b Example:
+\code
+#include "cmsis_vio.h"                  // ::CMSIS Driver:VIO
+ 
+int main (void) {
+ 
+  vioInit();
+  vioSetValue(vioAOUT0, 1024);
+}
+\endcode
+***************************************************************************************************************************/
+
+int32_t vioGetValue (uint32_t id) {
+  return (0);
+};
+/**
+\fn int32_t vioGetValue (uint32_t id)
+\details
+The function \b vioGetValue retrieves a value from the input identified by \a id. Use this function to read data from inputs.
+
+Refer to \ref vioValueIDs_gr for information about \a id.
+
+\b Code \b Example:
+\code
+#include "cmsis_vio.h"                  // ::CMSIS Driver:VIO
+ 
+int main (void) {
+  uint32_t button;
+ 
+  vioInit();
+  button = vioGetValue(vioBUTTON0);
+}
+\endcode
+***************************************************************************************************************************/
+
+/**
+@}
+*/
+// End VIO Interface

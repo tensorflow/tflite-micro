@@ -1,0 +1,12 @@
+[output]
+ignoreerrors=
+    mag.svg
+    mag_sel.svg
+    mag_d.svg
+    mag_seld.svg
+    ../tab_a.png
+    ../tab_ad.png
+    
+[filtering]
+ignorewarnings=
+    http-redirected

@@ -1,0 +1,402 @@
+/****************************    Data Structures    ***********************************************/
+/**
+  \brief  Union type to access the Application Program Status Register (APSR).
+ */
+typedef union
+{
+  struct
+  {
+#if (__CORTEX_M != 0x04)
+    uint32_t _reserved0:27;              ///< bit:  0..26  Reserved
+#else
+    uint32_t _reserved0:16;              ///< bit:  0..15  Reserved
+    uint32_t GE:4;                       ///< bit: 16..19  Greater than or Equal flags
+    uint32_t _reserved1:7;               ///< bit: 20..26  Reserved
+#endif
+    uint32_t Q:1;                        ///< bit:     27  Saturation condition flag
+    uint32_t V:1;                        ///< bit:     28  Overflow condition code flag
+    uint32_t C:1;                        ///< bit:     29  Carry condition code flag
+    uint32_t Z:1;                        ///< bit:     30  Zero condition code flag
+    uint32_t N:1;                        ///< bit:     31  Negative condition code flag
+  } b;                                   ///< Structure used for bit  access
+  uint32_t w;                            ///< Type      used for word access
+} APSR_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Union type to access the Interrupt Program Status Register (IPSR).
+ */
+typedef union
+{
+  struct
+  {
+    uint32_t ISR:9;                      ///< bit:  0.. 8  Exception number
+    uint32_t _reserved0:23;              ///< bit:  9..31  Reserved
+  } b;                                   ///< Structure used for bit  access
+  uint32_t w;                            ///< Type      used for word access
+} IPSR_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Union type to access the Special-Purpose Program Status Registers (xPSR).
+ */
+typedef union
+{
+  struct
+  {
+    uint32_t ISR:9;                      ///< bit:  0.. 8  Exception number
+#if (__CORTEX_M != 0x04)
+    uint32_t _reserved0:15;              ///< bit:  9..23  Reserved
+#else
+    uint32_t _reserved0:7;               ///< bit:  9..15  Reserved
+    uint32_t GE:4;                       ///< bit: 16..19  Greater than or Equal flags
+    uint32_t _reserved1:4;               ///< bit: 20..23  Reserved
+#endif
+    uint32_t T:1;                        ///< bit:     24  Thumb bit        (read 0)
+    uint32_t IT:2;                       ///< bit: 25..26  saved IT state   (read 0)
+    uint32_t Q:1;                        ///< bit:     27  Saturation condition flag
+    uint32_t V:1;                        ///< bit:     28  Overflow condition code flag
+    uint32_t C:1;                        ///< bit:     29  Carry condition code flag
+    uint32_t Z:1;                        ///< bit:     30  Zero condition code flag
+    uint32_t N:1;                        ///< bit:     31  Negative condition code flag
+  } b;                                   ///< Structure used for bit  access
+  uint32_t w;                            ///< Type      used for word access
+} xPSR_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Union type to access the Control Registers (CONTROL).
+ */
+typedef union
+{
+  struct
+  {
+    uint32_t nPRIV:1;                    ///< bit:      0  Execution privilege in Thread mode
+    uint32_t SPSEL:1;                    ///< bit:      1  Stack to be used
+    uint32_t FPCA:1;                     ///< bit:      2  FP extension active flag
+    uint32_t _reserved0:29;              ///< bit:  3..31  Reserved
+  } b;                                   ///< Structure used for bit  access
+  uint32_t w;                            ///< Type      used for word access
+} CONTROL_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Nested Vectored Interrupt Controller (NVIC).
+ */
+typedef struct
+{
+  __IOM uint32_t ISER[8];                ///< Offset: 0x000 (R/W)  Interrupt Set Enable Register
+        uint32_t RESERVED0[24];          ///< Reserved
+  __IOM uint32_t ICER[8];                ///< Offset: 0x080 (R/W)  Interrupt Clear Enable Register
+        uint32_t RSERVED1[24];           ///< Reserved
+  __IOM uint32_t ISPR[8];                ///< Offset: 0x100 (R/W)  Interrupt Set Pending Register
+        uint32_t RESERVED2[24];          ///< Reserved
+  __IOM uint32_t ICPR[8];                ///< Offset: 0x180 (R/W)  Interrupt Clear Pending Register
+        uint32_t RESERVED3[24];          ///< Reserved
+  __IOM uint32_t IABR[8];                ///< Offset: 0x200 (R/W)  Interrupt Active bit Register
+        uint32_t RESERVED4[56];          ///< Reserved
+  __IOM uint8_t  IPR[240];                ///< Offset: 0x300 (R/W)  Interrupt Priority Register (8Bit wide)
+        uint32_t RESERVED5[644];         ///< Reserved
+  __OM  uint32_t STIR;                   ///< Offset: 0xE00 ( /W)  Software Trigger Interrupt Register
+}  NVIC_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the System Control Block (SCB).
+ */
+typedef struct
+{
+  __IM  uint32_t CPUID;                  ///< Offset: 0x000 (R/ )  CPUID Base Register
+  __IOM uint32_t ICSR;                   ///< Offset: 0x004 (R/W)  Interrupt Control and State Register
+  __IOM uint32_t VTOR;                   ///< Offset: 0x008 (R/W)  Vector Table Offset Register
+  __IOM uint32_t AIRCR;                  ///< Offset: 0x00C (R/W)  Application Interrupt and Reset Control Register
+  __IOM uint32_t SCR;                    ///< Offset: 0x010 (R/W)  System Control Register
+  __IOM uint32_t CCR;                    ///< Offset: 0x014 (R/W)  Configuration Control Register
+  __IOM uint8_t  SHPR[12U];              ///< Offset: 0x018 (R/W)  System Handlers Priority Registers (4-7, 8-11, 12-15)
+  __IOM uint32_t SHCSR;                  ///< Offset: 0x024 (R/W)  System Handler Control and State Register
+  __IOM uint32_t CFSR;                   ///< Offset: 0x028 (R/W)  Configurable Fault Status Register
+  __IOM uint32_t HFSR;                   ///< Offset: 0x02C (R/W)  HardFault Status Register
+  __IOM uint32_t DFSR;                   ///< Offset: 0x030 (R/W)  Debug Fault Status Register
+  __IOM uint32_t MMFAR;                  ///< Offset: 0x034 (R/W)  MemManage Fault Address Register
+  __IOM uint32_t BFAR;                   ///< Offset: 0x038 (R/W)  BusFault Address Register
+  __IOM uint32_t AFSR;                   ///< Offset: 0x03C (R/W)  Auxiliary Fault Status Register
+  __IM  uint32_t ID_PFR[2U];             ///< Offset: 0x040 (R/ )  Processor Feature Register
+  __IM  uint32_t ID_DFR;                 ///< Offset: 0x048 (R/ )  Debug Feature Register
+  __IM  uint32_t ID_AFR;                 ///< Offset: 0x04C (R/ )  Auxiliary Feature Register
+  __IM  uint32_t ID_MMFR[4U];            ///< Offset: 0x050 (R/ )  Memory Model Feature Register
+  __IM  uint32_t ID_ISAR[5U];            ///< Offset: 0x060 (R/ )  Instruction Set Attributes Register
+//        uint32_t RESERVED0[5U];
+  __IOM uint32_t CPACR;                  ///< Offset: 0x088 (R/W)  Coprocessor Access Control Register
+//        uint32_t RESERVED3[93U];           
+  __OM  uint32_t STIR;                   ///< Offset: 0x200 ( /W)  Software Triggered Interrupt Register
+} SCB_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the System Control and ID Register not in the SCB.
+ */
+typedef struct
+{
+        uint32_t RESERVED0[1];           /*!< Reserved */
+  __IM  uint32_t ICTR;                   /*!< Offset: 0x004 (R/ )  Interrupt Controller Type Register
+                                            \note available for Cortex-M3, Cortex-M4, Cortex-M7, Cortex-M33, Cortex-M33P, SecureCore SC300 */
+  __IOM uint32_t ACTLR;                  /*!< Offset: 0x008 (R/W)  Auxiliary Control Register
+                                            \note available for Cortex-M1, Cortex-M3 , Cortex-M4, Cortex-M7, Cortex-M33, Cortex-M33P, SecureCore SC000, SecureCore SC300 */
+  __IOM uint32_t CPPWR;                  /*!< Offset: 0x00C (R/W)  Coprocessor Power Control Register
+                                            \note available for Cortex-M33, Cortex-M33P */
+} SCnSCB_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Implementation Control Block Register (ICB).
+  \note replaces SCnSCB_Type (only on Cortex-M55/M85)
+ */
+typedef struct
+{
+        uint32_t RESERVED0[1U];
+  __IM  uint32_t ICTR;                   /*!< Offset: 0x004 (R/ )  Interrupt Controller Type Register */
+  __IOM uint32_t ACTLR;                  /*!< Offset: 0x008 (R/W)  Auxiliary Control Register */
+  __IOM uint32_t CPPWR;                  /*!< Offset: 0x00C (R/W)  Coprocessor Power Control  Register */
+} ICB_Type;
+
+
+/**************************************************************************************************/
+/** \brief  Structure type to access the System Timer (SysTick).
+ */
+typedef struct
+{
+  __IOM uint32_t CTRL;                   ///< Offset: 0x000 (R/W)  SysTick Control and Status Register
+  __IOM uint32_t LOAD;                   ///< Offset: 0x004 (R/W)  SysTick Reload Value Register
+  __IOM uint32_t VAL;                    ///< Offset: 0x008 (R/W)  SysTick Current Value Register
+  __IM  uint32_t CALIB;                  ///< Offset: 0x00C (R/ )  SysTick Calibration Register
+} SysTick_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Instrumentation Trace Macrocell Register (ITM).
+ */
+typedef struct
+{
+  __OM  union
+  {
+    __OM  uint8_t    u8;                 /*!< Offset: 0x000 ( /W)  ITM Stimulus Port 8-bit */
+    __OM  uint16_t   u16;                /*!< Offset: 0x000 ( /W)  ITM Stimulus Port 16-bit */
+    __OM  uint32_t   u32;                /*!< Offset: 0x000 ( /W)  ITM Stimulus Port 32-bit */
+  }  PORT [32U];                         /*!< Offset: 0x000 ( /W)  ITM Stimulus Port Registers */
+//      uint32_t RESERVED0[864U];
+  __IOM uint32_t TER;                    /*!< Offset: 0xE00 (R/W)  ITM Trace Enable Register */
+//      uint32_t RESERVED1[15U];
+  __IOM uint32_t TPR;                    /*!< Offset: 0xE40 (R/W)  ITM Trace Privilege Register */
+//      uint32_t RESERVED2[15U];
+  __IOM uint32_t TCR;                    /*!< Offset: 0xE80 (R/W)  ITM Trace Control Register */
+//      uint32_t RESERVED3[29U];
+  __OM  uint32_t IWR;                    /*!< Offset: 0xEF8 ( /W)  ITM Integration Write Register */
+  __IM  uint32_t IRR;                    /*!< Offset: 0xEFC (R/ )  ITM Integration Read Register */
+  __IOM uint32_t IMCR;                   /*!< Offset: 0xF00 (R/W)  ITM Integration Mode Control Register */
+//      uint32_t RESERVED4[43U];
+  __OM  uint32_t LAR;                    /*!< Offset: 0xFB0 ( /W)  ITM Lock Access Register */
+  __IM  uint32_t LSR;                    /*!< Offset: 0xFB4 (R/ )  ITM Lock Status Register */
+//      uint32_t RESERVED5[1U];
+  __IM  uint32_t DEVARCH;                /*!< Offset: 0xFBC (R/ )  ITM Device Architecture Register (Cortex-M33 only) */
+//      uint32_t RESERVED6[4U];
+} ITM_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Memory Protection Unit (MPU).
+ */
+typedef struct
+{
+  __IM  uint32_t TYPE;                   ///< Offset: 0x000 (R/ )  MPU Type Register
+  __IOM uint32_t CTRL;                   ///< Offset: 0x004 (R/W)  MPU Control Register
+  __IOM uint32_t RNR;                    ///< Offset: 0x008 (R/W)  MPU Region RNRber Register
+  __IOM uint32_t RBAR;                   ///< Offset: 0x00C (R/W)  MPU Region Base Address Register
+  __IOM uint32_t RASR;                   ///< Offset: 0x010 (R/W)  MPU Region Attribute and Size Register
+  __IOM uint32_t RBAR_A1;                ///< Offset: 0x014 (R/W)  MPU Alias 1 Region Base Address Register
+  __IOM uint32_t RASR_A1;                ///< Offset: 0x018 (R/W)  MPU Alias 1 Region Attribute and Size Register
+  __IOM uint32_t RBAR_A2;                ///< Offset: 0x01C (R/W)  MPU Alias 2 Region Base Address Register
+  __IOM uint32_t RASR_A2;                ///< Offset: 0x020 (R/W)  MPU Alias 2 Region Attribute and Size Register
+  __IOM uint32_t RBAR_A3;                ///< Offset: 0x024 (R/W)  MPU Alias 3 Region Base Address Register
+  __IOM uint32_t RASR_A3;                ///< Offset: 0x028 (R/W)  MPU Alias 3 Region Attribute and Size Register
+} MPU_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Floating Point Unit (FPU).
+ */
+typedef struct
+{
+//  uint32_t RESERVED0[1];                 ///< Reserved
+  __IOM uint32_t FPCCR;                  ///< Offset: 0x004 (R/W)  Floating-Point Context Control Register
+  __IOM uint32_t FPCAR;                  ///< Offset: 0x008 (R/W)  Floating-Point Context Address Register
+  __IOM uint32_t FPDSCR;                 ///< Offset: 0x00C (R/W)  Floating-Point Default Status Control Register
+  __IM  uint32_t MVFR0;                  ///< Offset: 0x010 (R/ )  Media and FP Feature Register 0
+  __IM  uint32_t MVFR1;                  ///< Offset: 0x014 (R/ )  Media and FP Feature Register 1
+} FPU_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Debug Control Block Registers (DCB).
+ */
+typedef struct
+{
+  __IOM uint32_t DHCSR;                  ///< Offset: 0x000 (R/W)  Debug Halting Control and Status Register
+  __OM  uint32_t DCRSR;                  ///< Offset: 0x004 ( /W)  Debug Core Register Selector Register
+  __IOM uint32_t DCRDR;                  ///< Offset: 0x008 (R/W)  Debug Core Register Data Register
+  __IOM uint32_t DEMCR;                  ///< Offset: 0x00C (R/W)  Debug Exception and Monitor Control Register
+  __OM  uint32_t DSCEMCR;                ///< Offset: 0x010 ( /W)  Debug Set Clear Exception and Monitor Control Register (Armv8.1-M only)
+  __IOM uint32_t DAUTHCTRL;              ///< Offset: 0x014 (R/W)  Debug Authentication Control Register (Armv8-M only)
+  __IOM uint32_t DSCSR;                  ///< Offset: 0x018 (R/W)  Debug Security Control and Status Register (Armv8-M only)
+} DCB_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Data Watchpoint and Trace Register (DWT).
+ */
+typedef struct
+{
+  __IOM uint32_t CTRL;                   ///< Offset: 0x000 (R/W)  Control Register
+  __IOM uint32_t CYCCNT;                 ///< Offset: 0x004 (R/W)  Cycle Count Register
+  __IOM uint32_t CPICNT;                 ///< Offset: 0x008 (R/W)  CPI Count Register
+  __IOM uint32_t EXCCNT;                 ///< Offset: 0x00C (R/W)  Exception Overhead Count Register
+  __IOM uint32_t SLEEPCNT;               ///< Offset: 0x010 (R/W)  Sleep Count Register
+  __IOM uint32_t LSUCNT;                 ///< Offset: 0x014 (R/W)  LSU Count Register
+  __IOM uint32_t FOLDCNT;                ///< Offset: 0x018 (R/W)  Folded-instruction Count Register
+  __IM  uint32_t PCSR;                   ///< Offset: 0x01C (R/ )  Program Counter Sample Register
+  __IOM uint32_t COMP0;                  ///< Offset: 0x020 (R/W)  Comparator Register 0
+  __IOM uint32_t MASK0;                  ///< Offset: 0x024 (R/W)  Mask Register 0
+  __IOM uint32_t FUNCTION0;              ///< Offset: 0x028 (R/W)  Function Register 0
+//        uint32_t RESERVED0[1];           ///< Reserved
+  __IOM uint32_t COMP1;                  ///< Offset: 0x030 (R/W)  Comparator Register 1
+  __IOM uint32_t MASK1;                  ///< Offset: 0x034 (R/W)  Mask Register 1
+  __IOM uint32_t FUNCTION1;              ///< Offset: 0x038 (R/W)  Function Register 1
+//        uint32_t RESERVED1[1];           ///< Reserved
+  __IOM uint32_t COMP2;                  ///< Offset: 0x040 (R/W)  Comparator Register 2
+  __IOM uint32_t MASK2;                  ///< Offset: 0x044 (R/W)  Mask Register 2
+  __IOM uint32_t FUNCTION2;              ///< Offset: 0x048 (R/W)  Function Register 2
+//        uint32_t RESERVED2[1];           ///< Reserved
+  __IOM uint32_t COMP3;                  ///< Offset: 0x050 (R/W)  Comparator Register 3
+  __IOM uint32_t MASK3;                  ///< Offset: 0x054 (R/W)  Mask Register 3
+  __IOM uint32_t FUNCTION3;              ///< Offset: 0x058 (R/W)  Function Register 3
+} DWT_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Trace Port Interface Register (TPI).
+ */
+typedef struct
+{
+  __IOM uint32_t SSPSR;                  ///< Offset: 0x000 (R/ )  Supported Parallel Port Size Register
+  __IOM uint32_t CSPSR;                  ///< Offset: 0x004 (R/W)  Current Parallel Port Size Register
+//        uint32_t RESERVED0[2];           ///< Reserved
+  __IOM uint32_t ACPR;                   ///< Offset: 0x010 (R/W)  Asynchronous Clock Prescaler Register
+//        uint32_t RESERVED1[55];          ///< Reserved
+  __IOM uint32_t SPPR;                   ///< Offset: 0x0F0 (R/W)  Selected Pin Protocol Register
+//        uint32_t RESERVED2[131];         ///< Reserved
+  __IM  uint32_t FFSR;                   ///< Offset: 0x300 (R/ )  Formatter and Flush Status Register
+  __IOM uint32_t FFCR;                   ///< Offset: 0x304 (R/W)  Formatter and Flush Control Register
+  __IM  uint32_t FSCR;                   ///< Offset: 0x308 (R/ )  Formatter Synchronization Counter Register
+//        uint32_t RESERVED3[759];         ///< Reserved
+  __IM  uint32_t TRIGGER;                ///< Offset: 0xEE8 (R/ )  TRIGGER
+  __IM  uint32_t FIFO0;                  ///< Offset: 0xEEC (R/ )  Integration ETM Data
+  __IM  uint32_t ITATBCTR2;              ///< Offset: 0xEF0 (R/ )  ITATBCTR2
+//        uint32_t RESERVED4[1];           ///< Reserved
+  __IM  uint32_t ITATBCTR0;              ///< Offset: 0xEF8 (R/ )  ITATBCTR0
+  __IM  uint32_t FIFO1;                  ///< Offset: 0xEFC (R/ )  Integration ITM Data
+  __IOM uint32_t ITCTRL;                 ///< Offset: 0xF00 (R/W)  Integration Mode Control
+//        uint32_t RESERVED5[39];          ///< Reserved
+  __IOM uint32_t CLAIMSET;               ///< Offset: 0xFA0 (R/W)  Claim tag set
+  __IOM uint32_t CLAIMCLR;               ///< Offset: 0xFA4 (R/W)  Claim tag clear
+//        uint32_t RESERVED7[8];           ///< Reserved
+  __IM  uint32_t DEVID;                  ///< Offset: 0xFC8 (R/ )  TPIU_DEVID
+  __IM  uint32_t DEVTYPE;                ///< Offset: 0xFCC (R/ )  TPIU_DEVTYPE
+} TPIU_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the Performance Monitoring Unit (PMU).
+ */
+typedef struct
+{
+  __IOM uint32_t EVCNTR[__PMU_NUM_EVENTCNT];        ///< Offset: 0x0 (R/W)    Event Counter Registers
+//#if __PMU_NUM_EVENTCNT<31
+//        uint32_t RESERVED0[31U-__PMU_NUM_EVENTCNT];
+//#endif
+  __IOM uint32_t CCNTR;                             ///< Offset: 0x7C (R/W)   Cycle Counter Register
+//        uint32_t RESERVED1[224];
+  __IOM uint32_t EVTYPER[__PMU_NUM_EVENTCNT];       ///< Offset: 0x400 (R/W)  Event Type and Filter Registers
+//#if __PMU_NUM_EVENTCNT<31
+//        uint32_t RESERVED2[31U-__PMU_NUM_EVENTCNT];
+//#endif
+  __IOM uint32_t CCFILTR;                           ///< Offset: 0x47C (R/W)  Cycle Counter Filter Register
+//        uint32_t RESERVED3[480];
+  __IOM uint32_t CNTENSET;                          ///< Offset: 0xC00 (R/W)  Count Enable Set Register
+//        uint32_t RESERVED4[7];
+  __IOM uint32_t CNTENCLR;                          ///< Offset: 0xC20 (R/W)  Count Enable Clear Register
+//        uint32_t RESERVED5[7];
+  __IOM uint32_t INTENSET;                          ///< Offset: 0xC40 (R/W)  Interrupt Enable Set Register
+//        uint32_t RESERVED6[7];
+  __IOM uint32_t INTENCLR;                          ///< Offset: 0xC60 (R/W)  Interrupt Enable Clear Register
+//        uint32_t RESERVED7[7];
+  __IOM uint32_t OVSCLR;                            ///< Offset: 0xC80 (R/W)  Overflow Flag Status Clear Register
+//        uint32_t RESERVED8[7];
+  __IOM uint32_t SWINC;                             ///< Offset: 0xCA0 (R/W)  Software Increment Register
+//        uint32_t RESERVED9[7];
+  __IOM uint32_t OVSSET;                            ///< Offset: 0xCC0 (R/W)  Overflow Flag Status Set Register
+//        uint32_t RESERVED10[79];
+  __IOM uint32_t TYPE;                              ///< Offset: 0xE00 (R/W)  Type Register
+  __IOM uint32_t CTRL;                              ///< Offset: 0xE04 (R/W)  Control Register
+//        uint32_t RESERVED11[108];
+  __IOM uint32_t AUTHSTATUS;                        ///< Offset: 0xFB8 (R/W)  Authentication Status Register
+  __IOM uint32_t DEVARCH;                           ///< Offset: 0xFBC (R/W)  Device Architecture Register
+//        uint32_t RESERVED12[3];
+  __IOM uint32_t DEVTYPE;                           ///< Offset: 0xFCC (R/W)  Device Type Register
+} PMU_Type;
+
+
+/**************************************************************************************************/
+/**
+  \brief  Structure type to access the External Wakeup Interrupt Controller Registers (EWIC).
+ */
+typedef struct
+{
+  __IOM uint32_t EWIC_CR;                ///< Offset: 0x000 (R/W)  EWIC Control Register 
+  __IOM uint32_t EWIC_ASCR;              ///< Offset: 0x004 (R/W)  EWIC Automatic Sequence Control Register
+  __OM  uint32_t EWIC_CLRMASK;           ///< Offset: 0x008 ( /W)  EWIC Clear Mask Register
+  __IM  uint32_t EWIC_NUMID;             ///< Offset: 0x00C (R/ )  EWIC Event Number ID Register
+//        uint32_t RESERVED0[124U];
+  __IOM uint32_t EWIC_MASKA;             ///< Offset: 0x200 (R/W)  EWIC MaskA Register
+  __IOM uint32_t EWIC_MASKn[15];         ///< Offset: 0x204 (R/W)  EWIC Maskn Registers
+//        uint32_t RESERVED1[112U];
+  __IM  uint32_t EWIC_PENDA;             ///< Offset: 0x400 (R/ )  EWIC PendA Event Register
+  __IOM uint32_t EWIC_PENDn[15];         ///< Offset: 0x404 (R/W)  EWIC Pendn Event Registers
+//        uint32_t RESERVED2[112U];
+  __IM  uint32_t EWIC_PSR;               ///< Offset: 0x600 (R/ )  EWIC Pend Summary Register
+} EWIC_Type;
+
+
+/**
+  \brief  Structure type to access the Debug Identification Block Registers (DIB).
+ */
+typedef struct
+{
+//        uint32_t RESERVED0[2U];
+  __IM  uint32_t DAUTHSTATUS;            ///< Offset: 0x008 (R/ )  Debug Authentication Status Register
+  __IM  uint32_t DDEVARCH;               ///< Offset: 0x00C (R/ )  SCS Device Architecture Register
+//        uint32_t RESERVED1[3U];
+  __IM  uint32_t DDEVTYPE;               ///< Offset: 0x01C (R/ )  SCS Device Type Register
+} DIB_Type;

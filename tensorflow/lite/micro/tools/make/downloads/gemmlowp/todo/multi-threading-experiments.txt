@@ -1,0 +1,116 @@
+TODO: Multi-threading experiments for better performance on smaller GEMM sizes
+
+Platforms: all, but special focus should be put on mobile OSes (Android...)
+where thread scheduling seems to be unfavorable to throughput.
+
+Coding time: Unknown
+Experimentation time: XL
+Skill required: XL
+
+Relevant file:
+  internal/multi_thread_gemm.h
+
+
+The problem, and what we have done about it so far
+==================================================
+
+It's easy to get a multi-threaded GEMM implementation to perform well
+for large enough GEMM sizes, because then the parallel workloads are large
+enough compared to the synchronization overhead. In gemmlowp however,
+we are specifically interested in "medium" GEMM sizes, of the order of 100,
+which are small enough to make synchronization overhead dominant in many
+situations.
+
+We have already implemented some changes that were very effective at getting
+good multi-threading benefits for smaller GEMM sizes:
+  https://github.com/google/gemmlowp/commit/210ac891d6d2d0749f7856103c928d9be70ded94
+Let us paste the commit message:
+  1. Use only N-1 worker threads while the master plays the role
+     of the Nth worker, where N is the number of cores.
+     This 1:1 mapping of threads to cores gives much better perf
+     esp. for not-very-large GEMMs and esp. on Android.
+  2. Implement waiting by actually busy-waiting for a little while
+     before eventually falling back to passive waiting. That
+     ensures that we wake up quickly from short naps, which helps
+     with not-very-large GEMMs esp. on Android.
+
+These changes revolved around the idea that when the GEMM size is too small to
+be efficiently supported by the OS's theading primitives, we can instead
+present the OS with a very simple workload: exactly as many threads as there
+are CPU cores, and these threads being always busy, never waiting. This makes
+it easy for the OS to decide to bring all CPU cores online and give each of our
+threads its own CPU core, and occupy it nearly 100% of the time, thus avoiding
+to have to wait to get scheduled.
+
+The cost of waiting (or in particular, of locking) is not just the time it
+takes; especially on mobile platforms, it is also the side effects of getting
+our threads de-scheduled by the OS, of getting CPUs spun down, etc. With that
+in mind, anything that can help us avoid waiting/locking in a OS-visible way,
+is worth experimenting with.
+
+
+Other things that would be worth experimenting with
+===================================================
+
+
+Busy-waiting in mutex-locking too
+---------------------------------
+
+While we have replaced most of the pthread_cond_wait waiting by busy-waiting
+in WaitForVariableChange, on the other hand we are still calling
+pthread_mutex_lock in a couple of places outside of WaitForVariableChange.
+It might be interesting to avoid that too, by having a mutex-locking
+implementation that first spends some time busy-waiting before actually
+resorting to calling pthread_mutex_lock.
+
+
+Minimizing locking
+------------------
+
+The inherent synchronization points of the GEMM, which we essentially can't
+avoid, are already implemented using WaitForVariableChange, so they are
+already using busy-waiting over short periods of time, which is the
+best that we can do. On the other hand, we are also using mutex locking
+in a couple of places: around updates to the State of worker threads, and
+around updates to the counter value in BlockingCounter. The locking done
+there is unnecessary: it could be replaced by atomic operations, and in
+fact, because our thread structure is so simple and rigid, even atomic
+operations might not be needed at all, as long as we ensure basic
+memory ordering. A precise understanding of the CPU's memory model
+is needed here, and the outcome could depend on the CPU architecture.
+
+
+Restructuring the GEMM to remove synchronization points
+-------------------------------------------------------
+
+Compared to the above ideas, this one is a much bigger departure from
+what we are currently doing.
+
+The current structure of our multi-threaded GEMM is:
+  for_each(slice_of_RHS) {
+    pack(slice_of_RHS);
+    for_each(slice_of_LHS) {
+      do_gemm_on_some_thread(slice_of_LHS, packed_slice_of_RHS)
+    }
+    wait_for_all_threads(); // synchronization point
+  }
+
+Thus we have a synchronization point at the end of each slice of RHS.
+The motivation for this design is to have all threads work on a single
+large slice of RHS, occupying top-level (shared among cores) CPU cache.
+
+Thus the current approach is optimized for cache-friendliness at the
+expense of parallelization. Maybe we should consider amending it
+to strike a better balance of cache-friendliness vs. parallelization.
+
+For instance, we could have a "pipeline" where at a given time we have
+*two* slices of RHS packed into top-level CPU cache. We would normally
+schedule thread tasks to work with the first of these two RHS slices;
+whenever a thread task is done, we would immediately give the thread
+a new task, and if we are already done with the first RHS slice, we
+could then immediately start a task against the second RHS slice.
+
+There could still be some necessary waiting, if one thread is lagging
+behind another by more than one full RHS slice; but that should be a
+lot better than the current situation, where we wait at the end of
+each slice.

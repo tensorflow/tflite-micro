@@ -1,0 +1,15 @@
+{
+    "registries": [
+      {
+        "kind": "artifact",
+        "location": "https://artifacts.tools.arm.com/vcpkg-registry",
+        "name": "arm"
+      }
+    ],
+    "requires": {
+      "arm:compilers/arm/armclang":"^6.22.0",
+      "arm:compilers/arm/arm-none-eabi-gcc": "^13.2.1",
+      "arm:compilers/arm/llvm-embedded": "^18.1.3"
+    }
+  }
+  

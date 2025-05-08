@@ -1,0 +1,40 @@
+TODO: Implement a full set of kernels for x86
+
+Platforms: x86, different variants: 32/64bit, SSE*/AVX* etc.
+
+Coding time: XL
+Experimentation time: XL
+Skill required: XL
+
+Prerequisite reading:
+  doc/kernels.txt
+
+Model to follow/adapt:
+  internal/kernel_neon.h
+
+We need a full set of kernels for x86 architectures.
+By "a full set" we mean: covering all the variants of x86 instruction sets,
+and covering our different cases, by decreasing order of importance:
+ 1. GEMM, BitDepthSetting::L8R8
+ 2. GEMM, BitDepthSetting::L7R5
+ 3. GEMV, BitDepthSetting::L8R8 (that one may be deprecated when we eventually
+    implement GEMV more efficiently as a fully specialized operation)
+
+This generally has to be done separately for 32bit vs 64bit because an
+efficient GEMM kernel generally needs to use all the register space that it
+can get, and:
+ - That register space is generally different on 32bit vs 64bit;
+ - C++ compilers have a hard time doing good register allocation for
+   intrinsics-using code that's very tight on vector registers, so in
+   practice we generally prefer to implement kernels in (inline) assembly.
+
+At the moment we have a couple of kernels targeting SSE4 for the
+(GEMM, BitDepthSetting::L8R8) case, contributed by Intel.
+We need to cover the other x86 instruction set variants and to cover the
+other cases, at least the L7R5 case.
+
+Labelling this TODO item as XL because unless
+one knows the CPU inside out (only CPU vendors do), it generally takes a lot
+of trial-and-error to arrive to an optimally performing solution, and in any
+case, given the number of x86 different instruction set flavors, the end
+result will be a large body of assembly code.

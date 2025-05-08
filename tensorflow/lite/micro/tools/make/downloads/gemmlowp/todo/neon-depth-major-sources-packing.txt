@@ -1,0 +1,31 @@
+TODO: Implement depth-major-sources packing paths for NEON
+
+Platforms: ARM NEON
+
+Coding time: M
+Experimentation time: M
+Skill required: M
+
+Prerequisite reading:
+  doc/kernels.txt
+  doc/packing.txt
+
+Model to follow/adapt:
+  internal/pack_neon.h
+
+At the moment we have NEON optimized packing paths for WidthMajor sources.
+We also need paths for DepthMajor sources.
+
+This is harder because for DepthMajor sources, the size of each slice that
+we have to load is the kernel's width, which is typically 12 (for the LHS)
+or 4 (for the RHS). That's not very friendly to NEON vector-load instructions
+which would allow us to load 8 or 16 entries, but not 4 or 12.
+
+So you will have to load 4 entries at a time only. For that, the
+vld1q_lane_u32 seems to be as good as you'll get. The other possible
+approach would be to load (with plain scalar C++) four uint32's into a
+temporary local buffer, and use vld1q_u8 on that. Some experimentation
+will be useful here. For that, you can generate assembly with -save-temps
+and make assembly easier to inspect by inserting inline assembly comments
+such as
+  asm volatile("#hello");

@@ -1,0 +1,49 @@
+
+dark-mode-toggle {
+    position: absolute;
+    right: 205px;
+    padding-top: 3px;
+    color: var(--arm_light_gray);
+}
+
+.tablist .MSearchBox {
+    pointer-events: none;
+    display: inline-block;
+    white-space : nowrap;
+    background: none;
+    border-radius: 0.0em;
+    height: 0em;
+    width: 0em;
+    line-height: 0px;
+}
+
+.tablist .MSearchField {
+    pointer-events: none;
+    display: inline-block;
+    vertical-align: middle;
+    width: 0em;
+    height: 0px;
+    margin: 0 0;
+    padding: 0;
+    line-height: 0em;
+    border:none;
+    outline: none;
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+    background: none;
+}
+
+.tablist .MSearchBoxInactive {
+    pointer-events: none;
+    opacity:0.0;
+}
+
+.tablist .MSearchBoxActive {
+    pointer-events: none;
+    opacity:0.0;
+}
+
+.tablist .MSearchBoxInactive:hover {
+    pointer-events: none;
+    opacity:0.0;
+}

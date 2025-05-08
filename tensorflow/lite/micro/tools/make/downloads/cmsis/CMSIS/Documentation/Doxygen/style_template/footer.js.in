@@ -1,0 +1,7 @@
+function writeHeader() {
+    document.write('Version {projectNumber}');
+};
+
+function writeFooter()  {
+    document.write('Generated on {datetime} for {projectName} {projectNumberFull}. Copyright &copy; {year} Arm Limited (or its affiliates). All rights reserved.');
+};

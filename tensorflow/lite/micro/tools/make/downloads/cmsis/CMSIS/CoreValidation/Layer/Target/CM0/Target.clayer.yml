@@ -1,0 +1,27 @@
+layer:
+  type: Target
+  description: CM0 target components and files
+
+  components:
+    # [Cvendor::] Cclass [&Cbundle] :Cgroup [:Csub] [&Cvariant] [@[>=]Cversion]
+    - component: ARM::CMSIS:CORE
+    - component: Device:Startup&C Startup
+
+  groups:
+    - group: FVP
+      files:
+        - file: ./model_config.txt
+
+  linker:
+    - for-compiler: AC6
+      script: RTE/Device/$Dname$/ac6_linker_script.sct
+      regions: RTE/Device/$Dname$/regions_$Dname$.h
+    - for-compiler: GCC
+      script: RTE/Device/$Dname$/gcc_linker_script.ld
+      regions: RTE/Device/$Dname$/regions_$Dname$.h
+    - for-compiler: CLANG
+      script: RTE/Device/$Dname$/clang_linker_script.ld
+      regions: RTE/Device/$Dname$/regions_$Dname$.h
+    - for-compiler: IAR
+      script: RTE/Device/$Dname$/iar_linker_script.icf
+      regions: RTE/Device/$Dname$/regions_$Dname$.h

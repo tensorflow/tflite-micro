@@ -1,0 +1,140 @@
+// Group creation for Reference
+/**
+\addtogroup CMSIS_RTOS CMSIS-RTOS2 API
+\brief C interface of CMSIS-RTOS2 API defined in cmsis_os2.h
+\details 
+The CMSIS-RTOS2 is a generic API layer that interfaces to an RTOS kernel.
+
+The complete API interface is defined in the \ref cmsis_os2_h. For generic overview refer to \ref usingOS2.
+
+This chapter provides details for individual API items.
+
+\section rtos_api2_functions CMSIS-RTOS2 Function Reference
+
+ - \ref CMSIS_RTOS_KernelCtrl
+   - \ref osKernelGetInfo : \copybrief osKernelGetInfo
+   - \ref osKernelGetState : \copybrief osKernelGetState
+   - \ref osKernelGetSysTimerCount : \copybrief osKernelGetSysTimerCount
+   - \ref osKernelGetSysTimerFreq : \copybrief osKernelGetSysTimerFreq
+   - \ref osKernelInitialize : \copybrief osKernelInitialize
+   - \ref osKernelLock : \copybrief osKernelLock
+   - \ref osKernelUnlock : \copybrief osKernelUnlock
+   - \ref osKernelRestoreLock : \copybrief osKernelRestoreLock
+   - \ref osKernelResume : \copybrief osKernelResume
+   - \ref osKernelStart : \copybrief osKernelStart
+   - \ref osKernelSuspend : \copybrief osKernelSuspend
+   - \ref osKernelGetTickCount : \copybrief osKernelGetTickCount
+   - \ref osKernelGetTickFreq : \copybrief osKernelGetTickFreq
+   - \ref osKernelDestroyClass : \copybrief osKernelDestroyClass
+   - \ref osKernelProtect : \copybrief osKernelProtect
+   - \ref osFaultResume : \copybrief osFaultResume
+<br><br>
+ - \ref CMSIS_RTOS_ThreadMgmt
+   - \ref osThreadDetach : \copybrief osThreadDetach
+   - \ref osThreadEnumerate : \copybrief osThreadEnumerate
+   - \ref osThreadExit : \copybrief osThreadExit
+   - \ref osThreadGetCount : \copybrief osThreadGetCount
+   - \ref osThreadGetId : \copybrief osThreadGetId
+   - \ref osThreadGetName : \copybrief osThreadGetName
+   - \ref osThreadGetPriority : \copybrief osThreadGetPriority
+   - \ref osThreadGetStackSize : \copybrief osThreadGetStackSize
+   - \ref osThreadGetStackSpace : \copybrief osThreadGetStackSpace
+   - \ref osThreadGetState : \copybrief osThreadGetState
+   - \ref osThreadJoin : \copybrief osThreadJoin
+   - \ref osThreadNew : \copybrief osThreadNew
+   - \ref osThreadResume : \copybrief osThreadResume
+   - \ref osThreadSetPriority : \copybrief osThreadSetPriority
+   - \ref osThreadSuspend : \copybrief osThreadSuspend
+   - \ref osThreadTerminate : \copybrief osThreadTerminate
+   - \ref osThreadYield : \copybrief osThreadYield
+   - \ref osThreadGetClass : \copybrief osThreadGetClass
+   - \ref osThreadGetZone : \copybrief osThreadGetZone
+   - \ref osThreadFeedWatchdog : \copybrief osThreadFeedWatchdog
+   - \ref osThreadProtectPrivileged : \copybrief osThreadProtectPrivileged
+   - \ref osThreadResumeClass : \copybrief osThreadResumeClass
+   - \ref osThreadSuspendClass : \copybrief osThreadSuspendClass
+   - \ref osThreadTerminateZone : \copybrief osThreadTerminateZone
+   - \ref osWatchdogAlarm_Handler : \copybrief osWatchdogAlarm_Handler
+   - \ref osZoneSetup_Callback : \copybrief osZoneSetup_Callback
+<br><br>
+ - \ref CMSIS_RTOS_ThreadFlagsMgmt
+   - \ref osThreadFlagsSet : \copybrief osThreadFlagsSet
+   - \ref osThreadFlagsClear : \copybrief osThreadFlagsClear
+   - \ref osThreadFlagsGet : \copybrief osThreadFlagsGet
+   - \ref osThreadFlagsWait : \copybrief osThreadFlagsWait
+<br><br>
+ - \ref CMSIS_RTOS_EventFlags
+   - \ref osEventFlagsGetName : \copybrief osEventFlagsGetName
+   - \ref osEventFlagsNew : \copybrief osEventFlagsNew
+   - \ref osEventFlagsDelete : \copybrief osEventFlagsDelete
+   - \ref osEventFlagsSet : \copybrief osEventFlagsSet
+   - \ref osEventFlagsClear : \copybrief osEventFlagsClear
+   - \ref osEventFlagsGet : \copybrief osEventFlagsGet
+   - \ref osEventFlagsWait : \copybrief osEventFlagsWait
+<br><br>
+ - \ref CMSIS_RTOS_Wait
+   - \ref osDelay : \copybrief osDelay
+   - \ref osDelayUntil : \copybrief osDelayUntil
+<br><br>
+ - \ref CMSIS_RTOS_TimerMgmt
+   - \ref osTimerDelete : \copybrief osTimerDelete
+   - \ref osTimerGetName : \copybrief osTimerGetName
+   - \ref osTimerIsRunning : \copybrief osTimerIsRunning
+   - \ref osTimerNew : \copybrief osTimerNew
+   - \ref osTimerStart : \copybrief osTimerStart
+   - \ref osTimerStop : \copybrief osTimerStop
+<br><br>
+ - \ref CMSIS_RTOS_MutexMgmt
+   - \ref osMutexAcquire : \copybrief osMutexAcquire
+   - \ref osMutexDelete : \copybrief osMutexDelete
+   - \ref osMutexGetName : \copybrief osMutexGetName
+   - \ref osMutexGetOwner : \copybrief osMutexGetOwner
+   - \ref osMutexNew : \copybrief osMutexNew
+   - \ref osMutexRelease : \copybrief osMutexRelease
+<br><br>
+ - \ref CMSIS_RTOS_SemaphoreMgmt
+   - \ref osSemaphoreAcquire : \copybrief osSemaphoreAcquire
+   - \ref osSemaphoreDelete : \copybrief osSemaphoreDelete
+   - \ref osSemaphoreGetCount : \copybrief osSemaphoreGetCount
+   - \ref osSemaphoreGetName : \copybrief osSemaphoreGetName
+   - \ref osSemaphoreNew : \copybrief osSemaphoreNew
+   - \ref osSemaphoreRelease : \copybrief osSemaphoreRelease
+<br><br>
+ - \ref CMSIS_RTOS_PoolMgmt
+   - \ref osMemoryPoolAlloc : \copybrief osMemoryPoolAlloc
+   - \ref osMemoryPoolDelete : \copybrief osMemoryPoolDelete
+   - \ref osMemoryPoolFree : \copybrief osMemoryPoolFree
+   - \ref osMemoryPoolGetBlockSize : \copybrief osMemoryPoolGetBlockSize
+   - \ref osMemoryPoolGetCapacity : \copybrief osMemoryPoolGetCapacity
+   - \ref osMemoryPoolGetCount : \copybrief osMemoryPoolGetCount
+   - \ref osMemoryPoolGetName : \copybrief osMemoryPoolGetName
+   - \ref osMemoryPoolGetSpace : \copybrief osMemoryPoolGetSpace
+   - \ref osMemoryPoolNew : \copybrief osMemoryPoolNew
+<br><br>
+ - \ref CMSIS_RTOS_Message
+   - \ref osMessageQueueDelete : \copybrief osMessageQueueDelete
+   - \ref osMessageQueueGet : \copybrief osMessageQueueGet
+   - \ref osMessageQueueGetCapacity : \copybrief osMessageQueueGetCapacity
+   - \ref osMessageQueueGetCount : \copybrief osMessageQueueGetCount
+   - \ref osMessageQueueGetMsgSize : \copybrief osMessageQueueGetMsgSize
+   - \ref osMessageQueueGetName : \copybrief osMessageQueueGetName
+   - \ref osMessageQueueGetSpace : \copybrief osMessageQueueGetSpace
+   - \ref osMessageQueueNew : \copybrief osMessageQueueNew
+   - \ref osMessageQueuePut : \copybrief osMessageQueuePut
+   - \ref osMessageQueueReset : \copybrief osMessageQueueReset
+ 
+The following CMSIS-RTOS C API v2 functions can be called from threads and \ref CMSIS_RTOS_ISR_Calls "Interrupt Service Routines"
+(ISR):
+   - \ref osKernelGetInfo, \ref osKernelGetState,
+     \ref osKernelGetTickCount, \ref osKernelGetTickFreq, \ref osKernelGetSysTimerCount, \ref osKernelGetSysTimerFreq
+   - \ref osThreadGetName, \ref osThreadGetId, \ref osThreadFlagsSet
+   - \ref osTimerGetName
+   - \ref osEventFlagsGetName, \ref osEventFlagsSet, \ref osEventFlagsClear, \ref osEventFlagsGet, \ref osEventFlagsWait
+   - \ref osMutexGetName
+   - \ref osSemaphoreGetName, \ref osSemaphoreAcquire, \ref osSemaphoreRelease, \ref osSemaphoreGetCount
+   - \ref osMemoryPoolGetName, \ref osMemoryPoolAlloc, \ref osMemoryPoolFree,
+     \ref osMemoryPoolGetCapacity, \ref osMemoryPoolGetBlockSize, \ref osMemoryPoolGetCount, \ref osMemoryPoolGetSpace
+   - \ref osMessageQueueGetName, \ref osMessageQueuePut, \ref osMessageQueueGet, \ref osMessageQueueGetCapacity,
+     \ref osMessageQueueGetMsgSize, \ref osMessageQueueGetCount, \ref osMessageQueueGetSpace
+
+*/

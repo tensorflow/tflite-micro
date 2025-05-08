@@ -1,0 +1,21 @@
+TODO: Remove default template parameter values
+
+Platforms: all
+
+Coding time: S
+Experimentation time: S
+Skill required: S
+
+We should generally not have default values for template parameters: this makes
+code harder to read, and is discouraged by the Google C++ style guide for good
+reason.
+
+Specifically, I'm concerned about CellFormat having the CellOrder parameter
+defaulting to WidthMajor. This specific case has been causing confusion.
+
+There might be other instances to fix. Part of this TODO item is to audit that.
+
+One exception in which default template parameters are OK, is for locally
+contained metaprogramming helpers, that are a local implementation detail.
+However, I don't know if we have any such case in gemmlowp. We're generally
+conservative with template metaprogramming around here.

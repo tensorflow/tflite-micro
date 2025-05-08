@@ -1,0 +1,161 @@
+solution:
+  created-for: cmsis-toolbox@2.5.0
+
+  cdefault:
+
+  misc:
+    - for-compiler: GCC
+      C-CPP:
+        - -masm-syntax-unified
+        - -Wall
+      Link:
+        - --specs=rdimon.specs
+    - for-compiler: CLANG
+      Link:
+        - -lcrt0-semihost
+        - -lsemihost
+    - for-compiler: IAR
+      Link:
+        - --semihosting
+
+  packs:
+    - pack: ARM::CMSIS
+      path: ../../../
+    - pack: ARM::Cortex_DFP
+
+  target-types:
+    #Target: CM0
+    - type: CM0
+      device: ARMCM0
+
+    #Target: CM0plus
+    - type: CM0plus
+      device: ARMCM0P
+
+    #Target: CM3
+    - type: CM3
+      device: ARMCM3
+
+    #Target: CM4
+    - type: CM4
+      device: ARMCM4
+
+    #Target: CM7
+    - type: CM7
+      device: ARMCM7
+
+    #Target: CM23
+    - type: CM23
+      device: ARMCM23
+
+    #Target: CM23S
+    - type: CM23S
+      device: ARMCM23
+
+    #Target: CM23NS
+    - type: CM23NS
+      device: ARMCM23
+
+    #Target: CM33
+    - type: CM33
+      device: ARMCM33
+
+    #Target: CM33S
+    - type: CM33S
+      device: ARMCM33
+
+    #Target: CM33NS
+    - type: CM33NS
+      device: ARMCM33
+
+    #Target: CM35P
+    - type: CM35P
+      device: ARMCM35P
+
+    #Target: CM35PS
+    - type: CM35PS
+      device: ARMCM35P
+
+    #Target: CM35PNS
+    - type: CM35PNS
+      device: ARMCM35P
+
+    #Target: CM52
+    - type: CM52
+      device: ARMCM52
+
+    #Target: CM52S
+    - type: CM52S
+      device: ARMCM52
+
+    #Target: CM52NS
+    - type: CM52NS
+      device: ARMCM52
+
+    #Target: CM55
+    - type: CM55
+      device: ARMCM55
+
+    #Target: CM55S
+    - type: CM55S
+      device: ARMCM55
+
+    #Target: CM55NS
+    - type: CM55NS
+      device: ARMCM55
+
+    #Target: CM85
+    - type: CM85
+      device: ARMCM85
+
+    #Target: CM85S
+    - type: CM85S
+      device: ARMCM85
+
+    #Target: CM85NS
+    - type: CM85NS
+      device: ARMCM85
+
+    #Target: CA5
+    - type: CA5
+      device: ARMCA5
+
+    #Target: CA7
+    - type: CA7
+      device: ARMCA7
+
+    #Target: CA9
+    - type: CA9
+      device: ARMCA9
+
+  build-types:
+    - type: none
+      optimize: none
+      debug: on
+
+    - type: balanced
+      optimize: balanced
+      debug: on
+
+    - type: size
+      optimize: size
+      debug: on
+
+    - type: speed
+      optimize: speed
+      debug: on
+
+  projects:
+    - project: ./Validation.cproject.yml
+    - project: ./Bootloader.cproject.yml
+      for-context:
+        - +CM23NS
+        - +CM33NS
+        - +CM35PNS
+        - +CM52NS
+        - +CM55NS
+        - +CM85NS
+
+  output-dirs:
+    cprjdir: ./build/$TargetType$/$Compiler$/$BuildType$/$Project$
+    outdir:  ./build/$TargetType$/$Compiler$/$BuildType$/$Project$/outdir

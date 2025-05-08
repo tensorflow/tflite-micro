@@ -1,0 +1,24 @@
+{
+    "name": "Ubuntu-22.04",
+    "build": {
+      "dockerfile": "Dockerfile",
+      "args": {
+        "USERNAME": "${localEnv:USER}"
+      }
+    },
+    "mounts": [
+      "source=${devcontainerId}-home,target=/home/${localEnv:USER},type=volume",
+      "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/${localEnv:USER}/.ssh,type=bind,consistency=cached",
+      "source=${localEnv:HOME}${localEnv:USERPROFILE}/.armlm,target=/home/${localEnv:USER}/.armlm,type=bind,consistency=cached",
+      "source=${localEnv:HOME}${localEnv:USERPROFILE}/.iarlm,target=/home/${localEnv:USER}/.iarlm,type=bind,consistency=cached"
+    ],
+    "postCreateCommand": "/home/postCreateCommand.sh",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+			    "ms-vscode.cpptools",
+			    "ms-vscode.cpptools-extension-pack"
+        ]
+      }
+    }
+  }

@@ -1,0 +1,58 @@
+:root {
+  --arm_light_blue: #00C1DE;
+  --arm_blue: #11809F;
+  --arm_blue1: #0091BD;
+  --arm_dark_blue: #002B49;
+  --arm_light_gray: #E5ECEB;
+  --arm_light_gray1: #EFF5F4;
+  --arm_light_gray2: #EBEBEB;
+  --arm_light_gray3: #F7F7F7;
+  --arm_dark_gray: #7D868C;
+  --arm_black: #333E48;
+  --arm_orange: #FF6B00;
+  --arm_yellow: #FFC700;
+}
+
+/* Dropdown Button */
+.dropbtn {
+    margin: 0px;
+    padding: 0px 20px 0px 0em;
+    background-image: url("dropdown.png");
+    background-repeat: no-repeat;
+    background-size: 0.5em;
+    background-position: right center;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: var(--arm_light_gray3);
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  # color: black;
+  color: var(--arm_dark_gray);
+  padding: 4px 6px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ddd}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}

@@ -1,0 +1,522 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5976DBE91BBDADAC0063F1F9 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5976DBE81BBDADAC0063F1F9 /* AppDelegate.mm */; settings = {ASSET_TAGS = (); }; };
+		59D2E2A01BB9E938007BFF4C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 59D2E29F1BB9E938007BFF4C /* main.m */; };
+		59D2E2A61BB9E938007BFF4C /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 59D2E2A51BB9E938007BFF4C /* ViewController.m */; };
+		59D2E2A91BB9E938007BFF4C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2A71BB9E938007BFF4C /* Main.storyboard */; };
+		59D2E2AB1BB9E938007BFF4C /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2AA1BB9E938007BFF4C /* Images.xcassets */; };
+		59D2E2AE1BB9E938007BFF4C /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2AC1BB9E938007BFF4C /* LaunchScreen.xib */; };
+		59D2E3041BB9E95F007BFF4C /* AUTHORS in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2C61BB9E95F007BFF4C /* AUTHORS */; };
+		59D2E3051BB9E95F007BFF4C /* BUILD in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2C71BB9E95F007BFF4C /* BUILD */; };
+		59D2E3061BB9E95F007BFF4C /* CONTRIBUTING in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2C81BB9E95F007BFF4C /* CONTRIBUTING */; };
+		59D2E3071BB9E95F007BFF4C /* CONTRIBUTORS in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2C91BB9E95F007BFF4C /* CONTRIBUTORS */; };
+		59D2E3081BB9E95F007BFF4C /* design.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2CB1BB9E95F007BFF4C /* design.txt */; };
+		59D2E3091BB9E95F007BFF4C /* kernels.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2CC1BB9E95F007BFF4C /* kernels.txt */; };
+		59D2E30A1BB9E95F007BFF4C /* less-than-8-bit.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2CD1BB9E95F007BFF4C /* less-than-8-bit.txt */; };
+		59D2E30B1BB9E95F007BFF4C /* low-precision.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2CE1BB9E95F007BFF4C /* low-precision.txt */; };
+		59D2E30C1BB9E95F007BFF4C /* packing.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2CF1BB9E95F007BFF4C /* packing.txt */; };
+		59D2E30D1BB9E95F007BFF4C /* eight_bit_int_gemm.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59D2E2D11BB9E95F007BFF4C /* eight_bit_int_gemm.cc */; };
+		59D2E30F1BB9E95F007BFF4C /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2E41BB9E95F007BFF4C /* LICENSE */; };
+		59D2E3111BB9E95F007BFF4C /* README in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2ED1BB9E95F007BFF4C /* README */; };
+		59D2E3121BB9E95F007BFF4C /* test-android.sh in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2EF1BB9E95F007BFF4C /* test-android.sh */; };
+		59D2E3131BB9E95F007BFF4C /* benchmark.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59D2E2F11BB9E95F007BFF4C /* benchmark.cc */; };
+		59D2E3141BB9E95F007BFF4C /* test.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59D2E2F21BB9E95F007BFF4C /* test.cc */; };
+		59D2E3171BB9E95F007BFF4C /* test_data.cc in Sources */ = {isa = PBXBuildFile; fileRef = 59D2E2F61BB9E95F007BFF4C /* test_data.cc */; };
+		59D2E3191BB9E95F007BFF4C /* armv8-64bit-kernel-for-less-than-8-bit.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2FA1BB9E95F007BFF4C /* armv8-64bit-kernel-for-less-than-8-bit.txt */; };
+		59D2E31A1BB9E95F007BFF4C /* error-diffusion-experiments.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2FB1BB9E95F007BFF4C /* error-diffusion-experiments.txt */; };
+		59D2E31B1BB9E95F007BFF4C /* fast-gemv.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2FC1BB9E95F007BFF4C /* fast-gemv.txt */; };
+		59D2E31C1BB9E95F007BFF4C /* multi-threading-experiments.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2FD1BB9E95F007BFF4C /* multi-threading-experiments.txt */; };
+		59D2E31D1BB9E95F007BFF4C /* neon-depth-major-sources-packing.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2FE1BB9E95F007BFF4C /* neon-depth-major-sources-packing.txt */; };
+		59D2E31E1BB9E95F007BFF4C /* remove-default-template-param-values.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E2FF1BB9E95F007BFF4C /* remove-default-template-param-values.txt */; };
+		59D2E31F1BB9E95F007BFF4C /* x86-kernels.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E3001BB9E95F007BFF4C /* x86-kernels.txt */; };
+		59D2E3201BB9E95F007BFF4C /* x86-packing-unpacking-paths.txt in Resources */ = {isa = PBXBuildFile; fileRef = 59D2E3011BB9E95F007BFF4C /* x86-packing-unpacking-paths.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		5976DBE81BBDADAC0063F1F9 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		59D2E29A1BB9E938007BFF4C /* gemmlowp_test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gemmlowp_test.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		59D2E29E1BB9E938007BFF4C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		59D2E29F1BB9E938007BFF4C /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		59D2E2A11BB9E938007BFF4C /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		59D2E2A41BB9E938007BFF4C /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		59D2E2A51BB9E938007BFF4C /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		59D2E2A81BB9E938007BFF4C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		59D2E2AA1BB9E938007BFF4C /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		59D2E2AD1BB9E938007BFF4C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
+		59D2E2C61BB9E95F007BFF4C /* AUTHORS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
+		59D2E2C71BB9E95F007BFF4C /* BUILD */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = BUILD; sourceTree = "<group>"; };
+		59D2E2C81BB9E95F007BFF4C /* CONTRIBUTING */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CONTRIBUTING; sourceTree = "<group>"; };
+		59D2E2C91BB9E95F007BFF4C /* CONTRIBUTORS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CONTRIBUTORS; sourceTree = "<group>"; };
+		59D2E2CB1BB9E95F007BFF4C /* design.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = design.txt; sourceTree = "<group>"; };
+		59D2E2CC1BB9E95F007BFF4C /* kernels.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = kernels.txt; sourceTree = "<group>"; };
+		59D2E2CD1BB9E95F007BFF4C /* less-than-8-bit.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "less-than-8-bit.txt"; sourceTree = "<group>"; };
+		59D2E2CE1BB9E95F007BFF4C /* low-precision.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "low-precision.txt"; sourceTree = "<group>"; };
+		59D2E2CF1BB9E95F007BFF4C /* packing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = packing.txt; sourceTree = "<group>"; };
+		59D2E2D11BB9E95F007BFF4C /* eight_bit_int_gemm.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = eight_bit_int_gemm.cc; sourceTree = "<group>"; };
+		59D2E2D21BB9E95F007BFF4C /* eight_bit_int_gemm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = eight_bit_int_gemm.h; sourceTree = "<group>"; };
+		59D2E2D51BB9E95F007BFF4C /* allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = allocator.h; sourceTree = "<group>"; };
+		59D2E2D61BB9E95F007BFF4C /* block_params.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = block_params.h; sourceTree = "<group>"; };
+		59D2E2D71BB9E95F007BFF4C /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		59D2E2D81BB9E95F007BFF4C /* compute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = compute.h; sourceTree = "<group>"; };
+		59D2E2D91BB9E95F007BFF4C /* kernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel.h; sourceTree = "<group>"; };
+		59D2E2DA1BB9E95F007BFF4C /* kernel_default.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_default.h; sourceTree = "<group>"; };
+		59D2E2DB1BB9E95F007BFF4C /* kernel_neon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_neon.h; sourceTree = "<group>"; };
+		59D2E2DC1BB9E95F007BFF4C /* kernel_reference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_reference.h; sourceTree = "<group>"; };
+		59D2E2DD1BB9E95F007BFF4C /* kernel_SSE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_SSE.h; sourceTree = "<group>"; };
+		59D2E2DE1BB9E95F007BFF4C /* multi_thread_gemm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = multi_thread_gemm.h; sourceTree = "<group>"; };
+		59D2E2DF1BB9E95F007BFF4C /* pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pack.h; sourceTree = "<group>"; };
+		59D2E2E01BB9E95F007BFF4C /* pack_neon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pack_neon.h; sourceTree = "<group>"; };
+		59D2E2E11BB9E95F007BFF4C /* single_thread_gemm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = single_thread_gemm.h; sourceTree = "<group>"; };
+		59D2E2E21BB9E95F007BFF4C /* unpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unpack.h; sourceTree = "<group>"; };
+		59D2E2E31BB9E95F007BFF4C /* unpack_neon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unpack_neon.h; sourceTree = "<group>"; };
+		59D2E2E41BB9E95F007BFF4C /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		59D2E2E71BB9E95F007BFF4C /* instrumentation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = instrumentation.h; sourceTree = "<group>"; };
+		59D2E2E81BB9E95F007BFF4C /* profiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = profiler.h; sourceTree = "<group>"; };
+		59D2E2EA1BB9E95F007BFF4C /* bit_depth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bit_depth.h; sourceTree = "<group>"; };
+		59D2E2EB1BB9E95F007BFF4C /* gemmlowp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gemmlowp.h; sourceTree = "<group>"; };
+		59D2E2EC1BB9E95F007BFF4C /* map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = map.h; sourceTree = "<group>"; };
+		59D2E2ED1BB9E95F007BFF4C /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		59D2E2EF1BB9E95F007BFF4C /* test-android.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "test-android.sh"; sourceTree = "<group>"; };
+		59D2E2F11BB9E95F007BFF4C /* benchmark.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = benchmark.cc; sourceTree = "<group>"; };
+		59D2E2F21BB9E95F007BFF4C /* test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test.cc; sourceTree = "<group>"; };
+		59D2E2F31BB9E95F007BFF4C /* test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test.h; sourceTree = "<group>"; };
+		59D2E2F61BB9E95F007BFF4C /* test_data.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_data.cc; sourceTree = "<group>"; };
+		59D2E2F71BB9E95F007BFF4C /* test_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_data.h; sourceTree = "<group>"; };
+		59D2E2FA1BB9E95F007BFF4C /* armv8-64bit-kernel-for-less-than-8-bit.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "armv8-64bit-kernel-for-less-than-8-bit.txt"; sourceTree = "<group>"; };
+		59D2E2FB1BB9E95F007BFF4C /* error-diffusion-experiments.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "error-diffusion-experiments.txt"; sourceTree = "<group>"; };
+		59D2E2FC1BB9E95F007BFF4C /* fast-gemv.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fast-gemv.txt"; sourceTree = "<group>"; };
+		59D2E2FD1BB9E95F007BFF4C /* multi-threading-experiments.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "multi-threading-experiments.txt"; sourceTree = "<group>"; };
+		59D2E2FE1BB9E95F007BFF4C /* neon-depth-major-sources-packing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "neon-depth-major-sources-packing.txt"; sourceTree = "<group>"; };
+		59D2E2FF1BB9E95F007BFF4C /* remove-default-template-param-values.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "remove-default-template-param-values.txt"; sourceTree = "<group>"; };
+		59D2E3001BB9E95F007BFF4C /* x86-kernels.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "x86-kernels.txt"; sourceTree = "<group>"; };
+		59D2E3011BB9E95F007BFF4C /* x86-packing-unpacking-paths.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "x86-packing-unpacking-paths.txt"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		59D2E2971BB9E938007BFF4C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		59D2E2911BB9E938007BFF4C = {
+			isa = PBXGroup;
+			children = (
+				59D2E2C31BB9E95F007BFF4C /* gemmlowp */,
+				59D2E29C1BB9E938007BFF4C /* gemmlowp_test */,
+				59D2E29B1BB9E938007BFF4C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		59D2E29B1BB9E938007BFF4C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E29A1BB9E938007BFF4C /* gemmlowp_test.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		59D2E29C1BB9E938007BFF4C /* gemmlowp_test */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2A11BB9E938007BFF4C /* AppDelegate.h */,
+				5976DBE81BBDADAC0063F1F9 /* AppDelegate.mm */,
+				59D2E2A41BB9E938007BFF4C /* ViewController.h */,
+				59D2E2A51BB9E938007BFF4C /* ViewController.m */,
+				59D2E2A71BB9E938007BFF4C /* Main.storyboard */,
+				59D2E2AA1BB9E938007BFF4C /* Images.xcassets */,
+				59D2E2AC1BB9E938007BFF4C /* LaunchScreen.xib */,
+				59D2E29D1BB9E938007BFF4C /* Supporting Files */,
+			);
+			path = gemmlowp_test;
+			sourceTree = "<group>";
+		};
+		59D2E29D1BB9E938007BFF4C /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E29E1BB9E938007BFF4C /* Info.plist */,
+				59D2E29F1BB9E938007BFF4C /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		59D2E2C31BB9E95F007BFF4C /* gemmlowp */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2C61BB9E95F007BFF4C /* AUTHORS */,
+				59D2E2C71BB9E95F007BFF4C /* BUILD */,
+				59D2E2C81BB9E95F007BFF4C /* CONTRIBUTING */,
+				59D2E2C91BB9E95F007BFF4C /* CONTRIBUTORS */,
+				59D2E2CA1BB9E95F007BFF4C /* doc */,
+				59D2E2D01BB9E95F007BFF4C /* eight_bit_int_gemm */,
+				59D2E2D41BB9E95F007BFF4C /* internal */,
+				59D2E2E41BB9E95F007BFF4C /* LICENSE */,
+				59D2E2E61BB9E95F007BFF4C /* profiling */,
+				59D2E2E91BB9E95F007BFF4C /* public */,
+				59D2E2ED1BB9E95F007BFF4C /* README */,
+				59D2E2EE1BB9E95F007BFF4C /* scripts */,
+				59D2E2F01BB9E95F007BFF4C /* test */,
+				59D2E2F91BB9E95F007BFF4C /* todo */,
+			);
+			name = gemmlowp;
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		59D2E2CA1BB9E95F007BFF4C /* doc */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2CB1BB9E95F007BFF4C /* design.txt */,
+				59D2E2CC1BB9E95F007BFF4C /* kernels.txt */,
+				59D2E2CD1BB9E95F007BFF4C /* less-than-8-bit.txt */,
+				59D2E2CE1BB9E95F007BFF4C /* low-precision.txt */,
+				59D2E2CF1BB9E95F007BFF4C /* packing.txt */,
+			);
+			path = doc;
+			sourceTree = "<group>";
+		};
+		59D2E2D01BB9E95F007BFF4C /* eight_bit_int_gemm */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2D11BB9E95F007BFF4C /* eight_bit_int_gemm.cc */,
+				59D2E2D21BB9E95F007BFF4C /* eight_bit_int_gemm.h */,
+			);
+			path = eight_bit_int_gemm;
+			sourceTree = "<group>";
+		};
+		59D2E2D41BB9E95F007BFF4C /* internal */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2D51BB9E95F007BFF4C /* allocator.h */,
+				59D2E2D61BB9E95F007BFF4C /* block_params.h */,
+				59D2E2D71BB9E95F007BFF4C /* common.h */,
+				59D2E2D81BB9E95F007BFF4C /* compute.h */,
+				59D2E2D91BB9E95F007BFF4C /* kernel.h */,
+				59D2E2DA1BB9E95F007BFF4C /* kernel_default.h */,
+				59D2E2DB1BB9E95F007BFF4C /* kernel_neon.h */,
+				59D2E2DC1BB9E95F007BFF4C /* kernel_reference.h */,
+				59D2E2DD1BB9E95F007BFF4C /* kernel_SSE.h */,
+				59D2E2DE1BB9E95F007BFF4C /* multi_thread_gemm.h */,
+				59D2E2DF1BB9E95F007BFF4C /* pack.h */,
+				59D2E2E01BB9E95F007BFF4C /* pack_neon.h */,
+				59D2E2E11BB9E95F007BFF4C /* single_thread_gemm.h */,
+				59D2E2E21BB9E95F007BFF4C /* unpack.h */,
+				59D2E2E31BB9E95F007BFF4C /* unpack_neon.h */,
+			);
+			path = internal;
+			sourceTree = "<group>";
+		};
+		59D2E2E61BB9E95F007BFF4C /* profiling */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2E71BB9E95F007BFF4C /* instrumentation.h */,
+				59D2E2E81BB9E95F007BFF4C /* profiler.h */,
+			);
+			path = profiling;
+			sourceTree = "<group>";
+		};
+		59D2E2E91BB9E95F007BFF4C /* public */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2EA1BB9E95F007BFF4C /* bit_depth.h */,
+				59D2E2EB1BB9E95F007BFF4C /* gemmlowp.h */,
+				59D2E2EC1BB9E95F007BFF4C /* map.h */,
+			);
+			path = public;
+			sourceTree = "<group>";
+		};
+		59D2E2EE1BB9E95F007BFF4C /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2EF1BB9E95F007BFF4C /* test-android.sh */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		59D2E2F01BB9E95F007BFF4C /* test */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2F11BB9E95F007BFF4C /* benchmark.cc */,
+				59D2E2F21BB9E95F007BFF4C /* test.cc */,
+				59D2E2F31BB9E95F007BFF4C /* test.h */,
+				59D2E2F61BB9E95F007BFF4C /* test_data.cc */,
+				59D2E2F71BB9E95F007BFF4C /* test_data.h */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		59D2E2F91BB9E95F007BFF4C /* todo */ = {
+			isa = PBXGroup;
+			children = (
+				59D2E2FA1BB9E95F007BFF4C /* armv8-64bit-kernel-for-less-than-8-bit.txt */,
+				59D2E2FB1BB9E95F007BFF4C /* error-diffusion-experiments.txt */,
+				59D2E2FC1BB9E95F007BFF4C /* fast-gemv.txt */,
+				59D2E2FD1BB9E95F007BFF4C /* multi-threading-experiments.txt */,
+				59D2E2FE1BB9E95F007BFF4C /* neon-depth-major-sources-packing.txt */,
+				59D2E2FF1BB9E95F007BFF4C /* remove-default-template-param-values.txt */,
+				59D2E3001BB9E95F007BFF4C /* x86-kernels.txt */,
+				59D2E3011BB9E95F007BFF4C /* x86-packing-unpacking-paths.txt */,
+			);
+			path = todo;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		59D2E2991BB9E938007BFF4C /* gemmlowp_test */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 59D2E2BD1BB9E938007BFF4C /* Build configuration list for PBXNativeTarget "gemmlowp_test" */;
+			buildPhases = (
+				59D2E2961BB9E938007BFF4C /* Sources */,
+				59D2E2971BB9E938007BFF4C /* Frameworks */,
+				59D2E2981BB9E938007BFF4C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = gemmlowp_test;
+			productName = gemmlowp_test;
+			productReference = 59D2E29A1BB9E938007BFF4C /* gemmlowp_test.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		59D2E2921BB9E938007BFF4C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0620;
+				ORGANIZATIONNAME = petewarden;
+				TargetAttributes = {
+					59D2E2991BB9E938007BFF4C = {
+						CreatedOnToolsVersion = 6.2;
+						DevelopmentTeam = 85Z3VXS37U;
+					};
+				};
+			};
+			buildConfigurationList = 59D2E2951BB9E938007BFF4C /* Build configuration list for PBXProject "gemmlowp_test" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 59D2E2911BB9E938007BFF4C;
+			productRefGroup = 59D2E29B1BB9E938007BFF4C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				59D2E2991BB9E938007BFF4C /* gemmlowp_test */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		59D2E2981BB9E938007BFF4C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				59D2E3111BB9E95F007BFF4C /* README in Resources */,
+				59D2E30A1BB9E95F007BFF4C /* less-than-8-bit.txt in Resources */,
+				59D2E2A91BB9E938007BFF4C /* Main.storyboard in Resources */,
+				59D2E31E1BB9E95F007BFF4C /* remove-default-template-param-values.txt in Resources */,
+				59D2E3081BB9E95F007BFF4C /* design.txt in Resources */,
+				59D2E31C1BB9E95F007BFF4C /* multi-threading-experiments.txt in Resources */,
+				59D2E30B1BB9E95F007BFF4C /* low-precision.txt in Resources */,
+				59D2E3091BB9E95F007BFF4C /* kernels.txt in Resources */,
+				59D2E30C1BB9E95F007BFF4C /* packing.txt in Resources */,
+				59D2E31B1BB9E95F007BFF4C /* fast-gemv.txt in Resources */,
+				59D2E3051BB9E95F007BFF4C /* BUILD in Resources */,
+				59D2E3201BB9E95F007BFF4C /* x86-packing-unpacking-paths.txt in Resources */,
+				59D2E31F1BB9E95F007BFF4C /* x86-kernels.txt in Resources */,
+				59D2E31A1BB9E95F007BFF4C /* error-diffusion-experiments.txt in Resources */,
+				59D2E3191BB9E95F007BFF4C /* armv8-64bit-kernel-for-less-than-8-bit.txt in Resources */,
+				59D2E30F1BB9E95F007BFF4C /* LICENSE in Resources */,
+				59D2E3061BB9E95F007BFF4C /* CONTRIBUTING in Resources */,
+				59D2E3041BB9E95F007BFF4C /* AUTHORS in Resources */,
+				59D2E3071BB9E95F007BFF4C /* CONTRIBUTORS in Resources */,
+				59D2E3121BB9E95F007BFF4C /* test-android.sh in Resources */,
+				59D2E31D1BB9E95F007BFF4C /* neon-depth-major-sources-packing.txt in Resources */,
+				59D2E2AE1BB9E938007BFF4C /* LaunchScreen.xib in Resources */,
+				59D2E2AB1BB9E938007BFF4C /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		59D2E2961BB9E938007BFF4C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				59D2E2A61BB9E938007BFF4C /* ViewController.m in Sources */,
+				5976DBE91BBDADAC0063F1F9 /* AppDelegate.mm in Sources */,
+				59D2E2A01BB9E938007BFF4C /* main.m in Sources */,
+				59D2E3141BB9E95F007BFF4C /* test.cc in Sources */,
+				59D2E30D1BB9E95F007BFF4C /* eight_bit_int_gemm.cc in Sources */,
+				59D2E3131BB9E95F007BFF4C /* benchmark.cc in Sources */,
+				59D2E3171BB9E95F007BFF4C /* test_data.cc in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		59D2E2A71BB9E938007BFF4C /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				59D2E2A81BB9E938007BFF4C /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		59D2E2AC1BB9E938007BFF4C /* LaunchScreen.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				59D2E2AD1BB9E938007BFF4C /* Base */,
+			);
+			name = LaunchScreen.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		59D2E2BB1BB9E938007BFF4C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		59D2E2BC1BB9E938007BFF4C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		59D2E2BE1BB9E938007BFF4C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = gemmlowp_test/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		59D2E2BF1BB9E938007BFF4C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = gemmlowp_test/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		59D2E2951BB9E938007BFF4C /* Build configuration list for PBXProject "gemmlowp_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				59D2E2BB1BB9E938007BFF4C /* Debug */,
+				59D2E2BC1BB9E938007BFF4C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		59D2E2BD1BB9E938007BFF4C /* Build configuration list for PBXNativeTarget "gemmlowp_test" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				59D2E2BE1BB9E938007BFF4C /* Debug */,
+				59D2E2BF1BB9E938007BFF4C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 59D2E2921BB9E938007BFF4C /* Project object */;
+}

@@ -1,0 +1,89 @@
+TODO: Error diffusion experiments
+
+Platforms: all
+
+Coding time: M
+Experimentation time: XL
+Skill required: XL
+
+Prerequisite reading:
+  doc/less-than-8-bit.txt
+
+
+Overview
+========
+
+In internal/pack.h, the Requantize function takes care of requantizing
+input 8 bit values to less than 8 bit. This is currently done either by
+rounding-to-nearest, or by probabilistic rounding.
+
+People have suggested trying error diffusion instead.
+https://en.wikipedia.org/wiki/Error_diffusion
+This technique originally from graphics might be adaptable to GEMM; however,
+that is far from trivial.
+
+Still, it may be worth experimenting with it, as the reward of higher accuracy
+could be very worthwhile especially if it allows to explore even smaller
+bit-depths.
+
+
+Why getting error diffusion to work is nontrivial
+=================================================
+
+In graphics, there is only one array to
+apply error diffusion to, and the criteria are mostly aesthetic. Here in GEMM,
+there are two arrays involved, allowing for unwanted interaction between the
+error diffusion terms added on either side separately; and we have stringent
+accuracy criteria.
+
+Here is a toy example showing how naive approaches to error diffusion may
+suffer from unwanted interactions between the LHS and RHS separate error
+diffusion terms:
+
+Say that we're working on 1-dimensional data (as opposed to 2-D matrices) to
+simplify the discussion.
+
+Say that our input values are real numbers in [0, 1] and that we're quantizing
+them to either 0 or 1.
+
+Say that the left-hand-side is filled with the constant value 0.9 and that our
+error-diffusion filter results in the following sequence of quantized values:
+    1 (repeated 9 times), 0, ... (repeat).
+
+Say that the left-hand-side is filled with the constant value 0.1 and that our
+error-diffusion filter results in the following sequence of quantized values:
+    0 (repeated 9 times), 1, ... (repeat).
+
+So if we compute the dot product (which is what we really do in a GEMM) of
+these quantized vectors, we're computing
+    1*0 + ... (repeated 9 times) + 0*1 + ... (repeat)
+
+So we get exactly 0! This shows how a naive approach to error diffusion may
+suffer from bias issues similar to round-to-nearest.
+
+
+Some avenues to explore to make error diffusion work
+====================================================
+
+1. Maybe some fixed error diffusion kernels just happen to avoid that issue?
+
+2. Maybe it's just a matter of doing error diffusion for a different vector
+error metric, e.g. l^2 instead of l^1?
+
+3. Maybe some randomization (adding some random term to the error term being
+diffused) would be acceptable? It seems like it would allow to avoid the
+interference problem discussed above.
+
+
+Performance considerations
+==========================
+
+Error diffusion is going to be relatively expensive compared to the current
+requantization methods. It may be acceptable for large enough GEMM depth,
+since it only needs to be applied once for the n^2 input matrix entries, thus
+becoming negligible compared to the n^3 arithmetic cost of GEMM for large
+enough n.
+
+Alternatively, we may consider doing requantization of some matrices once and
+for all, but that would likely be the case only for one of LHS or RHS,
+otherwise one might as well precompute the whole GEMM.

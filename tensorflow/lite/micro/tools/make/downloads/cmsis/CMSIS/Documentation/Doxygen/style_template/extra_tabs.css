@@ -1,0 +1,96 @@
+
+/* in Doxygen 1.9.2 'tabs' is assigned to second navigation row (navrow1) with
+ 'Main Page', 'Namespaces', etc */
+
+.tabs, .tabs1, .tabs2, .tabs3, .main-nav {
+    background-color: var(--arm_light_gray);
+    color: var(--arm_black);
+    width: 100%;
+    z-index: 101;
+    font-family: 'Futura PT W01 Medium', 'Lato Light', Lato, Calibri, sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.tabs1 {
+    background-color: var(--arm_black);
+    font-size: 16px;
+}
+
+.tabs1  a {
+    color:while;
+}
+
+.tabs {
+    background-color: var(--nav_tabs-background-color);
+    border-top-style:solid;
+    border-top-width:1px;
+    border-top-color:var(--nav_tabs-border-color);
+}
+
+.tablist, .main-menu {
+    margin: 0;
+    padding: 0;
+    display: table;
+    line-height: 28px;
+}
+
+.tablist li {
+    float: left;
+    display: table-cell;
+    background-color: var(--nav_tabs-background-color);
+    border-right-style:solid;
+    border-right-width:1px;
+    border-right-color:var(--nav_tabs-border-color);
+    list-style: none;
+    margin:0px;
+}
+
+.tabs1 .tablist li {
+    background-color: var(--arm_black);
+    font-weight: 1000;
+}
+
+.tablist a {
+    display: block;
+    padding: 0 10px;
+    color: var(--arm_dark_gray);
+    font-weight: 600;
+    outline: none;
+}
+
+.tabs1 .tablist a {
+    padding: 3px 20px;
+    color: white;
+    background-color:var(--arm_black);
+}
+
+.tablist li.current a {
+    background-color: var(--arm_dark_gray);
+    color: white;
+}
+
+.tabs1 .tablist li.current a {
+    background-color: var(--arm_blue);
+}
+
+.tabs .tablist a {
+    background-color: var(--nav_tabs-background-color);
+    color: var(--nav_tabs-text-color);
+}
+.tabs .tablist li.current a {
+    background-color: var(--nav_tabs-background-active-color);
+    color: var(--nav_tabs-text-active-color);
+}
+
+.tabs a:hover {
+    color: var(--arm_orange);
+}
+
+.tabs li.current a:hover {
+    color: white;
+}
+
+.tabs1 a:hover {
+    color: var(--arm_yellow);
+}

@@ -1,0 +1,41 @@
+TODO: Port the ARMv7 (32bit) less-than-8-bit GEMM kernel to (ARMv8 64bit)
+
+Platforms: ARM NEON
+
+Coding time: M
+Experimentation time: M
+Skill required: M
+
+Prerequisite reading:
+  doc/kernels.txt
+  doc/packing.txt
+
+Model to follow/adapt:
+  internal/kernel_neon.h
+
+In internal/kernel_neon.h, for ARMv7 (32bit), we have a kernel
+specifically designed to take advantage of smaller operands ranges
+to use 16-bit local accumulators to achieve higher arithmetic throughput:
+
+  NEON_32_Kernel12x4Depth2Assuming12BitProducts
+
+This is the kernel used with BitDepthSetting::L7R5 and is what allows
+this bit depth setting to outperform L8R8.
+
+This TODO item is about porting it to ARMv8 (64bit) assembly. It can
+be approached in two parts:
+
+  1. Make a trivial port of the existing ARMv7 assembly code in
+     NEON_32_Kernel12x4Depth2Assuming12BitProducts to ARMv8 assembly.
+
+  2. Consider ways to make use of the larger register space availble on ARMv8:
+     there are 32 128-bit vector registers, instead of 16 on ARMv7.
+     A simple way, and quite possibly the best, would be to take the same
+     approach already implemented in NEON_64_Kernel12x8Depth2:
+     When porting a 12x4 kernel from ARMv7 to ARMv8, the extra register
+     space can be put to good use by doubling the RHS kernel width, from
+     4 to 8, thus changing the 12x4 kernel size to 12x8. Since cells
+     are of width 4, this means switching from 1 RHS cell to 2 RHS cells.
+     Since everything else remains unchanged, this should be a rather
+     simple change to implement. Compare NEON_64_Kernel12x8Depth2
+     to NEON_32_Kernel12x4Depth2.

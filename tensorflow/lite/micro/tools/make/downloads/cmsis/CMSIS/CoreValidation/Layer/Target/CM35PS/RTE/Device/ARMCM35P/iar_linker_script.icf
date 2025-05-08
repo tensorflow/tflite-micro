@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2023-2024 Arm Limited. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the License); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+define memory mem with size = 4G;
+
+#if __ROM0_SIZE > 0
+  define region ROM0_region = mem:[from __ROM0_BASE to (__ROM0_BASE+__ROM0_SIZE-1)];
+#else
+  define region ROM0_region = [];
+#endif
+
+#if __ROM1_SIZE > 0
+  define region ROM1_region = mem:[from __ROM1_BASE to (__ROM1_BASE+__ROM1_SIZE-1)];
+#else
+  define region ROM1_region = [];
+#endif
+
+#if __ROM2_SIZE > 0
+  define region ROM2_region = mem:[from __ROM2_BASE to (__ROM2_BASE+__ROM2_SIZE-1)];
+#else
+  define region ROM2_region = [];
+#endif
+
+#if __ROM3_SIZE > 0
+  define region ROM3_region = mem:[from __ROM3_BASE to (__ROM3_BASE+__ROM3_SIZE-1)];
+#else
+  define region ROM3_region = [];
+#endif
+
+define region ROM_region = ROM0_region |  ROM1_region | ROM2_region | ROM3_region;
+
+#if __RAM0_SIZE > 0
+  define region RAM0_region = mem:[from __RAM0_BASE to (__RAM0_BASE+__RAM0_SIZE-1)];
+#else
+  define region RAM0_region = [];
+#endif
+
+#if __RAM1_SIZE > 0
+  define region RAM1_region = mem:[from __RAM1_BASE to (__RAM1_BASE+__RAM1_SIZE-1)];
+#else
+  define region RAM1_region = [];
+#endif
+
+#if __RAM2_SIZE > 0
+  define region RAM2_region = mem:[from __RAM2_BASE to (__RAM2_BASE+__RAM2_SIZE-1)];
+#else
+  define region RAM2_region = [];
+#endif
+
+#if __RAM3_SIZE > 0
+  define region RAM3_region = mem:[from __RAM3_BASE to (__RAM3_BASE+__RAM3_SIZE-1)];
+#else
+  define region RAM3_region = [];
+#endif
+
+define region RAM_region = RAM0_region | RAM1_region | RAM2_region | RAM3_region;
+
+do not initialize  { section .noinit };
+initialize by copy { readwrite };
+if (isdefinedsymbol(__USE_DLIB_PERTHREAD))
+{
+  // Required in a multi-threaded application
+  initialize by copy with packing = none { section __DLIB_PERTHREAD };
+}
+
+place at address mem:__ROM0_BASE { readonly section .intvec };
+
+if (!isempty(ROM_region))
+{
+  place in ROM_region  { readonly };
+}
+
+if (!isempty(RAM_region))
+{
+  define block CSTACK     with alignment = 8, size = __STACK_SIZE     { };
+  define block PROC_STACK with alignment = 8, size = 0 { };
+  define block HEAP       with alignment = 8, size = __HEAP_SIZE       { };
+  place in RAM_region  { readwrite, block CSTACK, block PROC_STACK, block HEAP };
+}

@@ -1,0 +1,102 @@
+/**
+\defgroup device_config Device capabilitiy defines
+\brief Defines to configure and check device capabilities.
+\details
+These defines are used by the \ref device_h_pg in order to enable or disable functionality provided by CMSIS-Core(M) dependent on the device capabilities.
+
+@{
+*/
+
+#define __CM0_REV                     /*!< \brief Cortex-M0 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM0PLUS_REV                 /*!< \brief Cortex-M0+ Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM1_REV                     /*!< \brief Cortex-M1 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM3_REV                     /*!< \brief Cortex-M3 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM4_REV                     /*!< \brief Cortex-M4 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM7_REV                     /*!< \brief Cortex-M7 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __SC000_REV                   /*!< \brief SC000 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __SC300_REV                   /*!< \brief SC300 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM23_REV                    /*!< \brief Cortex-M23 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM33_REV                    /*!< \brief Cortex-M33 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM35P_REV                   /*!< \brief Cortex-M35P Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM55_REV                    /*!< \brief Cortex-M55 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __CM85_REV                    /*!< \brief Cortex-M85 Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __ARMv8MBL_REV                /*!< \brief Armv8-M Baseline device Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __ARMv8MML_REV                /*!< \brief Armv8-M Mainline device Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __ARMv81MML_REV               /*!< \brief Armv8.1-M Baseline device Core revision r0p1 \details ([15:8] revision number, [7:0] patch number) */
+#define __NVIC_PRIO_BITS              /*!< \brief Number of Bits used for Priority Levels */
+#define __Vendor_SysTickConfig        /*!< \brief Set to 1 if a venor specfic SysTick configuration is used.
+                                           \details If this define is set to 1, then the default \ref SysTick_Config function is excluded. In this
+                                                    case, the file device.h must contain a vendor specific implementation of this function. */
+#define __VTOR_PRESENT                /*!< \brief VTOR present or not \details See \ref SCB_Type::VTOR */
+#define __MPU_PRESENT                 /*!< \brief MPU present or not */
+
+/**
+  \brief FPU present or not
+  \details
+  The combination of the defines \ref __FPU_PRESENT and \ref __FPU_DP
+  determine the whether the FPU is with single or double precision as shown
+  in the table below.
+  <table class="cmtable" summary="">
+    <tr bgcolor="cyan">
+      <td>\ref __FPU_PRESENT</td>
+      <td>\ref __FPU_DP</td>
+      <td><b>Description</b></td>
+    </tr>
+    <tr>
+      <td align="center">0</td>
+      <td align="center"><i>ignored</i></td>
+      <td>Processor has no FPU. The value set for \ref __FPU_DP.</td>
+    </tr>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">0</td>
+      <td>Processor with FPU with single precision.</td>
+    </tr>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">1</td>
+      <td>Processor with FPU with double precision.</td>
+    </tr>
+  </table>
+*/
+#define __FPU_PRESENT               /*!< \brief FPU present \details The */
+
+/**
+  \brief Double precision FPU present
+  \details
+  The combination of the defines \ref __FPU_PRESENT and \ref __FPU_DP
+  determine the whether the FPU is with single or double precision as shown
+  in the table below.
+  <table class="cmtable" summary="">
+    <tr bgcolor="cyan">
+      <td>\ref __FPU_PRESENT</td>
+      <td>\ref __FPU_DP</td>
+      <td><b>Description</b></td>
+    </tr>
+    <tr>
+      <td align="center">0</td>
+      <td align="center"><i>ignored</i></td>
+      <td>Processor has no FPU. The value set for \ref __FPU_DP. </td>
+    </tr>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">0</td>
+      <td>Processor with FPU with single precision.</td>
+    </tr>
+    <tr>
+      <td align="center">1</td>
+      <td align="center">1</td>
+      <td>Processor with FPU with double precision.</td>
+    </tr>
+  </table>
+*/
+#define __FPU_DP
+
+#define __DSP_PRESENT               /*!< \brief DSP extension present or not */
+#define __SAUREGION_PRESENT         /*!< \brief SAU regions present or not */
+#define __PMU_PRESENT               /*!< \brief PMU present or not */
+#define __PMU_NUM_EVENTCNT          /*!< \brief PMU Event Counters \details The number of Event counters if PMU is present (see \ref __PMU_PRESENT) */
+#define __ICACHE_PRESENT            /*!< \brief Instruction Cache present or not */
+#define __DCACHE_PRESENT            /*!< \brief Data Cache present or not */
+#define __DTCM_PRESENT              /*!< \brief Data Tightly Coupled Memory is present or not */
+/** @} */

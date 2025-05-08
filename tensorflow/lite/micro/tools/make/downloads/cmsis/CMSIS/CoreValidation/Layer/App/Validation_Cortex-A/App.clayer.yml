@@ -1,0 +1,44 @@
+layer:
+  type: App
+  description: Validation of CMSIS-Core implementation
+
+  # packs:
+  #   - pack: ARM::CMSIS
+
+  define:
+    - PRINT_XML_REPORT: 1
+
+  add-path:
+    - ../../../Include
+    - ../../../Source/ConfigA
+
+  misc:
+    - for-compiler: AC6
+      C-CPP:
+      - -Wno-declaration-after-statement
+      - -Wno-covered-switch-default
+    - for-compiler: GCC
+      C-CPP:
+      - -Wno-declaration-after-statement
+
+  groups:
+    - group: Documentation
+      files:
+        - file: ../../../README.md
+
+    - group: Source Files
+      files:
+        - file: ./main.c
+
+    - group: CMSIS-Core_Validation
+      files:
+        - file: ../../../Source/cmsis_cv.c
+        - file: ../../../Source/CV_CoreAFunc.c
+        - file: ../../../Source/CV_CoreInstr.c
+        - file: ../../../Source/CV_CAL1Cache.c
+#        - file: ../../../Source/ConfigA/mmu.c
+
+    - group: Validation Framework
+      files:
+        - file: ../../../Source/CV_Framework.c
+        - file: ../../../Source/CV_Report.c

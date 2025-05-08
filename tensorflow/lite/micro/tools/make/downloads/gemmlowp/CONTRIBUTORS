@@ -1,0 +1,37 @@
+# People who have agreed to one of the CLAs and can contribute patches.
+# The AUTHORS.txt file lists the copyright holders; this file
+# lists people.  For example, Google employees are listed here
+# but not in AUTHORS.txt, because Google holds the copyright.
+#
+# https://developers.google.com/open-source/cla/individual
+# https://developers.google.com/open-source/cla/corporate
+#
+# Names should be added to this file as:
+#     Name <email address>
+
+Google:
+Benoit Jacob <benoitjacob@google.com>
+Pete Warden <petewarden@google.com>
+Miao Wang <miaowang@google.com>
+David Andersen <dga@google.com>
+Maciek Chociej <maciekc@google.com>
+Justine Tunney <jart@google.com>
+Mark J. Matthews <mjmatthews@google.com>
+Marie White <mariewhite@google.com>
+
+Intel:
+Sagi Marcovich <sagi.marcovich@intel.com>
+Murat Efe Guney <murat.e.guney@intel.com>
+Sarah Knepper <sarah.knepper@intel.com>
+Mourad Gouicem <mourad.gouicem@intel.com>
+Richard Winterton <richard.winterton@intel.com>
+
+ARM:
+David Mansell <David.Mansell@arm.com>
+
+Silk Labs:
+Andreas Gal <andreas@silklabs.com>
+
+MIPS Tech LLC:
+Alexey Frunze <Alexey.Frunze@mips.com>
+

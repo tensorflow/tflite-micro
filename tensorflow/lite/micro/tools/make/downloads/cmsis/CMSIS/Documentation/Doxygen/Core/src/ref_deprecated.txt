@@ -1,0 +1,46 @@
+/* ##################################### Debug In/Output function ############################### */
+/**
+\defgroup deprecated_gr Deprecated Symbols
+\brief List of deprecated symbols
+\details
+
+Deprecated items listed in this section are present in the \ref cmsis_standard_files starting from CMSIS-Core 6.1.0 and improve backward compatibility to CMSIS 5 based software.
+
+Note that these deprecated symbols do not resolve all potential breaking changes introduced in CMSIS 6. For more information also see \ref core6_changes. Whenever possible, it is recommended to update to new CMSIS 6 compliant symbols.
+
+\ref CMSIS_DISABLE_DEPRECATED can be defined to fully exclude the definitions of deprecated symbols from CMSIS-Core header files.
+
+@{
+*/
+
+/**
+\brief **[Deprecated]** Structure type to access the Core Debug Register.
+\details The **CoreDebug_Type** structure is present to enable backward compatibility for CMSIS 5 based projects. For new projects based on CMSIS 6, the DCB_Type shall be used instead.
+*/
+typedef struct
+{
+  __IOM uint32_t DHCSR;                  ///< Offset: 0x000 (R/W)  Debug Halting Control and Status Register
+  __OM  uint32_t DCRSR;                  ///< Offset: 0x004 ( /W)  Debug Core Register Selector Register
+  __IOM uint32_t DCRDR;                  ///< Offset: 0x008 (R/W)  Debug Core Register Data Register
+  __IOM uint32_t DEMCR;                  ///< Offset: 0x00C (R/W)  Debug Exception and Monitor Control Register
+  __OM  uint32_t DSCEMCR;                ///< Offset: 0x010 ( /W)  Debug Set Clear Exception and Monitor Control Register (Armv8.1-M only)
+  __IOM uint32_t DAUTHCTRL;              ///< Offset: 0x014 (R/W)  Debug Authentication Control Register (Armv8-M only)
+  __IOM uint32_t DSCSR;                  ///< Offset: 0x018 (R/W)  Debug Security Control and Status Register (Armv8-M only)
+} CoreDebug_Type;
+
+/**
+\def CoreDebug
+\brief **[Deprecated]** Core Debug configuration structure
+\details The **CoreDebug** configuration structure is present to enable backward compatibility for CMSIS 5 based projects. For new projects based on CMSIS 6, the **DCB** structure shall be used instead.
+*/
+#define CoreDebug           ((CoreDebug_Type *)     DCB_BASE)
+
+/**
+\def CMSIS_DISABLE_DEPRECATED
+\brief Disables deprecated items
+\details When CMSIS_DISABLE_DEPRECATED is defined in the project then definitions of deprecated items are excluded from the CMSIS-Core build.
+*/
+#define CMSIS_DISABLE_DEPRECATED
+
+
+/** @} */

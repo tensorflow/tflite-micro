@@ -1,0 +1,315 @@
+TODO: really fast matrix*vector product (GEMV)
+
+Platforms: all
+
+Coding time: XL
+Experimentation time: XL
+Skill required: L
+
+Prerequisite reading:
+  doc/design.txt
+  doc/kernels.txt
+  doc/low-precision.txt
+
+GEMV is a memory-bound operation so it should really benefit from smaller data
+types, so we should be able to make GEMV run fast in gemmlowp. Unfortunately,
+at the moment, GEMV is mostly an afterthought in gemmlowp, and thus performs
+poorly. This TODO item describes steps to fix that.
+
+
+Why GEMV is slow at the moment, and why it doesn’t need to be
+=============================================================
+
+Profiles show that we’re spending lots of time packing the matrix. Packing is
+a useful step in GEMM, but it is useless in GEMV.
+
+The primary motivation for packing is that (1) since we’re going to have to
+traverse the matrices multiple times, it is a good investment to copy blocks
+(sized to fit in CPU caches) into contiguous buffers, adjusting the storage to
+match the order of traversal, to minimize cache misses during the computation.
+
+Other motivations of packing for GEMM, come from the fact that while GEMM is
+overall n^3 ops, there is only n^2 data, so packing is only taking n^2 ops, so
+it is a cheap place to do any kind of preprocessing of inputs. In gemmlowp we
+use that to (2) switch input data to the storage order expected by the kernel
+(column-major or row-major), and we also use that to do other preprocessing of
+inputs: (3) handling offsets, and (4) in the less-than-8-bit case, doing the
+requantization i.e. converting values in [0..255] range to, say, [0..31].
+
+None of that is relevant to GEMV. In GEMV, each matrix entry needs to be
+visited only once. Thus, packing is a waste of time. Since it ends up copying
+the whole matrix, it effectively doubles the memory transfer size; since GEMV
+is memory bound, that is by itself a good reason why it would then be up to 2x
+slower (that may be mitigated by the fact that blocks will fit in CPU cache,
+but they won’t typically fit in L1 cache, and L2 cache is still slow).
+That’s why GEMV is slow at the moment and why motivation (1) above doesn’t
+apply to GEMV.
+
+Further, the packing is currently catering to the requirements of the kernel,
+which may in particular require nontrivial storage order conversion work
+(transposing). That’s more overhead, that we can avoid too, by having
+separate GEMV kernels for each storage order --- actually, see the next
+paragraph.
+
+What about the other motivations discussed above? (2) is less of a big deal for
+GEMV because there is only one matrix involved, namely the lhs matrix (instead
+of 3 for lhs, rhs, result), and so there are only 2 storage-order cases:
+row-major * vector, and column-major * vector. Compare to 2^3=8 possibilities
+for GEMM. So we can afford to write 2 completely separate GEMV implementations,
+each assuming one specific storage order.
+
+Regarding (3), efficient handling of offsets is going to look very different
+for GEMV compared to GEMM. In the case of GEMM, we wanted to apply offsets once
+to each input matrix entry, which would then be used many times, so it made
+sense to handle these offsets during the separate packing stage. In GEMV, each
+input matrix entry is only used once during the computation, so we should just
+apply offsets then, on the fly. A concern with GEMM was that kernels are
+extremely tight on registers, so having to use some registers for the offsets
+was problematic, but GEMV is not so register-starved as we shall see.
+
+Regarding (4), keep in mind that less-than-8-bit computation is so far only a
+rather arcane trick to increase arithmetic throughput, so in a mostly
+memory-bound operation such as GEMV, it’s probably not going to be very
+useful. Thankfully, the gemmlowp API is such that the BitDepthSetting is only a
+hint allowing the implementation to choose to perform the computation at lower
+precision; the I/O data formats are unaffected. Thus, since we’re not
+interested in that hint, we can just ignore it.
+
+
+Implementation strategy
+=======================
+
+Good news: you’re going to be mostly writing new code, as opposed to trying
+to make subtle deep changes in existing code!
+
+Indeed, rather than trying to figure subtle ways to bypass packing etc,
+you’ll be simply writing essentially stand-alone for loops.
+
+In general the GEMM work done by gemmlowp is complicated enough, with 8
+possible storage-orders combinations and a distinction between O(n^2) and
+O(n^3) tasks, that we needed to separate and structure work into different
+parts: packing, computing, unpacking. Like explained in the previous section,
+none of that is needed for GEMV. So rather than trying to fit GEMV in this
+existing infrastructure that isn’t useful for GEMV, let’s just have you
+write separate code.
+
+You could proceed with the following steps:
+Implement a naive, simple GEMV, and plug it into gemmlowp’s public entry
+point.
+Have this naive GEMV function dispatch into 2 separate implementation
+functions, one for each storage order of the matrix.
+(Can be done for each of the two storage orders separately): Design NEON GEMV
+kernels, adjust your loops accordingly, implement the kernel using C++ NEON
+intrinsics (no asm).
+Examine the asm and, if needed, consider switching from NEON intrinsics to
+inline asm like gemmlowp’s GEMM kernels do.
+Consider doing a multi-threaded version.
+
+In practice, I expect that you might already be happy with the results already
+after step 3, and you will probably be happy after step 4, so you might not
+need to proceed through all 5 steps.
+
+Now let’s detail what you need to do at each step.
+
+
+Step 1: Implement a naive, simple GEMV
+======================================
+
+gemmlowp has two public interfaces: eight_bit_int_gemm.h and gemmlowp.h.
+However, the former just calls into the latter, so you only need to care about
+the latter.
+
+In gemmlowp.h there is one entry point, the Gemm function template.
+
+At the moment, it calls the internal implementation, MultiThreadGemm, which (if
+it decides not to use multiple threads), may fall back to SingleThreadGemm.
+
+For now we only want to implement a single-thread GEMV. So you could make a new
+file, internal/single_thread_gemv.h, that implements a SingleThreadGemv
+function, similar to SingleThreadGemm but asserting and assuming that the RHS
+and result are vectors, and replacing the implementation by very simple native
+for loops implementing a crude GEMV. Ignore the BitDepthSetting and assume that
+it’s L8R8. So you could just take the reference impl and simplify it to drop
+the loop over the columns of RHS (since there is only one). Very simple.
+
+Then in gemmlowp.h in the Gemm function, implement the bypass to call into your
+SingleThreadGemv and return.
+
+
+Step 2: Dispatch to 2 separate storage-order-specific functions
+===============================================================
+
+Before we can turn your naive impl into something optimized, we need to
+separate the 2 main cases, according to the storage order of LHS. Having these
+2 cases in 2 separate functions will make the most sense for us. Probably keep
+then in the same file. Don’t even start optimizing these 2 functions at this
+stage -- just keep the code identical for now.
+
+OK, here let’s insert another sub-step:
+
+Step 2 bis: add single_thread_gemv_neon.h file
+----------------------------------------------
+
+Since the optimized functions we’re going to write will assume NEON, in line
+with what gemmlowp does elsewhere, please defer that to a separate file,
+single_thread_gemv_neon.h.
+
+
+Step 3: Design NEON GEMV kernels using C++ NEON intrinsics (no asm for now)
+===========================================================================
+
+This is the main course! It’s nontrivial and I can only make suggestions from
+having thought a little about it, I don’t know beforehand with certainty that
+this will turn out to be the most efficient.
+
+We need to figure separately how we are going to implement row-major*vector,
+and column-major*vector.
+Some general considerations first.
+
+We’re targeting ARMv7 (32bit) NEON, which has 16 “quad-registers”
+q0,...,q15 of 128 bits each. Each can be viewed as a pair of
+“double-registers” of 64bit each: d0,...,d31. The correspondence is : qn =
+(d2n, d2n+1).
+
+NEON terminology: the different scalars in a NEON vector register are called
+the “lanes”. For example, if we store 32bit values in a NEON
+quad-registers, then there are 4 of them: 4 “lanes”.
+
+Useful reference for NEON intrinsics:
+http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0491h/CIHJBEFE.ht
+ml
+Take a good look at it, especially the “multiply accumulate” instructions.
+See how kernel_neon.h uses them.
+
+Since we are going to apply the lhs_offset and rhs_offset on-the-fly, we need
+to have them in registers.
+
+Accumulators will have to be 32bit, like in GEMM, to avoid overflow.
+
+The multiply-accumulate instruction that we want to use is vmlalq_s16. It takes
+16bit operands to it allows us to save register space to store the operands.
+16bit is the least that we could use anyway since we have to add the offset.
+Technically the offsets are int32 but it’s OK to just assert that they’re
+in int16 range and only support that (and, say, fall back to generic GEMM
+otherwise).
+
+Thus the general steps of the kernel will look like:
+Load a few vectors of LHS (uint8), add the LHS offset (int16), store in a few
+vector registers in int16.
+Load a single value of RHS (uint8), add the RHS offset (int16), store in a
+vector register in int16.
+Use vmlalq_s16 to multiply-accumulate those int16’s into int32 accumulators
+
+How are you going (in 1 and 2 above) to add uint8+int16->int16? Sadly, NEON
+doesn’t seem to have an instruction for that --- vaddwq seems to only support
+equal-signedness. You can first convert the uint8 to uint16 by a long-move
+instruction (vmovl_u8), reintrepret the results as int16, and then perform an
+ordinary int16 vector addition (vaddq_s16). Sad to have to do this as 2
+instrutions, I may be missing something.
+
+Oh, you may wonder about whether you have to care about the alignment of data.
+Eigen cares about that because it was designed for x86. For NEON, it doesn’t
+matter much. Don’t worry about it for now (or ever).
+The column-major*vector kernel
+A naive first approach is to linearly traverse the LHS matrix in the order that
+it is stored in, i.e. column by column. However, that means that for each
+column, we would have to re-traverse the result vector over and over again.
+That may be OK: the result vector will easily fit in L1 cache. Still we’ll
+probably be better off factoring these loads of the result vector by processing
+a few columns at a time.
+
+So we might for instance handle 4 LHS columns at a time. For each column, we
+could load 16 consecutive entries. 16x8=128 so each LHS column would load into
+1 quad-register; once you expand that to 16bit, they will each occupy 2
+quad-registers, so 2x4=8, you’ll be using 8 quad-registers for LHS.
+
+For the RHS, since we are handling 4 LHS columns at once, we need to handle 4
+entries of RHS at once. 4x8=32 so that’s just loading 32bit of the RHS, easy.
+Expanding to 16bit, that would now occupy 64bit, or one double-register.
+For the accumulator, since we’re handling 16 entries of each LHS column, we
+need to store 16 entries of the result in accumulator registers. These are
+32bit values, so 16 of them will occupy 512 bits, or 4 quad-registers.
+
+Total register budget: 8 quad-regs for LHS, 0.5 quad-reg for RHS, 4 quad-regs
+for accumulators, plus a few regs (probably 1.5 quad-reg) for offsets, total is
+12.5 + roughly 1.5, so total is roughly 14 registers. That fits easily in our
+16 registers budget!
+
+When writing C++ code using intrinsics, you’ll inevitably be using many more
+vector variables than fit in registers. It is the job of the compiler to
+understand that it can actually allocate that into the 16 available registers.
+It will probably (out of experience) fail to do so, but let’s not worry about
+that for now. All we want for now is to ensure that in principle, our kernel is
+implementable efficiently with 16 regs.
+
+Loop iteration: continue further down the same 4 current columns. Since the
+storage order is column-major, we should handle these current columns entirely
+before moving on to other columns.
+
+You’ll have to handle unaligned boundaries at the bottom  (the up to 15
+bottom rows of the matrix) and at the right (the up to 3 right columns of the
+matrix) with different code. Feel free to choose your own compromise of
+performance vs annoyance depending on how much you care.
+
+The row-major*vector kernel
+Now that kernel presents us with a different challenge. Since we will now be
+traversing whole rows at a time, we will always be accumulating to the same
+accumulators, so there is no concern about re-traversing the result over and
+over again.
+
+But that only moves the problem: now, it is the RHS vector that we will be
+traversing over and over again!
+
+So we will likely want to adopt the same attitude as earlier: we’ll be
+handling not just 1 row at a time, but, say, 4 rows at a time, so that we can
+offset the inefficiency of traversing the RHS vector many times.
+
+So if we handle 4 rows at a time, loading 16 consecutive entries of each row,
+that will be the same register usage as before: 8 quad-registers (once
+converted to 16bit).
+
+We will want to load 16 consecutive entries of the RHS, so, once converted to
+16bit, that will occupy 2 quad registers.
+
+Since we handle 4 rows, we will want to represent 4 entries of the result
+vector in our accumulator registers. However, the other problem is that we
+don’t want to have to perform horizontal additions (“reductions”) in our
+inner loop. So instead, we will keep un-reduced accumulator values, for
+different levels of depth, in accumulator registers. Since our
+multiply-accumulate instruction produces 4 such accumulator values (since each
+is 32bit and instructions produce 128bit of results), we will have each entry
+of the result represented by 4 accumulator values, or 1 quad-register each.
+Thus, we will have 4 quad-registers for the accumulators.
+
+At the end of each row, you will need to perform horizontal additions across
+each of the 4 accumulator registers, to obtain the 4 final accumulator values.
+
+Again estimating roughly 1.5 quad-regs for the offsets, that means 1.5+8+2+4 =
+15.5 quad-regs, just in our 16 quad-regs budget!
+
+Again, you will have to take care of unaligned loop boundaries at the end.
+
+
+Step 4: Examine the asm and, if needed, switch to inline asm
+============================================================
+
+Now generate asm (-save-temps) and maybe insert asm comments like this:
+
+asm volatile(“#hello!”);
+
+in your code, so you can easily map it to the resulting assembly. Typically
+you’ll see many more load/store instructions (vld*, vst*) than your code is
+supposed to use. That’s the compiler “spilling registers” ie doing a bad
+job and running out of registers, having to use memory as a backup.
+
+So assuming that that problem happens (and that you’re interested in further
+improving perf) you will want to switch to inline asm like in kernel_neon.h.
+It’s not hard and kernels even look simpler in a sense once written in this
+way! It also makes it much easier to reason about perf because now you control
+the code precisely.
+
+
+Step 5: Consider doing a multi-threaded version
+===============================================
+
+Not sure we’ll need to get there / we’ll see then.

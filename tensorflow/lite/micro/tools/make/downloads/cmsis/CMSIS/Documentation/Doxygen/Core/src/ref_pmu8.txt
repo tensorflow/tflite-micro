@@ -1,0 +1,428 @@
+/**
+\defgroup pmu8_functions  PMU Functions for Armv8.1-M
+\brief Functions that relate to the Performance Monitoring Unit.
+\details
+The following functions support the Performance Monitoring Unit (PMU) that is available on the Cortex-M55/M85 processors.
+
+The PMU is used to monitor events that occur during run-time of an application.
+
+<b>Example:</b>
+\code
+// Initialize counter variables
+ 
+unsigned int cycle_count = 0;
+unsigned int l1_dcache_miss_count = 0;
+unsigned int instructions_retired_count = 0;
+ 
+// Enable the PMU
+// Note: Before using the PMU, software needs to ensure 
+// that trace is enabled via the Debug Exception Monitor Control Register, DEMCR:
+// CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+ 
+ARM_PMU_Enable();
+ 
+// Configure Event Counter Register 0 to count instructions retired
+// Configure Event Counter Register 1 to count L1 D-Cache misses
+ 
+ARM_PMU_Set_EVTYPER(0, ARM_PMU_INST_RETIRED);
+ARM_PMU_Set_EVTYPER(1, ARM_PMU_L1D_CACHE_MISS_RD);
+ 
+// Reset Event Counters and Cycle Counter
+ 
+ARM_PMU_EVCNTR_ALL_Reset();
+ARM_PMU_CYCCNT_Reset();
+ 
+// Start incrementing Cycle Count Register and Event Counter Registers 0 & 1
+ 
+ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk|PMU_CNTENSET_CNT0_ENABLE_Msk|PMU_CNTENSET_CNT1_ENABLE_Msk);
+ 
+// Code you want to measure here
+ 
+// Stop incrementing Cycle Count Register and Event Counter Registers 0 & 1
+ 
+ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk|PMU_CNTENCLR_CNT0_ENABLE_Msk|PMU_CNTENCLR_CNT1_ENABLE_Msk);
+ 
+// Get cycle count, number of instructions retired and number of L1 D-Cache misses (on read)
+ 
+cycle_count = cycle_count + ARM_PMU_Get_CCNTR();
+instructions_retired_count = instructions_retired_count + ARM_PMU_Get_EVCNTR(0);
+l1_dcache_miss_count = l1_dcache_miss_count + ARM_PMU_Get_EVCNTR(1);      // Note: D-Cache must be enabled using
+                                                                          // SCB_EnableDCache() for meaningful result.
+\endcode
+
+@{
+*/
+
+/**
+\defgroup pmu8_events_armv81  PMU Events for Armv8.1-M
+\ingroup pmu8_functions
+\brief IDs for Armv8.1-M architecture defined events.
+\details
+These events are available on all Armv8.1-M devices including a PMU.
+@{
+*/
+
+#define ARM_PMU_SW_INCR                              0x0000             /*!< \brief Software update to the PMU_SWINC register, architecturally executed and condition code check pass */
+#define ARM_PMU_L1I_CACHE_REFILL                     0x0001             /*!< \brief L1 I-Cache refill */
+#define ARM_PMU_L1D_CACHE_REFILL                     0x0003             /*!< \brief L1 D-Cache refill */
+#define ARM_PMU_L1D_CACHE                            0x0004             /*!< \brief L1 D-Cache access */
+#define ARM_PMU_LD_RETIRED                           0x0006             /*!< \brief Memory-reading instruction architecturally executed and condition code check pass */
+#define ARM_PMU_ST_RETIRED                           0x0007             /*!< \brief Memory-writing instruction architecturally executed and condition code check pass */
+#define ARM_PMU_INST_RETIRED                         0x0008             /*!< \brief Instruction architecturally executed */
+#define ARM_PMU_EXC_TAKEN                            0x0009             /*!< \brief Exception entry */
+#define ARM_PMU_EXC_RETURN                           0x000A             /*!< \brief Exception return instruction architecturally executed and the condition code check pass */
+#define ARM_PMU_PC_WRITE_RETIRED                     0x000C             /*!< \brief Software change to the Program Counter (PC). Instruction is architecturally executed and condition code check pass */
+#define ARM_PMU_BR_IMMED_RETIRED                     0x000D             /*!< \brief Immediate branch architecturally executed */
+#define ARM_PMU_BR_RETURN_RETIRED                    0x000E             /*!< \brief Function return instruction architecturally executed and the condition code check pass */
+#define ARM_PMU_UNALIGNED_LDST_RETIRED               0x000F             /*!< \brief Unaligned memory memory-reading or memory-writing instruction architecturally executed and condition code check pass */
+#define ARM_PMU_BR_MIS_PRED                          0x0010             /*!< \brief Mispredicted or not predicted branch speculatively executed */
+#define ARM_PMU_CPU_CYCLES                           0x0011             /*!< \brief Cycle */
+#define ARM_PMU_BR_PRED                              0x0012             /*!< \brief Predictable branch speculatively executed */
+#define ARM_PMU_MEM_ACCESS                           0x0013             /*!< \brief Data memory access */
+#define ARM_PMU_L1I_CACHE                            0x0014             /*!< \brief Level 1 instruction cache access */
+#define ARM_PMU_L1D_CACHE_WB                         0x0015             /*!< \brief Level 1 data cache write-back */
+#define ARM_PMU_L2D_CACHE                            0x0016             /*!< \brief Level 2 data cache access */
+#define ARM_PMU_L2D_CACHE_REFILL                     0x0017             /*!< \brief Level 2 data cache refill */
+#define ARM_PMU_L2D_CACHE_WB                         0x0018             /*!< \brief Level 2 data cache write-back */
+#define ARM_PMU_BUS_ACCESS                           0x0019             /*!< \brief Bus access */
+#define ARM_PMU_MEMORY_ERROR                         0x001A             /*!< \brief Local memory error */
+#define ARM_PMU_INST_SPEC                            0x001B             /*!< \brief Instruction speculatively executed */
+#define ARM_PMU_BUS_CYCLES                           0x001D             /*!< \brief Bus cycles */
+#define ARM_PMU_CHAIN                                0x001E             /*!< \brief For an odd numbered counter, increment when an overflow occurs on the preceding even-numbered counter on the same PE */
+#define ARM_PMU_L1D_CACHE_ALLOCATE                   0x001F             /*!< \brief Level 1 data cache allocation without refill */
+#define ARM_PMU_L2D_CACHE_ALLOCATE                   0x0020             /*!< \brief Level 2 data cache allocation without refill */
+#define ARM_PMU_BR_RETIRED                           0x0021             /*!< \brief Branch instruction architecturally executed */
+#define ARM_PMU_BR_MIS_PRED_RETIRED                  0x0022             /*!< \brief Mispredicted branch instruction architecturally executed */
+#define ARM_PMU_STALL_FRONTEND                       0x0023             /*!< \brief No operation issued because of the frontend */
+#define ARM_PMU_STALL_BACKEND                        0x0024             /*!< \brief No operation issued because of the backend */
+#define ARM_PMU_L2I_CACHE                            0x0027             /*!< \brief Level 2 instruction cache access */
+#define ARM_PMU_L2I_CACHE_REFILL                     0x0028             /*!< \brief Level 2 instruction cache refill */
+#define ARM_PMU_L3D_CACHE_ALLOCATE                   0x0029             /*!< \brief Level 3 data cache allocation without refill */
+#define ARM_PMU_L3D_CACHE_REFILL                     0x002A             /*!< \brief Level 3 data cache refill */
+#define ARM_PMU_L3D_CACHE                            0x002B             /*!< \brief Level 3 data cache access */
+#define ARM_PMU_L3D_CACHE_WB                         0x002C             /*!< \brief Level 3 data cache write-back */
+#define ARM_PMU_LL_CACHE_RD                          0x0036             /*!< \brief Last level data cache read */
+#define ARM_PMU_LL_CACHE_MISS_RD                     0x0037             /*!< \brief Last level data cache read miss */
+#define ARM_PMU_L1D_CACHE_MISS_RD                    0x0039             /*!< \brief Level 1 data cache read miss */
+#define ARM_PMU_OP_COMPLETE                          0x003A             /*!< \brief Operation retired */
+#define ARM_PMU_OP_SPEC                              0x003B             /*!< \brief Operation speculatively executed */
+#define ARM_PMU_STALL                                0x003C             /*!< \brief Stall cycle for instruction or operation not sent for execution */
+#define ARM_PMU_STALL_OP_BACKEND                     0x003D             /*!< \brief Stall cycle for instruction or operation not sent for execution due to pipeline backend */
+#define ARM_PMU_STALL_OP_FRONTEND                    0x003E             /*!< \brief Stall cycle for instruction or operation not sent for execution due to pipeline frontend */
+#define ARM_PMU_STALL_OP                             0x003F             /*!< \brief Instruction or operation slots not occupied each cycle */
+#define ARM_PMU_L1D_CACHE_RD                         0x0040             /*!< \brief Level 1 data cache read */
+#define ARM_PMU_LE_RETIRED                           0x0100             /*!< \brief Loop end instruction executed */
+#define ARM_PMU_LE_SPEC                              0x0101             /*!< \brief Loop end instruction speculatively executed */
+#define ARM_PMU_BF_RETIRED                           0x0104             /*!< \brief Branch future instruction architecturally executed and condition code check pass */
+#define ARM_PMU_BF_SPEC                              0x0105             /*!< \brief Branch future instruction speculatively executed and condition code check pass */
+#define ARM_PMU_LE_CANCEL                            0x0108             /*!< \brief Loop end instruction not taken */
+#define ARM_PMU_BF_CANCEL                            0x0109             /*!< \brief Branch future instruction not taken */
+#define ARM_PMU_SE_CALL_S                            0x0114             /*!< \brief Call to secure function, resulting in Security state change */
+#define ARM_PMU_SE_CALL_NS                           0x0115             /*!< \brief Call to non-secure function, resulting in Security state change */
+#define ARM_PMU_DWT_CMPMATCH0                        0x0118             /*!< \brief DWT comparator 0 match */
+#define ARM_PMU_DWT_CMPMATCH1                        0x0119             /*!< \brief DWT comparator 1 match */
+#define ARM_PMU_DWT_CMPMATCH2                        0x011A             /*!< \brief DWT comparator 2 match */
+#define ARM_PMU_DWT_CMPMATCH3                        0x011B             /*!< \brief DWT comparator 3 match */
+#define ARM_PMU_MVE_INST_RETIRED                     0x0200             /*!< \brief MVE instruction architecturally executed */
+#define ARM_PMU_MVE_INST_SPEC                        0x0201             /*!< \brief MVE instruction speculatively executed */
+#define ARM_PMU_MVE_FP_RETIRED                       0x0204             /*!< \brief MVE floating-point instruction architecturally executed */
+#define ARM_PMU_MVE_FP_SPEC                          0x0205             /*!< \brief MVE floating-point instruction speculatively executed */
+#define ARM_PMU_MVE_FP_HP_RETIRED                    0x0208             /*!< \brief MVE half-precision floating-point instruction architecturally executed */
+#define ARM_PMU_MVE_FP_HP_SPEC                       0x0209             /*!< \brief MVE half-precision floating-point instruction speculatively executed */
+#define ARM_PMU_MVE_FP_SP_RETIRED                    0x020C             /*!< \brief MVE single-precision floating-point instruction architecturally executed */
+#define ARM_PMU_MVE_FP_SP_SPEC                       0x020D             /*!< \brief MVE single-precision floating-point instruction speculatively executed */
+#define ARM_PMU_MVE_FP_MAC_RETIRED                   0x0214             /*!< \brief MVE floating-point multiply or multiply-accumulate instruction architecturally executed */
+#define ARM_PMU_MVE_FP_MAC_SPEC                      0x0215             /*!< \brief MVE floating-point multiply or multiply-accumulate instruction speculatively executed */
+#define ARM_PMU_MVE_INT_RETIRED                      0x0224             /*!< \brief MVE integer instruction architecturally executed */
+#define ARM_PMU_MVE_INT_SPEC                         0x0225             /*!< \brief MVE integer instruction speculatively executed */
+#define ARM_PMU_MVE_INT_MAC_RETIRED                  0x0228             /*!< \brief MVE multiply or multiply-accumulate instruction architecturally executed */
+#define ARM_PMU_MVE_INT_MAC_SPEC                     0x0229             /*!< \brief MVE multiply or multiply-accumulate instruction speculatively executed */
+#define ARM_PMU_MVE_LDST_RETIRED                     0x0238             /*!< \brief MVE load or store instruction architecturally executed */
+#define ARM_PMU_MVE_LDST_SPEC                        0x0239             /*!< \brief MVE load or store instruction speculatively executed */
+#define ARM_PMU_MVE_LD_RETIRED                       0x023C             /*!< \brief MVE load instruction architecturally executed */
+#define ARM_PMU_MVE_LD_SPEC                          0x023D             /*!< \brief MVE load instruction speculatively executed */
+#define ARM_PMU_MVE_ST_RETIRED                       0x0240             /*!< \brief MVE store instruction architecturally executed */
+#define ARM_PMU_MVE_ST_SPEC                          0x0241             /*!< \brief MVE store instruction speculatively executed */
+#define ARM_PMU_MVE_LDST_CONTIG_RETIRED              0x0244             /*!< \brief MVE contiguous load or store instruction architecturally executed */
+#define ARM_PMU_MVE_LDST_CONTIG_SPEC                 0x0245             /*!< \brief MVE contiguous load or store instruction speculatively executed */
+#define ARM_PMU_MVE_LD_CONTIG_RETIRED                0x0248             /*!< \brief MVE contiguous load instruction architecturally executed */
+#define ARM_PMU_MVE_LD_CONTIG_SPEC                   0x0249             /*!< \brief MVE contiguous load instruction speculatively executed */
+#define ARM_PMU_MVE_ST_CONTIG_RETIRED                0x024C             /*!< \brief MVE contiguous store instruction architecturally executed */
+#define ARM_PMU_MVE_ST_CONTIG_SPEC                   0x024D             /*!< \brief MVE contiguous store instruction speculatively executed */
+#define ARM_PMU_MVE_LDST_NONCONTIG_RETIRED           0x0250             /*!< \brief MVE non-contiguous load or store instruction architecturally executed */
+#define ARM_PMU_MVE_LDST_NONCONTIG_SPEC              0x0251             /*!< \brief MVE non-contiguous load or store instruction speculatively executed */
+#define ARM_PMU_MVE_LD_NONCONTIG_RETIRED             0x0254             /*!< \brief MVE non-contiguous load instruction architecturally executed */
+#define ARM_PMU_MVE_LD_NONCONTIG_SPEC                0x0255             /*!< \brief MVE non-contiguous load instruction speculatively executed */
+#define ARM_PMU_MVE_ST_NONCONTIG_RETIRED             0x0258             /*!< \brief MVE non-contiguous store instruction architecturally executed */
+#define ARM_PMU_MVE_ST_NONCONTIG_SPEC                0x0259             /*!< \brief MVE non-contiguous store instruction speculatively executed */
+#define ARM_PMU_MVE_LDST_MULTI_RETIRED               0x025C             /*!< \brief MVE memory instruction targeting multiple registers architecturally executed */
+#define ARM_PMU_MVE_LDST_MULTI_SPEC                  0x025D             /*!< \brief MVE memory instruction targeting multiple registers speculatively executed */
+#define ARM_PMU_MVE_LD_MULTI_RETIRED                 0x0260             /*!< \brief MVE memory load instruction targeting multiple registers architecturally executed */
+#define ARM_PMU_MVE_LD_MULTI_SPEC                    0x0261             /*!< \brief MVE memory load instruction targeting multiple registers speculatively executed */
+#define ARM_PMU_MVE_ST_MULTI_RETIRED                 0x0261             /*!< \brief MVE memory store instruction targeting multiple registers architecturally executed */
+#define ARM_PMU_MVE_ST_MULTI_SPEC                    0x0265             /*!< \brief MVE memory store instruction targeting multiple registers speculatively executed */
+#define ARM_PMU_MVE_LDST_UNALIGNED_RETIRED           0x028C             /*!< \brief MVE unaligned memory load or store instruction architecturally executed */
+#define ARM_PMU_MVE_LDST_UNALIGNED_SPEC              0x028D             /*!< \brief MVE unaligned memory load or store instruction speculatively executed */
+#define ARM_PMU_MVE_LD_UNALIGNED_RETIRED             0x0290             /*!< \brief MVE unaligned load instruction architecturally executed */
+#define ARM_PMU_MVE_LD_UNALIGNED_SPEC                0x0291             /*!< \brief MVE unaligned load instruction speculatively executed */
+#define ARM_PMU_MVE_ST_UNALIGNED_RETIRED             0x0294             /*!< \brief MVE unaligned store instruction architecturally executed */
+#define ARM_PMU_MVE_ST_UNALIGNED_SPEC                0x0295             /*!< \brief MVE unaligned store instruction speculatively executed */
+#define ARM_PMU_MVE_LDST_UNALIGNED_NONCONTIG_RETIRED 0x0298             /*!< \brief MVE unaligned noncontiguous load or store instruction architecturally executed */
+#define ARM_PMU_MVE_LDST_UNALIGNED_NONCONTIG_SPEC    0x0299             /*!< \brief MVE unaligned noncontiguous load or store instruction speculatively executed */
+#define ARM_PMU_MVE_VREDUCE_RETIRED                  0x02A0             /*!< \brief MVE vector reduction instruction architecturally executed */
+#define ARM_PMU_MVE_VREDUCE_SPEC                     0x02A1             /*!< \brief MVE vector reduction instruction speculatively executed */
+#define ARM_PMU_MVE_VREDUCE_FP_RETIRED               0x02A4             /*!< \brief MVE floating-point vector reduction instruction architecturally executed */
+#define ARM_PMU_MVE_VREDUCE_FP_SPEC                  0x02A5             /*!< \brief MVE floating-point vector reduction instruction speculatively executed */
+#define ARM_PMU_MVE_VREDUCE_INT_RETIRED              0x02A8             /*!< \brief MVE integer vector reduction instruction architecturally executed */
+#define ARM_PMU_MVE_VREDUCE_INT_SPEC                 0x02A9             /*!< \brief MVE integer vector reduction instruction speculatively executed */
+#define ARM_PMU_MVE_PRED                             0x02B8             /*!< \brief Cycles where one or more predicated beats architecturally executed */
+#define ARM_PMU_MVE_STALL                            0x02CC             /*!< \brief Stall cycles caused by an MVE instruction */
+#define ARM_PMU_MVE_STALL_RESOURCE                   0x02CD             /*!< \brief Stall cycles caused by an MVE instruction because of resource conflicts */
+#define ARM_PMU_MVE_STALL_RESOURCE_MEM               0x02CE             /*!< \brief Stall cycles caused by an MVE instruction because of memory resource conflicts */
+#define ARM_PMU_MVE_STALL_RESOURCE_FP                0x02CF             /*!< \brief Stall cycles caused by an MVE instruction because of floating-point resource conflicts */
+#define ARM_PMU_MVE_STALL_RESOURCE_INT               0x02D0             /*!< \brief Stall cycles caused by an MVE instruction because of integer resource conflicts */
+#define ARM_PMU_MVE_STALL_BREAK                      0x02D3             /*!< \brief Stall cycles caused by an MVE chain break */
+#define ARM_PMU_MVE_STALL_DEPENDENCY                 0x02D4             /*!< \brief Stall cycles caused by MVE register dependency */
+#define ARM_PMU_ITCM_ACCESS                          0x4007             /*!< \brief Instruction TCM access */
+#define ARM_PMU_DTCM_ACCESS                          0x4008             /*!< \brief Data TCM access */
+#define ARM_PMU_TRCEXTOUT0                           0x4010             /*!< \brief ETM external output 0 */
+#define ARM_PMU_TRCEXTOUT1                           0x4011             /*!< \brief ETM external output 1 */
+#define ARM_PMU_TRCEXTOUT2                           0x4012             /*!< \brief ETM external output 2 */
+#define ARM_PMU_TRCEXTOUT3                           0x4013             /*!< \brief ETM external output 3 */
+#define ARM_PMU_CTI_TRIGOUT4                         0x4018             /*!< \brief Cross-trigger Interface output trigger 4 */
+#define ARM_PMU_CTI_TRIGOUT5                         0x4019             /*!< \brief Cross-trigger Interface output trigger 5 */
+#define ARM_PMU_CTI_TRIGOUT6                         0x401A             /*!< \brief Cross-trigger Interface output trigger 6 */
+#define ARM_PMU_CTI_TRIGOUT7                         0x401B             /*!< \brief Cross-trigger Interface output trigger 7 */
+
+/** @} */
+
+/**
+\defgroup pmu8_events_armcm55  PMU Events for Cortex-M55
+\ingroup pmu8_functions
+\brief IDs for additional events defined for Cortex-M55.
+\details
+These events are available on a Cortex-M55 device including a PMU.
+@{
+*/
+
+#define ARMCM55_PMU_ECC_ERR                          0xC000             /*!< \brief Any ECC error */
+#define ARMCM55_PMU_ECC_ERR_FATAL                    0xC001             /*!< \brief Any fatal ECC error */
+#define ARMCM55_PMU_ECC_ERR_DCACHE                   0xC010             /*!< \brief Any ECC error in the data cache */
+#define ARMCM55_PMU_ECC_ERR_ICACHE                   0xC011             /*!< \brief Any ECC error in the instruction cache */
+#define ARMCM55_PMU_ECC_ERR_FATAL_DCACHE             0xC012             /*!< \brief Any fatal ECC error in the data cache */
+#define ARMCM55_PMU_ECC_ERR_FATAL_ICACHE             0xC013             /*!< \brief Any fatal ECC error in the instruction cache*/
+#define ARMCM55_PMU_ECC_ERR_DTCM                     0xC020             /*!< \brief Any ECC error in the DTCM */
+#define ARMCM55_PMU_ECC_ERR_ITCM                     0xC021             /*!< \brief Any ECC error in the ITCM */
+#define ARMCM55_PMU_ECC_ERR_FATAL_DTCM               0xC022             /*!< \brief Any fatal ECC error in the DTCM */
+#define ARMCM55_PMU_ECC_ERR_FATAL_ITCM               0xC023             /*!< \brief Any fatal ECC error in the ITCM */
+#define ARMCM55_PMU_PF_LINEFILL                      0xC100             /*!< \brief A prefetcher starts a line-fill */
+#define ARMCM55_PMU_PF_CANCEL                        0xC101             /*!< \brief A prefetcher stops prefetching */
+#define ARMCM55_PMU_PF_DROP_LINEFILL                 0xC102             /*!< \brief A linefill triggered by a prefetcher has been dropped because of lack of buffering */
+#define ARMCM55_PMU_NWAMODE_ENTER                    0xC200             /*!< \brief No write-allocate mode entry */
+#define ARMCM55_PMU_NWAMODE                          0xC201             /*!< \brief Write-allocate store is not allocated into the data cache due to no-write-allocate mode */
+#define ARMCM55_PMU_SAHB_ACCESS                      0xC300             /*!< \brief Read or write access on the S-AHB interface to the TCM */
+#define ARMCM55_PMU_SAHB_ACCESS                      0xC300             /*!< \brief Read or write access on the S-AHB interface to the TCM */
+#define ARMCM55_PMU_PAHB_ACCESS                      0xC301             /*!< \brief Read or write access on the P-AHB interface */
+#define ARMCM55_PMU_AXI_WRITE_ACCESS                 0xC302             /*!< \brief Any beat access to M-AXI write interface */
+#define ARMCM55_PMU_AXI_READ_ACCESS                  0xC303             /*!< \brief Any beat access to M-AXI read interface */
+#define ARMCM55_PMU_DOSTIMEOUT_DOUBLE                0xC400             /*!< \brief Denial of Service timeout has fired twice and caused buffers to drain to allow forward progress */
+#define ARMCM55_PMU_DOSTIMEOUT_TRIPLE                0xC401             /*!< \brief Denial of Service timeout has fired three times and blocked the LSU to force forward progress */
+
+/** @} */
+
+/**
+\defgroup pmu8_events_armcm85  PMU Events for Cortex-M85
+\ingroup pmu8_functions
+\brief IDs for additional events defined for Cortex-M85.
+\details
+These events are available on a Cortex-M85 device including a PMU.
+@{
+*/
+
+#define ARMCM85_PMU_ECC_ERR                          0xC000             /*!< \brief Any ECC error */
+#define ARMCM85_PMU_ECC_ERR_MBIT                     0xC001             /*!< \brief Any multi-bit ECC error */
+#define ARMCM85_PMU_ECC_ERR_DCACHE                   0xC010             /*!< \brief Any ECC error in the data cache */
+#define ARMCM85_PMU_ECC_ERR_ICACHE                   0xC011             /*!< \brief Any ECC error in the instruction cache */
+#define ARMCM85_PMU_ECC_ERR_MBIT_DCACHE              0xC012             /*!< \brief Any multi-bit ECC error in the data cache */
+#define ARMCM85_PMU_ECC_ERR_MBIT_ICACHE              0xC013             /*!< \brief Any multi-biy ECC error in the instruction cache*/
+#define ARMCM85_PMU_ECC_ERR_DTCM                     0xC020             /*!< \brief Any ECC error in the DTCM */
+#define ARMCM85_PMU_ECC_ERR_ITCM                     0xC021             /*!< \brief Any ECC error in the ITCM */
+#define ARMCM85_PMU_ECC_ERR_MBIT_DTCM                0xC022             /*!< \brief Any multi-bit ECC error in the DTCM */
+#define ARMCM85_PMU_ECC_ERR_MBIT_ITCM                0xC023             /*!< \brief Any multi-bit ECC error in the ITCM */
+#define ARMCM85_PMU_PF_LINEFILL                      0xC100             /*!< \brief A prefetcher starts a line-fill */
+#define ARMCM85_PMU_PF_CANCEL                        0xC101             /*!< \brief A prefetcher stops prefetching */
+#define ARMCM85_PMU_PF_DROP_LINEFILL                 0xC102             /*!< \brief A linefill triggered by a prefetcher has been dropped because of lack of buffering */
+#define ARMCM85_PMU_NWAMODE_ENTER                    0xC200             /*!< \brief No write-allocate mode entry */
+#define ARMCM85_PMU_NWAMODE                          0xC201             /*!< \brief Write-allocate store is not allocated into the data cache due to no-write-allocate mode */
+#define ARMCM85_PMU_SAHB_ACCESS                      0xC300             /*!< \brief Read or write access on the S-AHB interface to the TCM */
+#define ARMCM85_PMU_PAHB_ACCESS                      0xC301             /*!< \brief Read or write access on the P-AHB interface */
+#define ARMCM85_PMU_AXI_WRITE_ACCESS                 0xC302             /*!< \brief Any beat access to M-AXI write interface  */
+#define ARMCM85_PMU_AXI_READ_ACCESS                  0xC303             /*!< \brief Any beat access to M-AXI read interface */
+#define ARMCM85_PMU_DOSTIMEOUT_DOUBLE                0xC400             /*!< \brief Denial of Service timeout has fired twice and caused buffers to drain to allow forward progress */
+#define ARMCM85_PMU_DOSTIMEOUT_TRIPLE                0xC401             /*!< \brief Denial of Service timeout has fired three times and blocked the LSU to force forward progress */
+
+/** @} */
+
+
+/**
+  \brief  Structure type to access the Performance Monitoring Unit (PMU).
+ */
+typedef struct
+{
+  __IOM uint32_t EVCNTR[__PMU_NUM_EVENTCNT];        /*!< Offset: 0x0 (R/W)    \brief PMU Event Counter Registers \details Two up to 31 event counters, see device specific \ref __PMU_NUM_EVENTCNT */
+//      uint32_t RESERVED0[31U-__PMU_NUM_EVENTCNT]; 
+  __IOM uint32_t CCNTR;                             /*!< Offset: 0x7C (R/W)   \brief PMU Cycle Counter Register */
+//      uint32_t RESERVED1[224];                    
+  __IOM uint32_t EVTYPER[__PMU_NUM_EVENTCNT];       /*!< Offset: 0x400 (R/W)  \brief PMU Event Type and Filter Registers \details Two up to 31 event counters, see device specific \ref __PMU_NUM_EVENTCNT */
+//      uint32_t RESERVED2[31U-__PMU_NUM_EVENTCNT]; 
+  __IOM uint32_t CCFILTR;                           /*!< Offset: 0x47C (R/W)  \brief PMU Cycle Counter Filter Register */
+//      uint32_t RESERVED3[480];                    
+  __IOM uint32_t CNTENSET;                          /*!< Offset: 0xC00 (R/W)  \brief PMU Count Enable Set Register */
+//      uint32_t RESERVED4[7];                      
+  __IOM uint32_t CNTENCLR;                          /*!< Offset: 0xC20 (R/W)  \brief PMU Count Enable Clear Register */
+//      uint32_t RESERVED5[7];                      
+  __IOM uint32_t INTENSET;                          /*!< Offset: 0xC40 (R/W)  \brief PMU Interrupt Enable Set Register */
+//      uint32_t RESERVED6[7];                      
+  __IOM uint32_t INTENCLR;                          /*!< Offset: 0xC60 (R/W)  \brief PMU Interrupt Enable Clear Register */
+//      uint32_t RESERVED7[7];                      
+  __IOM uint32_t OVSCLR;                            /*!< Offset: 0xC80 (R/W)  \brief PMU Overflow Flag Status Clear Register */
+//      uint32_t RESERVED8[7];                      
+  __IOM uint32_t SWINC;                             /*!< Offset: 0xCA0 (R/W)  \brief PMU Software Increment Register */
+//      uint32_t RESERVED9[7];                      
+  __IOM uint32_t OVSSET;                            /*!< Offset: 0xCC0 (R/W)  \brief PMU Overflow Flag Status Set Register */
+//      uint32_t RESERVED10[79];                    
+  __IOM uint32_t TYPE;                              /*!< Offset: 0xE00 (R/W)  \brief PMU Type Register */
+  __IOM uint32_t CTRL;                              /*!< Offset: 0xE04 (R/W)  \brief PMU Control Register */
+//      uint32_t RESERVED11[108];                   
+  __IOM uint32_t AUTHSTATUS;                        /*!< Offset: 0xFB8 (R/W)  \brief PMU Authentication Status Register */
+  __IOM uint32_t DEVARCH;                           /*!< Offset: 0xFBC (R/W)  \brief PMU Device Architecture Register */
+//      uint32_t RESERVED12[4];                     
+  __IOM uint32_t DEVTYPE;                           /*!< Offset: 0xFCC (R/W)  \brief PMU Device Type Register */
+  __IOM uint32_t PIDR4;                             /*!< Offset: 0xFD0 (R/W)  \brief PMU Peripheral Identification Register 4 */
+//      uint32_t RESERVED13[3];                     
+  __IOM uint32_t PIDR0;                             /*!< Offset: 0xFE0 (R/W)  \brief PMU Peripheral Identification Register 0 */
+  __IOM uint32_t PIDR1;                             /*!< Offset: 0xFE4 (R/W)  \brief PMU Peripheral Identification Register 1 */
+  __IOM uint32_t PIDR2;                             /*!< Offset: 0xFE8 (R/W)  \brief PMU Peripheral Identification Register 2 */
+  __IOM uint32_t PIDR3;                             /*!< Offset: 0xFEC (R/W)  \brief PMU Peripheral Identification Register 3 */
+//      uint32_t RESERVED14[3];                     
+  __IOM uint32_t CIDR0;                             /*!< Offset: 0xFF0 (R/W)  \brief PMU Component Identification Register 0 */
+  __IOM uint32_t CIDR1;                             /*!< Offset: 0xFF4 (R/W)  \brief PMU Component Identification Register 1 */
+  __IOM uint32_t CIDR2;                             /*!< Offset: 0xFF8 (R/W)  \brief PMU Component Identification Register 2 */
+  __IOM uint32_t CIDR3;                             /*!< Offset: 0xFFC (R/W)  \brief PMU Component Identification Register 3 */
+} PMU_Type;
+
+/**
+  \brief PMU configuration struct 
+  \details
+  This macro can be used to access the PMU registers, directly. For the common tasks
+  one should prefer using the control functions.
+  
+  Example:
+  <b>Example:</b>
+  \code
+  PMU->CTRL |= PMU_CTRL_ENABLE_Msk; // Enable PMU
+  \endcode
+*/
+#define PMU
+
+/** 
+  \brief   Enable the PMU
+*/
+__STATIC_INLINE void ARM_PMU_Enable(void);
+
+/** 
+  \brief   Disable the PMU
+*/
+__STATIC_INLINE void ARM_PMU_Disable(void); 
+
+/** 
+  \brief   Set event to count for PMU event counter
+  \param [in]    num     Event counter (0-30) to configure
+  \param [in]    type    Event to count
+*/
+__STATIC_INLINE void ARM_PMU_Set_EVTYPER(uint32_t num, uint32_t type);
+
+/** 
+  \brief  Reset cycle counter
+*/
+__STATIC_INLINE void ARM_PMU_CYCCNT_Reset(void);
+
+/** 
+  \brief  Reset all event counters
+*/
+__STATIC_INLINE void ARM_PMU_EVCNTR_ALL_Reset(void);
+
+/** 
+  \brief  Enable counters 
+  \param [in]     mask    Counters to enable
+  \note   Enables one or more of the following:
+          - event counters (0-30)
+          - cycle counter
+*/
+__STATIC_INLINE void ARM_PMU_CNTR_Enable(uint32_t mask);
+
+/** 
+  \brief  Disable counters
+  \param [in]     mask    Counters to enable
+  \note   Disables one or more of the following:
+          - event counters (0-30)
+          - cycle counter
+*/
+__STATIC_INLINE void ARM_PMU_CNTR_Disable(uint32_t mask);
+
+/** 
+  \brief  Read cycle counter
+  \return                 Cycle count
+*/
+__STATIC_INLINE uint32_t ARM_PMU_Get_CCNTR(void);
+
+/** 
+  \brief   Read event counter
+  \param [in]     num     Event counter (0-30) to read
+  \return                 Event count
+*/
+__STATIC_INLINE uint32_t ARM_PMU_Get_EVCNTR(uint32_t num);
+
+/** 
+  \brief   Read counter overflow status
+  \return  Counter overflow status bits for the following:
+          - event counters (0-30)
+          - cycle counter
+*/
+__STATIC_INLINE uint32_t ARM_PMU_Get_CNTR_OVS(void);
+
+/** 
+  \brief   Clear counter overflow status
+  \param [in]     mask    Counter overflow status bits to clear
+  \note    Clears overflow status bits for one or more of the following:
+           - event counters (0-30)
+           - cycle counter
+*/
+__STATIC_INLINE void ARM_PMU_Set_CNTR_OVS(uint32_t mask);
+
+/** 
+  \brief   Enable counter overflow interrupt request 
+  \param [in]     mask    Counter overflow interrupt request bits to set
+  \note    Sets overflow interrupt request bits for one or more of the following:
+           - event counters (0-30)
+           - cycle counter
+*/
+__STATIC_INLINE void ARM_PMU_Set_CNTR_IRQ_Enable(uint32_t mask);
+
+/** 
+  \brief   Disable counter overflow interrupt request 
+  \param [in]     mask    Counter overflow interrupt request bits to clear
+  \note    Clears overflow interrupt request bits for one or more of the following:
+           - event counters (0-30)
+           - cycle counter
+*/
+__STATIC_INLINE void ARM_PMU_Set_CNTR_IRQ_Disable(uint32_t mask);
+
+/** 
+  \brief   Software increment event counter 
+  \param [in]     mask    Counters to increment
+  \note    Software increment bits for one or more event counters (0-30)
+*/
+__STATIC_INLINE void ARM_PMU_CNTR_Increment(uint32_t mask);
+
+/** @} */

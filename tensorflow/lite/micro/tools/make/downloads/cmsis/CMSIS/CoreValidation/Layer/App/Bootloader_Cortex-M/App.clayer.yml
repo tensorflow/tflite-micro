@@ -1,0 +1,11 @@
+layer:
+  type: App
+  description: Validation of CMSIS-Core implementation (Bootloader part)
+
+  # packs:
+  #   - pack: ARM::CMSIS
+
+  groups:
+    - group: Source Files
+      files:
+        - file: ./bootloader.c

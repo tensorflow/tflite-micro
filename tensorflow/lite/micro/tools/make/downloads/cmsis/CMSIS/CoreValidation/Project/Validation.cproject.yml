@@ -1,0 +1,165 @@
+project:
+  layers:
+    # App: CMSIS-Core Validation for Cortex-M
+    - layer: ../Layer/App/Validation_Cortex-M/App.clayer.yml
+      for-context:
+        - +CM0
+        - +CM0plus
+        - +CM3
+        - +CM4
+        - +CM7
+        - +CM23
+        - +CM23S
+        - +CM23NS
+        - +CM33
+        - +CM33S
+        - +CM33NS
+        - +CM35P
+        - +CM35PS
+        - +CM35PNS
+        - +CM52
+        - +CM52S
+        - +CM52NS
+        - +CM55
+        - +CM55S
+        - +CM55NS
+        - +CM85
+        - +CM85S
+        - +CM85NS
+
+    # App: CMSIS-Core Validation for Cortex-A
+    - layer: ../Layer/App/Validation_Cortex-A/App.clayer.yml
+      for-context:
+        - +CA5
+        - +CA7
+        - +CA9
+
+    #Target: CM0
+    - layer: ../Layer/Target/CM0/Target.clayer.yml
+      for-context:
+        - +CM0
+
+    #Target: CM0plus
+    - layer: ../Layer/Target/CM0plus/Target.clayer.yml
+      for-context:
+        - +CM0plus
+
+    #Target: CM3
+    - layer: ../Layer/Target/CM3/Target.clayer.yml
+      for-context:
+        - +CM3
+
+    #Target: CM4
+    - layer: ../Layer/Target/CM4/Target.clayer.yml
+      for-context:
+        - +CM4
+
+    #Target: CM7
+    - layer: ../Layer/Target/CM7/Target.clayer.yml
+      for-context:
+        - +CM7
+
+    #Target: CM23
+    - layer: ../Layer/Target/CM23/Target.clayer.yml
+      for-context:
+        - +CM23
+
+    #Target: CM23S
+    - layer: ../Layer/Target/CM23S/Target.clayer.yml
+      for-context:
+        - +CM23S
+
+    #Target: CM23NS
+    - layer: ../Layer/Target/CM23NS/Target.clayer.yml
+      for-context:
+        - +CM23NS
+
+    #Target: CM33
+    - layer: ../Layer/Target/CM33/Target.clayer.yml
+      for-context:
+        - +CM33
+
+    #Target: CM33S
+    - layer: ../Layer/Target/CM33S/Target.clayer.yml
+      for-context:
+        - +CM33S
+
+    #Target: CM33NS
+    - layer: ../Layer/Target/CM33NS/Target.clayer.yml
+      for-context:
+        - +CM33NS
+
+    #Target: CM35P
+    - layer: ../Layer/Target/CM35P/Target.clayer.yml
+      for-context:
+        - +CM35P
+
+    #Target: CM35PS
+    - layer: ../Layer/Target/CM35PS/Target.clayer.yml
+      for-context:
+        - +CM35PS
+
+    #Target: CM35PNS
+    - layer: ../Layer/Target/CM35PNS/Target.clayer.yml
+      for-context:
+        - +CM35PNS
+
+    #Target: CM52
+    - layer: ../Layer/Target/CM52/Target.clayer.yml
+      for-context:
+        - +CM52
+
+    #Target: CM52S
+    - layer: ../Layer/Target/CM52S/Target.clayer.yml
+      for-context:
+        - +CM52S
+
+    #Target: CM52NS
+    - layer: ../Layer/Target/CM52NS/Target.clayer.yml
+      for-context:
+        - +CM52NS
+
+    #Target: CM55
+    - layer: ../Layer/Target/CM55/Target.clayer.yml
+      for-context:
+        - +CM55
+
+    #Target: CM55S
+    - layer: ../Layer/Target/CM55S/Target.clayer.yml
+      for-context:
+        - +CM55S
+
+    #Target: CM55NS
+    - layer: ../Layer/Target/CM55NS/Target.clayer.yml
+      for-context:
+        - +CM55NS
+
+    #Target: CM85
+    - layer: ../Layer/Target/CM85/Target.clayer.yml
+      for-context:
+        - +CM85
+
+    #Target: CM85S
+    - layer: ../Layer/Target/CM85S/Target.clayer.yml
+      for-context:
+        - +CM85S
+
+    #Target: CM85NS
+    - layer: ../Layer/Target/CM85NS/Target.clayer.yml
+      for-context:
+        - +CM85NS
+
+    #Target: CA5
+    - layer: ../Layer/Target/CA5/Target.clayer.yml
+      for-context:
+        - +CA5
+
+    #Target: CA7
+    - layer: ../Layer/Target/CA7/Target.clayer.yml
+      for-context:
+        - +CA7
+
+    #Target: CA9
+    - layer: ../Layer/Target/CA9/Target.clayer.yml
+      for-context:
+        - +CA9

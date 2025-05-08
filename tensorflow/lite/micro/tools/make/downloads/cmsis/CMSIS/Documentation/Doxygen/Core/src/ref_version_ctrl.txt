@@ -1,0 +1,129 @@
+/**************************************************************************************************/
+/**
+\defgroup   version_control_gr    Version Control
+\brief      Version \#define symbols for CMSIS release specific C/C++ source code
+\details
+
+\ref cmsis_processor_files contain macros \ref __CORTEX_M , \ref __CORTEX_SC or \ref __STAR_MC that identify the processor core variant described in the file.
+
+Additionally each processor header file includes the <b>cmsis_version.h</b> file with \ref __CM_CMSIS_VERSION define that identifies the CMSIS version used.
+
+This allows application code and middleware components to verify the target processor and the CMSIS version that CMSIS-Core component implies.
+
+@{
+*/
+
+/**
+\brief Contains the CMSIS version
+\details The CMSIS version is a combination of the \ref __CM_CMSIS_VERSION_MAIN (bits 31..16) and \ref __CM_CMSIS_VERSION_SUB (bits 15..0).
+
+<b>Code Example:</b>
+\code
+#if defined(__CM_CMSIS_VERSION) && \
+    (__CM_CMSIS_VERSION >= 0x00060000)
+#error Yes, we have CMSIS 6.0 or later
+#else
+#error We need CMSIS 6.0 or later!
+#endif
+\endcode
+*/
+#define __CM_CMSIS_VERSION
+
+/**
+\brief Contains the CMSIS major version
+\details The CMSIS major version can be used to differentiate between CMSIS major releases.
+*/
+#define __CM_CMSIS_VERSION_MAIN
+
+/**
+\brief Contains the CMSIS minor version
+\details The CMSIS minor version can be used to query a CMSIS release update level.
+*/
+#define __CM_CMSIS_VERSION_SUB
+
+/**
+\brief Contains the core version for a Cortex-M class controller.
+\details This define can be used to differentiate between the various available Cortex-M controllers.
+Possible values are:
+ - 0 for a Cortex-M0 or Cortex-M0+
+ - 1 for a Cortex-M1
+ - 3 for a Cortex-M3
+ - 4 for a Cortex-M4
+ - 7 for a Cortex-M7
+\if ARMv8M
+ - 23 for a Cortex-M23
+ - 33 for a Cortex-M33
+ - 35 for a Cortex-M35P
+ - 55 for a Cortex-M55
+ - 85 for a Cortex-M85
+ - 2  for a Armv8-M Base Line device
+ - 80 for a Armv8-M Main Line device
+ - 81 for a Armv8.1-M Main Line device
+\endif 
+
+This define is only available for Cortex-M class controllers.
+<b>Code Example:</b>
+\code
+#if defined(__CORTEX_M) && (__CORTEX_M == 4)
+#error Yes, we have an Cortex-M4 controller.
+#else
+#error We need a Cortex-M4 controller!
+#endif
+\endcode
+*/
+#define __CORTEX_M
+
+
+/**
+\cond (ARMSC)
+*/
+
+/**
+\brief Contains the core version for a Cortex Secure Core controller.
+\details This define can be used to differentiate between the various available Cortex Secure Core controllers.
+Possible values are:
+ - 000 for a Cortex-SC000
+ - 300 for a Cortex-SC300
+ 
+This define is only available for Cortex Secure Core controllers.
+<b>Code Example:</b>
+\code
+#if defined(__CORTEX_SC) && (__CORTEX_SC == 300U)
+#error Yes, we have an Cortex SC300 controller.
+#else
+#error We need a Cortex SC300 controller!
+#endif
+\endcode
+*/
+#define __CORTEX_SC
+/**
+\endcond
+*/
+
+/**
+\cond (STAR)
+*/
+/**
+\brief Contains the core version for a STAR-MC controller.
+\details This define can be used to differentiate between the various available STAR-MC controllers.
+Possible values are:
+ - 1 for a STAR-MC1
+ 
+This define is only available for STAR-MC controllers.
+<b>Code Example:</b>
+\code
+#if defined(__STAR_MC) && (__STAR_MC == 1U)
+#error Yes, we have a STAR-MC1 controller.
+#else
+#error We need a STAR-MC1 controller!
+#endif
+\endcode
+*/
+#define __STAR_MC
+/**
+\endcond
+*/
+
+/**
+@}
+*/

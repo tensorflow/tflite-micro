@@ -1,0 +1,71 @@
+layer:
+  type: App
+  description: Validation of CMSIS-Core implementation
+
+  # packs:
+  #   - pack: ARM::CMSIS
+
+  define:
+    - PRINT_XML_REPORT: 1
+
+  add-path:
+    - ../../../Include
+    - ../../../Source/Config
+
+  misc:
+    - for-compiler: AC6
+      C-CPP:
+      - -Wno-declaration-after-statement
+      - -Wno-covered-switch-default
+    - for-compiler: GCC
+      C-CPP:
+      - -Wno-declaration-after-statement
+
+  groups:
+    - group: Documentation
+      files:
+        - file: ../../../README.md
+
+    - group: Source Files
+      files:
+        - file: ./main.c
+
+    - group: CMSIS-Core_Validation
+      files:
+        - file: ../../../Source/cmsis_cv.c
+        - file: ../../../Source/CV_CoreFunc.c
+        - file: ../../../Source/CV_CoreInstr.c
+        - file: ../../../Source/CV_CoreSimd.c
+        - file: ../../../Source/CV_CML1Cache.c
+        - file: ../../../Source/CV_MPU_ARMv7.c
+          for-context:
+            - +CM0
+            - +CM0plus
+            - +CM3
+            - +CM4
+            - +CM7
+        - file: ../../../Source/CV_MPU_ARMv8.c
+          for-context:
+            - +CM23
+            - +CM23S
+            - +CM23NS
+            - +CM33
+            - +CM33S
+            - +CM33NS
+            - +CM35P
+            - +CM35PS
+            - +CM35PNS
+            - +CM52
+            - +CM52S
+            - +CM52NS
+            - +CM55
+            - +CM55S
+            - +CM55NS
+            - +CM85
+            - +CM85S
+            - +CM85NS
+
+    - group: Validation Framework
+      files:
+        - file: ../../../Source/CV_Framework.c
+        - file: ../../../Source/CV_Report.c

@@ -1,0 +1,65 @@
+name: Core Checks
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: 
+      - .github/workflows/core.yml
+      - CMSIS/Core/Include/**/*
+      - CMSIS/Core/Source/**/*
+      - CMSIS/Core/Test/**/*
+  push:
+    branches: [main]
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lit:
+    runs-on: ubuntu-latest
+
+    env:
+      ARM_UBL_ACTIVATION_CODE: ${{ secrets.ARM_UBL_ACTIVATION_CODE }}
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'    
+          cache: 'pip'
+
+      - name: Python requirements
+        run: |
+          pip install -r ./CMSIS/Core/Test/requirements.txt
+
+      - name: Install LLVM dependencies and tools
+        working-directory: /home/runner
+        run: |
+          sudo apt-get update
+          sudo apt-get install libtinfo5 llvm-15-tools
+          sudo ln -s /usr/bin/FileCheck-15 /usr/bin/FileCheck
+    
+      - name: Activate vcpkg environment
+        uses: ARM-software/cmsis-actions/vcpkg@v1
+        with:
+          config: ./CMSIS/Core/Test/vcpkg-configuration.json
+          
+      - name: Activate Arm tool license
+        uses: ARM-software/cmsis-actions/armlm@v1
+        with:
+          code: "${{ env.ARM_UBL_ACTIVATION_CODE }}"
+
+      - uses: ammaraskar/gcc-problem-matcher@master
+
+      - name: Run LIT
+        working-directory: ./CMSIS/Core/Test
+        run: |
+          ./build.py lit
+
+      - name: Publish Test Results
+        if: ${{ !cancelled() }}
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          report_individual_runs: true
+          files: ./CMSIS/Core/Test/*.xunit

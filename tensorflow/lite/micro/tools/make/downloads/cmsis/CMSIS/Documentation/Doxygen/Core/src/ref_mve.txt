@@ -1,0 +1,24 @@
+/**
+\defgroup mve_functions  MVE Functions
+\brief Functions that relate to the MVE (Cortex-M Vector Extensions) Unit.
+\details
+Some Cortex-M processors include an optional MVE unit.
+
+@{
+*/
+
+/**
+  \brief   Get the MVE type.
+  \details Returns the MVE type.
+  \returns
+   - \b  0: No Vector Extension (MVE)
+   - \b  1: Integer Vector Extension (MVE-I)
+   - \b  2: Floating-point Vector Extension (MVE-F)
+ */
+__STATIC_INLINE uint32_t SCB_GetMVEType(void);
+
+/**
+ @}  
+*/
+
+ 

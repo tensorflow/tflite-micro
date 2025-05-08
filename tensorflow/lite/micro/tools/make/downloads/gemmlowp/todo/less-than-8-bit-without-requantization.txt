@@ -1,0 +1,15 @@
+TODO: Discard the old requantization stuff, keep less-than-8-bit kernels, expose
+them as a different contract whereby the user specifies that operands use less
+than 8 bits.
+
+Read: doc/less-than-8-bit.md
+
+This is about going from "the present" to "the future" as described there.
+
+Discard all requantization stuff.
+
+Probably no need to worry about compatibility, this was little used.
+
+Instead, add a new option, in the form of new "bit depth params", whereby the user can specify that operands use less than 8 bits (even though they are represented as std::uint8_t). For example, specifying 6 bits would mean that the contract is that the user guarantees that LHS matrix entries are in the [0, 63] interval.
+
+Then make use of that to select kernels that take advantage of the lower bit depth. The existing less-than-8bit kernels would work as-is, only now no requantization would be needed anymore in the packing stage, and not rescaling in the unpacking stage.
