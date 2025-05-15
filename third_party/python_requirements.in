@@ -33,5 +33,6 @@ numpy
 mako
 pillow
 yapf
+prettyprinter
 protobuf
 pyyaml
