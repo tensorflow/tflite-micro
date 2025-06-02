@@ -1,4 +1,4 @@
-# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -183,7 +183,6 @@ ifeq ($(TARGET), $(HOST_OS))
 endif
 
 CXXFLAGS := \
-  -std=c++17 \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
@@ -192,7 +191,6 @@ CXXFLAGS := \
 
 CCFLAGS := \
   -Wimplicit-function-declaration \
-  -std=c17 \
   $(COMMON_FLAGS)
 
 ARFLAGS := -r
@@ -258,6 +256,14 @@ else ifeq ($(BUILD_TYPE), no_tf_lite_static_memory)
 	# https://github.com/tensorflow/tensorflow/issues/43076
 	CXXFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CXXFLAGS))
 	CCFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CCFLAGS))
+endif
+
+ifeq ($(CC_VER11), true)
+  CXXFLAGS+=-std=c++11
+  CCFLAGS+=-std=c11
+else
+  CXXFLAGS+=-std=c++17
+  CCFLAGS+=-std=c17
 endif
 
 # This library is the main target for this makefile. It will contain a minimal
@@ -333,6 +339,7 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark
 MICROLITE_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/hexdump_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_helpers_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
@@ -426,6 +433,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/neg.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pooling.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pooling_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/prelu.cc \
@@ -459,6 +467,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \

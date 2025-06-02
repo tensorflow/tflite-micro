@@ -35,7 +35,6 @@ py_library(
         "__init__.py",
         "ops/__init__.py",
     ],
-    srcs_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         ":delay_op",
@@ -66,8 +65,6 @@ py_test(
     name = "delay_op_test",
     size = "small",
     srcs = ["ops/delay_op_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -99,8 +96,6 @@ py_test(
     data = [
         "//python/tflite_micro/signal/ops/testdata:energy_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -132,8 +127,6 @@ py_test(
         "//python/tflite_micro/signal/ops/testdata:fft_auto_scale_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:rfft_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -171,8 +164,6 @@ py_test(
         "//python/tflite_micro/signal/ops/testdata:filter_bank_square_root_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:filter_bank_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -204,8 +195,6 @@ py_test(
     data = [
         "//python/tflite_micro/signal/ops/testdata:framer_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -234,8 +223,6 @@ py_test(
     name = "overlap_add_op_test",
     size = "small",
     srcs = ["ops/overlap_add_op_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -268,8 +255,6 @@ py_test(
     data = [
         "//python/tflite_micro/signal/ops/testdata:pcan_op_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -301,8 +286,6 @@ py_test(
     data = [
         "//python/tflite_micro/signal/ops/testdata:stacker_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",
@@ -333,8 +316,6 @@ py_test(
     data = [
         "//python/tflite_micro/signal/ops/testdata:window_test1.txt",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",

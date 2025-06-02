@@ -4,7 +4,6 @@ load("@tflm_pip_deps//:requirements.bzl", "requirement")
 py_binary(
     name = "train",
     srcs = ["train.py"],
-    srcs_version = "PY3",
     deps = [
         requirement("numpy"),
         requirement("tensorflow"),
@@ -14,7 +13,6 @@ py_binary(
 py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
-    srcs_version = "PY3",
     deps = [
         "//python/tflite_micro:runtime",
         "@absl_py//absl:app",
@@ -36,7 +34,6 @@ py_test(
         ":sample_images",
     ],
     main = "evaluate_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols

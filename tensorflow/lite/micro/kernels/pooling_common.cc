@@ -66,6 +66,15 @@ TfLiteStatus PoolingPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_STATUS(
       CalculateOpDataPooling(context, params, input, output, data));
 
+  // check if input, output quantization params are same.
+  if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
+    const double scale_diff = static_cast<double>(
+        std::abs(input->params.scale - output->params.scale));
+    TF_LITE_ENSURE(context, scale_diff <= 1.0e-6);
+    TF_LITE_ENSURE(context,
+                   input->params.zero_point == output->params.zero_point);
+  }
+
   if (input->type == kTfLiteFloat32) {
     CalculateActivationRange(params->activation, &data->activation_min_f32,
                              &data->activation_max_f32);

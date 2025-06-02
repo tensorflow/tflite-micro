@@ -3,7 +3,6 @@ load("@tflm_pip_deps//:requirements.bzl", "requirement")
 py_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.py"],
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         "@flatbuffers//:runtime_py",
@@ -16,7 +15,6 @@ py_library(
 py_library(
     name = "test_utils",
     srcs = ["test_utils.py"],
-    srcs_version = "PY3",
     deps = [
         "@flatbuffers//:runtime_py",
         requirement("tensorflow"),
@@ -27,8 +25,6 @@ py_library(
 py_binary(
     name = "strip_strings",
     srcs = ["strip_strings.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":flatbuffer_utils",
         "@absl_py//absl:app",
@@ -39,8 +35,6 @@ py_binary(
 py_binary(
     name = "visualize",
     srcs = ["visualize.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         "//tensorflow/lite/python:schema_py",
@@ -51,8 +45,6 @@ py_binary(
 py_test(
     name = "flatbuffer_utils_test",
     srcs = ["flatbuffer_utils_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":flatbuffer_utils",
         ":test_utils",
@@ -63,8 +55,6 @@ py_test(
 py_test(
     name = "visualize_test",
     srcs = ["visualize_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":test_utils",
         ":visualize",
