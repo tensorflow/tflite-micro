@@ -54,8 +54,8 @@ struct TestExternalContextPayloadData {
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-// Ensures that a regular set and get pair works ok.
-TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
+// Ensures that a regular set and get pair works ok during state kInvoke.
+TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccessInvoke) {
   tflite::MicroInterpreterContext micro_context =
       tflite::CreateMicroInterpreterContext();
   micro_context.SetInterpreterState(
@@ -70,19 +70,36 @@ TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccess) {
           micro_context.external_context());
 
   // What is returned should be the same as what is set.
-  TF_LITE_MICRO_EXPECT((void*)returned_external_context == (void*)(&payload));
+  TF_LITE_MICRO_EXPECT(returned_external_context == &payload);
+}
+
+// Ensures that a regular set and get pair works ok during state kInit.
+TF_LITE_MICRO_TEST(TestSetGetExternalContextSuccessInit) {
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+
+  tflite::TestExternalContextPayloadData payload;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          micro_context.set_external_context(&payload));
+
+  tflite::TestExternalContextPayloadData* returned_external_context =
+      reinterpret_cast<tflite::TestExternalContextPayloadData*>(
+          micro_context.external_context());
+
+  // What is returned should be the same as what is set.
+  TF_LITE_MICRO_EXPECT(returned_external_context == &payload);
 }
 
 TF_LITE_MICRO_TEST(TestGetExternalContextWithoutSetShouldReturnNull) {
   tflite::MicroInterpreterContext micro_context =
       tflite::CreateMicroInterpreterContext();
 
-  tflite::TestExternalContextPayloadData* returned_external_context =
-      reinterpret_cast<tflite::TestExternalContextPayloadData*>(
-          micro_context.external_context());
+  void* returned_external_context = micro_context.external_context();
 
   // Return a null if nothing is set before.
-  TF_LITE_MICRO_EXPECT((void*)returned_external_context == (nullptr));
+  TF_LITE_MICRO_EXPECT(returned_external_context == nullptr);
 }
 
 TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
@@ -98,6 +115,15 @@ TF_LITE_MICRO_TEST(TestSetExternalContextCanOnlyBeCalledOnce) {
   // Another set should fail.
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
                           micro_context.set_external_context(&payload));
+
+  // Null set should fail.
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          micro_context.set_external_context(nullptr));
+  tflite::TestExternalContextPayloadData* returned_external_context =
+      reinterpret_cast<tflite::TestExternalContextPayloadData*>(
+          micro_context.external_context());
+  // Payload should be unchanged.
+  TF_LITE_MICRO_EXPECT(&payload == returned_external_context);
 }
 
 TF_LITE_MICRO_TEST(TestSetExternalContextToNullShouldFail) {
