@@ -12,8 +12,6 @@ py_binary(
         "templates/BUILD.mako",
         "templates/integration_tests_cc.mako",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         "@absl_py//absl:app",

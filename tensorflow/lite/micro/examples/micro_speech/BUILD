@@ -207,8 +207,6 @@ py_binary(
     data = [
         ":samples_30ms",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
@@ -226,8 +224,6 @@ py_binary(
     data = [
         ":models_tflite",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":audio_preprocessor",
     ],
@@ -241,7 +237,6 @@ py_test(
         ":samples_1000ms",
     ],
     main = "evaluate_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols
@@ -260,7 +255,6 @@ py_test(
         ":samples_30ms",
     ],
     main = "audio_preprocessor_test.py",
-    python_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols

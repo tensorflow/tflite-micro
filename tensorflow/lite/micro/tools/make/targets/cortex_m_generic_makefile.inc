@@ -1,4 +1,4 @@
-# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 # Needed in case running without OPTIMIZED_KERNEL_DIR=cmsis_nn.
 CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
 CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
+CORTEX_DFP_PATH := $(CMSIS_PATH)/Cortex_DFP
 ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
@@ -27,6 +28,7 @@ ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
 endif
 
 FLOAT := soft
+FPU :=
 GCC_TARGET_ARCH := $(TARGET_ARCH)
 SIGNED_CHAR := false
 
@@ -108,10 +110,8 @@ endif
 
 # Dependency to CMSIS-Device for DWT/PMU counters.
 ARM_CPU := "ARMC$(CORE)"
-CMSIS_DEFAULT_DOWNLOAD_PATH := $(MAKEFILE_DIR)/downloads/cmsis
-CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 INCLUDES += \
-  -I$(CMSIS_PATH)/Cortex_DFP/Device/$(ARM_CPU)/Include \
+  -I$(CORTEX_DFP_PATH)/Device/$(ARM_CPU)/Include \
   -I$(CMSIS_PATH)/CMSIS/Core/Include
 
 ifneq ($(filter cortex-m55%,$(TARGET_ARCH)),)
@@ -161,6 +161,8 @@ else ifeq ($(TOOLCHAIN), gcc)
     FLAGS_GCC += -mfpu=fpv4-sp-d16
   else ifeq ($(TARGET_ARCH), cortex-m7)
     FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else ifneq ($(FPU),)
+    FLAGS_GCC += -mfpu=$(FPU)
   else
     FLAGS_GCC += -mfpu=auto
   endif
@@ -214,3 +216,4 @@ ifneq ($(TARGET_ARCH), project_generation)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
   MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 endif
+

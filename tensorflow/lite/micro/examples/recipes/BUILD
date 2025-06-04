@@ -8,7 +8,6 @@ package(
 py_library(
     name = "add_four_numbers",
     srcs = ["add_four_numbers.py"],
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
@@ -19,7 +18,6 @@ py_library(
 py_library(
     name = "resource_variables_lib",
     srcs = ["resource_variables_lib.py"],
-    srcs_version = "PY3",
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
@@ -30,7 +28,6 @@ py_library(
 py_test(
     name = "resource_variables_test",
     srcs = ["resource_variables_test.py"],
-    srcs_version = "PY3",
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols

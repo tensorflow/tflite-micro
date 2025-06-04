@@ -14,8 +14,6 @@ py_binary(
     data = [
         "templates/micro_mutable_op_resolver.h.mako",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
@@ -37,8 +35,6 @@ py_binary(
         "templates/micro_mutable_op_resolver.h.mako",
         "templates/micro_mutable_op_resolver_test.cc.mako",
     ],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
