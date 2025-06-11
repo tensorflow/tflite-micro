@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,15 +28,17 @@ limitations under the License.
 
 namespace tflite {
 
+namespace {
+
 void* InitReduce(TfLiteContext* context, const char* buffer, size_t length) {
   void* op_data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataReduce));
   return new (op_data) OpDataReduce();
 }
 
-TfLiteStatus PrepareMax(TfLiteContext* context, TfLiteNode* node) {
-  return PrepareMaxHelper(context, node,
-                          static_cast<OpDataReduce*>(node->user_data));
+TfLiteStatus PrepareMinMax(TfLiteContext* context, TfLiteNode* node) {
+  return PrepareMinMaxHelper(context, node,
+                             static_cast<OpDataReduce*>(node->user_data));
 }
 
 TfLiteStatus PrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
@@ -54,17 +56,28 @@ TfLiteStatus EvalMax(TfLiteContext* context, TfLiteNode* node) {
   return EvalMaxHelper(context, node, op_data);
 }
 
+TfLiteStatus EvalMin(TfLiteContext* context, TfLiteNode* node) {
+  OpDataReduce* op_data = static_cast<OpDataReduce*>(node->user_data);
+  return EvalMinHelper(context, node, op_data);
+}
+
 TfLiteStatus EvalSum(TfLiteContext* context, TfLiteNode* node) {
   return EvalSumHelper(context, node,
                        static_cast<OpDataReduce*>(node->user_data));
 }
+
+}  // namespace
 
 TFLMRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(InitReduce, PrepareMeanOrSum, EvalMean);
 }
 
 TFLMRegistration Register_REDUCE_MAX() {
-  return tflite::micro::RegisterOp(InitReduce, PrepareMax, EvalMax);
+  return tflite::micro::RegisterOp(InitReduce, PrepareMinMax, EvalMax);
+}
+
+TFLMRegistration Register_REDUCE_MIN() {
+  return tflite::micro::RegisterOp(InitReduce, PrepareMinMax, EvalMin);
 }
 
 TFLMRegistration Register_SUM() {
