@@ -160,6 +160,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reduce_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_bilinear_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_nearest_neighbor_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reverse_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape_test.cc \

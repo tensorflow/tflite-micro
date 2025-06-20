@@ -525,6 +525,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseResizeNearestNeighbor);
   }
 
+  TfLiteStatus AddReverseV2() {
+    return AddBuiltin(BuiltinOperator_REVERSE_V2, Register_REVERSE_V2(),
+                      ParseReverseV2);
+  }
+
   TfLiteStatus AddRfft(const TFLMRegistration* registration =
                            tflite::tflm_signal::Register_RFFT()) {
     // TODO(b/286250473): change back name and remove namespace
