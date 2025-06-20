@@ -104,6 +104,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddReshape();
   AddResizeBilinear();
   AddResizeNearestNeighbor();
+  AddReverseV2();
   AddRfft();
   AddRound();
   AddRsqrt();
