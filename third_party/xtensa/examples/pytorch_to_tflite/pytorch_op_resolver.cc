@@ -83,6 +83,7 @@ TfLiteStatus InitPytorchOpsResolver(PytorchOpsResolver& resolver) {
   TF_LITE_ENSURE_STATUS(resolver.AddQuantize());
   TF_LITE_ENSURE_STATUS(resolver.AddReadVariable());
   TF_LITE_ENSURE_STATUS(resolver.AddReduceMax());
+  TF_LITE_ENSURE_STATUS(resolver.AddReduceMin());
   TF_LITE_ENSURE_STATUS(resolver.AddRelu());
   TF_LITE_ENSURE_STATUS(resolver.AddRelu6());
   TF_LITE_ENSURE_STATUS(resolver.AddReshape());

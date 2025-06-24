@@ -500,6 +500,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseReducer);
   }
 
+  TfLiteStatus AddReduceMin() {
+    return AddBuiltin(BuiltinOperator_REDUCE_MIN, Register_REDUCE_MIN(),
+                      ParseReducer);
+  }
+
   TfLiteStatus AddRelu() {
     return AddBuiltin(BuiltinOperator_RELU, tflite::Register_RELU(), ParseRelu);
   }

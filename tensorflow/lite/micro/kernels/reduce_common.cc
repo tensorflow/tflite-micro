@@ -118,9 +118,9 @@ TfLiteStatus EvalIntegerMean(TfLiteContext* context, TfLiteNode* node,
 enum MinMaxEvalType { kEvalMin, kEvalMax };
 
 template <typename T>
-struct MinMaxReducerParams {
-  MinMaxReducerParams() = delete;
-  MinMaxReducerParams(MinMaxEvalType evalType) : type_(evalType){};
+struct MinMaxReducerCompare {
+  MinMaxReducerCompare() = delete;
+  MinMaxReducerCompare(MinMaxEvalType evalType) : type_(evalType) {};
 
   constexpr T initialValue() const {
     return (type_ == kEvalMin) ? std::numeric_limits<T>::max()
@@ -161,7 +161,7 @@ TfLiteStatus EvalMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
       context->GetScratchBuffer(context, op_data->resolved_axis_idx));
   switch (input->type) {
     case kTfLiteFloat32: {
-      MinMaxReducerParams<float> reducer(evalType);
+      MinMaxReducerCompare<float> reducer(evalType);
       TF_LITE_ENSURE(
           context,
           reference_ops::ReduceGeneric<float>(
@@ -173,7 +173,7 @@ TfLiteStatus EvalMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
               reducer.initialValue(), reducer.compare()));
     } break;
     case kTfLiteInt8: {
-      MinMaxReducerParams<int8_t> reducer(evalType);
+      MinMaxReducerCompare<int8_t> reducer(evalType);
       TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data->input_scale),
                         static_cast<double>(op_data->output_scale));
       TF_LITE_ENSURE_EQ(context, op_data->input_zp, op_data->output_zp);
