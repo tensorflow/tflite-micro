@@ -26,6 +26,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+# Workaround for TensorFlow 2.19.0 keras lazy loader issue. If Keras 3.0 is
+# installed, TensorFlow's lazy loader infinitely recurses when trying to
+# determine which Keras version to use. This forces TensorFlow to use the
+# one provided by package tf_keras. This must be set before importing
+# `tensorflow`. See https://keras.io/getting_started/#tensorflow--keras-2-backwards-compatibility.
+os.environ['TF_USE_LEGACY_KERAS'] = '1'
+
 from absl import app
 import numpy as np
 import tensorflow as tf

@@ -28,6 +28,7 @@
 
 bitarray
 tensorflow
+tf_keras
 twine
 numpy
 mako

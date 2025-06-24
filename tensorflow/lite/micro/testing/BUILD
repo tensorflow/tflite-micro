@@ -83,6 +83,7 @@ py_library(
     deps = [
         requirement("numpy"),
         requirement("tensorflow"),
+        requirement("tf_keras"),
     ],
 )
 
