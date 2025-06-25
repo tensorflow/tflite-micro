@@ -75,9 +75,8 @@ TfLiteStatus ReverseV2Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 template <typename T>
-void ReverseImpl(int32_t* axes, int num_axes,
-                 const RuntimeShape& input_shape, const T* input_data,
-                 T* output_data) {
+void ReverseImpl(int32_t* axes, int num_axes, const RuntimeShape& input_shape,
+                 const T* input_data, T* output_data) {
   bool is_upper = (axes[num_axes - 1] == input_shape.DimensionsCount() - 1);
   bool is_lower = (axes[0] == 0);
   int rank = input_shape.DimensionsCount();
@@ -104,11 +103,9 @@ void ReverseImpl(int32_t* axes, int num_axes,
     if (lower_size > 1) {
       for (int i = 0; i < upper_size; ++i) {
         for (int j = 0; j < middle_size; ++j) {
-          T* src =
-              (T*)input_data + (i * (middle_size) + j) * lower_size;
-          T* dst =
-              (T*)output_data +
-              (i * (middle_size) + (middle_size - j - 1)) * lower_size;
+          T* src = (T*)input_data + (i * (middle_size) + j) * lower_size;
+          T* dst = (T*)output_data +
+                   (i * (middle_size) + (middle_size - j - 1)) * lower_size;
           memcpy(dst, src, lower_size * sizeof(T));
         }
       }
@@ -132,7 +129,7 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, axis->type, kTfLiteInt32);
   const int num_axes = static_cast<int>(ElementCount(*axis->dims));
   TF_LITE_ENSURE(context, num_axes <= 8);
-  
+
   int32_t axes_data[kMaxDimensions];
   std::memcpy(axes_data, axis->data.i32, sizeof(int32_t) * num_axes);
   const int rank = tflite::micro::GetTensorShape(input).DimensionsCount();
@@ -142,7 +139,7 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     TF_LITE_ENSURE(context, axes_data[i] >= 0 && axes_data[i] < rank);
   }
-  std::sort(axes_data, axes_data + num_axes);
+  std::stable_sort(axes_data, axes_data + num_axes);
 
   bool is_contiguous = true;
   for (int i = 1; i < num_axes; ++i) {
@@ -169,7 +166,7 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
                            tflite::micro::GetTensorData<int32_t>(input),
                            tflite::micro::GetTensorData<int32_t>(output));
       break;
-    case kTfLiteInt16: 
+    case kTfLiteInt16:
       ReverseImpl<int16_t>(axes_data, num_axes,
                            tflite::micro::GetTensorShape(input),
                            tflite::micro::GetTensorData<int16_t>(input),

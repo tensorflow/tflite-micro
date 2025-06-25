@@ -47,10 +47,9 @@ void ExecuteReverseTest(TfLiteTensor* tensors, int tensors_count) {
 }
 
 template <typename T>
-void TestReverse(int* input_dims_data[kNumInputs],
-                 const T* input_data_0, const int32_t* input_data_1,
-                 int* expected_dims, const T* expected_data,
-                 T* output_data) {
+void TestReverse(int* input_dims_data[kNumInputs], const T* input_data_0,
+                 const int32_t* input_data_1, int* expected_dims,
+                 const T* expected_data, T* output_data) {
   TfLiteIntArray* input_dims_0 = IntArrayFromInts(input_dims_data[0]);
   TfLiteIntArray* input_dims_1 = IntArrayFromInts(input_dims_data[1]);
   TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
@@ -66,7 +65,7 @@ void TestReverse(int* input_dims_data[kNumInputs],
 
   // check output data against expected
   for (int i = 0; i < output_count; i++) {
-     TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 0);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 0);
   }
 
   // check output dimensions (relocated) against original dimensions
@@ -160,13 +159,13 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsFirst) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                              25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {0};
-  const int32_t kExpect[] = {19, 20, 21, 22, 23, 24, 25, 26, 27, 10, 11, 12,
-                             13, 14, 15, 16, 17, 18, 1,  2,  3,  4,  5,  6,
-                             7,  8,  9};
+  const int32_t kExpect[] = {19, 20, 21, 22, 23, 24, 25, 26, 27,
+                             10, 11, 12, 13, 14, 15, 16, 17, 18,
+                             1,  2,  3,  4,  5,  6,  7,  8,  9};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
 
@@ -180,13 +179,13 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecond) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                             13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                             25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {1};
-  const int32_t kExpect[] = {7,  8,  9,  4,  5,  6,  1,  2,  3,  16, 17, 18,
-                             13, 14, 15, 10, 11, 12, 25, 26, 27, 22, 23, 24,
-                             19, 20, 21};
+  const int32_t kExpect[] = {7,  8,  9,  4,  5,  6,  1,  2,  3,
+                             16, 17, 18, 13, 14, 15, 10, 11, 12,
+                             25, 26, 27, 22, 23, 24, 19, 20, 21};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
 
@@ -200,13 +199,13 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsThird) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                              25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {2};
-  const int32_t kExpect[] = {3,  2,  1,  6,  5,  4,  9,  8,  7,  12, 11, 10,
-                             15, 14, 13, 18, 17, 16, 21, 20, 19, 24, 23, 22,
-                             27, 26, 25};
+  const int32_t kExpect[] = {3,  2,  1,  6,  5,  4,  9,  8,  7,
+                             12, 11, 10, 15, 14, 13, 18, 17, 16,
+                             21, 20, 19, 24, 23, 22, 27, 26, 25};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
 
@@ -220,14 +219,14 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsFirstSecond) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                              25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {0, 1};
 
-  const int32_t kExpect[] = {25, 26, 27, 22, 23, 24, 19, 20, 21, 16, 17, 18,
-                             13, 14, 15, 10, 11, 12, 7,  8,  9,  4,  5,  6,
-                             1,  2,  3};
+  const int32_t kExpect[] = {25, 26, 27, 22, 23, 24, 19, 20, 21,
+                             16, 17, 18, 13, 14, 15, 10, 11, 12,
+                             7,  8,  9,  4,  5,  6,  1,  2,  3};
 
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
@@ -242,14 +241,14 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecondThird) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                              25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {1, 2};
 
-  const int32_t kExpect[] = {9,  8,  7,  6,  5,  4,  3,  2,  1,  18, 17, 16,
-                             15, 14, 13, 12, 11, 10, 27, 26, 25, 24, 23, 22,
-                             21, 20, 19};
+  const int32_t kExpect[] = {9,  8,  7,  6,  5,  4,  3,  2,  1,
+                             18, 17, 16, 15, 14, 13, 12, 11, 10,
+                             27, 26, 25, 24, 23, 22, 21, 20, 19};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
 
@@ -263,14 +262,14 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecondFirst) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                              25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {1, 0};
 
-  const int32_t kExpect[] = {25, 26, 27, 22, 23, 24, 19, 20, 21, 16, 17, 18,
-                             13, 14, 15, 10, 11, 12, 7,  8,  9,  4,  5,  6,
-                             1,  2,  3};
+  const int32_t kExpect[] = {25, 26, 27, 22, 23, 24, 19, 20, 21,
+                             16, 17, 18, 13, 14, 15, 10, 11, 12,
+                             7,  8,  9,  4,  5,  6,  1,  2,  3};
 
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
@@ -285,13 +284,13 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsAll) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 3, 3, 3};
 
-  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                              25, 26, 27};
+  const int32_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,
+                              10, 11, 12, 13, 14, 15, 16, 17, 18,
+                              19, 20, 21, 22, 23, 24, 25, 26, 27};
   const int32_t kInput_1[] = {0, 1, 2};
-  const int32_t kExpect[] = {27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16,
-                             15, 14, 13, 12, 11, 10, 9,  8,  7,  6,  5,  4,
-                             3,  2,  1};
+  const int32_t kExpect[] = {27, 26, 25, 24, 23, 22, 21, 20, 19,
+                             18, 17, 16, 15, 14, 13, 12, 11, 10,
+                             9,  8,  7,  6,  5,  4,  3,  2,  1};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int32_t output_data[kOutputCount];
 
@@ -358,8 +357,9 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt8MultiDimensions) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 4, 3, 2};
 
-  const int8_t kInput_0[] = {-1, -2, -3, -4,  5,  6,  7,  8,  9, 10, 11, 12, 13,
-                             14, 15, 16, 17, 18, 19, 20, -21, -22, -23, -24};
+  const int8_t kInput_0[] = {-1, -2, -3, -4, 5,   6,   7,   8,
+                             9,  10, 11, 12, 13,  14,  15,  16,
+                             17, 18, 19, 20, -21, -22, -23, -24};
   const int32_t kInput_1[] = {1};
   const int8_t kExpect[] = {5,  6,  -3,  -4,  -1,  -2,  11, 12, 9,  10, 7,  8,
                             17, 18, 15, 16, 13, 14, -23, -24, -21, -22, 19, 20};
@@ -393,8 +393,8 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt16MultiDimensions) {
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
   int kOutputDims[] = {3, 4, 3, 2};
 
-  const int16_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-                              14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+  const int16_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
   const int32_t kInput_1[] = {1};
   const int16_t kExpect[] = {5,  6,  3,  4,  1,  2,  11, 12, 9,  10, 7,  8,
                              17, 18, 15, 16, 13, 14, 23, 24, 21, 22, 19, 20};
