@@ -32,7 +32,7 @@ constexpr int kInputTensor = 0;
 constexpr int kAxisTensor = 1;
 constexpr int kOutputTensor = 0;
 
-int comp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+int comp(const void *a, const void *b) { return (*(int*)a - *(int*)b); }
 
 TfLiteStatus ReverseV2Prepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);

@@ -361,7 +361,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt8MultiDimensions) {
                              9,  10, 11, 12, 13,  14,  15,  16,
                              17, 18, 19, 20, -21, -22, -23, -24};
   const int32_t kInput_1[] = {1};
-  const int8_t kExpect[] = {5,  6,  -3, -4, -1, -2,  11,  12,  9,  10,  7,  8,
+  const int8_t kExpect[] = {5,  6,  -3, -4, -1, -2, 11,  12,  9,   10,  7,  8,
                             17, 18, 15, 16, 13, 14, -23, -24, -21, -22, 19, 20};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int8_t output_data[kOutputCount];
