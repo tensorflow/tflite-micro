@@ -32,6 +32,10 @@ constexpr int kInputTensor = 0;
 constexpr int kAxisTensor = 1;
 constexpr int kOutputTensor = 0;
 
+int comp(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
 TfLiteStatus ReverseV2Prepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
@@ -139,7 +143,7 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     TF_LITE_ENSURE(context, axes_data[i] >= 0 && axes_data[i] < rank);
   }
-  std::stable_sort(axes_data, axes_data + num_axes);
+  qsort(axes_data, num_axes, sizeof(int32_t), comp);
 
   bool is_contiguous = true;
   for (int i = 1; i < num_axes; ++i) {
