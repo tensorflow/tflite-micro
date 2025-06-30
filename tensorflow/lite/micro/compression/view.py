@@ -17,9 +17,11 @@
 # annotations (indexes of lists, names of operators, etc.) derived from the
 # model are added as virtual fields with names beginning with an _underscore.
 #
-# # Theory of operation
+# Example usage:
+#   bazel run //tensorflow/lite/micro/compression:view -- $(realpath model.tflite)
 #
-# Convert the model into a Python dictionary, expressing the hierarchial nature
+# Theory of operation:
+# Convert the model into a Python dictionary, expressing the hierarchical nature
 # of the model, and pretty print the dictionary. Please extend as needed for
 # your use case.
 
