@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -97,6 +97,16 @@ TfLiteStatus SubPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_STATUS(
       CalculateOpDataSub(context, params, input1, input2, output, data));
+
+  if (output->type == kTfLiteInt32) {
+    // Only support INT32 unquantized SUB for now.
+    TF_LITE_ENSURE_EQ(context, input1->quantization.type,
+                      kTfLiteNoQuantization);
+    TF_LITE_ENSURE_EQ(context, input2->quantization.type,
+                      kTfLiteNoQuantization);
+    TF_LITE_ENSURE_EQ(context, output->quantization.type,
+                      kTfLiteNoQuantization);
+  }
 
   micro_context->DeallocateTempTfLiteTensor(input1);
   micro_context->DeallocateTempTfLiteTensor(input2);

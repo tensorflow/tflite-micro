@@ -112,7 +112,8 @@ void MicroInterpreterContext::SetScratchBufferHandles(
 
 TfLiteStatus MicroInterpreterContext::set_external_context(
     void* external_context_payload) {
-  TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
+  TFLITE_DCHECK(state_ == InterpreterState::kInit ||
+                state_ == InterpreterState::kPrepare ||
                 state_ == InterpreterState::kInvoke);
   if (external_context_payload == nullptr ||
       external_context_payload_ != nullptr) {
