@@ -51,7 +51,8 @@ if is_bazel:
     Print a human-readable visualization of a .tflite model.
     Note: When running through Bazel, MODEL_PATH must be an absolute path.
     
-    Example: bazel run //tensorflow/lite/micro/compression:view -- $(realpath model.tflite)""")
+    Example: bazel run //tensorflow/lite/micro/compression:view -- $(realpath model.tflite)"""
+                          )
 else:
   USAGE = textwrap.dedent(f"""\
     Usage: {os.path.basename(sys.argv[0])} <MODEL_PATH>
@@ -106,8 +107,6 @@ class MetadataReader:
           "lut_tensors": unpack_lut_metadata(subgraph.lutTensors),
       })
     return {"subgraphs": result}
-
-
 
 
 def unpack_operators(model: tflite_schema.ModelT,
@@ -322,10 +321,6 @@ def unpack_lut_metadata(lut_tensors):
   } for t in sorted(lut_tensors, key=lambda x: x.tensor)]
 
 
-
-
-
-
 def find_lut_info_for_buffer(buffer_index, model, compression_data):
   """Find LUT metadata for a given buffer index.
   
@@ -334,7 +329,7 @@ def find_lut_info_for_buffer(buffer_index, model, compression_data):
   """
   if compression_data is None:
     return None
-    
+
   for subgraph_idx, subgraph in enumerate(compression_data.metadata.subgraphs):
     for lut_tensor in subgraph.lutTensors:
       # Get the tensor to find which buffer contains the compressed indices
@@ -360,7 +355,7 @@ def unpack_buffers(model, compression_data):
       native["_compression_metadata"] = True
 
     native["data"] = buffer.data
-    
+
     # Check if this buffer contains compressed indices
     lut_info = find_lut_info_for_buffer(index, model, compression_data)
     if lut_info and buffer.data is not None:
@@ -368,12 +363,16 @@ def unpack_buffers(model, compression_data):
       bstring = bitarray.bitarray()
       bstring.frombytes(bytes(buffer.data))
       bitwidth = lut_info["index_bitwidth"]
-      chunks = [bstring[i:i+bitwidth] for i in range(0, len(bstring) - bitwidth + 1, bitwidth)]
+      chunks = [
+          bstring[i:i + bitwidth]
+          for i in range(0,
+                         len(bstring) - bitwidth + 1, bitwidth)
+      ]
       indices = [bitarray.util.ba2int(chunk) for chunk in chunks]
-      
+
       # Convert indices to numpy array to match data field formatting
       indices_array = np.array(indices, dtype=np.uint8)
-      
+
       native["_lut_indices"] = {
           "tensor": lut_info["tensor_index"],
           "bitwidth": bitwidth,
@@ -383,8 +382,6 @@ def unpack_buffers(model, compression_data):
     buffers.append(native)
 
   return buffers
-
-
 
 
 def create_dictionary(flatbuffer: memoryview) -> dict:
@@ -413,8 +410,11 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
 @prettyprinter.register_pretty(np.ndarray)
 def pretty_numpy_array(array, ctx):
   # Format array without ellipsis, similar to how buffer data is displayed
-  string = np.array2string(array, threshold=np.inf, max_line_width=78, 
-                           separator=' ', suppress_small=True)
+  string = np.array2string(array,
+                           threshold=np.inf,
+                           max_line_width=78,
+                           separator=' ',
+                           suppress_small=True)
   lines = string.splitlines()
 
   if len(lines) == 1:
