@@ -350,6 +350,28 @@ def unpack_compression_metadata(buffer):
   return {"subgraphs": result}
 
 
+def find_lut_info_for_buffer(buffer_index, model, compression_data):
+  """Find LUT metadata for a given buffer index.
+  
+  Returns a dict with tensor_index, subgraph_index, and index_bitwidth if the
+  buffer contains compressed indices, otherwise returns None.
+  """
+  if compression_data is None:
+    return None
+    
+  for subgraph_idx, subgraph in enumerate(compression_data.metadata.subgraphs):
+    for lut_tensor in subgraph.lutTensors:
+      # Get the tensor to find which buffer contains the compressed indices
+      tensor = model.subgraphs[subgraph_idx].tensors[lut_tensor.tensor]
+      if tensor.buffer == buffer_index:
+        return {
+            "tensor_index": lut_tensor.tensor,
+            "subgraph_index": subgraph_idx,
+            "index_bitwidth": lut_tensor.indexBitwidth,
+        }
+  return None
+
+
 def unpack_buffers(model, compression_data):
   buffers = []
   for index, buffer in enumerate(model.buffers):
@@ -362,6 +384,25 @@ def unpack_buffers(model, compression_data):
       native["_compression_metadata"] = True
 
     native["data"] = buffer.data
+    
+    # Check if this buffer contains compressed indices
+    lut_info = find_lut_info_for_buffer(index, model, compression_data)
+    if lut_info and buffer.data is not None:
+      # Decode the indices from the buffer
+      bstring = bitarray.bitarray()
+      bstring.frombytes(bytes(buffer.data))
+      bitwidth = lut_info["index_bitwidth"]
+      chunks = [bstring[i:i+bitwidth] for i in range(0, len(bstring) - bitwidth + 1, bitwidth)]
+      indices = [bitarray.util.ba2int(chunk) for chunk in chunks]
+      
+      # Convert indices to numpy array to match data field formatting
+      indices_array = np.array(indices, dtype=np.uint8)
+      
+      native["_lut_indices"] = {
+          "tensor": lut_info["tensor_index"],
+          "bitwidth": bitwidth,
+          "indices": indices_array,
+      }
 
     buffers.append(native)
 
@@ -404,7 +445,9 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
 
 @prettyprinter.register_pretty(np.ndarray)
 def pretty_numpy_array(array, ctx):
-  string = np.array2string(array)
+  # Format array without ellipsis, similar to how buffer data is displayed
+  string = np.array2string(array, threshold=np.inf, max_line_width=78, 
+                           separator=' ', suppress_small=True)
   lines = string.splitlines()
 
   if len(lines) == 1:
