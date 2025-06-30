@@ -108,12 +108,6 @@ class MetadataReader:
     return {"subgraphs": result}
 
 
-def unpack_list(source, index_name="_index"):
-  result = []
-  for index, s in enumerate(source):
-    d = {index_name: index} | vars(s)
-    result.append(d)
-  return result
 
 
 def unpack_operators(model: tflite_schema.ModelT,
@@ -328,41 +322,8 @@ def unpack_lut_metadata(lut_tensors):
   } for t in sorted(lut_tensors, key=lambda x: x.tensor)]
 
 
-def is_compressed_buffer(buffer_index, unpacked_metadata):
-  if unpacked_metadata is None:
-    return False, None, None
-  for subgraph in unpacked_metadata["subgraphs"]:
-    lut_list = subgraph["lut_tensors"]
-    subgraph_index = subgraph["_index"]
-    item = next(
-        (item for item in lut_list if item["value_buffer"] == buffer_index),
-        None)
-    if item is not None:
-      return True, item, subgraph_index
-  return False, None, None
 
 
-def unpack_indices(buffer, lut_data):
-  bstring = bitarray.bitarray()
-  bstring.frombytes(bytes(buffer.data))
-  bitwidth = lut_data["index_bitwidth"]
-  indices = []
-  while len(bstring) > 0:
-    indices.append(bitarray.util.ba2int(bstring[0:bitwidth]))
-    del bstring[0:bitwidth]
-  return indices
-
-
-def unpack_compression_metadata(buffer):
-  buffer = bytes(buffer.data)
-  metadata = compression_schema.MetadataT.InitFromPackedBuf(buffer, 0)
-  if metadata.subgraphs is None:
-    raise ValueError("Invalid compression metadata")
-  result = []
-  for index, s in enumerate(metadata.subgraphs):
-    d = {"_index": index, "lut_tensors": unpack_lut_metadata(s.lutTensors)}
-    result.append(d)
-  return {"subgraphs": result}
 
 
 def find_lut_info_for_buffer(buffer_index, model, compression_data):
@@ -424,14 +385,6 @@ def unpack_buffers(model, compression_data):
   return buffers
 
 
-def get_compression_metadata_buffer(model):
-  """Returns the metadata buffer data or None."""
-  if model.metadata is None:
-    return None
-  for item in model.metadata:
-    if _decode_name(item.name) == "COMPRESSION_METADATA":
-      return item.buffer
-  return None
 
 
 def create_dictionary(flatbuffer: memoryview) -> dict:
@@ -449,7 +402,6 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
       "description": model.description,
       "version": model.version,
       "operator_codes": unpack_opcodes(model.operatorCodes),
-      # "operator_codes": unpack_list(model.operatorCodes),
       "metadata": unpack_metadata(model),
       "subgraphs": unpack_subgraphs(model, codec),
       "buffers": unpack_buffers(model, compression_metadata),
