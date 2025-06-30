@@ -39,9 +39,22 @@ import absl.app
 from tensorflow.lite.micro.compression import metadata_py_generated as compression_schema
 from tensorflow.lite.python import schema_py_generated as tflite_schema
 
-USAGE = textwrap.dedent(f"""\
-    Usage: {os.path.basename(sys.argv[0])} $(realpath <MODEL>)
-    Print a visualization of a .tflite model.""")
+# Detect if running under Bazel by checking for BAZEL environment variables
+is_bazel = 'BUILD_WORKING_DIRECTORY' in os.environ or 'BAZEL_TEST' in os.environ
+
+if is_bazel:
+  USAGE = textwrap.dedent("""\
+    Usage: bazel run //tensorflow/lite/micro/compression:view -- <MODEL_PATH>
+    
+    Print a human-readable visualization of a .tflite model.
+    Note: When running through Bazel, MODEL_PATH must be an absolute path.
+    
+    Example: bazel run //tensorflow/lite/micro/compression:view -- $(realpath model.tflite)""")
+else:
+  USAGE = textwrap.dedent(f"""\
+    Usage: {os.path.basename(sys.argv[0])} <MODEL_PATH>
+    
+    Print a human-readable visualization of a .tflite model.""")
 
 
 def print_model(model_path):
