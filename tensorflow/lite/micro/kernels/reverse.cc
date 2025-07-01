@@ -12,8 +12,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#include "tensorflow/lite/kernels/internal/reference/reverse.h"
 
 #include <stdint.h>
+
+#include <cstdlib>
+#include <cstring>
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -23,16 +27,19 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
-constexpr int kMaxDimensions = 8;
-
 namespace {
 
+constexpr int kMaxDimensions = RuntimeShape::kMaxSmallSize;
 constexpr int kInputTensor = 0;
 constexpr int kAxisTensor = 1;
 constexpr int kOutputTensor = 0;
 
-int comp(const void* a, const void* b) { return (*(int*)a - *(int*)b); }
+int comp(const void* a, const void* b) {
+  const int* int_a = static_cast<const int*>(a);
+  const int* int_b = static_cast<const int*>(b);
+
+  return (*int_a - *int_b);
+}
 
 TfLiteStatus ReverseV2Prepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
@@ -51,12 +58,13 @@ TfLiteStatus ReverseV2Prepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_EQ(context, NumDimensions(axis), 1);
-  TF_LITE_ENSURE(context, NumDimensions(input) <= 8);
+  TF_LITE_ENSURE(context, NumDimensions(input) <= kMaxDimensions);
   TF_LITE_ENSURE(context, NumDimensions(input) >= NumElements(axis));
 
   if (input->type != kTfLiteInt32 && input->type != kTfLiteFloat32 &&
       input->type != kTfLiteUInt8 && input->type != kTfLiteInt8 &&
-      input->type != kTfLiteInt16) {
+      input->type != kTfLiteInt16 && input->type != kTfLiteInt64 &&
+      input->type != kTfLiteBool) {
     MicroPrintf("Type '%s' is not supported by reverse.",
                 TfLiteTypeGetName(input->type));
     return kTfLiteError;
@@ -76,51 +84,6 @@ TfLiteStatus ReverseV2Prepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-template <typename T>
-void ReverseImpl(int32_t* axes, int num_axes, const RuntimeShape& input_shape,
-                 const T* input_data, T* output_data) {
-  bool is_upper = (axes[num_axes - 1] == input_shape.DimensionsCount() - 1);
-  bool is_lower = (axes[0] == 0);
-  int rank = input_shape.DimensionsCount();
-  if (is_upper && is_lower) {
-    std::reverse_copy(input_data, input_data + input_shape.FlatSize(),
-                      output_data);
-    return;
-  } else {
-    int32_t min_dim = axes[0];
-    int32_t max_dim = axes[num_axes - 1];
-    int upper_size = 1;
-    for (int i = 0; i < min_dim; ++i) {
-      upper_size *= input_shape.Dims(i);
-    }
-    int lower_size = 1;
-    for (int i = max_dim + 1; i < rank; ++i) {
-      lower_size *= input_shape.Dims(i);
-    }
-    int middle_size = 1;
-    for (int i = min_dim; i <= max_dim; ++i) {
-      middle_size *= input_shape.Dims(i);
-    }
-
-    if (lower_size > 1) {
-      for (int i = 0; i < upper_size; ++i) {
-        for (int j = 0; j < middle_size; ++j) {
-          T* src = (T*)input_data + (i * (middle_size) + j) * lower_size;
-          T* dst = (T*)output_data +
-                   (i * (middle_size) + (middle_size - j - 1)) * lower_size;
-          memcpy(dst, src, lower_size * sizeof(T));
-        }
-      }
-    } else {
-      for (int i = 0; i < upper_size; ++i) {
-        std::reverse_copy(input_data + i * (middle_size),
-                          input_data + i * middle_size + middle_size,
-                          output_data + i * (middle_size));
-      }
-    }
-  }
-}
-
 TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kInputTensor);
@@ -128,12 +91,12 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
       micro::GetEvalInput(context, node, kAxisTensor);
   TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
-  TF_LITE_ENSURE_EQ(context, axis->type, kTfLiteInt32);
   const int num_axes = static_cast<int>(ElementCount(*axis->dims));
-  TF_LITE_ENSURE(context, num_axes <= 8);
 
-  int32_t axes_data[kMaxDimensions];
-  std::memcpy(axes_data, axis->data.i32, sizeof(int32_t) * num_axes);
+  // TFLite reverse implementation is expecting fixed size 8,
+  // so using 8 below.
+  std::array<int32_t, 8> axes_data;
+  std::memcpy(axes_data.data(), axis->data.data, sizeof(int32_t) * num_axes);
   const int rank = tflite::micro::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < num_axes; ++i) {
     if (axes_data[i] < 0) {
@@ -141,7 +104,7 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
     }
     TF_LITE_ENSURE(context, axes_data[i] >= 0 && axes_data[i] < rank);
   }
-  qsort(axes_data, num_axes, sizeof(int32_t), comp);
+  std::qsort(axes_data.data(), num_axes, sizeof(int32_t), comp);
 
   bool is_contiguous = true;
   for (int i = 1; i < num_axes; ++i) {
@@ -157,35 +120,45 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (output->type) {
     case kTfLiteFloat32:
-      ReverseImpl<float>(axes_data, num_axes,
-                         tflite::micro::GetTensorShape(input),
-                         tflite::micro::GetTensorData<float>(input),
-                         tflite::micro::GetTensorData<float>(output));
+      reference_ops::Reverse<float>(
+          axes_data, num_axes, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<float>(input),
+          tflite::micro::GetTensorData<float>(output));
       break;
     case kTfLiteInt32:
-      ReverseImpl<int32_t>(axes_data, num_axes,
-                           tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorData<int32_t>(input),
-                           tflite::micro::GetTensorData<int32_t>(output));
+      reference_ops::Reverse<int32_t>(
+          axes_data, num_axes, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int32_t>(input),
+          tflite::micro::GetTensorData<int32_t>(output));
       break;
     case kTfLiteInt16:
-      ReverseImpl<int16_t>(axes_data, num_axes,
-                           tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorData<int16_t>(input),
-                           tflite::micro::GetTensorData<int16_t>(output));
+      reference_ops::Reverse<int16_t>(
+          axes_data, num_axes, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int16_t>(input),
+          tflite::micro::GetTensorData<int16_t>(output));
       break;
     case kTfLiteInt8:
     case kTfLiteUInt8:
-      ReverseImpl<uint8_t>(axes_data, num_axes,
-                           tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorData<uint8_t>(input),
-                           tflite::micro::GetTensorData<uint8_t>(output));
+      reference_ops::Reverse<uint8_t>(
+          axes_data, num_axes, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<uint8_t>(input),
+          tflite::micro::GetTensorData<uint8_t>(output));
+      break;
+    case kTfLiteInt64:
+      reference_ops::Reverse<int64_t>(
+          axes_data, num_axes, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int64_t>(input),
+          tflite::micro::GetTensorData<int64_t>(output));
+      break;
+    case kTfLiteBool:
+      reference_ops::Reverse<bool>(axes_data, num_axes,
+                                   tflite::micro::GetTensorShape(input),
+                                   tflite::micro::GetTensorData<bool>(input),
+                                   tflite::micro::GetTensorData<bool>(output));
       break;
     default:
-      MicroPrintf(
-          "Reverse currently supports float32, int16, "
-          "int8 and uint8 for output, got %d.",
-          TfLiteTypeGetName(output->type));
+      MicroPrintf("Output type '%s' (%d) is not supported.",
+                  TfLiteTypeGetName(output->type), output->type);
       return kTfLiteError;
   }
 

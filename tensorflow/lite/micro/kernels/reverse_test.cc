@@ -68,7 +68,6 @@ void TestReverse(int* input_dims_data[kNumInputs], const T* input_data_0,
     TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 0);
   }
 
-  // check output dimensions (relocated) against original dimensions
   TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
                           tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
@@ -400,6 +399,41 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt16MultiDimensions) {
                              17, 18, 15, 16, 13, 14, 23, 24, 21, 22, 19, 20};
   const int kOutputCount = std::extent<decltype(kExpect)>::value;
   int16_t output_data[kOutputCount];
+
+  tflite::testing::TestReverse(kInputDims, kInput_0, kInput_1, kOutputDims,
+                               kExpect, output_data);
+}
+
+// int64 tests
+TF_LITE_MICRO_TEST(ReverseOpTestInt64OneDimension) {
+  int kInputDims_0[] = {1, 4};
+  int kInputDims_1[] = {1, 1};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
+  int kOutputDims[] = {1, 4};
+
+  const int64_t kInput_0[] = {1, 2, 3, 4};
+  const int32_t kInput_1[] = {0};
+  const int64_t kExpect[] = {4, 3, 2, 1};
+  const int kOutputCount = std::extent<decltype(kExpect)>::value;
+  int64_t output_data[kOutputCount];
+
+  tflite::testing::TestReverse(kInputDims, kInput_0, kInput_1, kOutputDims,
+                               kExpect, output_data);
+}
+
+TF_LITE_MICRO_TEST(ReverseOpTestInt64MultiDimensions) {
+  int kInputDims_0[] = {3, 4, 3, 2};
+  int kInputDims_1[] = {1, 1};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
+  int kOutputDims[] = {3, 4, 3, 2};
+
+  const int64_t kInput_0[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                              13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+  const int32_t kInput_1[] = {1};
+  const int64_t kExpect[] = {5,  6,  3,  4,  1,  2,  11, 12, 9,  10, 7,  8,
+                             17, 18, 15, 16, 13, 14, 23, 24, 21, 22, 19, 20};
+  const int kOutputCount = std::extent<decltype(kExpect)>::value;
+  int64_t output_data[kOutputCount];
 
   tflite::testing::TestReverse(kInputDims, kInput_0, kInput_1, kOutputDims,
                                kExpect, output_data);
