@@ -19,13 +19,17 @@
 # in the Python installation environment rather than to locations in the tflm
 # source tree.
 from tflite_micro import runtime
+from tflite_micro import compression
 
 import numpy as np
 import pkg_resources
 import sys
+import tempfile
+import os
 
 
-def passed():
+def runtime_test():
+  """Test the runtime interpreter functionality."""
   # Create an interpreter with a sine model
   model = pkg_resources.resource_filename(__name__, "sine_float.tflite")
   interpreter = runtime.Interpreter.from_file(model)
@@ -47,6 +51,24 @@ def passed():
   goldens = np.sin(inputs)
 
   return np.allclose(outputs, goldens, atol=0.05)
+
+
+def compression_test():
+  """Test that the compression module is available and functional."""
+
+  # Test that compress function is available
+  # We don't actually compress here as it requires a properly structured model
+  # with compressible tensors, but we verify the function is importable
+  assert callable(compression.compress)
+
+  return True
+
+
+def passed():
+  """Run all postinstall checks."""
+  runtime_passed = runtime_test()
+  compression_passed = compression_test()
+  return runtime_passed and compression_passed
 
 
 if __name__ == "__main__":
