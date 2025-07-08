@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddConv2D());
   TF_LITE_ENSURE_STATUS(op_resolver.AddCos());
   TF_LITE_ENSURE_STATUS(op_resolver.AddCumSum());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddDecode());
   TF_LITE_ENSURE_STATUS(op_resolver.AddDelay());
   TF_LITE_ENSURE_STATUS(op_resolver.AddDepthToSpace());
   TF_LITE_ENSURE_STATUS(op_resolver.AddDepthwiseConv2D());
