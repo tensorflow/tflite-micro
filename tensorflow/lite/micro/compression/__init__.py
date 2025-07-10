@@ -22,5 +22,6 @@
 
 from .compress import compress
 from .spec import parse_yaml
+from .spec_builder import SpecBuilder
 
-__all__ = ["compress", "parse_yaml"]
+__all__ = ["compress", "parse_yaml", "SpecBuilder"]
