@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -91,7 +91,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // On Micro, outputs must be properly sized by the converter.
   // NOTE: This data is only available because the paddings buffer is stored in
   // the flatbuffer:
-  TF_LITE_ENSURE(context, IsConstantTensor(paddings));
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(paddings),
+                     "Non-constant >paddings< tensor is not supported");
   const int32_t* paddings_data = GetTensorData<int32_t>(paddings);
   for (int i = 0; i < output->dims->size; i++) {
     int output_dim = output->dims->data[i];
