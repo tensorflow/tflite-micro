@@ -23,6 +23,7 @@ py_library(
     deps = [
         ":compress_lib",
         ":spec",
+        ":spec_builder",
     ],
 )
 
@@ -185,6 +186,25 @@ py_test(
     srcs = ["spec_test.py"],
     deps = [
         ":spec",
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
+    name = "spec_builder",
+    srcs = ["spec_builder.py"],
+    deps = [
+        ":spec",
+    ],
+)
+
+py_test(
+    name = "spec_builder_test",
+    size = "small",
+    srcs = ["spec_builder_test.py"],
+    deps = [
+        ":spec",
+        ":spec_builder",
         requirement("tensorflow"),
     ],
 )

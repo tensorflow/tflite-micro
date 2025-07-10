@@ -61,6 +61,10 @@ def compression_test():
   # with compressible tensors, but we verify the function is importable
   assert callable(compression.compress)
 
+  # Test availability of the SpecBuilder
+  _ = (compression.SpecBuilder().add_tensor(
+      subgraph=0, tensor=0).with_lut(index_bitwidth=4).build())
+
   return True
 
 
