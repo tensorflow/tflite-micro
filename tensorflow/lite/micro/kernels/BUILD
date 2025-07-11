@@ -292,6 +292,7 @@ tflm_kernel_cc_library(
         "reshape_common.cc",
         "resize_bilinear.cc",
         "resize_nearest_neighbor.cc",
+        "reverse.cc",
         "round.cc",
         "select.cc",
         "shape.cc",
@@ -1214,6 +1215,20 @@ tflm_cc_test(
     name = "resize_nearest_neighbor_test",
     srcs = [
         "resize_nearest_neighbor_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "reverse_test",
+    srcs = [
+        "reverse_test.cc",
     ],
     deps = [
         ":kernel_runner",

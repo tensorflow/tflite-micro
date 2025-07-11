@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -523,6 +523,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_RESIZE_NEAREST_NEIGHBOR,
                       Register_RESIZE_NEAREST_NEIGHBOR(),
                       ParseResizeNearestNeighbor);
+  }
+
+  TfLiteStatus AddReverseV2() {
+    return AddBuiltin(BuiltinOperator_REVERSE_V2, Register_REVERSE_V2(),
+                      ParseReverseV2);
   }
 
   TfLiteStatus AddRfft(const TFLMRegistration* registration =
