@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,10 +54,8 @@ TfLiteStatus ResizeNearestNeighborPrepare(TfLiteContext* context,
 
   output->type = input->type;
 
-  if (!IsConstantTensor(size)) {
-    MicroPrintf("Dynamic tensors are unsupported in tfmicro.");
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(size),
+                     "Non-constant >size< tensor is not supported");
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(size);
