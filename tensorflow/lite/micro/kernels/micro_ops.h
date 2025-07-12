@@ -106,6 +106,7 @@ TFLMRegistration Register_RELU6();
 TFLMRegistration Register_RESHAPE();
 TFLMRegistration Register_RESIZE_BILINEAR();
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR();
+TFLMRegistration Register_REVERSE_V2();
 TFLMRegistration Register_ROUND();
 TFLMRegistration Register_RSQRT();
 TFLMRegistration Register_SELECT_V2();

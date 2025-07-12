@@ -110,6 +110,7 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddReshape());
   TF_LITE_ENSURE_STATUS(op_resolver.AddResizeBilinear());
   TF_LITE_ENSURE_STATUS(op_resolver.AddResizeNearestNeighbor());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddReverseV2());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRfft());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRound());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRsqrt());
