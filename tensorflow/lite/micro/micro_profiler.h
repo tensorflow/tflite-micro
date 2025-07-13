@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,15 +16,29 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_PROFILER_H_
 
+#include <algorithm>
+#include <cinttypes>
+#include <cstdint>
+#include <cstring>
+
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
+#include "tensorflow/lite/micro/micro_time.h"
 
 namespace tflite {
 
+enum class MicroProfilerLogFormat {
+  HumanReadable,
+  Csv,
+};
+
 // MicroProfiler creates a common way to gain fine-grained insight into runtime
-// performance. Bottleck operators can be identified along with slow code
+// performance. Bottleneck operators can be identified along with slow code
 // sections. This can be used in conjunction with running the relevant micro
 // benchmark to evaluate end-to-end performance.
+template <int MAX_EVENTS = 4096>
 class MicroProfiler : public MicroProfilerInterface {
  public:
   MicroProfiler() = default;
@@ -33,59 +47,168 @@ class MicroProfiler : public MicroProfilerInterface {
   // Marks the start of a new event and returns an event handle that can be used
   // to mark the end of the event via EndEvent. The lifetime of the tag
   // parameter must exceed that of the MicroProfiler.
-  virtual uint32_t BeginEvent(const char* tag) override;
+  uint32_t BeginEvent(const char* tag) override {
+    if (num_events_ == MAX_EVENTS) {
+      MicroPrintf(
+          "MicroProfiler errored out because total number of events exceeded "
+          "the maximum of %d.",
+          MAX_EVENTS);
+      TFLITE_ASSERT_FALSE;
+    }
+
+    tags_[num_events_] = tag;
+    start_ticks_[num_events_] = GetCurrentTimeTicks();
+    end_ticks_[num_events_] = start_ticks_[num_events_] - 1;
+    return num_events_++;
+  }
 
   // Marks the end of an event associated with event_handle. It is the
   // responsibility of the caller to ensure than EndEvent is called once and
   // only once per event_handle.
   //
   // If EndEvent is called more than once for the same event_handle, the last
-  // call will be used as the end of event marker. If EndEvent is called 0 times
+  // call will be used as the end of event marker.If EndEvent is called 0 times
   // for a particular event_handle, the duration of that event will be 0 ticks.
-  virtual void EndEvent(uint32_t event_handle) override;
+  void EndEvent(uint32_t event_handle) override {
+    TFLITE_DCHECK(event_handle < MAX_EVENTS);
+    end_ticks_[event_handle] = GetCurrentTimeTicks();
+  }
 
   // Clears all the events that have been currently profiled.
-  void ClearEvents();
+  void ClearEvents() {
+    num_events_ = 0;
+    num_tag_groups_ = 0;
+  }
 
   // Returns the sum of the ticks taken across all the events. This number
   // is only meaningful if all of the events are disjoint (the end time of
   // event[i] <= start time of event[i+1]).
-  uint32_t GetTotalTicks() const;
+  uint32_t GetTotalTicks() const {
+    int32_t ticks = 0;
+    for (int i = 0; i < num_events_; ++i) {
+      ticks += end_ticks_[i] - start_ticks_[i];
+    }
+    return ticks;
+  }
 
-  // Prints the profiling information of each of the events in human readable
-  // form.
-  void Log() const;
+  // Prints the profiling information of each of the events with the
+  // given format (human readable by default).
+  void Log(MicroProfilerLogFormat format =
+               MicroProfilerLogFormat::HumanReadable) const {
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+    switch (format) {
+      case MicroProfilerLogFormat::HumanReadable:
+        for (int i = 0; i < num_events_; ++i) {
+          uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+          uint64_t us = TicksToUs(ticks);
+          MicroPrintf("%s took %" PRIu64 ".%03" PRIu64 " ms (%u ticks)",
+                      tags_[i], us / 1000, us % 1000, ticks);
+        }
+        break;
 
-  // Prints the profiling information of each of the events in CSV (Comma
-  // Separated Value) form.
-  void LogCsv() const;
+      case MicroProfilerLogFormat::Csv:
+        MicroPrintf("\"Event\",\"Tag\",\"Ticks\"");
+        for (int i = 0; i < num_events_; ++i) {
+#if defined(HEXAGON) || defined(CMSIS_NN)
+          int ticks = end_ticks_[i] - start_ticks_[i];
+          MicroPrintf("%d,%s,%d", i, tags_[i], ticks);
+#else
+          uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+          MicroPrintf("%d,%s,%" PRIu32, i, tags_[i], ticks);
+#endif
+        }
+        break;
+    }
+#endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
+  }
 
-  // Prints  total ticks for each unique tag in CSV format.
-  // Output will have one row for each unique tag along with the
-  // total ticks summed across all events with that particular tag.
-  void LogTicksPerTagCsv();
+  // Prints the profiling information of each of the events, grouped by tag.
+  void LogGrouped(MicroProfilerLogFormat format) {
+#if !defined(TF_LITE_STRIP_ERROR_STRINGS)
+    for (int i = 0; i < num_events_; ++i) {
+      // Find if the tag already exists in uniqueTags
+      TagGroup& tag_group = GetTagGroup(tags_[i]);
+
+      uint32_t ticks = end_ticks_[i] - start_ticks_[i];
+      tag_group.tag = tags_[i];
+      tag_group.ticks += ticks;
+      tag_group.tag_count++;
+    }
+
+    std::sort(tag_groups_, tag_groups_ + num_tag_groups_,
+              [](const TagGroup& a, const TagGroup& b) {
+                return a.ticks > b.ticks;  // Sort in descending order
+              });
+
+    switch (format) {
+      case MicroProfilerLogFormat::HumanReadable: {
+        MicroPrintf("Cumulative event times:");
+        MicroPrintf("%-8s %-32s %-12s %-12s", "Count", "Tag", "Ticks", "Time");
+        uint64_t total_ticks = 0;
+        uint64_t us;
+        for (int i = 0; i < num_tag_groups_; ++i) {
+          total_ticks += tag_groups_[i].ticks;
+          us = TicksToUs(tag_groups_[i].ticks);
+          MicroPrintf("%-8d %-32s %-12d %" PRIu64 ".%03" PRIu64 " ms",
+                      tag_groups_[i].tag_count, tag_groups_[i].tag,
+                      tag_groups_[i].ticks, us / 1000, us % 1000);
+        }
+        us = TicksToUs(total_ticks);
+        MicroPrintf("\nTotal time: %" PRIu64 ".%03" PRIu64 " ms (%lld ticks)",
+                    us / 1000, us % 1000, total_ticks);
+        break;
+      }
+      case MicroProfilerLogFormat::Csv: {
+        MicroPrintf("\"Tag\",\"Total ticks\"");
+        for (int i = 0; i < num_tag_groups_; ++i) {
+          MicroPrintf("%s,%u", tag_groups_[i].tag, tag_groups_[i].ticks);
+        }
+        break;
+      }
+    }
+#endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
+  }
+
+  // Convenience function to call Log with CSV format.
+  void LogCsv() const { Log(MicroProfilerLogFormat::Csv); }
+
+  // Convenience function to call LogGrouped with CSV format.
+  void LogTicksPerTagCsv() const { LogGrouped(MicroProfilerLogFormat::Csv); }
 
  private:
-  // Maximum number of events that this class can keep track of. The
-  // MicroProfiler will abort if AddEvent is called more than kMaxEvents number
-  // of times. Increase this number if you need more events.
-  static constexpr int kMaxEvents = 4096;
-
-  const char* tags_[kMaxEvents];
-  uint32_t start_ticks_[kMaxEvents];
-  uint32_t end_ticks_[kMaxEvents];
+  const char* tags_[MAX_EVENTS];
+  uint32_t start_ticks_[MAX_EVENTS];
+  uint32_t end_ticks_[MAX_EVENTS];
   int num_events_ = 0;
+  int num_tag_groups_ = 0;
 
-  struct TicksPerTag {
+  struct TagGroup {
     const char* tag;
     uint32_t ticks;
+    uint32_t tag_count;
   };
+
   // In practice, the number of tags will be much lower than the number of
   // events. But it is theoretically possible that each event to be unique and
-  // hence we allow total_ticks_per_tag to have kMaxEvents entries.
-  TicksPerTag total_ticks_per_tag_[kMaxEvents] = {};
+  // hence we allow total_ticks_per_tag to have MAX_EVENTS entries.
+  TagGroup tag_groups_[MAX_EVENTS] = {};
 
-  int FindExistingOrNextPosition(const char* tag_name);
+  // Helper function to find the index of a tag in the cumulative array
+  TagGroup& GetTagGroup(const char* tag) {
+    for (int i = 0; i < num_tag_groups_; ++i) {
+      if (strcmp(tag_groups_[i].tag, tag) == 0) {
+        return tag_groups_[i];
+      }
+    }
+
+    // Tag not found, so we create a new entry
+    // There should always be space since the array of tag groups
+    // is just as big as the array of events
+    tag_groups_[num_tag_groups_].tag = tag;
+    tag_groups_[num_tag_groups_].ticks = 0;
+    tag_groups_[num_tag_groups_].tag_count = 0;
+    return tag_groups_[num_tag_groups_++];
+  }
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
@@ -93,7 +216,7 @@ class MicroProfiler : public MicroProfilerInterface {
 #if defined(TF_LITE_STRIP_ERROR_STRINGS)
 // For release builds, the ScopedMicroProfiler is a noop.
 //
-// This is done because the ScipedProfiler is used as part of the
+// This is done because the ScopedProfiler is used as part of the
 // MicroInterpreter and we want to ensure zero overhead for the release builds.
 class ScopedMicroProfiler {
  public:
