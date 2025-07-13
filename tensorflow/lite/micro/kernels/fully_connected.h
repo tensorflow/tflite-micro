@@ -117,14 +117,20 @@ TFLMRegistration Register_FULLY_CONNECTED_INT4();
 // define fallback implementation that allow reference kernels to still be used
 // from applications that call a more specific kernel variant.
 
-inline TFLMRegistration Register_FULLY_CONNECTED_INT16() {
-  return Register_FULLY_CONNECTED();
-}
-
 inline TFLMRegistration Register_FULLY_CONNECTED_INT4() {
   return Register_FULLY_CONNECTED();
 }
 
+#endif
+
+#if defined(XTENSA)
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// float32.
+TFLMRegistration Register_FULLY_CONNECTED_FLOAT32();
+#else
+inline TFLMRegistration Register_FULLY_CONNECTED_FLOAT32() {
+  return Register_FULLY_CONNECTED();
+}
 #endif
 
 }  // namespace tflite
