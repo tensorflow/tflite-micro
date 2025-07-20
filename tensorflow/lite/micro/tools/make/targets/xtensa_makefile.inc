@@ -91,20 +91,59 @@ EXCLUDED_EXAMPLE_TESTS := \
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/examples/ -name Makefile.inc)
 
-# Needed for LSTM support.
-MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-$(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
+
 
 ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
-  MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc
+  # Explicitly add kernel sources specific to the Xtensa optimized
+  # implementations.
+  MICROLITE_CC_KERNEL_SRCS += \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/add_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_common_xtensa.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_int16.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_common_xtensa.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_int8.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc
 
-  # override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
-  # Xtensa intrinsics.
+  # Needed for LSTM support.
+  MICROLITE_CC_KERNEL_SRCS += \
+    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
+
+  # There is no overlay of the reference kernels for hifimini optimizations.
+  # Add the optimized kernel sources here.
+  ifeq ($(TARGET_ARCH), hifimini)
+    MICROLITE_CC_KERNEL_SRCS += \
+      $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc \
+      $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc
+  endif
+
+  # Additional kernel sources for DECODE operator support
+  ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5))
+    MICROLITE_CC_KERNEL_SRCS += \
+      $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_lut.cc
+  endif
+endif
+
+# override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
+# Xtensa intrinsics.
 $(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
-endif
+
+$(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_lut.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_lut.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
