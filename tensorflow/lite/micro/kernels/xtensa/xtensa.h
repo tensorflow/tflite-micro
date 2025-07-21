@@ -19,7 +19,7 @@ limitations under the License.
 #if defined(HIFIMINI)
 #include <xtensa/tie/xt_hifi2.h>
 
-#include "tensorflow/lite/micro/kernels/xtensa/hifimini/fixedpoint_utils.h"
+#include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils_hifimini.h"
 #endif  // defined(HIFMINI)
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)

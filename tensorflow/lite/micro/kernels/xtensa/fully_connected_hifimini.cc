@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 #if defined(HIFIMINI)
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -24,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils_hifimini.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
