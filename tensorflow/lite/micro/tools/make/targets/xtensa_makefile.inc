@@ -91,11 +91,11 @@ EXCLUDED_EXAMPLE_TESTS := \
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/examples/ -name Makefile.inc)
 
-
-
 ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
   # Explicitly add kernel sources specific to the Xtensa optimized
   # implementations.
+  #
+  # Do not include overlays for reference kernel files.
   MICROLITE_CC_KERNEL_SRCS += \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/add_vision.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_common_xtensa.cc \
@@ -107,6 +107,7 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_common_xtensa.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_hifimini.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
@@ -116,20 +117,13 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/svdf_hifimini.cc
 
   # Needed for LSTM support.
   MICROLITE_CC_KERNEL_SRCS += \
     $(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
-
-  # There is no overlay of the reference kernels for hifimini optimizations.
-  # Add the optimized kernel sources here.
-  ifeq ($(TARGET_ARCH), hifimini)
-    MICROLITE_CC_KERNEL_SRCS += \
-      $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/fully_connected.cc \
-      $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/hifimini/svdf.cc
-  endif
 
   # Additional kernel sources for DECODE operator support
   ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5))
