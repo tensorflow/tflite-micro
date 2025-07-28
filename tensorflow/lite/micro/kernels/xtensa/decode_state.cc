@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 
 #include "tensorflow/lite/micro/kernels/decode_state_lut.h"
+#include "tensorflow/lite/micro/kernels/decode_state_prune.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
 #ifdef HIFI5
@@ -41,6 +42,19 @@ DecodeState* DecodeState::CreateDecodeStateLUT(
 #else
   DecodeState* dsp = new (buffer) DecodeStateLUT(context, profiler);
 #endif  // HIFI5
+
+  return dsp;
+}
+
+DecodeState* DecodeState::CreateDecodeStatePrune(
+    const TfLiteContext* context, MicroProfilerInterface* profiler) {
+  MicroContext* const micro_context = GetMicroContext(context);
+  void* buffer =
+      micro_context->AllocatePersistentBuffer(sizeof(DecodeStatePrune));
+  if (buffer == nullptr) {
+    return nullptr;
+  }
+  DecodeState* dsp = new (buffer) DecodeStatePrune(context, profiler);
 
   return dsp;
 }

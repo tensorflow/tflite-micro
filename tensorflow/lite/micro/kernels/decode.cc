@@ -75,6 +75,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         dsp = DecodeState::CreateDecodeStateLUT(
             context, micro_context->GetAlternateProfiler());
         break;
+      case DecodeState::kDcmTypePrune:
+        dsp = DecodeState::CreateDecodeStatePrune(
+            context, micro_context->GetAlternateProfiler());
+        break;
       case DecodeState::kDcmTypeCustom:
         MicroPrintf("Custom decode type not yet supported");
         break;
