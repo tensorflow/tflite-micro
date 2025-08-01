@@ -39,6 +39,7 @@ struct XtensaDecodeStatePrune : public DecodeStatePrune {
 
   void DecompressToBufferInt8_Xtensa(void* buffer);
   void DecompressToBufferPerChannelInt8_Xtensa(void* buffer);
+  void DecompressToBufferPerChannelAltAxisInt8_Xtensa(void* buffer);
   void DecompressToBufferInt16_Xtensa(void* buffer);
 
  private:

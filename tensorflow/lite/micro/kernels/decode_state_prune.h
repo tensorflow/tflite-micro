@@ -47,17 +47,16 @@ struct DecodeStatePrune : public DecodeState {
   template <typename T>
   void DecompressToBuffer(void* buffer);
 
-  template <typename T>
-  void DecompressToBufferPerChannel(void* buffer);
+  void DecompressToBufferPerChannelInt8(void* buffer);
 
  protected:
   const uint8_t* compressed_indices_ = nullptr;
   size_t count_indices_ = 0;
   size_t num_channels_ = 1;
   size_t elements_per_channel_ = 0;    // computed from use_alternate_axis_
-  int32_t* zero_points_ = nullptr;     // quantized per-channel zero points
-  int32_t single_zero_point_ = 0;      // single channel zero point
   const void* value_table_ = nullptr;  // original non-pruned values
+  int8_t* zero_points_ = nullptr;      // quantized per-channel zero points
+  int8_t single_zero_point_ = 0;       // single channel zero point
   bool use_alternate_axis_ = false;    // shape channel axis:
                                        // false = first, true = last
 
