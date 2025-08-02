@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -94,6 +94,9 @@ TfLiteStatus BroadcastToPrepare(TfLiteContext* context, TfLiteNode* node) {
   // Does not support String type due to its variable size. This limitation is
   // the same as TFLite.
   TF_LITE_ENSURE(context, input->type != kTfLiteString);
+
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(shape),
+                     "Non-constant >shape< tensor is not supported");
 
   TF_LITE_ENSURE_STATUS(ValidateOutputTensor(context, input, shape, output));
   micro_context->DeallocateTempTfLiteTensor(input);

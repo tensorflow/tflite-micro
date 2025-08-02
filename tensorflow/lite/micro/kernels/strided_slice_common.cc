@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -141,6 +141,12 @@ TfLiteStatus StridedSlicePrepare(TfLiteContext* context, TfLiteNode* node) {
   StridedSliceContext op_context(context, node);
   TF_LITE_ENSURE_MSG(context, op_context.dims <= kMaxDim,
                      "input dim should not exceed 4");
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(op_context.begin),
+                     "Non-constant >begin< tensor is not supported");
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(op_context.end),
+                     "Non-constant >end< tensor is not supported");
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(op_context.strides),
+                     "Non-constant >strides< tensor is not supported");
   auto params = BuildStridedSliceParams(&op_context);
   memcpy(op_params, &params, sizeof(StridedSliceParams));
   return CheckOutputSize(context, &op_context);

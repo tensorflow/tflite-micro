@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -99,10 +99,8 @@ TfLiteStatus ExpandDimsPrepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   output->type = input->type;
-  if (IsDynamicTensor(axis)) {
-    MicroPrintf("DynamicTensor is not yet supported by Expand_Dims.");
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(axis),
+                     "Non-constant >axis< tensor is not supported");
   TF_LITE_ENSURE_OK(context, VerifyTensorDim(context, input, axis, output));
 
   micro_context->DeallocateTempTfLiteTensor(input);

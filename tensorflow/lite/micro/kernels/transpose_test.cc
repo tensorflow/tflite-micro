@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/kernels/transpose.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -123,6 +124,8 @@ void TestTranspose(int* input_dims_data, T* input_data, int* output_dims_data,
       CreateTensor(params->perm, perm_dims),
       CreateTensor(output_data, output_dims),
   };
+  // perm must be a const tensor
+  tensors[kTransposePermTensor].allocation_type = kTfLiteMmapRo;
 
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, ValidateTranspose(tensors, tensors_size, expected_output_data,

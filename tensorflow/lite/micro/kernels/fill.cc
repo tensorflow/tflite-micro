@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -87,12 +87,11 @@ TfLiteStatus FillPrepare(TfLiteContext* context, TfLiteNode* node) {
   // The dimension of the output tensor is known in model already.
   TFLITE_DCHECK(output->dims != nullptr);
 
-  if (dims->data.data != nullptr) {
-    // When the dims tensor is specified in model already (i.e. is not an
-    // activation tensor), the dims tensor must match the output tensor shape.
-    // As a byproduct, ensures the dims tensor is of an integer type.
-    TF_LITE_ENSURE_OK(context, EnsureEq(context, output->dims, dims));
-  }
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(dims),
+                     "Non-constant >dims< tensor is not supported");
+  // The dims tensor must match the output tensor shape.
+  // As a byproduct, ensures the dims tensor is of an integer type.
+  TF_LITE_ENSURE_OK(context, EnsureEq(context, output->dims, dims));
 
   micro_context->DeallocateTempTfLiteTensor(dims);
   micro_context->DeallocateTempTfLiteTensor(value);
