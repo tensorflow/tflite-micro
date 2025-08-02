@@ -88,6 +88,7 @@ tensorflow/lite/kernels/internal/reference/reduce.h
 tensorflow/lite/kernels/internal/reference/requantize.h
 tensorflow/lite/kernels/internal/reference/resize_bilinear.h
 tensorflow/lite/kernels/internal/reference/resize_nearest_neighbor.h
+tensorflow/lite/kernels/internal/reference/reverse.h
 tensorflow/lite/kernels/internal/reference/round.h
 tensorflow/lite/kernels/internal/reference/softmax.h
 tensorflow/lite/kernels/internal/reference/space_to_batch_nd.h

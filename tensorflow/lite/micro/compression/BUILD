@@ -8,12 +8,22 @@ load(
     "flatbuffer_cc_library",
     "flatbuffer_py_library",
 )
-load("@rules_python//python:defs.bzl", "py_test")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 package(
     default_visibility = [
         "//visibility:public",
+    ],
+)
+
+py_library(
+    name = "compression",
+    srcs = ["__init__.py"],
+    deps = [
+        ":compress_lib",
+        ":spec",
+        ":spec_builder",
     ],
 )
 
@@ -96,8 +106,8 @@ py_test(
     ],
 )
 
-py_binary(
-    name = "compress",
+py_library(
+    name = "compress_lib",
     srcs = [
         "compress.py",
     ],
@@ -110,6 +120,16 @@ py_binary(
         "@flatbuffers//:runtime_py",
         requirement("bitarray"),
         requirement("numpy"),
+    ],
+)
+
+py_binary(
+    name = "compress",
+    srcs = [
+        "compress.py",
+    ],
+    deps = [
+        ":compress_lib",
     ],
 )
 
@@ -166,6 +186,25 @@ py_test(
     srcs = ["spec_test.py"],
     deps = [
         ":spec",
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
+    name = "spec_builder",
+    srcs = ["spec_builder.py"],
+    deps = [
+        ":spec",
+    ],
+)
+
+py_test(
+    name = "spec_builder_test",
+    size = "small",
+    srcs = ["spec_builder_test.py"],
+    deps = [
+        ":spec",
+        ":spec_builder",
         requirement("tensorflow"),
     ],
 )
