@@ -10,6 +10,7 @@ load(
 )
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("view_tests.bzl", "generate_view_tests")
 
 package(
     default_visibility = [
@@ -229,3 +230,24 @@ py_test(
         requirement("tensorflow"),
     ],
 )
+
+py_binary(
+    name = "view",
+    srcs = [
+        "view.py",
+    ],
+    deps = [
+        ":metadata_py",
+        "//tensorflow/lite/python:schema_py",
+        "@absl_py//absl:app",
+        requirement("bitarray"),
+        requirement("prettyprinter"),
+    ],
+)
+
+generate_view_tests([
+    "//tensorflow/lite/micro/models:keyword_scrambled.tflite",
+    "//tensorflow/lite/micro/models:keyword_scrambled_8bit.tflite",
+    "//tensorflow/lite/micro/models:person_detect.tflite",
+    "//tensorflow/lite/micro/models:person_detect_vela.tflite",
+])
