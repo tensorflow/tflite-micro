@@ -8,12 +8,23 @@ load(
     "flatbuffer_cc_library",
     "flatbuffer_py_library",
 )
-load("@rules_python//python:defs.bzl", "py_test")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("view_tests.bzl", "generate_view_tests")
 
 package(
     default_visibility = [
         "//visibility:public",
+    ],
+)
+
+py_library(
+    name = "compression",
+    srcs = ["__init__.py"],
+    deps = [
+        ":compress_lib",
+        ":spec",
+        ":spec_builder",
     ],
 )
 
@@ -96,8 +107,8 @@ py_test(
     ],
 )
 
-py_binary(
-    name = "compress",
+py_library(
+    name = "compress_lib",
     srcs = [
         "compress.py",
     ],
@@ -110,6 +121,16 @@ py_binary(
         "@flatbuffers//:runtime_py",
         requirement("bitarray"),
         requirement("numpy"),
+    ],
+)
+
+py_binary(
+    name = "compress",
+    srcs = [
+        "compress.py",
+    ],
+    deps = [
+        ":compress_lib",
     ],
 )
 
@@ -171,6 +192,25 @@ py_test(
 )
 
 py_library(
+    name = "spec_builder",
+    srcs = ["spec_builder.py"],
+    deps = [
+        ":spec",
+    ],
+)
+
+py_test(
+    name = "spec_builder_test",
+    size = "small",
+    srcs = ["spec_builder_test.py"],
+    deps = [
+        ":spec",
+        ":spec_builder",
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
     name = "test_models",
     srcs = ["test_models.py"],
     deps = [
@@ -190,3 +230,24 @@ py_test(
         requirement("tensorflow"),
     ],
 )
+
+py_binary(
+    name = "view",
+    srcs = [
+        "view.py",
+    ],
+    deps = [
+        ":metadata_py",
+        "//tensorflow/lite/python:schema_py",
+        "@absl_py//absl:app",
+        requirement("bitarray"),
+        requirement("prettyprinter"),
+    ],
+)
+
+generate_view_tests([
+    "//tensorflow/lite/micro/models:keyword_scrambled.tflite",
+    "//tensorflow/lite/micro/models:keyword_scrambled_8bit.tflite",
+    "//tensorflow/lite/micro/models:person_detect.tflite",
+    "//tensorflow/lite/micro/models:person_detect_vela.tflite",
+])
