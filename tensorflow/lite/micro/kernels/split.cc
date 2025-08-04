@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ TfLiteStatus SplitPrepare(TfLiteContext* context, TfLiteNode* node) {
   // But Micro doesn't support dynamic memory allocation, so we only support
   // constant axis tensor for now.
   TF_LITE_ENSURE_MSG(context, IsConstantTensor(axis),
-                     "Non constant axis tensor not supported");
+                     "Non-constant >axis< tensor is not supported");
 
   micro_context->DeallocateTempTfLiteTensor(axis);
   return kTfLiteOk;

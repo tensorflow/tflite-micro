@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -109,6 +109,7 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddReshape());
   TF_LITE_ENSURE_STATUS(op_resolver.AddResizeBilinear());
   TF_LITE_ENSURE_STATUS(op_resolver.AddResizeNearestNeighbor());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddReverseV2());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRfft());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRound());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRsqrt());
