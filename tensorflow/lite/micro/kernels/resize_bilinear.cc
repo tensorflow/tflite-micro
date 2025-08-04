@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ TfLiteStatus ResizeBilinearPrepare(TfLiteContext* context, TfLiteNode* node) {
   output->type = input->type;
 
   TF_LITE_ENSURE_MSG(context, IsConstantTensor(size),
-                     "Non constant size tensor not supported");
+                     "Non-constant >size< tensor is not supported");
 
   // Ensure params are valid.
   auto* params =
