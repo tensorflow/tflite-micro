@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ TfLiteStatus InitPytorchOpsResolver(PytorchOpsResolver& resolver) {
   TF_LITE_ENSURE_STATUS(resolver.AddQuantize());
   TF_LITE_ENSURE_STATUS(resolver.AddReadVariable());
   TF_LITE_ENSURE_STATUS(resolver.AddReduceMax());
+  TF_LITE_ENSURE_STATUS(resolver.AddReduceMin());
   TF_LITE_ENSURE_STATUS(resolver.AddRelu());
   TF_LITE_ENSURE_STATUS(resolver.AddRelu6());
   TF_LITE_ENSURE_STATUS(resolver.AddReshape());
