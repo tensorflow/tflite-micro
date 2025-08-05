@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ else
     exit 1
   fi
 
-  git clone "https://review.mlplatform.org/ml/ethos-u/ethos-u-core-platform" ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
+  git clone "https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform" ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
   pushd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} > /dev/null
   git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
   rm -rf .git

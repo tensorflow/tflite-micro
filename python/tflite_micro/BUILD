@@ -49,6 +49,7 @@ pybind_extension(
     # target = _runtime.so because pybind_extension() appends suffix
     srcs = [
         "_runtime.cc",
+        "compression_utils.h",
         "interpreter_wrapper.cc",
         "interpreter_wrapper.h",
         "numpy_utils.cc",
@@ -98,6 +99,27 @@ py_test(
     ],
 )
 
+py_test(
+    name = "test_compression_unsupported",
+    srcs = ["test_compression_unsupported.py"],
+    tags = [
+        "noasan",
+        "nomsan",  # Python doesn't like these symbols in _runtime.so
+        "noubsan",
+    ],
+    # Only compatible when compression is NOT enabled
+    target_compatible_with = select({
+        "//:with_compression_enabled": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":runtime",
+        requirement("numpy"),
+        requirement("tensorflow"),
+        "//tensorflow/lite/micro/compression",
+    ],
+)
+
 py_library(
     name = "postinstall_check",
     srcs = [
@@ -130,6 +152,7 @@ py_package(
     # in the tflm tree.
     packages = [
         "python.tflite_micro",
+        "tensorflow.lite.micro.compression",
         "tensorflow.lite.micro.tools.generate_test_for_model",
         "tensorflow.lite.python",
         "tensorflow.lite.tools.flatbuffer_utils",
@@ -138,6 +161,7 @@ py_package(
         ":postinstall_check",
         ":runtime",
         ":version",
+        "//tensorflow/lite/micro/compression",
     ],
 )
 
@@ -223,8 +247,10 @@ py_wheel(
         ":local": "py3",
     }),
     requires = [
+        "bitarray",
         "flatbuffers",
         "numpy",
+        "pyyaml",
         "tensorflow",
     ],
     stamp = 1,  # 1 == always stamp
