@@ -10,7 +10,7 @@ https://developer.arm.com/ip-products/subsystem/corstone/corstone-300)
 
 Building the Corstone-300 based target has the following dependencies:
 
--   [Arm Ethos-U Core Platform](https://review.mlplatform.org/admin/repos/ml/ethos-u/ethos-u-core-platform)
+-   [Arm Ethos-U Core Platform](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform)
     -   Arm Ethos-U Core Platform provides the linker file as well as UART and retarget functions.
 -   [CMSIS](https://github.com/ARM-software/CMSIS_6) + [CMSIS-Cortex_DFP](https://github.com/ARM-software/Cortex_DFP)
     -   CMSIS provides startup functionality, e.g. for setting up interrupt handlers and clock speed.

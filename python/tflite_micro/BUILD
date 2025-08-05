@@ -49,6 +49,7 @@ pybind_extension(
     # target = _runtime.so because pybind_extension() appends suffix
     srcs = [
         "_runtime.cc",
+        "compression_utils.h",
         "interpreter_wrapper.cc",
         "interpreter_wrapper.h",
         "numpy_utils.cc",
@@ -95,6 +96,27 @@ py_test(
         requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
+    ],
+)
+
+py_test(
+    name = "test_compression_unsupported",
+    srcs = ["test_compression_unsupported.py"],
+    tags = [
+        "noasan",
+        "nomsan",  # Python doesn't like these symbols in _runtime.so
+        "noubsan",
+    ],
+    # Only compatible when compression is NOT enabled
+    target_compatible_with = select({
+        "//:with_compression_enabled": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":runtime",
+        requirement("numpy"),
+        requirement("tensorflow"),
+        "//tensorflow/lite/micro/compression",
     ],
 )
 
