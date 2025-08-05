@@ -69,7 +69,8 @@ TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node) {
   // On Micro, outputs must be properly sized by the converter.
   // NOTE: This data is only available because the paddings buffer is stored in
   // the flatbuffer:
-  TF_LITE_ENSURE(context, IsConstantTensor(paddings));
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(paddings),
+                     "Non-constant >paddings< tensor is not supported");
   const int32_t* paddings_data = GetTensorData<int32_t>(paddings);
   for (int i = 0; i < output->dims->size; i++) {
     int output_dim = output->dims->data[i];
