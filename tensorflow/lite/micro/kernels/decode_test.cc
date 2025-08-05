@@ -739,4 +739,58 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedAltAxisInt16) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
+TF_LITE_MICRO_TEST(DecodePruneQuantizedInvalidZeroPointInt16) {
+  // Align the tensor data the same as a Buffer in the TfLite schema
+  alignas(16) int16_t output_data[std::size(kExpectPrune1)] = {};
+  alignas(16) const AncillaryData<int16_t, std::size(kAncillaryDataPrune1)>
+      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune1}};
+
+  const TfLiteIntArray* const kEncodedDims =
+      tflite::testing::IntArrayFromInts(kEncodedShapePrune);
+  static const TensorInDatum kEncodeTID = {
+      kEncodedPrune,
+      *kEncodedDims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> kEncodes = {
+      &kEncodeTID,
+  };
+
+  constexpr int kAncillaryShape[] = {1, sizeof(kAncillaryData)};
+  const TfLiteIntArray* const kAncillaryDims =
+      tflite::testing::IntArrayFromInts(kAncillaryShape);
+  static const TensorInDatum kAncillaryTID = {
+      &kAncillaryData,
+      *kAncillaryDims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> kAncillaries = {
+      &kAncillaryTID};
+
+  const TfLiteIntArray* const kOutputDims =
+      tflite::testing::IntArrayFromInts(kOutputShapePrune);
+  float kScales[] = {2, 1.0f, 1.0f};
+  const TfLiteFloatArray* const kOutputScales =
+      tflite::testing::FloatArrayFromFloats(kScales);
+  const int kZeroPoints[] = {2, 0, -1};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kZeroPoints);
+  static const TensorOutDatum kTOD = {
+      output_data,
+      *kOutputDims,
+      kTfLiteInt16,
+      *kOutputScales,
+      *kOutputZeroPoints,
+      0,
+      {},
+  };
+  static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
+      &kTOD};
+
+  const std::initializer_list<const void*> kExpected = {kExpectPrune1};
+
+  tflite::testing::TestDecode<kEncodes.size() + kAncillaries.size(),
+                              kOutputs.size()>(
+      kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE(),
+      kTfLiteError);
+}
+
 TF_LITE_MICRO_TESTS_END
