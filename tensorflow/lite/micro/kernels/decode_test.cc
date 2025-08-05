@@ -100,11 +100,41 @@ constexpr int16_t kExpectLUT1[] = {5, 6, 7, 8, 8, 7, 6, 5};
 //
 // Prune test data
 //
-constexpr int8_t kAncillaryDataPrune0[] = {1, 2, 3, 4};
-constexpr int16_t kAncillaryDataPrune1[] = {5, 6, 7, 8};
-constexpr float kAncillaryDataPrune2[] = {9.0f, 10.0f, 11.0f, 12.0f};
-constexpr int8_t kAncillaryDataPrune3[] = {13, 14, 15, 16};
-constexpr int8_t kAncillaryDataPrune4[] = {17, 18, 19, 20};
+constexpr int8_t kAncillaryDataPrune0[] = {
+    1, 2, 3, 4,  // 0
+    1, 2, 3, 4,  // 1
+    1, 2, 3, 4,  // 2
+    1, 2, 3, 4,  // 3
+    1, 2, 3, 4   // 4
+};
+constexpr int16_t kAncillaryDataPrune1[] = {
+    5, 6, 7, 8,  // 0
+    5, 6, 7, 8,  // 1
+    5, 6, 7, 8,  // 2
+    5, 6, 7, 8,  // 3
+    5, 6, 7, 8   // 4
+};
+constexpr float kAncillaryDataPrune2[] = {
+    9.0f, 10.0f, 11.0f, 12.0f,  // 0
+    9.0f, 10.0f, 11.0f, 12.0f,  // 1
+    9.0f, 10.0f, 11.0f, 12.0f,  // 2
+    9.0f, 10.0f, 11.0f, 12.0f,  // 3
+    9.0f, 10.0f, 11.0f, 12.0f   // 4
+};
+constexpr int8_t kAncillaryDataPrune3[] = {
+    13, 14, 15, 16,  // 0
+    13, 14, 15, 16,  // 1
+    13, 14, 15, 16,  // 2
+    13, 14, 15, 16,  // 3
+    13, 14, 15, 16   // 4
+};
+constexpr int8_t kAncillaryDataPrune4[] = {
+    17, 18, 19, 20,  // 0
+    17, 18, 19, 20,  // 1
+    17, 18, 19, 20,  // 2
+    17, 18, 19, 20,  // 3
+    17, 18, 19, 20   // 4
+};
 
 constexpr uint8_t kDcmPrune[tflite::DecodeState::kDcmSizeInBytes] = {
     tflite::DecodeState::kDcmTypePrune,  // type: Prune
@@ -115,10 +145,10 @@ constexpr uint8_t kDcmPrune[tflite::DecodeState::kDcmSizeInBytes] = {
 };
 
 // Align the tensor data the same as a Buffer in the TfLite schema
-alignas(16) const uint8_t kEncodedPrune[] = {0xA5};
+alignas(16) const uint8_t kEncodedPrune[] = {0xA5, 0xA5, 0xA5, 0xA5, 0xA5};
 
 // Tensor shapes as TfLiteIntArray
-constexpr int kOutputShapePrune[] = {2, 2, 4};
+constexpr int kOutputShapePrune[] = {3, 2, 5, 4};
 constexpr int kEncodedShapePrune[] = {1, sizeof(kEncodedPrune)};
 
 // Quantization datum as TfLiteIntArray.
@@ -131,12 +161,50 @@ constexpr int kZeroPointsPrune1[] = {4, 0, 0, 0, 0};
 float kScalesPrune4[] = {4, 1.0f, 1.0f, 1.0f, 1.0f};
 constexpr int kZeroPointsPrune4[] = {4, -126, -62, -30, -14};
 
-constexpr int8_t kExpectPrune0[] = {1, -128, 2, -128, -64, 3, -64, 4};
-constexpr int16_t kExpectPrune1[] = {5, 0, 6, 0, 0, 7, 0, 8};
-constexpr float kExpectPrune2[] = {9.0f, 0.0f,  10.0f, 0.0f,
-                                   0.0f, 11.0f, 0.0f,  12.0f};
-constexpr int8_t kExpectPrune3[] = {13, 0, 14, 0, 0, 15, 0, 16};
-constexpr int8_t kExpectPrune4[] = {17, -62, 18, -14, -126, 19, -30, 20};
+constexpr int8_t kExpectPrune0[] = {
+    1,   -128, 2,    -128, -128, 3,   -128, 4,    1,   -128,  // 0
+    2,   -128, -128, 3,    -128, 4,   1,    -128, 2,   -128,  // 0
+    -64, 3,    -64,  4,    1,    -64, 2,    -64,  -64, 3,     // 1
+    -64, 4,    1,    -64,  2,    -64, -64,  3,    -64, 4      // 1
+};
+constexpr int16_t kExpectPrune1[] = {
+    5, 0, 6, 0,  // 0
+    0, 7, 0, 8,  // 1
+    5, 0, 6, 0,  // 2
+    0, 7, 0, 8,  // 3
+    5, 0, 6, 0,  // 4
+    0, 7, 0, 8,  // 5
+    5, 0, 6, 0,  // 6
+    0, 7, 0, 8,  // 7
+    5, 0, 6, 0,  // 8
+    0, 7, 0, 8   // 9
+};
+constexpr float kExpectPrune2[] = {
+    9.0f, 0.0f, 10.0f, 0.0f, 0.0f, 11.0f, 0.0f, 12.0f,  // 0
+    9.0f, 0.0f, 10.0f, 0.0f, 0.0f, 11.0f, 0.0f, 12.0f,  // 1
+    9.0f, 0.0f, 10.0f, 0.0f, 0.0f, 11.0f, 0.0f, 12.0f,  // 2
+    9.0f, 0.0f, 10.0f, 0.0f, 0.0f, 11.0f, 0.0f, 12.0f,  // 3
+    9.0f, 0.0f, 10.0f, 0.0f, 0.0f, 11.0f, 0.0f, 12.0f   // 4
+};
+constexpr int8_t kExpectPrune3[] = {
+    13, 0, 14, 0, 0, 15, 0, 16,  // 0
+    13, 0, 14, 0, 0, 15, 0, 16,  // 1
+    13, 0, 14, 0, 0, 15, 0, 16,  // 2
+    13, 0, 14, 0, 0, 15, 0, 16,  // 3
+    13, 0, 14, 0, 0, 15, 0, 16   // 4
+};
+constexpr int8_t kExpectPrune4[] = {
+    17,   -62, 18,  -14,  // 0
+    -126, 19,  -30, 20,   // 1
+    17,   -62, 18,  -14,  // 2
+    -126, 19,  -30, 20,   // 3
+    17,   -62, 18,  -14,  // 4
+    -126, 19,  -30, 20,   // 5
+    17,   -62, 18,  -14,  // 6
+    -126, 19,  -30, 20,   // 7
+    17,   -62, 18,  -14,  // 8
+    -126, 19,  -30, 20    // 9
+};
 
 template <typename T>
 TfLiteStatus CheckOutput(const TfLiteTensor& output,
@@ -213,10 +281,14 @@ void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
     tensors[i] = CreateTensor(tid_encode.data,
                               const_cast<TfLiteIntArray*>(&tid_encode.dims),
                               false, kTfLiteUInt8);
+    // must be a const tensor
+    tensors[i].allocation_type = kTfLiteMmapRo;
     const TensorInDatum& tid_ancillary = *ancillaries.begin()[i / 2];
     tensors[i + 1] = CreateTensor(
         tid_ancillary.data, const_cast<TfLiteIntArray*>(&tid_ancillary.dims),
         false, kTfLiteUInt8);
+    // must be a const tensor
+    tensors[i + 1].allocation_type = kTfLiteMmapRo;
   }
   for (size_t i = 0; i < kNumOutputs; i++) {
     const TensorOutDatum& tod = *outputs.begin()[i];

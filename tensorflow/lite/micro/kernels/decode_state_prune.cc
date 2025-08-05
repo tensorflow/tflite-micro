@@ -51,10 +51,16 @@ TfLiteStatus DecodeStatePrune::Setup(const TfLiteTensor& input,
       return kTfLiteError;
     }
 
+    if (output.type != kTfLiteInt8) {
+      // make sure all zero points are 0 (zero)
+      for (size_t i = 0; i < num_channels_; i++) {
+        TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_),
+                       quantization->zero_point->data[i] == 0);
+      }
+    }
+
     if (num_channels_ > 1 && output.type == kTfLiteInt8) {
       // copy zero points
-      TFLITE_DCHECK(num_channels_ ==
-                    static_cast<size_t>(quantization->zero_point->size));
       MicroContext* micro_context = GetMicroContext(context_);
       const size_t bufsize = num_channels_ * sizeof(*zero_points_);
       zero_points_ = static_cast<decltype(zero_points_)>(
@@ -66,10 +72,6 @@ TfLiteStatus DecodeStatePrune::Setup(const TfLiteTensor& input,
       std::copy_n(quantization->zero_point->data, num_channels_, zero_points_);
     } else {
       single_zero_point_ = quantization->zero_point->data[0];
-      if (output.type != kTfLiteInt8) {
-        TF_LITE_ENSURE_MSG(const_cast<TfLiteContext*>(context_),
-                           single_zero_point_ == 0, "zero-point is not 0");
-      }
     }
   }
 
