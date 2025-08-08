@@ -1,4 +1,4 @@
-/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,6 +44,10 @@ tflite::micro::KernelRunner CreateFillTestRunner(
   static TfLiteTensor tensors[3];
 
   tensors[0] = CreateTensor(dims_data, IntArrayFromInts(dims_shape));
+  if (dims_data != nullptr) {
+    // dims must be a const tensor
+    tensors[0].allocation_type = kTfLiteMmapRo;
+  }
   tensors[1] = CreateTensor(value_data, IntArrayFromInts(value_shape));
   tensors[2] = CreateTensor(output_data, IntArrayFromInts(output_shape));
 
@@ -154,15 +158,13 @@ TF_LITE_MICRO_TEST(FillInt8Int32Dims) {
            output_data);
 }
 
-// Verify the FILL still works when the input dims tensor is an activation
-// tensor (i.e. has not prepopulated value). Fill a 2x2x2 tensor with a int8
-// scalar value.
-TF_LITE_MICRO_TEST(FillInt8NoInputDimsData) {
+TF_LITE_MICRO_TEST(FillInt8NonConstDimsTensorFail) {
   constexpr int kDim1 = 2;
   constexpr int kDim2 = 2;
   constexpr int kDim3 = 2;
 
-  // The dims tensor with unknown data. Note that shape is always known.
+  // Simulate the dims tensor with dynamic data. Note that shape is always
+  // known.
   int dims_shape[] = {1, 3};
   int32_t* dims_data = nullptr;
 
@@ -172,8 +174,11 @@ TF_LITE_MICRO_TEST(FillInt8NoInputDimsData) {
   int output_shape[] = {3, kDim1, kDim2, kDim3};
   int8_t output_data[kDim1 * kDim2 * kDim3];
 
-  TestFill(dims_shape, dims_data, value_shape, value_data, output_shape,
-           output_data);
+  tflite::micro::KernelRunner runner =
+      CreateFillTestRunner(dims_shape, dims_data, value_shape, value_data,
+                           output_shape, output_data);
+
+  TF_LITE_MICRO_EXPECT_EQ(runner.InitAndPrepare(), kTfLiteError);
 }
 
 TF_LITE_MICRO_TEST(FillFloatInt32Dims) {
