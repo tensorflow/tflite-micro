@@ -265,6 +265,101 @@ def requantize_fully_connected(tensors, buffers, op):
     set_bias_type_int64(buffers, input_tensor, weight_tensor, bias_tensor)
 
 
+def requantize_greater(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/fully_connected_common.cc
+  input1_tensor = tensors[op.inputs[0]]
+  # weight stays the same, no change needed
+  input2_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_select_v2(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/fully_connected_common.cc
+  input1_tensor = tensors[op.inputs[0]]
+  # weight stays the same, no change needed
+  input2_tensor = tensors[op.inputs[1]]
+  input3_tensor = tensors[op.inputs[2]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(input3_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_pad(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/fully_connected_common.cc
+  input1_tensor = tensors[op.inputs[0]]
+  # weight stays the same, no change needed
+  input2_tensor = tensors[op.inputs[1]]
+  # input3_tensor = tensors[op.inputs[2]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  # change_activation_tensor_8to16(input3_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_sub(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/sub.cc
+  input1_tensor = tensors[op.inputs[0]]
+  input2_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_batch_matmul(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/sub.cc
+  input1_tensor = tensors[op.inputs[0]]
+  input2_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_concatenation(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/sub.cc
+  input1_tensor = tensors[op.inputs[0]]
+  input2_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_mul(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/sub.cc
+  input1_tensor = tensors[op.inputs[0]]
+  input2_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
+def requantize_add(tensors, buffers, op):
+  # Indices are from tensorflow/lite/micro/kernels/sub.cc
+  input1_tensor = tensors[op.inputs[0]]
+  input2_tensor = tensors[op.inputs[1]]
+  output_tensor = tensors[op.outputs[0]]
+
+  change_activation_tensor_8to16(input1_tensor, buffers)
+  change_activation_tensor_8to16(input2_tensor, buffers)
+  change_activation_tensor_8to16(output_tensor, buffers)
+
+
 def requantize_unidirectional_sequence_lstm(tensors, buffers, op):
   """Requantize the unidirectonal sequance lstm op from int8 to int16 """
   input_tensor = tensors[op.inputs[0]]
