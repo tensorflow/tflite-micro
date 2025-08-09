@@ -116,6 +116,7 @@ py_library(
         ":metadata_py",
         ":model_facade",
         ":spec",
+        "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
         "@absl_py//absl:app",
         "@absl_py//absl/flags",
         "@flatbuffers//:runtime_py",
@@ -139,6 +140,11 @@ py_test(
     size = "small",
     srcs = [
         "compress_test.py",
+    ],
+    tags = [
+        "noasan",
+        "nomsan",  # Sanitizer symbols don't work with Python extension libs
+        "noubsan",
     ],
     deps = [
         ":compress",
