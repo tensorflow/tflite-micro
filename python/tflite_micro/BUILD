@@ -153,6 +153,7 @@ py_package(
     packages = [
         "python.tflite_micro",
         "tensorflow.lite.micro.compression",
+        "tensorflow.lite.micro.tools",
         "tensorflow.lite.micro.tools.generate_test_for_model",
         "tensorflow.lite.python",
         "tensorflow.lite.tools.flatbuffer_utils",
@@ -162,6 +163,7 @@ py_package(
         ":runtime",
         ":version",
         "//tensorflow/lite/micro/compression",
+        "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
     ],
 )
 
