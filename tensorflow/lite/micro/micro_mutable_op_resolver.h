@@ -526,8 +526,7 @@ class MicroMutableOpResolver : public MicroOpResolver {
 
   TfLiteStatus AddReduceMin(
       const TFLMRegistration& registration = Register_REDUCE_MIN()) {
-    return AddBuiltin(BuiltinOperator_REDUCE_MIN, registration,
-                      ParseReducer);
+    return AddBuiltin(BuiltinOperator_REDUCE_MIN, registration, ParseReducer);
   }
 
   TfLiteStatus AddRelu(
