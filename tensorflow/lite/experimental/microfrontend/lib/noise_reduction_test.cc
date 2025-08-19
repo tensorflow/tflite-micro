@@ -48,8 +48,9 @@ TF_LITE_MICRO_TEST(NoiseReductionTest_TestNoiseReductionEstimate) {
   NoiseReductionApply(&state, signal);
 
   const uint32_t expected[] = {6321887, 31248341};
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels,
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.num_channels,
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.estimate[i], expected[i]);
@@ -68,8 +69,9 @@ TF_LITE_MICRO_TEST(NoiseReductionTest_TestNoiseReduction) {
   NoiseReductionApply(&state, signal);
 
   const uint32_t expected[] = {241137, 478104};
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels,
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.num_channels,
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(signal[i], expected[i]);

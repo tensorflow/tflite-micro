@@ -76,8 +76,9 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckChannelFrequencyStarts) {
                                                kSampleRate, kSpectrumSize));
 
   const int16_t expected[] = {0, 4, 8};
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels + 1,
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.num_channels + 1,
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.channel_frequency_starts[i], expected[i]);
@@ -93,8 +94,9 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckChannelWeightStarts) {
                                                kSampleRate, kSpectrumSize));
 
   const int16_t expected[] = {0, 8, 16};
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels + 1,
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.num_channels + 1,
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.channel_weight_starts[i], expected[i]);
@@ -110,8 +112,9 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckChannelWidths) {
                                                kSampleRate, kSpectrumSize));
 
   const int16_t expected[] = {8, 8, 8};
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels + 1,
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.num_channels + 1,
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.channel_widths[i], expected[i]);
@@ -129,9 +132,10 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckWeights) {
   const int16_t expected[] = {0, 3277, 2217, 1200, 222,  0,   0,   0,
                               0, 3376, 2468, 1591, 744,  0,   0,   0,
                               0, 4020, 3226, 2456, 1708, 983, 277, 0};
-  TF_LITE_MICRO_EXPECT_EQ(state.channel_weight_starts[state.num_channels] +
-                              state.channel_widths[state.num_channels],
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.channel_weight_starts[state.num_channels] +
+          state.channel_widths[state.num_channels],
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.weights[i], expected[i]);
   }
@@ -148,9 +152,10 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckUnweights) {
   const int16_t expected[] = {0, 819, 1879, 2896, 3874, 0,    0,    0,
                               0, 720, 1628, 2505, 3352, 0,    0,    0,
                               0, 76,  870,  1640, 2388, 3113, 3819, 0};
-  TF_LITE_MICRO_EXPECT_EQ(state.channel_weight_starts[state.num_channels] +
-                              state.channel_widths[state.num_channels],
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.channel_weight_starts[state.num_channels] +
+          state.channel_widths[state.num_channels],
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
     TF_LITE_MICRO_EXPECT_EQ(state.unweights[i], expected[i]);
   }
@@ -204,8 +209,9 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckSqrt) {
   uint32_t* scaled_filterbank = FilterbankSqrt(&state, kScaleShift);
 
   const uint32_t expected[] = {247311, 508620};
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels,
-                          static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  TF_LITE_MICRO_EXPECT_EQ(
+      state.num_channels,
+      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(scaled_filterbank[i], expected[i]);
