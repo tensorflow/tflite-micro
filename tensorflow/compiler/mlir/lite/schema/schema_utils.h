@@ -24,9 +24,9 @@ namespace tflite {
 // problem. The new builtin operator will be assigned to the extended builtin
 // code field in the flatbuffer schema. Those methods helps to hide builtin code
 // details.
-BuiltinOperator GetBuiltinCode(const OperatorCode *op_code);
+BuiltinOperator GetBuiltinCode(const OperatorCode* op_code);
 
-BuiltinOperator GetBuiltinCode(const OperatorCodeT *op_code);
+BuiltinOperator GetBuiltinCode(const OperatorCodeT* op_code);
 
 }  // namespace tflite
 

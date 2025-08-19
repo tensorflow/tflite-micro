@@ -104,8 +104,8 @@ uint32_t GetCurrentTimeTicks() {
 
 #ifdef ETHOS_U
 #if defined(ETHOSU_FAST_MEMORY_SIZE) && ETHOSU_FAST_MEMORY_SIZE > 0
-__attribute__((aligned(16), section(".bss.ethosu_scratch")))
-uint8_t ethosu0_scratch[ETHOSU_FAST_MEMORY_SIZE];
+__attribute__((aligned(16), section(".bss.ethosu_scratch"))) uint8_t
+    ethosu0_scratch[ETHOSU_FAST_MEMORY_SIZE];
 #else
 #define ethosu0_scratch 0
 #define ETHOSU_FAST_MEMORY_SIZE 0
