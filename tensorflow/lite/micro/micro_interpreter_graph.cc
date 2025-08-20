@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
 
+#include <algorithm>
+
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -40,6 +42,34 @@ const char* OpNameFromRegistration(const TFLMRegistration* registration) {
   } else {
     return EnumNameBuiltinOperator(BuiltinOperator(registration->builtin_code));
   }
+}
+
+// Check tensor shapes to determine if there are dynamic tensors present.
+// Returns the index of the first dynamic tensor found, otherwise returns -1.
+int CheckDynamicTensors(const TfLiteIntArray* const tensor_indices,
+                        const TfLiteEvalTensor* const eval_tensors) {
+  // some operators have no tensors, so node->inputs and/or node->outputs
+  // can be <nullptr>.  This occurs in the MicroInterpreter unit tests.
+  if (tensor_indices == nullptr) {
+    return -1;
+  }
+
+  for (int i = 0; i < tensor_indices->size; i++) {
+    const int tensor_index = tensor_indices->data[i];
+    // Skip optional tensors
+    if (tensor_index < 0) {
+      continue;
+    }
+    // Check shape for dims <= 0.
+    // This code handles legacy scalar tensors (dims->size == 0).
+    const TfLiteEvalTensor* const tp = eval_tensors + tensor_index;
+    if (!std::all_of(tp->dims->data, tp->dims->data + tp->dims->size,
+                     [](int dim) { return dim > 0; })) {
+      return tensor_index;
+    }
+  }
+
+  return -1;
 }
 
 }  // namespace
@@ -117,7 +147,7 @@ TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
       if (registration->prepare != nullptr) {
         TfLiteStatus prepare_status = registration->prepare(context_, node);
         if (prepare_status != kTfLiteOk) {
-          MicroPrintf("Node %s (number %df) failed to prepare with status %d",
+          MicroPrintf("Node %s (number %u) failed to prepare with status %d",
                       OpNameFromRegistration(registration),
                       current_operator_index_, prepare_status);
           return kTfLiteError;
@@ -126,6 +156,18 @@ TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
         GetMicroContext(context_)->ResetDecompressionMemoryAllocations();
 #endif  // USE_TFLM_COMPRESSION
       }
+
+      const int dynamic_tensor_index = CheckDynamicTensors(
+          node->outputs, subgraph_allocations_[subgraph_idx].tensors);
+      if (dynamic_tensor_index != -1) {
+        MicroPrintf(
+            "Op#%u (%s) of subgraph %u has dynamic tensor #%d\n"
+            "Dynamic tensors are not supported",
+            current_operator_index_, OpNameFromRegistration(registration),
+            current_subgraph_index_, dynamic_tensor_index);
+        return kTfLiteError;
+      }
+
       allocator_->FinishPrepareNodeAllocations(
           /*node_id=*/current_operator_index_);
     }
@@ -205,6 +247,7 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
                 subgraph_idx, subgraphs_->size());
     return kTfLiteError;
   }
+  TfLiteStatus invoke_status = kTfLiteOk;
   uint32_t operators_size = NumSubgraphOperators(model_, subgraph_idx);
   for (current_operator_index_ = 0; current_operator_index_ < operators_size;
        ++current_operator_index_) {
@@ -226,7 +269,7 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
 #endif
 
     TFLITE_DCHECK(registration->invoke);
-    TfLiteStatus invoke_status = registration->invoke(context_, node);
+    invoke_status = registration->invoke(context_, node);
 #ifdef USE_TFLM_COMPRESSION
     GetMicroContext(context_)->ResetDecompressionMemoryAllocations();
 #endif  // USE_TFLM_COMPRESSION
@@ -243,12 +286,15 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
                     OpNameFromRegistration(registration),
                     current_operator_index_, invoke_status);
       }
-      return invoke_status;
+      // make sure to restore subgraph and operator indices
+      break;
     }
   }
+
   current_subgraph_index_ = previous_subgraph_idx;
   current_operator_index_ = previous_operator_idx;
-  return kTfLiteOk;
+
+  return invoke_status;
 }
 
 TfLiteStatus MicroInterpreterGraph::ResetVariableTensors() {
