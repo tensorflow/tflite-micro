@@ -323,11 +323,6 @@ Once the `YAML` specification is ready, compress the model using the following:
 bazel run -s tensorflow/lite/micro/compression:compress -- --input=binned.tflite --output=compressed.tflite --spec=spec.yaml
 ```
 
-Then align the model:
-```
-bazel run -s tensorflow/lite/micro/tools:tflite_flatbuffer_align -- compressed.tflite compressed_and_aligned.tflite
-```
-
 # The Generic Benchmark Application
 
 The Generic Benchmark Application can be used to see the size of the model, the
