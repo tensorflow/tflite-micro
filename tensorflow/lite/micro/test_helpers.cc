@@ -103,13 +103,14 @@ class ModelBuilder {
   Operator RegisterOp(BuiltinOperator op, const char* custom_code);
 
   // Adds a tensor to the model.
-  Tensor AddTensor(TensorType type, std::initializer_list<int32_t> shape) {
+  Tensor AddTensor(TensorType type,
+                   const std::initializer_list<int32_t> shape) {
     return AddTensorImpl(type, /* is_variable */ false, shape);
   }
 
   // Adds a variable tensor to the model.
   Tensor AddVariableTensor(TensorType type,
-                           std::initializer_list<int32_t> shape) {
+                           const std::initializer_list<int32_t> shape) {
     return AddTensorImpl(type, /* is_variable */ true, shape);
   }
 
@@ -133,7 +134,7 @@ class ModelBuilder {
  private:
   // Adds a tensor to the model.
   Tensor AddTensorImpl(TensorType type, bool is_variable,
-                       std::initializer_list<int32_t> shape);
+                       const std::initializer_list<int32_t> shape);
 
   flatbuffers::FlatBufferBuilder* builder_;
 
@@ -1546,6 +1547,23 @@ const Model* BuildSimpleMockModelWithNullInputsOutputs() {
   return model;
 }
 
+const Model* BuildNoOpModelWithTensorShape(
+    const std::initializer_list<int32_t>& shape) {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* fb_builder = BuilderInstance();
+
+  ModelBuilder model_builder(fb_builder);
+
+  // build model with 2 tensor outputs, the first with shape [3, 2]
+  // and the second with the supplied shape.
+  const int op_id = model_builder.RegisterOp(BuiltinOperator_CUSTOM, "no_op");
+  const int tensor_0 = model_builder.AddTensor(TensorType_INT8, {3, 2});
+  const int tensor_1 = model_builder.AddTensor(TensorType_INT8, shape);
+
+  model_builder.AddNode(op_id, {}, {tensor_0, tensor_1}, {});
+  return model_builder.BuildModel({}, {tensor_0, tensor_1});
+}
+
 }  // namespace
 
 const TFLMRegistration* SimpleStatefulOp::getRegistration() {
@@ -1910,6 +1928,12 @@ const Model* GetSimpleStatefulModel() {
     model = const_cast<Model*>(BuildSimpleStatefulModel());
   }
   return model;
+}
+
+const Model* GetNoOpModelWithTensorShape(
+    const std::initializer_list<int32_t>& shape) {
+  // don't cache the model as the tensor shape can be different on each call
+  return const_cast<Model*>(BuildNoOpModelWithTensorShape(shape));
 }
 
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable) {
