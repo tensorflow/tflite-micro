@@ -60,9 +60,14 @@ int CheckDynamicTensors(const TfLiteIntArray* const tensor_indices,
     if (tensor_index < 0) {
       continue;
     }
+
     // Check shape for dims <= 0.
-    // This code handles legacy scalar tensors (dims->size == 0).
     const TfLiteEvalTensor* const tp = eval_tensors + tensor_index;
+    if (tp->dims->size == 1 && tp->dims->data[0] == 0) {
+      // Legacy scalar shapes (dims->size == 1 && dims->data[0] == 0)
+      continue;
+    }
+    // This code can handle scalar tensors (dims->size == 0)
     if (!std::all_of(tp->dims->data, tp->dims->data + tp->dims->size,
                      [](int dim) { return dim > 0; })) {
       return tensor_index;
