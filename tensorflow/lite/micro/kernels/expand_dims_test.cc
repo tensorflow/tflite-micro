@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ micro::KernelRunner CreateExpandDimsKernelRunner(
 
   tensors[kDimsTensorIndex] = CreateTensor(input_data, in_dims);
   tensors[kAxisTensorIndex] = CreateTensor(axis_data, ax_dims);
+  // axis must be a const tensor
+  tensors[kAxisTensorIndex].allocation_type = kTfLiteMmapRo;
   tensors[kOutputTensorIndex] = CreateTensor(output_data, out_dims, true);
 
   TfLiteIntArray* inputs_array =

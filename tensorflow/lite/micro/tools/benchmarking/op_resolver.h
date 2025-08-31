@@ -105,6 +105,7 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddQuantize());
   TF_LITE_ENSURE_STATUS(op_resolver.AddReadVariable());
   TF_LITE_ENSURE_STATUS(op_resolver.AddReduceMax());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddReduceMin());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRelu());
   TF_LITE_ENSURE_STATUS(op_resolver.AddRelu6());
   TF_LITE_ENSURE_STATUS(op_resolver.AddReshape());
