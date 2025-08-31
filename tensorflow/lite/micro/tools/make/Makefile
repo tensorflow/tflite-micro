@@ -388,6 +388,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_huffman.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
