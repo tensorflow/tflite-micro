@@ -128,6 +128,7 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
   # Additional kernel sources for DECODE operator support
   ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5))
     MICROLITE_CC_KERNEL_SRCS += \
+      $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_huffman.cc \
       $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_lut.cc \
       $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_prune.cc
   endif
@@ -136,6 +137,10 @@ endif
 # override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
 # Xtensa intrinsics.
 $(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
+
+$(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_huffman.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_huffman.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
 
