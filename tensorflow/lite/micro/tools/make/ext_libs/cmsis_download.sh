@@ -48,13 +48,8 @@ if [ -d ${DOWNLOADED_CMSIS_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_PATH} already exists, skipping the download."
 else
 
-  # Create unique temporary directory name with username for better isolation
-  USERNAME=$(whoami 2>/dev/null || echo "unknown")
-  TEMP_DIR="/tmp/cmsis_dld_${USERNAME}_$(date +%s)_$$"
-  if ! mkdir -p "${TEMP_DIR}"; then
-      echo "ERROR: Failed to create temporary directory ${TEMP_DIR}" >&2
-      exit 1
-  fi
+  # Create a temporary directory with the unique name for better isolation
+  TEMP_DIR=$(mktemp -d /tmp/$(basename $0 .sh).XXXXXX)
 
   # Set up cleanup trap for all exit conditions
   trap 'rm -rf "${TEMP_DIR}"' EXIT INT TERM
