@@ -213,6 +213,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_CUMSUM, registration, ParseCumsum);
   }
 
+  TfLiteStatus AddDecode() {
+    const TFLMRegistration& registration = tflite::Register_DECODE();
+    return AddCustom("TFLM_DECODE", &registration);
+  }
+
   TfLiteStatus AddDelay() {
     // TODO(b/286250473): change back name to "Delay" and remove namespace
     return AddCustom("SignalDelay", tflite::tflm_signal::Register_DELAY());
