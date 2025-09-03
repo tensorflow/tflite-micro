@@ -19,6 +19,7 @@ limitations under the License.
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <initializer_list>
 #include <limits>
 #include <type_traits>
 
@@ -189,6 +190,11 @@ const Model* GetModelWithIfAndSubgraphInputTensorOverlap();
 
 // Returns a flatbuffer model with null subgraph/operator inputs and outputs.
 const Model* GetSimpleModelWithNullInputsAndOutputs();
+
+// Returns a flatbuffer model with no inputs and two outputs, the second
+// of which has the supplied shape.
+const Model* GetNoOpModelWithTensorShape(
+    const std::initializer_list<int32_t>& shape);
 
 // Builds a one-dimensional flatbuffer tensor of the given size.
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable = false);

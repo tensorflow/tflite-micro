@@ -118,30 +118,33 @@ class MicroMutableOpResolver : public MicroOpResolver {
   // The Add* functions below add the various Builtin operators to the
   // MicroMutableOpResolver object.
 
-  TfLiteStatus AddAbs() {
-    return AddBuiltin(BuiltinOperator_ABS, Register_ABS(), ParseAbs);
+  TfLiteStatus AddAbs(const TFLMRegistration& registration = Register_ABS()) {
+    return AddBuiltin(BuiltinOperator_ABS, registration, ParseAbs);
   }
 
   TfLiteStatus AddAdd(const TFLMRegistration& registration = Register_ADD()) {
     return AddBuiltin(BuiltinOperator_ADD, registration, ParseAdd);
   }
 
-  TfLiteStatus AddAddN() {
-    return AddBuiltin(BuiltinOperator_ADD_N, tflite::Register_ADD_N(),
-                      ParseAddN);
+  TfLiteStatus AddAddN(
+      const TFLMRegistration& registration = Register_ADD_N()) {
+    return AddBuiltin(BuiltinOperator_ADD_N, registration, ParseAddN);
   }
 
-  TfLiteStatus AddArgMax() {
-    return AddBuiltin(BuiltinOperator_ARG_MAX, Register_ARG_MAX(), ParseArgMax);
+  TfLiteStatus AddArgMax(
+      const TFLMRegistration& registration = Register_ARG_MAX()) {
+    return AddBuiltin(BuiltinOperator_ARG_MAX, registration, ParseArgMax);
   }
 
-  TfLiteStatus AddArgMin() {
-    return AddBuiltin(BuiltinOperator_ARG_MIN, Register_ARG_MIN(), ParseArgMin);
+  TfLiteStatus AddArgMin(
+      const TFLMRegistration& registration = Register_ARG_MIN()) {
+    return AddBuiltin(BuiltinOperator_ARG_MIN, registration, ParseArgMin);
   }
 
-  TfLiteStatus AddAssignVariable() {
-    return AddBuiltin(BuiltinOperator_ASSIGN_VARIABLE,
-                      tflite::Register_ASSIGN_VARIABLE(), ParseAssignVariable);
+  TfLiteStatus AddAssignVariable(const TFLMRegistration& registration =
+                                     tflite::Register_ASSIGN_VARIABLE()) {
+    return AddBuiltin(BuiltinOperator_ASSIGN_VARIABLE, registration,
+                      ParseAssignVariable);
   }
 
   TfLiteStatus AddAveragePool2D(
@@ -155,40 +158,44 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseBatchMatMul);
   }
 
-  TfLiteStatus AddBatchToSpaceNd() {
-    return AddBuiltin(BuiltinOperator_BATCH_TO_SPACE_ND,
-                      Register_BATCH_TO_SPACE_ND(), ParseBatchToSpaceNd);
+  TfLiteStatus AddBatchToSpaceNd(
+      const TFLMRegistration& registration = Register_BATCH_TO_SPACE_ND()) {
+    return AddBuiltin(BuiltinOperator_BATCH_TO_SPACE_ND, registration,
+                      ParseBatchToSpaceNd);
   }
 
-  TfLiteStatus AddBroadcastArgs() {
-    return AddBuiltin(BuiltinOperator_BROADCAST_ARGS, Register_BROADCAST_ARGS(),
+  TfLiteStatus AddBroadcastArgs(
+      const TFLMRegistration& registration = Register_BROADCAST_ARGS()) {
+    return AddBuiltin(BuiltinOperator_BROADCAST_ARGS, registration,
                       ParseBroadcastArgs);
   }
 
-  TfLiteStatus AddBroadcastTo() {
-    return AddBuiltin(BuiltinOperator_BROADCAST_TO, Register_BROADCAST_TO(),
+  TfLiteStatus AddBroadcastTo(
+      const TFLMRegistration& registration = Register_BROADCAST_TO()) {
+    return AddBuiltin(BuiltinOperator_BROADCAST_TO, registration,
                       ParseBroadcastTo);
   }
 
-  TfLiteStatus AddCallOnce() {
-    return AddBuiltin(BuiltinOperator_CALL_ONCE, Register_CALL_ONCE(),
-                      ParseCallOnce);
+  TfLiteStatus AddCallOnce(
+      const TFLMRegistration& registration = Register_CALL_ONCE()) {
+    return AddBuiltin(BuiltinOperator_CALL_ONCE, registration, ParseCallOnce);
   }
 
-  TfLiteStatus AddCast() {
-    return AddBuiltin(BuiltinOperator_CAST, Register_CAST(), ParseCast);
+  TfLiteStatus AddCast(const TFLMRegistration& registration = Register_CAST()) {
+    return AddBuiltin(BuiltinOperator_CAST, registration, ParseCast);
   }
 
-  TfLiteStatus AddCeil() {
-    return AddBuiltin(BuiltinOperator_CEIL, Register_CEIL(), ParseCeil);
+  TfLiteStatus AddCeil(const TFLMRegistration& registration = Register_CEIL()) {
+    return AddBuiltin(BuiltinOperator_CEIL, registration, ParseCeil);
   }
 
   TfLiteStatus AddCircularBuffer() {
     return AddCustom("CIRCULAR_BUFFER", tflite::Register_CIRCULAR_BUFFER());
   }
 
-  TfLiteStatus AddConcatenation() {
-    return AddBuiltin(BuiltinOperator_CONCATENATION, Register_CONCATENATION(),
+  TfLiteStatus AddConcatenation(
+      const TFLMRegistration& registration = Register_CONCATENATION()) {
+    return AddBuiltin(BuiltinOperator_CONCATENATION, registration,
                       ParseConcatenation);
   }
 
@@ -197,13 +204,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_CONV_2D, registration, ParseConv2D);
   }
 
-  TfLiteStatus AddCos() {
-    return AddBuiltin(BuiltinOperator_COS, tflite::Register_COS(), ParseCos);
+  TfLiteStatus AddCos(const TFLMRegistration& registration = Register_COS()) {
+    return AddBuiltin(BuiltinOperator_COS, registration, ParseCos);
   }
 
-  TfLiteStatus AddCumSum() {
-    return AddBuiltin(BuiltinOperator_CUMSUM, tflite::Register_CUMSUM(),
-                      ParseCumsum);
+  TfLiteStatus AddCumSum(
+      const TFLMRegistration& registration = Register_CUMSUM()) {
+    return AddBuiltin(BuiltinOperator_CUMSUM, registration, ParseCumsum);
   }
 
   TfLiteStatus AddDelay() {
@@ -211,9 +218,10 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalDelay", tflite::tflm_signal::Register_DELAY());
   }
 
-  TfLiteStatus AddDepthToSpace() {
-    return AddBuiltin(BuiltinOperator_DEPTH_TO_SPACE,
-                      tflite::Register_DEPTH_TO_SPACE(), ParseDepthToSpace);
+  TfLiteStatus AddDepthToSpace(const TFLMRegistration& registration =
+                                   tflite::Register_DEPTH_TO_SPACE()) {
+    return AddBuiltin(BuiltinOperator_DEPTH_TO_SPACE, registration,
+                      ParseDepthToSpace);
   }
 
   TfLiteStatus AddDepthwiseConv2D(
@@ -222,8 +230,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseDepthwiseConv2D);
   }
 
-  TfLiteStatus AddDequantize() {
-    return AddBuiltin(BuiltinOperator_DEQUANTIZE, tflite::Register_DEQUANTIZE(),
+  TfLiteStatus AddDequantize(
+      const TFLMRegistration& registration = Register_DEQUANTIZE()) {
+    return AddBuiltin(BuiltinOperator_DEQUANTIZE, registration,
                       ParseDequantize);
   }
 
@@ -232,13 +241,15 @@ class MicroMutableOpResolver : public MicroOpResolver {
                      tflite::Register_DETECTION_POSTPROCESS());
   }
 
-  TfLiteStatus AddDiv() {
-    return AddBuiltin(BuiltinOperator_DIV, tflite::Register_DIV(), ParseDiv);
+  TfLiteStatus AddDiv(
+      const TFLMRegistration& registration = tflite::Register_DIV()) {
+    return AddBuiltin(BuiltinOperator_DIV, registration, ParseDiv);
   }
 
-  TfLiteStatus AddEmbeddingLookup() {
-    return AddBuiltin(BuiltinOperator_EMBEDDING_LOOKUP,
-                      Register_EMBEDDING_LOOKUP(), ParseEmbeddingLookup);
+  TfLiteStatus AddEmbeddingLookup(
+      const TFLMRegistration& registration = Register_EMBEDDING_LOOKUP()) {
+    return AddBuiltin(BuiltinOperator_EMBEDDING_LOOKUP, registration,
+                      ParseEmbeddingLookup);
   }
 
   TfLiteStatus AddEnergy() {
@@ -246,12 +257,14 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalEnergy", tflite::tflm_signal::Register_ENERGY());
   }
 
-  TfLiteStatus AddElu() {
-    return AddBuiltin(BuiltinOperator_ELU, tflite::Register_ELU(), ParseElu);
+  TfLiteStatus AddElu(
+      const TFLMRegistration& registration = tflite::Register_ELU()) {
+    return AddBuiltin(BuiltinOperator_ELU, registration, ParseElu);
   }
 
-  TfLiteStatus AddEqual() {
-    return AddBuiltin(BuiltinOperator_EQUAL, Register_EQUAL(), ParseEqual);
+  TfLiteStatus AddEqual(
+      const TFLMRegistration& registration = Register_EQUAL()) {
+    return AddBuiltin(BuiltinOperator_EQUAL, registration, ParseEqual);
   }
 
   TfLiteStatus AddEthosU() {
@@ -262,12 +275,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return kTfLiteOk;
   }
 
-  TfLiteStatus AddExp() {
-    return AddBuiltin(BuiltinOperator_EXP, Register_EXP(), ParseExp);
+  TfLiteStatus AddExp(const TFLMRegistration& registration = Register_EXP()) {
+    return AddBuiltin(BuiltinOperator_EXP, registration, ParseExp);
   }
 
-  TfLiteStatus AddExpandDims() {
-    return AddBuiltin(BuiltinOperator_EXPAND_DIMS, Register_EXPAND_DIMS(),
+  TfLiteStatus AddExpandDims(
+      const TFLMRegistration& registration = Register_EXPAND_DIMS()) {
+    return AddBuiltin(BuiltinOperator_EXPAND_DIMS, registration,
                       ParseExpandDims);
   }
 
@@ -277,8 +291,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                      tflite::tflm_signal::Register_FFT_AUTO_SCALE());
   }
 
-  TfLiteStatus AddFill() {
-    return AddBuiltin(BuiltinOperator_FILL, tflite::Register_FILL(), ParseFill);
+  TfLiteStatus AddFill(
+      const TFLMRegistration& registration = tflite::Register_FILL()) {
+    return AddBuiltin(BuiltinOperator_FILL, registration, ParseFill);
   }
 
   TfLiteStatus AddFilterBank() {
@@ -306,18 +321,19 @@ class MicroMutableOpResolver : public MicroOpResolver {
         tflite::tflm_signal::Register_FILTER_BANK_SPECTRAL_SUBTRACTION());
   }
 
-  TfLiteStatus AddFloor() {
-    return AddBuiltin(BuiltinOperator_FLOOR, Register_FLOOR(), ParseFloor);
+  TfLiteStatus AddFloor(
+      const TFLMRegistration& registration = Register_FLOOR()) {
+    return AddBuiltin(BuiltinOperator_FLOOR, registration, ParseFloor);
   }
 
-  TfLiteStatus AddFloorDiv() {
-    return AddBuiltin(BuiltinOperator_FLOOR_DIV, tflite::Register_FLOOR_DIV(),
-                      ParseFloorDiv);
+  TfLiteStatus AddFloorDiv(
+      const TFLMRegistration& registration = tflite::Register_FLOOR_DIV()) {
+    return AddBuiltin(BuiltinOperator_FLOOR_DIV, registration, ParseFloorDiv);
   }
 
-  TfLiteStatus AddFloorMod() {
-    return AddBuiltin(BuiltinOperator_FLOOR_MOD, tflite::Register_FLOOR_MOD(),
-                      ParseFloorMod);
+  TfLiteStatus AddFloorMod(
+      const TFLMRegistration& registration = tflite::Register_FLOOR_MOD()) {
+    return AddBuiltin(BuiltinOperator_FLOOR_MOD, registration, ParseFloorMod);
   }
 
   TfLiteStatus AddFramer() {
@@ -331,33 +347,34 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseFullyConnected);
   }
 
-  TfLiteStatus AddGather() {
-    return AddBuiltin(BuiltinOperator_GATHER, tflite::Register_GATHER(),
-                      ParseGather);
+  TfLiteStatus AddGather(
+      const TFLMRegistration& registration = tflite::Register_GATHER()) {
+    return AddBuiltin(BuiltinOperator_GATHER, registration, ParseGather);
+  }
+  TfLiteStatus AddGatherNd(
+      const TFLMRegistration& registration = tflite::Register_GATHER_ND()) {
+    return AddBuiltin(BuiltinOperator_GATHER_ND, registration, ParseGatherNd);
   }
 
-  TfLiteStatus AddGatherNd() {
-    return AddBuiltin(BuiltinOperator_GATHER_ND, tflite::Register_GATHER_ND(),
-                      ParseGatherNd);
+  TfLiteStatus AddGreater(
+      const TFLMRegistration& registration = Register_GREATER()) {
+    return AddBuiltin(BuiltinOperator_GREATER, registration, ParseGreater);
   }
 
-  TfLiteStatus AddGreater() {
-    return AddBuiltin(BuiltinOperator_GREATER, Register_GREATER(),
-                      ParseGreater);
-  }
-
-  TfLiteStatus AddGreaterEqual() {
-    return AddBuiltin(BuiltinOperator_GREATER_EQUAL, Register_GREATER_EQUAL(),
+  TfLiteStatus AddGreaterEqual(
+      const TFLMRegistration& registration = Register_GREATER_EQUAL()) {
+    return AddBuiltin(BuiltinOperator_GREATER_EQUAL, registration,
                       ParseGreaterEqual);
   }
 
-  TfLiteStatus AddHardSwish() {
-    return AddBuiltin(BuiltinOperator_HARD_SWISH, tflite::Register_HARD_SWISH(),
-                      ParseHardSwish);
+  TfLiteStatus AddHardSwish(
+      const TFLMRegistration& registration = tflite::Register_HARD_SWISH()) {
+    return AddBuiltin(BuiltinOperator_HARD_SWISH, registration, ParseHardSwish);
   }
 
-  TfLiteStatus AddIf() {
-    return AddBuiltin(BuiltinOperator_IF, tflite::Register_IF(), ParseIf);
+  TfLiteStatus AddIf(
+      const TFLMRegistration& registration = tflite::Register_IF()) {
+    return AddBuiltin(BuiltinOperator_IF, registration, ParseIf);
   }
 
   TfLiteStatus AddIrfft(const TFLMRegistration* registration =
@@ -366,57 +383,61 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalIrfft", registration);
   }
 
-  TfLiteStatus AddL2Normalization() {
-    return AddBuiltin(BuiltinOperator_L2_NORMALIZATION,
-                      Register_L2_NORMALIZATION(), ParseL2Normalization);
+  TfLiteStatus AddL2Normalization(
+      const TFLMRegistration& registration = Register_L2_NORMALIZATION()) {
+    return AddBuiltin(BuiltinOperator_L2_NORMALIZATION, registration,
+                      ParseL2Normalization);
   }
 
-  TfLiteStatus AddL2Pool2D() {
-    return AddBuiltin(BuiltinOperator_L2_POOL_2D, tflite::Register_L2_POOL_2D(),
-                      ParsePool);
+  TfLiteStatus AddL2Pool2D(
+      const TFLMRegistration& registration = tflite::Register_L2_POOL_2D()) {
+    return AddBuiltin(BuiltinOperator_L2_POOL_2D, registration, ParsePool);
   }
 
-  TfLiteStatus AddLeakyRelu() {
-    return AddBuiltin(BuiltinOperator_LEAKY_RELU, tflite::Register_LEAKY_RELU(),
-                      ParseLeakyRelu);
+  TfLiteStatus AddLeakyRelu(
+      const TFLMRegistration& registration = tflite::Register_LEAKY_RELU()) {
+    return AddBuiltin(BuiltinOperator_LEAKY_RELU, registration, ParseLeakyRelu);
   }
 
-  TfLiteStatus AddLess() {
-    return AddBuiltin(BuiltinOperator_LESS, Register_LESS(), ParseLess);
+  TfLiteStatus AddLess(const TFLMRegistration& registration = Register_LESS()) {
+    return AddBuiltin(BuiltinOperator_LESS, registration, ParseLess);
   }
 
-  TfLiteStatus AddLessEqual() {
-    return AddBuiltin(BuiltinOperator_LESS_EQUAL, Register_LESS_EQUAL(),
-                      ParseLessEqual);
+  TfLiteStatus AddLessEqual(
+      const TFLMRegistration& registration = Register_LESS_EQUAL()) {
+    return AddBuiltin(BuiltinOperator_LESS_EQUAL, registration, ParseLessEqual);
   }
 
-  TfLiteStatus AddLog() {
-    return AddBuiltin(BuiltinOperator_LOG, Register_LOG(), ParseLog);
+  TfLiteStatus AddLog(const TFLMRegistration& registration = Register_LOG()) {
+    return AddBuiltin(BuiltinOperator_LOG, registration, ParseLog);
   }
 
-  TfLiteStatus AddLogicalAnd() {
-    return AddBuiltin(BuiltinOperator_LOGICAL_AND,
-                      tflite::Register_LOGICAL_AND(), ParseLogicalAnd);
+  TfLiteStatus AddLogicalAnd(
+      const TFLMRegistration& registration = tflite::Register_LOGICAL_AND()) {
+    return AddBuiltin(BuiltinOperator_LOGICAL_AND, registration,
+                      ParseLogicalAnd);
   }
 
-  TfLiteStatus AddLogicalNot() {
-    return AddBuiltin(BuiltinOperator_LOGICAL_NOT, Register_LOGICAL_NOT(),
+  TfLiteStatus AddLogicalNot(
+      const TFLMRegistration& registration = Register_LOGICAL_NOT()) {
+    return AddBuiltin(BuiltinOperator_LOGICAL_NOT, registration,
                       ParseLogicalNot);
   }
 
-  TfLiteStatus AddLogicalOr() {
-    return AddBuiltin(BuiltinOperator_LOGICAL_OR, tflite::Register_LOGICAL_OR(),
-                      ParseLogicalOr);
+  TfLiteStatus AddLogicalOr(
+      const TFLMRegistration& registration = tflite::Register_LOGICAL_OR()) {
+    return AddBuiltin(BuiltinOperator_LOGICAL_OR, registration, ParseLogicalOr);
   }
 
-  TfLiteStatus AddLogistic() {
-    return AddBuiltin(BuiltinOperator_LOGISTIC, tflite::Register_LOGISTIC(),
-                      ParseLogistic);
+  TfLiteStatus AddLogistic(
+      const TFLMRegistration& registration = tflite::Register_LOGISTIC()) {
+    return AddBuiltin(BuiltinOperator_LOGISTIC, registration, ParseLogistic);
   }
 
-  TfLiteStatus AddLogSoftmax() {
-    return AddBuiltin(BuiltinOperator_LOG_SOFTMAX,
-                      tflite::Register_LOG_SOFTMAX(), ParseLogSoftmax);
+  TfLiteStatus AddLogSoftmax(
+      const TFLMRegistration& registration = tflite::Register_LOG_SOFTMAX()) {
+    return AddBuiltin(BuiltinOperator_LOG_SOFTMAX, registration,
+                      ParseLogSoftmax);
   }
 
   TfLiteStatus AddMaximum(
@@ -429,13 +450,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_MAX_POOL_2D, registration, ParsePool);
   }
 
-  TfLiteStatus AddMirrorPad() {
-    return AddBuiltin(BuiltinOperator_MIRROR_PAD, tflite::Register_MIRROR_PAD(),
-                      ParseMirrorPad);
+  TfLiteStatus AddMirrorPad(
+      const TFLMRegistration& registration = tflite::Register_MIRROR_PAD()) {
+    return AddBuiltin(BuiltinOperator_MIRROR_PAD, registration, ParseMirrorPad);
   }
 
-  TfLiteStatus AddMean() {
-    return AddBuiltin(BuiltinOperator_MEAN, Register_MEAN(), ParseReducer);
+  TfLiteStatus AddMean(const TFLMRegistration& registration = Register_MEAN()) {
+    return AddBuiltin(BuiltinOperator_MEAN, registration, ParseReducer);
   }
 
   TfLiteStatus AddMinimum(
@@ -447,13 +468,13 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_MUL, registration, ParseMul);
   }
 
-  TfLiteStatus AddNeg() {
-    return AddBuiltin(BuiltinOperator_NEG, Register_NEG(), ParseNeg);
+  TfLiteStatus AddNeg(const TFLMRegistration& registration = Register_NEG()) {
+    return AddBuiltin(BuiltinOperator_NEG, registration, ParseNeg);
   }
 
-  TfLiteStatus AddNotEqual() {
-    return AddBuiltin(BuiltinOperator_NOT_EQUAL, Register_NOT_EQUAL(),
-                      ParseNotEqual);
+  TfLiteStatus AddNotEqual(
+      const TFLMRegistration& registration = Register_NOT_EQUAL()) {
+    return AddBuiltin(BuiltinOperator_NOT_EQUAL, registration, ParseNotEqual);
   }
 
   TfLiteStatus AddOverlapAdd() {
@@ -463,16 +484,17 @@ class MicroMutableOpResolver : public MicroOpResolver {
                      tflite::tflm_signal::Register_OVERLAP_ADD());
   }
 
-  TfLiteStatus AddPack() {
-    return AddBuiltin(BuiltinOperator_PACK, Register_PACK(), ParsePack);
+  TfLiteStatus AddPack(const TFLMRegistration& registration = Register_PACK()) {
+    return AddBuiltin(BuiltinOperator_PACK, registration, ParsePack);
   }
 
   TfLiteStatus AddPad(const TFLMRegistration& registration = Register_PAD()) {
     return AddBuiltin(BuiltinOperator_PAD, registration, ParsePad);
   }
 
-  TfLiteStatus AddPadV2() {
-    return AddBuiltin(BuiltinOperator_PADV2, Register_PADV2(), ParsePadV2);
+  TfLiteStatus AddPadV2(
+      const TFLMRegistration& registration = Register_PADV2()) {
+    return AddBuiltin(BuiltinOperator_PADV2, registration, ParsePadV2);
   }
 
   TfLiteStatus AddPCAN() {
@@ -480,48 +502,51 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalPCAN", tflite::tflm_signal::Register_PCAN());
   }
 
-  TfLiteStatus AddPrelu() {
-    return AddBuiltin(BuiltinOperator_PRELU, tflite::Register_PRELU(),
-                      ParsePrelu);
+  TfLiteStatus AddPrelu(
+      const TFLMRegistration& registration = tflite::Register_PRELU()) {
+    return AddBuiltin(BuiltinOperator_PRELU, registration, ParsePrelu);
   }
 
-  TfLiteStatus AddQuantize() {
-    return AddBuiltin(BuiltinOperator_QUANTIZE, Register_QUANTIZE(),
-                      ParseQuantize);
+  TfLiteStatus AddQuantize(
+      const TFLMRegistration& registration = Register_QUANTIZE()) {
+    return AddBuiltin(BuiltinOperator_QUANTIZE, registration, ParseQuantize);
   }
 
-  TfLiteStatus AddReadVariable() {
-    return AddBuiltin(BuiltinOperator_READ_VARIABLE,
-                      tflite::Register_READ_VARIABLE(), ParseReadVariable);
+  TfLiteStatus AddReadVariable(
+      const TFLMRegistration& registration = tflite::Register_READ_VARIABLE()) {
+    return AddBuiltin(BuiltinOperator_READ_VARIABLE, registration,
+                      ParseReadVariable);
   }
 
-  TfLiteStatus AddReduceMax() {
-    return AddBuiltin(BuiltinOperator_REDUCE_MAX, Register_REDUCE_MAX(),
-                      ParseReducer);
+  TfLiteStatus AddReduceMax(
+      const TFLMRegistration& registration = Register_REDUCE_MAX()) {
+    return AddBuiltin(BuiltinOperator_REDUCE_MAX, registration, ParseReducer);
   }
 
-  TfLiteStatus AddReduceMin() {
-    return AddBuiltin(BuiltinOperator_REDUCE_MIN, Register_REDUCE_MIN(),
-                      ParseReducer);
+  TfLiteStatus AddReduceMin(
+      const TFLMRegistration& registration = Register_REDUCE_MIN()) {
+    return AddBuiltin(BuiltinOperator_REDUCE_MIN, registration, ParseReducer);
   }
 
-  TfLiteStatus AddRelu() {
-    return AddBuiltin(BuiltinOperator_RELU, tflite::Register_RELU(), ParseRelu);
+  TfLiteStatus AddRelu(
+      const TFLMRegistration& registration = tflite::Register_RELU()) {
+    return AddBuiltin(BuiltinOperator_RELU, registration, ParseRelu);
   }
 
-  TfLiteStatus AddRelu6() {
-    return AddBuiltin(BuiltinOperator_RELU6, tflite::Register_RELU6(),
-                      ParseRelu6);
+  TfLiteStatus AddRelu6(
+      const TFLMRegistration& registration = tflite::Register_RELU6()) {
+    return AddBuiltin(BuiltinOperator_RELU6, registration, ParseRelu6);
   }
 
-  TfLiteStatus AddReshape() {
-    return AddBuiltin(BuiltinOperator_RESHAPE, Register_RESHAPE(),
-                      ParseReshape);
+  TfLiteStatus AddReshape(
+      const TFLMRegistration& registration = Register_RESHAPE()) {
+    return AddBuiltin(BuiltinOperator_RESHAPE, registration, ParseReshape);
   }
 
-  TfLiteStatus AddResizeBilinear() {
-    return AddBuiltin(BuiltinOperator_RESIZE_BILINEAR,
-                      Register_RESIZE_BILINEAR(), ParseResizeBilinear);
+  TfLiteStatus AddResizeBilinear(
+      const TFLMRegistration& registration = Register_RESIZE_BILINEAR()) {
+    return AddBuiltin(BuiltinOperator_RESIZE_BILINEAR, registration,
+                      ParseResizeBilinear);
   }
 
   TfLiteStatus AddResizeNearestNeighbor() {
@@ -530,9 +555,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseResizeNearestNeighbor);
   }
 
-  TfLiteStatus AddReverseV2() {
-    return AddBuiltin(BuiltinOperator_REVERSE_V2, Register_REVERSE_V2(),
-                      ParseReverseV2);
+  TfLiteStatus AddReverseV2(
+      const TFLMRegistration& registration = Register_REVERSE_V2()) {
+    return AddBuiltin(BuiltinOperator_REVERSE_V2, registration, ParseReverseV2);
   }
 
   TfLiteStatus AddRfft(const TFLMRegistration* registration =
@@ -541,29 +566,31 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalRfft", registration);
   }
 
-  TfLiteStatus AddRound() {
-    return AddBuiltin(BuiltinOperator_ROUND, Register_ROUND(), ParseRound);
+  TfLiteStatus AddRound(
+      const TFLMRegistration& registration = Register_ROUND()) {
+    return AddBuiltin(BuiltinOperator_ROUND, registration, ParseRound);
   }
 
-  TfLiteStatus AddRsqrt() {
-    return AddBuiltin(BuiltinOperator_RSQRT, Register_RSQRT(), ParseRsqrt);
+  TfLiteStatus AddRsqrt(
+      const TFLMRegistration& registration = Register_RSQRT()) {
+    return AddBuiltin(BuiltinOperator_RSQRT, registration, ParseRsqrt);
+  }
+  TfLiteStatus AddSelectV2(
+      const TFLMRegistration& registration = Register_SELECT_V2()) {
+    return AddBuiltin(BuiltinOperator_SELECT_V2, registration, ParseSelectV2);
+  }
+  TfLiteStatus AddShape(
+      const TFLMRegistration& registration = Register_SHAPE()) {
+    return AddBuiltin(BuiltinOperator_SHAPE, registration, ParseShape);
   }
 
-  TfLiteStatus AddSelectV2() {
-    return AddBuiltin(BuiltinOperator_SELECT_V2, Register_SELECT_V2(),
-                      ParseSelectV2);
+  TfLiteStatus AddSin(const TFLMRegistration& registration = Register_SIN()) {
+    return AddBuiltin(BuiltinOperator_SIN, registration, ParseSin);
   }
 
-  TfLiteStatus AddShape() {
-    return AddBuiltin(BuiltinOperator_SHAPE, Register_SHAPE(), ParseShape);
-  }
-
-  TfLiteStatus AddSin() {
-    return AddBuiltin(BuiltinOperator_SIN, Register_SIN(), ParseSin);
-  }
-
-  TfLiteStatus AddSlice() {
-    return AddBuiltin(BuiltinOperator_SLICE, Register_SLICE(), ParseSlice);
+  TfLiteStatus AddSlice(
+      const TFLMRegistration& registration = Register_SLICE()) {
+    return AddBuiltin(BuiltinOperator_SLICE, registration, ParseSlice);
   }
 
   TfLiteStatus AddSoftmax(
@@ -571,45 +598,51 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_SOFTMAX, registration, ParseSoftmax);
   }
 
-  TfLiteStatus AddSpaceToBatchNd() {
-    return AddBuiltin(BuiltinOperator_SPACE_TO_BATCH_ND,
-                      Register_SPACE_TO_BATCH_ND(), ParseSpaceToBatchNd);
+  TfLiteStatus AddSpaceToBatchNd(
+      const TFLMRegistration& registration = Register_SPACE_TO_BATCH_ND()) {
+    return AddBuiltin(BuiltinOperator_SPACE_TO_BATCH_ND, registration,
+                      ParseSpaceToBatchNd);
   }
 
-  TfLiteStatus AddSpaceToDepth() {
-    return AddBuiltin(BuiltinOperator_SPACE_TO_DEPTH, Register_SPACE_TO_DEPTH(),
+  TfLiteStatus AddSpaceToDepth(
+      const TFLMRegistration& registration = Register_SPACE_TO_DEPTH()) {
+    return AddBuiltin(BuiltinOperator_SPACE_TO_DEPTH, registration,
                       ParseSpaceToDepth);
   }
 
-  TfLiteStatus AddSplit() {
-    return AddBuiltin(BuiltinOperator_SPLIT, Register_SPLIT(), ParseSplit);
+  TfLiteStatus AddSplit(
+      const TFLMRegistration& registration = Register_SPLIT()) {
+    return AddBuiltin(BuiltinOperator_SPLIT, registration, ParseSplit);
   }
 
-  TfLiteStatus AddSplitV() {
-    return AddBuiltin(BuiltinOperator_SPLIT_V, Register_SPLIT_V(), ParseSplitV);
+  TfLiteStatus AddSplitV(
+      const TFLMRegistration& registration = Register_SPLIT_V()) {
+    return AddBuiltin(BuiltinOperator_SPLIT_V, registration, ParseSplitV);
   }
 
-  TfLiteStatus AddSqueeze() {
-    return AddBuiltin(BuiltinOperator_SQUEEZE, Register_SQUEEZE(),
-                      ParseSqueeze);
+  TfLiteStatus AddSqueeze(
+      const TFLMRegistration& registration = Register_SQUEEZE()) {
+    return AddBuiltin(BuiltinOperator_SQUEEZE, registration, ParseSqueeze);
   }
 
-  TfLiteStatus AddSqrt() {
-    return AddBuiltin(BuiltinOperator_SQRT, Register_SQRT(), ParseSqrt);
+  TfLiteStatus AddSqrt(const TFLMRegistration& registration = Register_SQRT()) {
+    return AddBuiltin(BuiltinOperator_SQRT, registration, ParseSqrt);
   }
 
-  TfLiteStatus AddSquare() {
-    return AddBuiltin(BuiltinOperator_SQUARE, Register_SQUARE(), ParseSquare);
+  TfLiteStatus AddSquare(
+      const TFLMRegistration& registration = Register_SQUARE()) {
+    return AddBuiltin(BuiltinOperator_SQUARE, registration, ParseSquare);
   }
 
-  TfLiteStatus AddSquaredDifference() {
-    return AddBuiltin(BuiltinOperator_SQUARED_DIFFERENCE,
-                      tflite::Register_SQUARED_DIFFERENCE(),
+  TfLiteStatus AddSquaredDifference(const TFLMRegistration& registration =
+                                        tflite::Register_SQUARED_DIFFERENCE()) {
+    return AddBuiltin(BuiltinOperator_SQUARED_DIFFERENCE, registration,
                       ParseSquaredDifference);
   }
 
-  TfLiteStatus AddStridedSlice() {
-    return AddBuiltin(BuiltinOperator_STRIDED_SLICE, Register_STRIDED_SLICE(),
+  TfLiteStatus AddStridedSlice(
+      const TFLMRegistration& registration = Register_STRIDED_SLICE()) {
+    return AddBuiltin(BuiltinOperator_STRIDED_SLICE, registration,
                       ParseStridedSlice);
   }
 
@@ -618,20 +651,21 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalStacker", tflite::tflm_signal::Register_STACKER());
   }
 
-  TfLiteStatus AddSub() {
-    return AddBuiltin(BuiltinOperator_SUB, tflite::Register_SUB(), ParseSub);
+  TfLiteStatus AddSub(
+      const TFLMRegistration& registration = tflite::Register_SUB()) {
+    return AddBuiltin(BuiltinOperator_SUB, registration, ParseSub);
   }
 
-  TfLiteStatus AddSum() {
-    return AddBuiltin(BuiltinOperator_SUM, Register_SUM(), ParseReducer);
+  TfLiteStatus AddSum(const TFLMRegistration& registration = Register_SUM()) {
+    return AddBuiltin(BuiltinOperator_SUM, registration, ParseReducer);
   }
 
   TfLiteStatus AddSvdf(const TFLMRegistration& registration = Register_SVDF()) {
     return AddBuiltin(BuiltinOperator_SVDF, registration, ParseSvdf);
   }
 
-  TfLiteStatus AddTanh() {
-    return AddBuiltin(BuiltinOperator_TANH, Register_TANH(), ParseTanh);
+  TfLiteStatus AddTanh(const TFLMRegistration& registration = Register_TANH()) {
+    return AddBuiltin(BuiltinOperator_TANH, registration, ParseTanh);
   }
 
   TfLiteStatus AddTransposeConv(
@@ -640,13 +674,14 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseTransposeConv);
   }
 
-  TfLiteStatus AddTranspose() {
-    return AddBuiltin(BuiltinOperator_TRANSPOSE, Register_TRANSPOSE(),
-                      ParseTranspose);
+  TfLiteStatus AddTranspose(
+      const TFLMRegistration& registration = Register_TRANSPOSE()) {
+    return AddBuiltin(BuiltinOperator_TRANSPOSE, registration, ParseTranspose);
   }
 
-  TfLiteStatus AddUnpack() {
-    return AddBuiltin(BuiltinOperator_UNPACK, Register_UNPACK(), ParseUnpack);
+  TfLiteStatus AddUnpack(
+      const TFLMRegistration& registration = Register_UNPACK()) {
+    return AddBuiltin(BuiltinOperator_UNPACK, registration, ParseUnpack);
   }
 
   TfLiteStatus AddUnidirectionalSequenceLSTM(
@@ -656,13 +691,14 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       registration, ParseUnidirectionalSequenceLSTM);
   }
 
-  TfLiteStatus AddVarHandle() {
-    return AddBuiltin(BuiltinOperator_VAR_HANDLE, Register_VAR_HANDLE(),
-                      ParseVarHandle);
+  TfLiteStatus AddVarHandle(
+      const TFLMRegistration& registration = Register_VAR_HANDLE()) {
+    return AddBuiltin(BuiltinOperator_VAR_HANDLE, registration, ParseVarHandle);
   }
 
-  TfLiteStatus AddWhile() {
-    return AddBuiltin(BuiltinOperator_WHILE, Register_WHILE(), ParseWhile);
+  TfLiteStatus AddWhile(
+      const TFLMRegistration& registration = Register_WHILE()) {
+    return AddBuiltin(BuiltinOperator_WHILE, registration, ParseWhile);
   }
 
   TfLiteStatus AddWindow() {
@@ -670,9 +706,9 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddCustom("SignalWindow", tflite::tflm_signal::Register_WINDOW());
   }
 
-  TfLiteStatus AddZerosLike() {
-    return AddBuiltin(BuiltinOperator_ZEROS_LIKE, Register_ZEROS_LIKE(),
-                      ParseZerosLike);
+  TfLiteStatus AddZerosLike(
+      const TFLMRegistration& registration = Register_ZEROS_LIKE()) {
+    return AddBuiltin(BuiltinOperator_ZEROS_LIKE, registration, ParseZerosLike);
   }
 
   unsigned int GetRegistrationLength() { return registrations_len_; }
