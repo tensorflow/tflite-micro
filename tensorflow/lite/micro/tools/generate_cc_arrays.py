@@ -86,6 +86,8 @@ def generate_array(input_fname):
     with open(input_fname, 'r') as input_file:
       # Assume one array per csv file.
       elements = input_file.readline()
+      if elements.strip() == "":
+        return [0, ""]
       return [len(elements.split(',')), elements]
   elif input_fname.endswith('.npy'):
     data = np.float32(np.load(input_fname, allow_pickle=False))
