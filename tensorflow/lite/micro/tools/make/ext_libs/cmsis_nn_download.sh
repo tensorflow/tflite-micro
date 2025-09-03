@@ -52,13 +52,20 @@ elif [ ! -d ${DOWNLOADS_DIR} ]; then
 elif [ -d ${DOWNLOADED_CMSIS_NN_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_NN_PATH} already exists, skipping the download."
 else
+
+  # Create a temporary directory with the unique name for better isolation
+  TEMP_DIR=$(mktemp -d /tmp/$(basename $0 .sh).XXXXXX)
+
+  # Set up cleanup trap for all exit conditions
+  trap 'rm -rf "${TEMP_DIR}"' EXIT INT TERM
+
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
-  wget ${CMSIS_NN_URL} -O /tmp/${ZIP_PREFIX_NN}.zip >&2
-  check_md5 /tmp/${ZIP_PREFIX_NN}.zip ${CMSIS_NN_MD5}
+  wget ${CMSIS_NN_URL} -O ${TEMP_DIR}/${ZIP_PREFIX_NN}.zip >&2
+  check_md5 ${TEMP_DIR}/${ZIP_PREFIX_NN}.zip ${CMSIS_NN_MD5}
 
-  unzip -qo /tmp/${ZIP_PREFIX_NN}.zip -d /tmp >&2
-  mv /tmp/CMSIS-NN-${ZIP_PREFIX_NN} ${DOWNLOADED_CMSIS_NN_PATH}
+  unzip -qo ${TEMP_DIR}/${ZIP_PREFIX_NN}.zip -d ${TEMP_DIR} >&2
+  mv ${TEMP_DIR}/CMSIS-NN-${ZIP_PREFIX_NN} ${DOWNLOADED_CMSIS_NN_PATH}
 fi
 
 echo "SUCCESS"
