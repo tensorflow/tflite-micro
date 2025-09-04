@@ -25,8 +25,7 @@ namespace {
 
 const float kQuantizedTolerance = 2 * (1. / 256);
 
-void ExecutePReluTest(const int tensors_count,
-                      TfLiteTensor* tensors) {
+void ExecutePReluTest(const int tensors_count, TfLiteTensor* tensors) {
   int inputs_array_data[] = {2, 0, 1};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 2};
@@ -92,9 +91,9 @@ void TestPreluQuantized(int* input_dims_data, const float* input_data,
 
   ExecutePReluTest(tensors_size, tensors);
 
-  Dequantize(output_quantized, output_dims_count, output_scale, output_zero_point,
-             output_data);
- 
+  Dequantize(output_quantized, output_dims_count, output_scale,
+             output_zero_point, output_data);
+
   for (int i = 0; i < output_dims_count; i++) {
     TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], kQuantizedTolerance);
   }
@@ -188,9 +187,9 @@ TF_LITE_MICRO_TEST(QuantizedInt16PreluActivationsOpTest) {
   int16_t output_data_q[dims_count];
   float output_data_f[dims_count];
   tflite::testing::TestPreluQuantized<int16_t, int8_t>(
-      input_shape, input_values, input_quantized, scale_input_output, zero_point,
-      alpha_shape, alpha_values, alpha_quantized, scale_alpha, zero_point, golden,
-      golden_quantized, scale_input_output, zero_point, output_shape,
-      output_data_q, output_data_f);
+      input_shape, input_values, input_quantized, scale_input_output,
+      zero_point, alpha_shape, alpha_values, alpha_quantized, scale_alpha,
+      zero_point, golden, golden_quantized, scale_input_output, zero_point,
+      output_shape, output_data_q, output_data_f);
 }
 TF_LITE_MICRO_TESTS_END
