@@ -42,15 +42,17 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
    * [Notes](#notes)
    * [Frequently Asked Questions](#frequently-asked-questions)
       * [Can I use malloc/free or new/delete in my operator code?](#can-i-use-mallocfree-or-newdelete-in-my-operator-code)
-      * [Can I use static variable allocation in my operator code?](#can-i-use-static-variable-allocation-in-my-operator-code)
+      * [Can I use global/static variable constructors in my operator code](#can-i-use-globalstatic-variable-constructors-in-my-operator-code)
       * [How do I allocate persistent memory?](#how-do-i-allocate-persistent-memory)
       * [When am I allowed to allocate persistent memory?](#when-am-i-allowed-to-allocate-persistent-memory)
       * [How do I allocate/use temporary memory?](#how-do-i-allocateuse-temporary-memory)
       * [When can I allocate/use temporary memory?](#when-can-i-allocateuse-temporary-memory)
-      * [Can I resize my input/output tensors?](#can-i-resize-my-inputoutput-tensors)
+      * [Can I resize the tensors of my model?](#can-i-resize-the-tensors-of-my-model)
       * [Can I change the shape of tensors in my operator code?](#can-i-change-the-shape-of-tensors-in-my-operator-code)
       * [When can I change the shape of tensors in my operator code?](#when-can-i-change-the-shape-of-tensors-in-my-operator-code)
       * [Can I modify a TfLiteTensor or TfLiteEvalTensor?](#can-i-modify-a-tflitetensor-or-tfliteevaltensor)
+      * [When can I inspect tensor data?](#when-can-i-inspect-tensor-data)
+      * [How do I fix optimized kernel unit test failures?](#how-do-i-fix-optimized-kernel-unit-test-failures)
 
 <!-- Added by: advaitjain, at: Thu 16 Sep 2021 11:49:51 AM PDT -->
 
@@ -278,11 +280,17 @@ differences are actually significant or just stylistic.
 ## Can I use malloc/free or new/delete in my operator code?
 No.  All memory allocation in TensorFlow Lite Micro (TFLM) is done using C++
 stack based automatic allocation, or through specialized TFLM persistent
-and temporary allocation methods.
+and temporary allocation methods. The only use of `new` in TFLM is through the
+use of [placement new](https://en.cppreference.com/w/cpp/language/new.html#Placement_new).
 
-## Can I use static variable allocation in my operator code?
-No.  This is due to the call ordering of C++ static constructors being
-platform/compiler dependent.
+## Can I use global/static variable constructors in my operator code?
+Global constructors are not allowed. This is due to the call ordering of C++
+global constructors being platform/compiler dependent.  Some platforms do not
+support global constructors at all, and will silently fail.
+
+Static variables that use constructors are safe to declare within methods.  This
+is because the static variable executes its call-once sequence only when the
+encapsulating method is called.
 
 ## How do I allocate persistent memory?
 Use `TfLiteContext::AllocatePersistentBuffer` to allocate persistent memory.
@@ -306,9 +314,9 @@ Use the `TfLiteContext::RequestScratchBufferInArena` and
 `TfLiteContext::GetScratchBuffer` methods.  The temporary memory is shared
 between all operators, and is only valid for your operator within the scope
 of your operator's `Invoke` method.  Do not attempt to use temporary memory
-to share data between operator invocations.  Temporary memory is to be used
-only as pre-allocated storage during the execution scope of your operator's
-`Invoke` method.
+to share data between operator invocations.  Scratch buffer temporary memory is
+to be used only as pre-allocated storage during the execution scope of your
+operator's `Invoke` method.
 
 An example code snippet looks like ([add_n.cc](../kernels/add_n.cc)):
 ```C++
@@ -321,7 +329,7 @@ if (output->type == kTfLiteFloat32) {
                                    context, scratch_size, &scratch_index));
     node->user_data =
         reinterpret_cast<decltype(node->user_data)>(scratch_index);
-  }
+}
 ```
 And to use the buffer:
 ```C++
@@ -330,24 +338,59 @@ int scratch_index =
 void* scratch_buffer = context->GetScratchBuffer(context, scratch_index);
 ```
 
+If temporary memory is needed for a calculation during the operator's `Prepare`
+method, use `MicroContext::AllocateTempBuffer`.  A matching call to
+`MicroContext::DeallocateTempBuffer` must be made prior to returning from your
+operator's `Prepare` method.
+
+An example code snippet ([depthwise_conv_vision.cc](../kernels/xtensa/depthwise_conv_vision.cc)):
+```C++
+TfLiteTensor filter_int8;
+
+if (filter->type == kTfLiteInt4) {
+    const size_t bytes_unpacked = filter->bytes * 2;
+    filter_int8.data.data = micro_context->AllocateTempBuffer(
+        bytes_unpacked, tflite::MicroArenaBufferAlignment());
+    filter_int8.dims = filter->dims;
+    filter_int8.type = kTfLiteInt8;
+    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+        GetTensorData<int8_t>(filter), GetTensorShape(filter).FlatSize(),
+        GetTensorData<int8_t>(&filter_int8));
+}
+
+...
+
+if (filter->type == kTfLiteInt4) {
+    micro_context->DeallocateTempBuffer(GetTensorData<uint8_t>(&filter_int8));
+}
+```
+
 ## When can I allocate/use temporary memory?
 The `TfLiteContext::RequestScratchBufferInArena` method is available only within
 the scope of your operator's `Prepare` method.
 The `TfLiteContext::GetScratchBuffer` method is available only within
 the scope of your operator's `Invoke` method.
 
-## Can I resize my input/output tensors?
-No.  The storage space for each input/output tensor is a fixed, calculated value
-determined at the time the TensorFlow Lite (TfLite) model converter is executed.
-During the `Init` phase of the `tflite::MicroInterpreter` all tensor storage is
-allocated by the `tflite::MicroInterpreter` instance, using the calculated values
-of the model converter.
+The `MicroContext::AllocateTempBuffer` and `MicroContext::DeallocateTempBuffer`
+methods are only available within the scope of your operator's `Prepare` method.
+
+## Can I resize the tensors of my model?
+No.  The storage space for each `input`/`output`/`const` tensor is a fixed,
+calculated value determined at the time the TensorFlow Lite (TfLite) model
+converter is executed.
+All tensor storage is allocated by the `tflite::MicroInterpreter` instance,
+using the tensor shape values of the TfLite model converter.
+
+TFLM does not support dynamic tensors.  A dynamic tensor is one whose storage
+(and shape) can change during inference.
+
 For more information see: [Memory Allocation Overview](online_memory_allocation_overview.md)
 
 ## Can I change the shape of tensors in my operator code?
-Yes.  The new shape must not exceed the storage space indicated by the old shape.
-Because tensor shape values may live in memory that is not directly writable
-(ex. Flash, EEPROM, ROM), a special method must be called before modification
+Yes.  The new shape must be exactly equal to the storage space indicated by the
+old shape.
+Because tensor shape values may live in non-volatile memory that is not directly 
+writable (ex. Flash, ROM), a special method must be called before modification
 is attempted.  The `tflite::micro::CreateWritableTensorDimsWithCopy` method will
 move the tensor shape values to guaranteed persistent writable memory.
 
@@ -378,8 +421,46 @@ structures.  Your code should not modify these data structures.  The only
 directly allowed modification of tensors is to change their data values, or
 their shape values.
 
+## When can I inspect tensor data?
+Tensor data can always be inspected within the scope of your operator's `Invoke`
+method.
+
+Within the scope of your operator's `Prepare` method, use
+`tflite::IsConstantTensor` before inspecting the tensor data.
+Only when `tflite::IsConstantTensor` returns `true`, does the tensor have valid
+data.
+
 ## How do I fix optimized kernel unit test failures?
-Kernel unit tests for all optimizated kernels should pass. By default kernel unit 
-tests for the newly added op may fail for optimized kernels as they may not have the
-correct references. In this case, we should let the optimized kernels fall back
-to the newly added reference kernels. For example, refer to this [this commit](https://github.com/tensorflow/tflite-micro/pull/1274/commits/d36c9dd598dcbf352f2c60463fd0d4153703a1cd).
+Kernel unit tests for all optimized kernels should pass.
+It should be noted that optimized kernels may not handle all tensor types or
+operator parameters.
+In this case, the optimized kernel should fallback on calling the reference
+kernel methods. The following code snippet example can be found [here](https://github.com/tensorflow/tflite-micro/blob/a1eb0480ed9f98e9ea5f5fb9b8e3da98ec512caf/tensorflow/lite/micro/kernels/cmsis_nn/softmax.cc#L98C1-L123C6):
+```
+    case kTfLiteFloat32: {
+      tflite::reference_ops::Softmax(
+          op_data.softmax_params, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<float>(input),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<float>(output));
+      return kTfLiteOk;
+    }
+    case kTfLiteInt8: {
+      if (output->type == kTfLiteInt8) {
+        arm_softmax_s8(tflite::micro::GetTensorData<int8_t>(input),
+                       op_data.num_rows, op_data.row_size,
+                       op_data.softmax_params.input_multiplier,
+                       op_data.softmax_params.input_left_shift,
+                       op_data.softmax_params.diff_min,
+                       tflite::micro::GetTensorData<int8_t>(output));
+      } else {
+        arm_softmax_s8_s16(tflite::micro::GetTensorData<int8_t>(input),
+                           op_data.num_rows, op_data.row_size,
+                           op_data.softmax_params.input_multiplier,
+                           op_data.softmax_params.input_left_shift,
+                           op_data.softmax_params.diff_min,
+                           tflite::micro::GetTensorData<int16_t>(output));
+      }
+      return kTfLiteOk;
+    }
+```

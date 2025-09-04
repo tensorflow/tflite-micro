@@ -24,5 +24,8 @@ from tflite_micro.python.tflite_micro import runtime
 # Unambiguously identify the source used to build the package.
 from tflite_micro.python.tflite_micro._version import __version__
 
-# Ordered after `runtime` to avoid a circular dependency
+# Provide a convenient alias for the compression module
+from tflite_micro.tensorflow.lite.micro import compression
+
+# Ordered after `runtime` and `compression` to avoid circular dependencies
 from tflite_micro.python.tflite_micro import postinstall_check

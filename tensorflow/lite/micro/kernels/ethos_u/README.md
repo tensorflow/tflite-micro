@@ -4,7 +4,7 @@
 Arm(R) Ethos(TM)-U is a new class of machine learning processors, called a
 microNPU, specifically designed to accelerate ML inference in area-constrained
 embedded and IoT devices. This readme briefly describes how to integrate Ethos-U
-related hardware and software into TFLM. See also [Ethos-U ML Evaluation kit examples](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ml-embedded-evaluation-kit).
+related hardware and software into TFLM. See also [Ethos-U ML Evaluation kit examples](https://gitlab.arm.com/artificial-intelligence/ethos-u/ml-embedded-evaluation-kit).
 
 To enable the Ethos-U software stack, add `CO_PROCESSOR=ethos_u` to the make
 command. Use ETHOSU_ARCH to specify the architecture. See examples below.
@@ -18,7 +18,7 @@ The TFLM runtime will dispatch workloads to Ethos-U when it encounters an
 Ethos-U custom op in the tflite file. See an ASCII art example below.
 The Ethos-U custom op is added by a tool called Ethos-U Vela and contains
 information the Ethos-U hardware need to execute the workload. More info in the
-[Vela repository](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-vela).
+[Vela repository](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela).
 
 ```
      | tensor0
@@ -44,9 +44,9 @@ information the Ethos-U hardware need to execute the workload. More info in the
 ```
 
 Note that the `ethousu_init()` API of the Ethos-U driver need to be called at
-startup, before calling the TFLM API. More info in the [Ethos-U driver repo](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u-core-driver).
+startup, before calling the TFLM API. More info in the [Ethos-U driver repo](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver).
 
-For even more info regarding Vela and Ethos-U, checkout [Ethos-U landing page](https://review.mlplatform.org/plugins/gitiles/ml/ethos-u/ethos-u/+/refs/heads/master).
+For even more info regarding Vela and Ethos-U, checkout [Ethos-U landing page](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u/-/tree/main).
 
 # Some examples of compiling a binary and running a network with Ethos-U support.
 In order to run a test with Ethos-U55 enabled, a platform with corresponding

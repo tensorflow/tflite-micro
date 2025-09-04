@@ -1,4 +1,4 @@
-/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ tflite::micro::KernelRunner CreateBroadcastToTestRunner(
 
   tensors[0] = CreateTensor(input_data, IntArrayFromInts(input_shape));
   tensors[1] = CreateTensor(dims_data, IntArrayFromInts(dims_shape));
+  // shape must be a const tensor
+  tensors[1].allocation_type = kTfLiteMmapRo;
   tensors[2] = CreateTensor(output_data, IntArrayFromInts(output_shape));
 
   // The output type matches the value type.
