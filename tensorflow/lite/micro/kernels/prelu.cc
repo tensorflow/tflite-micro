@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -61,9 +61,19 @@ TfLiteStatus PreluEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int8_t>(output));
       return kTfLiteOk;
     } break;
+    case kTfLiteInt16: {
+      reference_ops::BroadcastPrelu4DSlow(
+          params, tflite::micro::GetTensorShape(input),
+          tflite::micro::GetTensorData<int16_t>(input),
+          tflite::micro::GetTensorShape(alpha),
+          tflite::micro::GetTensorData<int8_t>(alpha),
+          tflite::micro::GetTensorShape(output),
+          tflite::micro::GetTensorData<int16_t>(output));
+      return kTfLiteOk;
+    } break;
     default:
-      MicroPrintf("Only float32 and uint8_t are supported currently, got %d.",
-                  TfLiteTypeGetName(input->type));
+      MicroPrintf("Input type '%s' (%d) is not supported.",
+                  TfLiteTypeGetName(input->type), input->type);
       return kTfLiteError;
   }
 }
