@@ -147,7 +147,6 @@ TF_LITE_MICRO_TEST(QuantizedInt8PreluActivationsOpTest) {
   const int dims_count = 12;
   int8_t input_quantized[dims_count];
   int8_t alpha_quantized[3];
-  int8_t golden_quantized[dims_count];
   float scale = 2.0 / 255.0;
   int zero_point = 0;
   int8_t output_data_q[dims_count];
@@ -155,8 +154,7 @@ TF_LITE_MICRO_TEST(QuantizedInt8PreluActivationsOpTest) {
   tflite::testing::TestPreluQuantized<int8_t, int8_t>(
       input_shape, input_values, input_quantized, scale, zero_point,
       alpha_shape, alpha_values, alpha_quantized, scale, zero_point, golden,
-      golden_quantized, scale, zero_point, output_shape, output_data_q,
-      output_data_f);
+      scale, zero_point, output_shape, output_data_q, output_data_f);
 }
 
 TF_LITE_MICRO_TEST(QuantizedInt16PreluActivationsOpTest) {
