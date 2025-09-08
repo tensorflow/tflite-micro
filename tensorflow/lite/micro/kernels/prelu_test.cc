@@ -1,4 +1,4 @@
-/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -69,10 +69,9 @@ void TestPreluQuantized(int* input_dims_data, const float* input_data,
                         const int input_zero_point, int* alpha_dims_data,
                         const float* alpha_data, Slope* alpha_quantized,
                         const float alpha_scale, const int alpha_zero_point,
-                        const float* golden, T* golden_quantized,
-                        const float output_scale, const int output_zero_point,
-                        int* output_dims_data, T* output_quantized,
-                        float* output_data) {
+                        const float* golden, const float output_scale,
+                        const int output_zero_point, int* output_dims_data,
+                        T* output_quantized, float* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* alpha_dims = IntArrayFromInts(alpha_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -180,7 +179,6 @@ TF_LITE_MICRO_TEST(QuantizedInt16PreluActivationsOpTest) {
   const int dims_count = 12;
   int16_t input_quantized[dims_count];
   int8_t alpha_quantized[3];
-  int16_t golden_quantized[dims_count];
   float scale_input_output = 2.0 / 65535.0;
   float scale_alpha = 2.0 / 255.0;
   int zero_point = 0;
@@ -189,7 +187,7 @@ TF_LITE_MICRO_TEST(QuantizedInt16PreluActivationsOpTest) {
   tflite::testing::TestPreluQuantized<int16_t, int8_t>(
       input_shape, input_values, input_quantized, scale_input_output,
       zero_point, alpha_shape, alpha_values, alpha_quantized, scale_alpha,
-      zero_point, golden, golden_quantized, scale_input_output, zero_point,
-      output_shape, output_data_q, output_data_f);
+      zero_point, golden, scale_input_output, zero_point, output_shape,
+      output_data_q, output_data_f);
 }
 TF_LITE_MICRO_TESTS_END

@@ -1,4 +1,4 @@
-/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -72,8 +72,8 @@ TfLiteStatus PreluEval(TfLiteContext* context, TfLiteNode* node) {
       return kTfLiteOk;
     } break;
     default:
-      MicroPrintf("Input type '%s' (%d) is not supported.",
-                  TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Input type '%s' is not supported.",
+                  TfLiteTypeGetName(input->type));
       return kTfLiteError;
   }
 }
