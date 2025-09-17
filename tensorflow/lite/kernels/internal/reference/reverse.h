@@ -20,7 +20,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "ruy/profiler/instrumentation.h"  // from @ruy
-#include "tensorflow/lite/kernels/internal/runtime_shape.h"
+#include "tflite/kernels/internal/runtime_shape.h"
 
 namespace tflite {
 namespace reference_ops {

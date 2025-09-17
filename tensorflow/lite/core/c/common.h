@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // WARNING: Users of TensorFlow Lite should not include this file directly, but
-// should instead include "third_party/tensorflow/lite/c/common.h".
+// should instead include "tflite/c/common.h".
 // Only the TensorFlow Lite implementation itself should include this file
 // directly.
 
@@ -41,13 +41,13 @@ limitations under the License.
 // NOLINTBEGIN(whitespace/line_length)
 /// \note Users of TensorFlow Lite should use
 /// \code
-/// #include "tensorflow/lite/c/common.h"
+/// #include "tflite/c/common.h"
 /// \endcode
 /// to access the APIs documented on this page.
 // NOLINTEND(whitespace/line_length)
 // clang-format on
 
-// IWYU pragma: private, include "third_party/tensorflow/lite/c/common.h"
+// IWYU pragma: private, include "tflite/c/common.h"
 
 #ifndef TENSORFLOW_LITE_CORE_C_COMMON_H_
 #define TENSORFLOW_LITE_CORE_C_COMMON_H_
@@ -57,7 +57,7 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
-#include "tensorflow/lite/core/c/c_api_types.h"  // IWYU pragma: export
+#include "tflite/core/c/c_api_types.h"  // IWYU pragma: export
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,7 +104,7 @@ typedef struct TfLiteExternalContext {
 
 // LINT.IfChange(optional_tensor)
 #define kTfLiteOptionalTensor (-1)
-// LINT.ThenChange(//tensorflow/compiler/mlir/lite/flatbuffer_export.cc:optional_tensor)
+// LINT.ThenChange(//tflite/converter/flatbuffer_export.cc:optional_tensor)
 
 /// Fixed size list of integers. Used for dimensions and inputs/outputs tensor
 /// indices

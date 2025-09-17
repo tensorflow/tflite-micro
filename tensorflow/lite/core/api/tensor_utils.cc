@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/core/api/tensor_utils.h"
+#include "tflite/core/api/tensor_utils.h"
 
 #include <string.h>
 
-#include "tensorflow/lite/core/c/common.h"
+#include "tflite/core/c/common.h"
 
 namespace tflite {
 

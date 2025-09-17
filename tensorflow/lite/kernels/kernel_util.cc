@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tflite/kernels/kernel_util.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,14 +25,14 @@ limitations under the License.
 #ifndef TF_LITE_STATIC_MEMORY
 #include <string>
 
-#include "tensorflow/lite/array.h"
+#include "tflite/array.h"
 #endif  // TF_LITE_STATIC_MEMORY
 
-#include "tensorflow/lite/context_util.h"
-#include "tensorflow/lite/core/c/builtin_op_data.h"
-#include "tensorflow/lite/core/c/common.h"
-#include "tensorflow/lite/kernels/internal/cppmath.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tflite/context_util.h"
+#include "tflite/core/c/builtin_op_data.h"
+#include "tflite/core/c/common.h"
+#include "tflite/kernels/internal/cppmath.h"
+#include "tflite/kernels/internal/quantization_util.h"
 
 #if defined(__APPLE__)
 #include "TargetConditionals.h"

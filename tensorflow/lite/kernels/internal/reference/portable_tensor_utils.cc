@@ -20,10 +20,10 @@ limitations under the License.
 #include <utility>
 
 #include "fixedpoint/fixedpoint.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/cppmath.h"
-#include "tensorflow/lite/kernels/internal/reference/portable_tensor_utils_impl.h"
+#include "tflite/kernels/internal/common.h"
+#include "tflite/kernels/internal/compatibility.h"
+#include "tflite/kernels/internal/cppmath.h"
+#include "tflite/kernels/internal/reference/portable_tensor_utils_impl.h"
 
 #if defined(_MSC_VER)
 #define __restrict__ __restrict
@@ -69,7 +69,7 @@ void PortableSymmetricQuantizeFloats(const float* values, const int size,
         std::min(kScale, std::max(-kScale, quantized_value)));
   }
 }
-// LINT.ThenChange(//tensorflow/compiler/mlir/lite/quantization/lite/toco_legacy/portable_tensor_utils.cc:portable_symmetric_quantize_floats)
+// LINT.ThenChange(//tflite/converter/quantization/lite/toco_legacy/portable_tensor_utils.cc:portable_symmetric_quantize_floats)
 
 void PortableAsymmetricQuantizeFloats(const float* values, const int size,
                                       int8_t* quantized_values,

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // WARNING: Users of TensorFlow Lite should not include this file directly, but
-// should instead include "third_party/tensorflow/lite/c/c_api_types.h".
+// should instead include "tflite/c/c_api_types.h".
 // Only the TensorFlow Lite implementation itself should include this file
 // directly.
 
@@ -25,13 +25,13 @@ limitations under the License.
 // NOLINTBEGIN(whitespace/line_length)
 /// \note Users of TensorFlow Lite should use
 /// \code
-/// #include "tensorflow/lite/c/c_api_types.h"
+/// #include "tflite/c/c_api_types.h"
 /// \endcode
 /// to access the APIs documented on this page.
 // NOLINTEND(whitespace/line_length)
 // clang-format on
 
-// IWYU pragma: private, include "third_party/tensorflow/lite/c/c_api_types.h"
+// IWYU pragma: private, include "tflite/c/c_api_types.h"
 
 #ifndef TENSORFLOW_LITE_CORE_C_C_API_TYPES_H_
 #define TENSORFLOW_LITE_CORE_C_C_API_TYPES_H_
@@ -40,7 +40,7 @@ limitations under the License.
 extern "C" {
 #endif
 
-#include "tensorflow/compiler/mlir/lite/core/c/tflite_types.h"  // IWYU pragma: export
+#include "tflite/converter/core/c/tflite_types.h"  // IWYU pragma: export
 
 // clang-format off
 // NOLINTBEGIN(whitespace/line_length)

@@ -15,8 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_SLICE_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_SLICE_H_
 
-#include "tensorflow/lite/kernels/internal/portable_tensor.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tflite/kernels/internal/portable_tensor.h"
+#include "tflite/kernels/internal/types.h"
 
 namespace tflite {
 

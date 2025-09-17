@@ -18,7 +18,7 @@ limitations under the License.
 #include <algorithm>
 #include <complex>
 
-#include "tensorflow/lite/kernels/internal/common.h"
+#include "tflite/kernels/internal/common.h"
 
 namespace tflite {
 

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tflite/kernels/internal/tensor_ctypes.h"
 
 #include <vector>
 

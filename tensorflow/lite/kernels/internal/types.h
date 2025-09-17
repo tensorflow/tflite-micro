@@ -21,8 +21,8 @@ limitations under the License.
 #include <initializer_list>
 #include <type_traits>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/runtime_shape.h"
+#include "tflite/kernels/internal/compatibility.h"
+#include "tflite/kernels/internal/runtime_shape.h"
 
 namespace tflite {
 

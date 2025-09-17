@@ -24,7 +24,7 @@ limitations under the License.
 // NOLINTBEGIN(whitespace/line_length)
 /// \note Users of TensorFlow Lite should use
 /// \code
-/// #include "tensorflow/lite/c/c_api_types.h"
+/// #include "tflite/c/c_api_types.h"
 /// \endcode
 /// to access the APIs documented on this page.
 // NOLINTEND(whitespace/line_length)
@@ -65,7 +65,7 @@ typedef enum {
   kTfLiteInt4 = 18,
   kTfLiteBFloat16 = 19,
 } TfLiteType;
-// LINT.ThenChange(//tensorflow/lite/profiling/proto/model_runtime_info.proto:EdgeDataType)
+// LINT.ThenChange(//tflite/profiling/proto/model_runtime_info.proto:EdgeDataType)
 
 /// Legacy. Will be deprecated in favor of `TfLiteAffineQuantization`.
 /// If per-layer quantization is specified this field will still be populated in

@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/comparisons.h"
+#include "tflite/kernels/internal/reference/comparisons.h"
 
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/runtime_shape.h"
+#include "tflite/kernels/internal/common.h"
+#include "tflite/kernels/internal/compatibility.h"
+#include "tflite/kernels/internal/runtime_shape.h"
 
 namespace tflite {
 namespace reference_ops {

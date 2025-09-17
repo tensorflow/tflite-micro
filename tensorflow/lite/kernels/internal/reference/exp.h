@@ -18,7 +18,7 @@ limitations under the License.
 #include <cmath>
 
 #include "ruy/profiler/instrumentation.h"  // from @ruy
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tflite/kernels/internal/types.h"
 
 namespace tflite {
 namespace reference_ops {

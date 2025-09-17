@@ -17,7 +17,7 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tflite/kernels/op_macros.h"
 
 #ifndef TFLITE_DCHECK
 #define TFLITE_DCHECK(condition) (condition) ? (void)0 : TFLITE_ASSERT_FALSE
