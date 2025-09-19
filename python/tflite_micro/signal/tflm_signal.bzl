@@ -1,5 +1,7 @@
 """Build rule for wrapping a custom TF OP from .cc to python."""
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
 
 # TODO(b/286890280): refactor to be more generic build target for any custom OP
@@ -37,7 +39,7 @@ def py_tflm_signal_library(
     if cc_op_defs:
         binary_name = "ops/_" + name + ".so"
         library_name = name + "_cc"
-        native.cc_library(
+        cc_library(
             name = library_name,
             copts = select({
                 "//conditions:default": ["-pthread"],
@@ -49,8 +51,7 @@ def py_tflm_signal_library(
                 ["@tensorflow_cc_deps//:cc_library"] +
                 select({"//conditions:default": []}),
         )
-
-        native.cc_binary(
+        cc_binary(
             name = binary_name,
             copts = select({
                 "//conditions:default": ["-pthread"],
@@ -80,7 +81,7 @@ def tflm_signal_kernel_library(
         deps = [],
         copts = [],
         alwayslink = 1):
-    native.cc_library(
+    cc_library(
         name = name,
         srcs = srcs,
         hdrs = hdrs,
