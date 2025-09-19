@@ -27,6 +27,26 @@ def tf_repositories(path_prefix = "", tf_repo_name = ""):
         ],
     )
 
+    # https://github.com/bazelbuild/rules_cc
+    tf_http_archive(
+        name = "rules_cc",
+        sha256 = "b8b918a85f9144c01f6cfe0f45e4f2838c7413961a8ff23bc0c6cdf8bb07a3b6",
+        strip_prefix = "rules_cc-0.1.5",
+        urls = [
+            "https://github.com/bazelbuild/rules_cc/releases/download/0.1.5/rules_cc-0.1.5.tar.gz",
+        ],
+    )
+
+    # https://github.com/bazelbuild/rules_shell
+    tf_http_archive(
+        name = "rules_shell",
+        sha256 = "e6b87c89bd0b27039e3af2c5da01147452f240f75d505f5b6880874f31036307",
+        strip_prefix = "rules_shell-0.6.1",
+        urls = [
+            "https://github.com/bazelbuild/rules_shell/releases/download/v0.6.1/rules_shell-v0.6.1.tar.gz",
+        ],
+    )
+
     tf_http_archive(
         name = "gemmlowp",
         sha256 = "43146e6f56cb5218a8caaab6b5d1601a083f1f31c06ff474a4378a7d35be9cfb",  # SHARED_GEMMLOWP_SHA
