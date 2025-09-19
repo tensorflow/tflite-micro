@@ -1,7 +1,7 @@
+load("//third_party:repo.bzl", "tf_http_archive")
 load("//third_party/flatbuffers:workspace.bzl", flatbuffers = "repo")
 load("//third_party/kissfft:workspace.bzl", kissfft = "repo")
 load("//third_party/ruy:workspace.bzl", ruy = "repo")
-load("//third_party:repo.bzl", "tf_http_archive")
 
 def initialize_third_party():
     """ Load third party repositories.  See above load() statements. """
@@ -24,6 +24,26 @@ def tf_repositories(path_prefix = "", tf_repo_name = ""):
         urls = [
             "https://storage.googleapis.com/mirror.tensorflow.org/github.com/bazelbuild/bazel-skylib/releases/download/0.9.0/bazel_skylib-0.9.0.tar.gz",
             "https://github.com/bazelbuild/bazel-skylib/releases/download/0.9.0/bazel_skylib-0.9.0.tar.gz",
+        ],
+    )
+
+    # https://github.com/bazelbuild/rules_cc
+    tf_http_archive(
+        name = "rules_cc",
+        sha256 = "b8b918a85f9144c01f6cfe0f45e4f2838c7413961a8ff23bc0c6cdf8bb07a3b6",
+        strip_prefix = "rules_cc-0.1.5",
+        urls = [
+            "https://github.com/bazelbuild/rules_cc/releases/download/0.1.5/rules_cc-0.1.5.tar.gz",
+        ],
+    )
+
+    # https://github.com/bazelbuild/rules_shell
+    tf_http_archive(
+        name = "rules_shell",
+        sha256 = "e6b87c89bd0b27039e3af2c5da01147452f240f75d505f5b6880874f31036307",
+        strip_prefix = "rules_shell-0.6.1",
+        urls = [
+            "https://github.com/bazelbuild/rules_shell/releases/download/v0.6.1/rules_shell-v0.6.1.tar.gz",
         ],
     )
 

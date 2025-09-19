@@ -1,3 +1,5 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
 package(
     # Disabling layering_check because of http://b/177257332
     features = ["-layering_check"],

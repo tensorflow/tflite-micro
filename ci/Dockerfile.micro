@@ -28,7 +28,7 @@ COPY ci/install_qemu.sh ./
 RUN ./install_qemu.sh /tmp/qemu_install
 
 # This stage is the final CI container.
-FROM python:3.10-bullseye as tflm-ci
+FROM python:3.10-bullseye AS tflm-ci
 
 RUN apt-get update
 

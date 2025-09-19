@@ -1,18 +1,19 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("//python:py_namespace.bzl", "py_namespace")
-load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-)
+load("//python:py_namespace.bzl", "py_namespace")
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_python_op_resolver_friends",
 )
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+)
+load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 
 package(
     features = ["-layering_check"],

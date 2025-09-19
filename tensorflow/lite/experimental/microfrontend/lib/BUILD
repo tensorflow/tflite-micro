@@ -1,3 +1,6 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
 # Library for generating feature vectors from audio data
 package(
     default_visibility = ["//visibility:public"],
