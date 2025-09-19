@@ -60,4 +60,4 @@ jobs:
          author: TFLM-bot <tflm-github-bot@google.com>
          body: "BUG=automated binary size log update"
          labels: ci:run
-         reviewers: advaitjain
+         reviewers: veblush
