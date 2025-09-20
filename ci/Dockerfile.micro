@@ -37,12 +37,12 @@ RUN apt-get install -y zip xxd sudo
 RUN apt install -y lsb-release wget software-properties-common gnupg
 RUN wget https://apt.llvm.org/llvm.sh
 RUN chmod +x llvm.sh
-RUN ./llvm.sh 16
-RUN ln -s /usr/bin/clang-16 /usr/bin/clang
-RUN ln -s /usr/bin/clang++-16 /usr/bin/clang++
+RUN ./llvm.sh 21
+RUN ln -s /usr/bin/clang-21 /usr/bin/clang
+RUN ln -s /usr/bin/clang++-21 /usr/bin/clang++
 
-RUN apt-get install clang-format-16
-RUN ln -s /usr/bin/clang-format-16 /usr/bin/clang-format
+RUN apt-get install clang-format-21
+RUN ln -s /usr/bin/clang-format-21 /usr/bin/clang-format
 
 # Needed when using the Dockerfile locally.
 RUN git config --global --add safe.directory /opt/tflm

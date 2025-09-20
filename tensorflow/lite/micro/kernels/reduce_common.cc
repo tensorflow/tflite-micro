@@ -120,7 +120,7 @@ enum MinMaxEvalType { kEvalMin, kEvalMax };
 template <typename T>
 struct MinMaxReducerCompare {
   MinMaxReducerCompare() = delete;
-  MinMaxReducerCompare(MinMaxEvalType evalType) : type_(evalType){};
+  MinMaxReducerCompare(MinMaxEvalType evalType) : type_(evalType) {};
 
   constexpr T initialValue() const {
     return (type_ == kEvalMin) ? std::numeric_limits<T>::max()
