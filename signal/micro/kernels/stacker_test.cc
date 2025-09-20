@@ -32,15 +32,15 @@ class StackerKernelRunner {
   StackerKernelRunner(int* input_dims_data, const int16_t* input_data,
                       int* output_dims_data, int16_t* output_data,
                       int* output_ready_dims_data, bool* ouput_ready_data)
-      : tensors_{
-            testing::CreateTensor(
-                input_data, tflite::testing::IntArrayFromInts(input_dims_data)),
-            testing::CreateTensor(
-                output_data,
-                tflite::testing::IntArrayFromInts(output_dims_data)),
-            testing::CreateTensor(
-                ouput_ready_data,
-                testing::IntArrayFromInts(output_ready_dims_data))},
+      : tensors_{testing::CreateTensor(
+                     input_data,
+                     tflite::testing::IntArrayFromInts(input_dims_data)),
+                 testing::CreateTensor(
+                     output_data,
+                     tflite::testing::IntArrayFromInts(output_dims_data)),
+                 testing::CreateTensor(
+                     ouput_ready_data,
+                     testing::IntArrayFromInts(output_ready_dims_data))},
         inputs_array_{testing::IntArrayFromInts(inputs_array_data_)},
         outputs_array_{testing::IntArrayFromInts(outputs_array_data_)},
         kernel_runner_{*registration_, tensors_,       kTensorsSize,
