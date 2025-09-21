@@ -47,7 +47,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     INonPersistentBufferAllocator* non_persistent_buffer_allocator,
     bool allocate_temp, const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
-    TfLiteTensor* result);
+    TfLiteTensor* result, const uint8_t* flatbuffer_start);
 
 // Holds placeholder information for a scratch buffer request from a kernel.
 // This struct is only used during the model prepare stage. Each request from a
