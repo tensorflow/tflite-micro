@@ -948,14 +948,14 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
   TF_LITE_MICRO_EXPECT(allocator != nullptr);
 
   TfLiteTensor* tensor1 = allocator->AllocatePersistentTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/6,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
   TF_LITE_MICRO_EXPECT(tensor1->quantization.params != nullptr);
   TF_LITE_MICRO_EXPECT_FALSE(tensor1->is_variable);
 
   TfLiteTensor* tensor2 = allocator->AllocatePersistentTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/4,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
   TF_LITE_MICRO_EXPECT(tensor2->quantization.params != nullptr);
