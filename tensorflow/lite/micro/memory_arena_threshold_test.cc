@@ -82,8 +82,8 @@ constexpr int kKeywordModelOpRuntimeDataSize = 148;
 constexpr int kTestConvModelArenaSize = 12 * 1024;
 uint8_t test_conv_tensor_arena[kTestConvModelArenaSize];
 
-constexpr int kTestConvModelTensorCount = 15;
-constexpr int kTestConvModelNodeAndRegistrationCount = 7;
+constexpr int kTestConvModelTensorCount = 13;
+constexpr int kTestConvModelNodeAndRegistrationCount = 5;
 
 #if defined(USE_TFLM_COMPRESSION)
 constexpr int kKeywordModelPersistentBufferDataSize = 920;
@@ -101,9 +101,9 @@ constexpr int kTestConvModelOnlyTotalSize = 9576;
 // Tail size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTailSize = 1832;
+constexpr int kTestConvModelOnlyTailSize = 1672;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
-constexpr int kTestConvModelPersistentBufferDataSize = 748;
+constexpr int kTestConvModelPersistentBufferDataSize = 700;
 #else
 // Total size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
@@ -112,13 +112,13 @@ constexpr int kTestConvModelOnlyTotalSize = 9832;
 // Tail size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
-constexpr int kTestConvModelOnlyTailSize = 2088;
+constexpr int kTestConvModelOnlyTailSize = 1928;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
-constexpr int kTestConvModelPersistentBufferDataSize = 740;
+constexpr int kTestConvModelPersistentBufferDataSize = 692;
 #endif
 constexpr int kTestConvModelHeadSize = 7744;
 constexpr int kTestConvModelOpRuntimeDataSize = 136;
-constexpr int kTestConvModelPersistentTfLiteTensorQuantizationData = 0;
+constexpr int kTestConvModelPersistentTfLiteTensorQuantizationData = 64;
 
 struct ModelAllocationThresholds {
   size_t tensor_count = 0;
@@ -262,13 +262,11 @@ TF_LITE_MICRO_TEST(TestKeywordModelMemoryThreshold) {
 }
 
 TF_LITE_MICRO_TEST(TestConvModelMemoryThreshold) {
-  tflite::MicroMutableOpResolver<6> op_resolver;
+  tflite::MicroMutableOpResolver<4> op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(op_resolver.AddConv2D(), kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(op_resolver.AddQuantize(), kTfLiteOk);
   TF_LITE_MICRO_EXPECT_EQ(op_resolver.AddMaxPool2D(), kTfLiteOk);
   TF_LITE_MICRO_EXPECT_EQ(op_resolver.AddReshape(), kTfLiteOk);
   TF_LITE_MICRO_EXPECT_EQ(op_resolver.AddFullyConnected(), kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(op_resolver.AddDequantize(), kTfLiteOk);
 
   tflite::RecordingMicroInterpreter interpreter(
       tflite::GetModel(kTestConvModelData), op_resolver, test_conv_tensor_arena,
