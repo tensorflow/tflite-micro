@@ -815,7 +815,7 @@ table StablehloRngBitGeneratorOptions {
 
 // LINT.IfChange
 enum Padding : byte { SAME, VALID }
-// LINT.ThenChange(//tflite/converter/ir/tfl_op_enums.td)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
 
 // LINT.IfChange
 enum ActivationFunctionType : byte {
@@ -826,7 +826,7 @@ enum ActivationFunctionType : byte {
   TANH = 4,
   SIGN_BIT = 5,
 }
-// LINT.ThenChange(//tflite/converter/ir/tfl_op_enums.td)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
 
 table Conv2DOptions {
   padding:Padding;
@@ -926,7 +926,7 @@ enum FullyConnectedOptionsWeightsFormat: byte {
   DEFAULT = 0,
   SHUFFLED4x16INT8 = 1,
 }
-// LINT.ThenChange(//tflite/converter/ir/tfl_op_enums.td)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
 
 // An implementation of TensorFlow fully_connected (a.k.a Dense) layer.
 table FullyConnectedOptions {
@@ -990,7 +990,7 @@ enum LSTMKernelType : byte {
   // Basic LSTM kernels. Equivalent to TensorFlow BasicLSTMCell.
   BASIC = 1,
 }
-// LINT.ThenChange(//tflite/converter/ir/tfl_op_enums.td)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
 
 // An implementation of TensorFlow LSTMCell and CoupledInputForgetGateLSTMCell
 table LSTMOptions {
@@ -1311,7 +1311,7 @@ enum MirrorPadMode : byte {
   // Includes borders.
   SYMMETRIC = 1,
 }
-// LINT.ThenChange(//tflite/converter/ir/tfl_op_enums.td)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/ir/tfl_op_enums.td)
 
 table MirrorPadOptions {
   mode:MirrorPadMode;

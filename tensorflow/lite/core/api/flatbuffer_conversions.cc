@@ -3000,4 +3000,4 @@ TfLiteStatus ParseOpData(const Operator* op, BuiltinOperator op_type,
 }
 
 }  // namespace tflite
-// LINT.ThenChange(//tflite/converter/core/api/flatbuffer_conversions.cc)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/core/api/flatbuffer_conversions.cc)

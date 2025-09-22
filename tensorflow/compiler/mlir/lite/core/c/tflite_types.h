@@ -65,7 +65,7 @@ typedef enum {
   kTfLiteInt4 = 18,
   kTfLiteBFloat16 = 19,
 } TfLiteType;
-// LINT.ThenChange(//tflite/profiling/proto/model_runtime_info.proto:EdgeDataType)
+// LINT.ThenChange(//tensorflow/lite/profiling/proto/model_runtime_info.proto:EdgeDataType)
 
 /// Legacy. Will be deprecated in favor of `TfLiteAffineQuantization`.
 /// If per-layer quantization is specified this field will still be populated in

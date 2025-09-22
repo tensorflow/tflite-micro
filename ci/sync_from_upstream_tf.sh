@@ -38,21 +38,22 @@ SHARED_CONVERTER_CODE=$(grep tflite/converter ci/tflite_files.txt)
 # no stale files are left in the tree.
 rm -f $(find tensorflow/lite/ -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c" -o -name "*.h" -o -name "*.py" -o -name "*.fbs")
 
+# Copy all the right files from the TFLite repo to all the right places in this repo.
 for filepath in ${SHARED_TFL_CODE}
 do
   local_filepath=${filepath//tflite\//tensorflow\/lite\/}
   mkdir -p $(dirname ${local_filepath})
   /bin/cp /tmp/litert/${filepath} ${local_filepath}
-  sed -i 's/#include "tflite\//#include "tensorflow\/lite\//' ${local_filepath}
-  sed -i 's/#include "tensorflow\/lite\/converter\//#include "tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
+  sed -i 's/tflite\/converter\//tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
+  sed -i 's/tflite\//tensorflow\/lite\//' ${local_filepath}
 done
 for filepath in ${SHARED_CONVERTER_CODE}
 do
   local_filepath=${filepath//tflite\/converter\//tensorflow\/compiler\/mlir\/lite\/}
   mkdir -p $(dirname ${local_filepath})
   /bin/cp /tmp/litert/${filepath} ${local_filepath}
-  sed -i 's/#include "tflite\//#include "tensorflow\/lite\//' ${local_filepath}
-  sed -i 's/#include "tensorflow\/lite\/converter\//#include "tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
+  sed -i 's/tflite\/converter\//tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
+  sed -i 's/tflite\//tensorflow\/lite\//' ${local_filepath}
 done
 
 # https://github.com/tensorflow/tflite-micro/pull/8
