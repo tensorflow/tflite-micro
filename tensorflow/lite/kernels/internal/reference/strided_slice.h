@@ -16,11 +16,11 @@ limitations under the License.
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_STRIDED_SLICE_H_
 
 #include "ruy/profiler/instrumentation.h"  // from @ruy
-#include "tflite/kernels/internal/common.h"
-#include "tflite/kernels/internal/compatibility.h"
-#include "tflite/kernels/internal/portable_tensor.h"
-#include "tflite/kernels/internal/strided_slice_logic.h"
-#include "tflite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor.h"
+#include "tensorflow/lite/kernels/internal/strided_slice_logic.h"
+#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 

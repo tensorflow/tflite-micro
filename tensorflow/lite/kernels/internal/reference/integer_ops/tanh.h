@@ -19,7 +19,7 @@ limitations under the License.
 #include <limits>
 
 #include "fixedpoint/fixedpoint.h"
-#include "tflite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/common.h"
 
 namespace tflite {
 namespace reference_integer_ops {

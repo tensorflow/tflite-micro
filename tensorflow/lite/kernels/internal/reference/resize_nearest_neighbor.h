@@ -18,8 +18,8 @@ limitations under the License.
 #include <algorithm>
 #include <cmath>
 
-#include "tflite/kernels/internal/cppmath.h"
-#include "tflite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/internal/cppmath.h"
+#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 

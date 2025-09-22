@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tflite/core/api/flatbuffer_conversions.h"
+#include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -21,11 +21,11 @@ limitations under the License.
 #include <memory>
 
 #include "flatbuffers/vector.h"  // from @flatbuffers
-#include "tflite/converter/core/api/error_reporter.h"
-#include "tflite/core/c/builtin_op_data.h"
-#include "tflite/core/c/common.h"
-#include "tflite/kernels/internal/compatibility.h"
-#include "tflite/schema/schema_generated.h"
+#include "tensorflow/lite/converter/core/api/error_reporter.h"
+#include "tensorflow/lite/core/c/builtin_op_data.h"
+#include "tensorflow/lite/core/c/common.h"
+#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 // TODO(sosagarcia): Rework all function implementations to wrap around the
 // compiler flatbuffer_conversions.

@@ -12,11 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tflite/converter/schema/schema_utils.h"
+#include "tensorflow/compiler/mlir/lite/converter/schema/schema_utils.h"
 
 #include <algorithm>
 
-#include "tflite/converter/kernels/internal/compatibility_macros.h"
+#include "tensorflow/compiler/mlir/lite/converter/kernels/internal/compatibility_macros.h"
 
 namespace tflite {
 

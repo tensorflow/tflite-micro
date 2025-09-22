@@ -17,7 +17,7 @@ limitations under the License.
 
 #include <functional>
 
-#include "tflite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 

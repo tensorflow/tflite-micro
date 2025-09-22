@@ -18,9 +18,9 @@ import os
 import subprocess
 import sys
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema  # pylint:disable=g-direct-tensorflow-import
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-from tflite_micro.tensorflow.lite.tools import test_utils
+from tflite.python import schema_py_generated as schema  # pylint:disable=g-direct-tensorflow-import
+from tflite.tools import flatbuffer_utils
+from tflite.tools import test_utils
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 

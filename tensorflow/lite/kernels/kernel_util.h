@@ -22,10 +22,10 @@ limitations under the License.
 #include <string>
 #endif  // TF_LITE_STATIC_MEMORY
 
-#include "tflite/core/c/builtin_op_data.h"
-#include "tflite/core/c/common.h"
+#include "tensorflow/lite/core/c/builtin_op_data.h"
+#include "tensorflow/lite/core/c/common.h"
 #ifndef NDEBUG
-#include "tflite/kernels/op_macros.h"
+#include "tensorflow/lite/kernels/op_macros.h"
 #endif
 
 namespace tflite {

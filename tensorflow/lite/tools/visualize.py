@@ -30,10 +30,10 @@ import numpy as np
 if not os.path.splitext(__file__)[0].endswith(
     os.path.join("tflite_runtime", "visualize")):
   # This file is part of tensorflow package.
-  from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+  from tflite.python import schema_py_generated as schema_fb
 else:
   # This file is part of tflite_runtime package.
-  from tflite_micro.tensorflow.lite_runtime import schema_py_generated as schema_fb
+  from tflite_runtime import schema_py_generated as schema_fb
 
 # A CSS description for making the visualizer
 _CSS = """

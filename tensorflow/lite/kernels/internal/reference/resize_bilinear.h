@@ -20,8 +20,8 @@ limitations under the License.
 #include <cstdint>
 #include <limits>
 
-#include "tflite/kernels/internal/cppmath.h"
-#include "tflite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/internal/cppmath.h"
+#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 namespace reference_ops {

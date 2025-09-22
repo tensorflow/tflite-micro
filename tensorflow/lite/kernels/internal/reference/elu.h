@@ -15,8 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_ELU_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_ELU_H_
 
-#include "tflite/kernels/internal/cppmath.h"
-#include "tflite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/internal/cppmath.h"
+#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 

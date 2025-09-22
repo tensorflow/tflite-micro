@@ -21,6 +21,6 @@ limitations under the License.
 ///
 /// For documentation, see tensorflow/lite/core/c/c_api_types.h
 
-#include "tflite/core/c/c_api_types.h"
+#include "tensorflow/lite/core/c/c_api_types.h"
 
 #endif  // TENSORFLOW_LITE_C_C_API_TYPES_H_

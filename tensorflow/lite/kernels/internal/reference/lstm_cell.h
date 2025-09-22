@@ -19,10 +19,10 @@ limitations under the License.
 #include <cmath>
 #include <cstdint>
 
-#include "tflite/kernels/internal/common.h"
-#include "tflite/kernels/internal/reference/concatenation.h"
-#include "tflite/kernels/internal/reference/fully_connected.h"
-#include "tflite/kernels/internal/types.h"
+#include "tensorflow/lite/kernels/internal/common.h"
+#include "tensorflow/lite/kernels/internal/reference/concatenation.h"
+#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/kernels/internal/types.h"
 
 namespace tflite {
 namespace reference_ops {

@@ -15,13 +15,13 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_UTILS_H_
 
-#include "tflite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
 
-#include "tflite/core/c/builtin_op_data.h"
+#include "tensorflow/lite/core/c/builtin_op_data.h"
 
 #if defined(_MSC_VER)
 #define __restrict__ __restrict

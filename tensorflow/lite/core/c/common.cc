@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tflite/core/c/common.h"
+#include "tensorflow/lite/core/c/common.h"
 
 #ifndef TF_LITE_STATIC_MEMORY
 #include <cstdlib>
@@ -23,9 +23,9 @@ limitations under the License.
 #include <type_traits>
 #include <utility>
 
-#include "tflite/core/c/c_api_types.h"
+#include "tensorflow/lite/core/c/c_api_types.h"
 #ifdef TF_LITE_TENSORFLOW_PROFILER
-#include "tflite/tensorflow_profiler_logger.h"
+#include "tensorflow/lite/tensorflow_profiler_logger.h"
 #endif
 
 namespace {
