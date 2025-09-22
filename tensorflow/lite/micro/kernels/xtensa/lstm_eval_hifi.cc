@@ -162,7 +162,7 @@ void calc_cell_state_without_cifg(int16_t* cell_state,
 // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -227,7 +227,7 @@ void calc_cell_state_without_cifg(int16_t* cell_state,
 // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -336,7 +336,7 @@ void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
 // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -401,7 +401,7 @@ void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
 // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -481,7 +481,7 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
 // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-  for (int j = 0; j < ((num_elms)&7); j++) {
+  for (int j = 0; j < ((num_elms) & 7); j++) {
     AE_L16_IP(data_a_0, (ae_int16*)tmp_input_1, 2);
     AE_L16_IP(data_b_0, (ae_int16*)tmp_input_2, 2);
 
@@ -668,7 +668,7 @@ void calc_cell_state_without_cifg(int16_t* cell_state,
     // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -738,7 +738,7 @@ void calc_cell_state_without_cifg(int16_t* cell_state,
     // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -851,7 +851,7 @@ void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
     // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -920,7 +920,7 @@ void calc_cell_state_with_cifg(int16_t* cell_state, const int16_t* forget_gate,
     // residue iterations
 #pragma concurrent
 #pragma loop_count max = 7
-    for (i = 0; i < ((num_elms)&7); i++) {
+    for (i = 0; i < ((num_elms) & 7); i++) {
       d_cs_r_0 = p16_cs_r[i];
       d_fg_0 = p16_fg_r[i];
       d_cg_0 = p16_cg_r[i];
@@ -996,7 +996,7 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
   // residue iterations
 #pragma concurrent
 #pragma loop_count max = 3
-  for (int j = 0; j < ((num_elms)&3); j++) {
+  for (int j = 0; j < ((num_elms) & 3); j++) {
     AE_L16_IP(data_a_0, (ae_int16*)tmp_input_1, 2);
     AE_L16_IP(data_b_0, (ae_int16*)tmp_input_2, 2);
 
