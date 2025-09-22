@@ -29,8 +29,8 @@ from typing import Optional, Type, TypeVar, Union
 
 import flatbuffers
 
-from tflite.python import schema_py_generated as schema_fb
-from tflite.python import schema_util
+from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite.python import schema_util
 from tensorflow.python.platform import gfile
 
 _TFLITE_FILE_IDENTIFIER = b'TFL3'

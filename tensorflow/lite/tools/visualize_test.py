@@ -16,8 +16,8 @@
 import os
 import re
 
-from tflite.tools import test_utils
-from tflite.tools import visualize
+from tflite_micro.tensorflow.lite.tools import test_utils
+from tflite_micro.tensorflow.lite.tools import visualize
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import test
 
