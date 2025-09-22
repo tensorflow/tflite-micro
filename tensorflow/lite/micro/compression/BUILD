@@ -1,15 +1,16 @@
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-    "tflm_cc_test",
-)
-load(
     "@flatbuffers//:build_defs.bzl",
     "flatbuffer_cc_library",
     "flatbuffer_py_library",
 )
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+)
 load("view_tests.bzl", "generate_view_tests")
 
 package(

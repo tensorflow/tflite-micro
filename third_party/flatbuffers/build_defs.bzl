@@ -1,5 +1,6 @@
 """BUILD rules for generating flatbuffer files."""
 
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library")
 
 flatc_path = "@flatbuffers//:flatc"
@@ -108,7 +109,7 @@ def flatbuffer_library_public(
         )
         # TODO(b/114456773): Make bazel rules proper and supported by flatbuffer
         # Have to comment this since FilesetEntry is not supported in bazel
-        # skylark.
+        # starlark.
         # native.Fileset(
         #     name = reflection_name,
         #     out = "%s_out" % reflection_name,
@@ -212,7 +213,7 @@ def flatbuffer_cc_library(
         reflection_name = reflection_name,
         reflection_visibility = visibility,
     )
-    native.cc_library(
+    cc_library(
         name = name,
         hdrs = output_headers,
         srcs = output_headers,

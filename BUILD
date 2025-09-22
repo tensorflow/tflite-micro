@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
 
 # `bazel run` this target to generate compile_commands.json, which can be used
@@ -7,8 +8,6 @@ refresh_compile_commands(
     name = "refresh_compile_commands",
     targets = ["//..."],
 )
-
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
 bool_flag(
     name = "with_compression",
