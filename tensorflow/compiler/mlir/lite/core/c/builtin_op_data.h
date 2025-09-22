@@ -25,7 +25,7 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
-#include "tensorflow/compiler/mlir/lite/converter/core/c/tflite_types.h"
+#include "tensorflow/compiler/mlir/lite/core/c/tflite_types.h"
 
 #ifdef __cplusplus
 extern "C" {

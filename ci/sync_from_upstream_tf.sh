@@ -43,12 +43,16 @@ do
   local_filepath=${filepath//tflite\//tensorflow\/lite\/}
   mkdir -p $(dirname ${local_filepath})
   /bin/cp /tmp/litert/${filepath} ${local_filepath}
+  sed -i 's/#include "tflite\//#include "tensorflow\/lite\//' ${local_filepath}
+  sed -i 's/#include "tensorflow\/lite\/converter\//#include "tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
 done
 for filepath in ${SHARED_CONVERTER_CODE}
 do
   local_filepath=${filepath//tflite\/converter\//tensorflow\/compiler\/mlir\/lite\/}
   mkdir -p $(dirname ${local_filepath})
   /bin/cp /tmp/litert/${filepath} ${local_filepath}
+  sed -i 's/#include "tflite\//#include "tensorflow\/lite\//' ${local_filepath}
+  sed -i 's/#include "tensorflow\/lite\/converter\//#include "tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
 done
 
 # https://github.com/tensorflow/tflite-micro/pull/8
