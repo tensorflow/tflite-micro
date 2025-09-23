@@ -13,9 +13,6 @@ Our test scripts assume that the non static `user` mode installation of QEMU is
 available in the PATH.  For example, if using QEMU for ARM testing, please make
 sure `qemu-arm` is installed and available to the test scripts.
 
-You can use `ci/install_qemu.sh` to download, build and install the version of
-qemu that is used as part of the CI.
-
 # Software Emulation with QEMU
 TensorFlow Lite Micro makes use of [QEMU](https://qemu.org) to
 for testing cross compiled tests.
