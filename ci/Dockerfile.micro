@@ -1,22 +1,36 @@
-# This docker container can be used to run all the TFLM CI checks.
+# TFLM CI Docker Container
 #
-# It is only used as part of the GitHub workflows to test for code-style. But
-# the container is available and ready for use to run all the checks locally,
-# in case that is useful for debugging. See all the versions at
-# https://github.com/users/TFLM-bot/packages/container/tflm-ci/versions
+# This container includes all dependencies for TFLM CI checks and is
+# recommended for local debugging to ensure a consistent environment.
 #
-# docker pull ghcr.io/tflm-bot/tflm-ci:<version>
+# * Pull a prebuilt image:
+#   See all versions: https://github.com/users/TFLM-bot/packages/container/tflm-ci/versions
+#   docker pull ghcr.io/tflm-bot/tflm-ci:<version>
 #
-# Build you own container with:
-# docker build -f ci/Dockerfile.micro -t tflm-ci .
+# * Build locally:
+#   (Run from the root of the TFLM repository)
+#   docker build -f ci/Dockerfile.micro -t tflm-ci .
 #
+# * Build and upload to GHCR.IO:
+#   (Run from the root of the TFLM repository)
+#   (Update the TFLM_CI_VERSION variable below to your target version)
+#   export TFLM_CI_VERSION=0.6.3
+#   docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
+#   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
+#   (And you need to update github workflows to use this version.)
+#
+# * Run locally for debugging:
+#   (Mounts local repo and opens a shell)
+#   (Run from the root of the TFLM repository)
+#   docker run -it --rm -v $(pwd):/opt/tflm -w /opt/tflm tflm-ci /bin/bash
+
 # Use a prebuilt Python image instead of base Ubuntu to speed up the build process,
 # since it has all the build dependencies we need for Micro and downloads much faster
 # than the install process.
 
 # Using a multistage build so that the build tools required for stage 1 don't make the
 # CI container unnecessarily large.
-FROM python:3.10-bullseye AS qemu_builder
+FROM python:3.10-bookworm AS qemu_builder
 RUN apt-get update
 
 RUN apt-get install -y ninja-build wget xz-utils
@@ -28,7 +42,7 @@ COPY ci/install_qemu.sh ./
 RUN ./install_qemu.sh /tmp/qemu_install
 
 # This stage is the final CI container.
-FROM python:3.10-bullseye AS tflm-ci
+FROM python:3.10-bookworm AS tflm-ci
 
 RUN apt-get update
 
@@ -52,7 +66,7 @@ RUN git config --global --add safe.directory /github/workspace
 
 # Install yapf to check for Python formatting as part of the TFLM continuous
 # integration.
-RUN pip install yapf==0.32.0
+RUN pip install yapf==0.40.2
 
 # Pillow was added first for the C array generation as a result of the following
 # PRs:

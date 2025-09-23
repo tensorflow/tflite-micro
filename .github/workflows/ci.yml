@@ -259,7 +259,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Test
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.3
         with:
           args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh tflite-micro/
 
@@ -275,7 +275,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Check
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:latest
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.3
         with:
           args: /bin/sh -c "git config --global --add safe.directory /github/workspace && tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
 
