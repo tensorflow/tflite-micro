@@ -13,6 +13,9 @@
 name: CI
 
 on:
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
   workflow_call:
     inputs:
       trigger-sha:
