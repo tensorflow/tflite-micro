@@ -3,92 +3,80 @@
 # This container includes all dependencies for TFLM CI checks and is
 # recommended for local debugging to ensure a consistent environment.
 #
-# * Pull a prebuilt image:
-#   See all versions: https://github.com/users/TFLM-bot/packages/container/tflm-ci/versions
+# === Usage ===
+#
+# --- Pull a prebuilt image ---
+# See all versions: https://github.com/users/TFLM-bot/packages/container/tflm-ci/versions
 #   docker pull ghcr.io/tflm-bot/tflm-ci:<version>
 #
-# * Build locally:
-#   (Run from the root of the TFLM repository)
+# --- Build locally ---
+# (Run from the root of the TFLM repository)
 #   docker build -f ci/Dockerfile.micro -t tflm-ci .
 #
-# * Build and upload to GHCR.IO:
-#   (Run from the root of the TFLM repository)
-#   (Update the TFLM_CI_VERSION variable below to your target version)
-#   export TFLM_CI_VERSION=0.6.3
+# --- Build and upload to GHCR.IO ---
+# (Run from the root of the TFLM repository)
+#   export TFLM_CI_VERSION=0.6.4
 #   docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
-#   (And you need to update github workflows to use this version.)
 #
-# * Run locally for debugging:
-#   (Mounts local repo and opens a shell)
-#   (Run from the root of the TFLM repository)
+# --- Run locally for debugging ---
+# (Mounts local repo and opens a shell)
+# (Run from the root of the TFLM repository)
 #   docker run -it --rm -v $(pwd):/opt/tflm -w /opt/tflm tflm-ci /bin/bash
+#
 
-# Use a prebuilt Python image instead of base Ubuntu to speed up the build process,
-# since it has all the build dependencies we need for Micro and downloads much faster
-# than the install process.
+# Use a prebuilt Python image to speed up the build process.
+FROM python:3.10-bookworm
 
-# Using a multistage build so that the build tools required for stage 1 don't make the
-# CI container unnecessarily large.
-FROM python:3.10-bookworm AS qemu_builder
-RUN apt-get update
+# Install all required system dependencies
+RUN apt-get update && apt-get install -y \
+    gnupg \
+    lsb-release \
+    qemu-system-arm \
+    software-properties-common \
+    sudo \
+    wget \
+    xxd \
+    zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -y ninja-build wget xz-utils
-RUN apt-get install -y libglib2.0-dev
-RUN apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+# Install LLVM/Clang and create symlinks
+RUN wget https://apt.llvm.org/llvm.sh \
+    && chmod +x llvm.sh \
+    && ./llvm.sh 21 \
+    && rm llvm.sh \
+    && apt-get update && apt-get install -y clang-21 clang++-21 clang-format-21 \
+    && ln -s /usr/bin/clang-21 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-21 /usr/bin/clang++ \
+    && ln -s /usr/bin/clang-format-21 /usr/bin/clang-format \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY ci/install_qemu.sh ./
-# Installs all built files into /qemu_install rather than /usr/local default.
-RUN ./install_qemu.sh /tmp/qemu_install
+# Install all Python dependencies
+# - yapf to check for Python formatting
+# - Pillow was added first for the C array generation
+# - pandas, matplotlib, and six for create_size_log scripts
+# - pyyaml, requests, psutil, and robotframework for Renode test
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    matplotlib \
+    pandas \
+    Pillow \
+    psutil \
+    pyyaml \
+    requests \
+    robotframework==4.0.1 \
+    six \
+    yapf==0.40.2
 
-# This stage is the final CI container.
-FROM python:3.10-bookworm AS tflm-ci
-
-RUN apt-get update
-
-RUN apt-get install -y zip xxd sudo
-
-RUN apt install -y lsb-release wget software-properties-common gnupg
-RUN wget https://apt.llvm.org/llvm.sh
-RUN chmod +x llvm.sh
-RUN ./llvm.sh 21
-RUN ln -s /usr/bin/clang-21 /usr/bin/clang
-RUN ln -s /usr/bin/clang++-21 /usr/bin/clang++
-
-RUN apt-get install clang-format-21
-RUN ln -s /usr/bin/clang-format-21 /usr/bin/clang-format
-
-# Needed when using the Dockerfile locally.
-RUN git config --global --add safe.directory /opt/tflm
-
-# Needed when the docker container is used with GitHub actions.
-RUN git config --global --add safe.directory /github/workspace
-
-# Install yapf to check for Python formatting as part of the TFLM continuous
-# integration.
-RUN pip install yapf==0.40.2
-
-# Pillow was added first for the C array generation as a result of the following
-# PRs:
-# https://github.com/tensorflow/tflite-micro/pull/337
-# https://github.com/tensorflow/tflite-micro/pull/410
-RUN pip install Pillow
-
-# necessary bits for create_size_log scripts
-RUN pip install pandas
-RUN pip install matplotlib
-RUN pip install six
-
-# Install Renode test dependencies
-RUN pip install pyyaml requests psutil robotframework==4.0.1
-
-# Install QEMU from build container qemu_builder into tflm-ci container.
-# We're using a two stage build to keep the CI container smaller.
-WORKDIR /usr/local
-# Merge built files into /usr/local so that the path is already setup.
-COPY --from=qemu_builder /tmp/qemu_install/. .
-
+# Copy and run install scripts, then clean them up
 WORKDIR /
 COPY ci/*.sh /install/
-RUN /install/install_bazelisk.sh
-RUN /install/install_buildifier.sh
+RUN /install/install_bazelisk.sh && \
+    /install/install_buildifier.sh && \
+    rm -rf /install
+
+# Configure git safe directories
+RUN git config --global --add safe.directory /opt/tflm && \
+    git config --global --add safe.directory /github/workspace
