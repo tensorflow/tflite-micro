@@ -15,7 +15,7 @@
 #
 # --- Build and upload to GHCR.IO ---
 # (Run from the root of the TFLM repository)
-#   export TFLM_CI_VERSION=0.6.4
+#   export TFLM_CI_VERSION=0.6.5
 #   docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
 #
@@ -56,7 +56,7 @@ RUN wget https://apt.llvm.org/llvm.sh \
 # Install all Python dependencies
 # - yapf to check for Python formatting
 # - Pillow was added first for the C array generation
-# - pandas, matplotlib, and six for create_size_log scripts
+# - pandas, and matplotlib for create_size_log scripts
 # - pyyaml, requests, psutil, and robotframework for Renode test
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
@@ -67,7 +67,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pyyaml \
     requests \
     robotframework==4.0.1 \
-    six \
     yapf==0.40.2
 
 # Copy and run install scripts, then clean them up
