@@ -231,7 +231,7 @@ py_test(
     ],
     deps = [
         ":overlap_add_op",
-        "@absl_py//absl/testing:parameterized",
+        requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],

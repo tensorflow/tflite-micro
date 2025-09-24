@@ -57,15 +57,6 @@ def tf_repositories(path_prefix = "", tf_repo_name = ""):
         ],
     )
 
-    tf_http_archive(
-        name = "absl_py",
-        sha256 = "516e83df99fe7c365727ef09c9e1f83b55985afaf23dd1ca572b3e160057f5f8",
-        strip_prefix = "abseil-py-b188d9080c8e5628bb52a93a04ad930abb1717eb",
-        urls = [
-            "https://github.com/abseil/abseil-py/archive/b188d9080c8e5628bb52a93a04ad930abb1717eb.zip",
-        ],
-    )
-
     initialize_third_party()
 
 def workspace():

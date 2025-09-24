@@ -63,7 +63,6 @@ py_binary(
         ":graph",
         ":inference_generator",
         "//tensorflow/lite/tools:flatbuffer_utils",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
+        requirement("absl_py"),
     ],
 )

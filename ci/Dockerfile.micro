@@ -16,7 +16,7 @@
 # --- Build and upload to GHCR.IO ---
 # (Run from the root of the TFLM repository)
 #   export TFLM_CI_VERSION=0.6.5
-#   docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
+#   docker build --no-cache -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
 #
 # --- Run locally for debugging ---
@@ -32,7 +32,7 @@ FROM python:3.10-bookworm
 RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
-    qemu-system-arm \
+    qemu-user \
     software-properties-common \
     sudo \
     wget \
