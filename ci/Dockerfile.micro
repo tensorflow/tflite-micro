@@ -28,11 +28,17 @@
 # Use a prebuilt Python image to speed up the build process.
 FROM python:3.10-bookworm
 
+# Install qemu-user from bookworm-backports to address a known bug:
+# https://gitlab.com/qemu-project/qemu/-/issues/1697
+RUN echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends -t bookworm-backports qemu-user && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install all required system dependencies
 RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
-    qemu-user \
     software-properties-common \
     sudo \
     wget \
