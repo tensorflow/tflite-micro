@@ -15,8 +15,8 @@
 #
 # --- Build and upload to GHCR.IO ---
 # (Run from the root of the TFLM repository)
-#   export TFLM_CI_VERSION=0.6.4
-#   docker build -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
+#   export TFLM_CI_VERSION=0.6.5
+#   docker build --no-cache -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
 #
 # --- Run locally for debugging ---
@@ -28,11 +28,17 @@
 # Use a prebuilt Python image to speed up the build process.
 FROM python:3.10-bookworm
 
+# Install qemu-user from bookworm-backports to address a known bug:
+# https://gitlab.com/qemu-project/qemu/-/issues/1697
+RUN echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends -t bookworm-backports qemu-user && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install all required system dependencies
 RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
-    qemu-system-arm \
     software-properties-common \
     sudo \
     wget \
@@ -56,7 +62,7 @@ RUN wget https://apt.llvm.org/llvm.sh \
 # Install all Python dependencies
 # - yapf to check for Python formatting
 # - Pillow was added first for the C array generation
-# - pandas, matplotlib, and six for create_size_log scripts
+# - pandas, and matplotlib for create_size_log scripts
 # - pyyaml, requests, psutil, and robotframework for Renode test
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
@@ -67,7 +73,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pyyaml \
     requests \
     robotframework==4.0.1 \
-    six \
     yapf==0.40.2
 
 # Copy and run install scripts, then clean them up

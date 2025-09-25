@@ -1,4 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_test")
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 def generate_view_tests(targets):
     """Generates py_test targets for each target's path and a test_suite to
@@ -20,7 +21,7 @@ def generate_view_tests(targets):
             data = [target],
             deps = [
                 ":view",
-                "@absl_py//absl/testing:absltest",
+                requirement("absl_py"),
             ],
             size = "small",
         )
