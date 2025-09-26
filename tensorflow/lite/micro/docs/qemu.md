@@ -39,14 +39,14 @@ $ tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh
 ```
 
 After this script completes the initial build, you can run an individual
-test target like the following:
+test target as follows:
 
 ```
 $ make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=cortex_m_qemu \
   TARGET_ARCH=cortex-m3 \
   OPTIMIZED_KERNEL_DIR=cmsis_nn
-  <tTEST_TARGET>
+  <TEST_TARGET>
 ```
 
 # Debugging
@@ -62,7 +62,7 @@ or by analyzing the core file after a crash.
 $ qemu-arm -cpu cortex-m3 -g 1234 <TEST_BINARY_PATH>
 ```
 
-### Terminal 2: Launch GDB and connect to 랙the waiting QEMU session.
+### Terminal 2: Launch GDB and connect to the waiting QEMU session.
 
 ```
 $ arm-none-eabi-gdb <TEST_BINARY_PATH>
@@ -75,9 +75,7 @@ Load the test executable and the generated core file into GDB
 to inspect the state at the time of the crash.
 
 ```
-$ arm-none-eabi-gdb \
-  <TEST_BINARY_PATH> \
-  <CORE_FILE_PATH>
+$ arm-none-eabi-gdb <TEST_BINARY_PATH> <CORE_FILE_PATH>
 (gdb) bt
 ```
 
