@@ -17,6 +17,7 @@ limitations under the License.
 #include <cstdarg>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
@@ -105,6 +106,14 @@ void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
 }
 
 TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
+  // needed for custom options when model is larger than 2Gb
+  const uint8_t* flatbuffer_start =
+      flatbuffers::GetBufferStartFromRootPointer(model_);
+  if (flatbuffer_start == nullptr) {
+    MicroPrintf("%s: Unable to locate flatbuffer start", __func__);
+    return kTfLiteError;
+  }
+
   for (int subgraph_idx = 0; subgraph_idx < graph_.NumSubgraphs();
        subgraph_idx++) {
     const SubGraph* subgraph = model_->subgraphs()->Get(subgraph_idx);
@@ -152,6 +161,17 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
           custom_data =
               reinterpret_cast<const char*>(op->custom_options()->data());
           custom_data_size = op->custom_options()->size();
+        } else if (op->large_custom_options_offset() > 1) {
+          const size_t max_options_size = std::numeric_limits<size_t>::max();
+          if (op->large_custom_options_size() > max_options_size) {
+            MicroPrintf(
+                "Custom options size %llu is too large: op#%u subgraph#%d",
+                op->large_custom_options_size(), i, subgraph_idx);
+            return kTfLiteError;
+          }
+          custom_data = reinterpret_cast<const char*>(
+              flatbuffer_start + op->large_custom_options_offset());
+          custom_data_size = op->large_custom_options_size();
         }
       } else {
         if (op->custom_options() != nullptr) {

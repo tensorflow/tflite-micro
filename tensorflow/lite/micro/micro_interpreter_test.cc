@@ -110,10 +110,148 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
   TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MockCustom::freed_, true);
 }
 
+TF_LITE_MICRO_TEST(TestInterpreterCustomOptions) {
+  const tflite::Model* model =
+      tflite::testing::GetModelWithTensorDataAndCustomOptions({-42}, {0x42},
+                                                              false);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  // Create a new scope so that we can test the destructor.
+  {
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         allocator_buffer_size);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(2), interpreter.inputs_size());
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+    TfLiteTensor* input = interpreter.input(0);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.data);
+    static_cast<int32_t*>(input->data.data)[0] = 42;
+
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+
+    TfLiteTensor* output = interpreter.output(0);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.data);
+    TF_LITE_MICRO_EXPECT_EQ(0x42, static_cast<int32_t*>(output->data.data)[0]);
+  }
+
+  TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MockCustom::freed_, true);
+}
+
+TF_LITE_MICRO_TEST(TestInterpreterCustomOptionsUsingBufferOffset) {
+  const tflite::Model* model =
+      tflite::testing::GetModelWithTensorDataAndCustomOptions({-42}, {0x42},
+                                                              true);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+
+  constexpr size_t allocator_buffer_size = 2000;
+  uint8_t allocator_buffer[allocator_buffer_size];
+
+  // Create a new scope so that we can test the destructor.
+  {
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         allocator_buffer_size);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(2), interpreter.inputs_size());
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+    TfLiteTensor* input = interpreter.input(0);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, input->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), input->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.data);
+    static_cast<int32_t*>(input->data.data)[0] = 42;
+
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+
+    TfLiteTensor* output = interpreter.output(0);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, output->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(4), output->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.data);
+    TF_LITE_MICRO_EXPECT_EQ(0x42, static_cast<int32_t*>(output->data.data)[0]);
+  }
+
+  TF_LITE_MICRO_EXPECT_EQ(tflite::testing::MockCustom::freed_, true);
+}
+
 #ifdef USE_TFLM_COMPRESSION
 
 TF_LITE_MICRO_TEST(TestInterpreterCompression) {
-  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
+  const tflite::Model* model =
+      tflite::testing::GetSimpleMockModelCompressed(false);
+  TF_LITE_MICRO_EXPECT(nullptr != model);
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+
+  constexpr size_t kAllocatorBufferSize = 2000;
+  uint8_t allocator_buffer[kAllocatorBufferSize];
+
+  // Create a new scope so that we can test the destructor.
+  {
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         kAllocatorBufferSize);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
+
+    TfLiteTensor* input = interpreter.input(0);
+    TF_LITE_MICRO_EXPECT(nullptr != input);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt16, input->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(2), input->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != input->data.data);
+    static_cast<int16_t*>(input->data.data)[0] = 42;
+
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+
+    const std::initializer_list<int16_t> kGolden = {
+        43, 44, 45, 46, 47, 41, 40, 39, 38, 37, 43, 44, 45, 46, 47};
+    const int kGoldenCount = kGolden.size();
+    TfLiteTensor* output = interpreter.output(0);
+    TF_LITE_MICRO_EXPECT(nullptr != output);
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt16, output->type);
+    TF_LITE_MICRO_EXPECT_EQ(1, output->dims->size);
+    TF_LITE_MICRO_EXPECT_EQ(kGoldenCount, output->dims->data[0]);
+    TF_LITE_MICRO_EXPECT_EQ(
+        static_cast<size_t>(kGoldenCount * sizeof(*kGolden.begin())),
+        output->bytes);
+    TF_LITE_MICRO_EXPECT(nullptr != output->data.data);
+    for (int i = 0; i < kGoldenCount; i++) {
+      TF_LITE_MICRO_EXPECT_EQ(static_cast<int16_t*>(output->data.data)[i],
+                              kGolden.begin()[i]);
+    }
+  }
+}
+
+TF_LITE_MICRO_TEST(TestInterpreterCompressionWithBufferOffsets) {
+  const tflite::Model* model =
+      tflite::testing::GetSimpleMockModelCompressed(true);
   TF_LITE_MICRO_EXPECT(nullptr != model);
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -161,7 +299,8 @@ TF_LITE_MICRO_TEST(TestInterpreterCompression) {
 }
 
 TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryAfterInit) {
-  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
+  const tflite::Model* model =
+      tflite::testing::GetSimpleMockModelCompressed(false);
   TF_LITE_MICRO_EXPECT(nullptr != model);
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -188,7 +327,8 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryAfterInit) {
 }
 
 TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryTooSmall) {
-  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
+  const tflite::Model* model =
+      tflite::testing::GetSimpleMockModelCompressed(false);
   TF_LITE_MICRO_EXPECT(nullptr != model);
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
@@ -249,7 +389,8 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryTooSmall) {
 }
 
 TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemory) {
-  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
+  const tflite::Model* model =
+      tflite::testing::GetSimpleMockModelCompressed(false);
   TF_LITE_MICRO_EXPECT(nullptr != model);
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,

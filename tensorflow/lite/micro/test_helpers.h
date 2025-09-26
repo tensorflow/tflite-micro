@@ -125,7 +125,7 @@ const Model* GetSimpleMockModel();
 // Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
 // 1 layer of weights, 1 output Tensor, and 1 operator (BroadcastAddOp).  The
 // weights tensor is compressed.
-const Model* GetSimpleMockModelCompressed();
+const Model* GetSimpleMockModelCompressed(bool use_buffer_offset);
 
 #endif  // USE_TFLM_COMPRESSION
 
@@ -158,11 +158,11 @@ const Model* GetSimpleMultipleInputsModel();
 //                                        are in the subgraph input list. There
 //                                        must be at least 1 input tensor in the
 //                                        subgraph input list.
-const Model* GetModelWithOfflinePlanning(int num_tensors,
-                                         const int32_t* metadata_buffer,
-                                         NodeConnection* node_conn,
-                                         int num_conns,
-                                         int num_subgraph_inputs = 0);
+// @param[in]       use_buffer_offset     Buffer objects use <offset> and <size>
+//                                        to locate their data.
+const Model* GetModelWithOfflinePlanning(
+    int num_tensors, const int32_t* metadata_buffer, NodeConnection* node_conn,
+    int num_conns, int num_subgraph_inputs = 0, bool use_buffer_offset = false);
 
 // Returns a flatbuffer with a single operator, two inputs (one unused) and one
 // output.
@@ -195,6 +195,20 @@ const Model* GetSimpleModelWithNullInputsAndOutputs();
 // of which has the supplied shape.
 const Model* GetNoOpModelWithTensorShape(
     const std::initializer_list<int32_t>& shape);
+
+// Returns a flatbuffer model with no inputs and one output, the output
+// containing the supplied data.
+const Model* GetNoOpModelWithTensorData(
+    const std::initializer_list<int8_t>& datum, bool use_buffer_offset);
+
+// Returns a flatbuffer model with two inputs and one output.
+// The model can have optional custom option data, if supplied.
+// The second input tensor will be assigned the supplied data.
+// The output is the sum of the two inputs, and if the custom option data
+// is supplied it will also be added to the sum.
+const Model* GetModelWithTensorDataAndCustomOptions(
+    const std::initializer_list<int8_t>& datum,
+    const std::initializer_list<uint8_t>& options_data, bool use_buffer_offset);
 
 // Builds a one-dimensional flatbuffer tensor of the given size.
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable = false);

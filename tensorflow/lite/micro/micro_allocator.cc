@@ -194,7 +194,8 @@ namespace internal {
 // return nullptr if no buffer is found.
 void* GetFlatbufferTensorBuffer(
     const tflite::Tensor& flatbuffer_tensor,
-    const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers) {
+    const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
+    const uint8_t* flatbuffer_start) {
   // We need to figure out where the actual contents of this tensor are stored
   // in memory. We'll check to see if there's a serialized buffer (pretty much
   // the same as a constant op in TensorFlow) associated with this tensor first,
@@ -212,6 +213,9 @@ void* GetFlatbufferTensorBuffer(
         // data structure to point to it.
         out_buffer = const_cast<void*>(static_cast<const void*>(array->data()));
       }
+    } else if (buffer->offset() > 1 && buffer->size() > 0) {
+      out_buffer = const_cast<void*>(
+          static_cast<const void*>(flatbuffer_start + buffer->offset()));
     }
     // TODO(petewarden): It's not clear in what circumstances we could have a
     // buffer in the serialized tensor, but it doesn't have any data in it. Is
@@ -227,7 +231,7 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     INonPersistentBufferAllocator* non_persistent_buffer_allocator,
     bool allocate_temp, const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
-    TfLiteTensor* result) {
+    TfLiteTensor* result, const uint8_t* flatbuffer_start) {
   TFLITE_DCHECK(result != nullptr);
 
   *result = {};
@@ -238,7 +242,8 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
   // Make sure we remember if the serialized tensor is designated as a variable.
   result->is_variable = flatbuffer_tensor.is_variable();
 
-  result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
+  result->data.data =
+      GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers, flatbuffer_start);
 
   // TODO(petewarden): Some of these paths aren't getting enough testing
   // coverage, so we should figure out some tests that exercise them.
@@ -345,14 +350,15 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
 TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
     const tflite::Tensor& flatbuffer_tensor,
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
-    TfLiteEvalTensor* result) {
+    TfLiteEvalTensor* result, const uint8_t* flatbuffer_start) {
   *result = {};
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
   TF_LITE_ENSURE_STATUS(
       tflite::ConvertTensorType(flatbuffer_tensor.type(), &result->type));
 
-  result->data.data = GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers);
+  result->data.data =
+      GetFlatbufferTensorBuffer(flatbuffer_tensor, buffers, flatbuffer_start);
 
   if (flatbuffer_tensor.shape() == nullptr) {
     // flatbuffer_tensor.shape() can return a nullptr in the case of a scalar
@@ -376,6 +382,15 @@ const tflite::micro::compression::Metadata* GetCompressionMetadata(
   if (buffers == nullptr) {
     return nullptr;
   }
+
+  // needed for compression metadata buffer when model is larger than 2Gb
+  const uint8_t* model_flatbuffer_start =
+      flatbuffers::GetBufferStartFromRootPointer(&model);
+  if (model_flatbuffer_start == nullptr) {
+    MicroPrintf("%s: Unable to locate flatbuffer start", __func__);
+    return nullptr;
+  }
+
   const size_t metadata_string_length = std::strlen(kCompressionMetadataString);
   for (size_t metadata_index = 0; metadata_index < metadata_vector->size();
        metadata_index++) {
@@ -392,18 +407,33 @@ const tflite::micro::compression::Metadata* GetCompressionMetadata(
         MicroPrintf("Compression: Invalid buffer index %u", buffer_index);
         continue;
       }
-      auto vp = buffers->Get(buffer_index)->data();
-      if (vp == nullptr || vp->data() == nullptr) {
+
+      auto buffer = buffers->Get(buffer_index);
+      const uint8_t* metadata_start = nullptr;
+      size_t metadata_size = 0;
+      if (buffer != nullptr) {
+        auto vp = buffer->data();
+        if (vp != nullptr) {
+          metadata_start = vp->data();
+          metadata_size = vp->size();
+        } else if (buffer->offset() > 1) {
+          metadata_start = model_flatbuffer_start + buffer->offset();
+          metadata_size = buffer->size();
+        }
+      }
+
+      if (metadata_start == nullptr) {
         MicroPrintf("Compression: Invalid data for buffer index %u",
                     buffer_index);
         continue;
       }
+
       // TODO(ddavis-2015): support multiple compression methods, possibly
       // through multiple verification checks.
       // Then return a pair<void*, compression_scheme>.
       auto compression_metadata =
-          tflite::micro::compression::GetSizePrefixedMetadata(vp);
-      flatbuffers::Verifier verifier(vp->data(), vp->size(),
+          tflite::micro::compression::GetMetadata(metadata_start);
+      flatbuffers::Verifier verifier(metadata_start, metadata_size,
                                      flatbuffers::Verifier::Options());
       if (!tflite::micro::compression::VerifyMetadataBuffer(verifier)) {
         MicroPrintf("Compression: verification failure");
@@ -429,6 +459,14 @@ TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
     const Model& model, const size_t subgraph_index,
     const tflite::micro::compression::LutTensor& lut_tensor,
     CompressionTensorData* ctd) {
+  // needed for LUT value buffer when model is larger than 2Gb
+  const uint8_t* model_flatbuffer_start =
+      flatbuffers::GetBufferStartFromRootPointer(&model);
+  if (model_flatbuffer_start == nullptr) {
+    MicroPrintf("%s: Unable to locate flatbuffer start", __func__);
+    return kTfLiteError;
+  }
+
   // TODO(ddavis-2015): support multiple compression schemes
   ctd->scheme = CompressionScheme::kBinQuant;
 
@@ -446,19 +484,33 @@ TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
     return kTfLiteError;
   }
   ctd->data.lut_data->compressed_bit_width = index_bit_width;
+
   const size_t value_buffer_index = lut_tensor.value_buffer();
   if (value_buffer_index >= model.buffers()->size()) {
     MicroPrintf("Compression: invalid value_buffer %u in LutTensor",
                 value_buffer_index);
     return kTfLiteError;
   }
-  auto value_buffer = model.buffers()->Get(value_buffer_index)->data();
-  if (value_buffer == nullptr || value_buffer->data() == nullptr) {
+  auto value_buffer = model.buffers()->Get(value_buffer_index);
+  const uint8_t* value_buffer_start = nullptr;
+  size_t value_buffer_size = 0;
+  if (value_buffer != nullptr) {
+    auto vp = value_buffer->data();
+    if (vp != nullptr) {
+      value_buffer_start = vp->data();
+      value_buffer_size = vp->size();
+    } else if (value_buffer->offset() > 1) {
+      value_buffer_start = model_flatbuffer_start + value_buffer->offset();
+      value_buffer_size = value_buffer->size();
+    }
+  }
+  if (value_buffer_start == nullptr) {
     MicroPrintf("Compression: invalid value table for value_buffer %u",
                 value_buffer_index);
     return kTfLiteError;
   }
-  ctd->data.lut_data->value_table = value_buffer->data();
+  ctd->data.lut_data->value_table = value_buffer_start;
+
   auto tensor =
       model.subgraphs()->Get(subgraph_index)->tensors()->Get(tensor_index);
   if (tensor->shape() == nullptr) {
@@ -495,12 +547,12 @@ TfLiteStatus InitializeCompressionTensorDataFromFlatbuffer(
       return kTfLiteError;
     }
     ctd->data.lut_data->value_table_channel_stride =
-        (value_buffer->size() / tensor_type_size) / num_channels;
+        (value_buffer_size / tensor_type_size) / num_channels;
   } else {
     ctd->data.lut_data->is_per_channel_quantized = false;
     ctd->data.lut_data->use_alternate_axis = false;
     ctd->data.lut_data->value_table_channel_stride =
-        value_buffer->size() / tensor_type_size;
+        value_buffer_size / tensor_type_size;
   }
 
   return kTfLiteOk;
@@ -1038,6 +1090,14 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
     const Model* model, SubgraphAllocations* subgraph_allocations) {
   TFLITE_DCHECK(subgraph_allocations != nullptr);
 
+  // needed for tensor data buffer when model is larger than 2Gb
+  const uint8_t* flatbuffer_start =
+      flatbuffers::GetBufferStartFromRootPointer(model);
+  if (flatbuffer_start == nullptr) {
+    MicroPrintf("%s: Unable to locate flatbuffer start", __func__);
+    return kTfLiteError;
+  }
+
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
@@ -1057,7 +1117,8 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
 
     for (size_t i = 0; i < alloc_count; ++i) {
       TfLiteStatus status = internal::InitializeTfLiteEvalTensorFromFlatbuffer(
-          *subgraph->tensors()->Get(i), model->buffers(), &tensors[i]);
+          *subgraph->tensors()->Get(i), model->buffers(), &tensors[i],
+          flatbuffer_start);
       if (status != kTfLiteOk) {
         MicroPrintf("Failed to initialize tensor %d", i);
         return kTfLiteError;
@@ -1104,6 +1165,14 @@ TfLiteTensor* MicroAllocator::AllocatePersistentTfLiteTensorInternal() {
 TfLiteStatus MicroAllocator::PopulateTfLiteTensorFromFlatbuffer(
     const Model* model, TfLiteTensor* tensor, int tensor_index,
     int subgraph_idx, bool allocate_temp) {
+  // needed for tensor data buffer when model is larger than 2Gb
+  const uint8_t* flatbuffer_start =
+      flatbuffers::GetBufferStartFromRootPointer(model);
+  if (flatbuffer_start == nullptr) {
+    MicroPrintf("%s: Unable to locate flatbuffer start", __func__);
+    return kTfLiteError;
+  }
+
   // TODO(b/162311891): This method serves as a stub to ensure quantized
   // allocations in the tail can be recorded. Once the interpreter has APIs for
   // accessing buffers on TfLiteEvalTensor this method can be dropped.
@@ -1111,7 +1180,7 @@ TfLiteStatus MicroAllocator::PopulateTfLiteTensorFromFlatbuffer(
       persistent_buffer_allocator_, non_persistent_buffer_allocator_,
       allocate_temp,
       *model->subgraphs()->Get(subgraph_idx)->tensors()->Get(tensor_index),
-      model->buffers(), tensor);
+      model->buffers(), tensor, flatbuffer_start);
 }
 
 TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(

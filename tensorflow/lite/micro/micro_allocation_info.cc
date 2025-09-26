@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <algorithm>
 
+#include "flatbuffers/flatbuffers.h"
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -352,8 +353,23 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
               model_->buffers();
           auto* buffer = (*buffers)[metadata->buffer()];
           auto* array = buffer->data();
-          const uint32_t* metadata_buffer =
-              reinterpret_cast<const uint32_t*>(array->data());
+          const uint32_t* metadata_buffer = nullptr;
+          const size_t min_length = sizeof(uint32_t) * 3;
+          if (array != nullptr && array->size() >= min_length) {
+            metadata_buffer = reinterpret_cast<const uint32_t*>(array->data());
+          } else if (buffer->offset() > 1 && buffer->size() >= min_length) {
+            const uint8_t* flatbuffer_start =
+                flatbuffers::GetBufferStartFromRootPointer(model_);
+            if (flatbuffer_start != nullptr) {
+              metadata_buffer = reinterpret_cast<const uint32_t*>(
+                  flatbuffer_start + buffer->offset());
+            }
+          }
+          if (metadata_buffer == nullptr) {
+            MicroPrintf("Unable to locate offline buffer offsets");
+            return kTfLiteError;
+          }
+
           const size_t nbr_tensors = static_cast<size_t>(metadata_buffer[2]);
           *offline_planner_offsets =
               reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
