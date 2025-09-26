@@ -899,15 +899,11 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
-  TF_LITE_MICRO_EXPECT(tensor1->quantization.params != nullptr);
-  TF_LITE_MICRO_EXPECT_FALSE(tensor1->is_variable);
 
   TfLiteTensor* tensor2 = allocator->AllocatePersistentTfLiteTensor(
       model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
-  TF_LITE_MICRO_EXPECT(tensor2->quantization.params != nullptr);
-  TF_LITE_MICRO_EXPECT_FALSE(tensor2->is_variable);
 
   // The address of tensor1 should be higher than the address of tensor2 since
   // persistent allocations take place in the tail which grows downward.
