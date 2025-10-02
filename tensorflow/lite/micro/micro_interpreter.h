@@ -131,12 +131,6 @@ class MicroInterpreter {
 
   TfLiteStatus initialization_status() const { return initialization_status_; }
 
-  // Populates node and registration pointers representing the inference graph
-  // of the model from values inside the flatbuffer (loaded from the TfLiteModel
-  // instance). Persistent data (e.g. operator data) is allocated from the
-  // arena.
-  TfLiteStatus PrepareNodeAndRegistrationDataFromFlatbuffer();
-
   // For debugging only.
   // Returns the actual used arena in bytes. This method gives the optimal arena
   // size. It's only available after `AllocateTensors` has been called.
@@ -179,6 +173,12 @@ class MicroInterpreter {
   // TODO(b/158263161): Consider switching to Create() function to enable better
   // error reporting during initialization.
   void Init(MicroProfilerInterface* profiler);
+
+  // Populates node and registration pointers representing the inference graph
+  // of the model from values inside the flatbuffer (loaded from the TfLiteModel
+  // instance). Persistent data (e.g. operator data) is allocated from the
+  // arena.
+  TfLiteStatus PrepareNodeAndRegistrationDataFromFlatbuffer();
 
   // Gets the current subgraph index used from within context methods.
   int get_subgraph_index() { return graph_.GetCurrentSubgraphIndex(); }

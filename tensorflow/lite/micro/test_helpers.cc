@@ -69,7 +69,7 @@ class StackAllocator : public flatbuffers::Allocator {
     return *inst;
   }
 
-  static constexpr size_t kStackAllocatorSize = 8192;
+  static constexpr size_t kStackAllocatorSize = 9 * 1024;
 
  private:
   uint8_t data_backing_[kStackAllocatorSize];
@@ -99,26 +99,38 @@ class ModelBuilder {
   explicit ModelBuilder(flatbuffers::FlatBufferBuilder* builder)
       : builder_(builder) {}
 
+  // `builder` needs to be available until BuildModel is called.
+  explicit ModelBuilder(flatbuffers::FlatBufferBuilder* builder,
+                        bool use_buffer_offset)
+      : builder_(builder), use_buffer_offset_(use_buffer_offset) {}
+
   // Registers an operator that will be used in the model.
   Operator RegisterOp(BuiltinOperator op, const char* custom_code);
 
   // Adds a tensor to the model.
   Tensor AddTensor(TensorType type,
-                   const std::initializer_list<int32_t> shape) {
-    return AddTensorImpl(type, /* is_variable */ false, shape);
+                   const std::initializer_list<int32_t>& shape) {
+    return AddTensorImpl(type, /* is_variable */ false, shape, {});
+  }
+
+  // Adds a tensor with data to the model.
+  Tensor AddTensor(TensorType type, const std::initializer_list<int32_t>& shape,
+                   const std::initializer_list<int8_t>& datum) {
+    return AddTensorImpl(type, /* is_variable */ false, shape, datum);
   }
 
   // Adds a variable tensor to the model.
   Tensor AddVariableTensor(TensorType type,
-                           const std::initializer_list<int32_t> shape) {
-    return AddTensorImpl(type, /* is_variable */ true, shape);
+                           const std::initializer_list<int32_t>& shape) {
+    return AddTensorImpl(type, /* is_variable */ true, shape, {});
   }
 
-  // Adds a node to the model with given input and output Tensors.
-  Node AddNode(Operator op, std::initializer_list<Tensor> inputs,
-               std::initializer_list<Tensor> outputs,
-               std::initializer_list<Tensor> intermediates =
-                   std::initializer_list<Tensor>{});
+  // Adds a node to the model with given input and output Tensors, and also
+  // adds custom option data.
+  Node AddNode(const Operator op, const std::initializer_list<Tensor>& inputs,
+               const std::initializer_list<Tensor>& outputs,
+               const std::initializer_list<Tensor>& intermediates = {},
+               const std::initializer_list<uint8_t>& custom_options = {});
 
   void AddMetadata(const char* description_string,
                    const int32_t* metadata_buffer_data, size_t num_elements);
@@ -134,56 +146,98 @@ class ModelBuilder {
  private:
   // Adds a tensor to the model.
   Tensor AddTensorImpl(TensorType type, bool is_variable,
-                       const std::initializer_list<int32_t> shape);
+                       const std::initializer_list<int32_t>& shape,
+                       const std::initializer_list<int8_t>& datum);
 
   flatbuffers::FlatBufferBuilder* builder_;
 
   static constexpr int kMaxOperatorCodes = 10;
-  flatbuffers::Offset<tflite::OperatorCode> operator_codes_[kMaxOperatorCodes];
+  flatbuffers::Offset<tflite::OperatorCode>
+      operator_codes_[kMaxOperatorCodes]{};
   int next_operator_code_id_ = 0;
 
   static constexpr int kMaxOperators = 50;
-  flatbuffers::Offset<tflite::Operator> operators_[kMaxOperators];
+  flatbuffers::Offset<tflite::Operator> operators_[kMaxOperators]{};
+  uint8_t* operators_custom_options_start_[kMaxOperators]{};
   int next_operator_id_ = 0;
 
   static constexpr int kMaxTensors = 50;
-  flatbuffers::Offset<tflite::Tensor> tensors_[kMaxTensors];
-
-  static constexpr int kMaxMetadataBuffers = 10;
+  flatbuffers::Offset<tflite::Tensor> tensors_[kMaxTensors]{};
 
   static constexpr int kMaxMetadatas = 10;
-  flatbuffers::Offset<Metadata> metadata_[kMaxMetadatas];
+  flatbuffers::Offset<Metadata> metadata_[kMaxMetadatas]{};
 
-  flatbuffers::Offset<Buffer> metadata_buffers_[kMaxMetadataBuffers];
+  static constexpr int kMaxBuffers = 10;
 
-  int nbr_of_metadata_buffers_ = 0;
+  flatbuffers::Offset<Buffer> buffers_[kMaxBuffers]{};
+  uint8_t* buffers_start_[kMaxBuffers]{};
+
+  int nbr_of_buffers_ = 1;  // all models have one empty buffer #0
+
+  int nbr_of_metadata_ = 0;
 
   int next_tensor_id_ = 0;
+
+  bool use_buffer_offset_ = false;
 };
 
-ModelBuilder::Operator ModelBuilder::RegisterOp(BuiltinOperator op,
+ModelBuilder::Operator ModelBuilder::RegisterOp(const BuiltinOperator op,
                                                 const char* custom_code) {
-  TFLITE_DCHECK(next_operator_code_id_ <= kMaxOperatorCodes);
+  TFLITE_DCHECK(next_operator_code_id_ < kMaxOperatorCodes);
+
+  int8_t deprecated_builtin_code = 0;
+  tflite::BuiltinOperator builtin_code =
+      static_cast<tflite::BuiltinOperator>(0);
+  if (op > tflite::BuiltinOperator::
+               BuiltinOperator_PLACEHOLDER_FOR_GREATER_OP_CODES) {
+    builtin_code = op;
+  } else {
+    deprecated_builtin_code = op;
+  }
   operator_codes_[next_operator_code_id_] = tflite::CreateOperatorCodeDirect(
-      *builder_, /*deprecated_builtin_code=*/0, custom_code, /*version=*/0, op);
+      *builder_, deprecated_builtin_code, custom_code, /*version=*/0,
+      builtin_code);
   next_operator_code_id_++;
   return next_operator_code_id_ - 1;
 }
 
 ModelBuilder::Node ModelBuilder::AddNode(
-    ModelBuilder::Operator op,
-    std::initializer_list<ModelBuilder::Tensor> inputs,
-    std::initializer_list<ModelBuilder::Tensor> outputs,
-    std::initializer_list<ModelBuilder::Tensor> intermediates) {
-  TFLITE_DCHECK(next_operator_id_ <= kMaxOperators);
+    const ModelBuilder::Operator op,
+    const std::initializer_list<ModelBuilder::Tensor>& inputs,
+    const std::initializer_list<ModelBuilder::Tensor>& outputs,
+    const std::initializer_list<ModelBuilder::Tensor>& intermediates,
+    const std::initializer_list<uint8_t>& custom_options) {
+  TFLITE_DCHECK(next_operator_id_ < kMaxOperators);
+
+  uint64_t large_custom_options_offset = 0;
+  uint64_t large_custom_options_size = 0;
+  flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_offset;
+  if (custom_options.size() > 0) {
+    // Actual FlexBuffers cannot be built here, as that requires the use
+    // of std::vector.  So just pretend we are using FlexBuffers.
+    if (use_buffer_offset_) {
+      // vector_offset.o will be 0 (zero)
+      builder_->PushBytes(custom_options.begin(), custom_options.size());
+      operators_custom_options_start_[next_operator_id_] =
+          builder_->GetCurrentBufferPointer();
+      large_custom_options_offset = 1;  // field placeholder
+      large_custom_options_size = custom_options.size();
+    } else {
+      vector_offset =
+          builder_->CreateVector(custom_options.begin(), custom_options.size());
+    }
+  }
+
   operators_[next_operator_id_] = tflite::CreateOperator(
       *builder_, op, builder_->CreateVector(inputs.begin(), inputs.size()),
       builder_->CreateVector(outputs.begin(), outputs.size()),
       BuiltinOptions_NONE,
       /*builtin_options=*/0,
-      /*custom_options=*/0, tflite::CustomOptionsFormat_FLEXBUFFERS,
+      /*custom_options=*/vector_offset, tflite::CustomOptionsFormat_FLEXBUFFERS,
       /*mutating_variable_inputs =*/0,
-      builder_->CreateVector(intermediates.begin(), intermediates.size()));
+      builder_->CreateVector(intermediates.begin(), intermediates.size()),
+      large_custom_options_offset, large_custom_options_size);
+
   next_operator_id_++;
   return next_operator_id_ - 1;
 }
@@ -191,15 +245,34 @@ ModelBuilder::Node ModelBuilder::AddNode(
 void ModelBuilder::AddMetadata(const char* description_string,
                                const int32_t* metadata_buffer_data,
                                size_t num_elements) {
-  metadata_[ModelBuilder::nbr_of_metadata_buffers_] =
-      CreateMetadata(*builder_, builder_->CreateString(description_string),
-                     1 + ModelBuilder::nbr_of_metadata_buffers_);
+  TFLITE_DCHECK(nbr_of_buffers_ < kMaxBuffers);
+  TFLITE_DCHECK(nbr_of_metadata_ < kMaxMetadatas);
 
-  metadata_buffers_[nbr_of_metadata_buffers_] = tflite::CreateBuffer(
-      *builder_, builder_->CreateVector((uint8_t*)metadata_buffer_data,
-                                        sizeof(uint32_t) * num_elements));
+  metadata_[nbr_of_metadata_] = CreateMetadata(
+      *builder_, builder_->CreateString(description_string), nbr_of_buffers_);
 
-  ModelBuilder::nbr_of_metadata_buffers_++;
+  flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_offset;
+  uint64_t buffer_data_offset = 0;
+  uint64_t buffer_data_size = 0;
+  const size_t metadata_buffer_data_size = sizeof(uint32_t) * num_elements;
+  if (use_buffer_offset_) {
+    // vector_offset.o will be 0 (zero)
+    builder_->PushBytes(reinterpret_cast<const uint8_t*>(metadata_buffer_data),
+                        metadata_buffer_data_size);
+    buffers_start_[nbr_of_buffers_] = builder_->GetCurrentBufferPointer();
+    buffer_data_offset = 1;  // field placeholder
+    buffer_data_size = metadata_buffer_data_size;
+  } else {
+    vector_offset = builder_->CreateVector(
+        reinterpret_cast<const uint8_t*>(metadata_buffer_data),
+        metadata_buffer_data_size);
+  }
+
+  buffers_[nbr_of_buffers_] = tflite::CreateBuffer(
+      *builder_, vector_offset, buffer_data_offset, buffer_data_size);
+
+  nbr_of_buffers_++;
+  nbr_of_metadata_++;
 }
 
 const Model* ModelBuilder::BuildModel(
@@ -207,15 +280,7 @@ const Model* ModelBuilder::BuildModel(
     std::initializer_list<ModelBuilder::Tensor> outputs,
     size_t num_subgraph_inputs) {
   // Model schema requires an empty buffer at idx 0.
-  size_t buffer_size = 1 + ModelBuilder::nbr_of_metadata_buffers_;
-  flatbuffers::Offset<Buffer> buffers[kMaxMetadataBuffers];
-  buffers[0] = tflite::CreateBuffer(*builder_);
-
-  // Place the metadata buffers first in the buffer since the indices for them
-  // have already been set in AddMetadata()
-  for (int i = 1; i < ModelBuilder::nbr_of_metadata_buffers_ + 1; ++i) {
-    buffers[i] = metadata_buffers_[i - 1];
-  }
+  buffers_[0] = tflite::CreateBuffer(*builder_);
 
   // Default to single subgraph model.
   constexpr size_t subgraphs_size = 1;
@@ -239,38 +304,99 @@ const Model* ModelBuilder::BuildModel(
           builder_->CreateString("test_subgraph"))};
 
   flatbuffers::Offset<Model> model_offset;
-  if (ModelBuilder::nbr_of_metadata_buffers_ > 0) {
+  if (nbr_of_buffers_ > 0) {
     model_offset = tflite::CreateModel(
         *builder_, 0,
         builder_->CreateVector(operator_codes_, next_operator_code_id_),
         builder_->CreateVector(subgraphs, subgraphs_size),
         builder_->CreateString("test_model"),
-        builder_->CreateVector(buffers, buffer_size), 0,
-        builder_->CreateVector(metadata_,
-                               ModelBuilder::nbr_of_metadata_buffers_));
+        builder_->CreateVector(buffers_, nbr_of_buffers_), 0,
+        builder_->CreateVector(metadata_, nbr_of_metadata_));
   } else {
     model_offset = tflite::CreateModel(
         *builder_, 0,
         builder_->CreateVector(operator_codes_, next_operator_code_id_),
         builder_->CreateVector(subgraphs, subgraphs_size),
         builder_->CreateString("test_model"),
-        builder_->CreateVector(buffers, buffer_size));
+        builder_->CreateVector(buffers_, nbr_of_buffers_));
   }
 
   tflite::FinishModelBuffer(*builder_, model_offset);
-  void* model_pointer = builder_->GetBufferPointer();
+  uint8_t* model_pointer = builder_->GetBufferPointer();
   const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+
+  if (use_buffer_offset_) {
+    // fill Buffer offset placeholder field with actual offset
+    for (int i = 1; i < nbr_of_buffers_; i++) {
+      if (buffers_start_[i] == nullptr) {
+        continue;
+      }
+      flatbuffers::Table* bp;  // tflite::Buffer*
+      bp = reinterpret_cast<flatbuffers::Table*>(
+          model->buffers()->GetMutableObject(i));
+      bp->SetField(tflite::Buffer::VT_OFFSET,
+                   buffers_start_[i] - model_pointer);
+    }
+
+    // fill Operator custom option offset placeholder field with actual offset
+    for (int i = 0; i < next_operator_id_; i++) {
+      if (operators_custom_options_start_[i] == nullptr) {
+        continue;
+      }
+      flatbuffers::Table* op;  // tflite::Operator*
+      op = reinterpret_cast<flatbuffers::Table*>(
+          model->subgraphs()->Get(0)->operators()->GetMutableObject(i));
+      op->SetField(tflite::Operator::VT_LARGE_CUSTOM_OPTIONS_OFFSET,
+                   operators_custom_options_start_[i] - model_pointer);
+    }
+  }
+
   return model;
 }
 
 ModelBuilder::Tensor ModelBuilder::AddTensorImpl(
-    TensorType type, bool is_variable, std::initializer_list<int32_t> shape) {
-  TFLITE_DCHECK(next_tensor_id_ <= kMaxTensors);
-  tensors_[next_tensor_id_] = tflite::CreateTensor(
-      *builder_, builder_->CreateVector(shape.begin(), shape.size()), type,
-      /* buffer */ 0, /* name */ 0, /* quantization */ 0,
-      /* is_variable */ is_variable,
-      /* sparsity */ 0);
+    TensorType type, bool is_variable,
+    const std::initializer_list<int32_t>& shape,
+    const std::initializer_list<int8_t>& datum) {
+  TFLITE_DCHECK(next_tensor_id_ < kMaxTensors);
+
+  if (datum.size() == 0) {
+    tensors_[next_tensor_id_] = tflite::CreateTensor(
+        *builder_, builder_->CreateVector(shape.begin(), shape.size()), type,
+        /* buffer */ 0, /* name */ 0, /* quantization */ 0,
+        /* is_variable */ is_variable,
+        /* sparsity */ 0);
+  } else {
+    TFLITE_DCHECK(nbr_of_buffers_ < kMaxBuffers);
+
+    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_offset;
+    uint64_t buffer_data_offset = 0;
+    uint64_t buffer_data_size = 0;
+    const size_t tensor_buffer_data_size = datum.size();
+    if (use_buffer_offset_) {
+      // vector_offset.o will be 0 (zero)
+      builder_->PushBytes(reinterpret_cast<const uint8_t*>(datum.begin()),
+                          tensor_buffer_data_size);
+      buffers_start_[nbr_of_buffers_] = builder_->GetCurrentBufferPointer();
+      buffer_data_offset = 1;  // field placeholder
+      buffer_data_size = tensor_buffer_data_size;
+    } else {
+      vector_offset = builder_->CreateVector(
+          reinterpret_cast<const uint8_t*>(datum.begin()),
+          tensor_buffer_data_size);
+    }
+    buffers_[nbr_of_buffers_] = tflite::CreateBuffer(
+        *builder_, vector_offset, buffer_data_offset, buffer_data_size);
+
+    tensors_[next_tensor_id_] = tflite::CreateTensor(
+        *builder_, builder_->CreateVector(shape.begin(), shape.size()), type,
+        /* buffer */ nbr_of_buffers_, /* name */ 0, /* quantization */ 0,
+        /* is_variable */ is_variable,
+        /* sparsity */ 0);
+
+    nbr_of_buffers_++;
+  }
+
   next_tensor_id_++;
   return next_tensor_id_ - 1;
 }
@@ -341,11 +467,12 @@ const Model* BuildModelWithOfflinePlanning(int number_of_tensors,
                                            const int32_t* metadata_buffer,
                                            NodeConnection* node_conn,
                                            int num_conns,
-                                           int num_subgraph_inputs) {
+                                           int num_subgraph_inputs,
+                                           bool use_buffer_offset) {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* fb_builder = BuilderInstance();
 
-  ModelBuilder model_builder(fb_builder);
+  ModelBuilder model_builder(fb_builder, use_buffer_offset);
 
   const int op_id =
       model_builder.RegisterOp(BuiltinOperator_CUSTOM, "mock_custom");
@@ -595,6 +722,7 @@ const flatbuffers::span<uint8_t> BuildLutMetadata(
   namespace compression = tflite::micro::compression;
 
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
+  uint8_t* const start_buffer = builder->GetCurrentBufferPointer();
 
   auto lut_tensor = compression::CreateLutTensor(
       *builder, tensor_index, value_table_buffer_index, bit_width);
@@ -604,13 +732,18 @@ const flatbuffers::span<uint8_t> BuildLutMetadata(
   auto metadata = compression::CreateMetadata(
       *builder, schema_version, builder->CreateVector(&subgraph, 1));
   compression::FinishMetadataBuffer(*builder, metadata);
-  return builder->GetBufferSpan();
+
+  // Can't use FlatBufferBuilder::GetBufferSpan here to get the metadata model
+  // size as the flatbuffer builder is being abused through our custom memory
+  // allocator.
+  uint8_t* const end_buffer = builder->GetCurrentBufferPointer();
+  // The flatbuffer builder works from high to low memory
+  return flatbuffers::span<uint8_t>(end_buffer, start_buffer - end_buffer);
 }
 
-const Model* BuildSimpleMockModelCompressed() {
+const Model* BuildSimpleMockModelCompressed(bool use_buffer_offset) {
   using flatbuffers::Offset;
   using flatbuffers::Vector;
-  using tflite::micro::compression::LutTensor;
   constexpr uint32_t kEmptyBuffer = 0;
   constexpr uint32_t kMetadataBuffer = 1;
   constexpr uint32_t kWeightsBuffer = 2;
@@ -626,16 +759,60 @@ const Model* BuildSimpleMockModelCompressed() {
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
 
   // [1, 2, 3, 4, 5, -1, -2, -3, -4, -5, 1, 2, 3, 4, 5]
-  const std::initializer_list<uint8_t> weights_data = {0x01, 0x23, 0x45, 0x98,
-                                                       0x76, 0x01, 0x23, 0x40};
-  const std::initializer_list<int16_t> value_table_data = {1,  2,  3,  4,  5,
-                                                           -1, -5, -4, -3, -2};
-  auto value_table_offset = builder->CreateVector(value_table_data).o;
+  const uint8_t weights_data[] = {0x01, 0x23, 0x45, 0x98,
+                                  0x76, 0x01, 0x23, 0x40};
+  const int16_t value_table_data[] = {1, 2, 3, 4, 5, -1, -5, -4, -3, -2};
+
+  uint64_t lut_tensors_buffer_offset = 0;
+  uint64_t lut_tensors_buffer_size = 0;
+  uint64_t weights_data_buffer_offset = 0;
+  uint64_t weights_data_buffer_size = 0;
+  uint64_t value_table_buffer_offset = 0;
+  uint64_t value_table_buffer_size = 0;
+  Offset<Vector<uint8_t>> lut_tensors_offset;
+  Offset<Vector<uint8_t>> weights_data_offset;
+  Offset<Vector<int16_t>> value_table_offset;
+  uint8_t* weights_data_buffer_start = nullptr;
+  uint8_t* value_table_buffer_start = nullptr;
+
+  if (use_buffer_offset) {
+    lut_tensors_buffer_offset = 1;  // field placeholder
+    lut_tensors_buffer_size = lut_tensors_span.size_bytes();
+  } else {
+    lut_tensors_offset = builder->CreateVector<uint8_t>(lut_tensors_span);
+  }
+  // weights and value table need to have their data 16 byte aligned
+  builder->PreAlign(sizeof(weights_data), tflite::MicroArenaBufferAlignment());
+  if (use_buffer_offset) {
+    weights_data_buffer_offset = 1;  // field placeholder
+    weights_data_buffer_size = sizeof(weights_data);
+    builder->PushBytes(weights_data, weights_data_buffer_size);
+    weights_data_buffer_start = builder->GetCurrentBufferPointer();
+  } else {
+    weights_data_offset =
+        builder->CreateVector(weights_data, std::size(weights_data));
+  }
+  builder->PreAlign(sizeof(value_table_data),
+                    tflite::MicroArenaBufferAlignment());
+  if (use_buffer_offset) {
+    value_table_buffer_offset = 1;  // field placeholder
+    value_table_buffer_size = sizeof(value_table_data);
+    builder->PushBytes(reinterpret_cast<const uint8_t*>(value_table_data),
+                       value_table_buffer_size);
+    value_table_buffer_start = builder->GetCurrentBufferPointer();
+  } else {
+    value_table_offset =
+        builder->CreateVector(value_table_data, std::size(value_table_data));
+  }
   const std::initializer_list<Offset<Buffer>> buffers = {
       CreateBuffer(*builder),
-      CreateBuffer(*builder, builder->CreateVector<uint8_t>(lut_tensors_span)),
-      CreateBuffer(*builder, builder->CreateVector(weights_data)),
-      CreateBuffer(*builder, Offset<Vector<uint8_t>>(value_table_offset)),
+      CreateBuffer(*builder, lut_tensors_offset, lut_tensors_buffer_offset,
+                   lut_tensors_buffer_size),
+      CreateBuffer(*builder, weights_data_offset, weights_data_buffer_offset,
+                   weights_data_buffer_size),
+      // value table is int16_t, but CreateBuffer requires uint8_t offsets
+      CreateBuffer(*builder, Offset<Vector<uint8_t>>(value_table_offset.o),
+                   value_table_buffer_offset, value_table_buffer_size),
   };
 
   const std::initializer_list<int32_t> input_shape = {1};
@@ -689,8 +866,25 @@ const Model* BuildSimpleMockModelCompressed() {
       builder->CreateVector(buffers), 0, builder->CreateVector(metadata));
 
   FinishModelBuffer(*builder, model_offset);
-  void* model_pointer = builder->GetBufferPointer();
+  uint8_t* model_pointer = builder->GetBufferPointer();
   const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
+
+  if (use_buffer_offset) {
+    // fill Buffer offset placeholder field with actual offset
+    flatbuffers::Table* bp;  // tflite::Buffer*
+    bp = reinterpret_cast<flatbuffers::Table*>(
+        model->buffers()->GetMutableObject(kMetadataBuffer));
+    bp->SetField(tflite::Buffer::VT_OFFSET,
+                 lut_tensors_span.data() - model_pointer);
+    bp = reinterpret_cast<flatbuffers::Table*>(
+        model->buffers()->GetMutableObject(kWeightsBuffer));
+    bp->SetField(tflite::Buffer::VT_OFFSET,
+                 weights_data_buffer_start - model_pointer);
+    bp = reinterpret_cast<flatbuffers::Table*>(
+        model->buffers()->GetMutableObject(kValueTableBuffer));
+    bp->SetField(tflite::Buffer::VT_OFFSET,
+                 value_table_buffer_start - model_pointer);
+  }
 
   return model;
 }
@@ -1564,6 +1758,45 @@ const Model* BuildNoOpModelWithTensorShape(
   return model_builder.BuildModel({}, {tensor_0, tensor_1});
 }
 
+const Model* BuildNoOpModelWithTensorData(
+    const std::initializer_list<int8_t>& datum, bool use_buffer_offset) {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* fb_builder = BuilderInstance();
+
+  ModelBuilder model_builder(fb_builder, use_buffer_offset);
+
+  // build model with 1 tensor output.
+  const int op_id = model_builder.RegisterOp(BuiltinOperator_CUSTOM, "no_op");
+  const std::initializer_list<int32_t> shape = {
+      static_cast<int32_t>(datum.size())};
+  const int tensor_0 = model_builder.AddTensor(TensorType_INT8, shape, datum);
+
+  model_builder.AddNode(op_id, {}, {tensor_0}, {});
+  return model_builder.BuildModel({}, {tensor_0});
+}
+
+const Model* BuildModelWithTensorDataAndCustomOptions(
+    const std::initializer_list<int8_t>& datum,
+    const std::initializer_list<uint8_t>& options_data,
+    bool use_buffer_offset) {
+  using flatbuffers::Offset;
+  flatbuffers::FlatBufferBuilder* fb_builder = BuilderInstance();
+
+  ModelBuilder model_builder(fb_builder, use_buffer_offset);
+
+  const int op_id =
+      model_builder.RegisterOp(BuiltinOperator_CUSTOM, "mock_custom");
+  const int input1_tensor = model_builder.AddTensor(TensorType_INT32, {1});
+  const int weight_tensor = model_builder.AddTensor(
+      TensorType_INT8, {static_cast<int32_t>(datum.size())}, datum);
+  const int output_tensor = model_builder.AddTensor(TensorType_INT32, {1});
+
+  model_builder.AddNode(op_id, {input1_tensor, weight_tensor}, {output_tensor},
+                        {}, options_data);
+  return model_builder.BuildModel({input1_tensor, weight_tensor},
+                                  {output_tensor});
+}
+
 }  // namespace
 
 const TFLMRegistration* SimpleStatefulOp::getRegistration() {
@@ -1678,23 +1911,31 @@ void* MockCustom::Init(TfLiteContext* context, const char* buffer,
 void MockCustom::Free(TfLiteContext* context, void* buffer) { freed_ = true; }
 
 TfLiteStatus MockCustom::Prepare(TfLiteContext* context, TfLiteNode* node) {
+  if (node->custom_initial_data != nullptr ||
+      node->custom_initial_data_size > 0) {
+    TF_LITE_ENSURE(context, node->custom_initial_data != nullptr);
+    TF_LITE_ENSURE(context, node->custom_initial_data_size == 1);
+  }
   return kTfLiteOk;
 }
 
 TfLiteStatus MockCustom::Invoke(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TF_LITE_ENSURE(context, input != nullptr);
-  const int32_t* input_data = input->data.i32;
+  const int32_t* input_data = static_cast<const int32_t*>(input->data.data);
   const TfLiteEvalTensor* weight =
       tflite::micro::GetEvalInput(context, node, 1);
   TF_LITE_ENSURE(context, weight != nullptr);
-  const uint8_t* weight_data = weight->data.uint8;
+  const int8_t* weight_data = static_cast<const int8_t*>(weight->data.data);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
   TF_LITE_ENSURE(context, output != nullptr);
-  int32_t* output_data = output->data.i32;
+  int32_t* output_data = static_cast<int32_t*>(output->data.data);
   output_data[0] =
       0;  // Catch output tensor sharing memory with an input tensor
   output_data[0] = input_data[0] + weight_data[0];
+  if (node->custom_initial_data != nullptr) {
+    output_data[0] += static_cast<const uint8_t*>(node->custom_initial_data)[0];
+  }
   return kTfLiteOk;
 }
 
@@ -1838,12 +2079,14 @@ const Model* GetSimpleMockModel() {
 
 #ifdef USE_TFLM_COMPRESSION
 
-const Model* GetSimpleMockModelCompressed() {
-  static Model* model = nullptr;
-  if (!model) {
-    model = const_cast<Model*>(BuildSimpleMockModelCompressed());
+const Model* GetSimpleMockModelCompressed(bool use_buffer_offset) {
+  if (use_buffer_offset) {
+    static const Model* model = BuildSimpleMockModelCompressed(true);
+    return model;
+  } else {
+    static const Model* model = BuildSimpleMockModelCompressed(false);
+    return model;
   }
-  return model;
 }
 
 #endif  // USE_TFLM_COMPRESSION
@@ -1915,10 +2158,11 @@ const Model* GetSimpleModelWithBranch() {
 const Model* GetModelWithOfflinePlanning(int num_tensors,
                                          const int32_t* metadata_buffer,
                                          NodeConnection* node_conn,
-                                         int num_conns,
-                                         int num_subgraph_inputs) {
+                                         int num_conns, int num_subgraph_inputs,
+                                         bool use_buffer_offset) {
   const Model* model = BuildModelWithOfflinePlanning(
-      num_tensors, metadata_buffer, node_conn, num_conns, num_subgraph_inputs);
+      num_tensors, metadata_buffer, node_conn, num_conns, num_subgraph_inputs,
+      use_buffer_offset);
   return model;
 }
 
@@ -1934,6 +2178,23 @@ const Model* GetNoOpModelWithTensorShape(
     const std::initializer_list<int32_t>& shape) {
   // don't cache the model as the tensor shape can be different on each call
   return const_cast<Model*>(BuildNoOpModelWithTensorShape(shape));
+}
+
+const Model* GetNoOpModelWithTensorData(
+    const std::initializer_list<int8_t>& datum, bool use_buffer_offset) {
+  // don't cache the model as the tensor datum can be different on each call
+  return const_cast<Model*>(
+      BuildNoOpModelWithTensorData(datum, use_buffer_offset));
+}
+
+const Model* GetModelWithTensorDataAndCustomOptions(
+    const std::initializer_list<int8_t>& datum,
+    const std::initializer_list<uint8_t>& options_data,
+    bool use_buffer_offset) {
+  // don't cache the model as the tensor datum and options data
+  // can be different on each call
+  return const_cast<Model*>(BuildModelWithTensorDataAndCustomOptions(
+      datum, options_data, use_buffer_offset));
 }
 
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable) {

@@ -178,7 +178,7 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
       kTfLiteOk,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
           simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
-          buffers, &allocated_tensor));
+          buffers, &allocated_tensor, nullptr));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_tensor.dims->data[0]);
@@ -206,7 +206,7 @@ TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
                      simple_allocator, simple_allocator, /*allocate_temp=*/true,
-                     *tensor, buffers, &allocated_temp_tensor));
+                     *tensor, buffers, &allocated_temp_tensor, nullptr));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_temp_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_temp_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_temp_tensor.dims->data[0]);
@@ -235,7 +235,7 @@ TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
       kTfLiteOk,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
           simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
-          buffers, &allocated_tensor));
+          buffers, &allocated_tensor, nullptr));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_tensor.dims->data[0]);
@@ -262,7 +262,7 @@ TF_LITE_MICRO_TEST(TestMissingQuantization) {
       kTfLiteOk,
       tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
           simple_allocator, simple_allocator, /*allocate_temp=*/false, *tensor,
-          buffers, &allocated_tensor));
+          buffers, &allocated_tensor, nullptr));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt32, allocated_tensor.type);
   TF_LITE_MICRO_EXPECT_EQ(1, allocated_tensor.dims->size);
   TF_LITE_MICRO_EXPECT_EQ(100, allocated_tensor.dims->data[0]);
@@ -770,6 +770,58 @@ TF_LITE_MICRO_TEST(OfflinePlannerBasic) {
                                   start);
 }
 
+TF_LITE_MICRO_TEST(OfflinePlannerBasicUsingBufferOffset) {
+  constexpr int number_tensors = 4;
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+  const int32_t metadata_buffer[tflite::testing::kOfflinePlannerHeaderSize +
+                                number_tensors] = {1,         0, number_tensors,
+                                                   /*t0=*/0,
+                                                   /*t1=*/48,
+                                                   /*t2=*/0,
+                                                   /*t3=*/48};
+  constexpr int number_connections = 3;
+  tflite::testing::NodeConnection node_list[number_connections] = {
+      {/*input=*/{tflite::testing::t0},
+       /*output=*/{tflite::testing::t1}},
+      {/*input=*/{tflite::testing::t1},
+       /*output=*/{tflite::testing::t2}},
+      {/*input=*/{tflite::testing::t2},
+       /*output=*/{tflite::testing::t3}}};
+
+  const tflite::Model* model = tflite::testing::GetModelWithOfflinePlanning(
+      number_tensors, metadata_buffer, node_list, number_connections, 0, true);
+
+  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
+  constexpr size_t arena_size = 4096;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, arena_size);
+
+  tflite::SubgraphAllocations* subgraph_allocations =
+      allocator->StartModelAllocation(model);
+  TF_LITE_MICRO_EXPECT(nullptr != subgraph_allocations);
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteOk, allocator->FinishModelAllocation(model, subgraph_allocations,
+                                                  &scratch_buffer_handles));
+
+  int8_t* start =
+      tflite::micro::GetTensorData<int8_t>(&subgraph_allocations[0].tensors[0]);
+  TF_LITE_MICRO_EXPECT_EQ(0, tflite::micro::GetTensorData<int8_t>(
+                                 &subgraph_allocations[0].tensors[0]) -
+                                 start);
+  TF_LITE_MICRO_EXPECT_EQ(48, tflite::micro::GetTensorData<int8_t>(
+                                  &subgraph_allocations[0].tensors[1]) -
+                                  start);
+  TF_LITE_MICRO_EXPECT_EQ(0, tflite::micro::GetTensorData<int8_t>(
+                                 &subgraph_allocations[0].tensors[2]) -
+                                 start);
+  TF_LITE_MICRO_EXPECT_EQ(48, tflite::micro::GetTensorData<int8_t>(
+                                  &subgraph_allocations[0].tensors[3]) -
+                                  start);
+}
+
 TF_LITE_MICRO_TEST(OfflinePlannerOverlappingAllocation) {
   constexpr int number_tensors = 4;
   tflite::testing::TestingOpResolver op_resolver;
@@ -896,14 +948,14 @@ TF_LITE_MICRO_TEST(TestAllocatePersistentTfLiteTensor) {
   TF_LITE_MICRO_EXPECT(allocator != nullptr);
 
   TfLiteTensor* tensor1 = allocator->AllocatePersistentTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/6,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
   TF_LITE_MICRO_EXPECT(tensor1->quantization.params != nullptr);
   TF_LITE_MICRO_EXPECT_FALSE(tensor1->is_variable);
 
   TfLiteTensor* tensor2 = allocator->AllocatePersistentTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/2,
+      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/4,
       /*subgraph_index=*/0);
   TF_LITE_MICRO_EXPECT(tensor2 != nullptr);
   TF_LITE_MICRO_EXPECT(tensor2->quantization.params != nullptr);
@@ -939,17 +991,51 @@ TF_LITE_MICRO_TEST(TestFailAllocatePersistentTfLiteTensor) {
 }
 
 TF_LITE_MICRO_TEST(TestAllocateSingleTempTfLiteTensor) {
-  const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  constexpr size_t arena_size = 1024;
-  uint8_t arena[arena_size];
+  const tflite::Model* model =
+      tflite::testing::GetNoOpModelWithTensorData({42}, false);
+  constexpr size_t kArenaSize = 1024;
+  uint8_t arena[kArenaSize];
   tflite::MicroAllocator* allocator =
-      tflite::MicroAllocator::Create(arena, arena_size);
-  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+      tflite::MicroAllocator::Create(arena, kArenaSize);
 
-  TfLiteTensor* tensor1 = allocator->AllocateTempTfLiteTensor(
-      model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/1,
-      /*subgraph_index=*/0);
-  TF_LITE_MICRO_EXPECT(tensor1 != nullptr);
+  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  if (allocator != nullptr) {
+    TfLiteTensor* tensor0 = allocator->AllocateTempTfLiteTensor(
+        model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/0,
+        /*subgraph_index=*/0);
+    TF_LITE_MICRO_EXPECT(tensor0 != nullptr);
+    if (tensor0 != nullptr) {
+      const int8_t* data_pointer = tflite::GetTensorData<int8_t>(tensor0);
+      TF_LITE_MICRO_EXPECT(data_pointer != nullptr);
+      if (data_pointer != nullptr) {
+        TF_LITE_MICRO_EXPECT_EQ(data_pointer[0], 42);
+      }
+    }
+  }
+}
+
+TF_LITE_MICRO_TEST(TestAllocateSingleTempTfLiteTensorUsingBufferOffset) {
+  const tflite::Model* model =
+      tflite::testing::GetNoOpModelWithTensorData({0x42}, true);
+  constexpr size_t kArenaSize = 1024;
+  uint8_t arena[kArenaSize];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, kArenaSize);
+
+  TF_LITE_MICRO_EXPECT(allocator != nullptr);
+  if (allocator != nullptr) {
+    TfLiteTensor* tensor0 = allocator->AllocateTempTfLiteTensor(
+        model, /*subgraph_allocations=*/nullptr, /*tensor_index=*/0,
+        /*subgraph_index=*/0);
+    TF_LITE_MICRO_EXPECT(tensor0 != nullptr);
+    if (tensor0 != nullptr) {
+      const int8_t* data_pointer = tflite::GetTensorData<int8_t>(tensor0);
+      TF_LITE_MICRO_EXPECT(data_pointer != nullptr);
+      if (data_pointer != nullptr) {
+        TF_LITE_MICRO_EXPECT_EQ(data_pointer[0], 0x42);
+      }
+    }
+  }
 }
 
 TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {

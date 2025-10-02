@@ -327,7 +327,8 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphModel) {
 TF_LITE_MICRO_TEST(TestCompressedModel) {
   tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
   tflite::testing::TestingOpResolver ops_resolver;
-  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
+  const tflite::Model* model =
+      tflite::testing::GetSimpleMockModelCompressed(false);
   const int arena_size = 2048;
 
   uint8_t arena[arena_size];
