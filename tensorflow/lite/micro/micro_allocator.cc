@@ -230,6 +230,19 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     TfLiteTensor* result) {
   TFLITE_DCHECK(result != nullptr);
 
+  // Validate buffer index before any dereference of the buffers vector.
+  if (buffers == nullptr) {
+    MicroPrintf("Model buffers vector is null\n");
+    return kTfLiteError;
+  }
+  const uint32_t buffer_index = flatbuffer_tensor.buffer();
+  if (buffer_index >= buffers->size()) {
+    MicroPrintf(
+        "Tensor references invalid buffer index %u, model has only %d buffers\n",
+        buffer_index, buffers->size());
+    return kTfLiteError;
+  }
+
   *result = {};
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
@@ -347,6 +360,20 @@ TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
     TfLiteEvalTensor* result) {
   *result = {};
+
+  // Validate buffer index before any dereference of the buffers vector.
+  if (buffers == nullptr) {
+    MicroPrintf("Model buffers vector is null\n");
+    return kTfLiteError;
+  }
+  const uint32_t buffer_index = flatbuffer_tensor.buffer();
+  if (buffer_index >= buffers->size()) {
+    MicroPrintf(
+        "Tensor references invalid buffer index %u, model has only %d buffers\n",
+        buffer_index, buffers->size());
+    return kTfLiteError;
+  }
+
   // Make sure the serialized type is one we know how to deal with, and convert
   // it from a flatbuffer enum into a constant used by the kernel C API.
   TF_LITE_ENSURE_STATUS(
@@ -1107,11 +1134,43 @@ TfLiteStatus MicroAllocator::PopulateTfLiteTensorFromFlatbuffer(
   // TODO(b/162311891): This method serves as a stub to ensure quantized
   // allocations in the tail can be recorded. Once the interpreter has APIs for
   // accessing buffers on TfLiteEvalTensor this method can be dropped.
+
+  // Validate subgraph and tensor indices before dereferencing FlatBuffer
+  // vectors to avoid out-of-bounds access.
+  if (subgraph_idx < 0 ||
+      static_cast<size_t>(subgraph_idx) >= model->subgraphs()->size()) {
+    MicroPrintf("Invalid subgraph index %d, model has only %d subgraphs\n",
+                subgraph_idx, model->subgraphs()->size());
+    return kTfLiteError;
+  }
+  const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
+  if (subgraph == nullptr || subgraph->tensors() == nullptr) {
+    MicroPrintf("Subgraph %d has no tensors vector\n", subgraph_idx);
+    return kTfLiteError;
+  }
+  if (tensor_index < 0 ||
+      static_cast<size_t>(tensor_index) >= subgraph->tensors()->size()) {
+    MicroPrintf(
+        "Invalid tensor index %d for subgraph %d, subgraph has only %d tensors\n",
+        tensor_index, subgraph_idx, subgraph->tensors()->size());
+    return kTfLiteError;
+  }
+
+  const tflite::Tensor* flatbuffer_tensor =
+      subgraph->tensors()->Get(tensor_index);
+
+  // Buffer index validation is performed in
+  // InitializeTfLiteTensorFromFlatbuffer but we also ensure model->buffers() is
+  // non-null here for completeness.
+  if (model->buffers() == nullptr) {
+    MicroPrintf("Model buffers vector is null\n");
+    return kTfLiteError;
+  }
+
+  // Populate the TfLiteTensor fields from the flatbuffer.
   return internal::InitializeTfLiteTensorFromFlatbuffer(
       persistent_buffer_allocator_, non_persistent_buffer_allocator_,
-      allocate_temp,
-      *model->subgraphs()->Get(subgraph_idx)->tensors()->Get(tensor_index),
-      model->buffers(), tensor);
+      allocate_temp, *flatbuffer_tensor, model->buffers(), tensor);
 }
 
 TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(

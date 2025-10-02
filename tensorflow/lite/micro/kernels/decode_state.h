@@ -43,6 +43,8 @@ class DecodeState {
 
   static DecodeState* CreateDecodeStateLUT(const TfLiteContext* context,
                                            MicroProfilerInterface* profiler);
+  static DecodeState* CreateDecodeStatePrune(const TfLiteContext* context,
+                                             MicroProfilerInterface* profiler);
 
   static uint8_t Type(const TfLiteTensor& ancillary) {
     return GetTensorData<uint8_t>(&ancillary)[kDcmDecodeTypeOffset];
@@ -66,6 +68,7 @@ class DecodeState {
   // Decode Common Metadata constants
  public:
   static constexpr uint8_t kDcmTypeLUT = 0;
+  static constexpr uint8_t kDcmTypePrune = 2;
   static constexpr uint8_t kDcmTypeCustom = 127;
 
   static constexpr size_t kDcmSizeInBytes = 16;

@@ -14,51 +14,19 @@ limitations under the License.
 ==============================================================================*/
 
 #include <array>
+#include <cstdint>
 #include <initializer_list>
-#include <type_traits>
 
 #include "tensorflow/lite/core/c/common.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
-#include "tensorflow/lite/micro/kernels/kernel_runner.h"
-#include "tensorflow/lite/micro/test_helpers.h"
+#include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
-namespace tflite {
-namespace testing {
 namespace {
 
-struct TensorInDatum {
-  const void* const data;
-  const TfLiteIntArray& dims;
-};
-
-struct TensorOutDatum {
-  void* const data;
-  const TfLiteIntArray& dims;
-  const TfLiteType type;
-  const TfLiteFloatArray& scales;
-  const TfLiteIntArray& zero_points;
-  const int quantized_dimension;
-
-  // initialized by CreatePerChannelQuantizedTensor
-  const TfLiteAffineQuantization affine_quantization;
-};
-
-template <typename T, size_t N>
-struct AncillaryData {
-  AncillaryData() = delete;
-  AncillaryData(const uint8_t (&dcm)[tflite::DecodeState::kDcmSizeInBytes],
-                const T (&values)[N]) {
-    std::copy(std::begin(dcm), std::end(dcm), std::begin(dcm_));
-    std::copy(std::begin(values), std::end(values), std::begin(value_table_));
-  }
-
- private:
-  uint8_t dcm_[tflite::DecodeState::kDcmSizeInBytes];
-  T value_table_[N > 0 ? N : 1];  // assure not zero length
-};
-
+//
+// LUT test data
+//
 constexpr int kBitWidthLUT = 2;
 
 constexpr int8_t kAncillaryDataLUT0[] = {1, 2, 3, 4};
@@ -98,119 +66,11 @@ constexpr int kEncodedShapeLUT[] = {1, sizeof(kEncodedLUT)};
 constexpr int8_t kExpectLUT0[] = {1, 2, 3, 4, 4, 3, 2, 1};
 constexpr int16_t kExpectLUT1[] = {5, 6, 7, 8, 8, 7, 6, 5};
 
-template <typename T>
-TfLiteStatus CheckOutput(const TfLiteTensor& output,
-                         const void* const expected) {
-  const T* const expected_data = reinterpret_cast<const T*>(expected);
-  const T* const output_data = tflite::GetTensorData<T>(&output);
-
-  constexpr float kTolerance = 1e-5;
-  const size_t kOutputCount = tflite::NumElements(&output);
-  for (size_t i = 0; i < kOutputCount; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
-    TF_LITE_MICRO_CHECK_FAIL();
-  }
-
-  return kTfLiteOk;
-}
-
-template <size_t kNumInputs, size_t kNumOutputs>
-TfLiteStatus ExecuteDecodeTest(
-    TfLiteTensor* tensors, const TFLMRegistration& registration,
-    const std::initializer_list<const void*>& expected) {
-  int kInputArrayData[kNumInputs + 1] = {kNumInputs};
-  for (size_t i = 0; i < kNumInputs; i++) {
-    kInputArrayData[i + 1] = i;
-  }
-  TfLiteIntArray* inputs_array = IntArrayFromInts(kInputArrayData);
-
-  int kOutputArrayData[kNumOutputs + 1] = {kNumOutputs};
-  for (size_t i = 0; i < kNumOutputs; i++) {
-    kOutputArrayData[i + 1] = i + kNumInputs;
-  }
-  TfLiteIntArray* outputs_array = IntArrayFromInts(kOutputArrayData);
-
-  micro::KernelRunner runner(registration, tensors, kNumInputs + kNumOutputs,
-                             inputs_array, outputs_array, nullptr);
-
-  if (runner.InitAndPrepare() != kTfLiteOk || runner.Invoke() != kTfLiteOk) {
-    return kTfLiteError;
-  }
-
-  const TfLiteTensor* const output_tensors = &tensors[kNumInputs];
-  TfLiteStatus status = kTfLiteError;
-  for (size_t i = 0; i < kNumOutputs; i++) {
-    switch (output_tensors[i].type) {
-      case kTfLiteInt8:
-        status = CheckOutput<int8_t>(output_tensors[i], expected.begin()[i]);
-        break;
-      case kTfLiteInt16:
-        status = CheckOutput<int16_t>(output_tensors[i], expected.begin()[i]);
-        break;
-      default:
-        TF_LITE_MICRO_FAIL("unsupported tensor type in test");
-        break;
-    }
-  }
-
-  return status;
-}
-
-template <size_t kNumInputs, size_t kNumOutputs>
-void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
-                const std::initializer_list<const TensorInDatum*>& ancillaries,
-                const std::initializer_list<const TensorOutDatum*>& outputs,
-                const std::initializer_list<const void*>& expected,
-                const TFLMRegistration& registration,
-                const TfLiteStatus expected_status = kTfLiteOk) {
-  TfLiteTensor tensors[kNumInputs + kNumOutputs] = {};
-
-  for (size_t i = 0; i < kNumInputs; i += 2) {
-    const TensorInDatum& tid_encode = *encodes.begin()[i / 2];
-    tensors[i] = CreateTensor(tid_encode.data,
-                              const_cast<TfLiteIntArray*>(&tid_encode.dims),
-                              false, kTfLiteUInt8);
-    const TensorInDatum& tid_ancillary = *ancillaries.begin()[i / 2];
-    tensors[i + 1] = CreateTensor(
-        tid_ancillary.data, const_cast<TfLiteIntArray*>(&tid_ancillary.dims),
-        false, kTfLiteUInt8);
-  }
-  for (size_t i = 0; i < kNumOutputs; i++) {
-    const TensorOutDatum& tod = *outputs.begin()[i];
-    if (tod.scales.size == 0) {
-      tensors[i + kNumInputs] = CreateTensor(
-          tod.data, const_cast<TfLiteIntArray*>(&tod.dims), false, tod.type);
-    } else {
-      tensors[i + kNumInputs] = CreatePerChannelQuantizedTensor(
-          tod.data, const_cast<TfLiteIntArray*>(&tod.dims),
-          const_cast<TfLiteFloatArray*>(&tod.scales),
-          const_cast<TfLiteIntArray*>(&tod.zero_points),
-          const_cast<TfLiteAffineQuantization*>(&tod.affine_quantization),
-          tod.quantized_dimension, false, tod.type);
-    }
-  }
-
-  TfLiteStatus s = ExecuteDecodeTest<kNumInputs, kNumOutputs>(
-      tensors, registration, expected);
-  TF_LITE_MICRO_EXPECT_EQ(s, expected_status);
-}
-
 }  // namespace
-}  // namespace testing
-}  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
 
 using tflite::testing::AncillaryData;
-using tflite::testing::kAncillaryDataLUT0;
-using tflite::testing::kAncillaryDataLUT1;
-using tflite::testing::kDcmLUT0;
-using tflite::testing::kDcmLUT1;
-using tflite::testing::kEncodedLUT;
-using tflite::testing::kEncodedShapeLUT;
-using tflite::testing::kExpectLUT0;
-using tflite::testing::kExpectLUT1;
-using tflite::testing::kOutputShapeLUT;
 using tflite::testing::TensorInDatum;
 using tflite::testing::TensorOutDatum;
 
