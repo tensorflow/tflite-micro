@@ -15,18 +15,12 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_interpreter_context.h"
 
+#include <algorithm>
 #include <cstdint>
 
-#ifdef USE_TFLM_COMPRESSION
-
-#include <algorithm>
-
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
-
-#endif  // USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -220,9 +214,11 @@ void* MicroInterpreterContext::DecompressTensorToBuffer(
                                                 buffer);
 }
 
+#endif  // USE_TFLM_COMPRESSION
+
 TfLiteStatus MicroInterpreterContext::SetDecompressionMemory(
     const std::initializer_list<MicroContext::AlternateMemoryRegion>& regions) {
-  if (state_ != InterpreterState::kInit) {
+  if (state_ != InterpreterState::kInit || decompress_regions_ != nullptr) {
     return kTfLiteError;
   }
 
@@ -239,8 +235,13 @@ TfLiteStatus MicroInterpreterContext::SetDecompressionMemory(
 
 void* MicroInterpreterContext::AllocateDecompressionMemory(size_t bytes,
                                                            size_t alignment) {
+#ifdef USE_TFLM_COMPRESSION
   TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
                 state_ == InterpreterState::kInvoke);
+#else
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
+#endif  // USE_TFLM_COMPRESSION
+
   if (decompress_regions_ != nullptr) {
     for (size_t i = 0; i < decompress_regions_->size(); i++) {
       const AlternateMemoryRegion* region = &decompress_regions_->begin()[i];
@@ -265,8 +266,6 @@ void MicroInterpreterContext::ResetDecompressionMemoryAllocations() {
   TFLITE_DCHECK(decompress_regions_allocations_ != nullptr);
   std::fill_n(decompress_regions_allocations_, decompress_regions_->size(), 0);
 }
-
-#endif  // USE_TFLM_COMPRESSION
 
 TfLiteStatus MicroInterpreterContext::SetAlternateProfiler(
     tflite::MicroProfilerInterface* alt_profiler) {

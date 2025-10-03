@@ -126,6 +126,8 @@ class MicroContext {
       const TfLiteEvalTensor& tensor,
       const CompressionTensorData& compression_data, void* buffer);
 
+#endif  // USE_TFLM_COMPRESSION
+
   // Used for configuring alternate decompression memory
   struct AlternateMemoryRegion {
     void* address;
@@ -140,13 +142,12 @@ class MicroContext {
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.
   // Return nullptr if the requested size is not available.
-  // Can be called during kPrepare and kInvoke states.
+  // Can be called during kPrepare state.
   virtual void* AllocateDecompressionMemory(size_t bytes, size_t alignment);
 
-  // reset all allocation tracking
+  // Reset all allocation tracking.
+  // Can be called during kPrepare state.
   virtual void ResetDecompressionMemoryAllocations();
-
-#endif  // USE_TFLM_COMPRESSION
 
   // Set the alternate MicroProfilerInterface.
   // This can be used to profile subsystems simultaneously with the profiling
