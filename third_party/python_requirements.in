@@ -26,13 +26,14 @@
 # is sensitive to the Python environment (interpreter version, etc.) in which
 # it is run.
 
+absl_py
 bitarray
-tensorflow
-twine
-numpy
 mako
+numpy
 pillow
-yapf
 prettyprinter
 protobuf
 pyyaml
+tensorflow
+twine
+yapf

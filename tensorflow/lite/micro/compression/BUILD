@@ -118,8 +118,7 @@ py_library(
         ":model_facade",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
+        requirement("absl_py"),
         "@flatbuffers//:runtime_py",
         requirement("bitarray"),
         requirement("numpy"),
@@ -246,7 +245,7 @@ py_binary(
     deps = [
         ":metadata_py",
         "//tensorflow/lite/python:schema_py",
-        "@absl_py//absl:app",
+        requirement("absl_py"),
         requirement("bitarray"),
         requirement("prettyprinter"),
     ],
