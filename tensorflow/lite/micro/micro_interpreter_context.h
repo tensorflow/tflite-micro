@@ -16,6 +16,9 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_INTERPRETER_CONTEXT_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_INTERPRETER_CONTEXT_H_
 
+#include <cstddef>
+#include <initializer_list>
+
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
@@ -128,6 +131,8 @@ class MicroInterpreterContext : public MicroContext {
                                  const CompressionTensorData& compression_data,
                                  void* buffer) override;
 
+#endif  // USE_TFLM_COMPRESSION
+
   // Set the alternate decompression memory regions.
   // Can only be called during the MicroInterpreter kInit state.
   TfLiteStatus SetDecompressionMemory(
@@ -136,13 +141,8 @@ class MicroInterpreterContext : public MicroContext {
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.
   // Return nullptr if the requested size is not available.
-  // Can be called during kPrepare and kInvoke states.
+  // Can be called during kPrepare state.
   void* AllocateDecompressionMemory(size_t bytes, size_t alignment) override;
-
-  // reset all allocation tracking
-  void ResetDecompressionMemoryAllocations() override;
-
-#endif  // USE_TFLM_COMPRESSION
 
   // Set the alternate MicroProfilerInterface.
   // This can be used to profile subsystems simultaneously with the profiling
@@ -168,15 +168,6 @@ class MicroInterpreterContext : public MicroContext {
   ScratchBufferHandle* scratch_buffer_handles_ = nullptr;
   void* external_context_payload_ = nullptr;
   MicroProfilerInterface* alt_profiler_ = nullptr;
-
-#ifdef USE_TFLM_COMPRESSION
-
-  const std::initializer_list<AlternateMemoryRegion>* decompress_regions_ =
-      nullptr;
-  // array of size_t elements with length equal to decompress_regions_.size()
-  size_t* decompress_regions_allocations_;
-
-#endif  // USE_TFLM_COMPRESSION
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
