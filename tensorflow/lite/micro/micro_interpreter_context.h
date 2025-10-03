@@ -128,6 +128,8 @@ class MicroInterpreterContext : public MicroContext {
                                  const CompressionTensorData& compression_data,
                                  void* buffer) override;
 
+#endif  // USE_TFLM_COMPRESSION
+
   // Set the alternate decompression memory regions.
   // Can only be called during the MicroInterpreter kInit state.
   TfLiteStatus SetDecompressionMemory(
@@ -136,13 +138,12 @@ class MicroInterpreterContext : public MicroContext {
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.
   // Return nullptr if the requested size is not available.
-  // Can be called during kPrepare and kInvoke states.
+  // Can be called during kPrepare state.
   void* AllocateDecompressionMemory(size_t bytes, size_t alignment) override;
 
-  // reset all allocation tracking
+  // Reset all allocation tracking.
+  // Can be called during kPrepare state.
   void ResetDecompressionMemoryAllocations() override;
-
-#endif  // USE_TFLM_COMPRESSION
 
   // Set the alternate MicroProfilerInterface.
   // This can be used to profile subsystems simultaneously with the profiling
@@ -169,14 +170,10 @@ class MicroInterpreterContext : public MicroContext {
   void* external_context_payload_ = nullptr;
   MicroProfilerInterface* alt_profiler_ = nullptr;
 
-#ifdef USE_TFLM_COMPRESSION
-
   const std::initializer_list<AlternateMemoryRegion>* decompress_regions_ =
       nullptr;
   // array of size_t elements with length equal to decompress_regions_.size()
-  size_t* decompress_regions_allocations_;
-
-#endif  // USE_TFLM_COMPRESSION
+  size_t* decompress_regions_allocations_ = nullptr;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
