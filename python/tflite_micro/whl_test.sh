@@ -21,6 +21,19 @@ set -e
 
 WHL="${1}"
 
+# Rename wheel if it has unstamped variables in the filename. The py_wheel rule
+# creates two outputs: the base :whl target with literal stamp variables in the
+# filename (for Bazel caching), and :whl.dist with expanded variables. This test
+# uses :whl as its data dependency because :whl.dist isn't a proper Bazel target
+# that can be referenced in deps. Pip 25.x in Python 3.12+ strictly validates
+# wheel filenames and rejects literal stamp variables like _BUILD_EMBED_LABEL_.
+# Replace with a valid placeholder version for testing purposes.
+if echo "${WHL}" | grep -q '_BUILD_EMBED_LABEL_'; then
+    RENAMED_WHL=$(echo "${WHL}" | sed 's/_BUILD_EMBED_LABEL_\.dev_STABLE_GIT_COMMIT_TIME_/0.0.0/')
+    cp "${WHL}" "${RENAMED_WHL}"
+    WHL="${RENAMED_WHL}"
+fi
+
 # Create venv for this test.
 python3 -m venv pyenv
 . pyenv/bin/activate

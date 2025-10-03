@@ -201,6 +201,8 @@ string_flag(
     values = [
         "cp310_cp310_manylinux_2_28_x86_64",
         "cp311_cp311_manylinux_2_28_x86_64",
+        "cp312_cp312_manylinux_2_28_x86_64",
+        "cp313_cp313_manylinux_2_28_x86_64",
         "local",
     ],
 )
@@ -220,6 +222,20 @@ config_setting(
 )
 
 config_setting(
+    name = "cp312_cp312_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp312_cp312_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
+    name = "cp313_cp313_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp313_cp313_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
     name = "local",
     flag_values = {
         ":compatibility_tag": "local",
@@ -235,6 +251,8 @@ py_wheel(
     abi = select({
         ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
         ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
+        ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
+        ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
         ":local": "none",
     }),
     description_file = ":description_file",
@@ -242,11 +260,15 @@ py_wheel(
     platform = select({
         ":cp310_cp310_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":cp311_cp311_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":cp312_cp312_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":cp313_cp313_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":local": "any",
     }),
     python_tag = select({
         ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
         ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
+        ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
+        ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
         ":local": "py3",
     }),
     requires = [

@@ -38,6 +38,12 @@ jobs:
       - name: Build Wheel 3.11
         run: |
           python/tflite_micro/pypi_build.sh cp311
+      - name: Build Wheel 3.12
+        run: |
+          python/tflite_micro/pypi_build.sh cp312
+      - name: Build Wheel 3.13
+        run: |
+          python/tflite_micro/pypi_build.sh cp313
       - name: Check Directory Output
         run: |
           ls -l bazel-pypi-out
