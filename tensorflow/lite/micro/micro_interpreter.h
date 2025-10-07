@@ -160,16 +160,12 @@ class MicroInterpreter {
   // decompression subsystem.
   TfLiteStatus SetAlternateProfiler(MicroProfilerInterface* alt_profiler);
 
-#ifdef USE_TFLM_COMPRESSION
-
   // Set the alternate decompression memory regions.
   // Can only be called during the MicroInterpreter kInit state (i.e. must
   // be called before MicroInterpreter::AllocateTensors).
   TfLiteStatus SetDecompressionMemory(
       const std::initializer_list<MicroContext::AlternateMemoryRegion>&
           regions);
-
-#endif  // USE_TFLM_COMPRESSION
 
  protected:
   const MicroAllocator& allocator() const { return allocator_; }

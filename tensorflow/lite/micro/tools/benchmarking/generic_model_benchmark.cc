@@ -70,11 +70,10 @@ limitations under the License.
         // !defined(GENERIC_BENCHMARK_ALT_MEM_ATTR)
 
 #if defined(GENERIC_BENCHMARK_ALT_MEM_SIZE) && \
-    defined(GENERIC_BENCHMARK_ALT_MEM_ATTR) && defined(USE_TFLM_COMPRESSION)
+    defined(GENERIC_BENCHMARK_ALT_MEM_ATTR)
 #define USE_ALT_DECOMPRESSION_MEM
 #endif  // defined(GENERIC_BENCHMARK_ALT_MEM_SIZE) &&
-        // defined(GENERIC_BENCHMARK_ALT_MEM_ATTR) &&
-        // defined(USE_TFLM_COMPRESSION)
+        // defined(GENERIC_BENCHMARK_ALT_MEM_ATTR)
 
 /*
  * Generic model benchmark.  Evaluates runtime performance of a provided
@@ -220,11 +219,6 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
-#ifdef USE_ALT_DECOMPRESSION_MEM
-  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
-      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
-#endif  // USE_ALT_DECOMPRESSION_MEM
-
   uint32_t event_handle = profiler.BeginEvent("tflite::GetModel");
   const tflite::Model* model = tflite::GetModel(model_data);
   profiler.EndEvent(event_handle);
@@ -252,6 +246,8 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 #ifdef USE_ALT_DECOMPRESSION_MEM
   event_handle =
       profiler.BeginEvent("tflite::MicroInterpreter::SetDecompressionMemory");
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
+      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
   status = interpreter.SetDecompressionMemory(alt_memory_region);
   if (status != kTfLiteOk) {
     MicroPrintf("tflite::MicroInterpreter::SetDecompressionMemory failed");
