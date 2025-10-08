@@ -126,7 +126,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
             context, micro_context->GetAlternateProfiler());
         break;
       default:
-        uint8_t type = DecodeState::Type(*ancillary);
+        uint32_t type = DecodeState::Type(*ancillary);
         if (type >= DecodeState::kDcmTypeCustomFirst &&
             type <= DecodeState::kDcmTypeCustomLast) {
           dsp = GetDecodeStateFromCustomRegistration(context, type);
