@@ -111,7 +111,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     int output_channels = filter->dims->data[kTransposeConvQuantizedDimension];
 
     TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
-        context, input, filter, bias, output, kTfLiteActNone,
+        context, input, filter, bias, output, params->activation,
         &data->params.output_multiplier, &data->params.output_shift,
         &data->params.quantized_activation_min,
         &data->params.quantized_activation_max,
