@@ -33,7 +33,7 @@ if not os.path.splitext(__file__)[0].endswith(
   from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 else:
   # This file is part of tflite_runtime package.
-  from tflite_runtime import schema_py_generated as schema_fb
+  from tflite_micro.tensorflow.lite_runtime import schema_py_generated as schema_fb
 
 # A CSS description for making the visualizer
 _CSS = """
