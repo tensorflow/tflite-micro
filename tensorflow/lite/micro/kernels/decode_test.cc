@@ -101,47 +101,62 @@ constexpr int16_t kExpectLUT1[] = {5, 6, 7, 8, 8, 7, 6, 5};
 // Prune test data
 //
 constexpr int8_t kAncillaryDataPrune0[] = {
-    1, 2, 3, 4, 1,  // chan 0
-    2, 3, 4, 1, 2,  // chan 0
-    3, 4, 1, 2, 3,  // chan 1
-    4, 1, 2, 3, 4   // chan 1
+    1,  2,  3,  4,  1,   // chan 0
+    2,  3,  4,  1,  2,   // chan 0
+    3,  4,  1,  2,  3,   // chan 0
+    4,  1,  2,  3,  4,   // chan 0
+    11, 12, 13, 14, 11,  // chan 1
+    12, 13, 14, 11, 12,  // chan 1
+    13, 14, 11, 12, 13,  // chan 1
+    14, 11, 12, 13, 14   // chan 1
 };
 constexpr int16_t kAncillaryDataPrune1[] = {
-    5, 6, 7, 8, 5,  // chan 0
-    6, 7, 8, 5, 6,  // chan 0
-    7, 8, 5, 6, 7,  // chan 1
-    8, 5, 6, 7, 8   // chan 1
+    5,  6,  7,  8,  5,   // chan 0
+    6,  7,  8,  5,  6,   // chan 0
+    7,  8,  5,  6,  7,   // chan 0
+    8,  5,  6,  7,  8,   // chan 0
+    15, 16, 17, 18, 15,  // chan 1
+    16, 17, 18, 15, 16,  // chan 1
+    17, 18, 15, 16, 17,  // chan 1
+    18, 15, 16, 17, 18   // chan 1
 };
 constexpr float kAncillaryDataPrune2[] = {
-    9.0f, 10.0f, 11.0f, 12.0f,  // encoded byte 0
-    9.0f, 10.0f, 11.0f, 12.0f,  // encoded byte 1
-    9.0f, 10.0f, 11.0f, 12.0f,  // encoded byte 2
-    9.0f, 10.0f, 11.0f, 12.0f,  // encoded byte 3
-    9.0f, 10.0f, 11.0f, 12.0f   // encoded byte 4
+    9.0f,  10.0f, 11.0f, 12.0f,  // encoded byte 0
+    9.0f,  10.0f, 11.0f, 12.0f,  // encoded byte 1
+    9.0f,  10.0f, 11.0f, 12.0f,  // encoded byte 2
+    9.0f,  10.0f, 11.0f, 12.0f,  // encoded byte 3
+    9.0f,  10.0f, 11.0f, 12.0f,  // encoded byte 4
+    19.0f, 20.0f, 21.0f, 22.0f,  // encoded byte 5
+    19.0f, 20.0f, 21.0f, 22.0f,  // encoded byte 6
+    19.0f, 20.0f, 21.0f, 22.0f,  // encoded byte 7
+    19.0f, 20.0f, 21.0f, 22.0f,  // encoded byte 8
+    19.0f, 20.0f, 21.0f, 22.0f   // encoded byte 9
 };
 constexpr int8_t kAncillaryDataPrune3[] = {
-    13, 14, 15, 16, 13,  // chan 0
-    14, 15, 16, 13, 14,  // chan 0
-    15, 16, 13, 14, 15,  // chan 1
-    16, 13, 14, 15, 16   // chan 1
+    13,  14,  15,  16,  13,   // chan 0
+    14,  15,  16,  13,  14,   // chan 0
+    15,  16,  13,  14,  15,   // chan 0
+    16,  13,  14,  15,  16,   // chan 0
+    113, 114, 115, 116, 113,  // chan 1
+    114, 115, 116, 113, 114,  // chan 1
+    115, 116, 113, 114, 115,  // chan 1
+    116, 113, 114, 115, 116   // chan 1
 };
 constexpr int8_t kAncillaryDataPrune4[] = {
-    17, 18,  // group 0
-    19, 20,  // group 1
-    17, 18,  // group 2
-    19, 20,  // group 3
-    17, 18,  // group 4
-    19, 20,  // group 5
-    17, 18,  // group 6
-    19, 20,  // group 7
-    17, 18,  // group 8
-    19, 20   // group 9
+    17, 18, 19, 20, 17, 18, 19, 20, 17, 18,  // group 0
+    19, 20, 17, 18, 19, 20, 17, 18, 19, 20,  // group 0
+    21, 22, 23, 24, 21, 22, 23, 24, 21, 22,  // group 1
+    23, 24, 21, 22, 23, 24, 21, 22, 23, 24,  // group 1
 };
 constexpr int8_t kAncillaryDataPrune5[] = {
     13, 14, 15, 16, 13,  // chan 0
     14, 15, 16, 13, 14,  // chan 0
     15, 16, 13, 14, 15,  // chan 0
-    16, 13, 14, 15, 16   // chan 0
+    16, 13, 14, 15, 16,  // chan 0
+    23, 24, 25, 26, 23,  // chan 0
+    24, 25, 26, 23, 24,  // chan 0
+    25, 26, 23, 24, 25,  // chan 0
+    26, 23, 24, 25, 26   // chan 0
 };
 
 constexpr uint8_t kDcmPrune[tflite::DecodeState::kDcmSizeInBytes] = {
@@ -154,71 +169,95 @@ constexpr uint8_t kDcmPrune[tflite::DecodeState::kDcmSizeInBytes] = {
 
 // Align the tensor data the same as a Buffer in the TfLite schema.
 // Use 0x5A in byte 1 to check byte ordering in the low-level code.
-alignas(16) const uint8_t kEncodedPrune[] = {0xA5, 0x5A, 0xA5, 0xA5, 0xA5};
+alignas(16) const uint8_t kEncodedPrune[] = {0xA5, 0x5A, 0xA5, 0xA5, 0xA5,
+                                             0xA5, 0xA5, 0xA5, 0xA5, 0xA5};
 
 // Tensor shapes as TfLiteIntArray
-constexpr int kOutputShapePrune[] = {3, 2, 5, 4};
 constexpr int kEncodedShapePrune[] = {1, sizeof(kEncodedPrune)};
-constexpr int kOutputShapePrune5[] = {2, 1, 40};
+constexpr int kOutputShapePrune[] = {4, 2, 5, 8, 1};    // 2 channels
+constexpr int kOutputShapePrune4[] = {4, 1, 2, 1, 40};  // 40 channels, alt-axis
+constexpr int kOutputShapePrune5[] = {4, 1, 8, 10, 1};  // 1 channel
 
 // Quantization datum as TfLiteIntArray.
-// Scales are modified by FloatArrayFromFloats. As globals they cannot be
-// <const> without causing a processor exception.
-float kScalesPrune0[] = {2, 1.0f, 1.0f};
 constexpr int kZeroPointsPrune0[] = {2, -128, 0};
-float kScalesPrune1[] = {2, 1.0f, 1.0f};
 constexpr int kZeroPointsPrune1[] = {2, 0, 0};
-float kScalesPrune1_Invalid[] = {2, 1.0f, 1.0f};
 constexpr int kZeroPointsPrune1_Invalid[] = {2, 0, -1};
-float kScalesPrune3[] = {2, 1.0f, 1.0f};
 constexpr int kZeroPointsPrune3[] = {2, 0, 0};
-float kScalesPrune4[] = {4, 1.0f, 1.0f, 1.0f, 1.0f};
-constexpr int kZeroPointsPrune4[] = {4, -126, -62, -30, -14};
-float kScalesPrune5[] = {1, 1.0f};
+constexpr int kZeroPointsPrune4[] = {
+    40,  // size
+    0,   -1,  -2,  -3,  -4,  -5,  -6,  -7,  -8,  -9,  -10, -11, -12, -13,
+    -14, -15, -16, -17, -18, -19, 0,   -1,  -2,  -3,  -4,  -5,  -6,  -7,
+    -8,  -9,  -10, -11, -12, -13, -14, -15, -16, -17, -18, -19,
+};
 constexpr int kZeroPointsPrune5[] = {1, -44};
 
 constexpr int8_t kExpectPrune0[] = {
-    1,    -128, 2, -128, -128, 3,    -128, 4,    -128, 1,     // chan 0
-    -128, 2,    3, -128, 4,    -128, 1,    -128, 2,    -128,  // chan 0
-    0,    3,    0, 4,    1,    0,    2,    0,    0,    3,     // chan 1
-    0,    4,    1, 0,    2,    0,    0,    3,    0,    4      // chan 1
+    1,    -128, 2,    -128, -128, 3,    -128, 4,     // chan 0
+    -128, 1,    -128, 2,    3,    -128, 4,    -128,  // chan 0
+    1,    -128, 2,    -128, -128, 3,    -128, 4,     // chan 0
+    1,    -128, 2,    -128, -128, 3,    -128, 4,     // chan 0
+    1,    -128, 2,    -128, -128, 3,    -128, 4,     // chan 0
+    11,   0,    12,   0,    0,    13,   0,    14,    // chan 1
+    11,   0,    12,   0,    0,    13,   0,    14,    // chan 1
+    11,   0,    12,   0,    0,    13,   0,    14,    // chan 1
+    11,   0,    12,   0,    0,    13,   0,    14,    // chan 1
+    11,   0,    12,   0,    0,    13,   0,    14     // chan 1
 };
 constexpr int16_t kExpectPrune1[] = {
-    5, 0, 6, 0, 0, 7, 0, 8, 0, 5,  // chan 0
-    0, 6, 7, 0, 8, 0, 5, 0, 6, 0,  // chan 0
-    0, 7, 0, 8, 5, 0, 6, 0, 0, 7,  // chan 1
-    0, 8, 5, 0, 6, 0, 0, 7, 0, 8   // chan 1
+    5,  0, 6,  0, 0, 7,  0, 8,   // chan 0
+    0,  5, 0,  6, 7, 0,  8, 0,   // chan 0
+    5,  0, 6,  0, 0, 7,  0, 8,   // chan 0
+    5,  0, 6,  0, 0, 7,  0, 8,   // chan 0
+    5,  0, 6,  0, 0, 7,  0, 8,   // chan 0
+    15, 0, 16, 0, 0, 17, 0, 18,  // chan 1
+    15, 0, 16, 0, 0, 17, 0, 18,  // chan 1
+    15, 0, 16, 0, 0, 17, 0, 18,  // chan 1
+    15, 0, 16, 0, 0, 17, 0, 18,  // chan 1
+    15, 0, 16, 0, 0, 17, 0, 18   // chan 1
 };
 constexpr float kExpectPrune2[] = {
-    9.0f, 0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 0
-    0.0f, 9.0f, 0.0f,  10.0f, 11.0f, 0.0f,  12.0f, 0.0f,   // encode byte 1
-    9.0f, 0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 2
-    9.0f, 0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 3
-    9.0f, 0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f   // encode byte 4
+    9.0f,  0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 0
+    0.0f,  9.0f, 0.0f,  10.0f, 11.0f, 0.0f,  12.0f, 0.0f,   // encode byte 1
+    9.0f,  0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 2
+    9.0f,  0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 3
+    9.0f,  0.0f, 10.0f, 0.0f,  0.0f,  11.0f, 0.0f,  12.0f,  // encode byte 4
+    19.0f, 0.0f, 20.0f, 0.0f,  0.0f,  21.0f, 0.0f,  22.0f,  // encode byte 5
+    19.0f, 0.0f, 20.0f, 0.0f,  0.0f,  21.0f, 0.0f,  22.0f,  // encode byte 6
+    19.0f, 0.0f, 20.0f, 0.0f,  0.0f,  21.0f, 0.0f,  22.0f,  // encode byte 7
+    19.0f, 0.0f, 20.0f, 0.0f,  0.0f,  21.0f, 0.0f,  22.0f,  // encode byte 8
+    19.0f, 0.0f, 20.0f, 0.0f,  0.0f,  21.0f, 0.0f,  22.0f   // encode byte 9
 };
 constexpr int8_t kExpectPrune3[] = {
-    13, 0,  14, 0,  0,  15, 0,  16, 0,  13,  // chan 0
-    0,  14, 15, 0,  16, 0,  13, 0,  14, 0,   // chan 0
-    0,  15, 0,  16, 13, 0,  14, 0,  0,  15,  // chan 1
-    0,  16, 13, 0,  14, 0,  0,  15, 0,  16   // chan 1
+    13,  0,  14,  0,  0,  15,  0,  16,   // chan 0
+    0,   13, 0,   14, 15, 0,   16, 0,    // chan 0
+    13,  0,  14,  0,  0,  15,  0,  16,   // chan 0
+    13,  0,  14,  0,  0,  15,  0,  16,   // chan 0
+    13,  0,  14,  0,  0,  15,  0,  16,   // chan 0
+    113, 0,  114, 0,  0,  115, 0,  116,  // chan 1
+    113, 0,  114, 0,  0,  115, 0,  116,  // chan 1
+    113, 0,  114, 0,  0,  115, 0,  116,  // chan 1
+    113, 0,  114, 0,  0,  115, 0,  116,  // chan 1
+    113, 0,  114, 0,  0,  115, 0,  116   // chan 1
 };
 constexpr int8_t kExpectPrune4[] = {
-    17,   -62, 18,  -14,  // group 0
-    -126, 19,  -30, 20,   // group 1
-    -126, 17,  -30, 18,   // group 2
-    19,   -62, 20,  -14,  // group 3
-    17,   -62, 18,  -14,  // group 4
-    -126, 19,  -30, 20,   // group 5
-    17,   -62, 18,  -14,  // group 6
-    -126, 19,  -30, 20,   // group 7
-    17,   -62, 18,  -14,  // group 8
-    -126, 19,  -30, 20    // group 9
+    17,  -1,  18,  -3,  -4,  19,  -6,  20,  -8,  17,   // group 0
+    -10, 18,  19,  -13, 20,  -15, 17,  -17, 18,  -19,  // group 0
+    0,   19,  -2,  20,  17,  -5,  18,  -7,  -8,  19,   // group 0
+    -10, 20,  17,  -13, 18,  -15, -16, 19,  -18, 20,   // group 0
+    21,  -1,  22,  -3,  -4,  23,  -6,  24,  21,  -9,   // group 1
+    22,  -11, -12, 23,  -14, 24,  21,  -17, 22,  -19,  // group 1
+    0,   23,  -2,  24,  21,  -5,  22,  -7,  -8,  23,   // group 1
+    -10, 24,  21,  -13, 22,  -15, -16, 23,  -18, 24    // group 1
 };
 constexpr int8_t kExpectPrune5[] = {
     13,  -44, 14,  -44, -44, 15,  -44, 16,  -44, 13,   // chan 0
     -44, 14,  15,  -44, 16,  -44, 13,  -44, 14,  -44,  // chan 0
     -44, 15,  -44, 16,  13,  -44, 14,  -44, -44, 15,   // chan 0
-    -44, 16,  13,  -44, 14,  -44, -44, 15,  -44, 16    // chan 0
+    -44, 16,  13,  -44, 14,  -44, -44, 15,  -44, 16,   // chan 0
+    23,  -44, 24,  -44, -44, 25,  -44, 26,  23,  -44,  // chan 0
+    24,  -44, -44, 25,  -44, 26,  23,  -44, 24,  -44,  // chan 0
+    -44, 25,  -44, 26,  23,  -44, 24,  -44, -44, 25,   // chan 0
+    -44, 26,  23,  -44, 24,  -44, -44, 25,  -44, 26    // chan 0
 };
 
 template <typename T>
@@ -357,13 +396,8 @@ using tflite::testing::kExpectPrune4;
 using tflite::testing::kExpectPrune5;
 using tflite::testing::kOutputShapeLUT;
 using tflite::testing::kOutputShapePrune;
+using tflite::testing::kOutputShapePrune4;
 using tflite::testing::kOutputShapePrune5;
-using tflite::testing::kScalesPrune0;
-using tflite::testing::kScalesPrune1;
-using tflite::testing::kScalesPrune1_Invalid;
-using tflite::testing::kScalesPrune3;
-using tflite::testing::kScalesPrune4;
-using tflite::testing::kScalesPrune5;
 using tflite::testing::kZeroPointsPrune0;
 using tflite::testing::kZeroPointsPrune1;
 using tflite::testing::kZeroPointsPrune1_Invalid;
@@ -402,20 +436,13 @@ TF_LITE_MICRO_TEST(DecodeSingleTensorLUT) {
 
   const TfLiteIntArray* const output_dims =
       tflite::testing::IntArrayFromInts(kOutputShapeLUT);
-  constexpr float output_scales_data[] = {0};
-  const TfLiteFloatArray* const output_scales =
-      tflite::testing::FloatArrayFromFloats(output_scales_data);
-  constexpr int output_zero_points_data[] = {0};
-  const TfLiteIntArray* const output_zero_points =
-      tflite::testing::IntArrayFromInts(output_zero_points_data);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum tod = {
-      output_data,
-      *output_dims,
-      kTfLiteInt8,
-      *output_scales,
-      *output_zero_points,
-      0,
-      {},
+      output_data, *output_dims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> outputs = {
       &tod};
@@ -469,18 +496,16 @@ TF_LITE_MICRO_TEST(DecodeTwoTensorsLUT) {
 
   const TfLiteIntArray* const output_dims =
       tflite::testing::IntArrayFromInts(kOutputShapeLUT);
-  constexpr float output_scales_data[] = {1, 1.0f};
-  const TfLiteFloatArray* const output_scales =
-      tflite::testing::FloatArrayFromFloats(output_scales_data);
-  constexpr int output_zero_points_data[] = {1, 0};
-  const TfLiteIntArray* const output_zero_points =
-      tflite::testing::IntArrayFromInts(output_zero_points_data);
+  constexpr int kOutputZeroPointsData[] = {1, 0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum tod0 = {
       output_data0,
       *output_dims,
       kTfLiteInt8,
-      *output_scales,
-      *output_zero_points,
+      kOutputScales,
+      *kOutputZeroPoints,
       0,
       {},
   };
@@ -488,8 +513,8 @@ TF_LITE_MICRO_TEST(DecodeTwoTensorsLUT) {
       output_data1,
       *output_dims,
       kTfLiteInt16,
-      *output_scales,
-      *output_zero_points,
+      kOutputScales,
+      *kOutputZeroPoints,
       0,
       {},
   };
@@ -532,17 +557,15 @@ TF_LITE_MICRO_TEST(DecodePruneFloat) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  constexpr float kOutputScalesData[] = {0};
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kOutputScalesData);
   constexpr int kOutputZeroPointsData[] = {0};
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
       output_data,
       *kOutputDims,
       kTfLiteFloat32,
-      *kOutputScales,
+      kOutputScales,
       *kOutputZeroPoints,
       0,
       {},
@@ -585,20 +608,13 @@ TF_LITE_MICRO_TEST(DecodePruneInt8) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  constexpr float kOutputScalesData[] = {0};
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kOutputScalesData);
   constexpr int kOutputZeroPointsData[] = {0};
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
-      output_data,
-      *kOutputDims,
-      kTfLiteInt8,
-      *kOutputScales,
-      *kOutputZeroPoints,
-      0,
-      {},
+      output_data, *kOutputDims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
       &kTOD};
@@ -638,18 +654,12 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedInt8) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kScalesPrune3);
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kZeroPointsPrune3);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
-      output_data,
-      *kOutputDims,
-      kTfLiteInt8,
-      *kOutputScales,
-      *kOutputZeroPoints,
-      0,
-      {},
+      output_data, *kOutputDims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
       &kTOD};
@@ -689,18 +699,12 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedMixedZeroPointInt8) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kScalesPrune0);
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kZeroPointsPrune0);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
-      output_data,
-      *kOutputDims,
-      kTfLiteInt8,
-      *kOutputScales,
-      *kOutputZeroPoints,
-      0,
-      {},
+      output_data, *kOutputDims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
       &kTOD};
@@ -740,18 +744,12 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedSingleChannelInt8) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune5);
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kScalesPrune5);
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kZeroPointsPrune5);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
-      output_data,
-      *kOutputDims,
-      kTfLiteInt8,
-      *kOutputScales,
-      *kOutputZeroPoints,
-      0,
-      {},
+      output_data, *kOutputDims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
       &kTOD};
@@ -790,16 +788,15 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedAltAxisInt8) {
       &kAncillaryTID};
 
   const TfLiteIntArray* const kOutputDims =
-      tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kScalesPrune4);
+      tflite::testing::IntArrayFromInts(kOutputShapePrune4);
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kZeroPointsPrune4);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
       output_data,
       *kOutputDims,
       kTfLiteInt8,
-      *kOutputScales,
+      kOutputScales,
       *kOutputZeroPoints,
       (kOutputDims->size - 1),
       {},
@@ -842,15 +839,14 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedInt16) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kScalesPrune1);
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kZeroPointsPrune1);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
       output_data,
       *kOutputDims,
       kTfLiteInt16,
-      *kOutputScales,
+      kOutputScales,
       *kOutputZeroPoints,
       0,
       {},
@@ -893,15 +889,14 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedInvalidZeroPointInt16) {
 
   const TfLiteIntArray* const kOutputDims =
       tflite::testing::IntArrayFromInts(kOutputShapePrune);
-  const TfLiteFloatArray* const kOutputScales =
-      tflite::testing::FloatArrayFromFloats(kScalesPrune1_Invalid);
   const TfLiteIntArray* const kOutputZeroPoints =
       tflite::testing::IntArrayFromInts(kZeroPointsPrune1_Invalid);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
       output_data,
       *kOutputDims,
       kTfLiteInt16,
-      *kOutputScales,
+      kOutputScales,
       *kOutputZeroPoints,
       0,
       {},
