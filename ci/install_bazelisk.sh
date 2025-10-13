@@ -15,8 +15,7 @@
 # ==============================================================================
 
 set -e
-wget https://github.com/bazelbuild/bazelisk/releases/download/v1.16.0/bazelisk-linux-amd64
+wget https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64
 mv bazelisk-linux-amd64 bazel
 chmod +x bazel
 mv bazel /usr/local/bin
-

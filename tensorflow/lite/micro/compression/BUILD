@@ -1,15 +1,16 @@
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-    "tflm_cc_test",
-)
-load(
     "@flatbuffers//:build_defs.bzl",
     "flatbuffer_cc_library",
     "flatbuffer_py_library",
 )
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+)
 load("view_tests.bzl", "generate_view_tests")
 
 package(
@@ -117,8 +118,7 @@ py_library(
         ":model_facade",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
+        requirement("absl_py"),
         "@flatbuffers//:runtime_py",
         requirement("bitarray"),
         requirement("numpy"),
@@ -245,7 +245,7 @@ py_binary(
     deps = [
         ":metadata_py",
         "//tensorflow/lite/python:schema_py",
-        "@absl_py//absl:app",
+        requirement("absl_py"),
         requirement("bitarray"),
         requirement("prettyprinter"),
     ],
