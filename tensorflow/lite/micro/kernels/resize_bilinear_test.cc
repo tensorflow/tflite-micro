@@ -168,8 +168,10 @@ TF_LITE_MICRO_TEST(VerticalResizeInt8) {
 TF_LITE_MICRO_TEST(TwoDimensionalResize) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_data[] = {
-      3, 6,   //
-      9, 12,  //
+      3,
+      6,  //
+      9,
+      12,  //
   };
   const int32_t expected_size_data[] = {3, 3};
   const float expected_output_data[] = {
@@ -194,8 +196,10 @@ TF_LITE_MICRO_TEST(TwoDimensionalResize) {
 TF_LITE_MICRO_TEST(TwoDimensionalResizeInt8) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const int8_t input_data[] = {
-      3, 6,   //
-      9, 12,  //
+      3,
+      6,  //
+      9,
+      12,  //
   };
   const int32_t expected_size_data[] = {3, 3};
   const int8_t expected_output_data[] = {

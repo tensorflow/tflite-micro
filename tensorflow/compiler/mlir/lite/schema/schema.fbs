@@ -489,7 +489,7 @@ enum BuiltinOperator : int32 {
   STABLEHLO_CBRT = 208, // WARNING: No runtime support
   STABLEHLO_CASE = 209,
 }
-// LINT.ThenChange(nnapi_linter/linter.proto)
+// LINT.ThenChange(internal-1)
 
 // Options for the builtin operators.
 union BuiltinOptions {
