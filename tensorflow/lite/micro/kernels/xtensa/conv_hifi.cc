@@ -98,16 +98,16 @@ TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
       required_scratch = xa_nn_conv2d_std_getsize(
           input_height, input_width, input_depth, filter_height, filter_width,
           filter_depth, stride_height, pad_height, stride_width, pad_width,
-          output_height, output_width, output_channels, PREC_ASYM8S,
-          PREC_SYM8S, 1, 1, 0);
+          output_height, output_width, output_channels, PREC_ASYM8S, PREC_SYM8S,
+          1, 1, 0);
       TF_LITE_ENSURE(context, required_scratch > 0);
     }
     if (input->type == kTfLiteInt16) {
       required_scratch = xa_nn_conv2d_std_getsize(
           input_height, input_width, input_depth, filter_height, filter_width,
           filter_depth, stride_height, pad_height, stride_width, pad_width,
-          output_height, output_width, output_channels, PREC_SYM16S,
-          PREC_SYM8S, 1, 1, 0);
+          output_height, output_width, output_channels, PREC_SYM16S, PREC_SYM8S,
+          1, 1, 0);
       TF_LITE_ENSURE(context, required_scratch > 0);
     }
   }

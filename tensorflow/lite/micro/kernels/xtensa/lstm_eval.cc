@@ -305,7 +305,8 @@ void FullyConnected(const FullyConnectedParams& params,
   return;
 }
 
-#define ARG_CHK_ALIGN(_ptr, _align) (((unsigned int)(_ptr) & ((_align) - 1)) == 0)
+#define ARG_CHK_ALIGN(_ptr, _align) \
+  (((unsigned int)(_ptr) & ((_align) - 1)) == 0)
 
 void FullyConnected(const FullyConnectedParams& params,
                     const int16_t* input_data, const int8_t* filter_data,
@@ -313,18 +314,15 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int num_batches, const int output_depth,
                     const int accum_depth) {
   WORD32 err;
-  if(num_batches == 1 && ARG_CHK_ALIGN(output_data, sizeof(WORD16)*8)
-     && ARG_CHK_ALIGN(filter_data, sizeof(WORD8)*16)
-     && ARG_CHK_ALIGN(input_data, sizeof(WORD16)*8)
-     && ARG_CHK_ALIGN(bias_data, sizeof(WORD64)*2)) {
+  if (num_batches == 1 && ARG_CHK_ALIGN(output_data, sizeof(WORD16) * 8) &&
+      ARG_CHK_ALIGN(filter_data, sizeof(WORD8) * 16) &&
+      ARG_CHK_ALIGN(input_data, sizeof(WORD16) * 8) &&
+      ARG_CHK_ALIGN(bias_data, sizeof(WORD64) * 2)) {
     err = xa_nn_matXvec_v2_sym8sxsym16s_sym16s(
-          output_data, filter_data,
-          input_data, bias_data,
-          output_depth, accum_depth, accum_depth,
-          params.output_multiplier, params.output_shift,
-          -32768, 32767, NULL);
-  }
-  else{
+        output_data, filter_data, input_data, bias_data, output_depth,
+        accum_depth, accum_depth, params.output_multiplier, params.output_shift,
+        -32768, 32767, NULL);
+  } else {
     err = xa_nn_matmul_sym8sxsym16s_sym16s(
         output_data, filter_data, input_data, bias_data, output_depth,
         accum_depth, accum_depth, num_batches, accum_depth, output_depth, 1,
