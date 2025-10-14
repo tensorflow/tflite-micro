@@ -46,10 +46,10 @@ struct TensorOutDatum {
 };
 
 template <typename T, size_t N>
-struct AncillaryLUT {
-  AncillaryLUT() = delete;
-  AncillaryLUT(const uint8_t (&dcm)[tflite::DecodeState::kDcmSizeInBytes],
-               const T (&values)[N]) {
+struct AncillaryData {
+  AncillaryData() = delete;
+  AncillaryData(const uint8_t (&dcm)[tflite::DecodeState::kDcmSizeInBytes],
+                const T (&values)[N]) {
     std::copy(std::begin(dcm), std::end(dcm), std::begin(dcm_));
     std::copy(std::begin(values), std::end(values), std::begin(value_table_));
   }
@@ -84,7 +84,11 @@ constexpr uint8_t kDcmLUT1[tflite::DecodeState::kDcmSizeInBytes] = {
     std::size(kAncillaryDataLUT1),     // channel stride
 };
 
-// Align the tensor data the same as a Buffer in the TfLite schema
+// Align the tensor data the same as a Buffer in the TfLite schema.
+// The encoded bitstring consists of fixed bit width groups (indices), each
+// group representing an offset into the <value_table> (kAncillaryDataLUTx). The
+// bitstring is in big-endian byte order with the most significant bit first.  A
+// bitstring is padded on the end, to the next byte boundry, with zero bits.
 alignas(16) const uint8_t kEncodedLUT[] = {0x1B, 0xE4};
 
 // Tensor shapes as TfLiteIntArray
@@ -197,7 +201,7 @@ void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
 
 TF_LITE_MICRO_TESTS_BEGIN
 
-using tflite::testing::AncillaryLUT;
+using tflite::testing::AncillaryData;
 using tflite::testing::kAncillaryDataLUT0;
 using tflite::testing::kAncillaryDataLUT1;
 using tflite::testing::kDcmLUT0;
@@ -210,13 +214,13 @@ using tflite::testing::kOutputShapeLUT;
 using tflite::testing::TensorInDatum;
 using tflite::testing::TensorOutDatum;
 
-TF_LITE_MICRO_TEST(DecodeSingleTensor) {
+TF_LITE_MICRO_TEST(DecodeSingleTensorLUT) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectLUT0)] = {};
-  alignas(16) const AncillaryLUT<int8_t, std::size(kAncillaryDataLUT0)>
-      kAncillaryLUT = {{kDcmLUT0}, {kAncillaryDataLUT0}};
+  alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataLUT0)>
+      kAncillaryData = {{kDcmLUT0}, {kAncillaryDataLUT0}};
 
-  constexpr int kAncillaryShapeLUT[] = {1, sizeof(kAncillaryLUT)};
+  constexpr int kAncillaryShapeLUT[] = {1, sizeof(kAncillaryData)};
 
   const TfLiteIntArray* const encoded_dims =
       tflite::testing::IntArrayFromInts(kEncodedShapeLUT);
@@ -231,7 +235,7 @@ TF_LITE_MICRO_TEST(DecodeSingleTensor) {
   const TfLiteIntArray* const ancillary_dims =
       tflite::testing::IntArrayFromInts(kAncillaryShapeLUT);
   static const TensorInDatum tid_ancillary = {
-      &kAncillaryLUT,
+      &kAncillaryData,
       *ancillary_dims,
   };
   static constexpr std::initializer_list<const TensorInDatum*> ancillaries = {
@@ -239,20 +243,13 @@ TF_LITE_MICRO_TEST(DecodeSingleTensor) {
 
   const TfLiteIntArray* const output_dims =
       tflite::testing::IntArrayFromInts(kOutputShapeLUT);
-  constexpr float output_scales_data[] = {0};
-  const TfLiteFloatArray* const output_scales =
-      tflite::testing::FloatArrayFromFloats(output_scales_data);
-  constexpr int output_zero_points_data[] = {0};
-  const TfLiteIntArray* const output_zero_points =
-      tflite::testing::IntArrayFromInts(output_zero_points_data);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum tod = {
-      output_data,
-      *output_dims,
-      kTfLiteInt8,
-      *output_scales,
-      *output_zero_points,
-      0,
-      {},
+      output_data, *output_dims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> outputs = {
       &tod};
@@ -264,17 +261,17 @@ TF_LITE_MICRO_TEST(DecodeSingleTensor) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodeTwoTensors) {
+TF_LITE_MICRO_TEST(DecodeTwoTensorsLUT) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data0[std::size(kExpectLUT0)] = {};
   alignas(16) int16_t output_data1[std::size(kExpectLUT1)] = {};
-  alignas(16) const AncillaryLUT<int8_t, std::size(kAncillaryDataLUT0)>
-      kAncillaryLUT0 = {{kDcmLUT0}, {kAncillaryDataLUT0}};
-  alignas(16) const AncillaryLUT<int16_t, std::size(kAncillaryDataLUT1)>
-      kAncillaryLUT1 = {{kDcmLUT1}, {kAncillaryDataLUT1}};
+  alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataLUT0)>
+      kAncillaryData0 = {{kDcmLUT0}, {kAncillaryDataLUT0}};
+  alignas(16) const AncillaryData<int16_t, std::size(kAncillaryDataLUT1)>
+      kAncillaryData1 = {{kDcmLUT1}, {kAncillaryDataLUT1}};
 
-  constexpr int kAncillaryShapeLUT0[] = {1, sizeof(kAncillaryLUT0)};
-  constexpr int kAncillaryShapeLUT1[] = {1, sizeof(kAncillaryLUT1)};
+  constexpr int kAncillaryShapeLUT0[] = {1, sizeof(kAncillaryData0)};
+  constexpr int kAncillaryShapeLUT1[] = {1, sizeof(kAncillaryData1)};
 
   const TfLiteIntArray* const encoded_dims =
       tflite::testing::IntArrayFromInts(kEncodedShapeLUT);
@@ -292,13 +289,13 @@ TF_LITE_MICRO_TEST(DecodeTwoTensors) {
   const TfLiteIntArray* const ancillary_dims0 =
       tflite::testing::IntArrayFromInts(kAncillaryShapeLUT0);
   static const TensorInDatum tid_ancillary0 = {
-      &kAncillaryLUT0,
+      &kAncillaryData0,
       *ancillary_dims0,
   };
   const TfLiteIntArray* const ancillary_dims1 =
       tflite::testing::IntArrayFromInts(kAncillaryShapeLUT1);
   static const TensorInDatum tid_ancillary1 = {
-      &kAncillaryLUT1,
+      &kAncillaryData1,
       *ancillary_dims1,
   };
   static constexpr std::initializer_list<const TensorInDatum*> ancillaries = {
@@ -306,18 +303,16 @@ TF_LITE_MICRO_TEST(DecodeTwoTensors) {
 
   const TfLiteIntArray* const output_dims =
       tflite::testing::IntArrayFromInts(kOutputShapeLUT);
-  constexpr float output_scales_data[] = {1, 1.0f};
-  const TfLiteFloatArray* const output_scales =
-      tflite::testing::FloatArrayFromFloats(output_scales_data);
-  constexpr int output_zero_points_data[] = {1, 0};
-  const TfLiteIntArray* const output_zero_points =
-      tflite::testing::IntArrayFromInts(output_zero_points_data);
+  constexpr int kOutputZeroPointsData[] = {1, 0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum tod0 = {
       output_data0,
       *output_dims,
       kTfLiteInt8,
-      *output_scales,
-      *output_zero_points,
+      kOutputScales,
+      *kOutputZeroPoints,
       0,
       {},
   };
@@ -325,8 +320,8 @@ TF_LITE_MICRO_TEST(DecodeTwoTensors) {
       output_data1,
       *output_dims,
       kTfLiteInt16,
-      *output_scales,
-      *output_zero_points,
+      kOutputScales,
+      *kOutputZeroPoints,
       0,
       {},
   };
