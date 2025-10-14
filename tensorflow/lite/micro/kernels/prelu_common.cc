@@ -96,6 +96,11 @@ TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context,
                     CalculatePreluParams(input, alpha, output, params));
 
+  if (output->type == kTfLiteInt16) {
+    // Make sure alpha type is Int8 when Output is Int16
+    TF_LITE_ENSURE(context, alpha->type == kTfLiteInt8);
+  }
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(alpha);
   micro_context->DeallocateTempTfLiteTensor(output);

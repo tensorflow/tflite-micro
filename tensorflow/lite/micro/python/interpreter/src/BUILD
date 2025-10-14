@@ -1,10 +1,10 @@
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-)
-load(
     "//tensorflow:extra_rules.bzl",
     "tflm_python_op_resolver_friends",
+)
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
 )
 
 package(

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // WARNING: Users of TensorFlow Lite should not include this file directly, but
-// should instead include "third_party/tensorflow/lite/c/common.h".
+// should instead include "tensorflow/lite/c/common.h".
 // Only the TensorFlow Lite implementation itself should include this file
 // directly.
 
@@ -47,7 +47,7 @@ limitations under the License.
 // NOLINTEND(whitespace/line_length)
 // clang-format on
 
-// IWYU pragma: private, include "third_party/tensorflow/lite/c/common.h"
+// IWYU pragma: private, include "tensorflow/lite/c/common.h"
 
 #ifndef TENSORFLOW_LITE_CORE_C_COMMON_H_
 #define TENSORFLOW_LITE_CORE_C_COMMON_H_
@@ -1161,6 +1161,11 @@ typedef struct TfLiteRegistration {
   /// NOTE: if the data is already in the desired format, simply implement this
   /// function to return `nullptr` and implement the free function to be a
   /// no-op.
+  ///
+  /// NOTE: For a Delegate kernel, returns `TfLiteKernelInitFailed()` if it
+  /// fails on the initialization. This eventually causes user's API call to
+  /// InterpreterBuilder::operator() or Interpreter::ModifyGraphWithDelegate()
+  /// to return an error.
   void* (*init)(TfLiteContext* context, const char* buffer, size_t length);
 
   /// The pointer `buffer` is the data previously returned by an init
@@ -1498,6 +1503,10 @@ TfLiteRunStep TfLiteTensorGetDataKnownStep(const TfLiteTensor* t);
 /// evaluation step. This makes the shape available earlier for subsequent
 /// operations.
 TfLiteRunStep TfLiteTensorGetShapeKnownStep(const TfLiteTensor* t);
+
+/// Returns a sentinel value to be used as the user_data field of a TfLiteNode
+/// when the kernel initialization fails.
+void* TfLiteKernelInitFailed();
 
 /** @} */
 // Ends `\addtogroup`, it's important for the doc generator that this doesn't

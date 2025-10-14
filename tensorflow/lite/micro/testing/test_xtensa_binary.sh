@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ declare -r MICRO_LOG_PATH=${TEST_TMPDIR}/$1
 declare -r MICRO_LOG_FILENAME=${MICRO_LOG_PATH}/logs.txt
 mkdir -p ${MICRO_LOG_PATH}
 
-xt-run $1 2>&1 | tee ${MICRO_LOG_FILENAME}
+xt-run --exit_with_target_code $1 2>&1 | tee ${MICRO_LOG_FILENAME}
+STATUS=${PIPESTATUS[0]}
 
 if [[ ${2} != "non_test_binary" ]]
 then
@@ -36,5 +37,6 @@ then
   else
     exit 1
   fi
+else
+  exit ${STATUS}
 fi
-

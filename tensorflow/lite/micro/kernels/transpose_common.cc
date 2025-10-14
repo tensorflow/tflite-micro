@@ -34,6 +34,8 @@ TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
                      "Transpose op only supports 1D-5D input arrays.");
   TF_LITE_ENSURE_TYPES_EQ(context, op_context.input->type,
                           op_context.output->type);
+  TF_LITE_ENSURE_MSG(context, IsConstantTensor(op_context.perm),
+                     "Non-constant >perm< tensor is not supported");
 
   int dims = NumDimensions(op_context.input);
   const int32_t* perm_data = GetTensorData<int32_t>(op_context.perm);

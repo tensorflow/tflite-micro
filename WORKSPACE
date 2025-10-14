@@ -19,6 +19,13 @@ load("//tensorflow:workspace.bzl", "workspace")
 
 workspace()
 
+# init for rules_shell
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
+
+rules_shell_dependencies()
+
+rules_shell_toolchains()
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # compile_commands.json generator

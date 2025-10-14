@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
 
-set -e
-wget https://github.com/bazelbuild/bazelisk/releases/download/v1.27.0/bazelisk-linux-amd64
-mv bazelisk-linux-amd64 bazel
-chmod +x bazel
-mv bazel /usr/local/bin
+import sys
+import view
+
+# The test simply makes sure the viewer runs without returning an error.
+
+model_path = sys.argv[1]
+view.print_model(model_path)
