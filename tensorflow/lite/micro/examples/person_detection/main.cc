@@ -13,6 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "tensorflow/lite/micro/examples/person_detection/main_functions.h"
 
 // This is the default main used on systems that have the standard C entry
@@ -20,8 +23,20 @@ limitations under the License.
 // requirements for entry code (like an app_main function) should specialize
 // this main.cc file in a target-specific subfolder.
 int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <number_of_iterations>\n", argv[0]);
+    return 1; // Indicate an error
+  }
+
+  int loop_count = atoi(argv[1]);
+  if (loop_count <= 0) {
+    fprintf(stderr, "Error: Please provide a positive number of iterations.\n");
+    return 1; // Indicate an error
+  }
+
   setup();
-  while (true) {
+
+  for (int i = 0; i < loop_count; ++i) {
     loop();
   }
 }
