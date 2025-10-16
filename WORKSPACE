@@ -19,6 +19,11 @@ load("//tensorflow:workspace.bzl", "workspace")
 
 workspace()
 
+# init for bazel_skylib
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 # init for rules_shell
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
@@ -40,13 +45,11 @@ load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_
 
 hedron_compile_commands_setup()
 
-_rules_python_version = "0.26.0"
-
 http_archive(
     name = "rules_python",
-    sha256 = "9d04041ac92a0985e344235f5d946f71ac543f1b1565f2cdbc9a2aaee8adf55b",
-    strip_prefix = "rules_python-{}".format(_rules_python_version),
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/{}.tar.gz".format(_rules_python_version),
+    sha256 = "2f5c284fbb4e86045c2632d3573fc006facbca5d1fa02976e89dc0cd5488b590",
+    strip_prefix = "rules_python-1.6.3",
+    url = "https://github.com/bazel-contrib/rules_python/releases/download/1.6.3/rules_python-1.6.3.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
