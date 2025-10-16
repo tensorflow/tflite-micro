@@ -20,6 +20,7 @@ export PATH := $(TARGET_TOOLCHAIN_ROOT):$(PATH)
 PLATFORM_FLAGS = \
   -march=$(RISCV_ARCH) \
   -mabi=$(RISCV_ABI) \
+  -O3 \
   -mcmodel=$(RISCV_CODE_MODEL) \
   -mexplicit-relocs \
   -fno-builtin-printf \
