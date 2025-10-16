@@ -120,7 +120,7 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
     case kTfLiteInt4:
       tensor_type = TensorTypes_INT4;
       return kTfLiteOk;
-   case kTfLiteInt2:
+    case kTfLiteInt2:
       tensor_type = TensorTypes_INT2;
       return kTfLiteOk;
     case kTfLiteNoType:
