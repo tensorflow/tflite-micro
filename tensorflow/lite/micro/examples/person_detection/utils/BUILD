@@ -25,7 +25,7 @@ py_library(
 py_test(
     name = "raw_to_bitmap_test",
     srcs = ["raw_to_bitmap_test.py"],
-    data = glob(["testdata/**"]),
+    data = ["//tensorflow/lite/micro/examples/person_detection:testdata_files"],
     tags = [
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "notap",  # TODO(b/186679612)

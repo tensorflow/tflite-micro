@@ -25,6 +25,13 @@ tflm_cc_library(
     ],
 )
 
+filegroup(
+    name = "testdata_files",
+    srcs = glob(["testdata/**"]),
+    visibility = ["//visibility:public"],
+)
+
+
 generate_cc_arrays(
     name = "generated_no_person_bmp_cc",
     src = "testdata/no_person.bmp",
