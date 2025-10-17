@@ -53,6 +53,7 @@ TFLMRegistration Register_CONCATENATION();
 TFLMRegistration Register_CONV_2D();
 TFLMRegistration Register_COS();
 TFLMRegistration Register_CUMSUM();
+TFLMRegistration Register_DECODE();
 TFLMRegistration Register_DEPTH_TO_SPACE();
 TFLMRegistration Register_DEPTHWISE_CONV_2D();
 TFLMRegistration Register_DEQUANTIZE();
