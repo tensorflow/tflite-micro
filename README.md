@@ -101,6 +101,8 @@ The following resources may also be useful:
    * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
  * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
  * [Software Emulation with QEMU](tensorflow/lite/micro/docs/qemu.md)
+ * [Compression](tensorflow/lite/micro/docs/compression.md)
+   * [MNIST Compression Tutorial](tensorflow/lite/micro/compression/mnist_compression_tutorial.ipynb)
  * [Python Dev Guide](docs/python.md)
  * [Automatically Generated Files](docs/automatically_generated_files.md)
  * [Python Interpreter Guide](python/tflite_micro/README.md)
