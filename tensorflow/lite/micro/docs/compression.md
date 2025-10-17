@@ -4,6 +4,9 @@ TFLM supports fixed width compression of const-tensors using lookup tables.
 Const-tensors are typically those containing trained weights or biases, but can
 be any tensor where the values are fixed within the model and unchanging.
 
+For a complete end-to-end tutorial demonstrating compression with weight clustering,
+see the [MNIST Compression Tutorial](../compression/mnist_compression_tutorial.ipynb).
+
 Const-tensors are compressed to fixed width bitstrings, and lookup tables are
 added to the model schema for each tensor.
 
