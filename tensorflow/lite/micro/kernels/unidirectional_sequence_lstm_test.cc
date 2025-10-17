@@ -29,6 +29,18 @@ namespace {
 
 constexpr int kLstmMaxNumInputOutputTensors = 24 + 1;
 
+// Set weights and biases to be const-tensors
+void SetConstTensors(TfLiteTensor* tensors) {
+  for (size_t i = 1; i < 9; i++) {
+    // weights
+    tensors[i].allocation_type = kTfLiteMmapRo;
+  }
+  for (size_t i = 12; i < 16; i++) {
+    // biases
+    tensors[i].allocation_type = kTfLiteMmapRo;
+  }
+}
+
 // Validate the output result array with golden values
 template <typename T>
 void ValidateResultGoldens(const T* golden, const T* output_data,
@@ -49,6 +61,7 @@ void TestUnidirectionalLSTMInteger(
     LstmNodeContent<ActivationType, WeightType, BiasType, CellType, batch_size,
                     time_steps, input_dimension, state_dimension>&
         node_contents) {
+  SetConstTensors(node_contents.GetTensors());
   const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
   micro::KernelRunner runner(
@@ -101,6 +114,7 @@ void TestUnidirectionalLSTMFloat(
     const float hidden_state_tolerance, const float cell_state_tolerance,
     LstmNodeContent<float, float, float, float, batch_size, time_steps,
                     input_dimension, state_dimension>& node_contents) {
+  SetConstTensors(node_contents.GetTensors());
   const TFLMRegistration registration = Register_UNIDIRECTIONAL_SEQUENCE_LSTM();
   auto buildin_data = node_contents.BuiltinData();
   micro::KernelRunner runner(
