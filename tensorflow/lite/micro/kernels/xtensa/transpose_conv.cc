@@ -204,7 +204,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     scratch_buffer_size = xa_nn_transpose_conv_getsize(
         input_height, input_width, input_depth, filter_height, filter_width,
         stride_width, stride_height, output_height, output_width, num_channels,
-        PREC_SYM8S, PREC_ASYM8S);
+        1 /* num_groups */, PREC_SYM8S, PREC_ASYM8S);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context, scratch_buffer_size,
                       &(data->scratch_buffer_index)) == kTfLiteOk);
@@ -232,7 +232,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     scratch_buffer_size = xa_nn_transpose_conv_getsize(
         input_height, input_width, input_depth, filter_height, filter_width,
         stride_width, stride_height, output_height, output_width, num_channels,
-        PREC_SYM8S, PREC_SYM16S);
+        1 /* num_groups */, PREC_SYM8S, PREC_SYM16S);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context, scratch_buffer_size,
                       &(data->scratch_buffer_index)) == kTfLiteOk);
@@ -404,9 +404,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               stride_width, stride_height, pad_width, pad_height, input_depth,
               output_depth, input_height, input_width, filter_height,
               filter_width, output_height, output_width, num_elements / batches,
-              data.params.input_offset, data.params.output_offset,
-              data.per_channel_output_shift, data.per_channel_output_multiplier,
-              scratch_buffer);
+              1 /* num_groups */, data.params.input_offset,
+              data.params.output_offset, data.per_channel_output_shift,
+              data.per_channel_output_multiplier, scratch_buffer);
         }
       } else {
         reference_integer_ops::TransposeConv(
@@ -539,8 +539,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               stride_width, stride_height, pad_width, pad_height, input_depth,
               output_depth, input_height, input_width, filter_height,
               filter_width, output_height, output_width, num_elements / batches,
-              data.per_channel_output_shift, data.per_channel_output_multiplier,
-              scratch_buffer);
+              1 /* num_groups */, data.per_channel_output_shift,
+              data.per_channel_output_multiplier, scratch_buffer);
         }
 #else  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
         reference_integer_ops::TransposeConv(
