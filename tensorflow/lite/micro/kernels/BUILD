@@ -239,6 +239,7 @@ tflm_kernel_cc_library(
         "decode.cc",
         "decode_state.cc",
         "decode_state_lut.cc",
+        "decode_state_prune.cc",
         "depth_to_space.cc",
         "depthwise_conv.cc",
         "depthwise_conv_common.cc",
@@ -332,6 +333,7 @@ tflm_kernel_cc_library(
         "conv.h",
         "decode_state.h",
         "decode_state_lut.h",
+        "decode_state_prune.h",
         "depthwise_conv.h",
         "dequantize.h",
         "ethosu.h",
@@ -637,6 +639,21 @@ tflm_cc_test(
     name = "cumsum_test",
     srcs = [
         "cumsum_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_state_prune_test",
+    srcs = [
+        "decode_state_prune_test.cc",
     ],
     deps = [
         ":kernel_runner",

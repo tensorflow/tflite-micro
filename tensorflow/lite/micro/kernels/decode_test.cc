@@ -59,6 +59,9 @@ struct AncillaryData {
   T value_table_[N > 0 ? N : 1];  // assure not zero length
 };
 
+//
+// LUT test data
+//
 constexpr int kBitWidthLUT = 2;
 
 constexpr int8_t kAncillaryDataLUT0[] = {1, 2, 3, 4};
@@ -170,10 +173,14 @@ void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
     tensors[i] = CreateTensor(tid_encode.data,
                               const_cast<TfLiteIntArray*>(&tid_encode.dims),
                               false, kTfLiteUInt8);
+    // must be a const tensor
+    tensors[i].allocation_type = kTfLiteMmapRo;
     const TensorInDatum& tid_ancillary = *ancillaries.begin()[i / 2];
     tensors[i + 1] = CreateTensor(
         tid_ancillary.data, const_cast<TfLiteIntArray*>(&tid_ancillary.dims),
         false, kTfLiteUInt8);
+    // must be a const tensor
+    tensors[i + 1].allocation_type = kTfLiteMmapRo;
   }
   for (size_t i = 0; i < kNumOutputs; i++) {
     const TensorOutDatum& tod = *outputs.begin()[i];
