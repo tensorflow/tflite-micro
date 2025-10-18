@@ -19,17 +19,30 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state_prune.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
+#ifdef HIFI5
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_lut.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_prune.h"
+#endif  // HIFI5
+
 namespace tflite {
 
 DecodeState* DecodeState::CreateDecodeStateLUT(
     const TfLiteContext* context, MicroProfilerInterface* profiler) {
   MicroContext* const micro_context = GetMicroContext(context);
-  void* buffer =
-      micro_context->AllocatePersistentBuffer(sizeof(DecodeStateLut));
+#ifdef HIFI5
+  constexpr size_t kBufferSize = sizeof(XtensaDecodeStateLUT);
+#else
+  constexpr size_t kBufferSize = sizeof(DecodeStateLUT);
+#endif  // HIFI5
+  void* buffer = micro_context->AllocatePersistentBuffer(kBufferSize);
   if (buffer == nullptr) {
     return nullptr;
   }
-  DecodeState* dsp = new (buffer) DecodeStateLut(context, profiler);
+#ifdef HIFI5
+  DecodeState* dsp = new (buffer) XtensaDecodeStateLUT(context, profiler);
+#else
+  DecodeState* dsp = new (buffer) DecodeStateLUT(context, profiler);
+#endif  // HIFI5
 
   return dsp;
 }
@@ -37,13 +50,20 @@ DecodeState* DecodeState::CreateDecodeStateLUT(
 DecodeState* DecodeState::CreateDecodeStatePrune(
     const TfLiteContext* context, MicroProfilerInterface* profiler) {
   MicroContext* const micro_context = GetMicroContext(context);
-  void* buffer =
-      micro_context->AllocatePersistentBuffer(sizeof(DecodeStatePrune));
+#ifdef HIFI5
+  constexpr size_t kBufferSize = sizeof(XtensaDecodeStatePrune);
+#else
+  constexpr size_t kBufferSize = sizeof(DecodeStatePrune);
+#endif  // HIFI5
+  void* buffer = micro_context->AllocatePersistentBuffer(kBufferSize);
   if (buffer == nullptr) {
     return nullptr;
   }
+#ifdef HIFI5
+  DecodeState* dsp = new (buffer) XtensaDecodeStatePrune(context, profiler);
+#else
   DecodeState* dsp = new (buffer) DecodeStatePrune(context, profiler);
-
+#endif  // HIFI5
   return dsp;
 }
 

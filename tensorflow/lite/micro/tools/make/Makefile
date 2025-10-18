@@ -389,6 +389,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space.cc \
