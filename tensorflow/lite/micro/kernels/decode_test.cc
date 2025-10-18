@@ -173,10 +173,14 @@ void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
     tensors[i] = CreateTensor(tid_encode.data,
                               const_cast<TfLiteIntArray*>(&tid_encode.dims),
                               false, kTfLiteUInt8);
+    // must be a const tensor
+    tensors[i].allocation_type = kTfLiteMmapRo;
     const TensorInDatum& tid_ancillary = *ancillaries.begin()[i / 2];
     tensors[i + 1] = CreateTensor(
         tid_ancillary.data, const_cast<TfLiteIntArray*>(&tid_ancillary.dims),
         false, kTfLiteUInt8);
+    // must be a const tensor
+    tensors[i + 1].allocation_type = kTfLiteMmapRo;
   }
   for (size_t i = 0; i < kNumOutputs; i++) {
     const TensorOutDatum& tod = *outputs.begin()[i];
