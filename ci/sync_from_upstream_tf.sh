@@ -27,20 +27,33 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/..
 cd "${ROOT_DIR}"
 
-rm -rf /tmp/tensorflow
+rm -rf /tmp/litert
 
-git clone https://github.com/tensorflow/tensorflow.git --depth=1 /tmp/tensorflow
+git clone https://github.com/google-ai-edge/LiteRT.git --depth=1 /tmp/litert
 
-SHARED_TFL_CODE=$(<ci/tflite_files.txt)
+SHARED_TFL_CODE=$(grep -v tflite/converter ci/tflite_files.txt)
+SHARED_CONVERTER_CODE=$(grep tflite/converter ci/tflite_files.txt)
 
 # Delete all the shared TFL/TFLM code prior to copying from upstream to ensure
 # no stale files are left in the tree.
 rm -f $(find tensorflow/lite/ -type d \( -path tensorflow/lite/experimental -o -path tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c" -o -name "*.h" -o -name "*.py" -o -name "*.fbs")
 
+# Copy all the right files from the TFLite repo to all the right places in this repo.
 for filepath in ${SHARED_TFL_CODE}
 do
-  mkdir -p $(dirname ${filepath})
-  /bin/cp /tmp/tensorflow/${filepath} ${filepath}
+  local_filepath=${filepath//tflite\//tensorflow\/lite\/}
+  mkdir -p $(dirname ${local_filepath})
+  /bin/cp /tmp/litert/${filepath} ${local_filepath}
+  sed -i 's/tflite\/converter\//tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
+  sed -i 's/tflite\//tensorflow\/lite\//' ${local_filepath}
+done
+for filepath in ${SHARED_CONVERTER_CODE}
+do
+  local_filepath=${filepath//tflite\/converter\//tensorflow\/compiler\/mlir\/lite\/}
+  mkdir -p $(dirname ${local_filepath})
+  /bin/cp /tmp/litert/${filepath} ${local_filepath}
+  sed -i 's/tflite\/converter\//tensorflow\/compiler\/mlir\/lite\//' ${local_filepath}
+  sed -i 's/tflite\//tensorflow\/lite\//' ${local_filepath}
 done
 
 # https://github.com/tensorflow/tflite-micro/pull/8
@@ -68,7 +81,7 @@ bazel clean
 # repositories (TF and tflite-micro) which needs the import statements to be
 # modified.
 PY_FILES=$(find tensorflow/lite/tools tensorflow/lite/python -name "*.py")
-sed -i 's/from tensorflow\.lite/from tflite_micro\.tensorflow\.lite/' ${PY_FILES}
+sed -i 's/from tflite/from tflite_micro\.tensorflow\.lite/' ${PY_FILES}
 
 # Since the TFLM code was deleted from the tensorflow repository, the
 # microfrontend is no longer sync'd from upstream and instead maintaned as a

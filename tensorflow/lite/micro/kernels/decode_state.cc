@@ -25,11 +25,11 @@ DecodeState* DecodeState::CreateDecodeStateLUT(
     const TfLiteContext* context, MicroProfilerInterface* profiler) {
   MicroContext* const micro_context = GetMicroContext(context);
   void* buffer =
-      micro_context->AllocatePersistentBuffer(sizeof(DecodeStateLUT));
+      micro_context->AllocatePersistentBuffer(sizeof(DecodeStateLut));
   if (buffer == nullptr) {
     return nullptr;
   }
-  DecodeState* dsp = new (buffer) DecodeStateLUT(context, profiler);
+  DecodeState* dsp = new (buffer) DecodeStateLut(context, profiler);
 
   return dsp;
 }

@@ -1,12 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-    "tflm_cc_test",
-    "tflm_copts",
-    "tflm_kernel_cc_library",
-)
-load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
     "xtensa_fusion_f1_config",
@@ -14,6 +7,13 @@ load(
     "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
+)
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+    "tflm_copts",
+    "tflm_kernel_cc_library",
 )
 
 package(

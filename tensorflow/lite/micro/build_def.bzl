@@ -1,5 +1,9 @@
 """TfLite Micro BUILD options."""
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
 def tflm_copts():
     """Returns the default copts for targets in TFLM.
 
@@ -45,21 +49,21 @@ def tflm_defines():
     return defines
 
 def tflm_cc_binary(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
-    native.cc_binary(
+    cc_binary(
         copts = copts,
         defines = defines,
         **kwargs
     )
 
 def tflm_cc_library(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
-    native.cc_library(
+    cc_library(
         copts = copts,
         defines = defines,
         **kwargs
     )
 
 def tflm_cc_test(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
-    native.cc_test(
+    cc_test(
         copts = copts,
         defines = defines,
         **kwargs

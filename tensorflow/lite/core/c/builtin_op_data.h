@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 /// WARNING: Users of TensorFlow Lite should not include this file directly,
 /// but should instead include
-/// "third_party/tensorflow/lite/c/builtin_op_data.h".
+/// "tensorflow/lite/c/builtin_op_data.h".
 /// Only the TensorFlow Lite implementation itself should include this
 /// file directly.
 #ifndef TENSORFLOW_LITE_CORE_C_BUILTIN_OP_DATA_H_
