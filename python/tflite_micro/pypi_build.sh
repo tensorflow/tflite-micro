@@ -26,12 +26,14 @@ container. Uses bazel, but does not pollute the WORKSPACE's default cache.
 <python-tag> must be one of the supported interpreters:
    cp310
    cp311
+   cp312
+   cp313
 
 <output-directory> defaults to $OUT_DIR_DEFAULT.
 "
 
 case "$1" in
-    cp310|cp311)
+    cp310|cp311|cp312|cp313)
         PY_TAG=$1
         OUTDIR=$(realpath ${2:-$OUT_DIR_DEFAULT})
         mkdir -p $OUTDIR

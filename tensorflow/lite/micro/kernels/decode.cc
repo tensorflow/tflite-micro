@@ -99,6 +99,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       dsp_arr[i / 2] = dsp;
     } else {
       MicroPrintf("failed to allocate DecodeState[%u]", i / 2);
+      status = kTfLiteError;
       break;
     }
 

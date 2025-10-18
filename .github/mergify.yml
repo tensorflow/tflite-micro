@@ -3,6 +3,7 @@ merge_queue:
 
 queue_rules:
   - name: default
+    batch_size: 1
     checks_timeout: 2 h
     branch_protection_injection_mode: queue
     merge_method: squash

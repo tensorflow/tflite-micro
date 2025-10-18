@@ -15,7 +15,7 @@ py_binary(
     srcs = ["evaluate.py"],
     deps = [
         "//python/tflite_micro:runtime",
-        "@absl_py//absl:app",
+        requirement("absl_py"),
         requirement("pillow"),
     ],
 )

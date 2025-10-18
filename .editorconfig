@@ -19,6 +19,7 @@ indent_size = 2
 # https://google.github.io/styleguide/pyguide.html but 2-space indent
 indent_style = space
 indent_size = 2
+max_line_length = 79
 
 [WORKSPACE,BUILD,*.bzl]
 # https://bazel.build/build/style-guide

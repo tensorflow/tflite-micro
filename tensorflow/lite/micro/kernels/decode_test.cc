@@ -87,7 +87,11 @@ constexpr uint8_t kDcmLUT1[tflite::DecodeState::kDcmSizeInBytes] = {
     std::size(kAncillaryDataLUT1),     // channel stride
 };
 
-// Align the tensor data the same as a Buffer in the TfLite schema
+// Align the tensor data the same as a Buffer in the TfLite schema.
+// The encoded bitstring consists of fixed bit width groups (indices), each
+// group representing an offset into the <value_table> (kAncillaryDataLUTx). The
+// bitstring is in big-endian byte order with the most significant bit first.  A
+// bitstring is padded on the end, to the next byte boundry, with zero bits.
 alignas(16) const uint8_t kEncodedLUT[] = {0x1B, 0xE4};
 
 // Tensor shapes as TfLiteIntArray
@@ -308,9 +312,6 @@ TfLiteStatus ExecuteDecodeTest(
         break;
       case kTfLiteInt16:
         status = CheckOutput<int16_t>(output_tensors[i], expected.begin()[i]);
-        break;
-      case kTfLiteFloat32:
-        status = CheckOutput<float>(output_tensors[i], expected.begin()[i]);
         break;
       default:
         TF_LITE_MICRO_FAIL("unsupported tensor type in test");

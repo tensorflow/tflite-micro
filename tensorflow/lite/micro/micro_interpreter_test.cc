@@ -778,4 +778,35 @@ TF_LITE_MICRO_TEST(TestGetTensorFailsNoLinearMemoryPlanner) {
   TF_LITE_MICRO_EXPECT(interpreter.GetTensor(0) == nullptr);
 }
 
+TF_LITE_MICRO_TEST(TestDynamicTensorFails) {
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+
+  constexpr size_t kAllocatorBufferSize = 2000;
+  uint8_t allocator_buffer[kAllocatorBufferSize];
+
+  // Use a new scope for each MicroInterpreter
+  {
+    // test with 0 in shape
+    const tflite::Model* model =
+        tflite::testing::GetNoOpModelWithTensorShape({3, 2, 0});
+    TF_LITE_MICRO_EXPECT(nullptr != model);
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         kAllocatorBufferSize);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteError);
+  }
+
+  // Use a new scope for each MicroInterpreter
+  {
+    // test with -1 in shape
+    const tflite::Model* model =
+        tflite::testing::GetNoOpModelWithTensorShape({3, 2, -1});
+    TF_LITE_MICRO_EXPECT(nullptr != model);
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         kAllocatorBufferSize);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteError);
+  }
+}
+
 TF_LITE_MICRO_TESTS_END
