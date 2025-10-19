@@ -80,6 +80,20 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
+    name = "decode_test_helpers",
+    hdrs = [
+        "decode_test_helpers.h",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":micro_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_library(
     name = "decompress",
     srcs = [
         "decompress.cc",
@@ -656,6 +670,7 @@ tflm_cc_test(
         "decode_state_prune_test.cc",
     ],
     deps = [
+        ":decode_test_helpers",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:debug_log",
@@ -671,6 +686,7 @@ tflm_cc_test(
         "decode_test.cc",
     ],
     deps = [
+        ":decode_test_helpers",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:debug_log",
