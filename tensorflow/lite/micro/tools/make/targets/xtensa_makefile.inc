@@ -124,7 +124,6 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
   MICROLITE_CC_KERNEL_SRCS += \
     $(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
-
 endif
 
 # override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
@@ -132,4 +131,3 @@ endif
 $(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
-
