@@ -23,10 +23,11 @@ limitations under the License.
 
 namespace tflite {
 
-struct DecodeStateLUT : public DecodeState {
-  DecodeStateLUT() = delete;
+class DecodeStateLut : public DecodeState {
+ public:
+  DecodeStateLut() = delete;
 
-  DecodeStateLUT(const TfLiteContext* context, MicroProfilerInterface* profiler)
+  DecodeStateLut(const TfLiteContext* context, MicroProfilerInterface* profiler)
       : DecodeState(context, profiler) {}
 
   virtual TfLiteStatus Setup(const TfLiteTensor& input,
@@ -49,7 +50,7 @@ struct DecodeStateLUT : public DecodeState {
   static constexpr size_t kDcmValueTableStrideOffset = 6;
 
  protected:
-  virtual ~DecodeStateLUT() = default;
+  virtual ~DecodeStateLut() = default;
 
   template <typename T>
   T* DecompressToBuffer(void* buffer);

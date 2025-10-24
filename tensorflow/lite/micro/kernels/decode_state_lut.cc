@@ -26,7 +26,7 @@ limitations under the License.
 
 namespace tflite {
 
-TfLiteStatus DecodeStateLUT::Setup(const TfLiteTensor& input,
+TfLiteStatus DecodeStateLut::Setup(const TfLiteTensor& input,
                                    const TfLiteTensor& ancillary,
                                    const TfLiteTensor& output) {
   const uint8_t* const ancillary_data = GetTensorData<uint8_t>(&ancillary);
@@ -63,7 +63,7 @@ TfLiteStatus DecodeStateLUT::Setup(const TfLiteTensor& input,
   return kTfLiteOk;
 }
 
-TfLiteStatus DecodeStateLUT::Decode(const TfLiteEvalTensor& input,
+TfLiteStatus DecodeStateLut::Decode(const TfLiteEvalTensor& input,
                                     const TfLiteEvalTensor& ancillary,
                                     const TfLiteEvalTensor& output) {
   void* const buffer = const_cast<void*>(micro::GetTensorData<void>(&output));
@@ -97,7 +97,7 @@ TfLiteStatus DecodeStateLUT::Decode(const TfLiteEvalTensor& input,
 }
 
 template <typename T>
-T* DecodeStateLUT::DecompressToBuffer(void* buffer) {
+T* DecodeStateLut::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
@@ -117,14 +117,14 @@ T* DecodeStateLUT::DecompressToBuffer(void* buffer) {
   return static_cast<T*>(buffer);
 }
 
-template bool* DecodeStateLUT::DecompressToBuffer<bool>(void*);
-template float* DecodeStateLUT::DecompressToBuffer<float>(void*);
-template int8_t* DecodeStateLUT::DecompressToBuffer<int8_t>(void*);
-template int16_t* DecodeStateLUT::DecompressToBuffer<int16_t>(void*);
-template int32_t* DecodeStateLUT::DecompressToBuffer<int32_t>(void*);
-template int64_t* DecodeStateLUT::DecompressToBuffer<int64_t>(void*);
+template bool* DecodeStateLut::DecompressToBuffer<bool>(void*);
+template float* DecodeStateLut::DecompressToBuffer<float>(void*);
+template int8_t* DecodeStateLut::DecompressToBuffer<int8_t>(void*);
+template int16_t* DecodeStateLut::DecompressToBuffer<int16_t>(void*);
+template int32_t* DecodeStateLut::DecompressToBuffer<int32_t>(void*);
+template int64_t* DecodeStateLut::DecompressToBuffer<int64_t>(void*);
 
-void DecodeStateLUT::DecompressToBufferWidth4_16(int8_t* buffer) {
+void DecodeStateLut::DecompressToBufferWidth4_16(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const size_t stride = value_table_channel_stride_;
@@ -200,7 +200,7 @@ void DecodeStateLUT::DecompressToBufferWidth4_16(int8_t* buffer) {
   }
 }
 
-void DecodeStateLUT::DecompressToBufferWidth2_16(int8_t* buffer) {
+void DecodeStateLut::DecompressToBufferWidth2_16(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const size_t stride = value_table_channel_stride_;
@@ -276,7 +276,7 @@ void DecodeStateLUT::DecompressToBufferWidth2_16(int8_t* buffer) {
   }
 }
 
-void DecodeStateLUT::DecompressToBufferWidth3_32(int8_t* buffer) {
+void DecodeStateLut::DecompressToBufferWidth3_32(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   const size_t stride = value_table_channel_stride_;
@@ -409,7 +409,7 @@ void DecodeStateLUT::DecompressToBufferWidth3_32(int8_t* buffer) {
 // TODO(ddavis-2015): templating GetNextTableIndexWidth<N> makes this method
 // more than 2x faster, but with a large code size increase
 template <typename T>
-void DecodeStateLUT::DecompressToBufferWidthAny(T* buffer) {
+void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   if (use_alternate_axis_) {
@@ -492,14 +492,14 @@ void DecodeStateLUT::DecompressToBufferWidthAny(T* buffer) {
   }
 }
 
-template void DecodeStateLUT::DecompressToBufferWidthAny(bool*);
-template void DecodeStateLUT::DecompressToBufferWidthAny(float*);
-template void DecodeStateLUT::DecompressToBufferWidthAny(int8_t*);
-template void DecodeStateLUT::DecompressToBufferWidthAny(int16_t*);
-template void DecodeStateLUT::DecompressToBufferWidthAny(int32_t*);
-template void DecodeStateLUT::DecompressToBufferWidthAny(int64_t*);
+template void DecodeStateLut::DecompressToBufferWidthAny(bool*);
+template void DecodeStateLut::DecompressToBufferWidthAny(float*);
+template void DecodeStateLut::DecompressToBufferWidthAny(int8_t*);
+template void DecodeStateLut::DecompressToBufferWidthAny(int16_t*);
+template void DecodeStateLut::DecompressToBufferWidthAny(int32_t*);
+template void DecodeStateLut::DecompressToBufferWidthAny(int64_t*);
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth7(
+inline size_t DecodeStateLut::GetNextTableIndexWidth7(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 3) * 7;
   const uint8_t* indices = &compressed_indices_[current_byte_index];
@@ -525,7 +525,7 @@ inline size_t DecodeStateLUT::GetNextTableIndexWidth7(
   return 0;
 }
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth6(
+inline size_t DecodeStateLut::GetNextTableIndexWidth6(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 2) * 3;
   const uint8_t* indices = &compressed_indices_[current_byte_index];
@@ -543,7 +543,7 @@ inline size_t DecodeStateLUT::GetNextTableIndexWidth6(
   return 0;
 }
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth5(
+inline size_t DecodeStateLut::GetNextTableIndexWidth5(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 3) * 5;
   const uint8_t* indices = &compressed_indices_[current_byte_index];
@@ -569,7 +569,7 @@ inline size_t DecodeStateLUT::GetNextTableIndexWidth5(
   return 0;
 }
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth4(
+inline size_t DecodeStateLut::GetNextTableIndexWidth4(
     const size_t current_offset) {
   if (current_offset & 1) {
     return compressed_indices_[current_offset >> 1] & 0x0F;
@@ -578,7 +578,7 @@ inline size_t DecodeStateLUT::GetNextTableIndexWidth4(
   }
 }
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth3(
+inline size_t DecodeStateLut::GetNextTableIndexWidth3(
     const size_t current_offset) {
   const size_t current_byte_index = (current_offset >> 3) * 3;
   const uint8_t* indices = &compressed_indices_[current_byte_index];
@@ -604,7 +604,7 @@ inline size_t DecodeStateLUT::GetNextTableIndexWidth3(
   return 0;
 }
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth2(
+inline size_t DecodeStateLut::GetNextTableIndexWidth2(
     const size_t current_offset) {
   if (current_offset & 0b10) {
     if (current_offset & 1) {
@@ -621,7 +621,7 @@ inline size_t DecodeStateLUT::GetNextTableIndexWidth2(
   }
 }
 
-inline size_t DecodeStateLUT::GetNextTableIndexWidth1(
+inline size_t DecodeStateLut::GetNextTableIndexWidth1(
     const size_t current_offset) {
   const size_t shift = ~current_offset & 0b111;
   return (compressed_indices_[current_offset >> 3] >> shift) & 0b1;

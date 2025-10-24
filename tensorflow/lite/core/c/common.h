@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // WARNING: Users of TensorFlow Lite should not include this file directly, but
-// should instead include "third_party/tensorflow/lite/c/common.h".
+// should instead include "tensorflow/lite/c/common.h".
 // Only the TensorFlow Lite implementation itself should include this file
 // directly.
 
@@ -47,7 +47,7 @@ limitations under the License.
 // NOLINTEND(whitespace/line_length)
 // clang-format on
 
-// IWYU pragma: private, include "third_party/tensorflow/lite/c/common.h"
+// IWYU pragma: private, include "tensorflow/lite/c/common.h"
 
 #ifndef TENSORFLOW_LITE_CORE_C_COMMON_H_
 #define TENSORFLOW_LITE_CORE_C_COMMON_H_

@@ -48,28 +48,34 @@ if [ -d ${DOWNLOADED_CMSIS_PATH} ]; then
   echo >&2 "${DOWNLOADED_CMSIS_PATH} already exists, skipping the download."
 else
 
+  # Create a temporary directory with the unique name for better isolation
+  TEMP_DIR=$(mktemp -d /tmp/$(basename $0 .sh).XXXXXX)
+
+  # Set up cleanup trap for all exit conditions
+  trap 'rm -rf "${TEMP_DIR}"' EXIT INT TERM
+
   ZIP_PREFIX="5782d6f8057906d360f4b95ec08a2354afe5c9b9"
   CMSIS_URL="http://github.com/ARM-software/CMSIS_6/archive/${ZIP_PREFIX}.zip"
   CMSIS_MD5="563e7c6465f63bdc034359e9b536b366"
 
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
-  wget ${CMSIS_URL} -O /tmp/${ZIP_PREFIX}.zip >&2
-  check_md5 /tmp/${ZIP_PREFIX}.zip ${CMSIS_MD5}
+  wget ${CMSIS_URL} -O ${TEMP_DIR}/${ZIP_PREFIX}.zip >&2
+  check_md5 ${TEMP_DIR}/${ZIP_PREFIX}.zip ${CMSIS_MD5}
 
-  unzip -qo /tmp/${ZIP_PREFIX}.zip -d /tmp >&2
-  mv /tmp/CMSIS_6-${ZIP_PREFIX} ${DOWNLOADED_CMSIS_PATH}
+  unzip -qo ${TEMP_DIR}/${ZIP_PREFIX}.zip -d ${TEMP_DIR} >&2
+  mv ${TEMP_DIR}/CMSIS_6-${ZIP_PREFIX} ${DOWNLOADED_CMSIS_PATH}
 
   # Also pull the related CMSIS Cortex_DFP component for generic Arm Cortex-M device support
   ZIP_PREFIX="c2c70a97a20fb355815e2ead3d4a40e35a4a3cdf"
   CMSIS_DFP_URL="http://github.com/ARM-software/Cortex_DFP/archive/${ZIP_PREFIX}.zip"
   CMSIS_DFP_MD5="3cbb6955b6d093a2fe078ef2341f6b89"
 
-  wget ${CMSIS_DFP_URL} -O /tmp/${ZIP_PREFIX}.zip >&2
-  check_md5 /tmp/${ZIP_PREFIX}.zip ${CMSIS_DFP_MD5}
+  wget ${CMSIS_DFP_URL} -O ${TEMP_DIR}/${ZIP_PREFIX}.zip >&2
+  check_md5 ${TEMP_DIR}/${ZIP_PREFIX}.zip ${CMSIS_DFP_MD5}
 
-  unzip -qo /tmp/${ZIP_PREFIX}.zip -d /tmp >&2
-  mv /tmp/Cortex_DFP-${ZIP_PREFIX} ${DOWNLOADED_CORTEX_DFP_PATH}
+  unzip -qo ${TEMP_DIR}/${ZIP_PREFIX}.zip -d ${TEMP_DIR} >&2
+  mv ${TEMP_DIR}/Cortex_DFP-${ZIP_PREFIX} ${DOWNLOADED_CORTEX_DFP_PATH}
 
 fi
 

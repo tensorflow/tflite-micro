@@ -1,12 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-    "tflm_cc_test",
-    "tflm_copts",
-    "tflm_kernel_cc_library",
-)
-load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
     "xtensa_fusion_f1_config",
@@ -14,6 +7,13 @@ load(
     "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
+)
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+    "tflm_copts",
+    "tflm_kernel_cc_library",
 )
 
 package(
@@ -69,6 +69,20 @@ tflm_cc_library(
     ],
     hdrs = [
         "conv_test.h",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":micro_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_library(
+    name = "decode_test_helpers",
+    hdrs = [
+        "decode_test_helpers.h",
     ],
     deps = [
         ":kernel_runner",
@@ -653,11 +667,28 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
+    name = "decode_state_prune_test",
+    srcs = [
+        "decode_state_prune_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "decode_test",
     srcs = [
         "decode_test.cc",
     ],
     deps = [
+        ":decode_test_helpers",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:debug_log",
