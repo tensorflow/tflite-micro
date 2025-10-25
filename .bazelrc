@@ -27,6 +27,9 @@ build --workspace_status_command=./tools/workspace_status.sh
 # TODO(b/315853820): Needed for Bazel 7.0, until migrated to bzlmod
 build --noenable_bzlmod
 
+# TODO(b/315853820): Needed for Bazel 8.0, until migrated to bzlmod
+build --enable_workspace
+
 # Use the following C++ standard
 build --cxxopt -std=c++17
 
