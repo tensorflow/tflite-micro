@@ -107,6 +107,9 @@ TfLiteStatus ExecuteDecodeTest(
   TfLiteStatus status = kTfLiteError;
   for (size_t i = 0; i < kNumOutputs; i++) {
     switch (output_tensors[i].type) {
+      case kTfLiteBool:
+        status = CheckOutput<bool>(output_tensors[i], expected.begin()[i]);
+        break;
       case kTfLiteInt8:
         status = CheckOutput<int8_t>(output_tensors[i], expected.begin()[i]);
         break;
@@ -115,6 +118,12 @@ TfLiteStatus ExecuteDecodeTest(
         break;
       case kTfLiteFloat32:
         status = CheckOutput<float>(output_tensors[i], expected.begin()[i]);
+        break;
+      case kTfLiteInt32:
+        status = CheckOutput<int32_t>(output_tensors[i], expected.begin()[i]);
+        break;
+      case kTfLiteInt64:
+        status = CheckOutput<int64_t>(output_tensors[i], expected.begin()[i]);
         break;
       default:
         TF_LITE_MICRO_FAIL("unsupported tensor type in test");

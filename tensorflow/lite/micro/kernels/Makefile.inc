@@ -123,6 +123,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ceil_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/comparisons_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/concatenation_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space_test.cc \
