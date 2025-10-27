@@ -63,6 +63,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
 
+    TF_LITE_ENSURE(context, IsConstantTensor(input));
+    TF_LITE_ENSURE(context, IsConstantTensor(ancillary));
+
     if (DecodeState::Version(*ancillary) != 1) {
       MicroPrintf("version %u != 1", DecodeState::Version(*ancillary));
       status = kTfLiteError;
@@ -73,6 +76,10 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     switch (DecodeState::Type(*ancillary)) {
       case DecodeState::kDcmTypeLUT:
         dsp = DecodeState::CreateDecodeStateLUT(
+            context, micro_context->GetAlternateProfiler());
+        break;
+      case DecodeState::kDcmTypePrune:
+        dsp = DecodeState::CreateDecodeStatePrune(
             context, micro_context->GetAlternateProfiler());
         break;
       case DecodeState::kDcmTypeCustom:
