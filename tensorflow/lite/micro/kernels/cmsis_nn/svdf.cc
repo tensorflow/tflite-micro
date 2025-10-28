@@ -193,6 +193,7 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
 
     if (buf_size > 0) {
 #if defined(KERNELS_OPTIMIZED_FOR_SPEED)
+      TF_LITE_ENSURE(context, IsConstantTensor(weights_feature));
       data->kernel_sums = static_cast<int32_t*>(
           context->AllocatePersistentBuffer(context, buf_size));
 
@@ -210,6 +211,12 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
           "Either KERNELS_OPTIMIZED_FOR_SIZE or KERNELS_OPTIMIZED_FOR_SPEED "
           "must be defined");
       return kTfLiteError;
+#endif
+    } else {
+      // safety first!
+      data->kernel_sums = nullptr;
+#if defined(KERNELS_OPTIMIZED_FOR_SIZE)
+      data->scratch_weight_tensor_index = -1;
 #endif
     }
 
@@ -310,6 +317,7 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
 #if defined(KERNELS_OPTIMIZED_FOR_SPEED)
       ctx.buf = data.kernel_sums;
 #elif defined(KERNELS_OPTIMIZED_FOR_SIZE)
+      TF_LITE_ENSURE(context, data.scratch_weight_tensor_index != -1);
       ctx.buf = static_cast<int32_t*>(
           context->GetScratchBuffer(context, data.scratch_weight_tensor_index));
 

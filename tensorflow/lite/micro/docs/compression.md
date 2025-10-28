@@ -4,6 +4,9 @@ TFLM supports fixed width compression of const-tensors using lookup tables.
 Const-tensors are typically those containing trained weights or biases, but can
 be any tensor where the values are fixed within the model and unchanging.
 
+For a complete end-to-end tutorial demonstrating compression with weight clustering,
+see the [MNIST Compression Tutorial](../compression/mnist_compression_tutorial.ipynb).
+
 Const-tensors are compressed to fixed width bitstrings, and lookup tables are
 added to the model schema for each tensor.
 
@@ -321,11 +324,6 @@ Note that each tensor can have a different bit width (1 through 7 bits).
 Once the `YAML` specification is ready, compress the model using the following:
 ```
 bazel run -s tensorflow/lite/micro/compression:compress -- --input=binned.tflite --output=compressed.tflite --spec=spec.yaml
-```
-
-Then align the model:
-```
-bazel run -s tensorflow/lite/micro/tools:tflite_flatbuffer_align -- compressed.tflite compressed_and_aligned.tflite
 ```
 
 # The Generic Benchmark Application

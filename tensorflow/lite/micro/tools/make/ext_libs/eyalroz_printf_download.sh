@@ -47,17 +47,23 @@ if [ -d ${DOWNLOADED_PRINTF_PATH} ]; then
   echo >&2 "${DOWNLOADED_PRINTF_PATH} already exists, skipping the download."
 else
 
+  # Create a temporary directory with the unique name for better isolation
+  TEMP_DIR=$(mktemp -d /tmp/$(basename $0 .sh).XXXXXX)
+
+  # Set up cleanup trap for all exit conditions
+  trap 'rm -rf "${TEMP_DIR}"' EXIT INT TERM
+
   ZIP_PREFIX="f8ed5a9bd9fa8384430973465e94aa14c925872d"
   PRINTF_URL="https://github.com/eyalroz/printf/archive/${ZIP_PREFIX}.zip"
   PRINTF_MD5="5772534c1d6f718301bca1fefaba28f3"
 
   # wget is much faster than git clone of the entire repo. So we wget a specific
   # version and can then apply a patch, as needed.
-  wget ${PRINTF_URL} -O /tmp/${ZIP_PREFIX}.zip >&2
-  check_md5 /tmp/${ZIP_PREFIX}.zip ${PRINTF_MD5}
+  wget ${PRINTF_URL} -O ${TEMP_DIR}/${ZIP_PREFIX}.zip >&2
+  check_md5 ${TEMP_DIR}/${ZIP_PREFIX}.zip ${PRINTF_MD5}
 
-  unzip -qo /tmp/${ZIP_PREFIX}.zip -d /tmp >&2
-  mv /tmp/printf-${ZIP_PREFIX} ${DOWNLOADED_PRINTF_PATH}
+  unzip -qo ${TEMP_DIR}/${ZIP_PREFIX}.zip -d ${TEMP_DIR} >&2
+  mv ${TEMP_DIR}/printf-${ZIP_PREFIX} ${DOWNLOADED_PRINTF_PATH}
 fi
 
 echo "SUCCESS"

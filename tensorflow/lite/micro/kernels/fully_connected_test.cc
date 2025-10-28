@@ -307,6 +307,11 @@ TfLiteStatus ValidateFullyConnectedGoldens(
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
+  tensors[1].allocation_type = kTfLiteMmapRo;
+  if (!null_bias) {
+    tensors[2].allocation_type = kTfLiteMmapRo;
+  }
+
 #ifdef USE_TFLM_COMPRESSION
 
   TestCompressedList<kMaxTensors> tcl;

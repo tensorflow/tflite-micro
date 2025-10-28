@@ -151,9 +151,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       data->kernel_sums = nullptr;
 
 #if defined(KERNELS_OPTIMIZED_FOR_SPEED)
-      const int8_t* filter_data = GetTensorData<const int8_t>(filter);
-
-      if (buf_size > 0 && filter_data != nullptr) {
+      if (buf_size > 0 && IsConstantTensor(filter) &&
+          (bias == nullptr || IsConstantTensor(bias))) {
+        const int8_t* filter_data = GetTensorData<const int8_t>(filter);
         const int32_t input_offset = -data->reference_op_data.input_zero_point;
         const int32_t filter_offset =
             -data->reference_op_data.filter_zero_point;

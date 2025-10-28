@@ -27,7 +27,8 @@ limitations under the License.
 
 namespace tflite {
 
-struct DecodeState {
+class DecodeState {
+ public:
   DecodeState() = delete;
 
   DecodeState(const TfLiteContext* context, MicroProfilerInterface* profiler)
