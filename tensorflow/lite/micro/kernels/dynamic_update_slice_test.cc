@@ -38,8 +38,8 @@ constexpr int kOutputTensorIndex = 3;
 template <size_t kInputSize>
 struct TestDynamicUpdateSliceParams {
   // quantization parameters
-  float data_min;                 // input data minimum value
-  float data_max;                 // input data maximum value
+  float data_min;                  // input data minimum value
+  float data_max;                  // input data maximum value
   int8_t input1_data[kInputSize];  // quantized input storage
   int8_t input2_data[kInputSize];  // quantized input storage
 };

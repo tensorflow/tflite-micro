@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
-namespace tflite{
+namespace tflite {
 
 constexpr int kDynamicUpdateSliceOperandTensor = 0;
 constexpr int kDynamicUpdateSliceUpdateTensor = 1;
