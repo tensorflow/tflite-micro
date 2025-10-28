@@ -80,6 +80,20 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
+    name = "decode_test_helpers",
+    hdrs = [
+        "decode_test_helpers.h",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":micro_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_library(
     name = "decompress",
     srcs = [
         "decompress.cc",
@@ -236,6 +250,10 @@ tflm_kernel_cc_library(
         "conv.cc",
         "conv_common.cc",
         "cumsum.cc",
+        "decode.cc",
+        "decode_state.cc",
+        "decode_state_lut.cc",
+        "decode_state_prune.cc",
         "depth_to_space.cc",
         "depthwise_conv.cc",
         "depthwise_conv_common.cc",
@@ -327,6 +345,9 @@ tflm_kernel_cc_library(
         "batch_matmul.h",
         "circular_buffer.h",
         "conv.h",
+        "decode_state.h",
+        "decode_state_lut.h",
+        "decode_state_prune.h",
         "depthwise_conv.h",
         "dequantize.h",
         "ethosu.h",
@@ -634,6 +655,54 @@ tflm_cc_test(
         "cumsum_test.cc",
     ],
     deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_state_lut_test",
+    srcs = [
+        "decode_state_lut_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_state_prune_test",
+    srcs = [
+        "decode_state_prune_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_test",
+    srcs = [
+        "decode_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:debug_log",
