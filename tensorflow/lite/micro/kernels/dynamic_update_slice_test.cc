@@ -143,4 +143,3 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
                                                output_data);
 }
 TF_LITE_MICRO_TESTS_END
-

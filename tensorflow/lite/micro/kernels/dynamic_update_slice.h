@@ -33,6 +33,4 @@ TFLMRegistration Register_DYNAMIC_UPDATE_SLICE();
 
 }  // namespace tflite
 
-
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_DYNAMIC_UPDATE_SLICE_H_
-

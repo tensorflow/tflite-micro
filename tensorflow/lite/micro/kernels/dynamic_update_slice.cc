@@ -46,12 +46,12 @@ TfLiteStatus CalculateClampedStartIndices(
 // Recursive helper for N-dimensional slice update.
 template <typename T>
 TfLiteStatus UpdateSliceRecursive(int current_dim, int max_dims,
-		                  const int32_t* output_strides,
+                                  const int32_t* output_strides,
                                   const int32_t* update_strides,
-				  const int32_t* update_dims_data,
-				  const T* update_tensor_data,
-				  const int32_t* clamped_start_indices,
-				  T* output_tensor_data) {
+                                  const int32_t* update_dims_data,
+                                  const T* update_tensor_data,
+                                  const int32_t* clamped_start_indices,
+                                  T* output_tensor_data) {
   if (current_dim == max_dims) {
     return kTfLiteOk;
   }
@@ -65,8 +65,8 @@ TfLiteStatus UpdateSliceRecursive(int current_dim, int max_dims,
   } else {
     for (int i = 0; i < update_dims_data[current_dim]; ++i) {
       UpdateSliceRecursive<T>(current_dim + 1, max_dims, output_strides,
-		              update_strides, update_dims_data,
-			      update_tensor_data, clamped_start_indices,
+                              update_strides, update_dims_data,
+                              update_tensor_data, clamped_start_indices,
                               output_tensor_data);
 
       output_tensor_data += output_strides[current_dim];
@@ -216,13 +216,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   switch (operand_eval->type) {
     case kTfLiteFloat32:
       return EvalImpl<float>(operand_eval, update_eval, indices_data_i64,
-		             output_eval);
+                             output_eval);
     case kTfLiteInt8:
       return EvalImpl<int8_t>(operand_eval, update_eval, indices_data_i64,
-		              output_eval);
+                              output_eval);
     case kTfLiteInt32:
       return EvalImpl<int32_t>(operand_eval, update_eval, indices_data_i64,
-		               output_eval);
+                               output_eval);
     default:
       MicroPrintf("DYNAMIC_UPDATE_SLICE: Operand type %s not supported.",
                   TfLiteTypeGetName(operand_eval->type));
@@ -239,4 +239,3 @@ TFLMRegistration Register_DYNAMIC_UPDATE_SLICE() {
 }
 
 }  // namespace tflite
-
