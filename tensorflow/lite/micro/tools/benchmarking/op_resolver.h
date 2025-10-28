@@ -45,6 +45,7 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddConv2D());
   TF_LITE_ENSURE_STATUS(op_resolver.AddCos());
   TF_LITE_ENSURE_STATUS(op_resolver.AddCumSum());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddDecode());
   TF_LITE_ENSURE_STATUS(op_resolver.AddDelay());
   TF_LITE_ENSURE_STATUS(op_resolver.AddDepthToSpace());
   TF_LITE_ENSURE_STATUS(op_resolver.AddDepthwiseConv2D());

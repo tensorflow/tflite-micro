@@ -40,6 +40,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddConv2D();
   AddCos();
   AddCumSum();
+  AddDecode();
   AddDelay();
   AddDepthToSpace();
   AddDepthwiseConv2D();
