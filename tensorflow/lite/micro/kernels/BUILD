@@ -243,6 +243,7 @@ tflm_kernel_cc_library(
         "dequantize_common.cc",
         "detection_postprocess.cc",
         "div.cc",
+	"dynamic_update_slice.cc",
         "elementwise.cc",
         "elu.cc",
         "embedding_lookup.cc",
@@ -329,6 +330,7 @@ tflm_kernel_cc_library(
         "conv.h",
         "depthwise_conv.h",
         "dequantize.h",
+	"dynamic_update_slice.h",
         "ethosu.h",
         "fully_connected.h",
         "hard_swish.h",
@@ -732,6 +734,21 @@ tflm_cc_test(
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "dynamic_update_slice_test",
+    srcs = [
+        "dynamic_update_slice_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
