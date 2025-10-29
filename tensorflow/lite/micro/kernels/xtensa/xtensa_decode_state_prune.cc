@@ -60,7 +60,7 @@ TfLiteStatus XtensaDecodeStatePrune::Decode(const TfLiteEvalTensor& input,
 }
 
 void XtensaDecodeStatePrune::DecompressToBufferInt8_Xtensa(void* buffer) {
-  if (num_channels_ > 1) {
+  if (num_channels_ > 1 && zero_points_ != nullptr) {
     DecompressToBufferPerChannelInt8_Xtensa(buffer);
     return;
   }
@@ -77,27 +77,46 @@ void XtensaDecodeStatePrune::DecompressToBufferInt8_Xtensa(void* buffer) {
   ae_int8x8 zero = single_zero_point_;
   ae_int8x8 discarded;
 
-  for (int i = 0; i < count >> 5; i++) {
-    // unpack elements
-    int mask = *p_mask32++;
-    AE_LAVUNSQZ8X8_XP(data0, shfl0, align, p_weights, mask, 0);
-    AE_LAVUNSQZ8X8_XP(data1, shfl1, align, p_weights, mask, 1);
-    AE_LAVUNSQZ8X8_XP(data2, shfl2, align, p_weights, mask, 2);
-    AE_LAVUNSQZ8X8_XP(data3, shfl3, align, p_weights, mask, 3);
-    data0 = AE_SHFL8X8(data0, shfl0);
-    data1 = AE_SHFL8X8(data1, shfl1);
-    data2 = AE_SHFL8X8(data2, shfl2);
-    data3 = AE_SHFL8X8(data3, shfl3);
+  if (single_zero_point_ == 0) {
+    for (int i = 0; i < count >> 5; i++) {
+      // unpack elements
+      int mask = *p_mask32++;
+      AE_LAVUNSQZ8X8_XP(data0, shfl0, align, p_weights, mask, 0);
+      AE_LAVUNSQZ8X8_XP(data1, shfl1, align, p_weights, mask, 1);
+      AE_LAVUNSQZ8X8_XP(data2, shfl2, align, p_weights, mask, 2);
+      AE_LAVUNSQZ8X8_XP(data3, shfl3, align, p_weights, mask, 3);
+      data0 = AE_SHFL8X8(data0, shfl0);
+      data1 = AE_SHFL8X8(data1, shfl1);
+      data2 = AE_SHFL8X8(data2, shfl2);
+      data3 = AE_SHFL8X8(data3, shfl3);
 
-    // merge <zero> into elements
-    AE_MOVT8X16_L(discarded, data0, zero, data0, mask);
-    AE_MOVT8X16_L(discarded, data1, zero, data1, mask >> 8);
-    AE_MOVT8X16_H(discarded, data2, zero, data2, mask);
-    AE_MOVT8X16_H(discarded, data3, zero, data3, mask >> 8);
+      // move elements to output
+      AE_S8X8X2_IP(data0, data1, (ae_int8x16*)pCoeff, 16);
+      AE_S8X8X2_IP(data2, data3, (ae_int8x16*)pCoeff, 16);
+    }
+  } else {
+    for (int i = 0; i < count >> 5; i++) {
+      // unpack elements
+      int mask = *p_mask32++;
+      AE_LAVUNSQZ8X8_XP(data0, shfl0, align, p_weights, mask, 0);
+      AE_LAVUNSQZ8X8_XP(data1, shfl1, align, p_weights, mask, 1);
+      AE_LAVUNSQZ8X8_XP(data2, shfl2, align, p_weights, mask, 2);
+      AE_LAVUNSQZ8X8_XP(data3, shfl3, align, p_weights, mask, 3);
+      data0 = AE_SHFL8X8(data0, shfl0);
+      data1 = AE_SHFL8X8(data1, shfl1);
+      data2 = AE_SHFL8X8(data2, shfl2);
+      data3 = AE_SHFL8X8(data3, shfl3);
 
-    // move merged elements to output
-    AE_S8X8X2_IP(data0, data1, (ae_int8x16*)pCoeff, 16);
-    AE_S8X8X2_IP(data2, data3, (ae_int8x16*)pCoeff, 16);
+      // merge <zero> into elements
+      AE_MOVT8X16_L(discarded, data0, zero, data0, mask);
+      AE_MOVT8X16_L(discarded, data1, zero, data1, mask >> 8);
+      AE_MOVT8X16_H(discarded, data2, zero, data2, mask);
+      AE_MOVT8X16_H(discarded, data3, zero, data3, mask >> 8);
+
+      // move merged elements to output
+      AE_S8X8X2_IP(data0, data1, (ae_int8x16*)pCoeff, 16);
+      AE_S8X8X2_IP(data2, data3, (ae_int8x16*)pCoeff, 16);
+    }
   }
 
   const int count_rem = count & 0x1F;
@@ -147,6 +166,7 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelInt8_Xtensa(
     DecompressToBufferPerChannelAltAxisInt8_Xtensa(buffer);
     return;
   }
+  TFLITE_DCHECK(zero_points_ != nullptr);
 
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
@@ -170,31 +190,52 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelInt8_Xtensa(
     ae_int8x8 zero = zero_points_[channel];
     uint32_t mask_low, mask_high;
 
-    for (int i = 0; i < count >> 5; i++) {
-      // unpack elements
-      AE_LBI_DBI_IP((unsigned short*)p_stream, mask_high, 16);
-      AE_LBI_DBI_IP((unsigned short*)p_stream, mask_low, 16);
-      const int mask = (mask_high << 16) | mask_low;
+    if (zero_points_[channel] == 0) {
+      for (int i = 0; i < count >> 5; i++) {
+        // unpack elements
+        AE_LBI_DBI_IP((unsigned short*)p_stream, mask_high, 16);
+        AE_LBI_DBI_IP((unsigned short*)p_stream, mask_low, 16);
+        const int mask = (mask_high << 16) | mask_low;
 
-      AE_LAVUNSQZ8X8_XP(data0, shfl0, align, p_weights, mask, 3);
-      AE_LAVUNSQZ8X8_XP(data1, shfl1, align, p_weights, mask, 2);
-      AE_LAVUNSQZ8X8_XP(data2, shfl2, align, p_weights, mask, 1);
-      AE_LAVUNSQZ8X8_XP(data3, shfl3, align, p_weights, mask, 0);
-      data0 = AE_SHFL8X8(data0, shfl0);
-      data1 = AE_SHFL8X8(data1, shfl1);
-      data2 = AE_SHFL8X8(data2, shfl2);
-      data3 = AE_SHFL8X8(data3, shfl3);
+        AE_LAVUNSQZ8X8_XP(data0, shfl0, align, p_weights, mask, 3);
+        AE_LAVUNSQZ8X8_XP(data1, shfl1, align, p_weights, mask, 2);
+        AE_LAVUNSQZ8X8_XP(data2, shfl2, align, p_weights, mask, 1);
+        AE_LAVUNSQZ8X8_XP(data3, shfl3, align, p_weights, mask, 0);
+        data0 = AE_SHFL8X8(data0, shfl0);
+        data1 = AE_SHFL8X8(data1, shfl1);
+        data2 = AE_SHFL8X8(data2, shfl2);
+        data3 = AE_SHFL8X8(data3, shfl3);
 
-      // merge <zero> into elements
-      AE_MOVT8X16_H(discarded, data0, zero, data0, mask >> 8);
-      AE_MOVT8X16_H(discarded, data1, zero, data1, mask);
-      AE_MOVT8X16_L(discarded, data2, zero, data2, mask >> 8);
-      AE_MOVT8X16_L(discarded, data3, zero, data3, mask);
+        // move elements to output
+        AE_SAV8X8X2_XP(data0, data1, align2, (ae_int8x16*)pCoeff, 16);
+        AE_SAV8X8X2_XP(data2, data3, align2, (ae_int8x16*)pCoeff, 16);
+      }
+    } else {
+      for (int i = 0; i < count >> 5; i++) {
+        // unpack elements
+        AE_LBI_DBI_IP((unsigned short*)p_stream, mask_high, 16);
+        AE_LBI_DBI_IP((unsigned short*)p_stream, mask_low, 16);
+        const int mask = (mask_high << 16) | mask_low;
 
-      // move merged elements to output
-      AE_SAV8X8X2_XP(data0, data1, align2, (ae_int8x16*)pCoeff, 16);
-      AE_SAV8X8X2_XP(data2, data3, align2, (ae_int8x16*)pCoeff, 16);
-      AE_SA128POS_FP(align2, pCoeff);
+        AE_LAVUNSQZ8X8_XP(data0, shfl0, align, p_weights, mask, 3);
+        AE_LAVUNSQZ8X8_XP(data1, shfl1, align, p_weights, mask, 2);
+        AE_LAVUNSQZ8X8_XP(data2, shfl2, align, p_weights, mask, 1);
+        AE_LAVUNSQZ8X8_XP(data3, shfl3, align, p_weights, mask, 0);
+        data0 = AE_SHFL8X8(data0, shfl0);
+        data1 = AE_SHFL8X8(data1, shfl1);
+        data2 = AE_SHFL8X8(data2, shfl2);
+        data3 = AE_SHFL8X8(data3, shfl3);
+
+        // merge <zero> into elements
+        AE_MOVT8X16_H(discarded, data0, zero, data0, mask >> 8);
+        AE_MOVT8X16_H(discarded, data1, zero, data1, mask);
+        AE_MOVT8X16_L(discarded, data2, zero, data2, mask >> 8);
+        AE_MOVT8X16_L(discarded, data3, zero, data3, mask);
+
+        // move merged elements to output
+        AE_SAV8X8X2_XP(data0, data1, align2, (ae_int8x16*)pCoeff, 16);
+        AE_SAV8X8X2_XP(data2, data3, align2, (ae_int8x16*)pCoeff, 16);
+      }
     }
 
     const int count_rem = count & 0x1F;
@@ -232,13 +273,15 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelInt8_Xtensa(
         AE_SAV8X8X2_XP(data2, data3, align2, (ae_int8x16*)pCoeff,
                        count_rem & 0xF);
       }
-      AE_SA128POS_FP(align2, pCoeff);
     }
   }
+  AE_SA128POS_FP(align2, pCoeff);
 }
 
 void XtensaDecodeStatePrune::DecompressToBufferPerChannelAltAxisInt8_Xtensa(
     void* buffer) {
+  TFLITE_DCHECK(zero_points_ != nullptr);
+
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   ae_int8x16* p_weights = (ae_int8x16*)value_table_;
@@ -291,7 +334,6 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelAltAxisInt8_Xtensa(
       // move merged elements to output
       AE_SAV8X8X2_XP(data0, data1, align2, (ae_int8x16*)pCoeff, 16);
       AE_SAV8X8X2_XP(data2, data3, align2, (ae_int8x16*)pCoeff, 16);
-      AE_SA128POS_FP(align2, pCoeff);
     }
 
     const int count_rem = max_channels & 0x1F;
@@ -338,9 +380,9 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelAltAxisInt8_Xtensa(
         AE_SAV8X8X2_XP(data2, data3, align2, (ae_int8x16*)pCoeff,
                        count_rem & 0xF);
       }
-      AE_SA128POS_FP(align2, pCoeff);
     }
   }
+  AE_SA128POS_FP(align2, pCoeff);
 }
 
 void XtensaDecodeStatePrune::DecompressToBufferInt16_Xtensa(void* buffer) {
