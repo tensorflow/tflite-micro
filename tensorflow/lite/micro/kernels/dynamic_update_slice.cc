@@ -27,7 +27,7 @@ limitations under the License.
 
 namespace tflite {
 
-constexpr int kMaxDimensions = 6;
+constexpr int kMaxDimensions = RuntimeShape::kMaxSmallSize;
 
 namespace {
 
