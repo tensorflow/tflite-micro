@@ -73,6 +73,7 @@ TfLiteStatus copyToTensor(TfLiteContext* context, const FromT* in,
       // Unsupported type.
       MicroPrintf("Output type %s (%d) not supported.",
                   TfLiteTypeGetName(out->type), out->type);
+      return kTfLiteError;
   }
   return kTfLiteOk;
 }
@@ -108,6 +109,7 @@ TfLiteStatus CastEval(TfLiteContext* context, TfLiteNode* node) {
       // Unsupported type.
       MicroPrintf("Input type %s (%d) not supported.",
                   TfLiteTypeGetName(input->type), input->type);
+      return kTfLiteError;
   }
   return kTfLiteOk;
 }
