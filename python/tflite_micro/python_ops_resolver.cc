@@ -47,6 +47,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddDequantize();
   AddDetectionPostprocess();
   AddDiv();
+  AddDynamicUpdateSlice();
   AddElu();
   AddEmbeddingLookup();
   AddEnergy();

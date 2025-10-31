@@ -251,6 +251,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_DIV, registration, ParseDiv);
   }
 
+  TfLiteStatus AddDynamicUpdateSlice() {
+    return AddBuiltin(BuiltinOperator_DYNAMIC_UPDATE_SLICE,
+                      Register_DYNAMIC_UPDATE_SLICE(), ParseDynamicUpdateSlice);
+  }
+
   TfLiteStatus AddEmbeddingLookup(
       const TFLMRegistration& registration = Register_EMBEDDING_LOOKUP()) {
     return AddBuiltin(BuiltinOperator_EMBEDDING_LOOKUP, registration,

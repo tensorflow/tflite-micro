@@ -58,6 +58,7 @@ TFLMRegistration Register_DEPTH_TO_SPACE();
 TFLMRegistration Register_DEPTHWISE_CONV_2D();
 TFLMRegistration Register_DEQUANTIZE();
 TFLMRegistration Register_DIV();
+TFLMRegistration Register_DYNAMIC_UPDATE_SLICE();
 TFLMRegistration Register_ELU();
 TFLMRegistration Register_EMBEDDING_LOOKUP();
 TFLMRegistration Register_EQUAL();
