@@ -23,7 +23,8 @@ limitations under the License.
 
 namespace tflite {
 
-struct XtensaDecodeStatePrune : public DecodeStatePrune {
+class XtensaDecodeStatePrune : public DecodeStatePrune {
+ public:
   XtensaDecodeStatePrune() = delete;
 
   XtensaDecodeStatePrune(const TfLiteContext* context,

@@ -23,7 +23,8 @@ limitations under the License.
 
 namespace tflite {
 
-struct XtensaDecodeStateHuffman : public DecodeStateHuffman {
+class XtensaDecodeStateHuffman : public DecodeStateHuffman {
+ public:
   XtensaDecodeStateHuffman() = delete;
 
   XtensaDecodeStateHuffman(const TfLiteContext* context,
