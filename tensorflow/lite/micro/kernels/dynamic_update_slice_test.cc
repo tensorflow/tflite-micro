@@ -98,12 +98,12 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleFloat) {
 
   constexpr float kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   constexpr float kInput_1[] = {-1, -2};
-  constexpr int kInput_2[] = {1, 1};
+  constexpr int32_t kInput_2[] = {1, 1};
   constexpr float kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSlice<float, int>(
+  tflite::testing::TestDynamicUpdateSlice<float, int32_t>(
       kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
       output_data);
 }
@@ -118,12 +118,12 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8) {
 
   constexpr int8_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   constexpr int8_t kInput_1[] = {-1, -2};
-  constexpr int kInput_2[] = {1, 1};
+  constexpr int32_t kInput_2[] = {1, 1};
   constexpr int8_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   int8_t output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSlice<int8_t, int>(
+  tflite::testing::TestDynamicUpdateSlice<int8_t, int32_t>(
       kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
       output_data);
 }
@@ -138,12 +138,12 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt16) {
 
   constexpr int16_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   constexpr int16_t kInput_1[] = {-1, -2};
-  constexpr int kInput_2[] = {1, 1};
+  constexpr int32_t kInput_2[] = {1, 1};
   constexpr int16_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   int16_t output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSlice<int16_t, int>(
+  tflite::testing::TestDynamicUpdateSlice<int16_t, int32_t>(
       kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
       output_data);
 }
@@ -156,16 +156,18 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt32) {
                                                   kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
-  constexpr int kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-  constexpr int kInput_1[] = {-1, -2};
-  constexpr int kInput_2[] = {1, 1};
-  constexpr int kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
+  constexpr int32_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  constexpr int32_t kInput_1[] = {-1, -2};
+  constexpr int32_t kInput_2[] = {1, 1};
+  constexpr int32_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
-  int output_data[kOutputCount];
+  int32_t output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSlice<int, int>(
-      kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
-      output_data);
+  tflite::testing::TestDynamicUpdateSlice<int32_t, int32_t>(kInputDims,
+                                                            kInput_0, kInput_1,
+                                                            kInput_2, kExpect,
+                                                            kOutputDims,
+                                                            output_data);
 }
 
 TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8IndicesI64) {
@@ -198,13 +200,14 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
 
   constexpr float kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   constexpr float kInput_1[] = {-1, -2, -3, -4};
-  constexpr int kInput_2[] = {2, 2};
+  constexpr int32_t kInput_2[] = {2, 2};
   constexpr float kExpect[] = {1, 2, 3, 4, -1, -2, 7, -3, -4};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSlice<float>(kInputDims, kInput_0, kInput_1,
-                                                 kInput_2, kExpect, kOutputDims,
-                                                 output_data);
+  tflite::testing::TestDynamicUpdateSlice<float, int32_t>(kInputDims, kInput_0,
+                                                          kInput_1, kInput_2,
+                                                          kExpect, kOutputDims,
+                                                          output_data);
 }
 TF_LITE_MICRO_TESTS_END
