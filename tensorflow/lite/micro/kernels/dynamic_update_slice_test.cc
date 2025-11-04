@@ -92,8 +92,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleFloat) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {
-      kInputDims_0, kInputDims_1, kInputDims_2};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1,
+                                                  kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
   constexpr float kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -112,8 +112,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {
-      kInputDims_0, kInputDims_1, kInputDims_2};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1,
+                                                  kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
   constexpr int8_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -132,8 +132,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt16) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {
-      kInputDims_0, kInputDims_1, kInputDims_2};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1,
+                                                  kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
   constexpr int16_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -152,8 +152,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt32) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {
-      kInputDims_0, kInputDims_1, kInputDims_2};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1,
+                                                  kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
   constexpr int kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -172,8 +172,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8IndicesI64) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {
-      kInputDims_0, kInputDims_1, kInputDims_2};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1,
+                                                  kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
   constexpr int8_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -192,8 +192,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 2};
   int kInputDims_2[] = {1, 2};
-  int* kInputDims[tflite::testing::kNumInputs] = {
-      kInputDims_0, kInputDims_1, kInputDims_2};
+  int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1,
+                                                  kInputDims_2};
   int kOutputDims[] = {2, 3, 3};
 
   constexpr float kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
