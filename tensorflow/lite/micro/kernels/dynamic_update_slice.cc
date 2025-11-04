@@ -31,34 +31,30 @@ constexpr int kMaxDimensions = RuntimeShape::kMaxSmallSize;
 
 namespace {
 
-TfLiteStatus CalculateClampedStartIndices(
-    int num_dims, const int64_t* raw_indices_data,
-    const int32_t* input_dims_data, const int32_t* update_dims_data,
-    int32_t* clamped_start_indices_output) {
+void CalculateClampedStartIndices(int num_dims, const int64_t* raw_indices_data,
+                                  const int32_t* input_dims_data,
+                                  const int32_t* update_dims_data,
+                                  int32_t* clamped_start_indices_output) {
   for (int i = 0; i < num_dims; ++i) {
     clamped_start_indices_output[i] = static_cast<int32_t>(
         std::min<int64_t>(std::max<int64_t>(0, raw_indices_data[i]),
                           input_dims_data[i] - update_dims_data[i]));
   }
-  return kTfLiteOk;
+  return;
 }
 
 // Recursive helper for N-dimensional slice update.
 template <typename T>
-TfLiteStatus UpdateSliceRecursive(int current_dim, int max_dims,
-                                  const int32_t* output_strides,
-                                  const int32_t* update_strides,
-                                  const int32_t* update_dims_data,
-                                  const T* update_tensor_data,
-                                  const int32_t* clamped_start_indices,
-                                  T* output_tensor_data) {
-  if (current_dim == max_dims) {
-    return kTfLiteOk;
-  }
-
+void UpdateSliceRecursive(int current_dim, int max_dims,
+                          const int32_t* output_strides,
+                          const int32_t* update_strides,
+                          const int32_t* update_dims_data,
+                          const T* update_tensor_data,
+                          const int32_t* clamped_start_indices,
+                          T* output_tensor_data) {
+  if (current_dim == max_dims) return;
   output_tensor_data +=
       clamped_start_indices[current_dim] * output_strides[current_dim];
-
   if (current_dim == max_dims - 1) {
     std::memcpy(output_tensor_data, update_tensor_data,
                 update_dims_data[max_dims - 1] * sizeof(T));
@@ -68,20 +64,17 @@ TfLiteStatus UpdateSliceRecursive(int current_dim, int max_dims,
                               update_strides, update_dims_data,
                               update_tensor_data, clamped_start_indices,
                               output_tensor_data);
-
       output_tensor_data += output_strides[current_dim];
       update_tensor_data += update_strides[current_dim];
     }
   }
-  return kTfLiteOk;
 }
 
 // Main dispatch function for Eval, templated on data type.
 template <typename T>
-TfLiteStatus EvalImpl(const TfLiteEvalTensor* operand_eval,
-                      const TfLiteEvalTensor* update_eval,
-                      const int64_t* indices_eval,
-                      TfLiteEvalTensor* output_eval) {
+void EvalImpl(const TfLiteEvalTensor* operand_eval,
+              const TfLiteEvalTensor* update_eval, const int64_t* indices_eval,
+              TfLiteEvalTensor* output_eval) {
   const RuntimeShape operand_shape =
       tflite::micro::GetTensorShape(operand_eval);
   const RuntimeShape update_shape = tflite::micro::GetTensorShape(update_eval);
@@ -92,16 +85,10 @@ TfLiteStatus EvalImpl(const TfLiteEvalTensor* operand_eval,
   if (operand_shape.FlatSize() == update_shape.FlatSize()) {
     std::memcpy(output_tensor_data, update_tensor_data,
                 ElementCount(*operand_eval->dims) * sizeof(T));
-    return kTfLiteOk;
+    return;
   }
 
-  if (num_dims > kMaxDimensions) {
-    MicroPrintf(
-        "DYNAMIC_UPDATE_SLICE: Operand rank %d exceeds max supported %d.",
-        num_dims, kMaxDimensions);
-    return kTfLiteError;
-  }
-
+  // If the operation is not done in-place, copy the input data to the output.
   if (operand_eval->data.data != output_eval->data.data) {
     std::memcpy(output_eval->data.data, operand_eval->data.data,
                 ElementCount(*operand_eval->dims) * sizeof(T));
@@ -109,14 +96,13 @@ TfLiteStatus EvalImpl(const TfLiteEvalTensor* operand_eval,
 
   // If update tensor is empty, no actual update is needed after operand copy.
   if (ElementCount(*update_eval->dims) == 0) {
-    return kTfLiteOk;
+    return;
   }
 
   // Calculate clamped start indices (stack-allocated)
   int32_t clamped_start_indices[kMaxDimensions];
-  TF_LITE_ENSURE_STATUS(CalculateClampedStartIndices(
-      num_dims, indices_eval, operand_shape.DimsData(), update_shape.DimsData(),
-      clamped_start_indices));
+  CalculateClampedStartIndices(num_dims, indices_eval, operand_shape.DimsData(),
+                               update_shape.DimsData(), clamped_start_indices);
 
   // Calculate strides (stack-allocated)
   int32_t output_stride[kMaxDimensions];
@@ -130,7 +116,7 @@ TfLiteStatus EvalImpl(const TfLiteEvalTensor* operand_eval,
 
   // Perform the N-dimensional update
   // The recursive function needs base pointers and initial offsets.
-  return UpdateSliceRecursive<T>(
+  UpdateSliceRecursive<T>(
       /*current_dim=*/0, num_dims, output_stride, update_stride,
       update_shape.DimsData(), update_tensor_data, clamped_start_indices,
       output_tensor_data);
@@ -174,14 +160,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE(context,
                    SizeOfDimension(update, i) <= SizeOfDimension(operand, i));
   }
-  output->type = operand->type;
 
   // Deallocate temporary tensors
   micro_context->DeallocateTempTfLiteTensor(operand);
   micro_context->DeallocateTempTfLiteTensor(update);
   micro_context->DeallocateTempTfLiteTensor(start_indices);
-  micro_context->DeallocateTempTfLiteTensor(
-      output);  // Output tensor metadata also temp
+  micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
 }
@@ -215,14 +199,20 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // Dispatch based on tensor type
   switch (operand_eval->type) {
     case kTfLiteFloat32:
-      return EvalImpl<float>(operand_eval, update_eval, indices_data_i64,
-                             output_eval);
+      EvalImpl<float>(operand_eval, update_eval, indices_data_i64, output_eval);
+      break;
     case kTfLiteInt8:
-      return EvalImpl<int8_t>(operand_eval, update_eval, indices_data_i64,
-                              output_eval);
+      EvalImpl<int8_t>(operand_eval, update_eval, indices_data_i64,
+                       output_eval);
+      break;
+    case kTfLiteInt16:
+      EvalImpl<int16_t>(operand_eval, update_eval, indices_data_i64,
+                        output_eval);
+      break;
     case kTfLiteInt32:
-      return EvalImpl<int32_t>(operand_eval, update_eval, indices_data_i64,
-                               output_eval);
+      EvalImpl<int32_t>(operand_eval, update_eval, indices_data_i64,
+                        output_eval);
+      break;
     default:
       MicroPrintf("DYNAMIC_UPDATE_SLICE: Operand type %s not supported.",
                   TfLiteTypeGetName(operand_eval->type));

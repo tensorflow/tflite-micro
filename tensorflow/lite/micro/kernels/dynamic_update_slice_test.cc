@@ -26,23 +26,12 @@ namespace tflite {
 namespace testing {
 namespace {
 
-// constexpr float kTestTolerance = 7.41e-03;
 constexpr int kNumInputs = 3;
 constexpr int kNumOutputs = 1;
 constexpr int kInputTensorIndex_0 = 0;
 constexpr int kInputTensorIndex_1 = 1;
 constexpr int kInputTensorIndex_2 = 2;
 constexpr int kOutputTensorIndex = 3;
-
-// min/max are used to compute scale, zero-point is 0
-template <size_t kInputSize>
-struct TestDynamicUpdateSliceParams {
-  // quantization parameters
-  float data_min;                  // input data minimum value
-  float data_max;                  // input data maximum value
-  int8_t input1_data[kInputSize];  // quantized input storage
-  int8_t input2_data[kInputSize];  // quantized input storage
-};
 
 void ExecuteDynamicUpdateSliceTest(TfLiteTensor* tensors, int tensors_count) {
   int kInputArrayData[] = {kNumInputs, kInputTensorIndex_0, kInputTensorIndex_1,
@@ -59,12 +48,11 @@ void ExecuteDynamicUpdateSliceTest(TfLiteTensor* tensors, int tensors_count) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
-void TestDynamicUpdateSliceFloat(int* input_dims_data[kNumInputs],
-                                 const float* input_data_0,
-                                 const float* input_data_1,
-                                 const int32_t* input_data_2,
-                                 const float* golden_data, int* expected_dims,
-                                 float* output_data) {
+template <typename T, typename U>
+void TestDynamicUpdateSlice(int* input_dims_data[kNumInputs],
+                            const T* input_data_0, const T* input_data_1,
+                            const U* input_data_2, const T* golden_data,
+                            int* expected_dims, T* output_data) {
   TfLiteIntArray* input_dims_0 = IntArrayFromInts(input_dims_data[0]);
   TfLiteIntArray* input_dims_1 = IntArrayFromInts(input_dims_data[1]);
   TfLiteIntArray* input_dims_2 = IntArrayFromInts(input_dims_data[2]);
@@ -82,8 +70,7 @@ void TestDynamicUpdateSliceFloat(int* input_dims_data[kNumInputs],
 
   // check output data against expected
   for (int i = 0; i < output_count; i++) {
-    printf("output_data[%d] = %f\n", i, output_data[i]);
-    TF_LITE_MICRO_EXPECT_NEAR(golden_data[i], output_data[i], 0.0);
+    TF_LITE_MICRO_EXPECT_EQ(golden_data[i], output_data[i]);
   }
 
   // check output dimensions (relocated) against original dimensions
@@ -94,8 +81,6 @@ void TestDynamicUpdateSliceFloat(int* input_dims_data[kNumInputs],
                             tensors[kOutputTensorIndex].dims->data[i]);
   }
 }
-
-// TODO(rameshkunasi): Add quantized test for dynamic update slice.
 
 }  // namespace
 }  // namespace testing
@@ -118,9 +103,89 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleFloat) {
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSliceFloat(kInputDims, kInput_0, kInput_1,
-                                               kInput_2, kExpect, kOutputDims,
-                                               output_data);
+  tflite::testing::TestDynamicUpdateSlice<float, int32_t>(
+      kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
+      output_data);
+}
+
+TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8) {
+  int32_t kInputDims_0[] = {2, 3, 3};
+  int32_t kInputDims_1[] = {2, 2, 1};
+  int32_t kInputDims_2[] = {1, 2};
+  int32_t* kInputDims[tflite::testing::kNumInputs] = {
+      kInputDims_0, kInputDims_1, kInputDims_2};
+  int kOutputDims[] = {2, 3, 3};
+
+  constexpr int8_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  constexpr int8_t kInput_1[] = {-1, -2};
+  constexpr int32_t kInput_2[] = {1, 1};
+  constexpr int8_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  int8_t output_data[kOutputCount];
+
+  tflite::testing::TestDynamicUpdateSlice<int8_t, int32_t>(
+      kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
+      output_data);
+}
+
+TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt16) {
+  int32_t kInputDims_0[] = {2, 3, 3};
+  int32_t kInputDims_1[] = {2, 2, 1};
+  int32_t kInputDims_2[] = {1, 2};
+  int32_t* kInputDims[tflite::testing::kNumInputs] = {
+      kInputDims_0, kInputDims_1, kInputDims_2};
+  int kOutputDims[] = {2, 3, 3};
+
+  constexpr int16_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  constexpr int16_t kInput_1[] = {-1, -2};
+  constexpr int32_t kInput_2[] = {1, 1};
+  constexpr int16_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  int16_t output_data[kOutputCount];
+
+  tflite::testing::TestDynamicUpdateSlice<int16_t, int32_t>(
+      kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
+      output_data);
+}
+
+TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt32) {
+  int32_t kInputDims_0[] = {2, 3, 3};
+  int32_t kInputDims_1[] = {2, 2, 1};
+  int32_t kInputDims_2[] = {1, 2};
+  int32_t* kInputDims[tflite::testing::kNumInputs] = {
+      kInputDims_0, kInputDims_1, kInputDims_2};
+  int kOutputDims[] = {2, 3, 3};
+
+  constexpr int32_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  constexpr int32_t kInput_1[] = {-1, -2};
+  constexpr int32_t kInput_2[] = {1, 1};
+  constexpr int32_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  int32_t output_data[kOutputCount];
+
+  tflite::testing::TestDynamicUpdateSlice<int32_t, int32_t>(
+      kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
+      output_data);
+}
+
+TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8IndicesI64) {
+  int32_t kInputDims_0[] = {2, 3, 3};
+  int32_t kInputDims_1[] = {2, 2, 1};
+  int32_t kInputDims_2[] = {1, 2};
+  int32_t* kInputDims[tflite::testing::kNumInputs] = {
+      kInputDims_0, kInputDims_1, kInputDims_2};
+  int kOutputDims[] = {2, 3, 3};
+
+  constexpr int8_t kInput_0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  constexpr int8_t kInput_1[] = {-1, -2};
+  constexpr int64_t kInput_2[] = {1, 1};
+  constexpr int8_t kExpect[] = {1, 2, 3, 4, -1, 6, 7, -2, 9};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  int8_t output_data[kOutputCount];
+
+  tflite::testing::TestDynamicUpdateSlice<int8_t, int64_t>(
+      kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
+      output_data);
 }
 
 TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
@@ -138,8 +203,8 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
-  tflite::testing::TestDynamicUpdateSliceFloat(kInputDims, kInput_0, kInput_1,
-                                               kInput_2, kExpect, kOutputDims,
-                                               output_data);
+  tflite::testing::TestDynamicUpdateSlice<float>(kInputDims, kInput_0, kInput_1,
+                                                 kInput_2, kExpect, kOutputDims,
+                                                 output_data);
 }
 TF_LITE_MICRO_TESTS_END
