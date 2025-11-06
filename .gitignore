@@ -8,6 +8,7 @@
 venv
 gen
 .venv
+tensorflow/lite/micro/examples/micro_speech2
 
 # Ignore the directory in which `clangd` stores its local index.
 /.cache/
