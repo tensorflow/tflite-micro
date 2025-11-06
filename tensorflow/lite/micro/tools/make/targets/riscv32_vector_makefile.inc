@@ -20,7 +20,6 @@ export PATH := $(TARGET_TOOLCHAIN_ROOT):$(PATH)
 PLATFORM_FLAGS = \
   -march=$(RISCV_ARCH) \
   -mabi=$(RISCV_ABI) \
-  -O3 \
   -mcmodel=$(RISCV_CODE_MODEL) \
   -mexplicit-relocs \
   -fno-builtin-printf \
@@ -66,12 +65,12 @@ MICROLITE_CC_SRCS += \
   tensorflow/lite/micro/kernels/riscv_vector/conv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/depthwise_conv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/fully_connected.cc \
-  tensorflow/lite/micro/kernels/riscv_vector/softmax.cc
+#  tensorflow/lite/micro/kernels/riscv_vector/softmax.cc \
 
 EXCLUDED_SRCS := \
   tensorflow/lite/micro/kernels/conv.cc \
   tensorflow/lite/micro/kernels/depthwise_conv.cc \
   tensorflow/lite/micro/kernels/fully_connected.cc \
-  tensorflow/lite/micro/kernels/softmax.cc
+#  tensorflow/lite/micro/kernels/softmax.cc \
 
 
