@@ -23,19 +23,20 @@ limitations under the License.
 
 namespace tflite {
 
-struct XtensaDecodeStateLUT : public DecodeStateLUT {
-  XtensaDecodeStateLUT() = delete;
+class XtensaDecodeStateLut : public DecodeStateLut {
+ public:
+  XtensaDecodeStateLut() = delete;
 
-  XtensaDecodeStateLUT(const TfLiteContext* context,
+  XtensaDecodeStateLut(const TfLiteContext* context,
                        MicroProfilerInterface* profiler)
-      : DecodeStateLUT(context, profiler) {}
+      : DecodeStateLut(context, profiler) {}
 
   virtual TfLiteStatus Decode(const TfLiteEvalTensor& input,
                               const TfLiteEvalTensor& ancillary,
                               const TfLiteEvalTensor& output) override;
 
  protected:
-  virtual ~XtensaDecodeStateLUT() = default;
+  virtual ~XtensaDecodeStateLut() = default;
 
   void DecompressToBuffer(int8_t* buffer);
 

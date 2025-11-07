@@ -28,6 +28,11 @@ namespace {
 TfLiteStatus SetOutputTensorData(TfLiteContext* context, const TfLiteNode* node,
                                  size_t tensor_output_index,
                                  TfLiteTensor* output) {
+  if (output->data.data != nullptr) {
+    // If memory has already been assigned to the tensor, leave it be
+    return kTfLiteOk;
+  }
+
   // If alternate decompression memory is available, set the tensor data
   // pointer now to preclude allocation by the memory planner.
   void* alternate_decompress_mem =

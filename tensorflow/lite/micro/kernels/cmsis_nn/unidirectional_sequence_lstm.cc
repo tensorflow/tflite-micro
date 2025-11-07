@@ -344,6 +344,18 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
   // All TempTfLiteTensors will be deallocated through the destructor.
   LstmTensors lstm_tensors(context, node);
   TF_LITE_ENSURE_OK(context, lstm_tensors.ValidateTensorStatus(context));
+  // Additional validation of weights and biases.
+  // ValidateTensorStatus() ensures no tensor is <nullptr>.
+  for (size_t i = 1; i < 9; i++) {
+    // check weight
+    TF_LITE_ENSURE(context,
+                   IsConstantTensor(lstm_tensors.GetInternalTensor(i)));
+  }
+  for (size_t i = 12; i < 16; i++) {
+    // check bias
+    TF_LITE_ENSURE(context,
+                   IsConstantTensor(lstm_tensors.GetInternalTensor(i)));
+  }
 
   op_data_lstm->cell_gate_nonlinear_type = builtin_data->activation;
   op_data_lstm->size_info =

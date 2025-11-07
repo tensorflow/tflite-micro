@@ -51,15 +51,21 @@ TfLiteStatus DecodeStatePrune::Setup(const TfLiteTensor& input,
       return kTfLiteError;
     }
 
+    TFLITE_DCHECK(num_channels_ ==
+                  static_cast<size_t>(quantization->zero_point->size));
+    bool has_non_zero_zp =
+        std::any_of(quantization->zero_point->data,
+                    quantization->zero_point->data + num_channels_,
+                    [](int zp) { return zp != 0; });
+
     if (output.type != kTfLiteInt8) {
       // make sure all zero points are 0 (zero)
-      for (size_t i = 0; i < num_channels_; i++) {
-        TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_),
-                       quantization->zero_point->data[i] == 0);
-      }
+      TF_LITE_ENSURE_MSG(const_cast<TfLiteContext*>(context_),
+                         has_non_zero_zp == false,
+                         "All zero-points must be zero");
     }
 
-    if (num_channels_ > 1 && output.type == kTfLiteInt8) {
+    if (num_channels_ > 1 && has_non_zero_zp) {
       // copy zero points
       MicroContext* micro_context = GetMicroContext(context_);
       const size_t bufsize = num_channels_ * sizeof(*zero_points_);
@@ -98,7 +104,7 @@ TfLiteStatus DecodeStatePrune::Decode(const TfLiteEvalTensor& input,
       DecompressToBuffer<int32_t>(buffer);
       break;
     case kTfLiteInt8:
-      if (num_channels_ > 1) {
+      if (num_channels_ > 1 && zero_points_ != nullptr) {
         DecompressToBufferPerChannelInt8(buffer);
       } else {
         DecompressToBuffer<int8_t>(buffer);
@@ -143,6 +149,7 @@ void DecodeStatePrune::DecompressToBuffer(void* vp) {
 }
 
 void DecodeStatePrune::DecompressToBufferPerChannelInt8(void* vp) {
+  TFLITE_DCHECK(zero_points_ != nullptr);
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   int8_t* buffer = static_cast<int8_t*>(vp);

@@ -145,11 +145,11 @@ class MicroContext {
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.
   // Return nullptr if the requested size is not available.
-  // Can be called during Prepare phase.
+  // Can be called during kPrepare state.
   virtual void* AllocateDecompressionMemory(size_t bytes, size_t alignment);
 
   // Reset all allocation tracking.
-  // Can be called during Prepare phase.
+  // Can be called during kPrepare state.
   virtual void ResetDecompressionMemoryAllocations();
 
   // Set the alternate MicroProfilerInterface.
