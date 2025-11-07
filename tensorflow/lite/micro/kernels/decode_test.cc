@@ -225,15 +225,13 @@ TF_LITE_MICRO_TEST(DecodeWithAltDecompressionMemory) {
 
   const TfLiteIntArray* const output_dims =
       tflite::testing::IntArrayFromInts(kOutputShapeLUT);
-  constexpr float output_scales_data[] = {0};
-  const TfLiteFloatArray* const output_scales =
-      tflite::testing::FloatArrayFromFloats(output_scales_data);
-  constexpr int output_zero_points_data[] = {0};
-  const TfLiteIntArray* const output_zero_points =
-      tflite::testing::IntArrayFromInts(output_zero_points_data);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum tod = {
       nullptr,  // using alternate decompression memory
-      *output_dims, kTfLiteInt8, *output_scales, *output_zero_points, 0, {},
+      *output_dims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints, 0, {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> outputs = {
       &tod};
