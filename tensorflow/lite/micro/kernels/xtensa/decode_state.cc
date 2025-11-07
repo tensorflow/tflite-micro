@@ -32,18 +32,18 @@ DecodeState* DecodeState::CreateDecodeStateLUT(
     const TfLiteContext* context, MicroProfilerInterface* profiler) {
   MicroContext* const micro_context = GetMicroContext(context);
 #ifdef HIFI5
-  constexpr size_t kBufferSize = sizeof(XtensaDecodeStateLUT);
+  constexpr size_t kBufferSize = sizeof(XtensaDecodeStateLut);
 #else
-  constexpr size_t kBufferSize = sizeof(DecodeStateLUT);
+  constexpr size_t kBufferSize = sizeof(DecodeStateLut);
 #endif  // HIFI5
   void* buffer = micro_context->AllocatePersistentBuffer(kBufferSize);
   if (buffer == nullptr) {
     return nullptr;
   }
 #ifdef HIFI5
-  DecodeState* dsp = new (buffer) XtensaDecodeStateLUT(context, profiler);
+  DecodeState* dsp = new (buffer) XtensaDecodeStateLut(context, profiler);
 #else
-  DecodeState* dsp = new (buffer) DecodeStateLUT(context, profiler);
+  DecodeState* dsp = new (buffer) DecodeStateLut(context, profiler);
 #endif  // HIFI5
 
   return dsp;

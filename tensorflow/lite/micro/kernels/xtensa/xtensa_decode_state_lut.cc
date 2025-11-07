@@ -27,7 +27,7 @@ limitations under the License.
 
 namespace tflite {
 
-void XtensaDecodeStateLUT::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
+void XtensaDecodeStateLut::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   ae_int8x8 d_shuffle_t = AE_MOVINT8X8_FROMINT64(0xFB73EA62D951C840LL);
@@ -84,7 +84,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
   AE_SA128POS_FP(align_store, (ae_int8x16*)p_out_tmp);
 }
 
-void XtensaDecodeStateLUT::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
+void XtensaDecodeStateLut::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   int i, j;
@@ -206,7 +206,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
   AE_SA128POS_FP(align_store, (ae_int8x16*)p_out_tmp);
 }
 
-void XtensaDecodeStateLUT::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
+void XtensaDecodeStateLut::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
   int i, j;
@@ -323,7 +323,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
   AE_SA128POS_FP(align_store, (ae_int8x16*)p_out_tmp);
 }
 
-void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt8_Xtensa(
+void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt8_Xtensa(
     int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
@@ -393,7 +393,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt8_Xtensa(
   }
 }
 
-void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt16_Xtensa(
+void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt16_Xtensa(
     int16_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
@@ -444,7 +444,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt16_Xtensa(
   }
 }
 
-void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt32_Xtensa(
+void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt32_Xtensa(
     int32_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
@@ -495,7 +495,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt32_Xtensa(
   }
 }
 
-void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt64_Xtensa(
+void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt64_Xtensa(
     int64_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
@@ -546,7 +546,7 @@ void XtensaDecodeStateLUT::DecompressToBufferWidthAnyInt64_Xtensa(
   }
 }
 
-void XtensaDecodeStateLUT::DecompressToBuffer(int8_t* buffer) {
+void XtensaDecodeStateLut::DecompressToBuffer(int8_t* buffer) {
   if (compressed_bit_width_ == 4 && !use_alternate_axis_) {
     if (!(elements_per_channel_ & 0x01)) {
       DecompressToBufferWidth4_Xtensa(buffer);
@@ -570,7 +570,7 @@ void XtensaDecodeStateLUT::DecompressToBuffer(int8_t* buffer) {
   }
 }
 
-TfLiteStatus XtensaDecodeStateLUT::Decode(const TfLiteEvalTensor& input,
+TfLiteStatus XtensaDecodeStateLut::Decode(const TfLiteEvalTensor& input,
                                           const TfLiteEvalTensor& ancillary,
                                           const TfLiteEvalTensor& output) {
   TFLITE_DCHECK(compressed_bit_width_ <= kMaxBitWidth);

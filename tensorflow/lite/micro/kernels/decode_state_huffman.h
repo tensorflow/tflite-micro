@@ -24,7 +24,8 @@ limitations under the License.
 
 namespace tflite {
 
-struct DecodeStateHuffman : public DecodeState {
+class DecodeStateHuffman : public DecodeState {
+ public:
   DecodeStateHuffman() = delete;
 
   DecodeStateHuffman(const TfLiteContext* context,
@@ -62,11 +63,15 @@ struct DecodeStateHuffman : public DecodeState {
  private:
   inline bool IsLittleEndian() const {
     int i = 1;
-    return (reinterpret_cast<char*>(&i)[0] == 1);
+    return (reinterpret_cast<const char*>(&i)[0] == 1);
   }
 
   inline uint32_t Swap32(const uint32_t x) const {
+#if defined(GNUC) || defined(clang)
+    return __builtin_bswap32(x);
+#else
     return (x << 24) | ((x & 0xFF00) << 8) | ((x >> 8) & 0xFF00) | (x >> 24);
+#endif  // defined(GNUC) || defined(clang)
   }
 
  protected:
