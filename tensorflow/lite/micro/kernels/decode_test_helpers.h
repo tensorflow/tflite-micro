@@ -85,6 +85,8 @@ TfLiteStatus ExecuteDecodeTest(
     TfLiteTensor* tensors, const TFLMRegistration& registration,
     const std::initializer_list<const void*>& expected,
     const std::initializer_list<MicroContext::AlternateMemoryRegion>* amr =
+        nullptr,
+    const std::initializer_list<MicroContext::CustomDecodeRegistration>* cdr =
         nullptr) {
   int kInputArrayData[kNumInputs + 1] = {kNumInputs};
   for (size_t i = 0; i < kNumInputs; i++) {
@@ -103,6 +105,9 @@ TfLiteStatus ExecuteDecodeTest(
 
   if (amr != nullptr) {
     runner.GetFakeMicroContext()->SetDecompressionMemory(*amr);
+  }
+  if (cdr != nullptr) {
+    runner.GetFakeMicroContext()->SetCustomDecodeRegistrations(*cdr);
   }
 
   if (runner.InitAndPrepare() != kTfLiteOk || runner.Invoke() != kTfLiteOk) {
@@ -149,6 +154,8 @@ void TestDecode(
     const TFLMRegistration& registration,
     const std::initializer_list<MicroContext::AlternateMemoryRegion>* amr =
         nullptr,
+    const std::initializer_list<MicroContext::CustomDecodeRegistration>* cdr =
+        nullptr,
     const TfLiteStatus expected_status = kTfLiteOk) {
   TfLiteTensor tensors[kNumInputs + kNumOutputs] = {};
 
@@ -182,7 +189,7 @@ void TestDecode(
   }
 
   TfLiteStatus s = ExecuteDecodeTest<kNumInputs, kNumOutputs>(
-      tensors, registration, expected, amr);
+      tensors, registration, expected, amr, cdr);
   TF_LITE_MICRO_EXPECT_EQ(s, expected_status);
 }
 
