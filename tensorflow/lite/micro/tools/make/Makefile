@@ -400,6 +400,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/detection_postprocess.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dynamic_update_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup.cc \
