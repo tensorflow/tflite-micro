@@ -49,6 +49,13 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
     const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
     TfLiteTensor* result);
 
+// Initializes a TfLiteEvalTensor from a flatbuffer tensor and buffers vector.
+// This is the eval-phase counterpart to InitializeTfLiteTensorFromFlatbuffer.
+TfLiteStatus InitializeTfLiteEvalTensorFromFlatbuffer(
+    const tflite::Tensor& flatbuffer_tensor,
+    const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers,
+    TfLiteEvalTensor* result);
+
 // Holds placeholder information for a scratch buffer request from a kernel.
 // This struct is only used during the model prepare stage. Each request from a
 // kernel is stored in the head section. During the prepare stage, the head
