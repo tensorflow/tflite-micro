@@ -2407,8 +2407,15 @@ class Tensor(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
         return o == 0
 
+    # Tensor
+    def ExternalBuffer(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(24))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
 def TensorStart(builder):
-    builder.StartObject(10)
+    builder.StartObject(11)
 
 def TensorAddShape(builder, shape):
     builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(shape), 0)
@@ -2449,6 +2456,9 @@ def TensorAddVariantTensors(builder, variantTensors):
 def TensorStartVariantTensorsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
+def TensorAddExternalBuffer(builder, externalBuffer):
+    builder.PrependUint32Slot(10, externalBuffer, 0)
+
 def TensorEnd(builder):
     return builder.EndObject()
 
@@ -2472,6 +2482,7 @@ class TensorT(object):
         self.shapeSignature = None  # type: List[int]
         self.hasRank = False  # type: bool
         self.variantTensors = None  # type: List[VariantSubTypeT]
+        self.externalBuffer = 0  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2525,6 +2536,7 @@ class TensorT(object):
                 else:
                     variantSubType_ = VariantSubTypeT.InitFromObj(tensor.VariantTensors(i))
                     self.variantTensors.append(variantSubType_)
+        self.externalBuffer = tensor.ExternalBuffer()
 
     # TensorT
     def Pack(self, builder):
@@ -2575,6 +2587,7 @@ class TensorT(object):
         TensorAddHasRank(builder, self.hasRank)
         if self.variantTensors is not None:
             TensorAddVariantTensors(builder, variantTensors)
+        TensorAddExternalBuffer(builder, self.externalBuffer)
         tensor = TensorEnd(builder)
         return tensor
 
@@ -17892,6 +17905,218 @@ class BufferT(object):
         return buffer
 
 
+class ExternalBufferGroup(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = ExternalBufferGroup()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsExternalBufferGroup(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def ExternalBufferGroupBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # ExternalBufferGroup
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # ExternalBufferGroup
+    def Name(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def ExternalBufferGroupStart(builder):
+    builder.StartObject(1)
+
+def ExternalBufferGroupAddName(builder, name):
+    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
+
+def ExternalBufferGroupEnd(builder):
+    return builder.EndObject()
+
+
+
+class ExternalBufferGroupT(object):
+
+    # ExternalBufferGroupT
+    def __init__(self):
+        self.name = None  # type: str
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        externalBufferGroup = ExternalBufferGroup()
+        externalBufferGroup.Init(buf, pos)
+        return cls.InitFromObj(externalBufferGroup)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, externalBufferGroup):
+        x = ExternalBufferGroupT()
+        x._UnPack(externalBufferGroup)
+        return x
+
+    # ExternalBufferGroupT
+    def _UnPack(self, externalBufferGroup):
+        if externalBufferGroup is None:
+            return
+        self.name = externalBufferGroup.Name()
+
+    # ExternalBufferGroupT
+    def Pack(self, builder):
+        if self.name is not None:
+            name = builder.CreateString(self.name)
+        ExternalBufferGroupStart(builder)
+        if self.name is not None:
+            ExternalBufferGroupAddName(builder, name)
+        externalBufferGroup = ExternalBufferGroupEnd(builder)
+        return externalBufferGroup
+
+
+class ExternalBuffer(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = ExternalBuffer()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsExternalBuffer(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def ExternalBufferBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # ExternalBuffer
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # ExternalBuffer
+    def Id(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # ExternalBuffer
+    def Group(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
+        return 0
+
+    # ExternalBuffer
+    def Offset(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # ExternalBuffer
+    def Length(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+    # ExternalBuffer
+    def Packing(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.String(o + self._tab.Pos)
+        return None
+
+def ExternalBufferStart(builder):
+    builder.StartObject(5)
+
+def ExternalBufferAddId(builder, id):
+    builder.PrependUint32Slot(0, id, 0)
+
+def ExternalBufferAddGroup(builder, group):
+    builder.PrependUint32Slot(1, group, 0)
+
+def ExternalBufferAddOffset(builder, offset):
+    builder.PrependUint64Slot(2, offset, 0)
+
+def ExternalBufferAddLength(builder, length):
+    builder.PrependUint64Slot(3, length, 0)
+
+def ExternalBufferAddPacking(builder, packing):
+    builder.PrependUOffsetTRelativeSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(packing), 0)
+
+def ExternalBufferEnd(builder):
+    return builder.EndObject()
+
+
+
+class ExternalBufferT(object):
+
+    # ExternalBufferT
+    def __init__(self):
+        self.id = 0  # type: int
+        self.group = 0  # type: int
+        self.offset = 0  # type: int
+        self.length = 0  # type: int
+        self.packing = None  # type: str
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        externalBuffer = ExternalBuffer()
+        externalBuffer.Init(buf, pos)
+        return cls.InitFromObj(externalBuffer)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, externalBuffer):
+        x = ExternalBufferT()
+        x._UnPack(externalBuffer)
+        return x
+
+    # ExternalBufferT
+    def _UnPack(self, externalBuffer):
+        if externalBuffer is None:
+            return
+        self.id = externalBuffer.Id()
+        self.group = externalBuffer.Group()
+        self.offset = externalBuffer.Offset()
+        self.length = externalBuffer.Length()
+        self.packing = externalBuffer.Packing()
+
+    # ExternalBufferT
+    def Pack(self, builder):
+        if self.packing is not None:
+            packing = builder.CreateString(self.packing)
+        ExternalBufferStart(builder)
+        ExternalBufferAddId(builder, self.id)
+        ExternalBufferAddGroup(builder, self.group)
+        ExternalBufferAddOffset(builder, self.offset)
+        ExternalBufferAddLength(builder, self.length)
+        if self.packing is not None:
+            ExternalBufferAddPacking(builder, packing)
+        externalBuffer = ExternalBufferEnd(builder)
+        return externalBuffer
+
+
 class Metadata(object):
     __slots__ = ['_tab']
 
@@ -18456,8 +18681,56 @@ class Model(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(18))
         return o == 0
 
+    # Model
+    def ExternalBufferGroups(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            obj = ExternalBufferGroup()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Model
+    def ExternalBufferGroupsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Model
+    def ExternalBufferGroupsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(20))
+        return o == 0
+
+    # Model
+    def ExternalBuffers(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            x = self._tab.Vector(o)
+            x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
+            x = self._tab.Indirect(x)
+            obj = ExternalBuffer()
+            obj.Init(self._tab.Bytes, x)
+            return obj
+        return None
+
+    # Model
+    def ExternalBuffersLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # Model
+    def ExternalBuffersIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(22))
+        return o == 0
+
 def ModelStart(builder):
-    builder.StartObject(8)
+    builder.StartObject(10)
 
 def ModelAddVersion(builder, version):
     builder.PrependUint32Slot(0, version, 0)
@@ -18501,6 +18774,18 @@ def ModelAddSignatureDefs(builder, signatureDefs):
 def ModelStartSignatureDefsVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
 
+def ModelAddExternalBufferGroups(builder, externalBufferGroups):
+    builder.PrependUOffsetTRelativeSlot(8, flatbuffers.number_types.UOffsetTFlags.py_type(externalBufferGroups), 0)
+
+def ModelStartExternalBufferGroupsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def ModelAddExternalBuffers(builder, externalBuffers):
+    builder.PrependUOffsetTRelativeSlot(9, flatbuffers.number_types.UOffsetTFlags.py_type(externalBuffers), 0)
+
+def ModelStartExternalBuffersVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def ModelEnd(builder):
     return builder.EndObject()
 
@@ -18522,6 +18807,8 @@ class ModelT(object):
         self.metadataBuffer = None  # type: List[int]
         self.metadata = None  # type: List[MetadataT]
         self.signatureDefs = None  # type: List[SignatureDefT]
+        self.externalBufferGroups = None  # type: List[ExternalBufferGroupT]
+        self.externalBuffers = None  # type: List[ExternalBufferT]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -18593,6 +18880,22 @@ class ModelT(object):
                 else:
                     signatureDef_ = SignatureDefT.InitFromObj(model.SignatureDefs(i))
                     self.signatureDefs.append(signatureDef_)
+        if not model.ExternalBufferGroupsIsNone():
+            self.externalBufferGroups = []
+            for i in range(model.ExternalBufferGroupsLength()):
+                if model.ExternalBufferGroups(i) is None:
+                    self.externalBufferGroups.append(None)
+                else:
+                    externalBufferGroup_ = ExternalBufferGroupT.InitFromObj(model.ExternalBufferGroups(i))
+                    self.externalBufferGroups.append(externalBufferGroup_)
+        if not model.ExternalBuffersIsNone():
+            self.externalBuffers = []
+            for i in range(model.ExternalBuffersLength()):
+                if model.ExternalBuffers(i) is None:
+                    self.externalBuffers.append(None)
+                else:
+                    externalBuffer_ = ExternalBufferT.InitFromObj(model.ExternalBuffers(i))
+                    self.externalBuffers.append(externalBuffer_)
 
     # ModelT
     def Pack(self, builder):
@@ -18646,6 +18949,22 @@ class ModelT(object):
             for i in reversed(range(len(self.signatureDefs))):
                 builder.PrependUOffsetTRelative(signatureDefslist[i])
             signatureDefs = builder.EndVector()
+        if self.externalBufferGroups is not None:
+            externalBufferGroupslist = []
+            for i in range(len(self.externalBufferGroups)):
+                externalBufferGroupslist.append(self.externalBufferGroups[i].Pack(builder))
+            ModelStartExternalBufferGroupsVector(builder, len(self.externalBufferGroups))
+            for i in reversed(range(len(self.externalBufferGroups))):
+                builder.PrependUOffsetTRelative(externalBufferGroupslist[i])
+            externalBufferGroups = builder.EndVector()
+        if self.externalBuffers is not None:
+            externalBufferslist = []
+            for i in range(len(self.externalBuffers)):
+                externalBufferslist.append(self.externalBuffers[i].Pack(builder))
+            ModelStartExternalBuffersVector(builder, len(self.externalBuffers))
+            for i in reversed(range(len(self.externalBuffers))):
+                builder.PrependUOffsetTRelative(externalBufferslist[i])
+            externalBuffers = builder.EndVector()
         ModelStart(builder)
         ModelAddVersion(builder, self.version)
         if self.operatorCodes is not None:
@@ -18662,6 +18981,10 @@ class ModelT(object):
             ModelAddMetadata(builder, metadata)
         if self.signatureDefs is not None:
             ModelAddSignatureDefs(builder, signatureDefs)
+        if self.externalBufferGroups is not None:
+            ModelAddExternalBufferGroups(builder, externalBufferGroups)
+        if self.externalBuffers is not None:
+            ModelAddExternalBuffers(builder, externalBuffers)
         model = ModelEnd(builder)
         return model
 
