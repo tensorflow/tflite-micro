@@ -196,4 +196,54 @@ TF_LITE_MICRO_TEST(DecodeTwoTensorsLUT) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
+TF_LITE_MICRO_TEST(DecodeWithAltDecompressionMemory) {
+  // Align the tensor data the same as a Buffer in the TfLite schema
+  alignas(16) int8_t output_data[std::size(kExpectLUT0)] = {};
+  alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataLUT0)>
+      kAncillaryData = {{kDcmLUT0}, {kAncillaryDataLUT0}};
+
+  constexpr int kAncillaryShapeLUT[] = {1, sizeof(kAncillaryData)};
+
+  const TfLiteIntArray* const encoded_dims =
+      tflite::testing::IntArrayFromInts(kEncodedShapeLUT);
+  static const TensorInDatum tid_encode = {
+      kEncodedLUT,
+      *encoded_dims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> encodes = {
+      &tid_encode,
+  };
+
+  const TfLiteIntArray* const ancillary_dims =
+      tflite::testing::IntArrayFromInts(kAncillaryShapeLUT);
+  static const TensorInDatum tid_ancillary = {
+      &kAncillaryData,
+      *ancillary_dims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> ancillaries = {
+      &tid_ancillary};
+
+  const TfLiteIntArray* const output_dims =
+      tflite::testing::IntArrayFromInts(kOutputShapeLUT);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
+  static const TensorOutDatum tod = {
+      nullptr,  // using alternate decompression memory
+      *output_dims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints, 0, {},
+  };
+  static constexpr std::initializer_list<const TensorOutDatum*> outputs = {
+      &tod};
+
+  const std::initializer_list<const void*> expected = {kExpectLUT0};
+
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion> amr = {
+      {output_data, sizeof(output_data)}};
+
+  tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
+                              outputs.size()>(
+      encodes, ancillaries, outputs, expected, tflite::Register_DECODE(), &amr);
+}
+
 TF_LITE_MICRO_TESTS_END

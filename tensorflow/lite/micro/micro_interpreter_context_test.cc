@@ -32,7 +32,7 @@ tflite::MicroInterpreterContext CreateMicroInterpreterContext() {
   // the test need to place non-transient memories in static variables. This is
   // safe because tests are guaranteed to run serially.
   constexpr size_t kArenaSize = 1024;
-  static uint8_t tensor_arena[kArenaSize];
+  alignas(16) static uint8_t tensor_arena[kArenaSize];
 
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
   MicroAllocator* micro_allocator =
@@ -197,6 +197,118 @@ TF_LITE_MICRO_TEST(TestGetTempIntermediateTensor) {
   TfLiteTensor* invalid_output =
       micro_context.AllocateTempIntermediateTensor(&node, 1);
   TF_LITE_MICRO_EXPECT_TRUE(invalid_output == nullptr);
+}
+
+TF_LITE_MICRO_TEST(TestSetDecompressionMemory) {
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
+
+  constexpr size_t kAltMemorySize = 1;
+  alignas(16) uint8_t g_alt_memory[kAltMemorySize];
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
+      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
+  TfLiteStatus status;
+
+  // Test that all of the MicroInterpreterContext fences are correct, by
+  // forcing the MicroInterpreterContext state. The SetDecompressionMemory
+  // method should only be allowed during the kInit state, and can only be
+  // set once.  This is because alternate decompression memory is allocated
+  // during the application initiated kPrepare state, and all memory has already
+  // been statically allocted during the kInvoke state.
+
+  // fail during Prepare state
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
+  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TF_LITE_MICRO_EXPECT(status == kTfLiteError);
+
+  // fail during Invoke state
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInvoke);
+  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TF_LITE_MICRO_EXPECT(status == kTfLiteError);
+
+  // succeed during Init state
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TF_LITE_MICRO_EXPECT(status == kTfLiteOk);
+
+  // fail on second Init state attempt
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TF_LITE_MICRO_EXPECT(status == kTfLiteError);
+}
+
+TF_LITE_MICRO_TEST(TestAllocateDecompressionMemory) {
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
+
+  constexpr size_t kAltMemorySize = 30;
+  constexpr size_t kAllocateSize = 10;
+  alignas(16) uint8_t g_alt_memory[kAltMemorySize];
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
+      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
+
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+  TfLiteStatus status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TF_LITE_MICRO_EXPECT(status == kTfLiteOk);
+
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
+
+  // allocate first 10 bytes at offset 0 (total allocated is 10 bytes)
+  uint8_t* p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
+      kAllocateSize, tflite::MicroArenaBufferAlignment()));
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[0]);
+
+  // allocate next 10 bytes at offset 16 (total allocated is 26 bytes)
+  p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
+      kAllocateSize, tflite::MicroArenaBufferAlignment()));
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[tflite::MicroArenaBufferAlignment()]);
+
+  // fail next allocation of 10 bytes (offset 32 > available memory)
+  p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
+      kAllocateSize, tflite::MicroArenaBufferAlignment()));
+  TF_LITE_MICRO_EXPECT(p == nullptr);
+}
+
+TF_LITE_MICRO_TEST(TestResetDecompressionMemory) {
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
+
+  constexpr size_t kAltMemorySize = 30;
+  constexpr size_t kAllocateSize = 10;
+  alignas(16) uint8_t g_alt_memory[kAltMemorySize];
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
+      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
+
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+  TfLiteStatus status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TF_LITE_MICRO_EXPECT(status == kTfLiteOk);
+
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
+
+  // allocate first 10 bytes at offset 0 (total allocated is 10 bytes)
+  uint8_t* p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
+      kAllocateSize, tflite::MicroArenaBufferAlignment()));
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[0]);
+
+  // allocate next 10 bytes at offset 16 (total allocated is 26 bytes)
+  p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
+      kAllocateSize, tflite::MicroArenaBufferAlignment()));
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[tflite::MicroArenaBufferAlignment()]);
+
+  micro_context.ResetDecompressionMemoryAllocations();
+
+  // allocate first 10 bytes again at offset 0 (total allocated is 10 bytes)
+  p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
+      kAllocateSize, tflite::MicroArenaBufferAlignment()));
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[0]);
 }
 
 TF_LITE_MICRO_TESTS_END
