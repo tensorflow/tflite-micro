@@ -209,6 +209,13 @@ TF_LITE_MICRO_TEST(TestSetDecompressionMemory) {
       alt_memory_region = {{g_alt_memory, kAltMemorySize}};
   TfLiteStatus status;
 
+  // Test that all of the MicroInterpreterContext fences are correct, by
+  // forcing the MicroInterpreterContext state. The SetDecompressionMemory
+  // method should only be allowed during the kInit state, and can only be
+  // set once.  This is because alternate decompression memory is allocated
+  // during the application initiated kPrepare state, and all memory has already
+  // been statically allocted during the kInvoke state.
+
   // fail during Prepare state
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kPrepare);
@@ -252,17 +259,17 @@ TF_LITE_MICRO_TEST(TestAllocateDecompressionMemory) {
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kPrepare);
 
-  // allocate first 10 bytes
+  // allocate first 10 bytes at offset 0 (total allocated is 10 bytes)
   uint8_t* p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
   TF_LITE_MICRO_EXPECT(p == &g_alt_memory[0]);
 
-  // allocate next 10 bytes
+  // allocate next 10 bytes at offset 16 (total allocated is 26 bytes)
   p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
-  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[16]);
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[tflite::MicroArenaBufferAlignment()]);
 
-  // fail next allocation
+  // fail next allocation of 10 bytes (offset 32 > available memory)
   p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
   TF_LITE_MICRO_EXPECT(p == nullptr);
@@ -286,19 +293,19 @@ TF_LITE_MICRO_TEST(TestResetDecompressionMemory) {
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kPrepare);
 
-  // allocate first 10 bytes
+  // allocate first 10 bytes at offset 0 (total allocated is 10 bytes)
   uint8_t* p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
   TF_LITE_MICRO_EXPECT(p == &g_alt_memory[0]);
 
-  // allocate next 10 bytes
+  // allocate next 10 bytes at offset 16 (total allocated is 26 bytes)
   p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
-  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[16]);
+  TF_LITE_MICRO_EXPECT(p == &g_alt_memory[tflite::MicroArenaBufferAlignment()]);
 
   micro_context.ResetDecompressionMemoryAllocations();
 
-  // allocate first 10 bytes again
+  // allocate first 10 bytes again at offset 0 (total allocated is 10 bytes)
   p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
   TF_LITE_MICRO_EXPECT(p == &g_alt_memory[0]);
