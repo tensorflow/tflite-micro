@@ -72,7 +72,8 @@ class DecodeState {
   static constexpr uint8_t kDcmTypeLUT = 0;
   static constexpr uint8_t kDcmTypeHuffman = 1;
   static constexpr uint8_t kDcmTypePrune = 2;
-  static constexpr uint8_t kDcmTypeCustom = 127;
+  static constexpr uint8_t kDcmTypeCustomFirst = 128;
+  static constexpr uint8_t kDcmTypeCustomLast = 255;
 
   static constexpr size_t kDcmSizeInBytes = 16;
 

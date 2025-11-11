@@ -18,11 +18,53 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
+
+TfLiteStatus SetOutputTensorData(TfLiteContext* context, const TfLiteNode* node,
+                                 size_t tensor_output_index,
+                                 TfLiteTensor* output) {
+  if (output->data.data != nullptr) {
+    // If memory has already been assigned to the tensor, leave it be
+    return kTfLiteOk;
+  }
+
+  // If alternate decompression memory is available, set the tensor data
+  // pointer now to preclude allocation by the memory planner.
+  void* alternate_decompress_mem =
+      GetMicroContext(context)->AllocateDecompressionMemory(
+          output->bytes, MicroArenaBufferAlignment());
+  if (alternate_decompress_mem != nullptr) {
+    TfLiteEvalTensor* output_eval =
+        tflite::micro::GetEvalOutput(context, node, tensor_output_index);
+    TF_LITE_ENSURE(context, output_eval != nullptr);
+    output_eval->data.data = alternate_decompress_mem;
+    output->data.data = alternate_decompress_mem;
+  }
+
+  return kTfLiteOk;
+}
+
+DecodeState* GetDecodeStateFromCustomRegistration(const TfLiteContext* context,
+                                                  uint8_t type) {
+  const MicroContext* mc = GetMicroContext(context);
+  auto registrations = mc->GetCustomDecodeRegistrations();
+  if (registrations == nullptr) {
+    return nullptr;
+  }
+
+  for (auto& reg : *registrations) {
+    if (reg.type == type && reg.func != nullptr) {
+      return reg.func(context, mc->GetAlternateProfiler());
+    }
+  }
+
+  return nullptr;
+}
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const size_t num_inputs = NumInputs(node);
@@ -42,6 +84,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* ancillary = nullptr;
   TfLiteTensor* output = nullptr;
   TfLiteStatus status = kTfLiteOk;
+
+  micro_context->ResetDecompressionMemoryAllocations();
 
   for (size_t i = 0; i < num_inputs; i += 2) {
     input = micro_context->AllocateTempInputTensor(node, i);
@@ -86,16 +130,22 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         dsp = DecodeState::CreateDecodeStateHuffman(
             context, micro_context->GetAlternateProfiler());
         break;
-      case DecodeState::kDcmTypeCustom:
-        MicroPrintf("Custom decode type not yet supported");
-        break;
       default:
-        MicroPrintf("unsupported decode type %u",
-                    DecodeState::Type(*ancillary));
+        uint32_t type = DecodeState::Type(*ancillary);
+        if (type >= DecodeState::kDcmTypeCustomFirst &&
+            type <= DecodeState::kDcmTypeCustomLast) {
+          dsp = GetDecodeStateFromCustomRegistration(context, type);
+        } else {
+          MicroPrintf("unsupported decode type %u", type);
+        }
         break;
     }
 
     if (dsp != nullptr) {
+      status = SetOutputTensorData(context, node, i / 2, output);
+      if (status != kTfLiteOk) {
+        break;
+      }
       status = dsp->Setup(*input, *ancillary, *output);
       if (status != kTfLiteOk) {
         break;
