@@ -808,7 +808,6 @@ TfLiteStatus EvalLstm(const OpDataLSTM& op_data,
       step_info.UpdateTime();
     }
   } else if (size_info.batch_size > 1 && size_info.time_steps == 1) {
-    // Ramesh
     lstm_internal::LstmStep<ActivationType, WeightType, CellType, BiasType>(
         step_info, op_data, kernel_content, buffers);
   } else {
