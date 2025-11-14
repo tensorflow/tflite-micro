@@ -10,4 +10,8 @@ void MaxPool8BitRVV(const PoolParams& params, const RuntimeShape& input_shape,
                     const int8_t* input_data, const RuntimeShape& output_shape,
                     int8_t* output_data);
 
+void MaxPool16BitRVV(const PoolParams& params, const RuntimeShape& input_shape,
+                    const int16_t* input_data, const RuntimeShape& output_shape,
+                    int16_t* output_data);
+
 #endif

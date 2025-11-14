@@ -78,6 +78,7 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       MaxPoolingEvalFloat(context, node, params, data, input, output);
       break;
     case kTfLiteInt8:
+    {
         tflite::PoolParams op_params;
         op_params.stride_height = params->stride_height;
         op_params.stride_width = params->stride_width;
@@ -93,10 +94,26 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
                     tflite::micro::GetTensorData<std::int8_t>(input),
                     tflite::micro::GetTensorShape(output),
                     tflite::micro::GetTensorData<std::int8_t>(output));
+    }
       break;
     case kTfLiteInt16:
-      MaxPoolingEvalQuantized<int16_t>(context, node, params, data, input,
-                                       output);
+    {
+        tflite::PoolParams op_params;
+        op_params.stride_height = params->stride_height;
+        op_params.stride_width = params->stride_width;
+        op_params.filter_height = params->filter_height;
+        op_params.filter_width = params->filter_width;
+        op_params.padding_values.height = data->padding.height;
+        op_params.padding_values.width = data->padding.width;
+        op_params.quantized_activation_min = data->activation_min;
+        op_params.quantized_activation_max = data->activation_max;
+
+        MaxPool16BitRVV(op_params,
+                    tflite::micro::GetTensorShape(input),
+                    tflite::micro::GetTensorData<std::int16_t>(input),
+                    tflite::micro::GetTensorShape(output),
+                    tflite::micro::GetTensorData<std::int16_t>(output));
+    }
       break;
     default:
       MicroPrintf("Type %s not currently supported.",
