@@ -140,7 +140,9 @@ void ConvPerChannelRVV(const ConvParams& params,
 
                         // Skip this filter row if input y is out of bounds
                         if (!is_y_inside_image)
+                        {
                             continue;
+                        }
 
                         const int8_t* filter_y_base = filter_oc_base + (filter_y * filter_h_stride);
 
@@ -365,7 +367,9 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
 
                             // Skip this filter row if input y is out of bounds
                             if (!is_y_inside_image)
+                            {
                                 continue;
+                            }
 
                             const int8_t* filter_y_base = filter_data + filter_y * filter_h_stride;
 

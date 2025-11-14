@@ -31,26 +31,32 @@ void FullyConnectedPerChannelRVV(const tflite::FullyConnectedParams& params,
   const int16_t s_input_offset_s16 = static_cast<int16_t>(input_offset);
 
   // Loop over batches
-  for (int b = 0; b < batches; ++b) {
+  for (int b = 0; b < batches; ++b)
+  {
     const int8_t* input_batch_ptr = input_data + b * accum_depth;
     int8_t* output_batch_ptr = output_data + b * output_depth;
 
     // Vectorized loop over output channels
     size_t current_out_c = 0;
-    while (current_out_c < static_cast<size_t>(output_depth)) {
+    while (current_out_c < static_cast<size_t>(output_depth))
+    {
       // Set vector length for this iteration
       size_t vl = __riscv_vsetvl_e32m4(output_depth - current_out_c);
 
       // Initialize accumulator vector with biases
       vint32m4_t v_acc_s32;
-      if (bias_data) {
+      if (bias_data)
+      {
         v_acc_s32 = __riscv_vle32_v_i32m4(bias_data + current_out_c, vl);
-      } else {
+      }
+      else
+      {
         v_acc_s32 = __riscv_vmv_v_x_i32m4(0, vl);
       }
 
       // Main MAC loop to compute dot products
-      for (int d = 0; d < accum_depth; ++d) {
+      for (int d = 0; d < accum_depth; ++d)
+      {
         // Load scalar input value and add offset
         int16_t s_input_val_s16 = static_cast<int16_t>(input_batch_ptr[d]) + s_input_offset_s16;
         
@@ -187,20 +193,25 @@ void FullyConnectedRVV(const FullyConnectedParams& params,
 
         // Vectorized loop over output channels
         size_t current_out_c = 0;
-        while (current_out_c < static_cast<size_t>(output_depth)) {
+        while (current_out_c < static_cast<size_t>(output_depth))
+        {
             // Set vector length for processing multiple output channels
             size_t vl = __riscv_vsetvl_e32m4(output_depth - current_out_c);
 
             // Initialize accumulator vector with biases
             vint32m4_t v_acc_s32;
-            if (bias_data) {
+            if (bias_data)
+            {
                 v_acc_s32 = __riscv_vle32_v_i32m4(bias_data + current_out_c, vl);
-            } else {
+            }
+            else
+            {
                 v_acc_s32 = __riscv_vmv_v_x_i32m4(0, vl);
             }
 
             // Loop over accumulation depth to compute 'vl' dot products in parallel
-            for (int d = 0; d < accum_depth; ++d) {
+            for (int d = 0; d < accum_depth; ++d)
+            {
                 // Load one scalar from the input vector and add offset
                 int16_t s_input_val_s16 = static_cast<int16_t>(input_batch_ptr[d]) + s_input_offset_s16;
 
@@ -239,13 +250,18 @@ void FullyConnectedRVV(const FullyConnectedParams& params,
             vint32m4_t v_rounded_lo = __riscv_vreinterpret_v_u32m4_i32m4(v_sum_lo_u);
 
             // Perform 64b arithmetic right shift
-            if (effective_right_shift == 0) {
+            if (effective_right_shift == 0)
+            {
                 v_res32 = v_rounded_lo;
-            } else if (effective_right_shift > 0 && effective_right_shift < 32) {
+            }
+            else if (effective_right_shift > 0 && effective_right_shift < 32)
+            {
                 vuint32m4_t v_lo_usrl = __riscv_vsrl_vx_u32m4(__riscv_vreinterpret_v_i32m4_u32m4(v_rounded_lo), effective_right_shift, vl);
                 vint32m4_t v_hi_sll = __riscv_vsll_vx_i32m4(v_rounded_hi, 32 - effective_right_shift, vl);
                 v_res32 = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vor_vv_u32m4(v_lo_usrl, __riscv_vreinterpret_v_i32m4_u32m4(v_hi_sll), vl));
-            } else {
+            }
+            else
+            {
                 int shift_hi = std::min(31, effective_right_shift - 32);
                 v_res32 = __riscv_vsra_vx_i32m4(v_rounded_hi, shift_hi, vl);
             }

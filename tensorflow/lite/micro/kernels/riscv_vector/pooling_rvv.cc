@@ -43,7 +43,6 @@ void MaxPool8BitRVV(const PoolParams& params, const RuntimeShape& input_shape,
         {
             for (int out_x = 0; out_x < output_width; ++out_x)
             {
-                
                 // Vectorized loop over channels (depth)
                 size_t current_channel = 0;
                 while (current_channel < static_cast<size_t>(depth))
@@ -133,7 +132,8 @@ void MaxPool16BitRVV(const PoolParams& params, const RuntimeShape& input_shape,
     const int output_b_stride = output_height * output_y_stride;
 
     // Loop over batches
-    for (int batch = 0; batch < batches; ++batch) {
+    for (int batch = 0; batch < batches; ++batch)
+    {
         const int16_t* input_batch_base = input_data + batch * input_b_stride;
         int16_t* output_batch_base = output_data + batch * output_b_stride;
 
@@ -142,7 +142,6 @@ void MaxPool16BitRVV(const PoolParams& params, const RuntimeShape& input_shape,
         {
             for (int out_x = 0; out_x < output_width; ++out_x)
             {
-                
                 // Vectorized loop over channels (depth)
                 size_t current_channel = 0;
                 while (current_channel < static_cast<size_t>(depth))
