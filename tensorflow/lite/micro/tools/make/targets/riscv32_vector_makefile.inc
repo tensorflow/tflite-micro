@@ -67,8 +67,8 @@ MICROLITE_CC_SRCS += \
   tensorflow/lite/micro/kernels/riscv_vector/fully_connected.cc \
   tensorflow/lite/micro/kernels/riscv_vector/pooling.cc \
   tensorflow/lite/micro/kernels/riscv_vector/pooling_rvv.cc \
-  tensorflow/lite/micro/kernels/riscv_vector/rfft.cc\
-  tensorflow/lite/micro/kernels/riscv_vector/rfft_int16_rvv.cc
+  tensorflow/lite/micro/kernels/riscv_vector/signal/rfft.cc\
+  tensorflow/lite/micro/kernels/riscv_vector/signal/rfft_int16_rvv.cc
 #  tensorflow/lite/micro/kernels/riscv_vector/softmax.cc \
 
 EXCLUDED_SRCS := \
@@ -78,6 +78,7 @@ EXCLUDED_SRCS := \
   tensorflow/lite/micro/kernels/pooling.cc\
   tflite-micro/signal/micro/kernels/rfft.cc \
   tflite-micro/signal/src/rfft_int16.cc \
+  tflite-micro/signal/src/kiss_fft_wrappers/kiss_fft_int16.cc \
 #  tensorflow/lite/micro/kernels/softmax.cc \
 
 
