@@ -4,7 +4,7 @@ TARGET_TOOLCHAIN_PREFIX := riscv32-unknown-elf-
 
 RISCV_ARCH := rv32imc_zve32x_zvl128b
 RISCV_ABI := ilp32
-RISCV_CODE_MODEL := medlow
+RISCV_CODE_MODEL := medany
 
 # Allow additional flags on the command line for debugging.
 RISCV_EXTRA_CFLAGS :=
