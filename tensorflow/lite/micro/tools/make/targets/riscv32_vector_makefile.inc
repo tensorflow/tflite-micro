@@ -4,7 +4,7 @@ TARGET_TOOLCHAIN_PREFIX := riscv32-unknown-elf-
 
 RISCV_ARCH := rv32imc_zve32x_zvl128b
 RISCV_ABI := ilp32
-RISCV_CODE_MODEL := medany
+RISCV_CODE_MODEL := medlow
 
 # Allow additional flags on the command line for debugging.
 RISCV_EXTRA_CFLAGS :=
@@ -68,7 +68,9 @@ MICROLITE_CC_SRCS += \
   tensorflow/lite/micro/kernels/riscv_vector/pooling.cc \
   tensorflow/lite/micro/kernels/riscv_vector/pooling_rvv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/signal/rfft.cc\
-  tensorflow/lite/micro/kernels/riscv_vector/signal/rfft_int16_rvv.cc
+  tensorflow/lite/micro/kernels/riscv_vector/signal/rfft_int16_rvv.cc \
+  tensorflow/lite/micro/kernels/riscv_vector/signal/filter_bank.cc \
+  tensorflow/lite/micro/kernels/riscv_vector/signal/filter_bank_rvv.cc \
 #  tensorflow/lite/micro/kernels/riscv_vector/softmax.cc \
 
 EXCLUDED_SRCS := \
@@ -76,9 +78,11 @@ EXCLUDED_SRCS := \
   tensorflow/lite/micro/kernels/depthwise_conv.cc \
   tensorflow/lite/micro/kernels/fully_connected.cc \
   tensorflow/lite/micro/kernels/pooling.cc\
-  tflite-micro/signal/micro/kernels/rfft.cc \
-  tflite-micro/signal/src/rfft_int16.cc \
-  tflite-micro/signal/src/kiss_fft_wrappers/kiss_fft_int16.cc \
+  signal/micro/kernels/rfft.cc \
+  signal/src/rfft_int16.cc \
+  signal/src/kiss_fft_wrappers/kiss_fft_int16.cc \
+  signal/micro/kernels/filter_bank.cc \
+  signal/src/filter_bank.cc \
 #  tensorflow/lite/micro/kernels/softmax.cc \
 
 
