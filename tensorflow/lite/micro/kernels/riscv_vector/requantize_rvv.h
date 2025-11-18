@@ -63,14 +63,14 @@ inline vint32m4_t RequantizeVectorPerChannelS32(
     const int32_t output_offset, const int32_t activation_min,
     const int32_t activation_max, const size_t vl)
 {
-    // Perform 32x32 -> 64-bit multiplication, getting high and low parts.
+    // Perform 32x32 -> 64-bit multiplication, getting high and low parts
     vint32m4_t v_prod_hi = __riscv_vmulh_vv_i32m4(v_acc, v_multiplier, vl);
     vint32m4_t v_prod_lo = __riscv_vmul_vv_i32m4(v_acc, v_multiplier, vl);
 
-    // Calculate the effective right shift for TFLM's fixed-point scheme.
+    // Calculate the effective right shift for TFLM's fixed-point scheme
     vint32m4_t v_effective_shift = __riscv_vrsub_vx_i32m4(v_shift, 31, vl);
 
-    // Create masks to separate lanes into right-shift and left-shift paths.
+    // Create masks to separate lanes into right-shift and left-shift paths
     vbool8_t v_mask_right_shift =
         __riscv_vmsgt_vx_i32m4_b8(v_effective_shift, 0, vl);
     vbool8_t v_mask_left_shift = __riscv_vmnot_m_b8(v_mask_right_shift, vl);
@@ -78,7 +78,7 @@ inline vint32m4_t RequantizeVectorPerChannelS32(
     // Path 1: Right Shift (for lanes where effective_shift > 0)
     vint32m4_t v_res_right;
     {
-        // Calculate the 64-bit rounding value: (1LL << (effective_shift - 1)).
+        // Calculate the 64-bit rounding value: (1LL << (effective_shift - 1))
         vint32m4_t v_shift_minus_1 = __riscv_vsub_vx_i32m4_m(
             v_mask_right_shift, v_effective_shift, 1, vl);
         vuint32m4_t v_shift_minus_1_u =
@@ -103,7 +103,7 @@ inline vint32m4_t RequantizeVectorPerChannelS32(
                 vl),
             v_mask_round_ge_32, vl);
 
-        // Add the 64-bit rounding value to the 64-bit product using 32-bit ops.
+        // Add the 64-bit rounding value to the 64-bit product using 32-bit ops
         vuint32m4_t v_prod_lo_u = __riscv_vreinterpret_v_i32m4_u32m4(v_prod_lo);
         vuint32m4_t v_sum_lo_u = __riscv_vadd_vv_u32m4_m(
             v_mask_right_shift, v_prod_lo_u, v_rounding_lo_u, vl);
@@ -114,7 +114,7 @@ inline vint32m4_t RequantizeVectorPerChannelS32(
             __riscv_vreinterpret_v_u32m4_i32m4(v_rounding_hi_u), vl);
         v_rounded_hi = __riscv_vadd_vx_i32m4_m(v_carry, v_rounded_hi, 1, vl);
 
-        // Emulate a 64-bit arithmetic right shift using two 32-bit sub-paths.
+        // Emulate a 64-bit arithmetic right shift using two 32-bit sub-paths
         vbool8_t v_mask_shift_lt_32 = __riscv_vmslt_vx_i32m4_b8_m(
             v_mask_right_shift, v_effective_shift, 32, vl);
         vbool8_t v_mask_shift_ge_32 = __riscv_vmandn_mm_b8(
@@ -142,17 +142,17 @@ inline vint32m4_t RequantizeVectorPerChannelS32(
     // Path 2: Left Shift (for lanes where effective_shift <= 0)
     vint32m4_t v_res_left;
     {
-        // Calculate the positive left shift amount.
+        // Calculate the positive left shift amount
         vint32m4_t v_left_shift_amount =
             __riscv_vneg_v_i32m4_m(v_mask_left_shift, v_effective_shift, vl);
 
-        // Perform the left shift on the low 32 bits of the product.
+        // Perform the left shift on the low 32 bits of the product
         v_res_left = __riscv_vsll_vv_i32m4_m(
             v_mask_left_shift, v_prod_lo,
             __riscv_vreinterpret_v_i32m4_u32m4(v_left_shift_amount), vl);
     }
 
-    // Merge the results from the right and left shift paths.
+    // Merge the results from the right and left shift paths
     vint32m4_t v_res32 =
         __riscv_vmerge_vvm_i32m4(v_res_left, v_res_right, v_mask_right_shift, vl);
 

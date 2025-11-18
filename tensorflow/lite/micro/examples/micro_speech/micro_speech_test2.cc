@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdint>
-#include <cstdlib>  // Required for atoi
+#include <cstdlib>
 #include <iterator>
 
 #include "tensorflow/lite/core/c/common.h"
@@ -113,9 +113,7 @@ TfLiteStatus GenerateFeatures(const int16_t* audio_data,
 }  // namespace
 
 int main(int argc, char** argv) {
-  // ====================================================================
-  // 1. PARSE COMMAND-LINE ARGUMENTS
-  // ====================================================================
+  // Parse command-line argument
   if (argc != 2) {
     printf("ERROR: Incorrect usage.\n");
     printf("Usage: %s <num_invocations>\n", argv[0]);
@@ -128,21 +126,18 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // ====================================================================
-  // 2. PERFORM ONE-TIME SETUP
-  // This is the "startup cost" that the delta measurement will cancel out.
-  // ====================================================================
+  // This is the "startup cost" that the delta measurement will cancel out
   printf("Performing one-time setup...\n");
 
-  // Generate a single, representative feature set from an audio file.
-  // The "yes" audio file is a good choice for a typical input.
+  // Generate a single, representative feature set from an audio file
+  // The "yes" audio file is a good choice for a typical input
   if (GenerateFeatures(g_yes_1000ms_audio_data, g_yes_1000ms_audio_data_size,
                        &g_features) != kTfLiteOk) {
     printf("ERROR: Feature generation failed.\n");
     return 1;
   }
 
-  // Set up the MicroSpeech interpreter.
+  // Set up the MicroSpeech interpreter
   const tflite::Model* model =
       tflite::GetModel(g_micro_speech_quantized_model_data);
   MicroSpeechOpResolver op_resolver;
@@ -157,7 +152,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // Get the input tensor and copy the feature data into it.
+  // Get the input tensor and copy the feature data into it
   TfLiteTensor* input = interpreter.input(0);
   std::copy_n(&g_features[0][0], kFeatureElementCount,
               tflite::GetTensorData<int8_t>(input));
