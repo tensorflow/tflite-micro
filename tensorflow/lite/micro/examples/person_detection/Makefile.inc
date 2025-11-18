@@ -5,7 +5,7 @@ person_detection_MODEL_HDRS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/model_settings.h
 
 person_detection_TEST_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/person_detection_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/person_detection/person_detection_test2.cc \
 $(person_detection_MODEL_SRCS)
 
 person_detection_TEST_HDRS := \
