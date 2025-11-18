@@ -1,6 +1,6 @@
 
 MICRO_SPEECH_TEST_SRCS := \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech_test2.cc
 
 MICRO_SPEECH_TEST_HDRS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_model_settings.h \
