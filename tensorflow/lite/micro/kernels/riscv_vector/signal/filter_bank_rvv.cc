@@ -7,7 +7,6 @@
 
 void FilterbankAccumulateChannelsRVV(const FilterbankConfig* config,
                                   const uint32_t* input, uint64_t* output) {
-  uint64_t weight_accumulator = 0;
   uint64_t unweight_accumulator = 0;
 
   for (int i = 0; i < config->num_channels + 1; i++) {
@@ -15,62 +14,80 @@ void FilterbankAccumulateChannelsRVV(const FilterbankConfig* config,
     const int16_t weight_start = config->channel_weight_starts[i];
     const int16_t channel_width = config->channel_widths[i];
 
-    int j = 0;
-    while (j < channel_width) {
-      size_t vl = __riscv_vsetvl_e32m4(channel_width - j);
+    uint64_t channel_w_acc = unweight_accumulator;
+    uint64_t channel_uw_acc = 0;
 
-      vuint32m4_t v_input =
-          __riscv_vle32_v_u32m4(&input[freq_start + j], vl);
+    if (channel_width > 0) {
+      size_t vl_max_for_channel = __riscv_vsetvl_e32m4(channel_width);
 
-      vuint16m2_t v_weights16 = __riscv_vle16_v_u16m2(
-          reinterpret_cast<const uint16_t*>(&config->weights[weight_start + j]),
-          vl);
-      vuint16m2_t v_unweights16 = __riscv_vle16_v_u16m2(
-          reinterpret_cast<const uint16_t*>(&config->unweights[weight_start + j]),
-          vl);
+      vuint32m4_t v_acc_w_low = __riscv_vmv_v_x_u32m4(0, vl_max_for_channel);
+      vuint32m4_t v_acc_w_high = __riscv_vmv_v_x_u32m4(0, vl_max_for_channel);
+      vuint32m4_t v_acc_uw_low = __riscv_vmv_v_x_u32m4(0, vl_max_for_channel);
+      vuint32m4_t v_acc_uw_high = __riscv_vmv_v_x_u32m4(0, vl_max_for_channel);
 
-      // Widen 16-bit weights to 32-bit
-      vuint32m4_t v_weights32 = __riscv_vwaddu_vx_u32m4(v_weights16, 0, vl);
-      vuint32m4_t v_unweights32 = __riscv_vwaddu_vx_u32m4(v_unweights16, 0, vl);
+      int j = 0;
+      while (j < channel_width) {
+        size_t vl = __riscv_vsetvl_e32m4(channel_width - j);
 
-      // Perform 32x32 -> high/low 32-bit multiplication
-      vuint32m4_t v_prod_w_low =
-          __riscv_vmul_vv_u32m4(v_input, v_weights32, vl);
-      vuint32m4_t v_prod_w_high =
-          __riscv_vmulhu_vv_u32m4(v_input, v_weights32, vl);
+        vuint32m4_t v_input =
+            __riscv_vle32_v_u32m4(&input[freq_start + j], vl);
 
-      vuint32m4_t v_prod_uw_low =
-          __riscv_vmul_vv_u32m4(v_input, v_unweights32, vl);
-      vuint32m4_t v_prod_uw_high =
-          __riscv_vmulhu_vv_u32m4(v_input, v_unweights32, vl);
+        vuint16m2_t v_weights16 = __riscv_vle16_v_u16m2(
+            reinterpret_cast<const uint16_t*>(&config->weights[weight_start + j]),
+            vl);
+        vuint16m2_t v_unweights16 = __riscv_vle16_v_u16m2(
+            reinterpret_cast<const uint16_t*>(&config->unweights[weight_start + j]),
+            vl);
 
-      // Use fixed-size buffers for scalar reduction
-      uint32_t prod_w_low_buf[RVV_MAX_BUFFER_VL];
-      uint32_t prod_w_high_buf[RVV_MAX_BUFFER_VL];
-      __riscv_vse32_v_u32m4(prod_w_low_buf, v_prod_w_low, vl);
-      __riscv_vse32_v_u32m4(prod_w_high_buf, v_prod_w_high, vl);
+        vuint32m4_t v_weights32 = __riscv_vwaddu_vx_u32m4(v_weights16, 0, vl);
+        vuint32m4_t v_unweights32 =
+            __riscv_vwaddu_vx_u32m4(v_unweights16, 0, vl);
 
-      uint32_t prod_uw_low_buf[RVV_MAX_BUFFER_VL];
-      uint32_t prod_uw_high_buf[RVV_MAX_BUFFER_VL];
-      __riscv_vse32_v_u32m4(prod_uw_low_buf, v_prod_uw_low, vl);
-      __riscv_vse32_v_u32m4(prod_uw_high_buf, v_prod_uw_high, vl);
+        vuint32m4_t v_prod_w_low =
+            __riscv_vmul_vv_u32m4(v_input, v_weights32, vl);
+        vuint32m4_t v_prod_w_high =
+            __riscv_vmulhu_vv_u32m4(v_input, v_weights32, vl);
+        vuint32m4_t v_prod_uw_low =
+            __riscv_vmul_vv_u32m4(v_input, v_unweights32, vl);
+        vuint32m4_t v_prod_uw_high =
+            __riscv_vmulhu_vv_u32m4(v_input, v_unweights32, vl);
 
-      // Reconstruct 64-bit products and accumulate
-      for (size_t k = 0; k < vl; k++) {
-        uint64_t prod_w =
-            ((uint64_t)prod_w_high_buf[k] << 32) | prod_w_low_buf[k];
-        weight_accumulator += prod_w;
+        vuint32m4_t v_next_acc_w_low =
+            __riscv_vadd_vv_u32m4(v_acc_w_low, v_prod_w_low, vl);
+        vuint32m4_t v_next_acc_uw_low =
+            __riscv_vadd_vv_u32m4(v_acc_uw_low, v_prod_uw_low, vl);
 
-        uint64_t prod_uw =
-            ((uint64_t)prod_uw_high_buf[k] << 32) | prod_uw_low_buf[k];
-        unweight_accumulator += prod_uw;
+        vbool8_t v_carry_w =
+            __riscv_vmsltu_vv_u32m4_b8(v_next_acc_w_low, v_acc_w_low, vl);
+        vbool8_t v_carry_uw =
+            __riscv_vmsltu_vv_u32m4_b8(v_next_acc_uw_low, v_acc_uw_low, vl);
+
+        v_acc_w_high = __riscv_vadc_vvm_u32m4(v_acc_w_high, v_prod_w_high, v_carry_w, vl);
+        v_acc_uw_high = __riscv_vadc_vvm_u32m4(v_acc_uw_high, v_prod_uw_high, v_carry_uw, vl);
+
+        v_acc_w_low = v_next_acc_w_low;
+        v_acc_uw_low = v_next_acc_uw_low;
+
+        j += vl;
       }
 
-      j += vl;
+      uint32_t acc_w_low_buf[RVV_MAX_BUFFER_VL], acc_w_high_buf[RVV_MAX_BUFFER_VL];
+      uint32_t acc_uw_low_buf[RVV_MAX_BUFFER_VL], acc_uw_high_buf[RVV_MAX_BUFFER_VL];
+
+      __riscv_vse32_v_u32m4(acc_w_low_buf, v_acc_w_low, vl_max_for_channel);
+      __riscv_vse32_v_u32m4(acc_w_high_buf, v_acc_w_high, vl_max_for_channel);
+      __riscv_vse32_v_u32m4(acc_uw_low_buf, v_acc_uw_low, vl_max_for_channel);
+      __riscv_vse32_v_u32m4(acc_uw_high_buf, v_acc_uw_high, vl_max_for_channel);
+      
+      for (size_t k = 0; k < (size_t)channel_width; ++k) {
+        channel_w_acc +=
+            ((uint64_t)acc_w_high_buf[k] << 32) | acc_w_low_buf[k];
+        channel_uw_acc +=
+            ((uint64_t)acc_uw_high_buf[k] << 32) | acc_uw_low_buf[k];
+      }
     }
 
-    output[i] = weight_accumulator;
-    weight_accumulator = unweight_accumulator;
-    unweight_accumulator = 0;
+    output[i] = channel_w_acc;
+    unweight_accumulator = channel_uw_acc;
   }
 }
