@@ -67,49 +67,6 @@ TfLiteStatus RegisterOps(AudioPreprocessorOpResolver& op_resolver) {
   return kTfLiteOk;
 }
 
-// Helper function to generate a single feature slice.
-TfLiteStatus GenerateSingleFeature(const int16_t* audio_data,
-                                   const int audio_data_size,
-                                   int8_t* feature_output,
-                                   tflite::MicroInterpreter* interpreter) {
-  TfLiteTensor* input = interpreter->input(0);
-  std::copy_n(audio_data, audio_data_size,
-              tflite::GetTensorData<int16_t>(input));
-  if (interpreter->Invoke() != kTfLiteOk) {
-    return kTfLiteError;
-  }
-  TfLiteTensor* output = interpreter->output(0);
-  std::copy_n(tflite::GetTensorData<int8_t>(output), kFeatureSize,
-              feature_output);
-  return kTfLiteOk;
-}
-
-// Generates the full feature data from a single audio clip.
-TfLiteStatus GenerateFeatures(const int16_t* audio_data,
-                              const size_t audio_data_size,
-                              Features* features_output) {
-  const tflite::Model* model =
-      tflite::GetModel(g_audio_preprocessor_int8_model_data);
-  AudioPreprocessorOpResolver op_resolver;
-  TF_LITE_ENSURE_STATUS(RegisterOps(op_resolver));
-
-  tflite::MicroInterpreter interpreter(model, op_resolver, g_arena, kArenaSize);
-  TF_LITE_ENSURE_STATUS(interpreter.AllocateTensors());
-
-  size_t remaining_samples = audio_data_size;
-  size_t feature_index = 0;
-  while (remaining_samples >= kAudioSampleDurationCount &&
-         feature_index < kFeatureCount) {
-    TF_LITE_ENSURE_STATUS(
-        GenerateSingleFeature(audio_data, kAudioSampleDurationCount,
-                              (*features_output)[feature_index], &interpreter));
-    feature_index++;
-    audio_data += kAudioSampleStrideCount;
-    remaining_samples -= kAudioSampleStrideCount;
-  }
-  return kTfLiteOk;
-}
-
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -126,44 +83,85 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // This is the "startup cost" that the delta measurement will cancel out
-  printf("Performing one-time setup...\n");
+  // One-time setup for both models
+  printf("Performing one-time setup for both models...\n");
 
-  // Generate a single, representative feature set from an audio file
-  // The "yes" audio file is a good choice for a typical input
-  if (GenerateFeatures(g_yes_1000ms_audio_data, g_yes_1000ms_audio_data_size,
-                       &g_features) != kTfLiteOk) {
-    printf("ERROR: Feature generation failed.\n");
+  // Set up the AudioPreprocessor interpreter
+  const tflite::Model* preprocessor_model =
+      tflite::GetModel(g_audio_preprocessor_int8_model_data);
+  AudioPreprocessorOpResolver preprocessor_op_resolver;
+  if (RegisterOps(preprocessor_op_resolver) != kTfLiteOk) {
+    printf("ERROR: Failed to register preprocessor ops.\n");
     return 1;
   }
 
   // Set up the MicroSpeech interpreter
-  const tflite::Model* model =
+  const tflite::Model* speech_model =
       tflite::GetModel(g_micro_speech_quantized_model_data);
-  MicroSpeechOpResolver op_resolver;
-  if (RegisterOps(op_resolver) != kTfLiteOk) {
-    printf("ERROR: Failed to register ops.\n");
+  MicroSpeechOpResolver speech_op_resolver;
+  if (RegisterOps(speech_op_resolver) != kTfLiteOk) {
+    printf("ERROR: Failed to register speech ops.\n");
     return 1;
   }
 
-  tflite::MicroInterpreter interpreter(model, op_resolver, g_arena, kArenaSize);
-  if (interpreter.AllocateTensors() != kTfLiteOk) {
-    printf("ERROR: AllocateTensors() failed.\n");
+  // Create BOTH interpreters first, sharing the same arena.
+  tflite::MicroInterpreter preprocessor_interpreter(
+      preprocessor_model, preprocessor_op_resolver, g_arena, kArenaSize);
+  tflite::MicroInterpreter speech_interpreter(
+      speech_model, speech_op_resolver, g_arena, kArenaSize);
+
+  // Allocate tensors for the first model.
+  if (preprocessor_interpreter.AllocateTensors() != kTfLiteOk) {
+    printf("ERROR: Preprocessor AllocateTensors() failed.\n");
+    return 1;
+  }
+  // Now, the second interpreter will automatically allocate its memory *after*
+  // the first one in the shared arena.
+  if (speech_interpreter.AllocateTensors() != kTfLiteOk) {
+    printf("ERROR: Speech AllocateTensors() failed.\n");
     return 1;
   }
 
-  // Get the input tensor and copy the feature data into it
-  TfLiteTensor* input = interpreter.input(0);
-  std::copy_n(&g_features[0][0], kFeatureElementCount,
-              tflite::GetTensorData<int8_t>(input));
+  // Get pointers to the input and output tensors of both models
+  TfLiteTensor* preprocessor_input = preprocessor_interpreter.input(0); // <-- TYPO FIXED HERE
+  TfLiteTensor* preprocessor_output = preprocessor_interpreter.output(0);
+  TfLiteTensor* speech_input = speech_interpreter.input(0);
 
   printf("Setup complete.\n");
 
-  // ====================================================================
-  printf("Running %d invocations...\n", num_invocations);
+  printf("Running %d end-to-end invocations...\n", num_invocations);
 
   for (int i = 0; i < num_invocations; ++i) {
-    if (interpreter.Invoke() != kTfLiteOk) {
+    // Generate Features
+    const int16_t* audio_data = g_yes_1000ms_audio_data;
+    size_t remaining_samples = g_yes_1000ms_audio_data_size;
+    size_t feature_index = 0;
+
+    while (remaining_samples >= kAudioSampleDurationCount &&
+           feature_index < kFeatureCount)
+    {
+      std::copy_n(audio_data, kAudioSampleDurationCount,
+                  tflite::GetTensorData<int16_t>(preprocessor_input));
+
+      if (preprocessor_interpreter.Invoke() != kTfLiteOk) {
+        printf("ERROR: Preprocessor Invoke() failed.\n");
+        return 1;
+      }
+
+      std::copy_n(tflite::GetTensorData<int8_t>(preprocessor_output), kFeatureSize,
+                  g_features[feature_index]);
+
+      feature_index++;
+      audio_data += kAudioSampleStrideCount;
+      remaining_samples -= kAudioSampleStrideCount;
+    }
+
+    // Classify Features
+    std::copy_n(&g_features[0][0], kFeatureElementCount,
+                tflite::GetTensorData<int8_t>(speech_input));
+
+    if (speech_interpreter.Invoke() != kTfLiteOk) {
+      printf("ERROR: Speech Invoke() failed.\n");
       return 1;
     }
   }
