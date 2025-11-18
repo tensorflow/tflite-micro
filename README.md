@@ -49,6 +49,7 @@ Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/t
 Silicon Labs Dev Kits        | [TFLM Examples for Silicon Labs Dev Kits](https://github.com/SiliconLabs/tflite-micro-efr32-examples)
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
 Texas Instruments Dev Boards | [![Texas Instruments Dev Boards](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml/badge.svg?event=status)](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml)
+Ingenic MIPS Boards | [[![Ingenic MIPS Boards](https://github.com/yinzara/ingenic-tflite-micro/actions/workflows/ci.yml/badge.svg)]](https://github.com/yinzara/ingenic-tflite-micro/tree/main/examples/hello_world)
 
 
 ## Community Supported Kernels and Unit Tests
