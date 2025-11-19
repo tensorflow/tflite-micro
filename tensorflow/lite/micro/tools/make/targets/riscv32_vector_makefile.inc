@@ -71,6 +71,8 @@ MICROLITE_CC_SRCS += \
   tensorflow/lite/micro/kernels/riscv_vector/signal/rfft_int16_rvv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/signal/filter_bank.cc \
   tensorflow/lite/micro/kernels/riscv_vector/signal/filter_bank_rvv.cc \
+  tensorflow/lite/micro/kernels/riscv_vector/signal/filter_bank_log.cc \
+  tensorflow/lite/micro/kernels/riscv_vector/signal/filter_bank_log_rvv.cc \
   tensorflow/lite/micro/kernels/riscv_vector/softmax.cc \
 
 EXCLUDED_SRCS := \
@@ -83,6 +85,8 @@ EXCLUDED_SRCS := \
   signal/src/kiss_fft_wrappers/kiss_fft_int16.cc \
   signal/micro/kernels/filter_bank.cc \
   signal/src/filter_bank.cc \
+  signal/src/filter_bank_log.cc \
+  signal/micro/kernels/filter_bank_log.cc \
   tensorflow/lite/micro/kernels/softmax.cc \
 
 

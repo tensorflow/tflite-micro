@@ -1,5 +1,5 @@
-#ifndef SIGNAL_SRC_FILTER_BANK_H_
-#define SIGNAL_SRC_FILTER_BANK_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_FILTER_BANK_RVV_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_FILTER_BANK_RVV_H_
 
 #include <stdint.h>
 
@@ -20,4 +20,4 @@ struct FilterbankConfig {
 void FilterbankAccumulateChannelsRVV(const FilterbankConfig* config,
                                   const uint32_t* input, uint64_t* output);
 
-#endif  // SIGNAL_SRC_FILTER_BANK_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_FILTER_BANK_RVV_H_
