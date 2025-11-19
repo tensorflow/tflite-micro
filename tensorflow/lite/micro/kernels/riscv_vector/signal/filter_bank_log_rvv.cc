@@ -2,6 +2,8 @@
 
 #include "tensorflow/lite/kernels/internal/common.h"
 
+constexpr uint16_t kLogCoeff = 45426;
+
 const uint16_t kLogLut[] = {
     0,    224,  442,  654,  861,  1063, 1259, 1450, 1636, 1817, 1992, 2163,
     2329, 2490, 2646, 2797, 2944, 3087, 3224, 3358, 3487, 3611, 3732, 3848,
@@ -21,66 +23,37 @@ inline vuint32m4_t VectorLog2Int_Zve32x(vuint32m4_t v_in, size_t vl)
   vuint32m4_t v_result = __riscv_vmv_v_x_u32m4(0, vl);
   vuint32m4_t v_tmp;
   vbool8_t v_mask;
-  vuint32m4_t v_added;
 
   // Check bit 16
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 16, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
-  v_added = __riscv_vadd_vx_u32m4(v_result, 16, vl);
-  v_result = __riscv_vmerge_vvm_u32m4(v_result, v_added, v_mask, vl);
+  v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 16, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
   // Check bit 8
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 8, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
-  v_added = __riscv_vadd_vx_u32m4(v_result, 8, vl);
-  v_result = __riscv_vmerge_vvm_u32m4(v_result, v_added, v_mask, vl);
+  v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 8, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
   // Check bit 4
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 4, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
-  v_added = __riscv_vadd_vx_u32m4(v_result, 4, vl);
-  v_result = __riscv_vmerge_vvm_u32m4(v_result, v_added, v_mask, vl);
+  v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 4, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
   // Check bit 2
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 2, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
-  v_added = __riscv_vadd_vx_u32m4(v_result, 2, vl);
-  v_result = __riscv_vmerge_vvm_u32m4(v_result, v_added, v_mask, vl);
+  v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 2, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
   // Check bit 1
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 1, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
-  v_added = __riscv_vadd_vx_u32m4(v_result, 1, vl);
-  v_result = __riscv_vmerge_vvm_u32m4(v_result, v_added, v_mask, vl);
+  v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 1, vl);
 
   return v_result;
-}
-
-inline vuint32m4_t MulHighFixedPoint16_UU_vx_u32m4(vuint32m4_t v_a, uint32_t b, size_t vl)
-{
-  // Load scalar and perform low and high multiplication
-  vuint32m4_t v_b = __riscv_vmv_v_x_u32m4(b, vl);
-  vuint32m4_t v_lo = __riscv_vmul_vv_u32m4(v_a, v_b, vl);
-  vuint32m4_t v_hi = __riscv_vmulhu_vv_u32m4(v_a, v_b, vl);
-
-  // Add rounding constant 32768 to the low part
-  vuint32m4_t v_round = __riscv_vmv_v_x_u32m4(32768, vl);
-  vuint32m4_t v_lo_rounded = __riscv_vadd_vv_u32m4(v_lo, v_round, vl);
-
-  // Propagate carry to high part if overflow occurred
-  vbool8_t v_carry = __riscv_vmsltu_vv_u32m4_b8(v_lo_rounded, v_lo, vl);
-  vuint32m4_t v_hi_plus_1 = __riscv_vadd_vx_u32m4(v_hi, 1, vl);
-  v_hi = __riscv_vmerge_vvm_u32m4(v_hi, v_hi_plus_1, v_carry, vl);
-
-  // Combine high shifted left and low shifted right
-  vuint32m4_t v_hi_shifted = __riscv_vsll_vx_u32m4(v_hi, 16, vl);
-  vuint32m4_t v_lo_shifted = __riscv_vsrl_vx_u32m4(v_lo_rounded, 16, vl);
-
-  return __riscv_vor_vv_u32m4(v_hi_shifted, v_lo_shifted, vl);
 }
 
 inline vint32m4_t MulHighFixedPoint16_SU_vx_i32m4(vuint32m4_t v_unsigned, int32_t signed_scalar, size_t vl)
@@ -116,9 +89,6 @@ void FilterbankLogRVV(const uint32_t* input, int num_channels,
                       int32_t output_scale, uint32_t correction_bits,
                       int16_t* output)
 {
-  const uint32_t kLogCoeff = 45426;
-  const uint32_t kLogScaleLog2 = 16;
-
   int i = 0;
   while (i < num_channels)
   {
@@ -152,41 +122,38 @@ void FilterbankLogRVV(const uint32_t* input, int num_channels,
     vuint16m2_t v_offset_c1 = __riscv_vadd_vx_u16m2(v_offset_c0, 2, vl);
 
     // Gather LUT coefficients using 16-bit element width
-    vl = __riscv_vsetvl_e16m2(vl);
-    vuint16m2_t v_c0_u16 = __riscv_vluxei16_v_u16m2(kLogLut, v_offset_c0, vl);
-    vuint16m2_t v_c1_u16 = __riscv_vluxei16_v_u16m2(kLogLut, v_offset_c1, vl);
+    size_t vl_u16 = __riscv_vsetvl_e16m2(vl);
+    vuint16m2_t v_c0_u16 = __riscv_vluxei16_v_u16m2(kLogLut, v_offset_c0, vl_u16);
+    vuint16m2_t v_c1_u16 = __riscv_vluxei16_v_u16m2(kLogLut, v_offset_c1, vl_u16);
 
-    // Restore vector length and widen coefficients to 32-bit
+    // Calculate dist and diff in 16-bit
+    vuint16m2_t v_seg_base = __riscv_vand_vx_u16m2(__riscv_vncvt_x_x_w_u16m2(v_frac, vl), 0xFE00, vl_u16);
+    vuint16m2_t v_dist = __riscv_vsub_vv_u16m2(__riscv_vncvt_x_x_w_u16m2(v_frac, vl), v_seg_base, vl_u16);
+    vint16m2_t v_diff = __riscv_vsub_vv_i16m2(__riscv_vreinterpret_v_u16m2_i16m2(v_c1_u16), __riscv_vreinterpret_v_u16m2_i16m2(v_c0_u16), vl_u16);
+
+    // Restore vector length for 32-bit operations
     vl = __riscv_vsetvl_e32m4(vl);
-    vuint32m4_t v_c0 = __riscv_vwaddu_vx_u32m4(v_c0_u16, 0, vl);
-    vuint32m4_t v_c1 = __riscv_vwaddu_vx_u32m4(v_c1_u16, 0, vl);
 
-    // Calculate linear interpolation distance
-    vuint32m4_t v_seg_base = __riscv_vand_vx_u32m4(v_frac, 0xFE00, vl);
-    vuint32m4_t v_dist = __riscv_vsub_vv_u32m4(v_frac, v_seg_base, vl);
+    // Calculate interpolation using widening multiply
+    vint32m4_t v_rel_pos = __riscv_vwmul_vv_i32m4(v_diff, __riscv_vreinterpret_v_u16m2_i16m2(v_dist), vl);
+    v_rel_pos = __riscv_vsra_vx_i32m4(v_rel_pos, 16, vl);
 
-    // Calculate relative position from the difference between coefficients
-    vint32m4_t v_diff = __riscv_vsub_vv_i32m4(
-        __riscv_vreinterpret_v_u32m4_i32m4(v_c1),
-        __riscv_vreinterpret_v_u32m4_i32m4(v_c0), vl);
-    vint32m4_t v_rel_pos = __riscv_vmul_vv_i32m4(
-        v_diff, __riscv_vreinterpret_v_u32m4_i32m4(v_dist), vl);
-    v_rel_pos = __riscv_vsra_vx_i32m4(v_rel_pos, kLogScaleLog2, vl);
+    // Widen coefficient c0 and combine parts
+    vuint32m4_t v_c0_32 = __riscv_vwaddu_vx_u32m4(v_c0_u16, 0, vl);
+    vuint32m4_t v_final_frac = __riscv_vadd_vv_u32m4(v_frac, v_c0_32, vl);
+    v_final_frac = __riscv_vadd_vv_u32m4(v_final_frac, __riscv_vreinterpret_v_i32m4_u32m4(v_rel_pos), vl);
 
-    // Combine base fractional part, coefficient, and interpolation result
-    vuint32m4_t v_final_frac = __riscv_vadd_vv_u32m4(v_frac, v_c0, vl);
-    v_final_frac = __riscv_vadd_vv_u32m4(
-        v_final_frac, __riscv_vreinterpret_v_i32m4_u32m4(v_rel_pos), vl);
+    // Calculate LogE using arithmetic decomposition
+    vuint32m4_t v_loge_int = __riscv_vmul_vx_u32m4(v_integer, kLogCoeff, vl);
+    vuint32m4_t v_loge_frac = __riscv_vmul_vx_u32m4(v_final_frac, kLogCoeff, vl);
+    v_loge_frac = __riscv_vadd_vx_u32m4(v_loge_frac, 32768, vl);
+    v_loge_frac = __riscv_vsrl_vx_u32m4(v_loge_frac, 16, vl);
+    vuint32m4_t v_loge = __riscv_vadd_vv_u32m4(v_loge_int, v_loge_frac, vl);
 
-    // Combine integer part and fractional part to form final log2 value
-    vuint32m4_t v_log2 = __riscv_vsll_vx_u32m4(v_integer, 16, vl);
-    v_log2 = __riscv_vadd_vv_u32m4(v_log2, v_final_frac, vl);
-
-    // Convert Log2 to LogE using fixed point multiplication
-    vuint32m4_t v_loge = MulHighFixedPoint16_UU_vx_u32m4(v_log2, kLogCoeff, vl);
-
-    // Apply output scaling and saturate to 16-bit range
+    // Apply output scaling
     vint32m4_t v_loge_scaled = MulHighFixedPoint16_SU_vx_i32m4(v_loge, output_scale, vl);
+
+    // Saturate to 16-bit range
     vint32m4_t v_sat_val = __riscv_vmv_v_x_i32m4(INT16_MAX, vl);
     vint32m4_t v_result = __riscv_vmin_vv_i32m4(v_loge_scaled, v_sat_val, vl);
 
