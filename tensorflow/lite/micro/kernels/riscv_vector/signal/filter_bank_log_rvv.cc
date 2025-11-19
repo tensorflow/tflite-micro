@@ -26,31 +26,31 @@ inline vuint32m4_t VectorLog2Int_Zve32x(vuint32m4_t v_in, size_t vl)
   vuint32m4_t v_tmp;
   vbool8_t v_mask;
 
-  // Check bit 16
+  // Check bit 16 and update result and input
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 16, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
   v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 16, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
-  // Check bit 8
+  // Check bit 8 and update result and input
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 8, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
   v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 8, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
-  // Check bit 4
+  // Check bit 4 and update result and input
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 4, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
   v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 4, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
-  // Check bit 2
+  // Check bit 2 and update result and input
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 2, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
   v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 2, vl);
   v_in = __riscv_vmerge_vvm_u32m4(v_in, v_tmp, v_mask, vl);
 
-  // Check bit 1
+  // Check bit 1 and update result
   v_tmp = __riscv_vsrl_vx_u32m4(v_in, 1, vl);
   v_mask = __riscv_vmsne_vx_u32m4_b8(v_tmp, 0, vl);
   v_result = __riscv_vadd_vx_u32m4_mu(v_mask, v_result, v_result, 1, vl);
@@ -65,18 +65,24 @@ void FilterbankLogRVV(const uint32_t* input, int num_channels,
   int i = 0;
   while (i < num_channels)
   {
-    // Set vector length and load input
+    // Set vector length
     size_t vl = __riscv_vsetvl_e32m4(num_channels - i);
+
+    // Load input and shift by correction bits
     vuint32m4_t v_input = __riscv_vle32_v_u32m4(input + i, vl);
     vuint32m4_t v_scaled = __riscv_vsll_vx_u32m4(v_input, correction_bits, vl);
+
+    // Identify active elements where input is greater than 1
     vbool8_t v_active = __riscv_vmsgtu_vx_u32m4_b8(v_scaled, 1, vl);
 
     // Calculate integer part of log2
     vuint32m4_t v_integer = VectorLog2Int_Zve32x(v_scaled, vl);
 
-    // Normalize mantissa to [1.0, 2.0) in Q16
+    // Normalize mantissa to [1.0, 2.0) in Q16 by aligning MSB to bit 31 then shifting down
     vuint32m4_t v_shift_norm = __riscv_vrsub_vx_u32m4(v_integer, 31, vl);
     vuint32m4_t v_norm = __riscv_vsll_vv_u32m4(v_scaled, v_shift_norm, vl);
+
+    // Extract fractional part (Q15)
     vuint32m4_t v_frac = __riscv_vsrl_vx_u32m4(v_norm, 15, vl);
     v_frac = __riscv_vand_vx_u32m4(v_frac, 0xFFFF, vl);
 
@@ -91,16 +97,15 @@ void FilterbankLogRVV(const uint32_t* input, int num_channels,
     vuint16m2_t v_c0_u16 = __riscv_vluxei16_v_u16m2(kLogLut, v_offset_c0, vl_u16);
     vuint16m2_t v_c1_u16 = __riscv_vluxei16_v_u16m2(kLogLut, v_offset_c1, vl_u16);
 
-    // Calculate interpolation distance and difference
-    vuint16m2_t v_seg_base = __riscv_vand_vx_u16m2(
-        __riscv_vncvt_x_x_w_u16m2(v_frac, vl), 0xFE00, vl_u16);
-    vuint16m2_t v_dist = __riscv_vsub_vv_u16m2(
-        __riscv_vncvt_x_x_w_u16m2(v_frac, vl), v_seg_base, vl_u16);
+    // Calculate interpolation distance and coefficient difference
     vint16m2_t v_diff = __riscv_vsub_vv_i16m2(
         __riscv_vreinterpret_v_u16m2_i16m2(v_c1_u16),
         __riscv_vreinterpret_v_u16m2_i16m2(v_c0_u16), vl_u16);
+    vuint16m2_t v_frac_u16 = __riscv_vncvt_x_x_w_u16m2(v_frac, vl);
+    vuint16m2_t v_seg_base_val = __riscv_vand_vx_u16m2(v_frac_u16, 0xFE00, vl_u16);
+    vuint16m2_t v_dist = __riscv_vsub_vv_u16m2(v_frac_u16, v_seg_base_val, vl_u16);
 
-    // Restore vector length and widen for interpolation
+    // Restore vector length and calculate widening multiplication for interpolation
     vl = __riscv_vsetvl_e32m4(vl);
     vint32m4_t v_rel_pos = __riscv_vwmul_vv_i32m4(
         v_diff, __riscv_vreinterpret_v_u16m2_i16m2(v_dist), vl);
@@ -120,37 +125,31 @@ void FilterbankLogRVV(const uint32_t* input, int num_channels,
     v_term2_u = __riscv_vsrl_vx_u32m4(v_term2_u, 16, vl);
     vuint32m4_t v_loge = __riscv_vadd_vv_u32m4(v_term1, v_term2_u, vl);
 
-    // Apply output scaling using signed arithmetic
+    // Apply output scaling using signed multiplication
     vint32m4_t v_loge_i = __riscv_vreinterpret_v_u32m4_i32m4(v_loge);
-    vint32m4_t v_scale = __riscv_vmv_v_x_i32m4(output_scale, vl);
-    vint32m4_t v_lo = __riscv_vmul_vv_i32m4(v_loge_i, v_scale, vl);
-    vint32m4_t v_hi = __riscv_vmulh_vv_i32m4(v_loge_i, v_scale, vl);
+    vint32m4_t v_lo = __riscv_vmul_vx_i32m4(v_loge_i, output_scale, vl);
+    vint32m4_t v_hi = __riscv_vmulh_vx_i32m4(v_loge_i, output_scale, vl);
 
-    // Add rounding constant and propagate carry
-    vint32m4_t v_round = __riscv_vmv_v_x_i32m4(32768, vl);
-    vint32m4_t v_lo_rounded = __riscv_vadd_vv_i32m4(v_lo, v_round, vl);
-    vbool8_t v_carry = __riscv_vmsltu_vv_u32m4_b8(
-        __riscv_vreinterpret_v_i32m4_u32m4(v_lo_rounded),
-        __riscv_vreinterpret_v_i32m4_u32m4(v_lo), vl);
+    // Add rounding constant and handle carry propagation
+    vint32m4_t v_lo_rounded = __riscv_vadd_vx_i32m4(v_lo, 32768, vl);
+    vbool8_t v_carry = __riscv_vmsltu_vx_u32m4_b8(
+        __riscv_vreinterpret_v_i32m4_u32m4(v_lo_rounded), 32768, vl);
     v_hi = __riscv_vadd_vx_i32m4_mu(v_carry, v_hi, v_hi, 1, vl);
 
     // Combine high shifted left and low shifted right
+    vint32m4_t v_lo_shifted = __riscv_vreinterpret_v_u32m4_i32m4(
+        __riscv_vsrl_vx_u32m4(
+            __riscv_vreinterpret_v_i32m4_u32m4(v_lo_rounded), 16, vl));
     vint32m4_t v_res = __riscv_vor_vv_i32m4(
-        __riscv_vsll_vx_i32m4(v_hi, 16, vl),
-        __riscv_vreinterpret_v_u32m4_i32m4(
-            __riscv_vsrl_vx_u32m4(
-                __riscv_vreinterpret_v_i32m4_u32m4(v_lo_rounded), 16, vl)),
-        vl);
+        __riscv_vsll_vx_i32m4(v_hi, 16, vl), v_lo_shifted, vl);
 
-    // Saturate result to 16-bit range
-    vint32m4_t v_sat_limit = __riscv_vmv_v_x_i32m4(INT16_MAX, vl);
-    vint32m4_t v_result = __riscv_vmin_vv_i32m4(v_res, v_sat_limit, vl);
+    // Narrow to 16-bit with saturation
+    vint16m2_t v_res_i16 = __riscv_vnclip_wx_i16m2(v_res, 0, __RISCV_VXRM_RNU, vl);
 
-    // Zero out inactive elements and store result
-    vint32m4_t v_zero = __riscv_vmv_v_x_i32m4(0, vl);
-    v_result = __riscv_vmerge_vvm_i32m4(v_zero, v_result, v_active, vl);
-    vint16m2_t v_res_i16 = __riscv_vncvt_x_x_w_i16m2(v_result, vl);
-    __riscv_vse16_v_i16m2(output + i, v_res_i16, vl);
+    // Zero out inactive channels and store result
+    vint16m2_t v_zero = __riscv_vmv_v_x_i16m2(0, vl);
+    vint16m2_t v_final = __riscv_vmerge_vvm_i16m2(v_zero, v_res_i16, v_active, vl);
+    __riscv_vse16_v_i16m2(output + i, v_final, vl);
 
     i += vl;
   }
