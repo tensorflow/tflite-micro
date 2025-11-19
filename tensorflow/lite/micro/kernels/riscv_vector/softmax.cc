@@ -29,19 +29,20 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/riscv_vector/softmax_rvv.h"
 
 namespace tflite {
+  
 namespace {
 
 void SoftmaxQuantized(const TfLiteEvalTensor* input, TfLiteEvalTensor* output,
                       const SoftmaxParams& op_data) {
   if (input->type == kTfLiteInt8) {
     if (output->type == kTfLiteInt16) {
-      SoftmaxInt8RVV<int16_t>(
+      SoftmaxRVV<int8_t, int16_t>(
           op_data, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<int16_t>(output));
     } else {
-      SoftmaxInt8RVV<int8_t>(
+      SoftmaxRVV<int8_t, int8_t>(
           op_data, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorShape(output),
