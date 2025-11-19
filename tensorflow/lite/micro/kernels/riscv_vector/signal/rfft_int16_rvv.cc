@@ -762,13 +762,16 @@ void kiss_fftr_rvv(kiss_fft_fixed16::kiss_fftr_cfg st, const kiss_fft_scalar* ti
   freqdata[0].i = 0;
   freqdata[ncfft].i = 0;
 
-  // Initialize pointers and loop variables for the main vector processing loop
+  // Initialize pointers and loop variables
   size_t k = 1;
   const size_t loop_end = ncfft / 2;
   const int16_t* tmpbuf_base_ptr = (const int16_t*)st->tmpbuf;
   const int16_t* twiddles_base_ptr = (const int16_t*)st->super_twiddles;
   int16_t* freqdata_base_ptr = (int16_t*)freqdata;
+  
+  // Stride for complex numbers (R, I) is 4 bytes (2 * int16)
   ptrdiff_t stride = sizeof(kiss_fft_fixed16::kiss_fft_cpx);
+  ptrdiff_t neg_stride = -stride;
 
   // Main loop to process FFT bins in vector chunks
   while (k <= loop_end)
@@ -776,27 +779,20 @@ void kiss_fftr_rvv(kiss_fft_fixed16::kiss_fftr_cfg st, const kiss_fft_scalar* ti
     // Set the vector length (vl) for the current iteration
     size_t vl = __riscv_vsetvl_e16m4(loop_end - k + 1);
 
-    // Generate index vectors for accessing fpk, fpnk, and twiddles
-    vuint16m4_t v_k_indices = __riscv_vid_v_u16m4(vl);
-    v_k_indices = __riscv_vadd_vx_u16m4(v_k_indices, k, vl);
-    vuint16m4_t v_neg_k_indices = __riscv_vrsub_vx_u16m4(v_k_indices, ncfft, vl);
-    vuint16m4_t v_twiddle_indices = __riscv_vsub_vx_u16m4(v_k_indices, 1, vl);
-
-    // Load the 'fpk' vector using a strided load
+    // fpk indices: k, k+1, ...
     vint16m4_t v_fpk_r = __riscv_vlse16_v_i16m4(&tmpbuf_base_ptr[2 * k], stride, vl);
     vint16m4_t v_fpk_i = __riscv_vlse16_v_i16m4(&tmpbuf_base_ptr[2 * k + 1], stride, vl);
 
-    // Gather the 'fpnk' vector using indexed loads
-    vuint32m8_t v_tmp_r_offsets = __riscv_vwmulu_vx_u32m8(v_neg_k_indices, sizeof(kiss_fft_fixed16::kiss_fft_cpx), vl);
-    vuint32m8_t v_tmp_i_offsets = __riscv_vadd_vx_u32m8(v_tmp_r_offsets, sizeof(int16_t), vl);
-    vint16m4_t v_fpnk_r_raw = __riscv_vluxei32_v_i16m4(tmpbuf_base_ptr, v_tmp_r_offsets, vl);
-    vint16m4_t v_fpnk_i_raw = __riscv_vluxei32_v_i16m4(tmpbuf_base_ptr, v_tmp_i_offsets, vl);
+    // fpnk indices: N-k, N-(k+1), ...
+    const int16_t* fpnk_ptr = &tmpbuf_base_ptr[2 * (ncfft - k)];
+    vint16m4_t v_fpnk_r_raw = __riscv_vlse16_v_i16m4(fpnk_ptr, neg_stride, vl);
+    vint16m4_t v_fpnk_i_raw = __riscv_vlse16_v_i16m4(fpnk_ptr + 1, neg_stride, vl);
 
-    // Gather the twiddle factors using indexed loads
-    vuint32m8_t v_tw_r_offsets = __riscv_vwmulu_vx_u32m8(v_twiddle_indices, sizeof(kiss_fft_fixed16::kiss_fft_cpx), vl);
-    vuint32m8_t v_tw_i_offsets = __riscv_vadd_vx_u32m8(v_tw_r_offsets, sizeof(int16_t), vl);
-    vint16m4_t v_tw_r = __riscv_vluxei32_v_i16m4(twiddles_base_ptr, v_tw_r_offsets, vl);
-    vint16m4_t v_tw_i = __riscv_vluxei32_v_i16m4(twiddles_base_ptr, v_tw_i_offsets, vl);
+    // Twiddle indices: k-1, k, ...
+    // Must use strided load to extract only Reals or only Imags from the interleaved array
+    const int16_t* tw_ptr = &twiddles_base_ptr[2 * (k - 1)];
+    vint16m4_t v_tw_r = __riscv_vlse16_v_i16m4(tw_ptr, stride, vl);
+    vint16m4_t v_tw_i = __riscv_vlse16_v_i16m4(tw_ptr + 1, stride, vl);
 
     // Perform high-precision rounding division on fpk
     const int16_t scale = 16383;
@@ -839,15 +835,14 @@ void kiss_fftr_rvv(kiss_fft_fixed16::kiss_fftr_cfg st, const kiss_fft_scalar* ti
     vint16m4_t v_out_nk_r = __riscv_vsra_vx_i16m4(__riscv_vsub_vv_i16m4(v_f1k_r, v_tw_res_r, vl), 1, vl);
     vint16m4_t v_out_nk_i = __riscv_vsra_vx_i16m4(__riscv_vsub_vv_i16m4(v_tw_res_i, v_f1k_i, vl), 1, vl);
 
-    // Store the results using a strided store
+    // Store the results using a strided store (Forward)
     __riscv_vsse16_v_i16m4(&freqdata_base_ptr[2 * k], stride, v_out_k_r, vl);
     __riscv_vsse16_v_i16m4(&freqdata_base_ptr[2 * k + 1], stride, v_out_k_i, vl);
 
-    // Scatter the results using an indexed store
-    vuint32m8_t v_freq_r_offsets = __riscv_vwmulu_vx_u32m8(v_neg_k_indices, sizeof(kiss_fft_fixed16::kiss_fft_cpx), vl);
-    vuint32m8_t v_freq_i_offsets = __riscv_vadd_vx_u32m8(v_freq_r_offsets, sizeof(int16_t), vl);
-    __riscv_vsuxei32_v_i16m4(freqdata_base_ptr, v_freq_r_offsets, v_out_nk_r, vl);
-    __riscv_vsuxei32_v_i16m4(freqdata_base_ptr, v_freq_i_offsets, v_out_nk_i, vl);
+    // Store the results using a strided store (Reverse)
+    int16_t* out_nk_ptr = &freqdata_base_ptr[2 * (ncfft - k)];
+    __riscv_vsse16_v_i16m4(out_nk_ptr, neg_stride, v_out_nk_r, vl);
+    __riscv_vsse16_v_i16m4(out_nk_ptr + 1, neg_stride, v_out_nk_i, vl);
 
     // Advance to the next vector chunk
     k += vl;
