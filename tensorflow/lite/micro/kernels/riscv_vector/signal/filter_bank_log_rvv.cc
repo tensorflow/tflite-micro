@@ -2,9 +2,6 @@
 
 #include "tensorflow/lite/kernels/internal/common.h"
 
-#include <riscv_vector.h>
-#include "tensorflow/lite/kernels/internal/common.h"
-
 const uint16_t kLogLut[] = {
     0,    224,  442,  654,  861,  1063, 1259, 1450, 1636, 1817, 1992, 2163,
     2329, 2490, 2646, 2797, 2944, 3087, 3224, 3358, 3487, 3611, 3732, 3848,
