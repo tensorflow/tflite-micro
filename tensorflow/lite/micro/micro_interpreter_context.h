@@ -134,7 +134,7 @@ class MicroInterpreterContext : public MicroContext {
 #endif  // USE_TFLM_COMPRESSION
 
   // Set the alternate decompression memory regions.
-  // Can only be called during the MicroInterpreter kInit state.
+  // Can only be called during the kInit state.
   TfLiteStatus SetDecompressionMemory(
       const std::initializer_list<AlternateMemoryRegion>& regions) override;
 
@@ -160,7 +160,7 @@ class MicroInterpreterContext : public MicroContext {
   MicroProfilerInterface* GetAlternateProfiler() const override;
 
   // Set the custom DECODE operator registrations.
-  // Can only be called during the Init phase.
+  // Can only be called during the kInit state.
   virtual TfLiteStatus SetCustomDecodeRegistrations(
       const std::initializer_list<CustomDecodeRegistration>& registrations)
       override {

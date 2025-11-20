@@ -138,7 +138,7 @@ class MicroContext {
   };
 
   // Set the alternate decompression memory regions.
-  // Can only be called during the Init phase.
+  // Can only be called during the kInit state.
   virtual TfLiteStatus SetDecompressionMemory(
       const std::initializer_list<AlternateMemoryRegion>& regions);
 
@@ -180,7 +180,7 @@ class MicroContext {
   };
 
   // Set the custom DECODE operator registrations.
-  // Can only be called during the Init phase.
+  // Can only be called during the kInit state.
   virtual TfLiteStatus SetCustomDecodeRegistrations(
       const std::initializer_list<CustomDecodeRegistration>& registrations) {
     if (custom_decode_registrations_ != nullptr) {
