@@ -15,18 +15,12 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_interpreter_context.h"
 
+#include <algorithm>
 #include <cstdint>
 
-#ifdef USE_TFLM_COMPRESSION
-
-#include <algorithm>
-
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
-
-#endif  // USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
@@ -220,53 +214,28 @@ void* MicroInterpreterContext::DecompressTensorToBuffer(
                                                 buffer);
 }
 
+#endif  // USE_TFLM_COMPRESSION
+
 TfLiteStatus MicroInterpreterContext::SetDecompressionMemory(
     const std::initializer_list<MicroContext::AlternateMemoryRegion>& regions) {
   if (state_ != InterpreterState::kInit) {
     return kTfLiteError;
   }
 
-  decompress_regions_ = &regions;
-  decompress_regions_allocations_ = static_cast<size_t*>(
-      AllocatePersistentBuffer(sizeof(size_t) * regions.size()));
-  if (decompress_regions_allocations_ == nullptr) {
-    return kTfLiteError;
-  }
-  ResetDecompressionMemoryAllocations();
-
-  return kTfLiteOk;
+  return MicroContext::SetDecompressionMemory(regions);
 }
 
 void* MicroInterpreterContext::AllocateDecompressionMemory(size_t bytes,
                                                            size_t alignment) {
+#ifdef USE_TFLM_COMPRESSION
   TFLITE_DCHECK(state_ == InterpreterState::kPrepare ||
                 state_ == InterpreterState::kInvoke);
-  if (decompress_regions_ != nullptr) {
-    for (size_t i = 0; i < decompress_regions_->size(); i++) {
-      const AlternateMemoryRegion* region = &decompress_regions_->begin()[i];
-      uint8_t* start = static_cast<uint8_t*>(region->address) +
-                       decompress_regions_allocations_[i];
-      uint8_t* aligned_start = AlignPointerUp(start, alignment);
-      size_t total = bytes + (aligned_start - start);
-      if (total + decompress_regions_allocations_[i] <= region->bytes) {
-        decompress_regions_allocations_[i] += total;
-        return aligned_start;
-      }
-    }
-  }
-
-  return nullptr;
-}
-
-void MicroInterpreterContext::ResetDecompressionMemoryAllocations() {
-  if (decompress_regions_ == nullptr) {
-    return;
-  }
-  TFLITE_DCHECK(decompress_regions_allocations_ != nullptr);
-  std::fill_n(decompress_regions_allocations_, decompress_regions_->size(), 0);
-}
-
+#else
+  TFLITE_DCHECK(state_ == InterpreterState::kPrepare);
 #endif  // USE_TFLM_COMPRESSION
+
+  return MicroContext::AllocateDecompressionMemory(bytes, alignment);
+}
 
 TfLiteStatus MicroInterpreterContext::SetAlternateProfiler(
     tflite::MicroProfilerInterface* alt_profiler) {

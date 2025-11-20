@@ -252,6 +252,7 @@ tflm_kernel_cc_library(
         "cumsum.cc",
         "decode.cc",
         "decode_state.cc",
+        "decode_state_huffman.cc",
         "decode_state_lut.cc",
         "decode_state_prune.cc",
         "depth_to_space.cc",
@@ -261,6 +262,7 @@ tflm_kernel_cc_library(
         "dequantize_common.cc",
         "detection_postprocess.cc",
         "div.cc",
+        "dynamic_update_slice.cc",
         "elementwise.cc",
         "elu.cc",
         "embedding_lookup.cc",
@@ -346,10 +348,12 @@ tflm_kernel_cc_library(
         "circular_buffer.h",
         "conv.h",
         "decode_state.h",
+        "decode_state_huffman.h",
         "decode_state_lut.h",
         "decode_state_prune.h",
         "depthwise_conv.h",
         "dequantize.h",
+        "dynamic_update_slice.h",
         "ethosu.h",
         "fully_connected.h",
         "hard_swish.h",
@@ -665,6 +669,38 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
+    name = "decode_state_huffman_test",
+    srcs = [
+        "decode_state_huffman_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_state_lut_test",
+    srcs = [
+        "decode_state_lut_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "decode_state_prune_test",
     srcs = [
         "decode_state_prune_test.cc",
@@ -785,6 +821,21 @@ tflm_cc_test(
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "dynamic_update_slice_test",
+    srcs = [
+        "dynamic_update_slice_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],

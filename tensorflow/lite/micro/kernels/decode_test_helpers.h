@@ -83,7 +83,9 @@ TfLiteStatus CheckOutput(const TfLiteTensor& output,
 template <size_t kNumInputs, size_t kNumOutputs>
 TfLiteStatus ExecuteDecodeTest(
     TfLiteTensor* tensors, const TFLMRegistration& registration,
-    const std::initializer_list<const void*>& expected) {
+    const std::initializer_list<const void*>& expected,
+    const std::initializer_list<MicroContext::AlternateMemoryRegion>* amr =
+        nullptr) {
   int kInputArrayData[kNumInputs + 1] = {kNumInputs};
   for (size_t i = 0; i < kNumInputs; i++) {
     kInputArrayData[i + 1] = i;
@@ -99,6 +101,10 @@ TfLiteStatus ExecuteDecodeTest(
   micro::KernelRunner runner(registration, tensors, kNumInputs + kNumOutputs,
                              inputs_array, outputs_array, nullptr);
 
+  if (amr != nullptr) {
+    runner.GetFakeMicroContext()->SetDecompressionMemory(*amr);
+  }
+
   if (runner.InitAndPrepare() != kTfLiteOk || runner.Invoke() != kTfLiteOk) {
     return kTfLiteError;
   }
@@ -107,6 +113,9 @@ TfLiteStatus ExecuteDecodeTest(
   TfLiteStatus status = kTfLiteError;
   for (size_t i = 0; i < kNumOutputs; i++) {
     switch (output_tensors[i].type) {
+      case kTfLiteBool:
+        status = CheckOutput<bool>(output_tensors[i], expected.begin()[i]);
+        break;
       case kTfLiteInt8:
         status = CheckOutput<int8_t>(output_tensors[i], expected.begin()[i]);
         break;
@@ -115,6 +124,12 @@ TfLiteStatus ExecuteDecodeTest(
         break;
       case kTfLiteFloat32:
         status = CheckOutput<float>(output_tensors[i], expected.begin()[i]);
+        break;
+      case kTfLiteInt32:
+        status = CheckOutput<int32_t>(output_tensors[i], expected.begin()[i]);
+        break;
+      case kTfLiteInt64:
+        status = CheckOutput<int64_t>(output_tensors[i], expected.begin()[i]);
         break;
       default:
         TF_LITE_MICRO_FAIL("unsupported tensor type in test");
@@ -126,12 +141,15 @@ TfLiteStatus ExecuteDecodeTest(
 }
 
 template <size_t kNumInputs, size_t kNumOutputs>
-void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
-                const std::initializer_list<const TensorInDatum*>& ancillaries,
-                const std::initializer_list<const TensorOutDatum*>& outputs,
-                const std::initializer_list<const void*>& expected,
-                const TFLMRegistration& registration,
-                const TfLiteStatus expected_status = kTfLiteOk) {
+void TestDecode(
+    const std::initializer_list<const TensorInDatum*>& encodes,
+    const std::initializer_list<const TensorInDatum*>& ancillaries,
+    const std::initializer_list<const TensorOutDatum*>& outputs,
+    const std::initializer_list<const void*>& expected,
+    const TFLMRegistration& registration,
+    const std::initializer_list<MicroContext::AlternateMemoryRegion>* amr =
+        nullptr,
+    const TfLiteStatus expected_status = kTfLiteOk) {
   TfLiteTensor tensors[kNumInputs + kNumOutputs] = {};
 
   for (size_t i = 0; i < kNumInputs; i += 2) {
@@ -164,7 +182,7 @@ void TestDecode(const std::initializer_list<const TensorInDatum*>& encodes,
   }
 
   TfLiteStatus s = ExecuteDecodeTest<kNumInputs, kNumOutputs>(
-      tensors, registration, expected);
+      tensors, registration, expected, amr);
   TF_LITE_MICRO_EXPECT_EQ(s, expected_status);
 }
 

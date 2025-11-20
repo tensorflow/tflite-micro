@@ -388,6 +388,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_huffman.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
@@ -399,6 +400,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/detection_postprocess.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dynamic_update_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup.cc \
