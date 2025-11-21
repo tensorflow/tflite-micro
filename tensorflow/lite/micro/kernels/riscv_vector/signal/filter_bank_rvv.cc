@@ -24,63 +24,66 @@ void FilterbankAccumulateChannelsRVV(const FilterbankConfig* config,
         // Process channel only if it has non-zero width
         if (channel_width > 0)
         {
-            // Set max vector length for the channel
-            size_t vl_max = __riscv_vsetvl_e32m4(channel_width);
+            // Optimization: Use LMUL=2 to fit all variables in registers and avoid spilling
+            size_t vl_max = __riscv_vsetvl_e32m2(channel_width);
 
-            // Initialize vector accumulators for 64-bit sums (low and high parts)
-            vuint32m4_t v_acc_w_low = __riscv_vmv_v_x_u32m4(0, vl_max);
-            vuint32m4_t v_acc_w_high = __riscv_vmv_v_x_u32m4(0, vl_max);
-            vuint32m4_t v_acc_uw_low = __riscv_vmv_v_x_u32m4(0, vl_max);
-            vuint32m4_t v_acc_uw_high = __riscv_vmv_v_x_u32m4(0, vl_max);
+            // Initialize vector accumulators for 64-bit sums
+            vuint32m2_t v_acc_w_low = __riscv_vmv_v_x_u32m2(0, vl_max);
+            vuint32m2_t v_acc_w_high = __riscv_vmv_v_x_u32m2(0, vl_max);
+            vuint32m2_t v_acc_uw_low = __riscv_vmv_v_x_u32m2(0, vl_max);
+            vuint32m2_t v_acc_uw_high = __riscv_vmv_v_x_u32m2(0, vl_max);
 
-            // Initialize vector accumulators for carries (Optimization: avoid vcpop in loop)
-            vuint32m4_t v_carry_w_acc = __riscv_vmv_v_x_u32m4(0, vl_max);
-            vuint32m4_t v_carry_uw_acc = __riscv_vmv_v_x_u32m4(0, vl_max);
-
-            // Process the channel width in vector-sized chunks (stripmining)
+            // Process the channel width in vector-sized chunks
             int j = 0;
             while (j < channel_width)
             {
                 // Set vector length for the current strip
-                size_t vl = __riscv_vsetvl_e32m4(channel_width - j);
+                size_t vl = __riscv_vsetvl_e32m2(channel_width - j);
 
                 // Load vector of input data
-                vuint32m4_t v_input =
-                    __riscv_vle32_v_u32m4(&input[freq_start + j], vl);
+                vuint32m2_t v_input = __riscv_vle32_v_u32m2(&input[freq_start + j], vl);
 
-                // Load 16-bit weights and unweights
-                vuint16m2_t v_weights16 = __riscv_vle16_v_u16m2(
-                    reinterpret_cast<const uint16_t*>(&config->weights[weight_start + j]), vl);
-                vuint16m2_t v_unweights16 = __riscv_vle16_v_u16m2(
-                    reinterpret_cast<const uint16_t*>(&config->unweights[weight_start + j]), vl);
+                // Load Weights and Unweights
+                vint16m1_t v_weights16 = __riscv_vle16_v_i16m1(
+                    reinterpret_cast<const int16_t*>(&config->weights[weight_start + j]), vl);
+                vint16m1_t v_unweights16 = __riscv_vle16_v_i16m1(
+                    reinterpret_cast<const int16_t*>(&config->unweights[weight_start + j]), vl);
 
-                // Widen weights and unweights to 32-bit
-                vuint32m4_t v_weights32 = __riscv_vwaddu_vx_u32m4(v_weights16, 0, vl);
-                vuint32m4_t v_unweights32 = __riscv_vwaddu_vx_u32m4(v_unweights16, 0, vl);
+                // Sign-extend weights to 32-bit
+                vint32m2_t v_weights32 = __riscv_vsext_vf2_i32m2(v_weights16, vl);
+                vint32m2_t v_unweights32 = __riscv_vsext_vf2_i32m2(v_unweights16, vl);
 
-                // Perform 32x32 multiply, producing 64-bit results as low/high pairs
-                vuint32m4_t v_prod_w_low = __riscv_vmul_vv_u32m4(v_input, v_weights32, vl);
-                vuint32m4_t v_prod_w_high = __riscv_vmulhu_vv_u32m4(v_input, v_weights32, vl);
-                vuint32m4_t v_prod_uw_low = __riscv_vmul_vv_u32m4(v_input, v_unweights32, vl);
-                vuint32m4_t v_prod_uw_high = __riscv_vmulhu_vv_u32m4(v_input, v_unweights32, vl);
+                // Reinterpret weights as unsigned bits for vmul
+                vuint32m2_t v_weights32_u = __riscv_vreinterpret_v_i32m2_u32m2(v_weights32);
+                vuint32m2_t v_unweights32_u = __riscv_vreinterpret_v_i32m2_u32m2(v_unweights32);
 
-                // Add the low 32-bit parts of the products
-                vuint32m4_t v_next_acc_w_low = __riscv_vadd_vv_u32m4(v_acc_w_low, v_prod_w_low, vl);
-                vuint32m4_t v_next_acc_uw_low = __riscv_vadd_vv_u32m4(v_acc_uw_low, v_prod_uw_low, vl);
+                // Low part multiply
+                vuint32m2_t v_prod_w_low = __riscv_vmul_vv_u32m2(v_input, v_weights32_u, vl);
+                vuint32m2_t v_prod_uw_low = __riscv_vmul_vv_u32m2(v_input, v_unweights32_u, vl);
 
-                // Detect carries from the low-part addition
-                vbool8_t v_carry_w = __riscv_vmsltu_vv_u32m4_b8(v_next_acc_w_low, v_acc_w_low, vl);
-                vbool8_t v_carry_uw = __riscv_vmsltu_vv_u32m4_b8(v_next_acc_uw_low, v_acc_uw_low, vl);
+                // High part multiply
+                vint32m2_t v_prod_w_high_i = __riscv_vmulhsu_vv_i32m2(v_weights32, v_input, vl);
+                vint32m2_t v_prod_uw_high_i = __riscv_vmulhsu_vv_i32m2(v_unweights32, v_input, vl);
+                vuint32m2_t v_prod_w_high = __riscv_vreinterpret_v_i32m2_u32m2(v_prod_w_high_i);
+                vuint32m2_t v_prod_uw_high = __riscv_vreinterpret_v_i32m2_u32m2(v_prod_uw_high_i);
 
-                // Optimization: Accumulate carries into vector register instead of scalar vcpop
-                v_carry_w_acc = __riscv_vadd_vx_u32m4_m(v_carry_w, v_carry_w_acc, 1, vl);
-                v_carry_uw_acc = __riscv_vadd_vx_u32m4_m(v_carry_uw, v_carry_uw_acc, 1, vl);
+                // Accumulate Low part
+                vuint32m2_t v_next_acc_w_low = __riscv_vadd_vv_u32m2(v_acc_w_low, v_prod_w_low, vl);
+                vuint32m2_t v_next_acc_uw_low = __riscv_vadd_vv_u32m2(v_acc_uw_low, v_prod_uw_low, vl);
 
-                // Add the high 32-bit parts of the products
-                v_acc_w_high = __riscv_vadd_vv_u32m4(v_acc_w_high, v_prod_w_high, vl);
-                v_acc_uw_high = __riscv_vadd_vv_u32m4(v_acc_uw_high, v_prod_uw_high, vl);
+                // Detect Carries (if result < accumulator, we wrapped)
+                vbool16_t v_carry_w = __riscv_vmsltu_vv_u32m2_b16(v_next_acc_w_low, v_acc_w_low, vl);
+                vbool16_t v_carry_uw = __riscv_vmsltu_vv_u32m2_b16(v_next_acc_uw_low, v_acc_uw_low, vl);
 
-                // Update the low-part accumulators
+                // Accumulate High part
+                v_acc_w_high = __riscv_vadd_vv_u32m2(v_acc_w_high, v_prod_w_high, vl);
+                v_acc_uw_high = __riscv_vadd_vv_u32m2(v_acc_uw_high, v_prod_uw_high, vl);
+
+                // Apply Carry: Add 1 to high accumulator where carry is set
+                v_acc_w_high = __riscv_vadd_vx_u32m2_mu(v_carry_w, v_acc_w_high, v_acc_w_high, 1, vl);
+                v_acc_uw_high = __riscv_vadd_vx_u32m2_mu(v_carry_uw, v_acc_uw_high, v_acc_uw_high, 1, vl);
+
+                // Update low accumulator
                 v_acc_w_low = v_next_acc_w_low;
                 v_acc_uw_low = v_next_acc_uw_low;
 
@@ -92,30 +95,20 @@ void FilterbankAccumulateChannelsRVV(const FilterbankConfig* config,
             vuint32m1_t v_zero = __riscv_vmv_v_x_u32m1(0, vl_max);
 
             // Reduce the 32-bit vector accumulators to scalar sums
-            vuint32m1_t v_sum_w_low = __riscv_vredsum_vs_u32m4_u32m1(v_acc_w_low, v_zero, vl_max);
-            vuint32m1_t v_sum_uw_low = __riscv_vredsum_vs_u32m4_u32m1(v_acc_uw_low, v_zero, vl_max);
-            vuint32m1_t v_sum_w_high = __riscv_vredsum_vs_u32m4_u32m1(v_acc_w_high, v_zero, vl_max);
-            vuint32m1_t v_sum_uw_high = __riscv_vredsum_vs_u32m4_u32m1(v_acc_uw_high, v_zero, vl_max);
-
-            // Reduce the carry accumulators
-            vuint32m1_t v_sum_carry_w = __riscv_vredsum_vs_u32m4_u32m1(v_carry_w_acc, v_zero, vl_max);
-            vuint32m1_t v_sum_carry_uw = __riscv_vredsum_vs_u32m4_u32m1(v_carry_uw_acc, v_zero, vl_max);
+            vuint32m1_t v_sum_w_low = __riscv_vredsum_vs_u32m2_u32m1(v_acc_w_low, v_zero, vl_max);
+            vuint32m1_t v_sum_w_high = __riscv_vredsum_vs_u32m2_u32m1(v_acc_w_high, v_zero, vl_max);
+            vuint32m1_t v_sum_uw_low = __riscv_vredsum_vs_u32m2_u32m1(v_acc_uw_low, v_zero, vl_max);
+            vuint32m1_t v_sum_uw_high = __riscv_vredsum_vs_u32m2_u32m1(v_acc_uw_high, v_zero, vl_max);
 
             // Extract scalar results
             uint32_t final_w_low = __riscv_vmv_x_s_u32m1_u32(v_sum_w_low);
-            uint32_t final_uw_low = __riscv_vmv_x_s_u32m1_u32(v_sum_uw_low);
             uint32_t final_w_high = __riscv_vmv_x_s_u32m1_u32(v_sum_w_high);
+            uint32_t final_uw_low = __riscv_vmv_x_s_u32m1_u32(v_sum_uw_low);
             uint32_t final_uw_high = __riscv_vmv_x_s_u32m1_u32(v_sum_uw_high);
-            uint32_t w_carry_count = __riscv_vmv_x_s_u32m1_u32(v_sum_carry_w);
-            uint32_t uw_carry_count = __riscv_vmv_x_s_u32m1_u32(v_sum_carry_uw);
 
-            // Reconstruct the final 64-bit sum
-            uint64_t final_w = ((uint64_t)(final_w_high + w_carry_count) << 32) | final_w_low;
-            uint64_t final_uw = ((uint64_t)(final_uw_high + uw_carry_count) << 32) | final_uw_low;
-
-            // Add the vector reduction result to the channel's scalar accumulator
-            channel_w_acc += final_w;
-            channel_uw_acc += final_uw;
+            // Reconstruct the final 64-bit sum and add to channel accumulator
+            channel_w_acc += ((uint64_t)final_w_high << 32) | final_w_low;
+            channel_uw_acc += ((uint64_t)final_uw_high << 32) | final_uw_low;
         }
 
         // Store the final weighted result for this channel
