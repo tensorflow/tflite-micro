@@ -40,74 +40,74 @@ static void kf_bfly2_rvv(kiss_fft_fixed16::kiss_fft_cpx* Fout,
   size_t k = 0;
   while (k < m)
   {
-    // Set the vector length for this iteration
-    size_t vl = __riscv_vsetvl_e16m4(m - k);
+    // Set the vector length for this iteration (LMUL=2)
+    size_t vl = __riscv_vsetvl_e16m2(m - k);
 
     // Load input data vectors
-    vint16m4_t v_fout_r =
-        __riscv_vlse16_v_i16m4(Fout_base + 2 * k, cpx_stride, vl);
-    vint16m4_t v_fout_i =
-        __riscv_vlse16_v_i16m4(Fout_base + 2 * k + 1, cpx_stride, vl);
-    vint16m4_t v_fout2_r =
-        __riscv_vlse16_v_i16m4(Fout2_base + 2 * k, cpx_stride, vl);
-    vint16m4_t v_fout2_i =
-        __riscv_vlse16_v_i16m4(Fout2_base + 2 * k + 1, cpx_stride, vl);
+    vint16m2_t v_fout_r =
+        __riscv_vlse16_v_i16m2(Fout_base + 2 * k, cpx_stride, vl);
+    vint16m2_t v_fout_i =
+        __riscv_vlse16_v_i16m2(Fout_base + 2 * k + 1, cpx_stride, vl);
+    vint16m2_t v_fout2_r =
+        __riscv_vlse16_v_i16m2(Fout2_base + 2 * k, cpx_stride, vl);
+    vint16m2_t v_fout2_i =
+        __riscv_vlse16_v_i16m2(Fout2_base + 2 * k + 1, cpx_stride, vl);
 
     // Load twiddle factor vectors
-    vint16m4_t v_tw_r =
-        __riscv_vlse16_v_i16m4(tw1_base + (k * fstride * 2), tw_stride, vl);
-    vint16m4_t v_tw_i =
-        __riscv_vlse16_v_i16m4(tw1_base + (k * fstride * 2) + 1, tw_stride, vl);
+    vint16m2_t v_tw_r =
+        __riscv_vlse16_v_i16m2(tw1_base + (k * fstride * 2), tw_stride, vl);
+    vint16m2_t v_tw_i =
+        __riscv_vlse16_v_i16m2(tw1_base + (k * fstride * 2) + 1, tw_stride, vl);
 
     // Perform rounding division by 2 on input data
-    vint32m8_t v_fout_r_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fout_r, scale, vl),
+    vint32m4_t v_fout_r_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fout_r, scale, vl),
                               round_const, vl),
         15, vl);
-    vint32m8_t v_fout_i_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fout_i, scale, vl),
+    vint32m4_t v_fout_i_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fout_i, scale, vl),
                               round_const, vl),
         15, vl);
-    vint16m4_t v_fout_r_div2 =
-        __riscv_vnclip_wx_i16m4(v_fout_r_32, 0, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_fout_i_div2 =
-        __riscv_vnclip_wx_i16m4(v_fout_i_32, 0, __RISCV_VXRM_RNU, vl);
-    vint32m8_t v_fout2_r_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fout2_r, scale, vl),
+    vint16m2_t v_fout_r_div2 =
+        __riscv_vnclip_wx_i16m2(v_fout_r_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_fout_i_div2 =
+        __riscv_vnclip_wx_i16m2(v_fout_i_32, 0, __RISCV_VXRM_RNU, vl);
+    vint32m4_t v_fout2_r_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fout2_r, scale, vl),
                               round_const, vl),
         15, vl);
-    vint32m8_t v_fout2_i_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fout2_i, scale, vl),
+    vint32m4_t v_fout2_i_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fout2_i, scale, vl),
                               round_const, vl),
         15, vl);
-    vint16m4_t v_fout2_r_div2 =
-        __riscv_vnclip_wx_i16m4(v_fout2_r_32, 0, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_fout2_i_div2 =
-        __riscv_vnclip_wx_i16m4(v_fout2_i_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_fout2_r_div2 =
+        __riscv_vnclip_wx_i16m2(v_fout2_r_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_fout2_i_div2 =
+        __riscv_vnclip_wx_i16m2(v_fout2_i_32, 0, __RISCV_VXRM_RNU, vl);
 
     // Perform complex multiplication: t = Fout2 * tw
-    vint32m8_t v_ac = __riscv_vwmul_vv_i32m8(v_fout2_r_div2, v_tw_r, vl);
-    vint32m8_t v_bd = __riscv_vwmul_vv_i32m8(v_fout2_i_div2, v_tw_i, vl);
-    vint32m8_t v_ad = __riscv_vwmul_vv_i32m8(v_fout2_r_div2, v_tw_i, vl);
-    vint32m8_t v_bc = __riscv_vwmul_vv_i32m8(v_fout2_i_div2, v_tw_r, vl);
-    vint32m8_t v_t_r_32 = __riscv_vssra_vx_i32m8(
-        __riscv_vsub_vv_i32m8(v_ac, v_bd, vl), 15, __RISCV_VXRM_RNU, vl);
-    vint32m8_t v_t_i_32 = __riscv_vssra_vx_i32m8(
-        __riscv_vadd_vv_i32m8(v_ad, v_bc, vl), 15, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_t_r = __riscv_vnclip_wx_i16m4(v_t_r_32, 0, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_t_i = __riscv_vnclip_wx_i16m4(v_t_i_32, 0, __RISCV_VXRM_RNU, vl);
+    vint32m4_t v_ac = __riscv_vwmul_vv_i32m4(v_fout2_r_div2, v_tw_r, vl);
+    vint32m4_t v_bd = __riscv_vwmul_vv_i32m4(v_fout2_i_div2, v_tw_i, vl);
+    vint32m4_t v_ad = __riscv_vwmul_vv_i32m4(v_fout2_r_div2, v_tw_i, vl);
+    vint32m4_t v_bc = __riscv_vwmul_vv_i32m4(v_fout2_i_div2, v_tw_r, vl);
+    vint32m4_t v_t_r_32 = __riscv_vssra_vx_i32m4(
+        __riscv_vsub_vv_i32m4(v_ac, v_bd, vl), 15, __RISCV_VXRM_RNU, vl);
+    vint32m4_t v_t_i_32 = __riscv_vssra_vx_i32m4(
+        __riscv_vadd_vv_i32m4(v_ad, v_bc, vl), 15, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_t_r = __riscv_vnclip_wx_i16m2(v_t_r_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_t_i = __riscv_vnclip_wx_i16m2(v_t_i_32, 0, __RISCV_VXRM_RNU, vl);
 
     // Calculate butterfly outputs: Fout = Fout + t and Fout2 = Fout - t
-    vint16m4_t v_res_fout2_r = __riscv_vsub_vv_i16m4(v_fout_r_div2, v_t_r, vl);
-    vint16m4_t v_res_fout2_i = __riscv_vsub_vv_i16m4(v_fout_i_div2, v_t_i, vl);
-    vint16m4_t v_res_fout_r = __riscv_vadd_vv_i16m4(v_fout_r_div2, v_t_r, vl);
-    vint16m4_t v_res_fout_i = __riscv_vadd_vv_i16m4(v_fout_i_div2, v_t_i, vl);
+    vint16m2_t v_res_fout2_r = __riscv_vsub_vv_i16m2(v_fout_r_div2, v_t_r, vl);
+    vint16m2_t v_res_fout2_i = __riscv_vsub_vv_i16m2(v_fout_i_div2, v_t_i, vl);
+    vint16m2_t v_res_fout_r = __riscv_vadd_vv_i16m2(v_fout_r_div2, v_t_r, vl);
+    vint16m2_t v_res_fout_i = __riscv_vadd_vv_i16m2(v_fout_i_div2, v_t_i, vl);
 
     // Store results
-    __riscv_vsse16_v_i16m4(Fout_base + 2 * k, cpx_stride, v_res_fout_r, vl);
-    __riscv_vsse16_v_i16m4(Fout_base + 2 * k + 1, cpx_stride, v_res_fout_i, vl);
-    __riscv_vsse16_v_i16m4(Fout2_base + 2 * k, cpx_stride, v_res_fout2_r, vl);
-    __riscv_vsse16_v_i16m4(Fout2_base + 2 * k + 1, cpx_stride, v_res_fout2_i, vl);
+    __riscv_vsse16_v_i16m2(Fout_base + 2 * k, cpx_stride, v_res_fout_r, vl);
+    __riscv_vsse16_v_i16m2(Fout_base + 2 * k + 1, cpx_stride, v_res_fout_i, vl);
+    __riscv_vsse16_v_i16m2(Fout2_base + 2 * k, cpx_stride, v_res_fout2_r, vl);
+    __riscv_vsse16_v_i16m2(Fout2_base + 2 * k + 1, cpx_stride, v_res_fout2_i, vl);
 
     // Advance loop counter
     k += vl;
@@ -141,175 +141,175 @@ static void kf_bfly4_rvv(kiss_fft_fixed16::kiss_fft_cpx* Fout,
   size_t k = 0;
   while (k < m)
   {
-    // Set the vector length for this iteration
-    size_t vl = __riscv_vsetvl_e16m2(m - k);
+    // Set the vector length for this iteration (LMUL=1)
+    size_t vl = __riscv_vsetvl_e16m1(m - k);
 
     // Load input data vectors
-    vint16m2_t v_f0_r =
-        __riscv_vlse16_v_i16m2(Fout0_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f0_i =
-        __riscv_vlse16_v_i16m2(Fout0_base + 2 * k + 1, cpx_stride, vl);
-    vint16m2_t v_f1_r =
-        __riscv_vlse16_v_i16m2(Fout1_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f1_i =
-        __riscv_vlse16_v_i16m2(Fout1_base + 2 * k + 1, cpx_stride, vl);
-    vint16m2_t v_f2_r =
-        __riscv_vlse16_v_i16m2(Fout2_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f2_i =
-        __riscv_vlse16_v_i16m2(Fout2_base + 2 * k + 1, cpx_stride, vl);
-    vint16m2_t v_f3_r =
-        __riscv_vlse16_v_i16m2(Fout3_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f3_i =
-        __riscv_vlse16_v_i16m2(Fout3_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f0_r =
+        __riscv_vlse16_v_i16m1(Fout0_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f0_i =
+        __riscv_vlse16_v_i16m1(Fout0_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f1_r =
+        __riscv_vlse16_v_i16m1(Fout1_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f1_i =
+        __riscv_vlse16_v_i16m1(Fout1_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f2_r =
+        __riscv_vlse16_v_i16m1(Fout2_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f2_i =
+        __riscv_vlse16_v_i16m1(Fout2_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f3_r =
+        __riscv_vlse16_v_i16m1(Fout3_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f3_i =
+        __riscv_vlse16_v_i16m1(Fout3_base + 2 * k + 1, cpx_stride, vl);
 
     // Perform rounding division by 4 on input data
-    vint16m2_t v_f0d_r = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f0_r, scale, vl), round_const, vl),
+    vint16m1_t v_f0d_r = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f0_r, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f0d_i = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f0_i, scale, vl), round_const, vl),
+    vint16m1_t v_f0d_i = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f0_i, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f1d_r = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f1_r, scale, vl), round_const, vl),
+    vint16m1_t v_f1d_r = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f1_r, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f1d_i = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f1_i, scale, vl), round_const, vl),
+    vint16m1_t v_f1d_i = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f1_i, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f2d_r = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f2_r, scale, vl), round_const, vl),
+    vint16m1_t v_f2d_r = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f2_r, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f2d_i = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f2_i, scale, vl), round_const, vl),
+    vint16m1_t v_f2d_i = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f2_i, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f3d_r = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f3_r, scale, vl), round_const, vl),
+    vint16m1_t v_f3d_r = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f3_r, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_f3d_i = __riscv_vnclip_wx_i16m2(
-        __riscv_vsra_vx_i32m4(
-            __riscv_vadd_vx_i32m4(
-                __riscv_vwmul_vx_i32m4(v_f3_i, scale, vl), round_const, vl),
+    vint16m1_t v_f3d_i = __riscv_vnclip_wx_i16m1(
+        __riscv_vsra_vx_i32m2(
+            __riscv_vadd_vx_i32m2(
+                __riscv_vwmul_vx_i32m2(v_f3_i, scale, vl), round_const, vl),
             15, vl),
         0, __RISCV_VXRM_RNU, vl);
 
     // Load twiddle factor vectors
-    vint16m2_t v_tw1_r =
-        __riscv_vlse16_v_i16m2(tw_base + (k * fstride * 2), tw1_stride, vl);
-    vint16m2_t v_tw1_i =
-        __riscv_vlse16_v_i16m2(tw_base + (k * fstride * 2) + 1, tw1_stride, vl);
-    vint16m2_t v_tw2_r =
-        __riscv_vlse16_v_i16m2(tw_base + (k * fstride * 4), tw2_stride, vl);
-    vint16m2_t v_tw2_i =
-        __riscv_vlse16_v_i16m2(tw_base + (k * fstride * 4) + 1, tw2_stride, vl);
-    vint16m2_t v_tw3_r =
-        __riscv_vlse16_v_i16m2(tw_base + (k * fstride * 6), tw3_stride, vl);
-    vint16m2_t v_tw3_i =
-        __riscv_vlse16_v_i16m2(tw_base + (k * fstride * 6) + 1, tw3_stride, vl);
+    vint16m1_t v_tw1_r =
+        __riscv_vlse16_v_i16m1(tw_base + (k * fstride * 2), tw1_stride, vl);
+    vint16m1_t v_tw1_i =
+        __riscv_vlse16_v_i16m1(tw_base + (k * fstride * 2) + 1, tw1_stride, vl);
+    vint16m1_t v_tw2_r =
+        __riscv_vlse16_v_i16m1(tw_base + (k * fstride * 4), tw2_stride, vl);
+    vint16m1_t v_tw2_i =
+        __riscv_vlse16_v_i16m1(tw_base + (k * fstride * 4) + 1, tw2_stride, vl);
+    vint16m1_t v_tw3_r =
+        __riscv_vlse16_v_i16m1(tw_base + (k * fstride * 6), tw3_stride, vl);
+    vint16m1_t v_tw3_i =
+        __riscv_vlse16_v_i16m1(tw_base + (k * fstride * 6) + 1, tw3_stride, vl);
 
     // Perform complex multiplications
-    vint16m2_t v_s0_r, v_s0_i, v_s1_r, v_s1_i, v_s2_r, v_s2_i;
+    vint16m1_t v_s0_r, v_s0_i, v_s1_r, v_s1_i, v_s2_r, v_s2_i;
     do
     {
-      vint32m4_t ac = __riscv_vwmul_vv_i32m4(v_f1d_r, v_tw1_r, vl);
-      vint32m4_t bd = __riscv_vwmul_vv_i32m4(v_f1d_i, v_tw1_i, vl);
-      vint32m4_t ad = __riscv_vwmul_vv_i32m4(v_f1d_r, v_tw1_i, vl);
-      vint32m4_t bc = __riscv_vwmul_vv_i32m4(v_f1d_i, v_tw1_r, vl);
-      v_s0_r = __riscv_vnclip_wx_i16m2(__riscv_vssra_vx_i32m4(
-          __riscv_vsub_vv_i32m4(ac, bd, vl), 15, __RISCV_VXRM_RNU, vl),
+      vint32m2_t ac = __riscv_vwmul_vv_i32m2(v_f1d_r, v_tw1_r, vl);
+      vint32m2_t bd = __riscv_vwmul_vv_i32m2(v_f1d_i, v_tw1_i, vl);
+      vint32m2_t ad = __riscv_vwmul_vv_i32m2(v_f1d_r, v_tw1_i, vl);
+      vint32m2_t bc = __riscv_vwmul_vv_i32m2(v_f1d_i, v_tw1_r, vl);
+      v_s0_r = __riscv_vnclip_wx_i16m1(__riscv_vssra_vx_i32m2(
+          __riscv_vsub_vv_i32m2(ac, bd, vl), 15, __RISCV_VXRM_RNU, vl),
                                        0, __RISCV_VXRM_RNU, vl);
-      v_s0_i = __riscv_vnclip_wx_i16m2(__riscv_vssra_vx_i32m4(
-          __riscv_vadd_vv_i32m4(ad, bc, vl), 15, __RISCV_VXRM_RNU, vl),
+      v_s0_i = __riscv_vnclip_wx_i16m1(__riscv_vssra_vx_i32m2(
+          __riscv_vadd_vv_i32m2(ad, bc, vl), 15, __RISCV_VXRM_RNU, vl),
                                        0, __RISCV_VXRM_RNU, vl);
     } while (0);
 
     do
     {
-      vint32m4_t ac = __riscv_vwmul_vv_i32m4(v_f2d_r, v_tw2_r, vl);
-      vint32m4_t bd = __riscv_vwmul_vv_i32m4(v_f2d_i, v_tw2_i, vl);
-      vint32m4_t ad = __riscv_vwmul_vv_i32m4(v_f2d_r, v_tw2_i, vl);
-      vint32m4_t bc = __riscv_vwmul_vv_i32m4(v_f2d_i, v_tw2_r, vl);
-      v_s1_r = __riscv_vnclip_wx_i16m2(__riscv_vssra_vx_i32m4(
-          __riscv_vsub_vv_i32m4(ac, bd, vl), 15, __RISCV_VXRM_RNU, vl),
+      vint32m2_t ac = __riscv_vwmul_vv_i32m2(v_f2d_r, v_tw2_r, vl);
+      vint32m2_t bd = __riscv_vwmul_vv_i32m2(v_f2d_i, v_tw2_i, vl);
+      vint32m2_t ad = __riscv_vwmul_vv_i32m2(v_f2d_r, v_tw2_i, vl);
+      vint32m2_t bc = __riscv_vwmul_vv_i32m2(v_f2d_i, v_tw2_r, vl);
+      v_s1_r = __riscv_vnclip_wx_i16m1(__riscv_vssra_vx_i32m2(
+          __riscv_vsub_vv_i32m2(ac, bd, vl), 15, __RISCV_VXRM_RNU, vl),
                                        0, __RISCV_VXRM_RNU, vl);
-      v_s1_i = __riscv_vnclip_wx_i16m2(__riscv_vssra_vx_i32m4(
-          __riscv_vadd_vv_i32m4(ad, bc, vl), 15, __RISCV_VXRM_RNU, vl),
+      v_s1_i = __riscv_vnclip_wx_i16m1(__riscv_vssra_vx_i32m2(
+          __riscv_vadd_vv_i32m2(ad, bc, vl), 15, __RISCV_VXRM_RNU, vl),
                                        0, __RISCV_VXRM_RNU, vl);
     } while (0);
 
     do
     {
-      vint32m4_t ac = __riscv_vwmul_vv_i32m4(v_f3d_r, v_tw3_r, vl);
-      vint32m4_t bd = __riscv_vwmul_vv_i32m4(v_f3d_i, v_tw3_i, vl);
-      vint32m4_t ad = __riscv_vwmul_vv_i32m4(v_f3d_r, v_tw3_i, vl);
-      vint32m4_t bc = __riscv_vwmul_vv_i32m4(v_f3d_i, v_tw3_r, vl);
-      v_s2_r = __riscv_vnclip_wx_i16m2(__riscv_vssra_vx_i32m4(
-          __riscv_vsub_vv_i32m4(ac, bd, vl), 15, __RISCV_VXRM_RNU, vl),
+      vint32m2_t ac = __riscv_vwmul_vv_i32m2(v_f3d_r, v_tw3_r, vl);
+      vint32m2_t bd = __riscv_vwmul_vv_i32m2(v_f3d_i, v_tw3_i, vl);
+      vint32m2_t ad = __riscv_vwmul_vv_i32m2(v_f3d_r, v_tw3_i, vl);
+      vint32m2_t bc = __riscv_vwmul_vv_i32m2(v_f3d_i, v_tw3_r, vl);
+      v_s2_r = __riscv_vnclip_wx_i16m1(__riscv_vssra_vx_i32m2(
+          __riscv_vsub_vv_i32m2(ac, bd, vl), 15, __RISCV_VXRM_RNU, vl),
                                        0, __RISCV_VXRM_RNU, vl);
-      v_s2_i = __riscv_vnclip_wx_i16m2(__riscv_vssra_vx_i32m4(
-          __riscv_vadd_vv_i32m4(ad, bc, vl), 15, __RISCV_VXRM_RNU, vl),
+      v_s2_i = __riscv_vnclip_wx_i16m1(__riscv_vssra_vx_i32m2(
+          __riscv_vadd_vv_i32m2(ad, bc, vl), 15, __RISCV_VXRM_RNU, vl),
                                        0, __RISCV_VXRM_RNU, vl);
     } while (0);
 
     // Calculate intermediate butterfly values
-    vint16m2_t v_s5_r = __riscv_vsub_vv_i16m2(v_f0d_r, v_s1_r, vl);
-    vint16m2_t v_s5_i = __riscv_vsub_vv_i16m2(v_f0d_i, v_s1_i, vl);
-    vint16m2_t v_f0d_plus_s1_r = __riscv_vadd_vv_i16m2(v_f0d_r, v_s1_r, vl);
-    vint16m2_t v_f0d_plus_s1_i = __riscv_vadd_vv_i16m2(v_f0d_i, v_s1_i, vl);
-    vint16m2_t v_s3_r = __riscv_vadd_vv_i16m2(v_s0_r, v_s2_r, vl);
-    vint16m2_t v_s3_i = __riscv_vadd_vv_i16m2(v_s0_i, v_s2_i, vl);
-    vint16m2_t v_s4_r = __riscv_vsub_vv_i16m2(v_s0_r, v_s2_r, vl);
-    vint16m2_t v_s4_i = __riscv_vsub_vv_i16m2(v_s0_i, v_s2_i, vl);
-    vint16m2_t v_res_f0_r = __riscv_vadd_vv_i16m2(v_f0d_plus_s1_r, v_s3_r, vl);
-    vint16m2_t v_res_f0_i = __riscv_vadd_vv_i16m2(v_f0d_plus_s1_i, v_s3_i, vl);
-    vint16m2_t v_res_f2_r = __riscv_vsub_vv_i16m2(v_f0d_plus_s1_r, v_s3_r, vl);
-    vint16m2_t v_res_f2_i = __riscv_vsub_vv_i16m2(v_f0d_plus_s1_i, v_s3_i, vl);
+    vint16m1_t v_s5_r = __riscv_vsub_vv_i16m1(v_f0d_r, v_s1_r, vl);
+    vint16m1_t v_s5_i = __riscv_vsub_vv_i16m1(v_f0d_i, v_s1_i, vl);
+    vint16m1_t v_f0d_plus_s1_r = __riscv_vadd_vv_i16m1(v_f0d_r, v_s1_r, vl);
+    vint16m1_t v_f0d_plus_s1_i = __riscv_vadd_vv_i16m1(v_f0d_i, v_s1_i, vl);
+    vint16m1_t v_s3_r = __riscv_vadd_vv_i16m1(v_s0_r, v_s2_r, vl);
+    vint16m1_t v_s3_i = __riscv_vadd_vv_i16m1(v_s0_i, v_s2_i, vl);
+    vint16m1_t v_s4_r = __riscv_vsub_vv_i16m1(v_s0_r, v_s2_r, vl);
+    vint16m1_t v_s4_i = __riscv_vsub_vv_i16m1(v_s0_i, v_s2_i, vl);
+    vint16m1_t v_res_f0_r = __riscv_vadd_vv_i16m1(v_f0d_plus_s1_r, v_s3_r, vl);
+    vint16m1_t v_res_f0_i = __riscv_vadd_vv_i16m1(v_f0d_plus_s1_i, v_s3_i, vl);
+    vint16m1_t v_res_f2_r = __riscv_vsub_vv_i16m1(v_f0d_plus_s1_r, v_s3_r, vl);
+    vint16m1_t v_res_f2_i = __riscv_vsub_vv_i16m1(v_f0d_plus_s1_i, v_s3_i, vl);
 
     // Calculate final results, handling inverse case
-    vint16m2_t v_res_f1_r, v_res_f1_i, v_res_f3_r, v_res_f3_i;
+    vint16m1_t v_res_f1_r, v_res_f1_i, v_res_f3_r, v_res_f3_i;
     if (st->inverse)
     {
-      v_res_f1_r = __riscv_vsub_vv_i16m2(v_s5_r, v_s4_i, vl);
-      v_res_f1_i = __riscv_vadd_vv_i16m2(v_s5_i, v_s4_r, vl);
-      v_res_f3_r = __riscv_vadd_vv_i16m2(v_s5_r, v_s4_i, vl);
-      v_res_f3_i = __riscv_vsub_vv_i16m2(v_s5_i, v_s4_r, vl);
+      v_res_f1_r = __riscv_vsub_vv_i16m1(v_s5_r, v_s4_i, vl);
+      v_res_f1_i = __riscv_vadd_vv_i16m1(v_s5_i, v_s4_r, vl);
+      v_res_f3_r = __riscv_vadd_vv_i16m1(v_s5_r, v_s4_i, vl);
+      v_res_f3_i = __riscv_vsub_vv_i16m1(v_s5_i, v_s4_r, vl);
     }
     else
     {
-      v_res_f1_r = __riscv_vadd_vv_i16m2(v_s5_r, v_s4_i, vl);
-      v_res_f1_i = __riscv_vsub_vv_i16m2(v_s5_i, v_s4_r, vl);
-      v_res_f3_r = __riscv_vsub_vv_i16m2(v_s5_r, v_s4_i, vl);
-      v_res_f3_i = __riscv_vadd_vv_i16m2(v_s5_i, v_s4_r, vl);
+      v_res_f1_r = __riscv_vadd_vv_i16m1(v_s5_r, v_s4_i, vl);
+      v_res_f1_i = __riscv_vsub_vv_i16m1(v_s5_i, v_s4_r, vl);
+      v_res_f3_r = __riscv_vsub_vv_i16m1(v_s5_r, v_s4_i, vl);
+      v_res_f3_i = __riscv_vadd_vv_i16m1(v_s5_i, v_s4_r, vl);
     }
 
     // Store final results
-    __riscv_vsse16_v_i16m2(Fout0_base + 2 * k, cpx_stride, v_res_f0_r, vl);
-    __riscv_vsse16_v_i16m2(Fout0_base + 2 * k + 1, cpx_stride, v_res_f0_i, vl);
-    __riscv_vsse16_v_i16m2(Fout1_base + 2 * k, cpx_stride, v_res_f1_r, vl);
-    __riscv_vsse16_v_i16m2(Fout1_base + 2 * k + 1, cpx_stride, v_res_f1_i, vl);
-    __riscv_vsse16_v_i16m2(Fout2_base + 2 * k, cpx_stride, v_res_f2_r, vl);
-    __riscv_vsse16_v_i16m2(Fout2_base + 2 * k + 1, cpx_stride, v_res_f2_i, vl);
-    __riscv_vsse16_v_i16m2(Fout3_base + 2 * k, cpx_stride, v_res_f3_r, vl);
-    __riscv_vsse16_v_i16m2(Fout3_base + 2 * k + 1, cpx_stride, v_res_f3_i, vl);
+    __riscv_vsse16_v_i16m1(Fout0_base + 2 * k, cpx_stride, v_res_f0_r, vl);
+    __riscv_vsse16_v_i16m1(Fout0_base + 2 * k + 1, cpx_stride, v_res_f0_i, vl);
+    __riscv_vsse16_v_i16m1(Fout1_base + 2 * k, cpx_stride, v_res_f1_r, vl);
+    __riscv_vsse16_v_i16m1(Fout1_base + 2 * k + 1, cpx_stride, v_res_f1_i, vl);
+    __riscv_vsse16_v_i16m1(Fout2_base + 2 * k, cpx_stride, v_res_f2_r, vl);
+    __riscv_vsse16_v_i16m1(Fout2_base + 2 * k + 1, cpx_stride, v_res_f2_i, vl);
+    __riscv_vsse16_v_i16m1(Fout3_base + 2 * k, cpx_stride, v_res_f3_r, vl);
+    __riscv_vsse16_v_i16m1(Fout3_base + 2 * k + 1, cpx_stride, v_res_f3_i, vl);
 
     // Advance loop counter
     k += vl;
@@ -337,98 +337,98 @@ static void kf_bfly3_rvv(kiss_fft_fixed16::kiss_fft_cpx* Fout,
   size_t k = 0;
   while (k < m)
   {
-    // Set the vector length for this iteration
-    size_t vl = __riscv_vsetvl_e16m2(m - k);
+    // Set the vector length for this iteration (LMUL=1)
+    size_t vl = __riscv_vsetvl_e16m1(m - k);
 
     // Load input data vectors
-    vint16m2_t v_f0_r =
-        __riscv_vlse16_v_i16m2(Fout0_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f0_i =
-        __riscv_vlse16_v_i16m2(Fout0_base + 2 * k + 1, cpx_stride, vl);
-    vint16m2_t v_f1_r =
-        __riscv_vlse16_v_i16m2(Fout1_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f1_i =
-        __riscv_vlse16_v_i16m2(Fout1_base + 2 * k + 1, cpx_stride, vl);
-    vint16m2_t v_f2_r =
-        __riscv_vlse16_v_i16m2(Fout2_base + 2 * k, cpx_stride, vl);
-    vint16m2_t v_f2_i =
-        __riscv_vlse16_v_i16m2(Fout2_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f0_r =
+        __riscv_vlse16_v_i16m1(Fout0_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f0_i =
+        __riscv_vlse16_v_i16m1(Fout0_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f1_r =
+        __riscv_vlse16_v_i16m1(Fout1_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f1_i =
+        __riscv_vlse16_v_i16m1(Fout1_base + 2 * k + 1, cpx_stride, vl);
+    vint16m1_t v_f2_r =
+        __riscv_vlse16_v_i16m1(Fout2_base + 2 * k, cpx_stride, vl);
+    vint16m1_t v_f2_i =
+        __riscv_vlse16_v_i16m1(Fout2_base + 2 * k + 1, cpx_stride, vl);
 
     // Load twiddle factor vectors
-    vint16m2_t v_tw1_r =
-        __riscv_vlse16_v_i16m2(tw1_base + (k * fstride * 2), tw1_stride, vl);
-    vint16m2_t v_tw1_i =
-        __riscv_vlse16_v_i16m2(tw1_base + (k * fstride * 2) + 1, tw1_stride, vl);
-    vint16m2_t v_tw2_r =
-        __riscv_vlse16_v_i16m2(tw2_base + (k * fstride * 4), tw2_stride, vl);
-    vint16m2_t v_tw2_i =
-        __riscv_vlse16_v_i16m2(tw2_base + (k * fstride * 4) + 1, tw2_stride, vl);
+    vint16m1_t v_tw1_r =
+        __riscv_vlse16_v_i16m1(tw1_base + (k * fstride * 2), tw1_stride, vl);
+    vint16m1_t v_tw1_i =
+        __riscv_vlse16_v_i16m1(tw1_base + (k * fstride * 2) + 1, tw1_stride, vl);
+    vint16m1_t v_tw2_r =
+        __riscv_vlse16_v_i16m1(tw2_base + (k * fstride * 4), tw2_stride, vl);
+    vint16m1_t v_tw2_i =
+        __riscv_vlse16_v_i16m1(tw2_base + (k * fstride * 4) + 1, tw2_stride, vl);
 
     // Perform complex multiplications: v_s0 = v_f1 * v_tw1
-    vint32m4_t v_ac0 = __riscv_vwmul_vv_i32m4(v_f1_r, v_tw1_r, vl);
-    vint32m4_t v_bd0 = __riscv_vwmul_vv_i32m4(v_f1_i, v_tw1_i, vl);
-    vint32m4_t v_ad0 = __riscv_vwmul_vv_i32m4(v_f1_r, v_tw1_i, vl);
-    vint32m4_t v_bc0 = __riscv_vwmul_vv_i32m4(v_f1_i, v_tw1_r, vl);
-    vint16m2_t v_s0_r = __riscv_vnclip_wx_i16m2(
-        __riscv_vssra_vx_i32m4(__riscv_vsub_vv_i32m4(v_ac0, v_bd0, vl), 15,
+    vint32m2_t v_ac0 = __riscv_vwmul_vv_i32m2(v_f1_r, v_tw1_r, vl);
+    vint32m2_t v_bd0 = __riscv_vwmul_vv_i32m2(v_f1_i, v_tw1_i, vl);
+    vint32m2_t v_ad0 = __riscv_vwmul_vv_i32m2(v_f1_r, v_tw1_i, vl);
+    vint32m2_t v_bc0 = __riscv_vwmul_vv_i32m2(v_f1_i, v_tw1_r, vl);
+    vint16m1_t v_s0_r = __riscv_vnclip_wx_i16m1(
+        __riscv_vssra_vx_i32m2(__riscv_vsub_vv_i32m2(v_ac0, v_bd0, vl), 15,
                                __RISCV_VXRM_RNU, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_s0_i = __riscv_vnclip_wx_i16m2(
-        __riscv_vssra_vx_i32m4(__riscv_vadd_vv_i32m4(v_ad0, v_bc0, vl), 15,
+    vint16m1_t v_s0_i = __riscv_vnclip_wx_i16m1(
+        __riscv_vssra_vx_i32m2(__riscv_vadd_vv_i32m2(v_ad0, v_bc0, vl), 15,
                                __RISCV_VXRM_RNU, vl),
         0, __RISCV_VXRM_RNU, vl);
 
-    // Perform complex multiplications: v_s1 = v_f2 * v_tw2
-    vint32m4_t v_ac1 = __riscv_vwmul_vv_i32m4(v_f2_r, v_tw2_r, vl);
-    vint32m4_t v_bd1 = __riscv_vwmul_vv_i32m4(v_f2_i, v_tw2_i, vl);
-    vint32m4_t v_ad1 = __riscv_vwmul_vv_i32m4(v_f2_r, v_tw2_i, vl);
-    vint32m4_t v_bc1 = __riscv_vwmul_vv_i32m4(v_f2_i, v_tw2_r, vl);
-    vint16m2_t v_s1_r = __riscv_vnclip_wx_i16m2(
-        __riscv_vssra_vx_i32m4(__riscv_vsub_vv_i32m4(v_ac1, v_bd1, vl), 15,
+    // Perform complex multiplications
+    vint32m2_t v_ac1 = __riscv_vwmul_vv_i32m2(v_f2_r, v_tw2_r, vl);
+    vint32m2_t v_bd1 = __riscv_vwmul_vv_i32m2(v_f2_i, v_tw2_i, vl);
+    vint32m2_t v_ad1 = __riscv_vwmul_vv_i32m2(v_f2_r, v_tw2_i, vl);
+    vint32m2_t v_bc1 = __riscv_vwmul_vv_i32m2(v_f2_i, v_tw2_r, vl);
+    vint16m1_t v_s1_r = __riscv_vnclip_wx_i16m1(
+        __riscv_vssra_vx_i32m2(__riscv_vsub_vv_i32m2(v_ac1, v_bd1, vl), 15,
                                __RISCV_VXRM_RNU, vl),
         0, __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_s1_i = __riscv_vnclip_wx_i16m2(
-        __riscv_vssra_vx_i32m4(__riscv_vadd_vv_i32m4(v_ad1, v_bc1, vl), 15,
+    vint16m1_t v_s1_i = __riscv_vnclip_wx_i16m1(
+        __riscv_vssra_vx_i32m2(__riscv_vadd_vv_i32m2(v_ad1, v_bc1, vl), 15,
                                __RISCV_VXRM_RNU, vl),
         0, __RISCV_VXRM_RNU, vl);
 
     // Calculate intermediate butterfly values
-    vint16m2_t v_s_add_r = __riscv_vadd_vv_i16m2(v_s0_r, v_s1_r, vl);
-    vint16m2_t v_s_add_i = __riscv_vadd_vv_i16m2(v_s0_i, v_s1_i, vl);
-    vint16m2_t v_s_sub_r = __riscv_vsub_vv_i16m2(v_s0_r, v_s1_r, vl);
-    vint16m2_t v_s_sub_i = __riscv_vsub_vv_i16m2(v_s0_i, v_s1_i, vl);
+    vint16m1_t v_s_add_r = __riscv_vadd_vv_i16m1(v_s0_r, v_s1_r, vl);
+    vint16m1_t v_s_add_i = __riscv_vadd_vv_i16m1(v_s0_i, v_s1_i, vl);
+    vint16m1_t v_s_sub_r = __riscv_vsub_vv_i16m1(v_s0_r, v_s1_r, vl);
+    vint16m1_t v_s_sub_i = __riscv_vsub_vv_i16m1(v_s0_i, v_s1_i, vl);
 
     // Calculate Fout0 = Fout0 + s_add
-    vint16m2_t v_res_f0_r = __riscv_vadd_vv_i16m2(v_f0_r, v_s_add_r, vl);
-    vint16m2_t v_res_f0_i = __riscv_vadd_vv_i16m2(v_f0_i, v_s_add_i, vl);
+    vint16m1_t v_res_f0_r = __riscv_vadd_vv_i16m1(v_f0_r, v_s_add_r, vl);
+    vint16m1_t v_res_f0_i = __riscv_vadd_vv_i16m1(v_f0_i, v_s_add_i, vl);
 
     // Calculate remaining outputs using rotations
-    vint16m2_t v_s_add_r_neg_half =
-        __riscv_vneg_v_i16m2(__riscv_vsra_vx_i16m2(v_s_add_r, 1, vl), vl);
-    vint16m2_t v_s_add_i_neg_half =
-        __riscv_vneg_v_i16m2(__riscv_vsra_vx_i16m2(v_s_add_i, 1, vl), vl);
-    vint32m4_t v_s_sub_i_mul_tw3i = __riscv_vwmul_vx_i32m4(v_s_sub_i, tw3i, vl);
-    vint32m4_t v_s_sub_r_mul_tw3i = __riscv_vwmul_vx_i32m4(v_s_sub_r, tw3i, vl);
-    vint16m2_t v_s_sub_i_scaled = __riscv_vnclip_wx_i16m2(
-        __riscv_vssra_vx_i32m4(v_s_sub_i_mul_tw3i, 15, __RISCV_VXRM_RNU, vl), 0,
+    vint16m1_t v_s_add_r_neg_half =
+        __riscv_vneg_v_i16m1(__riscv_vsra_vx_i16m1(v_s_add_r, 1, vl), vl);
+    vint16m1_t v_s_add_i_neg_half =
+        __riscv_vneg_v_i16m1(__riscv_vsra_vx_i16m1(v_s_add_i, 1, vl), vl);
+    vint32m2_t v_s_sub_i_mul_tw3i = __riscv_vwmul_vx_i32m2(v_s_sub_i, tw3i, vl);
+    vint32m2_t v_s_sub_r_mul_tw3i = __riscv_vwmul_vx_i32m2(v_s_sub_r, tw3i, vl);
+    vint16m1_t v_s_sub_i_scaled = __riscv_vnclip_wx_i16m1(
+        __riscv_vssra_vx_i32m2(v_s_sub_i_mul_tw3i, 15, __RISCV_VXRM_RNU, vl), 0,
         __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_s_sub_r_scaled = __riscv_vnclip_wx_i16m2(
-        __riscv_vssra_vx_i32m4(v_s_sub_r_mul_tw3i, 15, __RISCV_VXRM_RNU, vl), 0,
+    vint16m1_t v_s_sub_r_scaled = __riscv_vnclip_wx_i16m1(
+        __riscv_vssra_vx_i32m2(v_s_sub_r_mul_tw3i, 15, __RISCV_VXRM_RNU, vl), 0,
         __RISCV_VXRM_RNU, vl);
-    vint16m2_t v_tmp_r1 = __riscv_vadd_vv_i16m2(v_f0_r, v_s_add_r_neg_half, vl);
-    vint16m2_t v_res_f1_r = __riscv_vsub_vv_i16m2(v_tmp_r1, v_s_sub_i_scaled, vl);
-    vint16m2_t v_tmp_i1 = __riscv_vadd_vv_i16m2(v_f0_i, v_s_add_i_neg_half, vl);
-    vint16m2_t v_res_f1_i = __riscv_vadd_vv_i16m2(v_tmp_i1, v_s_sub_r_scaled, vl);
-    vint16m2_t v_res_f2_r = __riscv_vadd_vv_i16m2(v_tmp_r1, v_s_sub_i_scaled, vl);
-    vint16m2_t v_res_f2_i = __riscv_vsub_vv_i16m2(v_tmp_i1, v_s_sub_r_scaled, vl);
+    vint16m1_t v_tmp_r1 = __riscv_vadd_vv_i16m1(v_f0_r, v_s_add_r_neg_half, vl);
+    vint16m1_t v_res_f1_r = __riscv_vsub_vv_i16m1(v_tmp_r1, v_s_sub_i_scaled, vl);
+    vint16m1_t v_tmp_i1 = __riscv_vadd_vv_i16m1(v_f0_i, v_s_add_i_neg_half, vl);
+    vint16m1_t v_res_f1_i = __riscv_vadd_vv_i16m1(v_tmp_i1, v_s_sub_r_scaled, vl);
+    vint16m1_t v_res_f2_r = __riscv_vadd_vv_i16m1(v_tmp_r1, v_s_sub_i_scaled, vl);
+    vint16m1_t v_res_f2_i = __riscv_vsub_vv_i16m1(v_tmp_i1, v_s_sub_r_scaled, vl);
 
     // Store results
-    __riscv_vsse16_v_i16m2(Fout0_base + 2 * k, cpx_stride, v_res_f0_r, vl);
-    __riscv_vsse16_v_i16m2(Fout0_base + 2 * k + 1, cpx_stride, v_res_f0_i, vl);
-    __riscv_vsse16_v_i16m2(Fout1_base + 2 * k, cpx_stride, v_res_f1_r, vl);
-    __riscv_vsse16_v_i16m2(Fout1_base + 2 * k + 1, cpx_stride, v_res_f1_i, vl);
-    __riscv_vsse16_v_i16m2(Fout2_base + 2 * k, cpx_stride, v_res_f2_r, vl);
-    __riscv_vsse16_v_i16m2(Fout2_base + 2 * k + 1, cpx_stride, v_res_f2_i, vl);
+    __riscv_vsse16_v_i16m1(Fout0_base + 2 * k, cpx_stride, v_res_f0_r, vl);
+    __riscv_vsse16_v_i16m1(Fout0_base + 2 * k + 1, cpx_stride, v_res_f0_i, vl);
+    __riscv_vsse16_v_i16m1(Fout1_base + 2 * k, cpx_stride, v_res_f1_r, vl);
+    __riscv_vsse16_v_i16m1(Fout1_base + 2 * k + 1, cpx_stride, v_res_f1_i, vl);
+    __riscv_vsse16_v_i16m1(Fout2_base + 2 * k, cpx_stride, v_res_f2_r, vl);
+    __riscv_vsse16_v_i16m1(Fout2_base + 2 * k + 1, cpx_stride, v_res_f2_i, vl);
 
     // Advance loop counter
     k += vl;
@@ -777,72 +777,73 @@ void kiss_fftr_rvv(kiss_fft_fixed16::kiss_fftr_cfg st, const kiss_fft_scalar* ti
   while (k <= loop_end)
   {
     // Set the vector length (vl) for the current iteration
-    size_t vl = __riscv_vsetvl_e16m4(loop_end - k + 1);
+    // Optimization: Reduced to m2 to prevent register spilling
+    size_t vl = __riscv_vsetvl_e16m2(loop_end - k + 1);
 
     // fpk indices: k, k+1, ...
-    vint16m4_t v_fpk_r = __riscv_vlse16_v_i16m4(&tmpbuf_base_ptr[2 * k], stride, vl);
-    vint16m4_t v_fpk_i = __riscv_vlse16_v_i16m4(&tmpbuf_base_ptr[2 * k + 1], stride, vl);
+    vint16m2_t v_fpk_r = __riscv_vlse16_v_i16m2(&tmpbuf_base_ptr[2 * k], stride, vl);
+    vint16m2_t v_fpk_i = __riscv_vlse16_v_i16m2(&tmpbuf_base_ptr[2 * k + 1], stride, vl);
 
     // fpnk indices: N-k, N-(k+1), ...
     const int16_t* fpnk_ptr = &tmpbuf_base_ptr[2 * (ncfft - k)];
-    vint16m4_t v_fpnk_r_raw = __riscv_vlse16_v_i16m4(fpnk_ptr, neg_stride, vl);
-    vint16m4_t v_fpnk_i_raw = __riscv_vlse16_v_i16m4(fpnk_ptr + 1, neg_stride, vl);
+    vint16m2_t v_fpnk_r_raw = __riscv_vlse16_v_i16m2(fpnk_ptr, neg_stride, vl);
+    vint16m2_t v_fpnk_i_raw = __riscv_vlse16_v_i16m2(fpnk_ptr + 1, neg_stride, vl);
 
     // Twiddle indices: k-1, k, ...
     // Must use strided load to extract only Reals or only Imags from the interleaved array
     const int16_t* tw_ptr = &twiddles_base_ptr[2 * (k - 1)];
-    vint16m4_t v_tw_r = __riscv_vlse16_v_i16m4(tw_ptr, stride, vl);
-    vint16m4_t v_tw_i = __riscv_vlse16_v_i16m4(tw_ptr + 1, stride, vl);
+    vint16m2_t v_tw_r = __riscv_vlse16_v_i16m2(tw_ptr, stride, vl);
+    vint16m2_t v_tw_i = __riscv_vlse16_v_i16m2(tw_ptr + 1, stride, vl);
 
     // Perform high-precision rounding division on fpk
     const int16_t scale = 16383;
     const int32_t round_const = 16384;
-    vint32m8_t v_fpk_r_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fpk_r, scale, vl), round_const, vl), 15, vl);
-    vint32m8_t v_fpk_i_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fpk_i, scale, vl), round_const, vl), 15, vl);
-    vint16m4_t v_fpk_r_div2 = __riscv_vnclip_wx_i16m4(v_fpk_r_32, 0, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_fpk_i_div2 = __riscv_vnclip_wx_i16m4(v_fpk_i_32, 0, __RISCV_VXRM_RNU, vl);
+    vint32m4_t v_fpk_r_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fpk_r, scale, vl), round_const, vl), 15, vl);
+    vint32m4_t v_fpk_i_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fpk_i, scale, vl), round_const, vl), 15, vl);
+    vint16m2_t v_fpk_r_div2 = __riscv_vnclip_wx_i16m2(v_fpk_r_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_fpk_i_div2 = __riscv_vnclip_wx_i16m2(v_fpk_i_32, 0, __RISCV_VXRM_RNU, vl);
 
     // Perform high-precision rounding division on fpnk (with negated imaginary part)
-    vint16m4_t v_fpnk_i_neg = __riscv_vneg_v_i16m4(v_fpnk_i_raw, vl);
-    vint32m8_t v_fpnk_r_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fpnk_r_raw, scale, vl), round_const, vl), 15, vl);
-    vint32m8_t v_fpnk_i_32 = __riscv_vsra_vx_i32m8(
-        __riscv_vadd_vx_i32m8(__riscv_vwmul_vx_i32m8(v_fpnk_i_neg, scale, vl), round_const, vl), 15, vl);
-    vint16m4_t v_fpnk_r_div2 = __riscv_vnclip_wx_i16m4(v_fpnk_r_32, 0, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_fpnk_i_div2 = __riscv_vnclip_wx_i16m4(v_fpnk_i_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_fpnk_i_neg = __riscv_vneg_v_i16m2(v_fpnk_i_raw, vl);
+    vint32m4_t v_fpnk_r_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fpnk_r_raw, scale, vl), round_const, vl), 15, vl);
+    vint32m4_t v_fpnk_i_32 = __riscv_vsra_vx_i32m4(
+        __riscv_vadd_vx_i32m4(__riscv_vwmul_vx_i32m4(v_fpnk_i_neg, scale, vl), round_const, vl), 15, vl);
+    vint16m2_t v_fpnk_r_div2 = __riscv_vnclip_wx_i16m2(v_fpnk_r_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_fpnk_i_div2 = __riscv_vnclip_wx_i16m2(v_fpnk_i_32, 0, __RISCV_VXRM_RNU, vl);
 
     // Calculate intermediate values f1k (add) and f2k (subtract)
-    vint16m4_t v_f1k_r = __riscv_vadd_vv_i16m4(v_fpk_r_div2, v_fpnk_r_div2, vl);
-    vint16m4_t v_f1k_i = __riscv_vadd_vv_i16m4(v_fpk_i_div2, v_fpnk_i_div2, vl);
-    vint16m4_t v_f2k_r = __riscv_vsub_vv_i16m4(v_fpk_r_div2, v_fpnk_r_div2, vl);
-    vint16m4_t v_f2k_i = __riscv_vsub_vv_i16m4(v_fpk_i_div2, v_fpnk_i_div2, vl);
+    vint16m2_t v_f1k_r = __riscv_vadd_vv_i16m2(v_fpk_r_div2, v_fpnk_r_div2, vl);
+    vint16m2_t v_f1k_i = __riscv_vadd_vv_i16m2(v_fpk_i_div2, v_fpnk_i_div2, vl);
+    vint16m2_t v_f2k_r = __riscv_vsub_vv_i16m2(v_fpk_r_div2, v_fpnk_r_div2, vl);
+    vint16m2_t v_f2k_i = __riscv_vsub_vv_i16m2(v_fpk_i_div2, v_fpnk_i_div2, vl);
 
     // Perform complex multiplication
-    vint32m8_t v_ac = __riscv_vwmul_vv_i32m8(v_f2k_r, v_tw_r, vl);
-    vint32m8_t v_bd = __riscv_vwmul_vv_i32m8(v_f2k_i, v_tw_i, vl);
-    vint32m8_t v_ad = __riscv_vwmul_vv_i32m8(v_f2k_r, v_tw_i, vl);
-    vint32m8_t v_bc = __riscv_vwmul_vv_i32m8(v_f2k_i, v_tw_r, vl);
-    vint32m8_t v_tw_res_r_32 = __riscv_vssra_vx_i32m8(__riscv_vsub_vv_i32m8(v_ac, v_bd, vl), 15, __RISCV_VXRM_RNU, vl);
-    vint32m8_t v_tw_res_i_32 = __riscv_vssra_vx_i32m8(__riscv_vadd_vv_i32m8(v_ad, v_bc, vl), 15, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_tw_res_r = __riscv_vnclip_wx_i16m4(v_tw_res_r_32, 0, __RISCV_VXRM_RNU, vl);
-    vint16m4_t v_tw_res_i = __riscv_vnclip_wx_i16m4(v_tw_res_i_32, 0, __RISCV_VXRM_RNU, vl);
+    vint32m4_t v_ac = __riscv_vwmul_vv_i32m4(v_f2k_r, v_tw_r, vl);
+    vint32m4_t v_bd = __riscv_vwmul_vv_i32m4(v_f2k_i, v_tw_i, vl);
+    vint32m4_t v_ad = __riscv_vwmul_vv_i32m4(v_f2k_r, v_tw_i, vl);
+    vint32m4_t v_bc = __riscv_vwmul_vv_i32m4(v_f2k_i, v_tw_r, vl);
+    vint32m4_t v_tw_res_r_32 = __riscv_vssra_vx_i32m4(__riscv_vsub_vv_i32m4(v_ac, v_bd, vl), 15, __RISCV_VXRM_RNU, vl);
+    vint32m4_t v_tw_res_i_32 = __riscv_vssra_vx_i32m4(__riscv_vadd_vv_i32m4(v_ad, v_bc, vl), 15, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_tw_res_r = __riscv_vnclip_wx_i16m2(v_tw_res_r_32, 0, __RISCV_VXRM_RNU, vl);
+    vint16m2_t v_tw_res_i = __riscv_vnclip_wx_i16m2(v_tw_res_i_32, 0, __RISCV_VXRM_RNU, vl);
 
     // Calculate final output vectors
-    vint16m4_t v_out_k_r = __riscv_vsra_vx_i16m4(__riscv_vadd_vv_i16m4(v_f1k_r, v_tw_res_r, vl), 1, vl);
-    vint16m4_t v_out_k_i = __riscv_vsra_vx_i16m4(__riscv_vadd_vv_i16m4(v_f1k_i, v_tw_res_i, vl), 1, vl);
-    vint16m4_t v_out_nk_r = __riscv_vsra_vx_i16m4(__riscv_vsub_vv_i16m4(v_f1k_r, v_tw_res_r, vl), 1, vl);
-    vint16m4_t v_out_nk_i = __riscv_vsra_vx_i16m4(__riscv_vsub_vv_i16m4(v_tw_res_i, v_f1k_i, vl), 1, vl);
+    vint16m2_t v_out_k_r = __riscv_vsra_vx_i16m2(__riscv_vadd_vv_i16m2(v_f1k_r, v_tw_res_r, vl), 1, vl);
+    vint16m2_t v_out_k_i = __riscv_vsra_vx_i16m2(__riscv_vadd_vv_i16m2(v_f1k_i, v_tw_res_i, vl), 1, vl);
+    vint16m2_t v_out_nk_r = __riscv_vsra_vx_i16m2(__riscv_vsub_vv_i16m2(v_f1k_r, v_tw_res_r, vl), 1, vl);
+    vint16m2_t v_out_nk_i = __riscv_vsra_vx_i16m2(__riscv_vsub_vv_i16m2(v_tw_res_i, v_f1k_i, vl), 1, vl);
 
     // Store the results using a strided store (Forward)
-    __riscv_vsse16_v_i16m4(&freqdata_base_ptr[2 * k], stride, v_out_k_r, vl);
-    __riscv_vsse16_v_i16m4(&freqdata_base_ptr[2 * k + 1], stride, v_out_k_i, vl);
+    __riscv_vsse16_v_i16m2(&freqdata_base_ptr[2 * k], stride, v_out_k_r, vl);
+    __riscv_vsse16_v_i16m2(&freqdata_base_ptr[2 * k + 1], stride, v_out_k_i, vl);
 
     // Store the results using a strided store (Reverse)
     int16_t* out_nk_ptr = &freqdata_base_ptr[2 * (ncfft - k)];
-    __riscv_vsse16_v_i16m4(out_nk_ptr, neg_stride, v_out_nk_r, vl);
-    __riscv_vsse16_v_i16m4(out_nk_ptr + 1, neg_stride, v_out_nk_i, vl);
+    __riscv_vsse16_v_i16m2(out_nk_ptr, neg_stride, v_out_nk_r, vl);
+    __riscv_vsse16_v_i16m2(out_nk_ptr + 1, neg_stride, v_out_nk_i, vl);
 
     // Advance to the next vector chunk
     k += vl;
