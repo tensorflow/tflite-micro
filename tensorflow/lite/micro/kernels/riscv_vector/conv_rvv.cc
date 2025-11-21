@@ -109,23 +109,23 @@ void ConvPerChannelRVV(const ConvParams& params,
                 size_t current_out_x = 0;
                 while (current_out_x < static_cast<size_t>(output_width))
                 {
-                    // Set vector length for this iteration
-                    size_t vl = __riscv_vsetvl_e32m4(output_width - current_out_x);
+                    // Set vector length for this iteration (LMUL=2 optimization)
+                    size_t vl = __riscv_vsetvl_e32m2(output_width - current_out_x);
 
                     // Initialize accumulator vector with bias
-                    vint32m4_t v_acc_s32 = bias_data ? __riscv_vmv_v_x_i32m4(bias_val, vl)
-                                                     : __riscv_vmv_v_x_i32m4(0, vl);
+                    vint32m2_t v_acc_s32 = bias_data ? __riscv_vmv_v_x_i32m2(bias_val, vl)
+                                                     : __riscv_vmv_v_x_i32m2(0, vl);
 
                     // Calculate base input x coordinates for the vector lanes
-                    vuint32m4_t v_idx = __riscv_vid_v_u32m4(vl);
-                    vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vadd_vx_u32m4(v_idx, static_cast<uint32_t>(current_out_x), vl));
-                    vint32m4_t v_in_x_origin_base = __riscv_vsub_vx_i32m4(__riscv_vmul_vx_i32m4(v_out_x, stride_width, vl), pad_width, vl);
+                    vuint32m2_t v_idx = __riscv_vid_v_u32m2(vl);
+                    vint32m2_t v_out_x = __riscv_vreinterpret_v_u32m2_i32m2(__riscv_vadd_vx_u32m2(v_idx, static_cast<uint32_t>(current_out_x), vl));
+                    vint32m2_t v_in_x_origin_base = __riscv_vsub_vx_i32m2(__riscv_vmul_vx_i32m2(v_out_x, stride_width, vl), pad_width, vl);
 
                     // Loop over filter height
                     for (int filter_y = 0; filter_y < filter_height; ++filter_y)
                     {
                         const int in_y = in_y_origin + dilation_height_factor * filter_y;
-                        if (in_y < 0 || in_y >= input_height) continue; // Simplified boundary check
+                        if (in_y < 0 || in_y >= input_height) continue;
 
                         const int8_t* filter_y_base = filter_oc_base + (filter_y * filter_h_stride);
 
@@ -134,12 +134,12 @@ void ConvPerChannelRVV(const ConvParams& params,
                         {
                             const int in_x_offset = dilation_width_factor * filter_x;
                             const int8_t* filter_patch_base = filter_y_base + (filter_x * filter_w_stride);
-                            vint32m4_t v_in_x = __riscv_vadd_vx_i32m4(v_in_x_origin_base, in_x_offset, vl);
+                            vint32m2_t v_in_x = __riscv_vadd_vx_i32m2(v_in_x_origin_base, in_x_offset, vl);
 
                             // Create mask for valid input coordinates
-                            vbool8_t v_mask_ge_zero = __riscv_vmsge_vx_i32m4_b8(v_in_x, 0, vl);
-                            vbool8_t v_mask_lt_width = __riscv_vmslt_vx_i32m4_b8(v_in_x, input_width, vl);
-                            vbool8_t v_active_lane_mask_b8 = __riscv_vmand_mm_b8(v_mask_ge_zero, v_mask_lt_width, vl);
+                            vbool16_t v_mask_ge_zero = __riscv_vmsge_vx_i32m2_b16(v_in_x, 0, vl);
+                            vbool16_t v_mask_lt_width = __riscv_vmslt_vx_i32m2_b16(v_in_x, input_width, vl);
+                            vbool16_t v_active_lane_mask = __riscv_vmand_mm_b16(v_mask_ge_zero, v_mask_lt_width, vl);
 
                             // Calculate base input pointer and stride for vector load
                             int32_t base_in_x_for_vector0 = static_cast<int32_t>(current_out_x) * stride_width - pad_width + in_x_offset;
@@ -153,16 +153,22 @@ void ConvPerChannelRVV(const ConvParams& params,
                                 int8_t s_filter_val_s8 = filter_patch_base[ic * filter_ch_stride];
                                 int16_t s_filter_val_s16 = static_cast<int16_t>(s_filter_val_s8);
                                 const int8_t* input_ic_ptr = input_base_for_y_x_patch + (ic * input_ch_stride);
-                                vint8m1_t v_input_s8 = __riscv_vlse8_v_i8m1_m(v_active_lane_mask_b8, input_ic_ptr, input_x_stride_bytes, vl);
-                                vint16m2_t v_input_s16 = __riscv_vsext_vf2_i16m2_m(v_active_lane_mask_b8, v_input_s8, vl);
-                                vint16m2_t v_input_plus_offset_s16 = __riscv_vadd_vx_i16m2_m(v_active_lane_mask_b8, v_input_s16, s_input_offset_s16, vl);
-                                v_acc_s32 = __riscv_vwmacc_vx_i32m4_m(v_active_lane_mask_b8, v_acc_s32, s_filter_val_s16, v_input_plus_offset_s16, vl);
+                                
+                                // Load inputs: Use mf2 to match m2 element count (32bit vs 8bit ratio is 4)
+                                vint8mf2_t v_input_s8 = __riscv_vlse8_v_i8mf2_m(v_active_lane_mask, input_ic_ptr, input_x_stride_bytes, vl);
+                                
+                                // Widen to 16-bit (m1)
+                                vint16m1_t v_input_s16 = __riscv_vsext_vf2_i16m1_m(v_active_lane_mask, v_input_s8, vl);
+                                vint16m1_t v_input_plus_offset_s16 = __riscv_vadd_vx_i16m1_m(v_active_lane_mask, v_input_s16, s_input_offset_s16, vl);
+                                
+                                // Widen accumulate into 32-bit (m2)
+                                v_acc_s32 = __riscv_vwmacc_vx_i32m2_m(v_active_lane_mask, v_acc_s32, s_filter_val_s16, v_input_plus_offset_s16, vl);
                             }
                         }
                     }
 
-                    // Requantize the accumulated values in a single function call.
-                    vint32m4_t v_res32 = RequantizeVectorPerTensorS32(
+                    // Requantize the accumulated values (vint32m2_t)
+                    vint32m2_t v_res32 = RequantizeVectorPerTensorS32(
                         v_acc_s32,
                         scalar_multiplier,
                         effective_right_shift,
@@ -171,13 +177,13 @@ void ConvPerChannelRVV(const ConvParams& params,
                         s_output_activation_max_s32,
                         vl);
                     
-                    // Narrow result to int16 and then int8 with saturation
-                    vint16m2_t v_res16 = __riscv_vnclip_wx_i16m2(v_res32, 0, __RISCV_VXRM_RNU, vl);
-                    vint8m1_t v_out_s8 = __riscv_vnclip_wx_i8m1(v_res16, 0, __RISCV_VXRM_RNU, vl);
+                    // Narrow result to int16 (m1) and then int8 (mf2) with saturation
+                    vint16m1_t v_res16 = __riscv_vnclip_wx_i16m1(v_res32, 0, __RISCV_VXRM_RNU, vl);
+                    vint8mf2_t v_out_s8 = __riscv_vnclip_wx_i8mf2(v_res16, 0, __RISCV_VXRM_RNU, vl);
 
                     // Store results vector (strided)
                     int8_t* output_strip_base_ptr = output_channel_base + current_out_x * output_w_stride;
-                    __riscv_vsse8_v_i8m1(output_strip_base_ptr, output_x_stride_bytes, v_out_s8, vl);
+                    __riscv_vsse8_v_i8mf2(output_strip_base_ptr, output_x_stride_bytes, v_out_s8, vl);
 
                     // Advance output x pointer
                     current_out_x += vl;
@@ -278,17 +284,17 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
                     size_t current_out_x = 0;
                     while (current_out_x < static_cast<size_t>(output_width))
                     {
-                        // Set vector length for this iteration
-                        size_t vl = __riscv_vsetvl_e32m4(output_width - current_out_x);
+                        // Set vector length for this iteration (LMUL=2)
+                        size_t vl = __riscv_vsetvl_e32m2(output_width - current_out_x);
 
                         // Initialize accumulator vector with bias
-                        vint32m4_t v_acc_s32 = bias_data ? __riscv_vmv_v_x_i32m4(bias_val, vl)
-                                                         : __riscv_vmv_v_x_i32m4(0, vl);
+                        vint32m2_t v_acc_s32 = bias_data ? __riscv_vmv_v_x_i32m2(bias_val, vl)
+                                                         : __riscv_vmv_v_x_i32m2(0, vl);
 
                         // Calculate base input x coordinates for the vector lanes
-                        vuint32m4_t v_idx = __riscv_vid_v_u32m4(vl);
-                        vint32m4_t v_out_x = __riscv_vreinterpret_v_u32m4_i32m4(__riscv_vadd_vx_u32m4(v_idx, static_cast<uint32_t>(current_out_x), vl));
-                        vint32m4_t v_in_x_origin_base = __riscv_vsub_vx_i32m4(__riscv_vmul_vx_i32m4(v_out_x, stride_width, vl), pad_width, vl);
+                        vuint32m2_t v_idx = __riscv_vid_v_u32m2(vl);
+                        vint32m2_t v_out_x = __riscv_vreinterpret_v_u32m2_i32m2(__riscv_vadd_vx_u32m2(v_idx, static_cast<uint32_t>(current_out_x), vl));
+                        vint32m2_t v_in_x_origin_base = __riscv_vsub_vx_i32m2(__riscv_vmul_vx_i32m2(v_out_x, stride_width, vl), pad_width, vl);
 
                         // Loop over filter height
                         for (int filter_y = 0; filter_y < filter_height; ++filter_y)
@@ -302,15 +308,15 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
                             for (int filter_x = 0; filter_x < filter_width; ++filter_x)
                             {
                                 const int in_x_offset = dilation_width_factor * filter_x;
-                                vint32m4_t v_in_x = __riscv_vadd_vx_i32m4(v_in_x_origin_base, in_x_offset, vl);
+                                vint32m2_t v_in_x = __riscv_vadd_vx_i32m2(v_in_x_origin_base, in_x_offset, vl);
 
                                 // Create mask for valid input coordinates
-                                vbool8_t v_mask_ge_zero = __riscv_vmsge_vx_i32m4_b8(v_in_x, 0, vl);
-                                vbool8_t v_mask_lt_width = __riscv_vmslt_vx_i32m4_b8(v_in_x, input_width, vl);
-                                vbool8_t v_active_lane_mask_b8 = __riscv_vmand_mm_b8(v_mask_ge_zero, v_mask_lt_width, vl);
+                                vbool16_t v_mask_ge_zero = __riscv_vmsge_vx_i32m2_b16(v_in_x, 0, vl);
+                                vbool16_t v_mask_lt_width = __riscv_vmslt_vx_i32m2_b16(v_in_x, input_width, vl);
+                                vbool16_t v_active_lane_mask = __riscv_vmand_mm_b16(v_mask_ge_zero, v_mask_lt_width, vl);
 
                                 // Optimization: skip MAC if all lanes are masked off
-                                if (__riscv_vfirst_m_b8(v_active_lane_mask_b8, vl) == -1) continue;
+                                if (__riscv_vfirst_m_b16(v_active_lane_mask, vl) == -1) continue;
 
                                 const int8_t* filter_ptr = filter_y_base + filter_x * filter_w_stride + output_channel * filter_ch_stride;
                                 int16_t s_filter_val_s16 = static_cast<int16_t>(*filter_ptr);
@@ -320,15 +326,16 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
                                   input_batch_base + in_y * input_h_stride + base_in_x_for_vector0 * input_w_stride + in_channel * input_ch_stride;
                                 ptrdiff_t input_x_stride_bytes = static_cast<ptrdiff_t>(stride_width) * input_w_stride * sizeof(int8_t);
 
-                                vint8m1_t v_input_s8 = __riscv_vlse8_v_i8m1_m(v_active_lane_mask_b8, input_base_ptr, input_x_stride_bytes, vl);
-                                vint16m2_t v_input_s16 = __riscv_vsext_vf2_i16m2_m(v_active_lane_mask_b8, v_input_s8, vl);
-                                vint16m2_t v_input_plus_offset_s16 = __riscv_vadd_vx_i16m2_m(v_active_lane_mask_b8, v_input_s16, s_input_offset_s16, vl);
-                                v_acc_s32 = __riscv_vwmacc_vx_i32m4_m(v_active_lane_mask_b8, v_acc_s32, s_filter_val_s16, v_input_plus_offset_s16, vl);
+                                // Load input: mf2 -> m1 -> m2 accumulate
+                                vint8mf2_t v_input_s8 = __riscv_vlse8_v_i8mf2_m(v_active_lane_mask, input_base_ptr, input_x_stride_bytes, vl);
+                                vint16m1_t v_input_s16 = __riscv_vsext_vf2_i16m1_m(v_active_lane_mask, v_input_s8, vl);
+                                vint16m1_t v_input_plus_offset_s16 = __riscv_vadd_vx_i16m1_m(v_active_lane_mask, v_input_s16, s_input_offset_s16, vl);
+                                v_acc_s32 = __riscv_vwmacc_vx_i32m2_m(v_active_lane_mask, v_acc_s32, s_filter_val_s16, v_input_plus_offset_s16, vl);
                             }
                         }
 
                         // Requantize the accumulated values in a single function call.
-                        vint32m4_t v_res32 = RequantizeVectorPerTensorS32(
+                        vint32m2_t v_res32 = RequantizeVectorPerTensorS32(
                             v_acc_s32,
                             scalar_multiplier,
                             effective_right_shift,
@@ -338,12 +345,12 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
                             vl);
                         
                         // Narrow result to int16 and then int8 with saturation
-                        vint16m2_t v_res16 = __riscv_vnclip_wx_i16m2(v_res32, 0, __RISCV_VXRM_RNU, vl);
-                        vint8m1_t v_out_s8 = __riscv_vnclip_wx_i8m1(v_res16, 0, __RISCV_VXRM_RNU, vl);
+                        vint16m1_t v_res16 = __riscv_vnclip_wx_i16m1(v_res32, 0, __RISCV_VXRM_RNU, vl);
+                        vint8mf2_t v_out_s8 = __riscv_vnclip_wx_i8mf2(v_res16, 0, __RISCV_VXRM_RNU, vl);
 
                         // Store results vector (strided)
                         int8_t* output_strip_base_ptr = output_channel_row_base + current_out_x * output_w_stride;
-                        __riscv_vsse8_v_i8m1(output_strip_base_ptr, output_x_stride_bytes, v_out_s8, vl);
+                        __riscv_vsse8_v_i8mf2(output_strip_base_ptr, output_x_stride_bytes, v_out_s8, vl);
 
                         // Advance output x pointer
                         current_out_x += vl;
