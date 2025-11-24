@@ -271,7 +271,7 @@ TF_LITE_MICRO_TEST(DecodeHuffmanTable16BitsInt16Fail) {
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE(),
-      kTfLiteError);
+      nullptr, kTfLiteError);
 }
 
 TF_LITE_MICRO_TEST(DecodeHuffmanTable32BitsInt8) {
