@@ -731,5 +731,89 @@ class TestReadModifyWrite(tf.test.TestCase):
     self.assertEqual(model3.metadata["new_key"], b"new_value")
 
 
+class TestSubgraphInputsOutputs(tf.test.TestCase):
+  """Test subgraph inputs and outputs are set correctly."""
+
+  def test_subgraph_inputs_outputs_set(self):
+    """Verify subgraph inputs/outputs are set in the flatbuffer."""
+    input_t = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input")
+    output_t = Tensor(shape=(1, 4),
+                      dtype=tflite.TensorType.INT8,
+                      name="output")
+    weights = Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2, 3, 4]] * 4, dtype=np.int8),
+        name="weights",
+    )
+
+    model = Model(subgraphs=[
+        Subgraph(
+            tensors=[weights],
+            inputs=[input_t],
+            outputs=[output_t],
+            operators=[
+                Operator(
+                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                    inputs=[input_t, weights],
+                    outputs=[output_t],
+                )
+            ],
+        )
+    ])
+
+    fb = model.build()
+    fb_model = tflite.ModelT.InitFromPackedBuf(fb, 0)
+    fb_sg = fb_model.subgraphs[0]
+
+    # Verify inputs/outputs are set (as tensor indices)
+    self.assertEqual(len(fb_sg.inputs), 1)
+    self.assertEqual(len(fb_sg.outputs), 1)
+
+    # Verify indices point to correct tensors
+    input_idx = fb_sg.inputs[0]
+    output_idx = fb_sg.outputs[0]
+    self.assertEqual(fb_sg.tensors[input_idx].name, b"input")
+    self.assertEqual(fb_sg.tensors[output_idx].name, b"output")
+
+  def test_subgraph_inputs_outputs_loopback(self):
+    """Verify inputs/outputs survive read/build loopback."""
+    input_t = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input")
+    output_t = Tensor(shape=(1, 4),
+                      dtype=tflite.TensorType.INT8,
+                      name="output")
+    weights = Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2, 3, 4]] * 4, dtype=np.int8),
+        name="weights",
+    )
+
+    model = Model(subgraphs=[
+        Subgraph(
+            tensors=[weights],
+            inputs=[input_t],
+            outputs=[output_t],
+            operators=[
+                Operator(
+                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                    inputs=[input_t, weights],
+                    outputs=[output_t],
+                )
+            ],
+        )
+    ])
+
+    fb = model.build()
+    loopback = model_editor.read(fb)
+    sg = loopback.subgraphs[0]
+
+    # Verify high-level inputs/outputs are populated
+    self.assertEqual(len(sg.inputs), 1)
+    self.assertEqual(len(sg.outputs), 1)
+    self.assertEqual(sg.inputs[0].name, "input")
+    self.assertEqual(sg.outputs[0].name, "output")
+
+
 if __name__ == "__main__":
   tf.test.main()

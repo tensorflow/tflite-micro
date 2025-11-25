@@ -226,6 +226,8 @@ class Subgraph:
   """Declarative subgraph specification with imperative methods."""
   tensors: List[Tensor] = field(default_factory=list)
   operators: List[Operator] = field(default_factory=list)
+  inputs: List[Tensor] = field(default_factory=list)
+  outputs: List[Tensor] = field(default_factory=list)
   name: Optional[str] = None
 
   _index: Optional[int] = field(default=None, init=False, repr=False)
@@ -362,6 +364,12 @@ def read(buffer: bytes) -> Model:
                     opcode_index=fb_op.opcodeIndex)
       sg.operators.append(op)
 
+    # Read subgraph inputs/outputs
+    if fb_sg.inputs is not None and len(fb_sg.inputs) > 0:
+      sg.inputs = [sg.tensors[i] for i in fb_sg.inputs]
+    if fb_sg.outputs is not None and len(fb_sg.outputs) > 0:
+      sg.outputs = [sg.tensors[i] for i in fb_sg.outputs]
+
     model.subgraphs.append(sg)
 
   # Read metadata
@@ -469,9 +477,12 @@ class _ModelCompiler:
       t._index = i
       tensor_to_index[id(t)] = i
 
-    # Extract inline tensors from operators
-    for op in sg.operators:
-      for tensor in op.inputs + op.outputs:
+    # Extract inline tensors from operators and subgraph inputs/outputs
+    inline_sources = [op.inputs + op.outputs for op in sg.operators]
+    inline_sources.append(sg.inputs)
+    inline_sources.append(sg.outputs)
+    for source in inline_sources:
+      for tensor in source:
         if id(tensor) not in tensor_to_index:
           tensor._index = len(all_tensors)
           tensor_to_index[id(tensor)] = tensor._index
@@ -486,6 +497,10 @@ class _ModelCompiler:
     sg_t.operators = []
     for op in sg.operators:
       sg_t.operators.append(self._compile_operator(op, tensor_to_index))
+
+    # Set subgraph inputs/outputs
+    sg_t.inputs = [tensor_to_index[id(t)] for t in sg.inputs]
+    sg_t.outputs = [tensor_to_index[id(t)] for t in sg.outputs]
 
     return sg_t
 
