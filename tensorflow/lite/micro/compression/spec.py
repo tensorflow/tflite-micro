@@ -92,6 +92,18 @@ class ParseError(Exception):
     self.original_exception = wrapped_exception
 
 
+def _parse_compression_method(comp: dict) -> CompressionMethod:
+  """Parse a single compression method from YAML dict."""
+  if "lut" in comp:
+    return LookUpTableCompression(index_bitwidth=comp["lut"]["index_bitwidth"])
+  elif "huffman" in comp:
+    return HuffmanCompression()
+  elif "pruning" in comp:
+    return PruningCompression()
+  else:
+    raise ParseError(f"Unknown compression method: {list(comp.keys())}")
+
+
 def parse_yaml(y: str) -> list[Tensor]:
   "Parses a compression spec in a YAML string into its Python representation."
   try:
@@ -99,14 +111,19 @@ def parse_yaml(y: str) -> list[Tensor]:
 
     tensors = []
     for item in config["tensors"]:
-      bitwidth = item["compression"][0]["lut"]["index_bitwidth"]
-      tensor = Tensor(subgraph=item["subgraph"],
-                      tensor=item["tensor"],
-                      compression=[
-                          LookUpTableCompression(index_bitwidth=bitwidth),
-                      ])
+      methods = []
+      for comp in item["compression"]:
+        methods.append(_parse_compression_method(comp))
+
+      tensor = Tensor(
+          subgraph=item["subgraph"],
+          tensor=item["tensor"],
+          compression=methods,
+      )
       tensors.append(tensor)
 
+  except ParseError:
+    raise
   except Exception as e:
     raise ParseError() from e
 
