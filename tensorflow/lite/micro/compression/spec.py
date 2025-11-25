@@ -66,6 +66,24 @@ class LookUpTableCompression(CompressionMethod):
   index_bitwidth: int
 
 
+@dataclass
+class HuffmanCompression(CompressionMethod):
+  """Huffman compression using Xtensa-format decode tables.
+
+  Supported tensor types: INT8, INT16 only.
+  """
+  pass
+
+
+@dataclass
+class PruningCompression(CompressionMethod):
+  """Pruning (sparsity) compression.
+
+  Supported tensor types: All TFLM tensor types.
+  """
+  pass
+
+
 class ParseError(Exception):
   "Raised when the spec string cannot be parsed."
 
