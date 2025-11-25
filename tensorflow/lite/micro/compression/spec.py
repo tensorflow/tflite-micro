@@ -58,7 +58,11 @@ class Tensor:
 
 @dataclass
 class LookUpTableCompression(CompressionMethod):
+  """LUT compression using lookup tables.
 
+  Attributes:
+    index_bitwidth: Number of bits per index (1-7).
+  """
   index_bitwidth: int
 
 
