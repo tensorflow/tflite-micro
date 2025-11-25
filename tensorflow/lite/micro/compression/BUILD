@@ -115,7 +115,7 @@ py_library(
     ],
     deps = [
         ":metadata_py",
-        ":model_facade",
+        ":model_editor",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
         requirement("absl_py"),
@@ -149,7 +149,7 @@ py_test(
     deps = [
         ":compress",
         ":metadata_py",
-        ":model_facade",
+        ":model_editor",
         ":spec",
         ":test_models",
         "//tensorflow/lite/python:schema_py",
