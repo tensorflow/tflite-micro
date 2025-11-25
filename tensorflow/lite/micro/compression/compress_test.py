@@ -21,7 +21,6 @@ from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.micro.compression import test_models
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
@@ -170,153 +169,70 @@ class TestPackLookupTables(tf.test.TestCase):
     self.assertEqual(result, expected_output)
 
 
-# yapf: disable
-TEST_MODEL = {
-    "operator_codes": {
-        0: {
-            "builtin_code": tflite.BuiltinOperator.ADD,
-        },
-    },
-    "metadata": {
-        0: {
-            "name": "metadata0",
-            "buffer": 0
-        },
-    },
-    "subgraphs": {
-        0: {
-            "operators": {
-                0: {
-                    "opcode_index": 0,
-                    "inputs": (
-                        0,
-                        1,
-                    ),
-                    "outputs": (2, ),
-                },
-            },
-            "tensors": {
-                0: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.UINT8,
-                    "buffer": 1,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                1: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT8,
-                    "buffer": 2,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                2: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 3,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                3: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT32,
-                    "buffer": 4,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                4: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT32,
-                    "buffer": 5,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                5: {
-                    "shape": (4, 5),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 6,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1, 1, 1, 1, 1),
-                        "zero_point": (0, 0, 0, 0, 0),
-                    },
-                },
-                6: {
-                    "shape": (5, 4),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 7,
-                    "quantization": {
-                        "quantized_dimension": 0,
-                        "scale": (1, 1, 1, 1, 1),
-                        "zero_point": (0, 0, 0, 0, 0),
-                    },
-                },
-                7: {
-                    "shape": (5, 4),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 8,
-                    "quantization": {
-                        "quantized_dimension": 0,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                8: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.UINT8,
-                    "buffer": 9,
-                },
-            },
-        },
-    },
-    "buffers": {
-        0: None,
+def _build_test_model():
+  """Build test model using model_editor API."""
+  from tflite_micro.tensorflow.lite.micro.compression.model_editor import (
+      Model, Subgraph, Tensor, Operator, Quantization)
 
-        1: np.array(range(16), dtype=np.dtype("<u1")),
+  # Pre-declare tensors with stable indices for compression specs
+  t0 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.UINT8,
+              data=np.array(range(16), dtype="<u1"),
+              quantization=Quantization(scales=1, zero_points=0))
+  t1 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT8,
+              data=np.array(range(-16, 0), dtype="<i1"),
+              quantization=Quantization(scales=1, zero_points=0))
+  t2 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT16,
+              data=np.array(range(-1616, -1600), dtype="<i2"),
+              quantization=Quantization(scales=1, zero_points=0))
+  t3 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT32,
+              data=np.array(range(-160_016, -160_000), dtype="<i4"),
+              quantization=Quantization(scales=1, zero_points=0))
+  t4 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT32,
+              data=np.array(range(16), dtype="<i4"),
+              quantization=Quantization(scales=1, zero_points=0))
+  t5 = Tensor(shape=(4, 5),
+              dtype=tflite.TensorType.INT16,
+              data=np.array(((1, 5, 9, 13, 17), (2, 6, 10, 14, 18),
+                             (3, 7, 11, 15, 19), (4, 8, 12, 16, 20)),
+                            dtype="<i2"),
+              quantization=Quantization(scales=[1, 1, 1, 1, 1],
+                                        zero_points=[0, 0, 0, 0, 0],
+                                        axis=1))
+  t6 = Tensor(shape=(5, 4),
+              dtype=tflite.TensorType.INT16,
+              data=np.array(((1, 2, 3, 4), (5, 6, 7, 8), (9, 10, 11, 12),
+                             (13, 14, 15, 16), (17, 18, 19, 20)),
+                            dtype="<i2"),
+              quantization=Quantization(scales=[1, 1, 1, 1, 1],
+                                        zero_points=[0, 0, 0, 0, 0],
+                                        axis=0))
+  t7 = Tensor(shape=(5, 4),
+              dtype=tflite.TensorType.INT16,
+              data=np.array(((1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3, 4),
+                             (1, 2, 3, 4), (1, 2, 3, 4)),
+                            dtype="<i2"),
+              quantization=Quantization(scales=1, zero_points=0))
+  t8 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.UINT8,
+              data=np.array(range(16), dtype="<u1"))
 
-        2: np.array(range(-16, 0), dtype=np.dtype("<i1")),
+  model = Model(metadata={"metadata0": b""},
+                subgraphs=[
+                    Subgraph(tensors=[t0, t1, t2, t3, t4, t5, t6, t7, t8],
+                             operators=[
+                                 Operator(opcode=tflite.BuiltinOperator.ADD,
+                                          inputs=[t0, t1],
+                                          outputs=[t2])
+                             ])
+                ])
 
-        3: np.array(range(-1616, -1600), dtype=np.dtype("<i2")),
+  return model.build()
 
-        4: np.array(range(-160_016, -160_000), dtype=np.dtype("<i4")),
-
-        5: np.array(range(16), dtype=np.dtype("<i4")),
-
-        6: np.array(((1, 5, 9,  13, 17),
-                     (2, 6, 10, 14, 18),
-                     (3, 7, 11, 15, 19),
-                     (4, 8, 12, 16, 20)), dtype=np.dtype("<i2")),
-
-        7: np.array(((1,  2,  3,  4),
-                     (5,  6,  7,  8),
-                     (9,  10, 11, 12),
-                     (13, 14, 15, 16),
-                     (17, 18, 19, 20)), dtype=np.dtype("<i2")),
-
-        8: np.array(((1, 2, 3, 4),
-                     (1, 2, 3, 4),
-                     (1, 2, 3, 4),
-                     (1, 2, 3, 4),
-                     (1, 2, 3, 4)), dtype=np.dtype("<i2")),
-
-        9: np.array(range(16), dtype=np.dtype("<u1")),
-    },
-}
 
 TEST_COMPRESSION_SPEC = [
     spec.Tensor(  # spec 0
@@ -341,7 +257,6 @@ TEST_COMPRESSION_SPEC = [
     ),
 
     # Tensor 4 intentionally left uncompressed
-
     spec.Tensor(  # spec 4
         subgraph=0,
         tensor=5,
@@ -358,7 +273,6 @@ TEST_COMPRESSION_SPEC = [
         compression=[spec.LookUpTableCompression(index_bitwidth=2)],
     ),
 ]
-# yapf: enable
 
 
 class TestsCompression(tf.test.TestCase):
@@ -367,7 +281,7 @@ class TestsCompression(tf.test.TestCase):
   @classmethod
   def setUpClass(cls):
     super().setUpClass()
-    cls.flatbuffer = test_models.build(TEST_MODEL)
+    cls.flatbuffer = _build_test_model()
     cls.uncompressed = model_editor.read(cls.flatbuffer)
 
   def test_compression_metadata(self):
@@ -460,7 +374,7 @@ class TestCompressedModel(tf.test.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     # Create a model
-    uncompressed_fb = test_models.build(TEST_MODEL)
+    uncompressed_fb = _build_test_model()
     cls.uncompressed = model_editor.read(uncompressed_fb)
 
     # Compress the model

@@ -151,7 +151,6 @@ py_test(
         ":metadata_py",
         ":model_editor",
         ":spec",
-        ":test_models",
         "//tensorflow/lite/python:schema_py",
         requirement("bitarray"),
         requirement("numpy"),
