@@ -169,6 +169,40 @@ py_library(
 )
 
 py_library(
+    name = "lut",
+    srcs = ["lut.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+        requirement("bitarray"),
+        requirement("numpy"),
+    ],
+)
+
+py_test(
+    name = "lut_test",
+    size = "small",
+    srcs = ["lut_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":lut",
+        ":model_editor",
+        ":spec",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
     name = "decode",
     srcs = ["decode.py"],
 )
