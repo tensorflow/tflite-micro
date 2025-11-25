@@ -159,6 +159,16 @@ py_test(
 )
 
 py_library(
+    name = "compressor",
+    srcs = ["compressor.py"],
+    deps = [
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
+py_library(
     name = "decode",
     srcs = ["decode.py"],
 )
