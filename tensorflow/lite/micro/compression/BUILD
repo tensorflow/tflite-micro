@@ -225,6 +225,36 @@ py_library(
 )
 
 py_library(
+    name = "decode_insert",
+    srcs = ["decode_insert.py"],
+    deps = [
+        ":compressor",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+py_test(
+    name = "decode_insert_test",
+    size = "small",
+    srcs = ["decode_insert_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":decode_insert",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
     name = "decode",
     srcs = ["decode.py"],
 )
