@@ -21,10 +21,12 @@ limitations under the License.
 #include <memory>
 #include <vector>
 
+#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/kernels/one_hot.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
-#include "tensorflow/lite/micro/testing/one_hot_test_model_data.cc"
+#include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 using tflite::MicroInterpreter;
@@ -45,21 +47,36 @@ namespace {}  // namespace
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(OneHotBasicFloat) {
+  // 테스트케이스별로 추가해달라고 한 패턴
   const Model* model = tflite::GetModel(g_one_hot_basic_float_model);
-  (const void)model;  // 사용한 것처럼 만들어서 unused 경고 없애기
+  (const void)model;  // unused 경고 방지
 
-  // TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+  // 에러 리포터
+  static tflite::MicroErrorReporter micro_error_reporter;
+  tflite::ErrorReporter* error_reporter = &micro_error_reporter;
 
-  // TfLiteTensor* indices = interpreter.input(0);
-  // indices->data.i32[0] = 0;
-  // indices->data.i32[1] = 1;
-  // indices->data.i32[2] = 2;
+  // Op 등록 (ONE_HOT만 등록)
+  tflite::MicroMutableOpResolver<1> resolver;
+  resolver.AddBuiltin(tflite::BuiltinOperator_ONE_HOT,
+                      tflite::ops::micro::Register_ONE_HOT());
 
-  // TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.Invoke());
+  // 인터프리터 생성
+  tflite::MicroInterpreter interpreter(model, resolver, g_tensor_arena,
+                                       kTensorArenaSize, error_reporter);
 
-  // TfLiteTensor* output = interpreter.output(0);
-  // float* out = output->data.f;
-  // for 루프로 기대값 비교
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+
+  // 여기서부터는 g_one_hot_basic_float_model 안에
+  // indices / depth / on_value / off_value 가 어떻게 정의되어 있느냐에 따라
+  // 입력을 만지거나 그냥 output만 검증하면 됩니다.
+  //
+  // 예: output[0..8] 이 [1,0,0, 0,1,0, 0,0,1] 이라고 가정하는 경우:
+  TfLiteTensor* output = interpreter.output(0);
+  float* out_data = output->data.f;
+
+  // 실제 값은 모델에 맞게 바꾸세요.
+  TF_LITE_MICRO_EXPECT_EQ(9, output->dims->data[0] * output->dims->data[1]);
+  TF_LITE_MICRO_EXPECT_NEAR(1.f, out_data[0], 1e-5f);
 }
 
 TF_LITE_MICRO_TESTS_END
