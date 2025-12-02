@@ -143,11 +143,19 @@ def insert_decode_operators(
   This function modifies the model in-place, inserting DECODE operators
   before any operator that uses a compressed tensor as input.
 
-  For each compressed tensor:
+  A separate DECODE is inserted before each consumer, rather than sharing one
+  DECODE output among all consumers. This is required because the interpreter's
+  alternate decompression memory resets its allocation offset for each DECODE's
+  Prepare, causing all DECODE outputs to be allocated at the same address. If
+  two consumers share one DECODE and another DECODE runs between them, the
+  intervening DECODE overwrites the shared output, corrupting data for the
+  second consumer.
+
+  For each consumer of a compressed tensor:
   1. Create an ancillary data tensor containing DCM + type-specific data
   2. Create an output tensor with the same shape/dtype as the decoded tensor
-  3. Insert a DECODE operator before the first consumer
-  4. Rewire all consumers to use the DECODE output instead of the encoded tensor
+  3. Insert a DECODE operator immediately before the consumer
+  4. Rewire the consumer to use the DECODE output
 
   Args:
     model: The model to modify in-place.
@@ -179,23 +187,27 @@ def insert_decode_operators(
   for sg_idx, tensor_infos in by_subgraph.items():
     subgraph = model.subgraphs[sg_idx]
 
-    # Sort by earliest consumer position (process in reverse order to maintain
-    # valid positions as we insert)
-    tensor_infos.sort(
-        key=lambda info: _find_earliest_consumer_position(
-            subgraph, info.consumers),
+    # Collect all (consumer, tensor_info) pairs and sort by consumer position
+    # in reverse order so insertions don't invalidate positions
+    consumer_pairs = []
+    for info in tensor_infos:
+      for consumer in info.consumers:
+        consumer_pairs.append((consumer, info))
+
+    consumer_pairs.sort(
+        key=lambda pair: subgraph.operators.index(pair[0]),
         reverse=True,
     )
 
-    for info in tensor_infos:
-      # Create ancillary data tensor
+    for consumer, info in consumer_pairs:
+      # Create ancillary data tensor (one per DECODE)
       ancillary_tensor = _create_ancillary_tensor(
           info.ancillary_data,
           info.tensor,
       )
       subgraph.tensors.append(ancillary_tensor)
 
-      # Create output tensor
+      # Create output tensor (one per DECODE)
       output_tensor = _create_output_tensor(info.tensor)
       subgraph.tensors.append(output_tensor)
 
@@ -207,11 +219,9 @@ def insert_decode_operators(
           outputs=[output_tensor],
       )
 
-      # Find insertion position (before first consumer)
-      insert_pos = _find_earliest_consumer_position(subgraph, info.consumers)
-
-      # Insert DECODE operator
+      # Insert DECODE immediately before this consumer
+      insert_pos = subgraph.operators.index(consumer)
       subgraph.operators.insert(insert_pos, decode_op)
 
-      # Rewire all consumers to use the decoded output
-      _rewire_consumers(info.consumers, info.tensor, output_tensor)
+      # Rewire only this consumer to use the decoded output
+      _rewire_consumers([consumer], info.tensor, output_tensor)

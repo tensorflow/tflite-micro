@@ -222,8 +222,8 @@ class TestDecodeInsertion(tf.test.TestCase):
     # Original weights tensor should NOT be in FC inputs
     self.assertNotIn(weights_tensor, fc_op.inputs)
 
-  def test_shared_tensor_single_decode(self):
-    """Tensor used by multiple ops gets single DECODE, both rewired."""
+  def test_shared_tensor_decode_per_consumer(self):
+    """Tensor used by multiple ops gets separate DECODE for each consumer."""
     model = _build_shared_weights_model()
     weights_tensor = model.subgraphs[0].tensors[0]
 
@@ -239,17 +239,25 @@ class TestDecodeInsertion(tf.test.TestCase):
 
     sg = model.subgraphs[0]
 
-    # Should have 3 operators: 1 DECODE + 2 FC
-    self.assertEqual(len(sg.operators), 3)
+    # Should have 4 operators: 2 DECODEs + 2 FCs (DECODE before each FC)
+    self.assertEqual(len(sg.operators), 4)
     self.assertEqual(sg.operators[0].opcode, tflite.BuiltinOperator.CUSTOM)
+    self.assertEqual(sg.operators[1].opcode,
+                     tflite.BuiltinOperator.FULLY_CONNECTED)
+    self.assertEqual(sg.operators[2].opcode, tflite.BuiltinOperator.CUSTOM)
+    self.assertEqual(sg.operators[3].opcode,
+                     tflite.BuiltinOperator.FULLY_CONNECTED)
 
-    decode_op = sg.operators[0]
+    decode_op1 = sg.operators[0]
     fc_op1 = sg.operators[1]
-    fc_op2 = sg.operators[2]
+    decode_op2 = sg.operators[2]
+    fc_op2 = sg.operators[3]
 
-    # Both FCs should use DECODE's output
-    self.assertIs(fc_op1.inputs[1], decode_op.outputs[0])
-    self.assertIs(fc_op2.inputs[1], decode_op.outputs[0])
+    # Each FC should use its own DECODE's output
+    self.assertIs(fc_op1.inputs[1], decode_op1.outputs[0])
+    self.assertIs(fc_op2.inputs[1], decode_op2.outputs[0])
+    # The two DECODEs should have different outputs
+    self.assertIsNot(decode_op1.outputs[0], decode_op2.outputs[0])
 
   def test_ancillary_tensor_contains_dcm(self):
     """Ancillary tensor data contains valid DCM header."""

@@ -289,7 +289,6 @@ class AltDecompressionMemoryTest(tf.test.TestCase):
   between multiple operators and alternate decompression memory is enabled.
   """
 
-  @unittest.expectedFailure
   def test_shared_compressed_tensor_with_alt_memory(self):
     """Verify correct results when a shared compressed tensor is used with alt
     decompression memory.
@@ -303,12 +302,9 @@ class AltDecompressionMemoryTest(tf.test.TestCase):
     DECODE outputs are allocated at the same address, so they overwrite each
     other. A DECODE output can only be used until the next DECODE runs.
 
-    To work around this limitation, the DECODE insertion code must insert a
+    To work around this limitation, the DECODE insertion code inserts a
     separate DECODE immediately before each consumer of a compressed tensor,
     rather than sharing one DECODE output among all consumers.
-
-    This test is expected to fail because the current insertion code does not
-    yet implement this workaround.
     """
     flatbuffer = _build_shared_weights_model()
 
