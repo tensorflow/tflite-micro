@@ -176,6 +176,187 @@ class LutCompressionTest(tf.test.TestCase):
         f"original ({original_size} bytes)")
 
 
+def _build_shared_weights_model():
+  """Build a model where one compressed tensor is shared between two operators.
+
+  Model structure:
+    input1 -> [FC1 with weights1] -> output1
+    input2 -> [FC2 with weights2] -> intermediate -> [FC3 with weights1] -> output2
+
+  weights1 is shared between FC1 and FC3. weights2 is used only by FC2, which
+  runs between the two consumers of weights1.
+  """
+  # 4 unique values per tensor for 2-bit LUT compression. Small values avoid
+  # saturation in chained layers. Different row sums produce varied outputs.
+  weights1_data = np.array([
+      [-1, 0, 0, 1],
+      [-1, 0, 1, 1],
+      [-1, 1, 1, 1],
+      [0, 1, 1, 1],
+  ],
+                           dtype=np.int8)
+  weights1 = model_editor.Tensor(
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=weights1_data,
+      name="weights1",
+      quantization=model_editor.Quantization(scales=1.0, zero_points=0),
+  )
+
+  weights2_data = np.array([
+      [1, 1, 1, 1],
+      [1, 1, 2, 2],
+      [1, 2, 2, 3],
+      [2, 2, 3, 3],
+  ],
+                           dtype=np.int8)
+  weights2 = model_editor.Tensor(
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=weights2_data,
+      name="weights2",
+      quantization=model_editor.Quantization(scales=1.0, zero_points=0),
+  )
+
+  # All tensors need matching quantization for FULLY_CONNECTED
+  quant = model_editor.Quantization(scales=1.0, zero_points=0)
+
+  input1 = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="input1",
+      quantization=quant,
+  )
+  input2 = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="input2",
+      quantization=quant,
+  )
+  output1 = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output1",
+      quantization=quant,
+  )
+  intermediate = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="intermediate",
+      quantization=quant,
+  )
+  output2 = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output2",
+      quantization=quant,
+  )
+
+  model = model_editor.Model(subgraphs=[
+      model_editor.Subgraph(
+          tensors=[weights1, weights2],
+          inputs=[input1, input2],
+          outputs=[output1, output2],
+          operators=[
+              # FC1: uses weights1
+              model_editor.Operator(
+                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                  inputs=[input1, weights1],
+                  outputs=[output1],
+              ),
+              # FC2: uses weights2 (runs between FC1 and FC3)
+              model_editor.Operator(
+                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                  inputs=[input2, weights2],
+                  outputs=[intermediate],
+              ),
+              # FC3: uses weights1 (second consumer, after DECODE(weights2))
+              model_editor.Operator(
+                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                  inputs=[intermediate, weights1],
+                  outputs=[output2],
+              ),
+          ],
+      )
+  ])
+  return model.build()
+
+
+class AltDecompressionMemoryTest(tf.test.TestCase):
+  """Tests for alternate decompression memory with shared compressed tensors.
+
+  These tests verify correct behavior when compressed tensors are shared
+  between multiple operators and alternate decompression memory is enabled.
+  """
+
+  @unittest.expectedFailure
+  def test_shared_compressed_tensor_with_alt_memory(self):
+    """Verify correct results when a shared compressed tensor is used with alt
+    decompression memory.
+
+    This test uses a graph where a compressed tensor (weights1) is consumed by
+    two operators (FC1 and FC3), with an intervening DECODE of a different
+    compressed tensor (weights2) between them.
+
+    The interpreter's alternate decompression memory has a limitation: each
+    DECODE's Prepare resets the allocation offset to zero. This means all
+    DECODE outputs are allocated at the same address, so they overwrite each
+    other. A DECODE output can only be used until the next DECODE runs.
+
+    To work around this limitation, the DECODE insertion code must insert a
+    separate DECODE immediately before each consumer of a compressed tensor,
+    rather than sharing one DECODE output among all consumers.
+
+    This test is expected to fail because the current insertion code does not
+    yet implement this workaround.
+    """
+    flatbuffer = _build_shared_weights_model()
+
+    specs = [
+        spec.Tensor(
+            subgraph=0,
+            tensor=0,  # weights1
+            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+        ),
+        spec.Tensor(
+            subgraph=0,
+            tensor=1,  # weights2
+            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+        ),
+    ]
+
+    compressed_fb = compress.compress(flatbuffer, specs)
+
+    # Run without alt decompression memory (baseline)
+    interp_no_alt = runtime.Interpreter.from_bytes(bytes(compressed_fb))
+
+    # Run with alt decompression memory
+    interp_with_alt = runtime.Interpreter.from_bytes(
+        bytes(compressed_fb),
+        alt_decompression_memory_size=256,
+    )
+
+    test_input1 = np.array([[1, 1, 1, 1]], dtype=np.int8)
+    test_input2 = np.array([[1, 1, 1, 1]], dtype=np.int8)
+
+    interp_no_alt.set_input(test_input1, 0)
+    interp_no_alt.set_input(test_input2, 1)
+    interp_no_alt.invoke()
+    expected1 = interp_no_alt.get_output(0)
+    expected2 = interp_no_alt.get_output(1)
+
+    interp_with_alt.set_input(test_input1, 0)
+    interp_with_alt.set_input(test_input2, 1)
+    interp_with_alt.invoke()
+    actual1 = interp_with_alt.get_output(0)
+    actual2 = interp_with_alt.get_output(1)
+
+    self.assertAllEqual(expected1, actual1,
+                        "Output 1 mismatch with alt decompression memory")
+    self.assertAllEqual(expected2, actual2,
+                        "Output 2 mismatch with alt decompression memory")
+
+
 class HuffmanCompressionTest(tf.test.TestCase):
   """Integration tests for Huffman compression."""
 
