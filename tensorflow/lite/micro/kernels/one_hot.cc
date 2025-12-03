@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/one_hot.h"  // ★ 새 헤더
+
 #include <stdint.h>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
@@ -105,16 +107,11 @@ struct OneHotContext {
 
 template <typename T, typename TI>
 void OneHotComputeImpl(const OneHotContext& op_context) {
-  // prefix_dim_size == # of elements before the axis
-  // depth == # of elements per axis
-  // suffix_dim_size == # of elements after the axis
   int prefix_dim_size = 1;
   for (int i = 0; i < op_context.axis; ++i) {
     prefix_dim_size *= op_context.indices->dims->data[i];
   }
   if (prefix_dim_size == 0) {
-    // If indices tensor is degenerate, return a degenerate tensor, just like
-    // TensorFlow does.
     return;
   }
 
@@ -124,21 +121,16 @@ void OneHotComputeImpl(const OneHotContext& op_context) {
   const T on_value = *tflite::GetTensorData<T>(op_context.on_value);
   const T off_value = *tflite::GetTensorData<T>(op_context.off_value);
 
-  // View the indices as a matrix of size:
-  //     prefix_dim_size x suffix_dim_size
-  // View the output as a matrix of size:
-  //     prefix_dim_size x depth x suffix_dim_size
-  // Then the output is:
-  //     output(i, j, k) == (indices(i, k) == j) ? on : off
-  T* output = tflite::GetTensorData<T>(op_context.output);
-  const TI* indices = tflite::GetTensorData<TI>(op_context.indices);
+  T* output_data = tflite::GetTensorData<T>(op_context.output);
+  const TI* indices_data = tflite::GetTensorData<TI>(op_context.indices);
 
   for (int i = 0; i < prefix_dim_size; ++i) {
     for (int j = 0; j < depth; ++j) {
-      for (int k = 0; k < suffix_dim_size; ++k, ++output) {
-        *output = static_cast<int>(indices[i * suffix_dim_size + k]) == j
-                      ? on_value
-                      : off_value;
+      for (int k = 0; k < suffix_dim_size; ++k, ++output_data) {
+        *output_data =
+            static_cast<int>(indices_data[i * suffix_dim_size + k]) == j
+                ? on_value
+                : off_value;
       }
     }
   }
@@ -157,12 +149,9 @@ TfLiteStatus ResizeOutputTensor(TfLiteContext* context,
                                 const OneHotContext& op_context) {
   TF_LITE_ENSURE(context, *op_context.depth->data.i32 >= 0);
 
-  // TfLiteIntArrayCreate 대신, TFLM 스타일로 직접 AllocatePersistentBuffer 사용
   const int dims = op_context.output_dims;
-  // TfLiteIntArray 구조체 전체 크기 계산
   size_t bytes = sizeof(TfLiteIntArray) + sizeof(int) * (dims - 1);
 
-  // Micro 환경에서는 malloc이 아니라 context->AllocatePersistentBuffer 써야 함
   TfLiteIntArray* output_size = reinterpret_cast<TfLiteIntArray*>(
       context->AllocatePersistentBuffer(context, bytes));
   TF_LITE_ENSURE(context, output_size != nullptr);
@@ -189,7 +178,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, op_context.output != nullptr);
 
   switch (op_context.dtype) {
-    // TODO(b/111744875): Support uint8 and quantization.
     case kTfLiteFloat32:
     case kTfLiteInt16:
     case kTfLiteInt32:
@@ -259,16 +247,14 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace one_hot
 
-// TFLM 쪽에서 사용할 등록 함수
+// 헤더에 선언된 Register_ONE_HOT 구현
 TfLiteRegistration_V1* Register_ONE_HOT() {
-  static TfLiteRegistration_V1 r = {};  // 모든 필드를 0 / nullptr로 초기화
-
+  static TfLiteRegistration_V1 r = {};  // 모든 필드를 0/NULL로 초기화
   r.init = nullptr;
   r.free = nullptr;
   r.prepare = one_hot::Prepare;
   r.invoke = one_hot::Eval;
-  // 나머지 custom_name, version, profiling_string 등은 0 / nullptr 유지
-
+  // custom_name, version, profiling_string 등은 기본값(0/nullptr) 유지
   return &r;
 }
 
