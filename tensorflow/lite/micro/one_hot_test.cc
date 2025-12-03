@@ -1,82 +1,89 @@
-/* Copyright 2018 The TensorFlow Authors. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
-
 #include "tensorflow/lite/micro/kernels/one_hot.h"
 
 #include <stdint.h>
-
-#include <initializer_list>
-#include <memory>
-#include <vector>
+#include <string.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/kernels/one_hot.h"
-#include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
-#include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
-#include "tensorflow/lite/schema/schema_generated.h"
-
-using tflite::MicroInterpreter;
-using tflite::MicroMutableOpResolver;
-using tflite::Model;
-
-extern "C" TfLiteRegistration_V1* Register_ONE_HOT();
-
-extern "C" {
-extern const unsigned char g_one_hot_basic_float_model[];
-extern const int g_one_hot_basic_float_model_len;
-}
 
 namespace tflite {
-namespace {}  // namespace
-}  // namespace tflite
+namespace {
 
-TF_LITE_MICRO_TESTS_BEGIN
+using tflite::micro::KernelRunner;
 
-TF_LITE_MICRO_TEST(OneHotBasicFloat) {
-  // 테스트케이스별로 추가해달라고 한 패턴
-  const Model* model = tflite::GetModel(g_one_hot_basic_float_model);
-  (const void)model;  // unused 경고 방지
-
-  // 에러 리포터
-  static tflite::MicroErrorReporter micro_error_reporter;
-  tflite::ErrorReporter* error_reporter = &micro_error_reporter;
-
-  // Op 등록 (ONE_HOT만 등록)
-  tflite::MicroMutableOpResolver<1> resolver;
-  resolver.AddBuiltin(tflite::BuiltinOperator_ONE_HOT,
-                      tflite::ops::micro::Register_ONE_HOT());
-
-  // 인터프리터 생성
-  tflite::MicroInterpreter interpreter(model, resolver, g_tensor_arena,
-                                       kTensorArenaSize, error_reporter);
-
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
-
-  // 여기서부터는 g_one_hot_basic_float_model 안에
-  // indices / depth / on_value / off_value 가 어떻게 정의되어 있느냐에 따라
-  // 입력을 만지거나 그냥 output만 검증하면 됩니다.
-  //
-  // 예: output[0..8] 이 [1,0,0, 0,1,0, 0,0,1] 이라고 가정하는 경우:
-  TfLiteTensor* output = interpreter.output(0);
-  float* out_data = output->data.f;
-
-  // 실제 값은 모델에 맞게 바꾸세요.
-  TF_LITE_MICRO_EXPECT_EQ(9, output->dims->data[0] * output->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_NEAR(1.f, out_data[0], 1e-5f);
+// dims 배열 → TfLiteIntArray 로 캐스팅
+TfLiteIntArray* IntArrayFromInts(const int* dims) {
+  return const_cast<TfLiteIntArray*>(
+      reinterpret_cast<const TfLiteIntArray*>(dims));
 }
 
-TF_LITE_MICRO_TESTS_END
+// int32 Tensor 생성 헬퍼
+TfLiteTensor CreateInt32Tensor(int32_t* data, TfLiteIntArray* dims) {
+  TfLiteTensor t;
+  memset(&t, 0, sizeof(TfLiteTensor));
+  t.type = kTfLiteInt32;
+  t.dims = dims;
+  t.data.i32 = data;
+  t.allocation_type = kTfLiteMemNone;
+  return t;
+}
+
+}  // namespace
+
+// ★ 여기서 main 이 자동으로 정의됩니다.
+TF_LITE_MICRO_TESTS_BEGIN
+
+TF_LITE_MICRO_TEST(OneHot_BasicInt32) {
+  // indices: [0,1,2], shape [3]
+  int indices_shape_arr[] = {1, 3};
+  TfLiteIntArray* indices_shape = IntArrayFromInts(indices_shape_arr);
+  int32_t indices_data[3] = {0, 1, 2};
+
+  // depth: scalar (3)
+  int depth_shape_arr[] = {0};
+  TfLiteIntArray* depth_shape = IntArrayFromInts(depth_shape_arr);
+  int32_t depth_data[1] = {3};
+
+  // on/off: scalar
+  TfLiteIntArray* scalar_shape = depth_shape;
+  int32_t on_value_data[1] = {1};
+  int32_t off_value_data[1] = {0};
+
+  // output: [3,3]
+  int output_shape_arr[] = {2, 3, 3};
+  TfLiteIntArray* output_shape = IntArrayFromInts(output_shape_arr);
+  int32_t output_data[9] = {0};
+
+  TfLiteTensor tensors[5];
+  tensors[0] = CreateInt32Tensor(indices_data, indices_shape);
+  tensors[1] = CreateInt32Tensor(depth_data, depth_shape);
+  tensors[2] = CreateInt32Tensor(on_value_data, scalar_shape);
+  tensors[3] = CreateInt32Tensor(off_value_data, scalar_shape);
+  tensors[4] = CreateInt32Tensor(output_data, output_shape);
+
+  int inputs_arr[] = {4, 0, 1, 2, 3};
+  int outputs_arr[] = {1, 4};
+  TfLiteIntArray* inputs = IntArrayFromInts(inputs_arr);
+  TfLiteIntArray* outputs = IntArrayFromInts(outputs_arr);
+
+  const TFLMRegistration* registration = tflite::ops::micro::Register_ONE_HOT();
+
+  KernelRunner runner(*registration, tensors, 5, inputs, outputs,
+                      /*builtin_data=*/nullptr,
+                      /*error_reporter=*/nullptr);
+
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  int32_t expected[9] = {
+      1, 0, 0, 0, 1, 0, 0, 0, 1,
+  };
+  for (int i = 0; i < 9; ++i) {
+    TF_LITE_MICRO_EXPECT_EQ(expected[i], output_data[i]);
+  }
+}
+
+TF_LITE_MICRO_TESTS_END  // ★ 여기까지
+
+}  // namespace tflite
