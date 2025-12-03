@@ -2,6 +2,7 @@
 #define TENSORFLOW_LITE_MICRO_KERNELS_ONE_HOT_H_
 
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace ops {
