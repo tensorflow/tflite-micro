@@ -8,7 +8,7 @@ namespace tflite {
 namespace ops {
 namespace micro {
 
-// ONE_HOT 커널 등록 함수 (all_ops_resolver 등에서 사용)
+// ONE_HOT Kernel regist function (use at all_ops_resolver)
 const TFLMRegistration* Register_ONE_HOT();
 
 }  // namespace micro
