@@ -39,13 +39,14 @@ extern const int g_one_hot_basic_float_model_len;
 }
 
 namespace tflite {
-namespace {
+namespace {}  // namespace
+}  // namespace tflite
 
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(OneHotBasicFloat) {
   const Model* model = tflite::GetModel(g_one_hot_basic_float_model);
-  MicroMutableOpResolver<1> resolver;
+  (const void)model;  // 사용한 것처럼 만들어서 unused 경고 없애기
 
   // TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
 
@@ -62,6 +63,3 @@ TF_LITE_MICRO_TEST(OneHotBasicFloat) {
 }
 
 TF_LITE_MICRO_TESTS_END
-
-}  // namespace
-}  // namespace tflite
