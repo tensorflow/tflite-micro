@@ -17,14 +17,14 @@ namespace tflite {
 namespace testing {
 namespace {
 
-// OneHot 연산 테스트를 위한 헬퍼 함수
+// Helper function for OneHot operation test
 template <typename T>
 void TestOneHot(const int* indices_dims, const int32_t* indices_data,
                 const int* depth_dims, const int32_t* depth_data,
                 const int* on_dims, const T* on_data, const int* off_dims,
                 const T* off_data, const int* output_dims,
                 const T* expected_output_data, T* output_data, int axis = -1) {
-  // 1. 텐서 설정
+  // 1. Tensor Setting
   TfLiteIntArray* in_dims = IntArrayFromInts(indices_dims);
   TfLiteIntArray* d_dims = IntArrayFromInts(depth_dims);
   TfLiteIntArray* on_val_dims = IntArrayFromInts(on_dims);
@@ -33,26 +33,25 @@ void TestOneHot(const int* indices_dims, const int32_t* indices_data,
 
   const int output_dims_count = ElementCount(*out_dims);
 
-  // 2. 입력 텐서 생성
+  // 2. Create Input Tensor
   constexpr int inputs_size = 4;
   constexpr int outputs_size = 1;
   constexpr int tensors_size = inputs_size + outputs_size;
   TfLiteTensor tensors[tensors_size] = {
       CreateTensor(indices_data, in_dims), CreateTensor(depth_data, d_dims),
       CreateTensor(on_data, on_val_dims),  CreateTensor(off_data, off_val_dims),
-      CreateTensor(output_data, out_dims),  // 출력 텐서 (데이터는 비워둠)
+      CreateTensor(output_data, out_dims),  // Output Tensor
   };
 
-  // 3. 파라미터 설정
+  // 3. Parameter setting
   TfLiteOneHotParams builtin_data = {axis};
 
-  // 4. KernelRunner 실행
+  // 4. KernelRunner execution
   int inputs_array_data[] = {4, 0, 1, 2, 3};  // indices, depth, on, off
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 4};  // output tensor index
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  // 등록 함수 이름은 구현하신 이름으로 변경 (예:
   // tflite::ops::micro::Register_ONE_HOT)
   const TFLMRegistration registration = *tflite::ops::micro::Register_ONE_HOT();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
@@ -62,7 +61,7 @@ void TestOneHot(const int* indices_dims, const int32_t* indices_data,
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  // 5. 결과 검증
+  // 5. Result evaluation
   for (int i = 0; i < output_dims_count; ++i) {
     TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
@@ -93,7 +92,7 @@ TF_LITE_MICRO_TEST(OneHot_BasicInt32) {
   const int output_dims[] = {2, 3, 3};
   const int32_t expected_output[] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
 
-  int32_t output_data[9];  // 결과 받을 버퍼
+  int32_t output_data[9];
 
   tflite::testing::TestOneHot(indices_dims, indices_data, depth_dims,
                               depth_data, on_dims, on_data, off_dims, off_data,
