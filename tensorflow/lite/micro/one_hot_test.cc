@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "tensorflow/lite/c/builtin_op_data.h"  // ★ 이거 추가
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -64,13 +65,16 @@ TF_LITE_MICRO_TEST(OneHot_BasicInt32) {
 
   const TFLMRegistration* registration = tflite::ops::micro::Register_ONE_HOT();
 
+  TfLiteOneHotParams params;
+  memset(&params, 0, sizeof(params));
+  params.axis = -1;  // 마지막 축 기준 one-hot
+
   KernelRunner runner(*registration, tensors, 5, inputs, outputs,
-                      /*builtin_data=*/nullptr,
+                      /*builtin_data=*/&params,
                       /*error_reporter=*/nullptr);
 
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
-
   int32_t expected[9] = {
       1, 0, 0, 0, 1, 0, 0, 0, 1,
   };
