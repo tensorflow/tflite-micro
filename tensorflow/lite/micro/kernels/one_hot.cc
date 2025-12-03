@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace ops {
@@ -248,13 +249,12 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace one_hot
 
 // 헤더에 선언된 Register_ONE_HOT 구현
-TfLiteRegistration_V1* Register_ONE_HOT() {
-  static TfLiteRegistration_V1 r = {};  // 모든 필드를 0/NULL로 초기화
+const TFLMRegistration* Register_ONE_HOT() {
+  static TFLMRegistration r = {};  // 모든 필드를 0/NULL로 초기화
   r.init = nullptr;
   r.free = nullptr;
   r.prepare = one_hot::Prepare;
   r.invoke = one_hot::Eval;
-  // custom_name, version, profiling_string 등은 기본값(0/nullptr) 유지
   return &r;
 }
 
