@@ -36,7 +36,7 @@ py_binary(
     ],
     deps = [
         requirement("absl_py"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         requirement("mako"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
         "//tensorflow/lite/python:schema_py",
