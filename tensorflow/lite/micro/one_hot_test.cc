@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/one_hot.cc"
+#include "tensorflow/lite/micro/kernels/one_hot.h"
 
 #include <stdint.h>
 
