@@ -71,6 +71,7 @@ void TestOneHot(const int* indices_dims, const int32_t* indices_data,
 }  // namespace testing
 }  // namespace tflite
 
+// UNIT TEST
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(OneHot_BasicInt32) {
