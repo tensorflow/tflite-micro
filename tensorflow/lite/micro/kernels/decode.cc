@@ -49,6 +49,23 @@ TfLiteStatus SetOutputTensorData(TfLiteContext* context, const TfLiteNode* node,
   return kTfLiteOk;
 }
 
+DecodeState* GetDecodeStateFromCustomRegistration(const TfLiteContext* context,
+                                                  uint8_t type) {
+  const MicroContext* mc = GetMicroContext(context);
+  auto registrations = mc->GetCustomDecodeRegistrations();
+  if (registrations == nullptr) {
+    return nullptr;
+  }
+
+  for (auto& reg : *registrations) {
+    if (reg.type == type && reg.func != nullptr) {
+      return reg.func(context, mc->GetAlternateProfiler());
+    }
+  }
+
+  return nullptr;
+}
+
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const size_t num_inputs = NumInputs(node);
   const size_t num_outputs = NumOutputs(node);
@@ -113,21 +130,22 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         dsp = DecodeState::CreateDecodeStateHuffman(
             context, micro_context->GetAlternateProfiler());
         break;
-      case DecodeState::kDcmTypeCustom:
-        MicroPrintf("Custom decode type not yet supported");
-        break;
       default:
-        MicroPrintf("unsupported decode type %u",
-                    DecodeState::Type(*ancillary));
+        uint32_t type = DecodeState::Type(*ancillary);
+        if (type >= DecodeState::kDcmTypeCustomFirst &&
+            type <= DecodeState::kDcmTypeCustomLast) {
+          dsp = GetDecodeStateFromCustomRegistration(context, type);
+        } else {
+          MicroPrintf("unsupported decode type %u", type);
+        }
         break;
-    }
-
-    status = SetOutputTensorData(context, node, i / 2, output);
-    if (status != kTfLiteOk) {
-      break;
     }
 
     if (dsp != nullptr) {
+      status = SetOutputTensorData(context, node, i / 2, output);
+      if (status != kTfLiteOk) {
+        break;
+      }
       status = dsp->Setup(*input, *ancillary, *output);
       if (status != kTfLiteOk) {
         break;

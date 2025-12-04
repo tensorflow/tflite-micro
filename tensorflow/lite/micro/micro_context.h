@@ -33,6 +33,8 @@ namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
 const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(15);
 
+class DecodeState;  // can't use decode_state.h due to circular include
+
 // MicroContext is eventually going to become the API between TFLM and the
 // kernels, replacing all the functions in TfLiteContext. The end state is code
 // kernels to have code like:
@@ -136,7 +138,7 @@ class MicroContext {
   };
 
   // Set the alternate decompression memory regions.
-  // Can only be called during the MicroInterpreter kInit state.
+  // Can only be called during the kInit state.
   virtual TfLiteStatus SetDecompressionMemory(
       const std::initializer_list<AlternateMemoryRegion>& regions);
 
@@ -169,11 +171,39 @@ class MicroContext {
     return nullptr;
   }
 
+  struct CustomDecodeRegistration {
+    uint8_t type;       // custom decode type
+    uint8_t reserved1;  // reserved
+    uint8_t reserved2;  // reserved
+    uint8_t reserved3;  // reserved
+    tflite::DecodeState* (*func)(const TfLiteContext*, MicroProfilerInterface*);
+  };
+
+  // Set the custom DECODE operator registrations.
+  // Can only be called during the kInit state.
+  virtual TfLiteStatus SetCustomDecodeRegistrations(
+      const std::initializer_list<CustomDecodeRegistration>& registrations) {
+    if (custom_decode_registrations_ != nullptr) {
+      return kTfLiteError;
+    }
+    custom_decode_registrations_ = &registrations;
+    return kTfLiteOk;
+  }
+
+  // Get the custom decompression registrations.
+  virtual const std::initializer_list<CustomDecodeRegistration>*
+  GetCustomDecodeRegistrations() const {
+    return custom_decode_registrations_;
+  }
+
  private:
   const std::initializer_list<AlternateMemoryRegion>* decompress_regions_ =
       nullptr;
   // array of size_t elements with length equal to decompress_regions_.size()
   size_t* decompress_regions_allocations_ = nullptr;
+
+  const std::initializer_list<CustomDecodeRegistration>*
+      custom_decode_registrations_ = nullptr;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
