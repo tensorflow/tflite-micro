@@ -20,6 +20,6 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("flatbuffers"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )

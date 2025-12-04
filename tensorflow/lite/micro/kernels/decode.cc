@@ -18,11 +18,36 @@ limitations under the License.
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace {
+
+TfLiteStatus SetOutputTensorData(TfLiteContext* context, const TfLiteNode* node,
+                                 size_t tensor_output_index,
+                                 TfLiteTensor* output) {
+  if (output->data.data != nullptr) {
+    // If memory has already been assigned to the tensor, leave it be
+    return kTfLiteOk;
+  }
+
+  // If alternate decompression memory is available, set the tensor data
+  // pointer now to preclude allocation by the memory planner.
+  void* alternate_decompress_mem =
+      GetMicroContext(context)->AllocateDecompressionMemory(
+          output->bytes, MicroArenaBufferAlignment());
+  if (alternate_decompress_mem != nullptr) {
+    TfLiteEvalTensor* output_eval =
+        tflite::micro::GetEvalOutput(context, node, tensor_output_index);
+    TF_LITE_ENSURE(context, output_eval != nullptr);
+    output_eval->data.data = alternate_decompress_mem;
+    output->data.data = alternate_decompress_mem;
+  }
+
+  return kTfLiteOk;
+}
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const size_t num_inputs = NumInputs(node);
@@ -42,6 +67,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* ancillary = nullptr;
   TfLiteTensor* output = nullptr;
   TfLiteStatus status = kTfLiteOk;
+
+  micro_context->ResetDecompressionMemoryAllocations();
 
   for (size_t i = 0; i < num_inputs; i += 2) {
     input = micro_context->AllocateTempInputTensor(node, i);
@@ -93,6 +120,11 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         MicroPrintf("unsupported decode type %u",
                     DecodeState::Type(*ancillary));
         break;
+    }
+
+    status = SetOutputTensorData(context, node, i / 2, output);
+    if (status != kTfLiteOk) {
+      break;
     }
 
     if (dsp != nullptr) {

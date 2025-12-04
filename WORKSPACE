@@ -101,7 +101,7 @@ py_pkg_cc_deps(
     name = "tensorflow_cc_deps",
     includes = ["tensorflow/include"],
     libs = ["tensorflow/libtensorflow_framework.so.2"],
-    pkg = requirement("tensorflow"),
+    pkg = requirement("tensorflow-cpu"),
 )
 
 # Optimized kernel deps
