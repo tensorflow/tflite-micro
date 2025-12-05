@@ -14,8 +14,6 @@
 """Tests for model_editor module.
 """
 
-import unittest
-
 import numpy as np
 import tensorflow as tf
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
@@ -832,7 +830,6 @@ class TestReadEdgeCases(tf.test.TestCase):
     builder.Finish(model_t.Pack(builder))
     return bytes(builder.Output())
 
-  @unittest.expectedFailure
   def test_read_scalar_tensor(self):
     """Verify read() handles tensors with None shape (scalars).
 
@@ -892,7 +889,6 @@ class TestReadEdgeCases(tf.test.TestCase):
     # Verify normal tensor shape is preserved
     self.assertEqual(model.subgraphs[0].tensors[1].shape, (1, 4))
 
-  @unittest.expectedFailure
   def test_read_operator_with_empty_inputs(self):
     """Verify read() handles operators with None inputs/outputs.
 
@@ -943,7 +939,6 @@ class TestReadEdgeCases(tf.test.TestCase):
     self.assertEqual(model.subgraphs[0].operators[0].inputs, [])
     self.assertEqual(len(model.subgraphs[0].operators[0].outputs), 1)
 
-  @unittest.expectedFailure
   def test_read_operator_with_empty_outputs(self):
     """Verify read() handles operators with None outputs.
 

@@ -343,7 +343,8 @@ def read(buffer: bytes) -> Model:
 
           quant = Quantization(scales=scales, zero_points=zeros, axis=axis)
 
-      tensor = Tensor(shape=tuple(fb_tensor.shape),
+      shape = tuple(fb_tensor.shape) if fb_tensor.shape is not None else ()
+      tensor = Tensor(shape=shape,
                       dtype=fb_tensor.type,
                       buffer=buf,
                       name=name,
@@ -357,9 +358,11 @@ def read(buffer: bytes) -> Model:
       # Get operator code info
       opcode_obj = model.operator_codes[fb_op.opcodeIndex]
 
+      inputs = [sg.tensors[i] for i in fb_op.inputs] if fb_op.inputs is not None else []
+      outputs = [sg.tensors[i] for i in fb_op.outputs] if fb_op.outputs is not None else []
       op = Operator(opcode=opcode_obj.builtin_code,
-                    inputs=[sg.tensors[i] for i in fb_op.inputs],
-                    outputs=[sg.tensors[i] for i in fb_op.outputs],
+                    inputs=inputs,
+                    outputs=outputs,
                     custom_code=opcode_obj.custom_code,
                     opcode_index=fb_op.opcodeIndex)
       sg.operators.append(op)
