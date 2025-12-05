@@ -14,6 +14,8 @@
 """Tests for model_editor module.
 """
 
+import unittest
+
 import numpy as np
 import tensorflow as tf
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
@@ -813,6 +815,179 @@ class TestSubgraphInputsOutputs(tf.test.TestCase):
     self.assertEqual(len(sg.outputs), 1)
     self.assertEqual(sg.inputs[0].name, "input")
     self.assertEqual(sg.outputs[0].name, "output")
+
+
+class TestReadEdgeCases(tf.test.TestCase):
+  """Test model_editor.read() with edge cases from real-world models.
+
+  These tests construct models using the low-level TFLite schema to create
+  edge cases that may not be producible via model_editor.build(), but can
+  appear in models from other sources (e.g., TFLite converter).
+  """
+
+  def _build_model_with_schema(self, model_t):
+    """Build a flatbuffer from a ModelT using the low-level schema."""
+    import flatbuffers
+    builder = flatbuffers.Builder(1024)
+    builder.Finish(model_t.Pack(builder))
+    return bytes(builder.Output())
+
+  @unittest.expectedFailure
+  def test_read_scalar_tensor(self):
+    """Verify read() handles tensors with None shape (scalars).
+
+    Some TFLite models have scalar tensors where shape is None rather than
+    an empty list. This can occur with constant scalars produced by certain
+    converters.
+    """
+    # Build a minimal model with a scalar tensor (shape=None)
+    model_t = tflite.ModelT()
+    model_t.version = 3
+
+    # Buffer 0 is always empty, buffer 1 holds scalar data
+    buf0 = tflite.BufferT()
+    buf0.data = []
+    buf1 = tflite.BufferT()
+    buf1.data = [42]  # Single byte scalar value
+
+    model_t.buffers = [buf0, buf1]
+
+    # Create operator code
+    opcode = tflite.OperatorCodeT()
+    opcode.builtinCode = tflite.BuiltinOperator.ADD
+    model_t.operatorCodes = [opcode]
+
+    # Create subgraph with scalar tensor
+    sg = tflite.SubGraphT()
+
+    # Tensor with shape=None (scalar)
+    scalar_tensor = tflite.TensorT()
+    scalar_tensor.name = b"scalar"
+    scalar_tensor.type = tflite.TensorType.INT8
+    scalar_tensor.buffer = 1
+    scalar_tensor.shape = None  # This is the edge case
+
+    # Normal tensor for comparison
+    normal_tensor = tflite.TensorT()
+    normal_tensor.name = b"normal"
+    normal_tensor.type = tflite.TensorType.INT8
+    normal_tensor.buffer = 0
+    normal_tensor.shape = [1, 4]
+
+    sg.tensors = [scalar_tensor, normal_tensor]
+    sg.inputs = [1]
+    sg.outputs = [1]
+    sg.operators = []
+
+    model_t.subgraphs = [sg]
+
+    # Build and read
+    fb = self._build_model_with_schema(model_t)
+    model = model_editor.read(fb)
+
+    # Verify scalar tensor was read with empty shape tuple
+    self.assertEqual(model.subgraphs[0].tensors[0].shape, ())
+    self.assertEqual(model.subgraphs[0].tensors[0].name, "scalar")
+
+    # Verify normal tensor shape is preserved
+    self.assertEqual(model.subgraphs[0].tensors[1].shape, (1, 4))
+
+  @unittest.expectedFailure
+  def test_read_operator_with_empty_inputs(self):
+    """Verify read() handles operators with None inputs/outputs.
+
+    Some operators (e.g., certain control flow or custom ops) may have
+    empty input or output lists represented as None in the flatbuffer.
+    """
+    model_t = tflite.ModelT()
+    model_t.version = 3
+
+    buf0 = tflite.BufferT()
+    buf0.data = []
+    model_t.buffers = [buf0]
+
+    # Custom op that might have unusual input/output patterns
+    opcode = tflite.OperatorCodeT()
+    opcode.builtinCode = tflite.BuiltinOperator.CUSTOM
+    opcode.customCode = b"NoInputOp"
+    model_t.operatorCodes = [opcode]
+
+    sg = tflite.SubGraphT()
+
+    # Single output tensor
+    output_tensor = tflite.TensorT()
+    output_tensor.name = b"output"
+    output_tensor.type = tflite.TensorType.INT8
+    output_tensor.buffer = 0
+    output_tensor.shape = [1]
+
+    sg.tensors = [output_tensor]
+    sg.inputs = []
+    sg.outputs = [0]
+
+    # Operator with None inputs (edge case)
+    op = tflite.OperatorT()
+    op.opcodeIndex = 0
+    op.inputs = None  # This is the edge case
+    op.outputs = [0]
+
+    sg.operators = [op]
+    model_t.subgraphs = [sg]
+
+    # Build and read
+    fb = self._build_model_with_schema(model_t)
+    model = model_editor.read(fb)
+
+    # Verify operator was read with empty inputs list
+    self.assertEqual(len(model.subgraphs[0].operators), 1)
+    self.assertEqual(model.subgraphs[0].operators[0].inputs, [])
+    self.assertEqual(len(model.subgraphs[0].operators[0].outputs), 1)
+
+  @unittest.expectedFailure
+  def test_read_operator_with_empty_outputs(self):
+    """Verify read() handles operators with None outputs.
+
+    Similar to empty inputs, some operators may have None outputs.
+    """
+    model_t = tflite.ModelT()
+    model_t.version = 3
+
+    buf0 = tflite.BufferT()
+    buf0.data = []
+    model_t.buffers = [buf0]
+
+    opcode = tflite.OperatorCodeT()
+    opcode.builtinCode = tflite.BuiltinOperator.CUSTOM
+    opcode.customCode = b"NoOutputOp"
+    model_t.operatorCodes = [opcode]
+
+    sg = tflite.SubGraphT()
+
+    input_tensor = tflite.TensorT()
+    input_tensor.name = b"input"
+    input_tensor.type = tflite.TensorType.INT8
+    input_tensor.buffer = 0
+    input_tensor.shape = [1]
+
+    sg.tensors = [input_tensor]
+    sg.inputs = [0]
+    sg.outputs = []
+
+    # Operator with None outputs (edge case)
+    op = tflite.OperatorT()
+    op.opcodeIndex = 0
+    op.inputs = [0]
+    op.outputs = None  # This is the edge case
+
+    sg.operators = [op]
+    model_t.subgraphs = [sg]
+
+    fb = self._build_model_with_schema(model_t)
+    model = model_editor.read(fb)
+
+    self.assertEqual(len(model.subgraphs[0].operators), 1)
+    self.assertEqual(len(model.subgraphs[0].operators[0].inputs), 1)
+    self.assertEqual(model.subgraphs[0].operators[0].outputs, [])
 
 
 if __name__ == "__main__":
