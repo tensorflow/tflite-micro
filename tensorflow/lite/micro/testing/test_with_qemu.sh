@@ -30,7 +30,13 @@ MICRO_LOG_PATH=${TEST_TMPDIR}/${3}
 MICRO_LOG_FILENAME=${MICRO_LOG_PATH}/logs.txt
 
 mkdir -p ${MICRO_LOG_PATH}
-qemu-${1} -cpu ${2} ${3} 2>&1 | tee ${MICRO_LOG_FILENAME}
+if [[ "${5}" == "riscv32_baremetal" ]]; then
+    # unified call
+    qemu-${1} -nographic -M virt -bios none -kernel ${3} 2>&1 | tee ${MICRO_LOG_FILENAME}
+else
+    qemu-${1} -cpu ${2} ${3} 2>&1 | tee ${MICRO_LOG_FILENAME}
+fi
+
 if [[ ${4} != "non_test_binary" ]]
 then
   if grep -q "${4}" ${MICRO_LOG_FILENAME}
