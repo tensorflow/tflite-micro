@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <stdint.h>
 
+namespace tflite {
 namespace tflm_signal {
 
 // Applies a window function to an input signal
@@ -28,4 +29,5 @@ namespace tflm_signal {
 void ApplyWindow(const int16_t* input, const int16_t* window, int size,
                  int shift, int16_t* output);
 }  // namespace tflm_signal
+}  // namespace tflite
 #endif  // SIGNAL_SRC_WINDOW_H_

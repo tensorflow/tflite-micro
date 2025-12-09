@@ -17,6 +17,7 @@ limitations under the License.
 #include <stdio.h>
 #include <string.h>
 
+namespace tflite {
 namespace tflm_signal {
 
 void OverlapAdd(const int16_t* input, int16_t* buffer, int input_size,
@@ -49,3 +50,4 @@ void OverlapAdd(const float* input, float* buffer, int input_size,
 }
 
 }  // namespace tflm_signal
+}  // namespace tflite

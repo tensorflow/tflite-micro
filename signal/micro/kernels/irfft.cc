@@ -21,9 +21,10 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "signal/src/complex.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
 
 namespace tflite {
 namespace {
@@ -112,7 +113,8 @@ TfLiteStatus IrfftPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-template <typename T, void (*apply_func)(void*, const Complex<T>* input, T*)>
+template <typename T,
+          void (*apply_func)(void*, const tflm_signal::Complex<T>* input, T*)>
 TfLiteStatus IrfftEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params =
       reinterpret_cast<TfLiteAudioFrontendIrfftParams*>(node->user_data);
@@ -122,8 +124,8 @@ TfLiteStatus IrfftEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
-  const Complex<T>* input_data =
-      tflite::micro::GetTensorData<Complex<T>>(input);
+  const tflm_signal::Complex<T>* input_data =
+      tflite::micro::GetTensorData<tflm_signal::Complex<T>>(input);
   T* output_data = tflite::micro::GetTensorData<T>(output);
   for (int input_idx = 0, output_idx = 0; input_idx < params->input_size;
        input_idx += params->input_length, output_idx += params->output_length) {

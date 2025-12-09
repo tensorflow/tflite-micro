@@ -38,6 +38,7 @@ tflm_cc_library(
     ],
     deps = [
         "//signal/src:circular_buffer",
+        "//signal/src:complex",
         "//signal/src:energy",
         "//signal/src:fft_auto_scale",
         "//signal/src:filter_bank",

@@ -688,7 +688,7 @@ ifneq ($(OPTIMIZED_KERNEL_DIR),)
 		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
 		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
 
-  ifneq ($(filter $(OPTIMIZED_KERNEL_DIR), xtensa),)
+  ifneq ($(filter $(OPTIMIZED_KERNEL_DIR), xtensa hexagon),)
     # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
     # reference kernels. See http://b/183546742 for more context.
     RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))

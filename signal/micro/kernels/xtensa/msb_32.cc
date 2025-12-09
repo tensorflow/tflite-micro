@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2022 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -12,24 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#include <xtensa/tie/xt_misc.h>
 
-#ifndef SIGNAL_SRC_COMPLEX_H_
-#define SIGNAL_SRC_COMPLEX_H_
-
-#include <stdint.h>
+#include "tensorflow/lite/micro/audio_frontend/src/msb.h"
 
 namespace tflite {
 namespace tflm_signal {
 
-// We would use the standard complex type in complex.h, but there's
-// no guarantee that all architectures will support it.
-template <typename T>
-struct Complex {
-  T real;
-  T imag;
-};
+uint32_t MostSignificantBit32(uint32_t x) {
+  // XT_NSAU returns the number of left shifts needed to put the MSB in the
+  // leftmost position. Returns 32 if the argument is 0.
+  return 32 - XT_NSAU(x);
+}
 
 }  // namespace tflm_signal
 }  // namespace tflite
-
-#endif  // SIGNAL_SRC_COMPLEX_H_

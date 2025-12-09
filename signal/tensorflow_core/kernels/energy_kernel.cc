@@ -20,6 +20,9 @@ limitations under the License.
 namespace tensorflow {
 namespace signal {
 
+namespace tflm_signal = ::tflite::tflm_signal;
+using tflm_signal::Complex;
+
 class EnergyOp : public tensorflow::OpKernel {
  public:
   explicit EnergyOp(tensorflow::OpKernelConstruction* context)
@@ -38,7 +41,7 @@ class EnergyOp : public tensorflow::OpKernel {
                    context->allocate_output(0, {output_size}, &output_tensor));
     uint32* output = output_tensor->flat<uint32>().data();
 
-    tflite::tflm_signal::SpectrumToEnergy(
+    tflm_signal::SpectrumToEnergy(
         reinterpret_cast<const Complex<int16_t>*>(input), start_index_,
         end_index_, output);
   }
