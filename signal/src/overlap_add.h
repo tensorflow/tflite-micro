@@ -18,7 +18,6 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
-namespace tflite {
 namespace tflm_signal {
 // Adds (with saturation) the contents of `input` to the contents of `buffer`,
 // both of size `input_size`, then copies the first `output_size` elements of
@@ -44,5 +43,4 @@ void OverlapAdd(const float* input, float* buffer, int input_size,
                 float* output, int output_size);
 
 }  //  namespace tflm_signal
-}  // namespace tflite
 #endif  // SIGNAL_SRC_OVERLAP_ADD_H_

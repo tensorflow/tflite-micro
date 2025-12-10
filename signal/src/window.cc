@@ -18,7 +18,6 @@ limitations under the License.
 #include <cstdint>
 
 // TODO(b/286250473): remove namespace once de-duped libraries
-namespace tflite {
 namespace tflm_signal {
 
 void ApplyWindow(const int16_t* input, const int16_t* window, int size,
@@ -35,4 +34,3 @@ void ApplyWindow(const int16_t* input, const int16_t* window, int size,
   }
 }
 }  // namespace tflm_signal
-}  // namespace tflite

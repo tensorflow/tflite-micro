@@ -18,9 +18,6 @@ limitations under the License.
 
 #include <stdint.h>
 
-namespace tflite {
-namespace tflm_signal {
-
 // We would use the standard complex type in complex.h, but there's
 // no guarantee that all architectures will support it.
 template <typename T>
@@ -28,8 +25,5 @@ struct Complex {
   T real;
   T imag;
 };
-
-}  // namespace tflm_signal
-}  // namespace tflite
 
 #endif  // SIGNAL_SRC_COMPLEX_H_

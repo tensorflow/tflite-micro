@@ -22,7 +22,6 @@ limitations under the License.
 #include "signal/src/complex.h"
 
 // TODO(b/286250473): remove namespace once de-duped libraries
-namespace tflite {
 namespace tflm_signal {
 
 // RFFT (Real Fast Fourier Transform)
@@ -82,6 +81,5 @@ void* RfftFloatInit(int32_t fft_length, void* state, size_t state_size);
 void RfftFloatApply(void* state, const float* input, Complex<float>* output);
 
 }  // namespace tflm_signal
-}  // namespace tflite
 
 #endif  // SIGNAL_SRC_RFFT_H_

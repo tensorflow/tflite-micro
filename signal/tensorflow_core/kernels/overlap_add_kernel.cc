@@ -21,8 +21,6 @@ limitations under the License.
 namespace tensorflow {
 namespace signal {
 
-namespace tflm_signal = ::tflite::tflm_signal;
-
 template <typename T, DataType E>
 class OverlapAddOp : public tensorflow::OpKernel {
  public:

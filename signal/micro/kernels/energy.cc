@@ -19,7 +19,6 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
-#include "signal/src/complex.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
@@ -92,8 +91,8 @@ TfLiteStatus EnergyEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
-  const tflm_signal::Complex<int16_t>* input_data =
-      tflite::micro::GetTensorData<tflm_signal::Complex<int16_t>>(input);
+  const Complex<int16_t>* input_data =
+      tflite::micro::GetTensorData<Complex<int16_t>>(input);
   uint32_t* output_data = tflite::micro::GetTensorData<uint32_t>(output);
 
   tflm_signal::SpectrumToEnergy(input_data, params->start_index,

@@ -21,7 +21,6 @@ limitations under the License.
 #include "signal/src/rfft.h"
 
 // TODO(b/286250473): remove namespace once de-duped libraries
-namespace tflite {
 namespace tflm_signal {
 
 size_t RfftInt16GetNeededMemory(int32_t fft_length) {
@@ -43,4 +42,3 @@ void RfftInt16Apply(void* state, const int16_t* input,
 }
 
 }  // namespace tflm_signal
-}  // namespace tflite

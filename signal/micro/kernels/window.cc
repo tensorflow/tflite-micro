@@ -103,8 +103,8 @@ TfLiteStatus WindowEval(TfLiteContext* context, TfLiteNode* node) {
   int weight_size = weights->dims->data[0];
 
   for (int i = 0; i < params->input_size; i += weight_size) {
-    ::tflite::tflm_signal::ApplyWindow(&input_data[i], weight_data, weight_size,
-                                       params->shift, &output_data[i]);
+    ::tflm_signal::ApplyWindow(&input_data[i], weight_data, weight_size,
+                               params->shift, &output_data[i]);
   }
   return kTfLiteOk;
 }

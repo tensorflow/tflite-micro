@@ -19,8 +19,6 @@ limitations under the License.
 namespace tensorflow {
 namespace signal {
 
-namespace tflm_signal = ::tflite::tflm_signal;
-
 class WindowOp : public tensorflow::OpKernel {
  public:
   explicit WindowOp(tensorflow::OpKernelConstruction* context)
