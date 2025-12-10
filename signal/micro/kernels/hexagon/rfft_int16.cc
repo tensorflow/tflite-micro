@@ -25,7 +25,6 @@ extern "C" {
 #include "rfft.h"
 }
 
-namespace tflite {
 namespace tflm_signal {
 
 // TODO(b/467010877) The twiddle tables should come from the tflite file
@@ -186,4 +185,4 @@ void RfftInt16Apply(void* state, const int16_t* input,
 }
 
 }  // namespace tflm_signal
-}  // namespace tflite
+

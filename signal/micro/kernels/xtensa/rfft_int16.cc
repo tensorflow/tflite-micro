@@ -29,7 +29,6 @@ limitations under the License.
 #include "signal/src/complex.h"
 #include "signal/src/rfft.h"
 
-namespace tflite {
 namespace tflm_signal {
 
 #if !defined MIN_RFFT_LEN
@@ -909,4 +908,3 @@ void RfftInt16Apply(void* state, const int16_t* input,
 }
 
 }  // namespace tflm_signal
-}  // namespace tflite

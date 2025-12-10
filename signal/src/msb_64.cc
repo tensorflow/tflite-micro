@@ -17,6 +17,8 @@ limitations under the License.
 
 #if defined(XTENSA)
 #include <xtensa/tie/xt_misc.h>
+#elif defined(HEXAGON)
+#include <hexagon_protos.h>
 #endif
 
 namespace tflite {
