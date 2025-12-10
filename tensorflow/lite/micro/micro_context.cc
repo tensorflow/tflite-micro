@@ -130,14 +130,15 @@ void* MicroContext::DecompressTensorToBuffer(
 #endif  // USE_TFLM_COMPRESSION
 
 TfLiteStatus MicroContext::SetDecompressionMemory(
-    const std::initializer_list<AlternateMemoryRegion>& regions) {
+    const AlternateMemoryRegion* regions, size_t count) {
   if (decompress_regions_ != nullptr) {
     return kTfLiteError;
   }
 
-  decompress_regions_ = &regions;
+  decompress_regions_ = regions;
+  decompress_regions_size_ = count;
   decompress_regions_allocations_ = static_cast<size_t*>(
-      AllocatePersistentBuffer(sizeof(size_t) * regions.size()));
+      AllocatePersistentBuffer(sizeof(size_t) * decompress_regions_size_));
   if (decompress_regions_allocations_ == nullptr) {
     return kTfLiteError;
   }
@@ -149,8 +150,8 @@ TfLiteStatus MicroContext::SetDecompressionMemory(
 void* MicroContext::AllocateDecompressionMemory(size_t bytes,
                                                 size_t alignment) {
   if (decompress_regions_ != nullptr) {
-    for (size_t i = 0; i < decompress_regions_->size(); i++) {
-      const AlternateMemoryRegion* region = &decompress_regions_->begin()[i];
+    for (size_t i = 0; i < decompress_regions_size_; i++) {
+      const AlternateMemoryRegion* region = &decompress_regions_[i];
       uint8_t* start = static_cast<uint8_t*>(region->address) +
                        decompress_regions_allocations_[i];
       uint8_t* aligned_start = AlignPointerUp(start, alignment);
@@ -170,7 +171,7 @@ void MicroContext::ResetDecompressionMemoryAllocations() {
     return;
   }
   TFLITE_DCHECK(decompress_regions_allocations_ != nullptr);
-  std::fill_n(decompress_regions_allocations_, decompress_regions_->size(), 0);
+  std::fill_n(decompress_regions_allocations_, decompress_regions_size_, 0);
 }
 
 }  // namespace tflite

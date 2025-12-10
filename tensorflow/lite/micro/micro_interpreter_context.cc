@@ -217,12 +217,12 @@ void* MicroInterpreterContext::DecompressTensorToBuffer(
 #endif  // USE_TFLM_COMPRESSION
 
 TfLiteStatus MicroInterpreterContext::SetDecompressionMemory(
-    const std::initializer_list<MicroContext::AlternateMemoryRegion>& regions) {
+    const AlternateMemoryRegion* regions, size_t count) {
   if (state_ != InterpreterState::kInit) {
     return kTfLiteError;
   }
 
-  return MicroContext::SetDecompressionMemory(regions);
+  return MicroContext::SetDecompressionMemory(regions, count);
 }
 
 void* MicroInterpreterContext::AllocateDecompressionMemory(size_t bytes,
