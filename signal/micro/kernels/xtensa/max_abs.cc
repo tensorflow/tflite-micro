@@ -2,9 +2,6 @@
 #include <xtensa/config/core-isa.h>
 #include <xtensa/tie/xt_misc.h>
 
-namespace tflite {
-namespace tflm_signal {
-
 #if XCHAL_HAVE_HIFI3
 #include <xtensa/tie/xt_hifi3.h>
 static inline ae_p24x2s MaxAbs16Single(ae_p24x2s max, ae_p24x2s current) {
@@ -17,6 +14,9 @@ static inline ae_p24x2s MaxAbs16Single(ae_p24x2s max, ae_p24x2s current) {
   return AE_MAXP24S(max, current);
 }
 #endif
+
+namespace tflite {
+namespace tflm_signal {
 
 #if XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP || \
     XCHAL_HAVE_HIFI3
@@ -61,3 +61,4 @@ int16_t MaxAbs16(const int16_t* input, int size) {
 
 }  // namespace tflm_signal
 }  // namespace tflite
+
