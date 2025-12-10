@@ -11,7 +11,7 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -21,7 +21,7 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
