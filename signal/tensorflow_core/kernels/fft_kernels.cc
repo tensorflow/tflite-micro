@@ -15,11 +15,11 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/core/framework/op_kernel.h"
 #include "signal/src/complex.h"
 #include "signal/src/fft_auto_scale.h"
 #include "signal/src/irfft.h"
 #include "signal/src/rfft.h"
+#include "tensorflow/core/framework/op_kernel.h"
 
 namespace tensorflow {
 namespace signal {

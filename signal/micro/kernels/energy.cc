@@ -19,9 +19,9 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
+#include "signal/src/complex.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
-#include "signal/src/complex.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_context.h"
