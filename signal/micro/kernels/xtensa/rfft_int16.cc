@@ -24,7 +24,7 @@ limitations under the License.
 
 #include "hifi2_fft/fft_core.h"
 #else
-#include "tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers/kiss_fft_int16.h"
+#include "signal/src/kiss_fft_wrappers/kiss_fft_int16.h"
 #endif
 #include "signal/src/complex.h"
 #include "signal/src/rfft.h"
