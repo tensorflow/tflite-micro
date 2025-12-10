@@ -37,7 +37,7 @@ if [[ ${1} == "INTERNAL" ]]; then
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     build -j$(nproc)
@@ -46,7 +46,7 @@ if [[ ${1} == "INTERNAL" ]]; then
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     test -j$(nproc)
@@ -55,7 +55,7 @@ if [[ ${1} == "INTERNAL" ]]; then
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     test_integration_tests_seanet_conv_test -j$(nproc)
@@ -64,7 +64,7 @@ if [[ ${1} == "INTERNAL" ]]; then
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     test_integration_tests_seanet_add_test -j$(nproc)
@@ -73,7 +73,7 @@ if [[ ${1} == "INTERNAL" ]]; then
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     test_integration_tests_seanet_leaky_relu_test -j$(nproc)
@@ -82,7 +82,7 @@ else
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     build -j$(nproc)
@@ -91,7 +91,7 @@ else
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     test -j$(nproc)
@@ -101,7 +101,7 @@ else
     TARGET=xtensa \
     TARGET_ARCH=hifi3 \
     OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=F1_190305 \
+    XTENSA_CORE=HIFI_190304_swupgrade \
     TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
     EXTERNAL_DIR=${EXTERNAL_DIR} \
     GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
