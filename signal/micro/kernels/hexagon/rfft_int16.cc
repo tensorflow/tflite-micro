@@ -185,4 +185,3 @@ void RfftInt16Apply(void* state, const int16_t* input,
 }
 
 }  // namespace tflm_signal
-
