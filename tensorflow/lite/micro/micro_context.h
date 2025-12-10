@@ -140,7 +140,7 @@ class MicroContext {
   // Set the alternate decompression memory regions.
   // Can only be called during the kInit state.
   virtual TfLiteStatus SetDecompressionMemory(
-      const std::initializer_list<AlternateMemoryRegion>& regions);
+      const AlternateMemoryRegion* regions, size_t count);
 
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.
@@ -197,9 +197,9 @@ class MicroContext {
   }
 
  private:
-  const std::initializer_list<AlternateMemoryRegion>* decompress_regions_ =
-      nullptr;
-  // array of size_t elements with length equal to decompress_regions_.size()
+  const AlternateMemoryRegion* decompress_regions_ = nullptr;
+  size_t decompress_regions_size_ = 0;
+  // array of size_t elements with length equal to decompress_regions_size_
   size_t* decompress_regions_allocations_ = nullptr;
 
   const std::initializer_list<CustomDecodeRegistration>*

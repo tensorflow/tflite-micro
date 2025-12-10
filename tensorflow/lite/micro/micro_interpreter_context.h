@@ -134,9 +134,9 @@ class MicroInterpreterContext : public MicroContext {
 #endif  // USE_TFLM_COMPRESSION
 
   // Set the alternate decompression memory regions.
-  // Can only be called during the kInit state.
-  TfLiteStatus SetDecompressionMemory(
-      const std::initializer_list<AlternateMemoryRegion>& regions) override;
+  // Can only be called during the MicroInterpreter kInit state.
+  TfLiteStatus SetDecompressionMemory(const AlternateMemoryRegion* regions,
+                                      size_t count) override;
 
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.

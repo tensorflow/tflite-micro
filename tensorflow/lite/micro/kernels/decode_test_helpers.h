@@ -104,7 +104,8 @@ TfLiteStatus ExecuteDecodeTest(
                              inputs_array, outputs_array, nullptr);
 
   if (amr != nullptr) {
-    runner.GetFakeMicroContext()->SetDecompressionMemory(*amr);
+    runner.GetFakeMicroContext()->SetDecompressionMemory(amr->begin(),
+                                                         amr->size());
   }
   if (cdr != nullptr) {
     runner.GetFakeMicroContext()->SetCustomDecodeRegistrations(*cdr);
