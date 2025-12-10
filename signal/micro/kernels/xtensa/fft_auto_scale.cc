@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/audio_frontend/src/fft_auto_scale.h"
+#include "signal/src/fft_auto_scale.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -23,8 +23,8 @@ limitations under the License.
 #include <xtensa/tie/xt_hifi3.h>
 #endif
 
-#include "tensorflow/lite/micro/audio_frontend/src/max_abs.h"
-#include "tensorflow/lite/micro/audio_frontend/src/msb.h"
+#include "signal/src/max_abs.h"
+#include "signal/src/msb.h"
 
 namespace tflite {
 namespace tflm_signal {

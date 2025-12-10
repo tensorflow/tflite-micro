@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include <xtensa/tie/xt_misc.h>
 
-#include "tensorflow/lite/micro/audio_frontend/src/msb.h"
+#include "signal/src/msb.h"
 
 namespace tflite {
 namespace tflm_signal {

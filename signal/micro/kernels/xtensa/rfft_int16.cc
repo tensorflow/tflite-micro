@@ -26,8 +26,8 @@ limitations under the License.
 #else
 #include "tensorflow/lite/micro/audio_frontend/src/kiss_fft_wrappers/kiss_fft_int16.h"
 #endif
-#include "tensorflow/lite/micro/audio_frontend/src/complex.h"
-#include "tensorflow/lite/micro/audio_frontend/src/rfft.h"
+#include "signal/src/complex.h"
+#include "signal/src/rfft.h"
 
 namespace tflite {
 namespace tflm_signal {

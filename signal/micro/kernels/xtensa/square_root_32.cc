@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/audio_frontend/src/square_root.h"
+#include "signal/src/square_root.h"
 
 // Defined in square_root.S
 // Returns an uint32_t since register semantics aren't quite clear for xtensa
