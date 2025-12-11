@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_
 
 #include <cstddef>
-#include <initializer_list>
+#include <utility>
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
@@ -176,24 +176,20 @@ class MicroContext {
     uint8_t reserved1;  // reserved
     uint8_t reserved2;  // reserved
     uint8_t reserved3;  // reserved
-    tflite::DecodeState* (*func)(const TfLiteContext*, MicroProfilerInterface*);
+    tflite::DecodeState* (*create_state)(const TfLiteContext*,
+                                         MicroProfilerInterface*);
   };
 
-  // Set the custom DECODE operator registrations.
+  // Set the DECODE operator custom registrations.
   // Can only be called during the kInit state.
   virtual TfLiteStatus SetCustomDecodeRegistrations(
-      const std::initializer_list<CustomDecodeRegistration>& registrations) {
-    if (custom_decode_registrations_ != nullptr) {
-      return kTfLiteError;
-    }
-    custom_decode_registrations_ = &registrations;
-    return kTfLiteOk;
-  }
+      const CustomDecodeRegistration* registrations, size_t count);
 
   // Get the custom decompression registrations.
-  virtual const std::initializer_list<CustomDecodeRegistration>*
+  virtual const std::pair<const CustomDecodeRegistration*, size_t /*count*/>
   GetCustomDecodeRegistrations() const {
-    return custom_decode_registrations_;
+    return std::make_pair(custom_decode_registrations_,
+                          custom_decode_registrations_size_);
   }
 
  private:
@@ -202,8 +198,8 @@ class MicroContext {
   // array of size_t elements with length equal to decompress_regions_size_
   size_t* decompress_regions_allocations_ = nullptr;
 
-  const std::initializer_list<CustomDecodeRegistration>*
-      custom_decode_registrations_ = nullptr;
+  const CustomDecodeRegistration* custom_decode_registrations_ = nullptr;
+  size_t custom_decode_registrations_size_ = 0;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };

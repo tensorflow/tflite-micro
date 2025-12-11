@@ -108,7 +108,8 @@ TfLiteStatus ExecuteDecodeTest(
                                                          amr->size());
   }
   if (cdr != nullptr) {
-    runner.GetFakeMicroContext()->SetCustomDecodeRegistrations(*cdr);
+    runner.GetFakeMicroContext()->SetCustomDecodeRegistrations(cdr->begin(),
+                                                               cdr->size());
   }
 
   if (runner.InitAndPrepare() != kTfLiteOk || runner.Invoke() != kTfLiteOk) {
