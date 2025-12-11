@@ -182,8 +182,9 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryAfterInit) {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
                                          kAllocatorBufferSize);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
-    TF_LITE_MICRO_EXPECT_EQ(interpreter.SetDecompressionMemory(alt_mem),
-                            kTfLiteError);
+    TF_LITE_MICRO_EXPECT_EQ(
+        interpreter.SetDecompressionMemory(alt_mem.begin(), alt_mem.size()),
+        kTfLiteError);
   }
 }
 
@@ -208,8 +209,9 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryTooSmall) {
   {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
                                          kAllocatorBufferSize);
-    TF_LITE_MICRO_EXPECT_EQ(interpreter.SetDecompressionMemory(alt_mem),
-                            kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(
+        interpreter.SetDecompressionMemory(alt_mem.begin(), alt_mem.size()),
+        kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
@@ -269,8 +271,9 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemory) {
   {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
                                          kAllocatorBufferSize);
-    TF_LITE_MICRO_EXPECT_EQ(interpreter.SetDecompressionMemory(alt_mem),
-                            kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(
+        interpreter.SetDecompressionMemory(alt_mem.begin(), alt_mem.size()),
+        kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());

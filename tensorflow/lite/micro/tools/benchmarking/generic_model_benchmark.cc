@@ -13,12 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#if !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#endif  // !defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
+#include <array>
 #include <cstring>
-#include <initializer_list>
 #include <memory>
 #include <random>
 #include <type_traits>
@@ -246,9 +248,10 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
 #ifdef USE_ALT_DECOMPRESSION_MEM
   event_handle =
       profiler.BeginEvent("tflite::MicroInterpreter::SetDecompressionMemory");
-  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
-      alt_memory_region = {{g_alt_memory, kAltMemorySize}};
-  status = interpreter.SetDecompressionMemory(alt_memory_region);
+  tflite::MicroContext::AlternateMemoryRegion alt_memory_region[] = {
+      {g_alt_memory, kAltMemorySize}};
+  status = interpreter.SetDecompressionMemory(alt_memory_region,
+                                              std::size(alt_memory_region));
   if (status != kTfLiteOk) {
     MicroPrintf("tflite::MicroInterpreter::SetDecompressionMemory failed");
     return -1;
