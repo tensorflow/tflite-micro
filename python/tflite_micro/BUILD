@@ -94,7 +94,7 @@ py_test(
     deps = [
         ":runtime",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
     ],
@@ -116,7 +116,7 @@ py_test(
     deps = [
         ":runtime",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//tensorflow/lite/micro/compression",
     ],
 )

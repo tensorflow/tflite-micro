@@ -473,7 +473,8 @@ void LstmStepManager::UpdateBatch() {
 // Multi-batch for time_major input
 RuntimeShape LstmStepManager::InputShape() const {
   int batch_size = 1;
-  if (size_info_.time_major) {
+  if (size_info_.time_major ||
+      (size_info_.batch_size > 1 && size_info_.time_steps == 1)) {
     batch_size = size_info_.batch_size;
   }
   const int dims[2] = {batch_size, size_info_.input_dimension};
@@ -485,7 +486,8 @@ RuntimeShape LstmStepManager::InputShape() const {
 // Multi-batch for time_major input
 RuntimeShape LstmStepManager::StateShape() const {
   int batch_size = 1;
-  if (size_info_.time_major) {
+  if (size_info_.time_major ||
+      (size_info_.batch_size > 1 && size_info_.time_steps == 1)) {
     batch_size = size_info_.batch_size;
   }
   const int dims[2] = {batch_size, size_info_.state_dimension};

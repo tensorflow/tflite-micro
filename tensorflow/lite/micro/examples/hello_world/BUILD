@@ -50,7 +50,7 @@ py_binary(
     deps = [
         requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
     ],
 )
@@ -72,6 +72,6 @@ py_binary(
     srcs = ["train.py"],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
