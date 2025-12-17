@@ -20,9 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-namespace one_hot {
+namespace {
 
 constexpr int kIndicesTensor = 0;
 constexpr int kDepthTensor = 1;
@@ -154,7 +152,15 @@ TfLiteStatus ResizeOutputTensor(TfLiteContext* context,
   return kTfLiteOk;
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+void* OneHotInit(TfLiteContext* context, const char* buffer, size_t length) {
+  (void)context;
+  (void)buffer;
+  (void)length;
+  // This kernel does not require persistent op data.
+  return nullptr;
+}
+
+TfLiteStatus OneHotPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, node->inputs->size, 4);
   TF_LITE_ENSURE_EQ(context, node->outputs->size, 1);
 
@@ -193,7 +199,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return ResizeOutputTensor(context, op_context);
 }
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus OneHotEval(TfLiteContext* context, TfLiteNode* node) {
   OneHotContext op_context{context, node};
 
   switch (op_context.output->type) {
@@ -222,18 +228,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-}  // namespace one_hot
+}  // namespace
 
-// Implementation of Register_ONE_HOT declared in the header
-const TFLMRegistration* Register_ONE_HOT() {
-  static TFLMRegistration r = {};
-
-  r.prepare = one_hot::Prepare;
-  r.invoke = one_hot::Eval;
-
-  return &r;
+TFLMRegistration Register_ONE_HOT() {
+  return tflite::micro::RegisterOp(nullptr, OneHotPrepare, OneHotEval);
 }
 
-}  // namespace micro
-}  // namespace ops
 }  // namespace tflite

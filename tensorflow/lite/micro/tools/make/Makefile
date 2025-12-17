@@ -438,6 +438,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mirror_pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/neg.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/one_hot.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad_common.cc \
@@ -482,8 +483,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/one_hot.cc \
-
 
 MICROLITE_CC_SIGNAL_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
