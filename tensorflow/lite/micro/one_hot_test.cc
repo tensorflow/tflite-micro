@@ -5,15 +5,6 @@
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace tflite {
-namespace ops {
-namespace micro {
-
-const TFLMRegistration* Register_ONE_HOT();
-}  // namespace micro
-}  // namespace ops
-}  // namespace tflite
-
-namespace tflite {
 namespace testing {
 namespace {
 
@@ -52,9 +43,9 @@ void TestOneHot(const int* indices_dims, const int32_t* indices_data,
   int outputs_array_data[] = {1, 4};  // output tensor index
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  // tflite::ops::micro::Register_ONE_HOT)
-  const TFLMRegistration registration = *tflite::ops::micro::Register_ONE_HOT();
-  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+  // tflite::Register_ONE_HOT)
+  const TFLMRegistration* registration = tflite::Register_ONE_HOT();
+  micro::KernelRunner runner(*registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
 
