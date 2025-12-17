@@ -231,7 +231,7 @@ TfLiteStatus OneHotEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_ONE_HOT() {
-  return tflite::micro::RegisterOp(nullptr, OneHotPrepare, OneHotEval);
+  return tflite::micro::RegisterOp(OneHotInit, OneHotPrepare, OneHotEval);
 }
 
 }  // namespace tflite
