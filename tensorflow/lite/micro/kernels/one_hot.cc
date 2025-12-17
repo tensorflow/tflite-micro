@@ -86,7 +86,10 @@ void OneHotComputeImpl(const OneHotContext& op_context) {
       tflite::micro::GetTensorShape(op_context.indices);
   const int suffix_dim_size = indices_shape.FlatSize() / prefix_dim_size;
 
-  const int depth = *op_context.depth->data.i32;
+  const int32_t* depth_ptr =
+      tflite::micro::GetTensorData<int32_t>(op_context.depth);
+  if (depth_ptr == nullptr) return;
+  const int depth = *depth_ptr;
 
   const T on_value = *tflite::micro::GetTensorData<T>(op_context.on_value);
   const T off_value = *tflite::micro::GetTensorData<T>(op_context.off_value);
@@ -115,13 +118,14 @@ void OneHotCompute(const OneHotContext& op_context) {
   }
 }
 
-TfLiteStatus ResizeOutputTensor(TfLiteContext* context,
-                                const OneHotContext& op_context) {
-  TF_LITE_ENSURE(context, *op_context.depth->data.i32 >= 0);
-
+TfLiteStatus EnsureOutputDimsMatchExpected(TfLiteContext* context,
+                                           const OneHotContext& op_context) {
   // read depth data
-  const int depth_val =
-      *tflite::micro::GetTensorData<int32_t>(op_context.depth);
+  const int32_t* depth_ptr =
+      tflite::micro::GetTensorData<int32_t>(op_context.depth);
+  TF_LITE_ENSURE(context, depth_ptr != nullptr);
+
+  const int depth_val = *depth_ptr;
   TF_LITE_ENSURE(context, depth_val >= 0);
 
   // Output Tensor evaluation
@@ -143,8 +147,8 @@ TfLiteStatus ResizeOutputTensor(TfLiteContext* context,
       expected_dim_i = op_context.indices->dims->data[i - 1];
     }
 
-    // If the size pre-allocated by the TFLM compiler (Offline Memory Planner)
-    // does not match the actual computed size, an error is raised.
+    // If the size pre-allocated by the TFLM Memory Planner does not match the
+    // actual computed size, an error is raised.
     TF_LITE_ENSURE_EQ(context, op_context.output->dims->data[i],
                       expected_dim_i);
   }
@@ -196,7 +200,7 @@ TfLiteStatus OneHotPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Even if the depth tensor is not a constant, the test predefines the output
   // shape, so here we only perform validation.
-  return ResizeOutputTensor(context, op_context);
+  return EnsureOutputDimsMatchExpected(context, op_context);
 }
 
 TfLiteStatus OneHotEval(TfLiteContext* context, TfLiteNode* node) {
@@ -230,8 +234,10 @@ TfLiteStatus OneHotEval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
-TFLMRegistration Register_ONE_HOT() {
-  return tflite::micro::RegisterOp(OneHotInit, OneHotPrepare, OneHotEval);
+const TFLMRegistration* Register_ONE_HOT() {
+  static TFLMRegistration r =
+      tflite::micro::RegisterOp(OneHotInit, OneHotPrepare, OneHotEval);
+  return &r;
 }
 
 }  // namespace tflite

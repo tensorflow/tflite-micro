@@ -95,7 +95,7 @@ TFLMRegistration Register_MIRROR_PAD();
 TFLMRegistration Register_MUL();
 TFLMRegistration Register_NEG();
 TFLMRegistration Register_NOT_EQUAL();
-TFLMRegistration Register_ONE_HOT();
+TFLMRegistration* Register_ONE_HOT();
 TFLMRegistration Register_PACK();
 TFLMRegistration Register_PAD();
 TFLMRegistration Register_PADV2();
