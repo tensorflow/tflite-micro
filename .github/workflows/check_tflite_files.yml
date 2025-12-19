@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Check PR Modifies TfLite Files
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
 

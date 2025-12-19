@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Error Trap
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Run Reporting Script
         env:
           REPO: ${{ inputs.repo }}
