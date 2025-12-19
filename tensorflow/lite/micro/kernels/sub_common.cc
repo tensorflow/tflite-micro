@@ -49,15 +49,16 @@ TfLiteStatus CalculateOpDataSub(TfLiteContext* context, TfLiteSubParams* params,
     // accordingly. In case of 16-bit we have 65535 << 15 which is less than 1
     // << 31, therefore the addition will still fit in a 32 bit accumulator.
     data->left_shift = output->type == kTfLiteInt16 ? 15 : 20;
-    const float twice_max_input_scale =
-        2 * std::max(input1->params.scale, input2->params.scale);
+    const double twice_max_input_scale =
+        2 * static_cast<double>(
+                std::max(input1->params.scale, input2->params.scale));
     const double real_input1_multiplier =
-        static_cast<double>(input1->params.scale / twice_max_input_scale);
+        static_cast<double>(input1->params.scale) / twice_max_input_scale;
     const double real_input2_multiplier =
-        static_cast<double>(input2->params.scale / twice_max_input_scale);
+        static_cast<double>(input2->params.scale) / twice_max_input_scale;
     const double real_output_multiplier =
-        static_cast<double>(twice_max_input_scale /
-                            ((1 << data->left_shift) * output->params.scale));
+        twice_max_input_scale / (static_cast<double>(1 << data->left_shift) *
+                                 static_cast<double>(output->params.scale));
 
     QuantizeMultiplierSmallerThanOneExp(
         real_input1_multiplier, &data->input1_multiplier, &data->input1_shift);
