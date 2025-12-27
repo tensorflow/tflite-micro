@@ -1,0 +1,61 @@
+The unit test for the `add.cc` operator is located in `tensorflow/lite/micro/kernels/add_test.cc`. This file contains several test cases to ensure the correctness of the Add operator for different data types, shapes, and activation functions.
+
+Here is a summary of the tests covered:
+
+1.  **FloatAddNoActivation**:
+    -   Tests floating-point addition.
+    -   Inputs are 4D tensors with shape {1, 2, 2, 1}.
+    -   No activation function is applied.
+
+2.  **FloatAddActivationRelu1**:
+    -   Tests floating-point addition with ReLU1 activation.
+    -   The output is clamped between -1 and 1.
+
+3.  **FloatAddVariousInputShapes**:
+    -   Tests floating-point addition with various input shapes.
+    -   It iterates through a set of predefined shapes (1D, 2D, 3D, 4D) to ensure the operator handles different dimensions correctly.
+
+4.  **FloatAddWithScalarBroadcast**:
+    -   Tests floating-point addition where one input is a scalar.
+    -   This verifies the broadcasting capability where a scalar value is added to every element of a tensor.
+
+5.  **Int32AddNoActivation**:
+    -   Tests 32-bit integer addition.
+    -   It checks for correct handling of large integer values and potential overflows/underflows (though standard add behavior is expected).
+
+6.  **QuantizedAddNoActivationInt8**:
+    -   Tests 8-bit quantized integer addition.
+    -   It involves quantization parameters (scales and zero points) for inputs and output.
+    -   No activation function.
+
+7.  **QuantizedAddActivationRelu1Int8**:
+    -   Tests 8-bit quantized integer addition with ReLU1 activation.
+    -   Verifies that the quantized output is correctly clamped.
+
+8.  **QuantizedAddVariousInputShapesInt8**:
+    -   Tests 8-bit quantized integer addition across various input shapes, similar to the float version.
+
+9.  **QuantizedAddWithScalarBroadcastFloat**:
+    -   Despite the name, this test appears to verify broadcasting logic using float values against golden results that are used for broadcast tests. It calls `TestAddFloat`. It iterates through complex broadcast shapes.
+
+10. **QuantizedAddWithScalarBroadcastInt8**:
+    -   Tests 8-bit quantized integer addition with scalar broadcasting.
+
+11. **QuantizedAddWithMixedBroadcastInt8**:
+    -   Tests 8-bit quantized integer addition with mixed broadcasting (where inputs have different shapes but are broadcast-compatible).
+
+12. **QuantizedAddNoActivationInt16**:
+    -   Tests 16-bit quantized integer addition.
+    -   Similar to Int8 tests but with `int16_t` data type.
+
+13. **QuantizedAddActivationRelu1Int16**:
+    -   Tests 16-bit quantized integer addition with ReLU1 activation.
+
+14. **QuantizedAddVariousInputShapesInt16**:
+    -   Tests 16-bit quantized integer addition with various input shapes.
+
+15. **QuantizedAddWithScalarBroadcastInt16**:
+    -   Tests 16-bit quantized integer addition with scalar broadcasting.
+
+16. **QuantizedAddWithMixedBroadcastInt16**:
+    -   Tests 16-bit quantized integer addition with mixed broadcasting.
