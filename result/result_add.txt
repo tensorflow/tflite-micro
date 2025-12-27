@@ -1,0 +1,18 @@
+Testing FloatAddNoActivation
+Testing FloatAddActivationRelu1
+Testing FloatAddVariousInputShapes
+Testing FloatAddWithScalarBroadcast
+Testing Int32AddNoActivation
+Testing QuantizedAddNoActivationInt8
+Testing QuantizedAddActivationRelu1Int8
+Testing QuantizedAddVariousInputShapesInt8
+Testing QuantizedAddWithScalarBroadcastFloat
+Testing QuantizedAddWithScalarBroadcastInt8
+Testing QuantizedAddWithMixedBroadcastInt8
+Testing QuantizedAddNoActivationInt16
+Testing QuantizedAddActivationRelu1Int16
+Testing QuantizedAddVariousInputShapesInt16
+Testing QuantizedAddWithScalarBroadcastInt16
+Testing QuantizedAddWithMixedBroadcastInt16
+16/16 tests passed
+~~~ALL TESTS PASSED~~~
