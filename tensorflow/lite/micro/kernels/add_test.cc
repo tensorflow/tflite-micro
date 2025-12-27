@@ -192,6 +192,19 @@ TF_LITE_MICRO_TEST(FloatAddActivationRelu1) {
                                 kTfLiteActReluN1To1, output_data);
 }
 
+TF_LITE_MICRO_TEST(FloatAddActivationRelu) {
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const float input1_values[] = {-2.0, 0.2, 0.7, 0.8};
+  const float input2_values[] = {0.1, 0.2, 0.3, 0.5};
+  const float golden_values[] = {0.0, 0.4, 1.0, 1.3};
+
+  constexpr int kOutputDimsCount = 4;
+  float output_data[kOutputDimsCount];
+  tflite::testing::TestAddFloat(inout_shape, input1_values, inout_shape,
+                                input2_values, inout_shape, golden_values,
+                                kTfLiteActRelu, output_data);
+}
+
 TF_LITE_MICRO_TEST(FloatAddVariousInputShapes) {
   constexpr int kOutputDimsCount = 6;
   float output_data[kOutputDimsCount];
