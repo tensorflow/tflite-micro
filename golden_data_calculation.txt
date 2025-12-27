@@ -1,0 +1,36 @@
+Explanation of Golden Data Calculation for FloatAddActivationRelu
+
+The `FloatAddActivationRelu` test case verifies the addition operator with a ReLU activation function.
+The expected "golden" values were calculated manually based on the mathematical definition of the operation.
+
+**Operation:**
+Output = ReLU(Input1 + Input2)
+ReLU(x) = max(0, x)
+
+**Inputs:**
+Input 1: {-2.0, 0.2, 0.7, 0.8}
+Input 2: { 0.1, 0.2, 0.3, 0.5}
+
+**Step-by-Step Calculation:**
+
+1.  **Index 0:**
+    *   Addition: -2.0 + 0.1 = -1.9
+    *   Activation: max(0, -1.9) = 0.0
+
+2.  **Index 1:**
+    *   Addition: 0.2 + 0.2 = 0.4
+    *   Activation: max(0, 0.4) = 0.4
+
+3.  **Index 2:**
+    *   Addition: 0.7 + 0.3 = 1.0
+    *   Activation: max(0, 1.0) = 1.0
+
+4.  **Index 3:**
+    *   Addition: 0.8 + 0.5 = 1.3
+    *   Activation: max(0, 1.3) = 1.3
+
+**Resulting Golden Values:**
+{0.0, 0.4, 1.0, 1.3}
+
+These are the values used in the test case:
+`const float golden_values[] = {0.0, 0.4, 1.0, 1.3};`
