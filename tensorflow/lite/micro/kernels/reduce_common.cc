@@ -29,7 +29,7 @@ limitations under the License.
 namespace tflite {
 
 const int kMaxNumberOfAxis = 5;
-const int kMaxNumberOfReducedAxis = 2;
+const int kMaxNumberOfReducedAxis = 3;
 
 namespace {
 
