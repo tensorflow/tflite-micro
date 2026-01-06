@@ -81,8 +81,8 @@ metadata->subgraphs.push_back(std::move(subgraph0));
 flatbuffers::FlatBufferBuilder builder;
 auto root = Metadata::Pack(builder, metadata.get());
 builder.Finish(root);
-auto flatbuffer = tflite::Span<const std::byte>{
-    reinterpret_cast<const std::byte*>(builder.GetBufferPointer()),
+auto flatbuffer = tflite::Span<const uint8_t>{
+    reinterpret_cast<const uint8_t*>(builder.GetBufferPointer()),
     builder.GetSize()};
 
 TF_LITE_MICRO_TEST(ReadbackEqualsWrite) {

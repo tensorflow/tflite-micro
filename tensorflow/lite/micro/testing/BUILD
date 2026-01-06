@@ -1,13 +1,13 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
+    "//tensorflow:extra_rules.bzl",
+    "tflm_kernel_friends",
+)
+load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
     "tflm_cc_test",
-)
-load(
-    "//tensorflow:extra_rules.bzl",
-    "tflm_kernel_friends",
 )
 
 package(
@@ -82,7 +82,7 @@ py_library(
     ],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -94,8 +94,8 @@ py_binary(
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
     deps = [
-        "@absl_py//absl:app",
+        requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )

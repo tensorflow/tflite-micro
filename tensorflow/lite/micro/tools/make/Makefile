@@ -183,7 +183,6 @@ ifeq ($(TARGET), $(HOST_OS))
 endif
 
 CXXFLAGS := \
-  -std=c++17 \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
@@ -192,7 +191,6 @@ CXXFLAGS := \
 
 CCFLAGS := \
   -Wimplicit-function-declaration \
-  -std=c17 \
   $(COMMON_FLAGS)
 
 ARFLAGS := -r
@@ -258,6 +256,14 @@ else ifeq ($(BUILD_TYPE), no_tf_lite_static_memory)
 	# https://github.com/tensorflow/tensorflow/issues/43076
 	CXXFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CXXFLAGS))
 	CCFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CCFLAGS))
+endif
+
+ifeq ($(CC_VER11), true)
+  CXXFLAGS+=-std=c++11
+  CCFLAGS+=-std=c11
+else
+  CXXFLAGS+=-std=c++17
+  CCFLAGS+=-std=c17
 endif
 
 # This library is the main target for this makefile. It will contain a minimal
@@ -333,6 +339,7 @@ $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark
 MICROLITE_TEST_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/fake_micro_context_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/hexdump_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_helpers_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
@@ -379,6 +386,11 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/concatenation.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_huffman.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space.cc \
@@ -388,6 +400,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/detection_postprocess.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dynamic_update_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup.cc \
@@ -440,6 +453,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_bilinear.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reverse.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape.cc \

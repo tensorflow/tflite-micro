@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 py_library(
@@ -6,7 +7,7 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "@flatbuffers//:runtime_py",
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
     ],
@@ -17,7 +18,7 @@ py_library(
     srcs = ["test_utils.py"],
     deps = [
         "@flatbuffers//:runtime_py",
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//tensorflow/lite/python:schema_py",
     ],
 )
@@ -27,8 +28,7 @@ py_binary(
     srcs = ["strip_strings.py"],
     deps = [
         ":flatbuffer_utils",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
+        requirement("absl_py"),
     ],
 )
 
@@ -48,7 +48,7 @@ py_test(
     deps = [
         ":flatbuffer_utils",
         ":test_utils",
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -58,6 +58,6 @@ py_test(
     deps = [
         ":test_utils",
         ":visualize",
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )

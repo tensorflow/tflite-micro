@@ -1,12 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "tflm_cc_library",
-    "tflm_cc_test",
-    "tflm_copts",
-    "tflm_kernel_cc_library",
-)
-load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
     "xtensa_fusion_f1_config",
@@ -14,6 +7,13 @@ load(
     "xtensa_hifi_3z_config",
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
+)
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+    "tflm_copts",
+    "tflm_kernel_cc_library",
 )
 
 package(
@@ -69,6 +69,20 @@ tflm_cc_library(
     ],
     hdrs = [
         "conv_test.h",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":micro_ops",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_library(
+    name = "decode_test_helpers",
+    hdrs = [
+        "decode_test_helpers.h",
     ],
     deps = [
         ":kernel_runner",
@@ -236,6 +250,11 @@ tflm_kernel_cc_library(
         "conv.cc",
         "conv_common.cc",
         "cumsum.cc",
+        "decode.cc",
+        "decode_state.cc",
+        "decode_state_huffman.cc",
+        "decode_state_lut.cc",
+        "decode_state_prune.cc",
         "depth_to_space.cc",
         "depthwise_conv.cc",
         "depthwise_conv_common.cc",
@@ -243,6 +262,7 @@ tflm_kernel_cc_library(
         "dequantize_common.cc",
         "detection_postprocess.cc",
         "div.cc",
+        "dynamic_update_slice.cc",
         "elementwise.cc",
         "elu.cc",
         "embedding_lookup.cc",
@@ -292,6 +312,7 @@ tflm_kernel_cc_library(
         "reshape_common.cc",
         "resize_bilinear.cc",
         "resize_nearest_neighbor.cc",
+        "reverse.cc",
         "round.cc",
         "select.cc",
         "shape.cc",
@@ -326,8 +347,13 @@ tflm_kernel_cc_library(
         "batch_matmul.h",
         "circular_buffer.h",
         "conv.h",
+        "decode_state.h",
+        "decode_state_huffman.h",
+        "decode_state_lut.h",
+        "decode_state_prune.h",
         "depthwise_conv.h",
         "dequantize.h",
+        "dynamic_update_slice.h",
         "ethosu.h",
         "fully_connected.h",
         "hard_swish.h",
@@ -643,6 +669,70 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
+    name = "decode_state_huffman_test",
+    srcs = [
+        "decode_state_huffman_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_state_lut_test",
+    srcs = [
+        "decode_state_lut_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_state_prune_test",
+    srcs = [
+        "decode_state_prune_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "decode_test",
+    srcs = [
+        "decode_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "decompress_test",
     srcs = [
         "decompress_test.cc",
@@ -731,6 +821,21 @@ tflm_cc_test(
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "dynamic_update_slice_test",
+    srcs = [
+        "dynamic_update_slice_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
@@ -1214,6 +1319,20 @@ tflm_cc_test(
     name = "resize_nearest_neighbor_test",
     srcs = [
         "resize_nearest_neighbor_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "reverse_test",
+    srcs = [
+        "reverse_test.cc",
     ],
     deps = [
         ":kernel_runner",

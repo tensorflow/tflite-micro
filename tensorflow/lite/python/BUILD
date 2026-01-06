@@ -1,4 +1,5 @@
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_py_library")
+load("@rules_python//python:defs.bzl", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 package(
@@ -19,6 +20,6 @@ py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("flatbuffers"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )

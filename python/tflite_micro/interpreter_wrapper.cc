@@ -28,6 +28,7 @@ limitations under the License.
 #include <numpy/arrayobject.h>
 #include <pybind11/pybind11.h>
 
+#include "python/tflite_micro/compression_utils.h"
 #include "python/tflite_micro/numpy_utils.h"
 #include "python/tflite_micro/pybind11_lib.h"
 #include "python/tflite_micro/python_ops_resolver.h"
@@ -255,6 +256,16 @@ InterpreterWrapper::InterpreterWrapper(
 
   const Model* model = GetModel(buf);
   model_ = model_data;
+
+  // Check if the model has compression metadata but compression is not
+  // supported
+  if (!IsCompressionSupported() && HasCompressionMetadata(*model)) {
+    ThrowRuntimeError(
+        "Model contains compressed tensors but the interpreter was not "
+        "built with compression support. Please build the Python wheel with "
+        "--//:with_compression=true to enable compression support.");
+  }
+
   memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
   for (const std::string& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(),

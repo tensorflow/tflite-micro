@@ -46,9 +46,9 @@ py_binary(
         "lstm_test_data_utils.py",
     ],
     deps = [
-        "@absl_py//absl:app",
+        requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 

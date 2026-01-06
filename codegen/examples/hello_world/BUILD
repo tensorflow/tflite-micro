@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("//codegen:build_def.bzl", "tflm_inference_library")
 
 package(default_visibility = ["//visibility:public"])

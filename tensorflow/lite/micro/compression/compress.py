@@ -19,7 +19,9 @@ See USAGE.
 import bitarray
 import bitarray.util
 from dataclasses import dataclass, field
+import os
 import sys
+import tempfile
 from typing import ByteString, Iterable, Optional
 
 import absl.app
@@ -30,6 +32,7 @@ import numpy as np
 from tflite_micro.tensorflow.lite.micro.compression import model_facade
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
+from tflite_micro.tensorflow.lite.micro.tools import tflite_flatbuffer_align_wrapper
 
 USAGE = f"""\
 Usage: compress.py --input <in.tflite> --spec <spec.yaml> [--output <out.tflite>]
@@ -250,6 +253,43 @@ def _pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytearray:
   return buffer
 
 
+def _apply_flatbuffer_alignment(model_bytes: bytearray) -> bytearray:
+  """Applies proper FlatBuffer alignment to a model.
+  
+  The Python flatbuffers library doesn't respect `force_align` schema attributes,
+  so we use the C++ wrapper which properly handles alignment requirements.
+  
+  Args:
+    model_bytes: The model flatbuffer to align
+    
+  Returns:
+    The properly aligned model flatbuffer
+  """
+  # C++ wrapper requires file paths, not byte buffers
+  with tempfile.NamedTemporaryFile(suffix='.tflite', delete=False) as temp_in:
+    temp_in.write(model_bytes)
+    temp_in_path = temp_in.name
+
+  with tempfile.NamedTemporaryFile(suffix='.tflite', delete=False) as temp_out:
+    temp_out_path = temp_out.name
+
+  try:
+    # Unpack and repack with proper alignment
+    tflite_flatbuffer_align_wrapper.align_tflite_model(temp_in_path,
+                                                       temp_out_path)
+
+    with open(temp_out_path, 'rb') as f:
+      aligned_model = bytearray(f.read())
+
+    return aligned_model
+  finally:
+    # Clean up temporary files
+    if os.path.exists(temp_in_path):
+      os.unlink(temp_in_path)
+    if os.path.exists(temp_out_path):
+      os.unlink(temp_out_path)
+
+
 def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
   """Compresses a model .tflite flatbuffer.
 
@@ -291,7 +331,9 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
   # add compression metadata to model
   model.add_metadata(TFLITE_METADATA_KEY, metadata.compile())
 
-  return model.compile()
+  # Compile the model and apply proper alignment
+  unaligned_model = model.compile()
+  return _apply_flatbuffer_alignment(unaligned_model)
 
 
 def _fail_w_usage() -> int:

@@ -339,14 +339,9 @@ TfLiteStatus MicroInterpreter::SetAlternateProfiler(
   return micro_context_.SetAlternateProfiler(alt_profiler);
 }
 
-#ifdef USE_TFLM_COMPRESSION
-
 TfLiteStatus MicroInterpreter::SetDecompressionMemory(
-    const std::initializer_list<MicroInterpreterContext::AlternateMemoryRegion>&
-        regions) {
-  return micro_context_.SetDecompressionMemory(regions);
+    const MicroContext::AlternateMemoryRegion* regions, size_t count) {
+  return micro_context_.SetDecompressionMemory(regions, count);
 }
-
-#endif  // USE_TFLM_COMPRESSION
 
 }  // namespace tflite

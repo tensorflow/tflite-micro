@@ -1,4 +1,4 @@
-/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,10 +53,12 @@ TFLMRegistration Register_CONCATENATION();
 TFLMRegistration Register_CONV_2D();
 TFLMRegistration Register_COS();
 TFLMRegistration Register_CUMSUM();
+TFLMRegistration Register_DECODE();
 TFLMRegistration Register_DEPTH_TO_SPACE();
 TFLMRegistration Register_DEPTHWISE_CONV_2D();
 TFLMRegistration Register_DEQUANTIZE();
 TFLMRegistration Register_DIV();
+TFLMRegistration Register_DYNAMIC_UPDATE_SLICE();
 TFLMRegistration Register_ELU();
 TFLMRegistration Register_EMBEDDING_LOOKUP();
 TFLMRegistration Register_EQUAL();
@@ -100,11 +102,13 @@ TFLMRegistration Register_PRELU();
 TFLMRegistration Register_QUANTIZE();
 TFLMRegistration Register_READ_VARIABLE();
 TFLMRegistration Register_REDUCE_MAX();
+TFLMRegistration Register_REDUCE_MIN();
 TFLMRegistration Register_RELU();
 TFLMRegistration Register_RELU6();
 TFLMRegistration Register_RESHAPE();
 TFLMRegistration Register_RESIZE_BILINEAR();
 TFLMRegistration Register_RESIZE_NEAREST_NEIGHBOR();
+TFLMRegistration Register_REVERSE_V2();
 TFLMRegistration Register_ROUND();
 TFLMRegistration Register_RSQRT();
 TFLMRegistration Register_SELECT_V2();

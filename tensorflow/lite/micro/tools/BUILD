@@ -1,7 +1,8 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
 
 package(
@@ -55,7 +56,7 @@ py_binary(
     deps = [
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
-        "@absl_py//absl:app",
+        requirement("absl_py"),
     ],
 )
 
@@ -71,7 +72,7 @@ py_test(
     deps = [
         ":requantize_flatbuffer",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
     ],
 )
@@ -96,7 +97,7 @@ py_binary(
         ":tflite_flatbuffer_align_wrapper.so",
     ],
     deps = [
-        "@absl_py//absl:app",
+        requirement("absl_py"),
     ],
 )
 
@@ -129,9 +130,9 @@ py_library(
     ],
     deps = [
         ":model_transforms_utils",
-        "@absl_py//absl/logging",
+        requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
@@ -164,9 +165,7 @@ py_binary(
     srcs = ["tflm_model_transforms.py"],
     deps = [
         ":tflm_model_transforms_lib",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
-        "@absl_py//absl/logging",
+        requirement("absl_py"),
     ],
 )
 
@@ -184,8 +183,8 @@ py_test(
     ],
     deps = [
         ":tflm_model_transforms_lib",
-        "@absl_py//absl/testing:parameterized",
-        requirement("tensorflow"),
+        requirement("absl_py"),
+        requirement("tensorflow-cpu"),
         "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
 )
@@ -196,9 +195,8 @@ py_binary(
     deps = [
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
-        requirement("tensorflow"),
+        requirement("absl_py"),
+        requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],
