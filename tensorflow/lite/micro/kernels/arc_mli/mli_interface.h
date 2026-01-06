@@ -33,7 +33,7 @@ class MliTensorInterface {
  public:
   // Make sure that lifetime of MliTensorInterface instance isn't bigger than
   // related mli_tensor.
-  MliTensorInterface(mli_tensor* tensor) : tensor_(tensor){};
+  MliTensorInterface(mli_tensor* tensor) : tensor_(tensor) {};
   MliTensorInterface() = default;
   ~MliTensorInterface() = default;
 

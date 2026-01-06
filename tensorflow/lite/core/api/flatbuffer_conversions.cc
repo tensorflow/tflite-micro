@@ -269,6 +269,11 @@ TfLiteStatus ParseOpDataTfLite(const Operator* op, BuiltinOperator op_type,
       return ParseDiv(op, error_reporter, allocator, builtin_data);
     }
 
+    case BuiltinOperator_DYNAMIC_UPDATE_SLICE: {
+      return ParseDynamicUpdateSlice(op, error_reporter, allocator,
+                                     builtin_data);
+    }
+
     case BuiltinOperator_ELU: {
       return ParseElu(op, error_reporter, allocator, builtin_data);
     }
@@ -468,6 +473,10 @@ TfLiteStatus ParseOpDataTfLite(const Operator* op, BuiltinOperator op_type,
     case BuiltinOperator_RESIZE_NEAREST_NEIGHBOR: {
       return ParseResizeNearestNeighbor(op, error_reporter, allocator,
                                         builtin_data);
+    }
+
+    case BuiltinOperator_REVERSE_V2: {
+      return ParseReverseV2(op, error_reporter, allocator, builtin_data);
     }
 
     case BuiltinOperator_ROUND: {
@@ -983,7 +992,6 @@ TfLiteStatus ParseOpDataTfLite(const Operator* op, BuiltinOperator op_type,
     case BuiltinOperator_COS:
     case BuiltinOperator_CUSTOM:
     case BuiltinOperator_DENSIFY:
-    case BuiltinOperator_DYNAMIC_UPDATE_SLICE:
     case BuiltinOperator_EQUAL:
     case BuiltinOperator_HASHTABLE_FIND:
     case BuiltinOperator_HASHTABLE_IMPORT:
@@ -1006,7 +1014,6 @@ TfLiteStatus ParseOpDataTfLite(const Operator* op, BuiltinOperator op_type,
     case BuiltinOperator_REAL:
     case BuiltinOperator_RFFT2D:
     case BuiltinOperator_SEGMENT_SUM:
-    case BuiltinOperator_REVERSE_V2:
     case BuiltinOperator_UNSORTED_SEGMENT_MAX:
     case BuiltinOperator_UNSORTED_SEGMENT_MIN:
     case BuiltinOperator_UNSORTED_SEGMENT_PROD:
@@ -1084,6 +1091,9 @@ TfLiteStatus ConvertTensorType(TensorType tensor_type, TfLiteType* type,
       return kTfLiteOk;
     case TensorType_INT4:
       *type = kTfLiteInt4;
+      return kTfLiteOk;
+    case TensorType_INT2:
+      *type = kTfLiteInt2;
       return kTfLiteOk;
     default:
       *type = kTfLiteNoType;
@@ -1460,6 +1470,14 @@ TfLiteStatus ParseDiv(const Operator* op, ErrorReporter* error_reporter,
         ConvertActivation(schema_params->fused_activation_function());
   }
   *builtin_data = params.release();
+  return kTfLiteOk;
+}
+
+// We have this parse function instead of directly returning kTfLiteOk from the
+// switch-case in ParseOpData because this function is used as part of the
+// selective registration for the OpResolver implementation in micro.
+TfLiteStatus ParseDynamicUpdateSlice(const Operator*, ErrorReporter*,
+                                     BuiltinDataAllocator*, void**) {
   return kTfLiteOk;
 }
 
@@ -2465,6 +2483,14 @@ TfLiteStatus ParseStablehloCase(const Operator* op,
   TF_LITE_REPORT_ERROR(error_reporter,
                        "Could not get 'stablehlo.case' operation parameters.");
   return kTfLiteError;
+}
+
+// We have this parse function instead of directly returning kTfLiteOk from the
+// switch-case in ParseOpData because this function is used as part of the
+// selective registration for the OpResolver implementation in micro.
+TfLiteStatus ParseReverseV2(const Operator*, ErrorReporter*,
+                            BuiltinDataAllocator*, void**) {
+  return kTfLiteOk;
 }
 
 // We have this parse function instead of directly returning kTfLiteOk from the

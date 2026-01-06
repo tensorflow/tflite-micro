@@ -19,6 +19,13 @@ load("//tensorflow:workspace.bzl", "workspace")
 
 workspace()
 
+# init for rules_shell
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
+
+rules_shell_dependencies()
+
+rules_shell_toolchains()
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # compile_commands.json generator
@@ -94,7 +101,7 @@ py_pkg_cc_deps(
     name = "tensorflow_cc_deps",
     includes = ["tensorflow/include"],
     libs = ["tensorflow/libtensorflow_framework.so.2"],
-    pkg = requirement("tensorflow"),
+    pkg = requirement("tensorflow-cpu"),
 )
 
 # Optimized kernel deps

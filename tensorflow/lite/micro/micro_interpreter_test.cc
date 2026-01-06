@@ -182,8 +182,9 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryAfterInit) {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
                                          kAllocatorBufferSize);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
-    TF_LITE_MICRO_EXPECT_EQ(interpreter.SetDecompressionMemory(alt_mem),
-                            kTfLiteError);
+    TF_LITE_MICRO_EXPECT_EQ(
+        interpreter.SetDecompressionMemory(alt_mem.begin(), alt_mem.size()),
+        kTfLiteError);
   }
 }
 
@@ -208,8 +209,9 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryTooSmall) {
   {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
                                          kAllocatorBufferSize);
-    TF_LITE_MICRO_EXPECT_EQ(interpreter.SetDecompressionMemory(alt_mem),
-                            kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(
+        interpreter.SetDecompressionMemory(alt_mem.begin(), alt_mem.size()),
+        kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
@@ -269,8 +271,9 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemory) {
   {
     tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
                                          kAllocatorBufferSize);
-    TF_LITE_MICRO_EXPECT_EQ(interpreter.SetDecompressionMemory(alt_mem),
-                            kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(
+        interpreter.SetDecompressionMemory(alt_mem.begin(), alt_mem.size()),
+        kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteOk);
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.inputs_size());
     TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1), interpreter.outputs_size());
@@ -776,6 +779,37 @@ TF_LITE_MICRO_TEST(TestGetTensorFailsNoLinearMemoryPlanner) {
   // to initialize it. preserve_all_tensors() getter should also return false
   TF_LITE_MICRO_EXPECT_EQ(interpreter.preserve_all_tensors(), false);
   TF_LITE_MICRO_EXPECT(interpreter.GetTensor(0) == nullptr);
+}
+
+TF_LITE_MICRO_TEST(TestDynamicTensorFails) {
+  tflite::testing::TestingOpResolver op_resolver;
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
+                          tflite::testing::GetTestingOpResolver(op_resolver));
+
+  constexpr size_t kAllocatorBufferSize = 2000;
+  uint8_t allocator_buffer[kAllocatorBufferSize];
+
+  // Use a new scope for each MicroInterpreter
+  {
+    // test with 0 in shape
+    const tflite::Model* model =
+        tflite::testing::GetNoOpModelWithTensorShape({3, 2, 0});
+    TF_LITE_MICRO_EXPECT(nullptr != model);
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         kAllocatorBufferSize);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteError);
+  }
+
+  // Use a new scope for each MicroInterpreter
+  {
+    // test with -1 in shape
+    const tflite::Model* model =
+        tflite::testing::GetNoOpModelWithTensorShape({3, 2, -1});
+    TF_LITE_MICRO_EXPECT(nullptr != model);
+    tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
+                                         kAllocatorBufferSize);
+    TF_LITE_MICRO_EXPECT_EQ(interpreter.AllocateTensors(), kTfLiteError);
+  }
 }
 
 TF_LITE_MICRO_TESTS_END

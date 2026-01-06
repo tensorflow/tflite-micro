@@ -77,10 +77,14 @@ MICROLITE_CC_SRCS := $(filter-out $(EXCLUDED_SRCS), $(MICROLITE_CC_SRCS))
 # which use std::vector constructor which then invokes new.
 # Excludes memory_arena_threshold_test because the size difference of some
 # allocator classes between different architectures.
+# Excludes hexdump_test because it fails in release model when MicroVsnprintf
+# isn't defined.
 # TODO(b/158651472): Fix the memory_arena_threshold_test
+# TODO(b/b/410801324): Fix hexdump_test for Bluepill
 EXCLUDED_TESTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/hexdump_test.cc
 
 # flatbuffer_utils_test is intentionaly disabled because the flexbuffer builder
 # uses dynamic memory.

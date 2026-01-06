@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -484,7 +484,7 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestKeepDims) {
   int input_shape[] = {3, 1, 3, 2};
   const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
   int axis_shape[] = {1, 1};
-  const int32_t axis_data[] = {1, 1};
+  const int32_t axis_data[] = {1};
   int output_shape[] = {1, 2};
   const float expected_output_data[] = {0.5, 0.6};
 
@@ -508,7 +508,7 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestWithoutKeepDims) {
   int input_shape[] = {3, 1, 3, 2};
   const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
   int axis_shape[] = {1, 1};
-  const int32_t axis_data[] = {1, 1};
+  const int32_t axis_data[] = {1};
   int output_shape[] = {1, 2};
   const float expected_output_data[] = {0.5, 0.6};
 
@@ -528,6 +528,92 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestWithoutKeepDims) {
       axis_shape, axis_data, output_shape, expected_output_data,
       output_data_quant, expected_output_data_quant, output_scale, output_zp,
       tflite::Register_REDUCE_MAX(), &params);
+}
+
+TF_LITE_MICRO_TEST(FloatMinOpTestNotKeepDims) {
+  int input_shape[] = {3, 4, 3, 2};
+  const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                              9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+                              17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0};
+  int axis_shape[] = {1, 4};
+  const int32_t axis_data[] = {1, 0, -3, -3};
+  int output_shape[] = {1, 2};
+  const float expected_output_data[] = {1, 2};
+  float output_data[2];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
+      expected_output_data, tflite::Register_REDUCE_MIN(), &params);
+}
+
+TF_LITE_MICRO_TEST(FloatMinOpTestKeepDims) {
+  int input_shape[] = {3, 4, 3, 2};
+  const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
+                              9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+                              17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0};
+  int axis_shape[] = {1, 2};
+  const int32_t axis_data[] = {0, 2};
+  int output_shape[] = {1, 3};
+  const float expected_output_data[] = {1, 3, 5};
+  float output_data[3];
+
+  TfLiteReducerParams params = {true};
+
+  tflite::testing::TestReduceOpFloat(
+      input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
+      expected_output_data, tflite::Register_REDUCE_MIN(), &params);
+}
+
+TF_LITE_MICRO_TEST(Int8MinOpTestKeepDims) {
+  int input_shape[] = {3, 1, 3, 2};
+  const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
+  int axis_shape[] = {1, 1};
+  const int32_t axis_data[] = {1};
+  int output_shape[] = {1, 2};
+  const float expected_output_data[] = {0.3, 0.2};
+
+  float input_scale = 2 / 255.0;
+  int input_zp = 0;
+
+  TfLiteReducerParams params = {true};
+
+  int8_t input_data_quant[6];
+  int8_t output_data_quant[2];
+  int8_t expected_output_data_quant[2];
+
+  tflite::testing::TestReduceOpQuantized<int8_t>(
+      input_shape, input_data, input_data_quant, input_scale, input_zp,
+      axis_shape, axis_data, output_shape, expected_output_data,
+      output_data_quant, expected_output_data_quant, input_scale, input_zp,
+      tflite::Register_REDUCE_MIN(), &params);
+}
+
+TF_LITE_MICRO_TEST(Int8MinOpTestWithoutKeepDims) {
+  int input_shape[] = {3, 1, 3, 2};
+  const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
+  int axis_shape[] = {1, 1};
+  const int32_t axis_data[] = {1};
+  int output_shape[] = {1, 2};
+  const float expected_output_data[] = {0.3, 0.2};
+
+  float input_scale = 2 / 255.0;
+  int input_zp = 0;
+  float output_scale = 2 / 255.0;
+  int output_zp = 0;
+
+  TfLiteReducerParams params = {false};
+
+  int8_t input_data_quant[6];
+  int8_t output_data_quant[2];
+  int8_t expected_output_data_quant[2];
+
+  tflite::testing::TestReduceOpQuantized<int8_t>(
+      input_shape, input_data, input_data_quant, input_scale, input_zp,
+      axis_shape, axis_data, output_shape, expected_output_data,
+      output_data_quant, expected_output_data_quant, output_scale, output_zp,
+      tflite::Register_REDUCE_MIN(), &params);
 }
 
 TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {

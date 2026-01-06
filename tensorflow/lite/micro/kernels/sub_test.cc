@@ -1,4 +1,4 @@
-/* Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -104,6 +104,29 @@ void TestSubFloat(int* input1_dims_data, const float* input1_data,
   ValidateSubGoldens(tensors, tensors_size, expected_output, output_data,
                      ElementCount(*output_dims), activation);
 }
+
+#if !defined(XTENSA)
+void TestSubInt32(int* input1_dims_data, const int32_t* input1_data,
+                  int* input2_dims_data, const int32_t* input2_data,
+                  int* output_dims_data, const int32_t* expected_output,
+                  TfLiteFusedActivation activation, int32_t* output_data) {
+  TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
+  TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input1_data, input1_dims),
+      CreateTensor(input2_data, input2_dims),
+      CreateTensor(output_data, output_dims),
+  };
+
+  ValidateSubGoldens(tensors, tensors_size, expected_output, output_data,
+                     ElementCount(*output_dims), activation);
+}
+#endif
 
 template <typename T>
 void TestSubQuantized(int* input1_dims_data, const float* input1_data,
@@ -218,6 +241,20 @@ TF_LITE_MICRO_TEST(FloatSubWithScalarBroadcast) {
                                   expected_output, kTfLiteActNone, output_data);
   }
 }
+
+#if !defined(XTENSA)
+TF_LITE_MICRO_TEST(Int32SubNoActivation) {
+  int inout_shape[] = {4, 1, 2, 2, 1};
+  const int32_t input1_values[] = {-2, 2147483646, -1, 1146622854};
+  const int32_t input2_values[] = {3, 1, -2147483647, -726978367};
+  const int32_t golden_values[] = {-5, 2147483645, 2147483646, 1873601221};
+  const int kOutputDimsCount = 4;
+  int32_t output_data[kOutputDimsCount];
+  tflite::testing::TestSubInt32(inout_shape, input1_values, inout_shape,
+                                input2_values, inout_shape, golden_values,
+                                kTfLiteActNone, output_data);
+}
+#endif
 
 TF_LITE_MICRO_TEST(QuantizedSubNoActivationInt8) {
   const float scales[] = {0.25, 0.5, 1.0};

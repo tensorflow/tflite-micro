@@ -28,6 +28,7 @@ ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
 endif
 
 FLOAT := soft
+FPU :=
 GCC_TARGET_ARCH := $(TARGET_ARCH)
 SIGNED_CHAR := false
 
@@ -160,6 +161,8 @@ else ifeq ($(TOOLCHAIN), gcc)
     FLAGS_GCC += -mfpu=fpv4-sp-d16
   else ifeq ($(TARGET_ARCH), cortex-m7)
     FLAGS_GCC += -mfpu=fpv4-sp-d16
+  else ifneq ($(FPU),)
+    FLAGS_GCC += -mfpu=$(FPU)
   else
     FLAGS_GCC += -mfpu=auto
   endif
@@ -213,3 +216,4 @@ ifneq ($(TARGET_ARCH), project_generation)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/Makefile.inc
   MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 endif
+

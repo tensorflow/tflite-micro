@@ -16,13 +16,14 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_
 
+#include <cstddef>
+#include <initializer_list>
+
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 
 #ifdef USE_TFLM_COMPRESSION
-
-#include <initializer_list>
 
 #include "tensorflow/lite/micro/compression.h"
 
@@ -126,6 +127,8 @@ class MicroContext {
       const TfLiteEvalTensor& tensor,
       const CompressionTensorData& compression_data, void* buffer);
 
+#endif  // USE_TFLM_COMPRESSION
+
   // Used for configuring alternate decompression memory
   struct AlternateMemoryRegion {
     void* address;
@@ -135,18 +138,17 @@ class MicroContext {
   // Set the alternate decompression memory regions.
   // Can only be called during the MicroInterpreter kInit state.
   virtual TfLiteStatus SetDecompressionMemory(
-      const std::initializer_list<AlternateMemoryRegion>& regions);
+      const AlternateMemoryRegion* regions, size_t count);
 
   // Return a pointer to memory that can be used for decompression.
   // The pointer will be aligned to the <alignment> value.
   // Return nullptr if the requested size is not available.
-  // Can be called during kPrepare and kInvoke states.
+  // Can be called during kPrepare state.
   virtual void* AllocateDecompressionMemory(size_t bytes, size_t alignment);
 
-  // reset all allocation tracking
+  // Reset all allocation tracking.
+  // Can be called during kPrepare state.
   virtual void ResetDecompressionMemoryAllocations();
-
-#endif  // USE_TFLM_COMPRESSION
 
   // Set the alternate MicroProfilerInterface.
   // This can be used to profile subsystems simultaneously with the profiling
@@ -168,6 +170,11 @@ class MicroContext {
   }
 
  private:
+  const AlternateMemoryRegion* decompress_regions_ = nullptr;
+  size_t decompress_regions_size_ = 0;
+  // array of size_t elements with length equal to decompress_regions_size_
+  size_t* decompress_regions_allocations_ = nullptr;
+
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 

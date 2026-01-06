@@ -1,7 +1,8 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library")
 load("//tensorflow:extra_rules.bzl", "tflm_signal_friends")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 
 package(
     default_visibility = [":__subpackages__"],
@@ -73,7 +74,7 @@ py_test(
     deps = [
         ":delay_op",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -104,7 +105,7 @@ py_test(
     deps = [
         ":energy_op",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -135,7 +136,7 @@ py_test(
     deps = [
         ":fft_ops",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -172,7 +173,7 @@ py_test(
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -203,7 +204,7 @@ py_test(
     deps = [
         ":framer_op",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -230,9 +231,9 @@ py_test(
     ],
     deps = [
         ":overlap_add_op",
-        "@absl_py//absl/testing:parameterized",
+        requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -263,7 +264,7 @@ py_test(
     deps = [
         ":pcan_op",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -294,7 +295,7 @@ py_test(
     deps = [
         ":stacker_op",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )
 
@@ -324,6 +325,6 @@ py_test(
     deps = [
         ":window_op",
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
     ],
 )

@@ -1,4 +1,4 @@
-# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -123,10 +123,15 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ceil_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/comparisons_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/concatenation_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cumsum_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_huffman_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/div_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dynamic_update_slice_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elementwise_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/elu_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/embedding_lookup_test.cc \
@@ -160,6 +165,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reduce_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reshape_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_bilinear_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_nearest_neighbor_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reverse_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape_test.cc \

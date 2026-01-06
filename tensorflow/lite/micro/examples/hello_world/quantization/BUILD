@@ -6,11 +6,9 @@ py_binary(
     srcs = ["ptq.py"],
     data = ["//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite"],
     deps = [
-        "@absl_py//absl:app",
-        "@absl_py//absl/flags",
-        "@absl_py//absl/logging",
+        requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("tensorflow-cpu"),
         "//python/tflite_micro:runtime",
     ],
 )
