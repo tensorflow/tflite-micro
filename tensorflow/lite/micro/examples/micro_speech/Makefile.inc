@@ -62,4 +62,3 @@ list_micro_speech_example_sources:
 
 list_micro_speech_example_headers:
 	@echo $(MICRO_SPEECH_HDRS)
-	
