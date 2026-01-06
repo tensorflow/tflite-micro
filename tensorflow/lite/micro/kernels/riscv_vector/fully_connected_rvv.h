@@ -30,4 +30,4 @@ void FullyConnectedRVV(
     const RuntimeShape& output_shape, 
     int8_t* output_data);
 
-#endif
+#endif // TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_FULLY_CONNECTED_RVV_H_

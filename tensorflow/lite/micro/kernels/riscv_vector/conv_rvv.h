@@ -1,4 +1,3 @@
-// tensorflow/lite/micro/kernels/riscv_vector/conv_rvv.h
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_CONV_RVV_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_CONV_RVV_H_
 
@@ -29,4 +28,4 @@ void DepthwiseConvPerChannelRVV(const DepthwiseParams& params,
     const RuntimeShape& bias_shape, const int32_t* bias_data,
     const RuntimeShape& output_shape, int8_t* output_data);
 
-#endif
+#endif // TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_CONV_RVV_H_

@@ -170,4 +170,4 @@ inline vint32m2_t RequantizeVectorPerChannelS32(
     return v_res32;
 }
 
-#endif
+#endif // TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_REQUANTIZE_RVV_H_

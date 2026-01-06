@@ -14,4 +14,4 @@ void MaxPool16BitRVV(const PoolParams& params, const RuntimeShape& input_shape,
                     const int16_t* input_data, const RuntimeShape& output_shape,
                     int16_t* output_data);
 
-#endif
+#endif // TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_POOLING_RVV_H_

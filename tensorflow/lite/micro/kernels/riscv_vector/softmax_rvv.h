@@ -362,4 +362,4 @@ void SoftmaxRVV(const tflite::SoftmaxParams& params,
     }
 }
 
-#endif
+#endif // TENSORFLOW_LITE_MICRO_KERNELS_RISCV_VECTOR_SOFTMAX_RVV_H_
