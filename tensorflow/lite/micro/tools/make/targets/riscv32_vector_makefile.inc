@@ -9,7 +9,7 @@ RISCV_CODE_MODEL := medany
 # Allow additional flags on the command line for debugging.
 RISCV_EXTRA_CFLAGS :=
 
-TARGET_DEFAULT_TOOLCHAIN_ROOT := $(HOME)/rv32imc_zve32x_zvl128b/bin/
+TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/riscv_toolchain/bin/
 TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
 ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
   $(eval $(call add_third_party_download,$(RISCV_TOOLCHAIN_URL),$(RISCV_TOOLCHAIN_MD5),riscv_toolchain,))
