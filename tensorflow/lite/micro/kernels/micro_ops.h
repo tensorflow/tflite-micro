@@ -101,6 +101,7 @@ TFLMRegistration Register_PADV2();
 TFLMRegistration Register_PRELU();
 TFLMRegistration Register_QUANTIZE();
 TFLMRegistration Register_READ_VARIABLE();
+TFLMRegistration Register_REDUCE_ALL();
 TFLMRegistration Register_REDUCE_MAX();
 TFLMRegistration Register_REDUCE_MIN();
 TFLMRegistration Register_RELU();
