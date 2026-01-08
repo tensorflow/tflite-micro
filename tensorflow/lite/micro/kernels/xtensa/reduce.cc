@@ -67,6 +67,13 @@ TfLiteStatus XtensaPrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
   return PrepareMeanOrSumHelper(context, node, op_data);
 }
 
+TfLiteStatus XtensaPrepareAll(TfLiteContext* context, TfLiteNode* node) {
+  OpDataReduce* op_data =
+      &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
+  TF_LITE_ENSURE_OK(context, PrepareAllHelper(context, node, op_data));
+  return kTfLiteOk;
+}
+
 TfLiteStatus XtensaEvalMean(TfLiteContext* context, TfLiteNode* node) {
   OpDataReduce* op_data =
       &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
@@ -116,6 +123,14 @@ TfLiteStatus XtensaEvalSum(TfLiteContext* context, TfLiteNode* node) {
   return EvalSumHelper(context, node, op_data);
 }
 
+TfLiteStatus XtensaEvalAll(TfLiteContext* context, TfLiteNode* node) {
+  XtensaReduceOpData* op_data_xtensa =
+      static_cast<XtensaReduceOpData*>(node->user_data);
+  OpDataReduce* op_data = &(op_data_xtensa->reference_op_data);
+  // P6 FLK library does not support REDUCE_MIN
+  return EvalAllHelper(context, node, op_data);
+}
+
 TFLMRegistration Register_MEAN() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
                                    XtensaEvalMean);
@@ -134,6 +149,11 @@ TFLMRegistration Register_REDUCE_MIN() {
 TFLMRegistration Register_SUM() {
   return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
                                    XtensaEvalSum);
+}
+
+TFLMRegistration Register_REDUCE_ALL() {
+  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareAll,
+                                   XtensaEvalAll);
 }
 
 }  // namespace tflite
