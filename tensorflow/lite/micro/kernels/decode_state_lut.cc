@@ -443,6 +443,10 @@ void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
           case 7:
             index = GetNextTableIndexWidth7(current_offset);
             break;
+          default:
+            // Added to suppress -Wmaybe-uninitialized. Should never be reached.
+            index = 0;
+            break;
         }
         current_offset++;
         *buffer++ = value_table[index];
@@ -482,6 +486,10 @@ void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
             break;
           case 7:
             index = GetNextTableIndexWidth7(current_offset);
+            break;
+          default:
+            // Added to suppress -Wmaybe-uninitialized. Should never be reached.
+            index = 0;
             break;
         }
         current_offset++;
