@@ -17,6 +17,8 @@ limitations under the License.
 
 #if defined(XTENSA)
 #include <xtensa/tie/xt_misc.h>
+#elif defined(HEXAGON)
+#include <hexagon_protos.h>
 #endif
 
 namespace tflite {
@@ -29,6 +31,8 @@ uint32_t MostSignificantBit32(uint32_t x) {
   // XT_NSAU returns the number of left shifts needed to put the MSB in the
   // leftmost position. Returns 32 if the argument is 0.
   return 32 - XT_NSAU(x);
+#elif defined(HEXAGON)
+  return (32 - Q6_R_cl0_R(x));
 #elif defined(__GNUC__)
   if (x) {
     return 32 - __builtin_clz(x);
