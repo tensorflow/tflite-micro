@@ -46,6 +46,9 @@ TfLiteStatus PrepareMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
 TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
                                     OpDataReduce* op_data);
 
+TfLiteStatus PrepareAllHelper(TfLiteContext* context, TfLiteNode* node,
+                              OpDataReduce* op_data);
+
 TfLiteStatus EvalMaxHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
 TfLiteStatus EvalMinHelper(TfLiteContext* context, TfLiteNode* node,
@@ -54,11 +57,14 @@ TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
                             OpDataReduce* op_data);
 TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
+TfLiteStatus EvalAllHelper(TfLiteContext* context, TfLiteNode* node,
+                           OpDataReduce* op_data);
 
 TFLMRegistration Register_MEAN();
 TFLMRegistration Register_REDUCE_MAX();
 TFLMRegistration Register_REDUCE_MIN();
 TFLMRegistration Register_SUM();
+TFLMRegistration Register_REDUCE_ALL();
 
 }  // namespace tflite
 

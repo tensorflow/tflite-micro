@@ -258,6 +258,35 @@ TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
+TfLiteStatus PrepareAllHelper(TfLiteContext* context, TfLiteNode* node,
+                              OpDataReduce* op_data) {
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteBool);
+
+  TF_LITE_ENSURE_OK(context, PrepareSimple(context, node, &op_data->multiplier,
+                                           &op_data->shift));
+
+  op_data->input_zp = input->params.zero_point;
+  op_data->input_scale = input->params.scale;
+  op_data->output_zp = output->params.zero_point;
+  op_data->output_scale = output->params.scale;
+  op_data->num_output_elements = NumElements(output);
+
+  context->RequestScratchBufferInArena(context, sizeof(int) * input->dims->size,
+                                       &op_data->temp_buffer_idx);
+  context->RequestScratchBufferInArena(
+      context, sizeof(int) * static_cast<int>(ElementCount(*axis->dims)),
+      &op_data->resolved_axis_idx);
+
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  micro_context->DeallocateTempTfLiteTensor(axis);
+  return kTfLiteOk;
+}
+
 TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
                             OpDataReduce* op_data) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
@@ -371,6 +400,42 @@ TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
     } break;
     default:
       MicroPrintf("Only float32, int8, and int16 types are supported.");
+      return kTfLiteError;
+  }
+  return kTfLiteOk;
+}
+
+TfLiteStatus EvalAllHelper(TfLiteContext* context, TfLiteNode* node,
+                           OpDataReduce* op_data) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  const TfLiteEvalTensor* axis = tflite::micro::GetEvalInput(context, node, 1);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TfLiteReducerParams* params =
+      static_cast<TfLiteReducerParams*>(node->builtin_data);
+
+  // Interpret an axis tensor with null dimensions as a scalar
+  int num_axis = static_cast<int>(ElementCount(*axis->dims));
+  int* temp_buffer = static_cast<int*>(
+      context->GetScratchBuffer(context, op_data->temp_buffer_idx));
+  int* resolved_axis = static_cast<int*>(
+      context->GetScratchBuffer(context, op_data->resolved_axis_idx));
+  switch (input->type) {
+    case kTfLiteBool:
+      TF_LITE_ENSURE(
+          context,
+          reference_ops::ReduceGeneric<bool>(
+              tflite::micro::GetTensorData<bool>(input), input->dims->data,
+              input->dims->size, tflite::micro::GetTensorData<bool>(output),
+              output->dims->data, output->dims->size,
+              tflite::micro::GetTensorData<int>(axis), num_axis,
+              params->keep_dims, temp_buffer, resolved_axis, true,
+              [](const bool current, const bool in) -> bool {
+                return in && current;
+              }));
+      break;
+    default:
+      MicroPrintf("Only Bool is accepted as input type.");
       return kTfLiteError;
   }
   return kTfLiteOk;

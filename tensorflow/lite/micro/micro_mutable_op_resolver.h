@@ -528,6 +528,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
                       ParseReadVariable);
   }
 
+  TfLiteStatus AddReduceAll(
+      const TFLMRegistration& registration = Register_REDUCE_ALL()) {
+    return AddBuiltin(BuiltinOperator_REDUCE_ALL, registration, ParseReducer);
+  }
+
   TfLiteStatus AddReduceMax(
       const TFLMRegistration& registration = Register_REDUCE_MAX()) {
     return AddBuiltin(BuiltinOperator_REDUCE_MAX, registration, ParseReducer);

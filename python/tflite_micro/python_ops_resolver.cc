@@ -100,6 +100,7 @@ PythonOpsResolver::PythonOpsResolver() {
   AddPrelu();
   AddQuantize();
   AddReadVariable();
+  AddReduceAll();
   AddReduceMax();
   AddReduceMin();
   AddRelu();

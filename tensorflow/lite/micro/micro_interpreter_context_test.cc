@@ -219,25 +219,29 @@ TF_LITE_MICRO_TEST(TestSetDecompressionMemory) {
   // fail during Prepare state
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kPrepare);
-  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  status = micro_context.SetDecompressionMemory(alt_memory_region.begin(),
+                                                alt_memory_region.size());
   TF_LITE_MICRO_EXPECT(status == kTfLiteError);
 
   // fail during Invoke state
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kInvoke);
-  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  status = micro_context.SetDecompressionMemory(alt_memory_region.begin(),
+                                                alt_memory_region.size());
   TF_LITE_MICRO_EXPECT(status == kTfLiteError);
 
   // succeed during Init state
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kInit);
-  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  status = micro_context.SetDecompressionMemory(alt_memory_region.begin(),
+                                                alt_memory_region.size());
   TF_LITE_MICRO_EXPECT(status == kTfLiteOk);
 
   // fail on second Init state attempt
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kInit);
-  status = micro_context.SetDecompressionMemory(alt_memory_region);
+  status = micro_context.SetDecompressionMemory(alt_memory_region.begin(),
+                                                alt_memory_region.size());
   TF_LITE_MICRO_EXPECT(status == kTfLiteError);
 }
 
@@ -253,7 +257,8 @@ TF_LITE_MICRO_TEST(TestAllocateDecompressionMemory) {
 
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kInit);
-  TfLiteStatus status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TfLiteStatus status = micro_context.SetDecompressionMemory(
+      alt_memory_region.begin(), alt_memory_region.size());
   TF_LITE_MICRO_EXPECT(status == kTfLiteOk);
 
   micro_context.SetInterpreterState(
@@ -287,7 +292,8 @@ TF_LITE_MICRO_TEST(TestResetDecompressionMemory) {
 
   micro_context.SetInterpreterState(
       tflite::MicroInterpreterContext::InterpreterState::kInit);
-  TfLiteStatus status = micro_context.SetDecompressionMemory(alt_memory_region);
+  TfLiteStatus status = micro_context.SetDecompressionMemory(
+      alt_memory_region.begin(), alt_memory_region.size());
   TF_LITE_MICRO_EXPECT(status == kTfLiteOk);
 
   micro_context.SetInterpreterState(
