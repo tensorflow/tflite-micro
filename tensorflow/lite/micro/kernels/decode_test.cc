@@ -66,6 +66,76 @@ constexpr int kEncodedShapeLUT[] = {1, sizeof(kEncodedLUT)};
 constexpr int8_t kExpectLUT0[] = {1, 2, 3, 4, 4, 3, 2, 1};
 constexpr int16_t kExpectLUT1[] = {5, 6, 7, 8, 8, 7, 6, 5};
 
+//
+// Custom DECODE test data
+//
+constexpr int kDecodeTypeCustom = 200;
+
+constexpr int8_t kAncillaryDataCustom[] = {0x42};
+
+constexpr uint8_t kDcmCustom[tflite::DecodeState::kDcmSizeInBytes] = {
+    kDecodeTypeCustom,  // type: custom
+    1,                  // DCM version: 1
+};
+
+// Align the tensor data the same as a Buffer in the TfLite schema
+alignas(16) const uint8_t kEncodedCustom[] = {0x42, 0x43, 0x40, 0x46,
+                                              0x4A, 0x52, 0x62, 0x02};
+
+// Tensor shapes as TfLiteIntArray
+constexpr int kOutputShapeCustom[] = {1, 8};
+constexpr int kEncodedShapeCustom[] = {1, sizeof(kEncodedCustom)};
+
+constexpr int8_t kExpectCustom[] = {0x00, 0x01, 0x02, 0x04,
+                                    0x08, 0x10, 0x20, 0x40};
+
+class DecodeStateCustom : public tflite::DecodeState {
+ public:
+  DecodeStateCustom() = delete;
+
+  DecodeStateCustom(const TfLiteContext* context,
+                    tflite::MicroProfilerInterface* profiler)
+      : DecodeState(context, profiler) {}
+
+  virtual TfLiteStatus Setup(const TfLiteTensor& input,
+                             const TfLiteTensor& ancillary,
+                             const TfLiteTensor& output) override {
+    return kTfLiteOk;
+  }
+
+  virtual TfLiteStatus Decode(const TfLiteEvalTensor& input,
+                              const TfLiteEvalTensor& ancillary,
+                              const TfLiteEvalTensor& output) override {
+    const uint8_t* inp = tflite::micro::GetTensorData<uint8_t>(&input);
+    TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_), inp != nullptr);
+    uint8_t* outp = tflite::micro::GetTensorData<uint8_t>(
+        const_cast<TfLiteEvalTensor*>(&output));
+    TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_), outp != nullptr);
+    const uint8_t* vp = tflite::micro::GetTensorData<uint8_t>(&ancillary);
+    TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_), vp != nullptr);
+    vp += kDcmSizeInBytes;
+
+    // simple XOR de-obfuscation
+    std::transform(inp, inp + input.dims->data[0], outp,
+                   [vp](uint8_t i) { return i ^ *vp; });
+
+    return kTfLiteOk;
+  }
+
+  static DecodeState* CreateDecodeStateCustom(
+      const TfLiteContext* context, tflite::MicroProfilerInterface* profiler) {
+    alignas(4) static uint8_t buffer[sizeof(DecodeStateCustom)];
+    DecodeState* instance = new (buffer) DecodeStateCustom(context, profiler);
+    return instance;
+  }
+
+ protected:
+  virtual ~DecodeStateCustom() = default;
+
+ private:
+  TF_LITE_REMOVE_VIRTUAL_DELETE
+};
+
 }  // namespace
 
 TF_LITE_MICRO_TESTS_BEGIN
@@ -244,6 +314,65 @@ TF_LITE_MICRO_TEST(DecodeWithAltDecompressionMemory) {
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE(), &amr);
+}
+
+TF_LITE_MICRO_TEST(DecodeWithCustomRegistration) {
+  // Align the tensor data the same as a Buffer in the TfLite schema
+  alignas(16) int8_t output_data[std::size(kExpectCustom)] = {};
+  alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataCustom)>
+      kAncillaryData = {{kDcmCustom}, {kAncillaryDataCustom}};
+
+  constexpr int kAncillaryShapeCustom[] = {1, sizeof(kAncillaryData)};
+
+  const TfLiteIntArray* const encoded_dims =
+      tflite::testing::IntArrayFromInts(kEncodedShapeCustom);
+  static const TensorInDatum tid_encode = {
+      kEncodedCustom,
+      *encoded_dims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> encodes = {
+      &tid_encode,
+  };
+
+  const TfLiteIntArray* const ancillary_dims =
+      tflite::testing::IntArrayFromInts(kAncillaryShapeCustom);
+  static const TensorInDatum tid_ancillary = {
+      &kAncillaryData,
+      *ancillary_dims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> ancillaries = {
+      &tid_ancillary};
+
+  const TfLiteIntArray* const output_dims =
+      tflite::testing::IntArrayFromInts(kOutputShapeCustom);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
+  static const TensorOutDatum tod = {
+      output_data, *output_dims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      0,           {},
+  };
+  static constexpr std::initializer_list<const TensorOutDatum*> outputs = {
+      &tod};
+
+  const std::initializer_list<const void*> expected = {kExpectCustom};
+
+  const std::initializer_list<tflite::MicroContext::CustomDecodeRegistration>
+      cdr = {
+          {
+              kDecodeTypeCustom,
+              0,  // reserved
+              0,  // reserved
+              0,  // reserved
+              DecodeStateCustom::CreateDecodeStateCustom,
+          },
+      };
+
+  tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
+                              outputs.size()>(
+      encodes, ancillaries, outputs, expected, tflite::Register_DECODE(),
+      nullptr, &cdr);
 }
 
 TF_LITE_MICRO_TESTS_END

@@ -159,6 +159,11 @@ class MicroInterpreterContext : public MicroContext {
   // decompression subsystem.
   MicroProfilerInterface* GetAlternateProfiler() const override;
 
+  // Set the DECODE operator custom registrations.
+  // Can only be called during the kInit state.
+  virtual TfLiteStatus SetCustomDecodeRegistrations(
+      const CustomDecodeRegistration* registrations, size_t count) override;
+
  private:
   MicroAllocator& allocator_;
   MicroInterpreterGraph& graph_;
