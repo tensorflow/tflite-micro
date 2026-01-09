@@ -17,7 +17,7 @@ jobs:
       - name: remove-cirun-full
         if: github.event.action == 'labeled' &&
             github.event.label.name == 'ci:run_full'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |

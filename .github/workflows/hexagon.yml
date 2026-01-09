@@ -25,7 +25,7 @@ jobs:
 
     name: Hexagon Build Test (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |

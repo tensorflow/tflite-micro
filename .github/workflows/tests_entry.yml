@@ -42,7 +42,7 @@ jobs:
         if: ${{ (contains(github.event.pull_request.labels.*.name, 'ci:ready_to_merge') &&
             (github.event.action == 'synchronize') &&
             !(github.event.sender.login == 'mergify[bot]')) }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
@@ -63,7 +63,7 @@ jobs:
       - name: remove-cirun
         if: github.event.action == 'labeled' &&
             github.event.label.name == 'ci:run'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
@@ -82,7 +82,7 @@ jobs:
       - name: remove-cirun-full
         if: github.event.action == 'labeled' &&
             github.event.label.name == 'ci:run_full'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |

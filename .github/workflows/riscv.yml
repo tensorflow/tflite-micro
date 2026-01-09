@@ -19,10 +19,10 @@ jobs:
 
     name: RISC-V Continuous Builds
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Test
         uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
         with:

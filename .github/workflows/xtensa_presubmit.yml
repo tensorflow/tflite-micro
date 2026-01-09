@@ -26,7 +26,7 @@ jobs:
 
     name: Vision P6 Build (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |
@@ -41,7 +41,7 @@ jobs:
 
     name: Hifi5 Unit Tests (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |
@@ -56,7 +56,7 @@ jobs:
 
     name: Hifi5 Unit Tests with Compression (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |
@@ -71,7 +71,7 @@ jobs:
 
     name: Hifi3z Unit Tests (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |
@@ -86,7 +86,7 @@ jobs:
 
     name: Hifi3z Unit Tests with Compression (presubmit)
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: |
