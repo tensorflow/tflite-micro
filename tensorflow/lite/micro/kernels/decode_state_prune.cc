@@ -130,6 +130,7 @@ TfLiteStatus DecodeStatePrune::Decode(const TfLiteEvalTensor& input,
 template <typename T>
 void DecodeStatePrune::DecompressToBuffer(void* vp) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   T* buffer = static_cast<T*>(vp);
   const T* value_table = static_cast<const T*>(value_table_);
@@ -151,6 +152,7 @@ void DecodeStatePrune::DecompressToBuffer(void* vp) {
 void DecodeStatePrune::DecompressToBufferPerChannelInt8(void* vp) {
   TFLITE_DCHECK(zero_points_ != nullptr);
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   int8_t* buffer = static_cast<int8_t*>(vp);
   size_t current_offset = 0;

@@ -76,6 +76,7 @@ TfLiteStatus DecodeStateHuffman::Decode(const TfLiteEvalTensor& input,
 
 void DecodeStateHuffman::DecompressToBufferWith16BitTable(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   size_t remaining = count_codewords_;
   const size_t initial_table_size = initial_table_size_ + 1;
@@ -119,6 +120,7 @@ void DecodeStateHuffman::DecompressToBufferWith16BitTable(int8_t* buffer) {
 template <typename T>
 void DecodeStateHuffman::DecompressToBufferWith32BitTable(T* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   size_t remaining = count_codewords_;
   const size_t initial_table_size = initial_table_size_ + 1;
