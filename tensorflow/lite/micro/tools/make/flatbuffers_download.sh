@@ -54,9 +54,9 @@ DOWNLOADED_FLATBUFFERS_PATH=${DOWNLOADS_DIR}/flatbuffers
 if [ -d ${DOWNLOADED_FLATBUFFERS_PATH} ]; then
   echo >&2 "${DOWNLOADED_FLATBUFFERS_PATH} already exists, skipping the download."
 else
-  ZIP_PREFIX="v23.5.26"
-  FLATBUFFERS_URL="https://github.com/google/flatbuffers/archive/${ZIP_PREFIX}.zip"
-  FLATBUFFERS_MD5="e87e8acd8e2d53653387ad78720316e2"
+  ZIP_PREFIX="v25.9.23"
+  FLATBUFFERS_URL="https://github.com/google/flatbuffers/archive/refs/tags/${ZIP_PREFIX}.zip"
+  FLATBUFFERS_MD5="023eca1e211d64007124420cd6be29c7"
 
   TEMPDIR="$(mktemp -d)"
   TEMPFILE="${TEMPDIR}/${ZIP_PREFIX}.zip"
