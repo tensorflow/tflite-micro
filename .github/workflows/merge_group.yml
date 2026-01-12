@@ -1,0 +1,24 @@
+name: Merge Queue
+
+on:
+  merge_group:
+
+jobs:
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+
+  call-hexagon:
+    uses: ./.github/workflows/hexagon.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa-presubmit:
+    uses: ./.github/workflows/xtensa_presubmit.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
