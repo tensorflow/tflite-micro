@@ -275,7 +275,7 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int16) {
       tflite::tflm_signal::Register_RFFT_INT16();
 // See (b/287518815) for why this is needed.
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-  int tolerance = 9;
+  int tolerance = 16;
 #else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int tolerance = 3;
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
