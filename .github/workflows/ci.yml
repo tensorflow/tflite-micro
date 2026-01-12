@@ -25,66 +25,28 @@ on:
 jobs:
   bazel_tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Bazel (presubmit)
+            script: test_bazel.sh
+          - name: Bazel with Compression (presubmit)
+            script: test_bazel_with_compression.sh
+          - name: Bazel msan (presubmit)
+            script: test_bazel_msan.sh
+            needs-mmap-rnd: true
+          - name: Bazel with Compression [msan] (presubmit)
+            script: test_bazel_with_compression_msan.sh
+            needs-mmap-rnd: true
+          - name: Bazel asan (presubmit)
+            script: test_bazel_asan.sh
+            needs-mmap-rnd: true
+          - name: Bazel with Compression [asan] (presubmit)
+            script: test_bazel_with_compression_asan.sh
+            needs-mmap-rnd: true
 
-    name: Bazel (presubmit)
-    steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: false
-          tool-cache: false
-          swap-storage: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazelisk.sh
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel.sh
-
-  bazel_tests_with_compression:
-    runs-on: ubuntu-latest
-
-    name: Bazel with Compression (presubmit)
-    steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: false
-          tool-cache: false
-          swap-storage: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazelisk.sh
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_with_compression.sh
-
-  bazel_msan:
-    runs-on: ubuntu-latest
-
-    name: Bazel msan (presubmit)
+    name: ${{ matrix.name }}
     steps:
       - uses: jlumbroso/free-disk-space@v1.3.1
         with:
@@ -107,147 +69,29 @@ jobs:
           pip3 install Pillow
           pip3 install numpy
       - name: Fix kernel mmap rnd bits
+        if: ${{ matrix.needs-mmap-rnd }}
         # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
         # high-entropy ASLR in much newer kernels that GitHub runners are
         # using leading to random crashes: https://reviews.llvm.org/D148280
         run: sudo sysctl vm.mmap_rnd_bits=28
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_msan.sh
+          tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}
 
-  bazel_with_compression_msan:
+  cortex_m_bluepill:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Cortex-M Bluepill Release (presubmit)
+            script: test_bluepill_release.sh
+          - name: Cortex-M Bluepill No Release (presubmit)
+            script: test_bluepill_no_release.sh
+          - name: Cortex-M Bluepill Renode (presubmit)
+            script: test_bluepill_renode.sh
 
-    name: Bazel with Compression [msan] (presubmit)
-    steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: false
-          tool-cache: false
-          swap-storage: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazelisk.sh
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Fix kernel mmap rnd bits
-        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
-        # high-entropy ASLR in much newer kernels that GitHub runners are
-        # using leading to random crashes: https://reviews.llvm.org/D148280
-        run: sudo sysctl vm.mmap_rnd_bits=28
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_with_compression_msan.sh
-
-  bazel_asan:
-    runs-on: ubuntu-latest
-
-    name: Bazel asan (presubmit)
-    steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: false
-          tool-cache: false
-          swap-storage: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazelisk.sh
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Fix kernel mmap rnd bits
-        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
-        # high-entropy ASLR in much newer kernels that GitHub runners are
-        # using leading to random crashes: https://reviews.llvm.org/D148280
-        run: sudo sysctl vm.mmap_rnd_bits=28
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_asan.sh
-
-  bazel_with_compression_asan:
-    runs-on: ubuntu-latest
-
-    name: Bazel with Compression [asan] (presubmit)
-    steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: false
-          tool-cache: false
-          swap-storage: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          sudo ci/install_bazelisk.sh
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Fix kernel mmap rnd bits
-        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
-        # high-entropy ASLR in much newer kernels that GitHub runners are
-        # using leading to random crashes: https://reviews.llvm.org/D148280
-        run: sudo sysctl vm.mmap_rnd_bits=28
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel_with_compression_asan.sh
-
-
-  # TODO(b/178621680): enable ubsan once bazel + clang + ubsan errors are fixed.
-  # bazel_ubsan:
-  #   runs-on: ubuntu-latest
-  #
-  #   name: Bazel ubsan (presubmit)
-  #   steps:
-  #     - uses: actions/setup-python@v6
-  #       with:
-  #         python-version: '3.10'
-  #     - uses: actions/checkout@v6
-  #       with:
-  #         ref: ${{ inputs.trigger-sha }}
-  #     - name: Install dependencies
-  #       run: |
-  #         sudo ci/install_bazelisk.sh
-  #         pip3 install Pillow
-  #         pip3 install numpy
-  #     - name: Fix kernel mmap rnd bits
-  #       # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
-  #       # high-entropy ASLR in much newer kernels that GitHub runners are
-  #       # using leading to random crashes: https://reviews.llvm.org/D148280
-  #       run: sudo sysctl vm.mmap_rnd_bits=28
-  #     - name: Test
-  #       run: |
-  #         tensorflow/lite/micro/tools/ci_build/test_bazel_ubsan.sh
-
-  cortex_m_bluepill_release:
-    runs-on: ubuntu-latest
-
-    name: Cortex-M Bluepill Release (presubmit)
+    name: ${{ matrix.name }}
     steps:
       - uses: actions/setup-python@v6
         with:
@@ -262,47 +106,7 @@ jobs:
       - name: Test
         run: |
           cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill_release.sh tflite-micro/
-
-  cortex_m_bluepill_no_release:
-    runs-on: ubuntu-latest
-
-    name: Cortex-M Bluepill No Release (presubmit)
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill_no_release.sh tflite-micro/
-
-  cortex_m_bluepill_renode:
-    runs-on: ubuntu-latest
-
-    name: Cortex-M Bluepill Renode (presubmit)
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_bluepill_renode.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
 
   cortex_m_qemu:
     runs-on: ubuntu-latest
@@ -356,10 +160,24 @@ jobs:
           cd ../
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh tflite-micro/
 
-  x86_release:
+  x86_makefile_tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Makefile x86 Release (presubmit)
+            script: test_x86_release.sh
+          - name: Makefile x86 Default (presubmit)
+            script: test_x86_default.sh
+          - name: Makefile x86 with Compression (presubmit)
+            script: test_x86_default_with_compression.sh
+          - name: Makefile x86 Out Of Tree (presubmit)
+            script: test_x86_out_of_tree.sh
+          - name: Makefile x86 No TFLite Static Memory (presubmit)
+            script: test_x86_no_tflite_static_memory.sh
 
-    name: Makefile x86 Release (presubmit)
+    name: ${{ matrix.name }}
     steps:
       - uses: actions/setup-python@v6
         with:
@@ -375,88 +193,4 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_release.sh tflite-micro/
-
-  x86_default:
-    runs-on: ubuntu-latest
-
-    name: Makefile x86 Default (presubmit)
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_default.sh tflite-micro/
-
-  x86_default_with_compression:
-    runs-on: ubuntu-latest
-
-    name: Makefile x86 with Compression (presubmit)
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_default_with_compression.sh tflite-micro/
-
-  x86_out_of_tree:
-    runs-on: ubuntu-latest
-
-    name: Makefile x86 Out Of Tree (presubmit)
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_out_of_tree.sh tflite-micro/
- 
-  x86_no_tflite_static_memory:
-    runs-on: ubuntu-latest
-
-    name: Makefile x86 No TFLite Static Memory (presubmit)
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_x86_no_tflite_static_memory.sh tflite-micro/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
