@@ -126,6 +126,7 @@ template int64_t* DecodeStateLut::DecompressToBuffer<int64_t>(void*);
 
 void DecodeStateLut::DecompressToBufferWidth4_16(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const size_t stride = value_table_channel_stride_;
   const uint8_t* value_table = static_cast<const uint8_t*>(value_table_);
@@ -202,6 +203,7 @@ void DecodeStateLut::DecompressToBufferWidth4_16(int8_t* buffer) {
 
 void DecodeStateLut::DecompressToBufferWidth2_16(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const size_t stride = value_table_channel_stride_;
   const uint8_t* value_table = static_cast<const uint8_t*>(value_table_);
@@ -278,6 +280,7 @@ void DecodeStateLut::DecompressToBufferWidth2_16(int8_t* buffer) {
 
 void DecodeStateLut::DecompressToBufferWidth3_32(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const size_t stride = value_table_channel_stride_;
   const uint8_t* value_table = static_cast<const uint8_t*>(value_table_);
@@ -411,6 +414,7 @@ void DecodeStateLut::DecompressToBufferWidth3_32(int8_t* buffer) {
 template <typename T>
 void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   if (use_alternate_axis_) {
     const size_t stride = value_table_channel_stride_;
