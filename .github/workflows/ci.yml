@@ -28,10 +28,19 @@ jobs:
 
     name: Bazel (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: false
+          tool-cache: false
+          swap-storage: false
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -48,10 +57,19 @@ jobs:
 
     name: Bazel with Compression (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: false
+          tool-cache: false
+          swap-storage: false
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -68,10 +86,10 @@ jobs:
 
     name: Bazel msan (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -93,10 +111,10 @@ jobs:
 
     name: Bazel with Compression [msan] (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -118,10 +136,10 @@ jobs:
 
     name: Bazel asan (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -143,10 +161,10 @@ jobs:
 
     name: Bazel with Compression [asan] (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -170,10 +188,10 @@ jobs:
   #
   #   name: Bazel ubsan (presubmit)
   #   steps:
-  #     - uses: actions/setup-python@v4
+  #     - uses: actions/setup-python@v6
   #       with:
   #         python-version: '3.10'
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v6
   #       with:
   #         ref: ${{ inputs.trigger-sha }}
   #     - name: Install dependencies
@@ -195,10 +213,10 @@ jobs:
 
     name: Cortex-M Bluepill Release (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -215,10 +233,10 @@ jobs:
 
     name: Cortex-M Bluepill No Release (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -235,10 +253,10 @@ jobs:
 
     name: Cortex-M Bluepill Renode (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -255,10 +273,10 @@ jobs:
 
     name: Cortex-M QEMU Unit Tests (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Test
@@ -271,10 +289,10 @@ jobs:
 
     name: Code Style (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Check
@@ -287,10 +305,10 @@ jobs:
 
     name: Project Generation (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -307,10 +325,10 @@ jobs:
 
     name: Makefile x86 Release (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -328,10 +346,10 @@ jobs:
 
     name: Makefile x86 Default (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -349,10 +367,10 @@ jobs:
 
     name: Makefile x86 with Compression (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -370,10 +388,10 @@ jobs:
 
     name: Makefile x86 Out Of Tree (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
@@ -391,10 +409,10 @@ jobs:
 
     name: Makefile x86 No TFLite Static Memory (presubmit)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Install dependencies
