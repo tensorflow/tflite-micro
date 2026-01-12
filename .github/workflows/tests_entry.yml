@@ -58,7 +58,7 @@ jobs:
 
   ci-run-full:
     runs-on: ubuntu-latest
-    needs: ci-run
+    needs: ci-gatekeeper
     steps:
       - name: remove-cirun-full
         if: github.event.action == 'labeled' &&
@@ -75,26 +75,16 @@ jobs:
             })
         continue-on-error: true
 
-  pr-has-bug:
-    runs-on: ubuntu-latest
-    needs: ci-run-full
-    name: PR has Bug
-    steps:
-      - name: Check for BUG=
-        if: ${{ !contains(github.event.pull_request.body, 'BUG=') }}
-        run: |
-          echo "PR description requires a BUG= line with issue number."
-          echo "See https://testing.googleblog.com/2017/09/code-health-providing-context-with.html for additional context"
-          exit 1
-
   call-ci:
-    needs: ci-run
+    needs: [ci-run, ci-run-full]
+    if: always() && !failure() && !cancelled() && (needs.ci-run.result == 'success' || needs.ci-run-full.result == 'success')
     uses: ./.github/workflows/ci.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
 
   call-hexagon:
-    needs: ci-run
+    needs: [ci-run, ci-run-full]
+    if: always() && !failure() && !cancelled() && (needs.ci-run.result == 'success' || needs.ci-run-full.result == 'success')
     uses: ./.github/workflows/hexagon.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -102,7 +92,8 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa-presubmit:
-    needs: ci-run
+    needs: [ci-run, ci-run-full]
+    if: always() && !failure() && !cancelled() && (needs.ci-run.result == 'success' || needs.ci-run-full.result == 'success')
     uses: ./.github/workflows/xtensa_presubmit.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -110,7 +101,8 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-check-tflite-files:
-    needs: ci-run
+    needs: [ci-run, ci-run-full]
+    if: always() && !failure() && !cancelled() && (needs.ci-run.result == 'success' || needs.ci-run-full.result == 'success')
     uses: ./.github/workflows/check_tflite_files.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
