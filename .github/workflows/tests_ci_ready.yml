@@ -1,0 +1,70 @@
+# tests_ci_ready.yml
+# Entry point for the standard test suite (Tier 1).
+#
+# - Triggered by 'ci:ready' label or synchronize events on PRs with 'ci:ready'.
+# - ci:ready is "sticky" (persistent) for EVERYONE.
+# - Runs fast/standard checks (CI, Hexagon, Xtensa Presubmit).
+
+name: Tests (Standard)
+
+on:
+  pull_request_target:
+    types:
+      - synchronize
+      - labeled
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check-condition.outputs.should_run }}
+    steps:
+      - name: check-condition
+        id: check-condition
+        run: |
+          RUN="false"
+          # Case 1: Just labeled 'ci:ready'
+          if [[ "${{ github.event.action }}" == "labeled" && "${{ github.event.label.name }}" == "ci:ready" ]]; then
+            RUN="true"
+          fi
+          # Case 2: Synchronize event AND 'ci:ready' is present
+          if [[ "${{ github.event.action }}" == "synchronize" && "${{ contains(github.event.pull_request.labels.*.name, 'ci:ready') }}" == "true" ]]; then
+            RUN="true"
+          fi
+          echo "should_run=$RUN" >> $GITHUB_OUTPUT
+
+  call-ci:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+
+  call-hexagon:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa-presubmit:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/xtensa_presubmit.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-check-tflite-files:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/check_tflite_files.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      pr-number: ${{ github.event.pull_request.number }}
+      pr-body: ${{ github.event.pull_request.body }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
