@@ -1,0 +1,29 @@
+name: Auto Label Trusted PRs
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto Label
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.pull_request.user.login
+            });
+            const trustedRoles = ['admin', 'maintain', 'write', 'triage'];
+            if (trustedRoles.includes(permission.permission)) {
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['ci:ready']
+              });
+            }
