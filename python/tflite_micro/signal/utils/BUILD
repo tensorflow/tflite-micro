@@ -43,7 +43,7 @@ py_library(
     srcs = ["util.py"],
     visibility = ["//visibility:public"],
     deps = [
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )

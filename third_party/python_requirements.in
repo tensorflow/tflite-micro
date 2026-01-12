@@ -34,6 +34,6 @@ pillow
 prettyprinter
 protobuf
 pyyaml
-tensorflow-cpu
+tensorflow
 twine
 yapf
