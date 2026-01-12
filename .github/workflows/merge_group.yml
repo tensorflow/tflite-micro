@@ -22,3 +22,31 @@ jobs:
       trigger-sha: ${{ github.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-cortex-m:
+    uses: ./.github/workflows/cortex_m.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-cortex-m-armclang:
+    uses: ./.github/workflows/cortex_m_arm_compiler.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-riscv-postmerge:
+    uses: ./.github/workflows/riscv_postmerge.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa-postmerge:
+    uses: ./.github/workflows/xtensa_postmerge.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
