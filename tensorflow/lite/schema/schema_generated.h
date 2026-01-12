@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 26,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace tflite {
@@ -17433,7 +17433,7 @@ inline void SparsityParameters::UnPackTo(SparsityParametersT *_o, const ::flatbu
   (void)_resolver;
   { auto _e = traversal_order(); if (_e) { _o->traversal_order.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->traversal_order[_i] = _e->Get(_i); } } else { _o->traversal_order.resize(0); } }
   { auto _e = block_map(); if (_e) { _o->block_map.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->block_map[_i] = _e->Get(_i); } } else { _o->block_map.resize(0); } }
-  { auto _e = dim_metadata(); if (_e) { _o->dim_metadata.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->dim_metadata[_i]) { _e->Get(_i)->UnPackTo(_o->dim_metadata[_i].get(), _resolver); } else { _o->dim_metadata[_i] = std::unique_ptr<tflite::DimensionMetadataT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->dim_metadata.resize(0); } }
+  { auto _e = dim_metadata(); if (_e) { _o->dim_metadata.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->dim_metadata[_i]) { _e->Get(_i)->UnPackTo(_o->dim_metadata[_i].get(), _resolver); } else { _o->dim_metadata[_i] = std::unique_ptr<tflite::DimensionMetadataT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->dim_metadata.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<SparsityParameters> SparsityParameters::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const SparsityParametersT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -17534,7 +17534,7 @@ inline void Tensor::UnPackTo(TensorT *_o, const ::flatbuffers::resolver_function
   { auto _e = sparsity(); if (_e) { if(_o->sparsity) { _e->UnPackTo(_o->sparsity.get(), _resolver); } else { _o->sparsity = std::unique_ptr<tflite::SparsityParametersT>(_e->UnPack(_resolver)); } } else if (_o->sparsity) { _o->sparsity.reset(); } }
   { auto _e = shape_signature(); if (_e) { _o->shape_signature.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->shape_signature[_i] = _e->Get(_i); } } else { _o->shape_signature.resize(0); } }
   { auto _e = has_rank(); _o->has_rank = _e; }
-  { auto _e = variant_tensors(); if (_e) { _o->variant_tensors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->variant_tensors[_i]) { _e->Get(_i)->UnPackTo(_o->variant_tensors[_i].get(), _resolver); } else { _o->variant_tensors[_i] = std::unique_ptr<tflite::VariantSubTypeT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->variant_tensors.resize(0); } }
+  { auto _e = variant_tensors(); if (_e) { _o->variant_tensors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->variant_tensors[_i]) { _e->Get(_i)->UnPackTo(_o->variant_tensors[_i].get(), _resolver); } else { _o->variant_tensors[_i] = std::unique_ptr<tflite::VariantSubTypeT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->variant_tensors.resize(0); } }
   { auto _e = external_buffer(); _o->external_buffer = _e; }
 }
 
@@ -21798,10 +21798,10 @@ inline SubGraphT *SubGraph::UnPack(const ::flatbuffers::resolver_function_t *_re
 inline void SubGraph::UnPackTo(SubGraphT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = tensors(); if (_e) { _o->tensors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->tensors[_i]) { _e->Get(_i)->UnPackTo(_o->tensors[_i].get(), _resolver); } else { _o->tensors[_i] = std::unique_ptr<tflite::TensorT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->tensors.resize(0); } }
+  { auto _e = tensors(); if (_e) { _o->tensors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->tensors[_i]) { _e->Get(_i)->UnPackTo(_o->tensors[_i].get(), _resolver); } else { _o->tensors[_i] = std::unique_ptr<tflite::TensorT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->tensors.resize(0); } }
   { auto _e = inputs(); if (_e) { _o->inputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->inputs[_i] = _e->Get(_i); } } else { _o->inputs.resize(0); } }
   { auto _e = outputs(); if (_e) { _o->outputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->outputs[_i] = _e->Get(_i); } } else { _o->outputs.resize(0); } }
-  { auto _e = operators(); if (_e) { _o->operators.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->operators[_i]) { _e->Get(_i)->UnPackTo(_o->operators[_i].get(), _resolver); } else { _o->operators[_i] = std::unique_ptr<tflite::OperatorT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->operators.resize(0); } }
+  { auto _e = operators(); if (_e) { _o->operators.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->operators[_i]) { _e->Get(_i)->UnPackTo(_o->operators[_i].get(), _resolver); } else { _o->operators[_i] = std::unique_ptr<tflite::OperatorT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->operators.resize(0); } }
   { auto _e = name(); if (_e) _o->name = _e->str(); }
   { auto _e = debug_metadata_index(); _o->debug_metadata_index = _e; }
 }
@@ -22011,8 +22011,8 @@ inline SignatureDefT *SignatureDef::UnPack(const ::flatbuffers::resolver_functio
 inline void SignatureDef::UnPackTo(SignatureDefT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = inputs(); if (_e) { _o->inputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->inputs[_i]) { _e->Get(_i)->UnPackTo(_o->inputs[_i].get(), _resolver); } else { _o->inputs[_i] = std::unique_ptr<tflite::TensorMapT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->inputs.resize(0); } }
-  { auto _e = outputs(); if (_e) { _o->outputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->outputs[_i]) { _e->Get(_i)->UnPackTo(_o->outputs[_i].get(), _resolver); } else { _o->outputs[_i] = std::unique_ptr<tflite::TensorMapT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->outputs.resize(0); } }
+  { auto _e = inputs(); if (_e) { _o->inputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->inputs[_i]) { _e->Get(_i)->UnPackTo(_o->inputs[_i].get(), _resolver); } else { _o->inputs[_i] = std::unique_ptr<tflite::TensorMapT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->inputs.resize(0); } }
+  { auto _e = outputs(); if (_e) { _o->outputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->outputs[_i]) { _e->Get(_i)->UnPackTo(_o->outputs[_i].get(), _resolver); } else { _o->outputs[_i] = std::unique_ptr<tflite::TensorMapT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->outputs.resize(0); } }
   { auto _e = signature_key(); if (_e) _o->signature_key = _e->str(); }
   { auto _e = subgraph_index(); _o->subgraph_index = _e; }
 }
@@ -22081,15 +22081,15 @@ inline void Model::UnPackTo(ModelT *_o, const ::flatbuffers::resolver_function_t
   (void)_o;
   (void)_resolver;
   { auto _e = version(); _o->version = _e; }
-  { auto _e = operator_codes(); if (_e) { _o->operator_codes.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->operator_codes[_i]) { _e->Get(_i)->UnPackTo(_o->operator_codes[_i].get(), _resolver); } else { _o->operator_codes[_i] = std::unique_ptr<tflite::OperatorCodeT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->operator_codes.resize(0); } }
-  { auto _e = subgraphs(); if (_e) { _o->subgraphs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraphs[_i]) { _e->Get(_i)->UnPackTo(_o->subgraphs[_i].get(), _resolver); } else { _o->subgraphs[_i] = std::unique_ptr<tflite::SubGraphT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->subgraphs.resize(0); } }
+  { auto _e = operator_codes(); if (_e) { _o->operator_codes.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->operator_codes[_i]) { _e->Get(_i)->UnPackTo(_o->operator_codes[_i].get(), _resolver); } else { _o->operator_codes[_i] = std::unique_ptr<tflite::OperatorCodeT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->operator_codes.resize(0); } }
+  { auto _e = subgraphs(); if (_e) { _o->subgraphs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraphs[_i]) { _e->Get(_i)->UnPackTo(_o->subgraphs[_i].get(), _resolver); } else { _o->subgraphs[_i] = std::unique_ptr<tflite::SubGraphT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->subgraphs.resize(0); } }
   { auto _e = description(); if (_e) _o->description = _e->str(); }
-  { auto _e = buffers(); if (_e) { _o->buffers.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->buffers[_i]) { _e->Get(_i)->UnPackTo(_o->buffers[_i].get(), _resolver); } else { _o->buffers[_i] = std::unique_ptr<tflite::BufferT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->buffers.resize(0); } }
+  { auto _e = buffers(); if (_e) { _o->buffers.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->buffers[_i]) { _e->Get(_i)->UnPackTo(_o->buffers[_i].get(), _resolver); } else { _o->buffers[_i] = std::unique_ptr<tflite::BufferT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->buffers.resize(0); } }
   { auto _e = metadata_buffer(); if (_e) { _o->metadata_buffer.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { _o->metadata_buffer[_i] = _e->Get(_i); } } else { _o->metadata_buffer.resize(0); } }
-  { auto _e = metadata(); if (_e) { _o->metadata.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->metadata[_i]) { _e->Get(_i)->UnPackTo(_o->metadata[_i].get(), _resolver); } else { _o->metadata[_i] = std::unique_ptr<tflite::MetadataT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->metadata.resize(0); } }
-  { auto _e = signature_defs(); if (_e) { _o->signature_defs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->signature_defs[_i]) { _e->Get(_i)->UnPackTo(_o->signature_defs[_i].get(), _resolver); } else { _o->signature_defs[_i] = std::unique_ptr<tflite::SignatureDefT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->signature_defs.resize(0); } }
-  { auto _e = external_buffer_groups(); if (_e) { _o->external_buffer_groups.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->external_buffer_groups[_i]) { _e->Get(_i)->UnPackTo(_o->external_buffer_groups[_i].get(), _resolver); } else { _o->external_buffer_groups[_i] = std::unique_ptr<tflite::ExternalBufferGroupT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->external_buffer_groups.resize(0); } }
-  { auto _e = external_buffers(); if (_e) { _o->external_buffers.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->external_buffers[_i]) { _e->Get(_i)->UnPackTo(_o->external_buffers[_i].get(), _resolver); } else { _o->external_buffers[_i] = std::unique_ptr<tflite::ExternalBufferT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->external_buffers.resize(0); } }
+  { auto _e = metadata(); if (_e) { _o->metadata.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->metadata[_i]) { _e->Get(_i)->UnPackTo(_o->metadata[_i].get(), _resolver); } else { _o->metadata[_i] = std::unique_ptr<tflite::MetadataT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->metadata.resize(0); } }
+  { auto _e = signature_defs(); if (_e) { _o->signature_defs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->signature_defs[_i]) { _e->Get(_i)->UnPackTo(_o->signature_defs[_i].get(), _resolver); } else { _o->signature_defs[_i] = std::unique_ptr<tflite::SignatureDefT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->signature_defs.resize(0); } }
+  { auto _e = external_buffer_groups(); if (_e) { _o->external_buffer_groups.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->external_buffer_groups[_i]) { _e->Get(_i)->UnPackTo(_o->external_buffer_groups[_i].get(), _resolver); } else { _o->external_buffer_groups[_i] = std::unique_ptr<tflite::ExternalBufferGroupT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->external_buffer_groups.resize(0); } }
+  { auto _e = external_buffers(); if (_e) { _o->external_buffers.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->external_buffers[_i]) { _e->Get(_i)->UnPackTo(_o->external_buffers[_i].get(), _resolver); } else { _o->external_buffers[_i] = std::unique_ptr<tflite::ExternalBufferT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->external_buffers.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<Model> Model::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ModelT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
