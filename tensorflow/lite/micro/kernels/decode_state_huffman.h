@@ -44,10 +44,10 @@ class DecodeStateHuffman : public DecodeState {
   static constexpr uint16_t kTable16BitCountMask = 0x7800;
   static constexpr size_t kTable16BitCountShift = 11;
   static constexpr uint16_t kTable16BitValueMask = 0x07FF;
-  static constexpr uint32_t kTable32BitSymbolFoundMask = 0x8000'0000;
-  static constexpr uint32_t kTable32BitCountMask = 0x7800'0000;
+  static constexpr uint32_t kTable32BitSymbolFoundMask = 0x80000000;
+  static constexpr uint32_t kTable32BitCountMask = 0x78000000;
   static constexpr size_t kTable32BitCountShift = 27;
-  static constexpr uint32_t kTable32BitValueMask = 0x07FF'FFFF;
+  static constexpr uint32_t kTable32BitValueMask = 0x07FFFFFF;
 
   //
   // Huffman Decode Common Metadata constants
