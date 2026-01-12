@@ -6,7 +6,7 @@ py_binary(
     srcs = ["train.py"],
     deps = [
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
