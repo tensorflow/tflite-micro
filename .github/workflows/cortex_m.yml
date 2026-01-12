@@ -32,6 +32,7 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'merge_group' ||
       (github.event_name == 'schedule' &&
        github.repository == 'tensorflow/tflite-micro') ||
       (github.event.action == 'labeled' &&
@@ -60,6 +61,7 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'merge_group' ||
       (github.event_name == 'schedule' &&
        github.repository == 'tensorflow/tflite-micro') ||
       (github.event.action == 'labeled' &&
