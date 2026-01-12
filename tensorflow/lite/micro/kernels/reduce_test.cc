@@ -87,19 +87,26 @@ TfLiteStatus ValidateReduceGoldens(TfLiteTensor* tensors, int tensors_size,
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              tolerance);
+  if (std::is_same<T, bool>::value) {
+    for (int i = 0; i < output_length; ++i) {
+      TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    }
+  } else {
+    for (int i = 0; i < output_length; ++i) {
+      TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
+                                tolerance);
+    }
   }
   return kTfLiteOk;
 }
 
-void TestReduceOpFloat(int* input_dims_data, const float* input_data,
-                       int* axis_dims_data, const int32_t* axis_data,
-                       int* output_dims_data, float* output_data,
-                       const float* expected_output_data,
-                       const TFLMRegistration& registration,
-                       TfLiteReducerParams* params, float tolerance = 1e-5) {
+template <typename T>
+void TestReduceOp(int* input_dims_data, const T* input_data,
+                  int* axis_dims_data, const int32_t* axis_data,
+                  int* output_dims_data, T* output_data,
+                  const T* expected_output_data,
+                  const TFLMRegistration& registration,
+                  TfLiteReducerParams* params, float tolerance = 1e-5) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -172,7 +179,7 @@ TF_LITE_MICRO_TEST(MeanFloat2DKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
       tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
       tflite::testing::kOutputShape2D, output_data,
@@ -230,7 +237,7 @@ TF_LITE_MICRO_TEST(MeanFloat3DKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape3D, tflite::testing::kInputData3D,
       tflite::testing::kAxisShape3D, tflite::testing::kAxisData3D,
       tflite::testing::kOutputShape3D, output_data,
@@ -290,7 +297,7 @@ TF_LITE_MICRO_TEST(MeanFloat4DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       tflite::testing::kOutputShape4D, output_data,
@@ -350,7 +357,7 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDims) {
       false  // keep_dims
   };
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       kOutputShape4D, output_data, tflite::testing::kGoldenData4D,
@@ -438,7 +445,7 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDimsWithPrecision) {
       false  // keep_dims
   };
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       kInputShape4D, kInputData4D, tflite::testing::kAxisShape4D,
       tflite::testing::kAxisData4D, kOutputShape4D, output_data, kGoldenData4D,
       tflite::Register_MEAN(), &params);
@@ -457,7 +464,7 @@ TF_LITE_MICRO_TEST(FloatMaxOpTestNotKeepDims) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
       expected_output_data, tflite::Register_REDUCE_MAX(), &params);
 }
@@ -475,7 +482,7 @@ TF_LITE_MICRO_TEST(FloatMaxOpTestKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
       expected_output_data, tflite::Register_REDUCE_MAX(), &params);
 }
@@ -543,7 +550,7 @@ TF_LITE_MICRO_TEST(FloatMinOpTestNotKeepDims) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
       expected_output_data, tflite::Register_REDUCE_MIN(), &params);
 }
@@ -561,7 +568,7 @@ TF_LITE_MICRO_TEST(FloatMinOpTestKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
       expected_output_data, tflite::Register_REDUCE_MIN(), &params);
 }
@@ -655,7 +662,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
@@ -674,7 +681,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2NonReduceDims) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
@@ -692,7 +699,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2MiddleDims) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
@@ -702,7 +709,7 @@ TF_LITE_MICRO_TEST(SumFloat2DKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape2D, tflite::testing::kInputData2D,
       tflite::testing::kAxisShape2D, tflite::testing::kAxisData2D,
       tflite::testing::kOutputShape2D, output_data,
@@ -760,7 +767,7 @@ TF_LITE_MICRO_TEST(SumFloat3DKeepDims) {
 
   TfLiteReducerParams params = {true};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape3D, tflite::testing::kInputData3D,
       tflite::testing::kAxisShape3D, tflite::testing::kAxisData3D,
       tflite::testing::kOutputShape3D, output_data,
@@ -820,7 +827,7 @@ TF_LITE_MICRO_TEST(SumFloat4DKeepDims) {
       true  // keep_dims
   };
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       tflite::testing::kOutputShape4D, output_data,
@@ -880,7 +887,7 @@ TF_LITE_MICRO_TEST(SumFloat4DWithoutKeepDims) {
       false  // keep_dims
   };
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       tflite::testing::kInputShape4D, tflite::testing::kInputData4D,
       tflite::testing::kAxisShape4D, tflite::testing::kAxisData4D,
       kOutputShape4D, output_data, tflite::testing::kGoldenDataSum4D,
@@ -967,7 +974,7 @@ TF_LITE_MICRO_TEST(SumFloatSize1) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
@@ -983,7 +990,7 @@ TF_LITE_MICRO_TEST(SumFloat2DRedundantDims) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
@@ -999,9 +1006,43 @@ TF_LITE_MICRO_TEST(SumFloatScalar) {
 
   TfLiteReducerParams params = {false};
 
-  tflite::testing::TestReduceOpFloat(
+  tflite::testing::TestReduceOp<float>(
       input_shape, input_data, axis_shape, axis_data, output_shape,
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
+}
+
+TF_LITE_MICRO_TEST(AllOpTestNotKeepDims) {
+  int input_shape[] = {3, 2, 3, 2};
+  const bool input_data[] = {true, true, true, true, true, false,
+                             true, true, true, true, true, true};
+  int axis_shape[] = {1, 4};
+  const int32_t axis_data[] = {1, 0, -3, -3};
+  int output_shape[] = {1, 2};
+  const bool expected_output_data[] = {true, false};
+  bool output_data[2];
+
+  TfLiteReducerParams params = {false};
+
+  tflite::testing::TestReduceOp<bool>(
+      input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
+      expected_output_data, tflite::Register_REDUCE_ALL(), &params);
+}
+
+TF_LITE_MICRO_TEST(AllOpTestKeepDims) {
+  int input_shape[] = {3, 2, 3, 2};
+  const bool input_data[] = {true, true, true, true, true, false,
+                             true, true, true, true, true, true};
+  int axis_shape[] = {1, 2};
+  const int32_t axis_data[] = {0, 2};
+  int output_shape[] = {1, 3};
+  const bool expected_output_data[] = {true, true, false};
+  bool output_data[3];
+
+  TfLiteReducerParams params = {true};
+
+  tflite::testing::TestReduceOp<bool>(
+      input_shape, input_data, axis_shape, axis_data, output_shape, output_data,
+      expected_output_data, tflite::Register_REDUCE_ALL(), &params);
 }
 
 TF_LITE_MICRO_TESTS_END
