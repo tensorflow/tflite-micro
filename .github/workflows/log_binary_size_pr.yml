@@ -49,7 +49,7 @@ jobs:
         git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
     - name: Create Logs PR Request
       id: create-pr
-      uses: peter-evans/create-pull-request@052fc72b4198ba9fbc81b818c6e1859f747d49a8
+      uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725  # v8
       with:
          branch: binary_size_profiling_update
          delete-branch: true
