@@ -307,25 +307,33 @@ TfLiteStatus MicroInterpreterGraph::ResetVariableTensors() {
        subgraph_idx++) {
     const SubGraph* subgraph = (*subgraphs_)[subgraph_idx];
     for (size_t i = 0; i < subgraph->tensors()->size(); ++i) {
-      auto* tensor = subgraph->tensors()->Get(i);
-      if (tensor->is_variable()) {
-        size_t buffer_size;
-        TF_LITE_ENSURE_STATUS(TfLiteEvalTensorByteLength(
-            &subgraph_allocations_[subgraph_idx].tensors[i], &buffer_size));
-
-        int value = 0;
-        if (tensor->type() == tflite::TensorType_INT8) {
-          value = tensor->quantization()->zero_point()->Get(0);
-        }
-        memset(subgraph_allocations_[subgraph_idx].tensors[i].data.raw, value,
-               buffer_size);
-      }
+      TF_LITE_ENSURE_STATUS(ResetVariableTensor(i, subgraph_idx));
     }
   }
   if (resource_variables_ != nullptr) {
     resource_variables_->ResetAll();
   }
 
+  return kTfLiteOk;
+}
+
+TfLiteStatus MicroInterpreterGraph::ResetVariableTensor(int tensor_index,
+                                                        int subgraph_index) {
+  const SubGraph* subgraph = (*subgraphs_)[subgraph_index];
+  auto* tensor = subgraph->tensors()->Get(tensor_index);
+  if (tensor->is_variable()) {
+    size_t buffer_size;
+    TF_LITE_ENSURE_STATUS(TfLiteEvalTensorByteLength(
+        &subgraph_allocations_[subgraph_index].tensors[tensor_index],
+        &buffer_size));
+
+    int value = 0;
+    if (tensor->type() == tflite::TensorType_INT8) {
+      value = tensor->quantization()->zero_point()->Get(0);
+    }
+    memset(subgraph_allocations_[subgraph_index].tensors[tensor_index].data.raw,
+           value, buffer_size);
+  }
   return kTfLiteOk;
 }
 
