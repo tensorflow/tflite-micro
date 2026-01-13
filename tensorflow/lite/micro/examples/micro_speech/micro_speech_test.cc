@@ -239,7 +239,9 @@ TF_LITE_MICRO_TEST(NoFeatureTest) {
   TF_LITE_ENSURE_STATUS(GenerateFeatures(
       g_no_30ms_audio_data, g_no_30ms_audio_data_size, &g_features));
   for (size_t i = 0; i < kFeatureSize; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(g_features[0][i], expected_feature[i]);
+    // Optimizations on some tartget architecture may result in slightly
+    // different output.
+    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 1);
     TF_LITE_MICRO_CHECK_FAIL();
   }
 }
