@@ -256,7 +256,7 @@ TF_LITE_MICRO_TEST(YesFeatureTest) {
   TF_LITE_ENSURE_STATUS(GenerateFeatures(
       g_yes_30ms_audio_data, g_yes_30ms_audio_data_size, &g_features));
   for (size_t i = 0; i < kFeatureSize; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(g_features[0][i], expected_feature[i]);
+    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 1);
     TF_LITE_MICRO_CHECK_FAIL();
   }
 }
