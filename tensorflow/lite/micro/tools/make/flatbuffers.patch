@@ -30,7 +30,7 @@ index d1cab08..4e5e488 100644
 -inline uint8_t* Allocate(Allocator* allocator, size_t size) {
 -  return allocator ? allocator->allocate(size)
 -                   : DefaultAllocator().allocate(size);
-+inline uint8_t *Allocate(Allocator *allocator, size_t size) {
++inline uint8_t* Allocate(Allocator* allocator, size_t size) {
 +  return allocator->allocate(size);
  }
  
@@ -39,7 +39,7 @@ index d1cab08..4e5e488 100644
 -    allocator->deallocate(p, size);
 -  else
 -    DefaultAllocator().deallocate(p, size);
-+inline void Deallocate(Allocator *allocator, uint8_t *p, size_t size) {
++inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
 +  allocator->deallocate(p, size);
  }
  
