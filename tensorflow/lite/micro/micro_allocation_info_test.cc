@@ -76,7 +76,7 @@ TF_LITE_MICRO_TEST(TestSingleSubgraphWithIntermediates) {
 }
 
 TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
-  constexpr int kArenaSize = 1024;
+  constexpr int kArenaSize = 2048;
   uint8_t arena[kArenaSize];
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithSubgraphsAndIf();
@@ -114,7 +114,7 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
 }
 
 TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndEmptySubgraph) {
-  constexpr int kArenaSize = 1024;
+  constexpr int kArenaSize = 2048;
   uint8_t arena[kArenaSize];
   const tflite::Model* model =
       tflite::testing::GetSimpleModelWithIfAndEmptySubgraph();

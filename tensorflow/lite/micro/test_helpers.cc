@@ -69,7 +69,7 @@ class StackAllocator : public flatbuffers::Allocator {
     return *inst;
   }
 
-  static constexpr size_t kStackAllocatorSize = 8192;
+  static constexpr size_t kStackAllocatorSize = 64 * 1024;
 
  private:
   uint8_t data_backing_[kStackAllocatorSize];
@@ -80,12 +80,9 @@ class StackAllocator : public flatbuffers::Allocator {
 };
 
 flatbuffers::FlatBufferBuilder* BuilderInstance() {
-  static char inst_memory[sizeof(flatbuffers::FlatBufferBuilder)];
-  static flatbuffers::FlatBufferBuilder* inst =
-      new (inst_memory) flatbuffers::FlatBufferBuilder(
-          StackAllocator::kStackAllocatorSize,
-          &StackAllocator::instance(MicroArenaBufferAlignment()));
-  return inst;
+  return new flatbuffers::FlatBufferBuilder(
+      1024,
+      &StackAllocator::instance(MicroArenaBufferAlignment()));
 }
 
 // A wrapper around FlatBuffer API to help build model easily.
@@ -1939,10 +1936,9 @@ const Model* GetNoOpModelWithTensorShape(
 const Tensor* Create1dFlatbufferTensor(int size, bool is_variable) {
   using flatbuffers::Offset;
   flatbuffers::FlatBufferBuilder* builder = BuilderInstance();
-  constexpr size_t tensor_shape_size = 1;
-  const int32_t tensor_shape[tensor_shape_size] = {size};
+  std::vector<int32_t> shape = {size};
   const Offset<Tensor> tensor_offset = CreateTensor(
-      *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
+      *builder, builder->CreateVector(shape),
       TensorType_INT32, 0, builder->CreateString("test_tensor"), 0,
       is_variable);
   builder->Finish(tensor_offset);

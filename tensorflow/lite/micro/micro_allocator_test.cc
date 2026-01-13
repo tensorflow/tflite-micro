@@ -164,7 +164,7 @@ size_t GetArenaUsedBytesBySimpleMockModel(bool is_memory_planner_injected) {
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
@@ -193,7 +193,7 @@ TF_LITE_MICRO_TEST(TestInitializeRuntimeTensor) {
 // always allocates from temp (interpreter returns buffers from
 // TfLiteEvalTensor):
 TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
@@ -220,7 +220,7 @@ TF_LITE_MICRO_TEST(TestInitializeTempRuntimeTensor) {
 }
 
 TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
@@ -247,7 +247,7 @@ TF_LITE_MICRO_TEST(TestInitializeQuantizedTensor) {
 }
 
 TF_LITE_MICRO_TEST(TestMissingQuantization) {
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::SingleArenaBufferAllocator* simple_allocator =
       tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
@@ -275,7 +275,7 @@ TF_LITE_MICRO_TEST(TestFailsWhenModelStartsTwice) {
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -291,7 +291,7 @@ TF_LITE_MICRO_TEST(TestFailsWithWrongSequence) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
   tflite::SubgraphAllocations* subgraph_allocations = nullptr;
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -313,7 +313,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocation) {
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
-  constexpr size_t arena_size = 1024 + 16;
+  constexpr size_t arena_size = 2048 + 16;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -361,7 +361,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationInTwoSeparateArenas) {
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t persistent_arena[arena_size];
   uint8_t non_persistent_arena[arena_size];
 
@@ -407,7 +407,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationWithGivenMemoryPlanner) {
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::GreedyMemoryPlanner memory_planner;
   tflite::MicroAllocator* allocator =
@@ -590,7 +590,7 @@ TF_LITE_MICRO_TEST(TestAllocationForComplexModelAllocation) {
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
-  constexpr size_t arena_size = 2048;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -940,7 +940,7 @@ TF_LITE_MICRO_TEST(TestFailAllocatePersistentTfLiteTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateSingleTempTfLiteTensor) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -954,7 +954,7 @@ TF_LITE_MICRO_TEST(TestAllocateSingleTempTfLiteTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -977,7 +977,7 @@ TF_LITE_MICRO_TEST(TestAllocateChainOfTfLiteTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateAndDeallocateChainOfTfLiteTensor) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -1007,7 +1007,7 @@ TF_LITE_MICRO_TEST(TestAllocateAndDeallocateChainOfTfLiteTensor) {
 }
 
 TF_LITE_MICRO_TEST(TestAllocateAndDeallocateTempBuffer) {
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -1023,7 +1023,7 @@ TF_LITE_MICRO_TEST(TestAllocateAndDeallocateTempBuffer) {
 
 TF_LITE_MICRO_TEST(TestAllocateTfLiteTensorWithReset) {
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size);
@@ -1287,7 +1287,7 @@ TF_LITE_MICRO_TEST(TestMockModelAllocationByNonPersistentMemoryPlannerShim) {
   tflite::testing::TestingOpResolver op_resolver;
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
-  constexpr size_t arena_size = 1024;
+  constexpr size_t arena_size = 4096;
   uint8_t arena[arena_size];
   tflite::MicroAllocator* allocator =
       tflite::MicroAllocator::Create(arena, arena_size, &planner);
