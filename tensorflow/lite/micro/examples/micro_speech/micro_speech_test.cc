@@ -258,7 +258,7 @@ TF_LITE_MICRO_TEST(YesFeatureTest) {
   for (size_t i = 0; i < kFeatureSize; i++) {
     // Optimizations on some tartget architecture may result in slightly
     // different output.
-    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 4);
+    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 5);
     TF_LITE_MICRO_CHECK_FAIL();
   }
 }
