@@ -25,7 +25,7 @@ py_test(
         "noubsan",
     ],
     deps = [
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//tensorflow/lite/micro/python/tflite_size/src:flatbuffer_size",
     ],
 )

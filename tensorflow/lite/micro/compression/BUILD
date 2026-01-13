@@ -104,7 +104,7 @@ py_test(
     deps = [
         "metadata_py",
         "@flatbuffers//:runtime_py",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -155,7 +155,7 @@ py_test(
         "//tensorflow/lite/python:schema_py",
         requirement("bitarray"),
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -175,7 +175,7 @@ py_test(
     deps = [
         ":model_facade",
         ":test_models",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -193,7 +193,7 @@ py_test(
     srcs = ["spec_test.py"],
     deps = [
         ":spec",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -212,7 +212,7 @@ py_test(
     deps = [
         ":spec",
         ":spec_builder",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
@@ -233,7 +233,7 @@ py_test(
     deps = [
         ":test_models",
         "//tensorflow/lite/python:schema_py",
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
     ],
 )
 
