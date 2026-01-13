@@ -50,3 +50,9 @@ jobs:
       trigger-sha: ${{ github.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  tests-passed:
+    needs: [call-ci, call-hexagon, call-xtensa-presubmit, call-cortex-m, call-cortex-m-armclang, call-riscv-postmerge, call-xtensa-postmerge]
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0

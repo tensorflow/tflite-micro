@@ -68,3 +68,10 @@ jobs:
       pr-body: ${{ github.event.pull_request.body }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  tests-passed:
+    needs: [gatekeeper, call-ci, call-hexagon, call-xtensa-presubmit, call-check-tflite-files]
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 0
