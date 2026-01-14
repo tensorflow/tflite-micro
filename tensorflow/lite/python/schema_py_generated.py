@@ -28,6 +28,7 @@ class TensorType(object):
     INT4 = 17
     BFLOAT16 = 18
     INT2 = 19
+    UINT4 = 20
 
 
 class QuantizationDetails(object):
