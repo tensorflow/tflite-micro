@@ -17,6 +17,8 @@ limitations under the License.
 
 #if defined(XTENSA)
 #include <xtensa/tie/xt_misc.h>
+#elif defined(HEXAGON)
+#include <hexagon_protos.h>
 #endif
 
 namespace tflite {
@@ -33,6 +35,8 @@ uint32_t MostSignificantBit64(uint64_t x) {
   }
   // Only if the upper bits are all clear do we want to look at the lower bits.
   return 32 - XT_NSAU((uint32_t)x);
+#elif defined(HEXAGON)
+  return (64 - Q6_R_cl0_P(x));
 #elif defined(__GNUC__)
   if (x) {
     return 64 - __builtin_clzll(x);

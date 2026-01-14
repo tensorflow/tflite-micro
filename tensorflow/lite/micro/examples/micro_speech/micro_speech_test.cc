@@ -239,7 +239,13 @@ TF_LITE_MICRO_TEST(NoFeatureTest) {
   TF_LITE_ENSURE_STATUS(GenerateFeatures(
       g_no_30ms_audio_data, g_no_30ms_audio_data_size, &g_features));
   for (size_t i = 0; i < kFeatureSize; i++) {
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+    // FFT optimization for the Xtensa HiFi architecture may result in slightly
+    // different output.
+    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 8);
+#else
     TF_LITE_MICRO_EXPECT_EQ(g_features[0][i], expected_feature[i]);
+#endif
     TF_LITE_MICRO_CHECK_FAIL();
   }
 }
@@ -254,7 +260,13 @@ TF_LITE_MICRO_TEST(YesFeatureTest) {
   TF_LITE_ENSURE_STATUS(GenerateFeatures(
       g_yes_30ms_audio_data, g_yes_30ms_audio_data_size, &g_features));
   for (size_t i = 0; i < kFeatureSize; i++) {
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+    // FFT optimization for the Xtensa HiFi architecture may result in slightly
+    // different output.
+    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 9);
+#else
     TF_LITE_MICRO_EXPECT_EQ(g_features[0][i], expected_feature[i]);
+#endif
     TF_LITE_MICRO_CHECK_FAIL();
   }
 }
