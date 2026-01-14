@@ -766,7 +766,7 @@ inline const char * const *EnumNamesTensorType() {
     "INT4",
     "BFLOAT16",
     "INT2",
-    "INT4",
+    "UINT4",
     nullptr
   };
   return names;
