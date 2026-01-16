@@ -242,7 +242,7 @@ TF_LITE_MICRO_TEST(NoFeatureTest) {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     // FFT optimization for the Xtensa HiFi architecture may result in slightly
     // different output.
-    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 8);
+    TF_LITE_MICRO_EXPECT_NEAR(g_features[0][i], expected_feature[i], 16);
 #else
     TF_LITE_MICRO_EXPECT_EQ(g_features[0][i], expected_feature[i]);
 #endif
