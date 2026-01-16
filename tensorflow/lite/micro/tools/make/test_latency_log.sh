@@ -25,29 +25,45 @@
 
 set -e
 
-# The TEST_SCRIPT can have a variable number of arguments. So, we remove the
-# arguments that are only needed for test_latency_log.sh and pass all the
-# remaining ones to the TEST_SCRIPT.
 ARGS=("${@}")
-TEST_FILE_NAME=${ARGS[0]}
-unset ARGS[0]
-TEST_SCRIPT=${ARGS[0]}
-unset ARGS[0]
+TEST_FILE_NAME=$1
+TEST_SCRIPT=$2
+shift 2
 
-# Output to stdout and stderr go to their normal places:
-# Here we are opening 2 file descriptor, 3 and 4. FD 3 will redirect all the
-# contents to stdout and 4 will redirect all the contents to stderr. Now when
-# executing the TEST_SCRIPT command, we are redirecting all the stdout output of
-# the command to FD 3 which will redirect everything to FD 1 (stdout) and all
-# the stderr output of the command to FD 4 which will redirect everything to FD
-# 2 (stderr). The output of the time command is captured in the time_log
-# variable with the redirection of FD 2 (stderr) to FD 1 (stdout). Finally we
-# are closing the FD 3 and 4.
-#
-# For more info
-# https://stackoverflow.com/questions/4617489/get-values-from-time-command-via-bash-script
+if [[ ! -x "$TEST_SCRIPT" && ! -f "$TEST_SCRIPT" ]]; then
+  echo "ERROR: Test script '$TEST_SCRIPT' not found or not executable."
+  exit 1
+fi
+
+# FD 3 -> Original Stdout
+# FD 4 -> Original Stderr
 exec 3>&1 4>&2
-time_log=$( { TIMEFORMAT="%R"; time ${TEST_SCRIPT} "${ARGS[@]}" 1>&3 2>&4; } 2>&1 ) # Captures time output only.
+
+# We turn off 'set -e' temporarily so we can capture the exit code manually.
+set +e
+
+time_log=$( { 
+  TIMEFORMAT="%R"
+  # Run the test. 
+  # - Output goes to FD3/4 (screen).
+  # - 'time' output goes to 2>&1 (captured into variable).
+  time "${TEST_SCRIPT}" "$@" 1>&3 2>&4
+} 2>&1 )
+
+EXIT_CODE=$?
+
+# Turn 'set -e' back on
+set -e
+
+# Close File Descriptors
 exec 3>&- 4>&-
+
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "--------------------------------------------------------"
+  echo "ERROR: ${TEST_FILE_NAME} failed with exit code ${EXIT_CODE}"
+  echo "DEBUG INFO: The test script attempted was: ${TEST_SCRIPT}"
+  echo "--------------------------------------------------------"
+  exit $EXIT_CODE
+fi
 
 echo "Running ${TEST_FILE_NAME} took ${time_log} seconds"
