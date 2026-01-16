@@ -103,6 +103,9 @@ class MicroInterpreterGraph : public MicroGraph {
   MicroResourceVariables* GetResourceVariables() { return resource_variables_; }
 
  private:
+  TfLiteStatus ResetTensorData(const tflite::Tensor* tensor,
+                               TfLiteEvalTensor* eval_tensor);
+
   TfLiteContext* context_;
   const Model* model_;
   MicroAllocator* allocator_;
