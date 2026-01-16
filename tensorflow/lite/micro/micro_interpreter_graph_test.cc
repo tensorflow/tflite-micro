@@ -75,12 +75,20 @@ TF_LITE_MICRO_TEST(TestResetVariableTensor) {
     for (size_t i = 0; i < buffer_size; ++i) {
       non_variable_tensor->data.uint8[i] = 0xBB;
     }
-    TF_LITE_MICRO_EXPECT_EQ(
-        kTfLiteOk, interpreter.ResetVariableTensor(non_variable_tensor_idx, 0));
+    TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, interpreter.ResetVariableTensor(
+                                              non_variable_tensor_idx, 0));
     for (size_t i = 0; i < buffer_size; ++i) {
       TF_LITE_MICRO_EXPECT_EQ(0xBB, non_variable_tensor->data.uint8[i]);
     }
   }
+
+  // Test invalid tensor index.
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          interpreter.ResetVariableTensor(100, 0));
+
+  // Test invalid subgraph index.
+  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
+                          interpreter.ResetVariableTensor(1, 100));
 }
 
 TF_LITE_MICRO_TESTS_END
