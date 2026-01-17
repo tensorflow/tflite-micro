@@ -24,14 +24,12 @@ limitations under the License.
 
 namespace tflite {
 
-extern const int kMaxNumberOfAxis;
-extern const int kMaxNumberOfReducedAxis;
-
 struct OpDataReduce {
   int32_t multiplier;
   int shift;
-  int temp_buffer_idx;
-  int resolved_axis_idx;
+  int scratch_accumulator_idx;
+  int scratch_resolved_axis_idx;
+  int scratch_input_iter_idx;
   int input_zp;
   float input_scale;
   int output_zp;
@@ -46,6 +44,9 @@ TfLiteStatus PrepareMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
 TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
                                     OpDataReduce* op_data);
 
+TfLiteStatus PrepareAllHelper(TfLiteContext* context, TfLiteNode* node,
+                              OpDataReduce* op_data);
+
 TfLiteStatus EvalMaxHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
 TfLiteStatus EvalMinHelper(TfLiteContext* context, TfLiteNode* node,
@@ -54,11 +55,14 @@ TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
                             OpDataReduce* op_data);
 TfLiteStatus EvalSumHelper(TfLiteContext* context, TfLiteNode* node,
                            OpDataReduce* op_data);
+TfLiteStatus EvalAllHelper(TfLiteContext* context, TfLiteNode* node,
+                           OpDataReduce* op_data);
 
 TFLMRegistration Register_MEAN();
 TFLMRegistration Register_REDUCE_MAX();
 TFLMRegistration Register_REDUCE_MIN();
 TFLMRegistration Register_SUM();
+TFLMRegistration Register_REDUCE_ALL();
 
 }  // namespace tflite
 

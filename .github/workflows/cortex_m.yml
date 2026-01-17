@@ -32,6 +32,7 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'merge_group' ||
       (github.event_name == 'schedule' &&
        github.repository == 'tensorflow/tflite-micro') ||
       (github.event.action == 'labeled' &&
@@ -39,11 +40,11 @@ jobs:
 
     name: Cortex-M Generic
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
 
@@ -60,6 +61,7 @@ jobs:
 
     if: |
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'merge_group' ||
       (github.event_name == 'schedule' &&
        github.repository == 'tensorflow/tflite-micro') ||
       (github.event.action == 'labeled' &&
@@ -67,11 +69,11 @@ jobs:
 
     name: Cortex-M Corstone 300 (FVP)
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
 

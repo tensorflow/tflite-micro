@@ -18,6 +18,8 @@ limitations under the License.
 #include <cstdio>
 #include <cstring>
 
+#include "signal/micro/kernels/irfft.h"
+#include "signal/micro/kernels/rfft.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -526,6 +528,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
       const TFLMRegistration& registration = tflite::Register_READ_VARIABLE()) {
     return AddBuiltin(BuiltinOperator_READ_VARIABLE, registration,
                       ParseReadVariable);
+  }
+
+  TfLiteStatus AddReduceAll(
+      const TFLMRegistration& registration = Register_REDUCE_ALL()) {
+    return AddBuiltin(BuiltinOperator_REDUCE_ALL, registration, ParseReducer);
   }
 
   TfLiteStatus AddReduceMax(
