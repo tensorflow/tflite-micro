@@ -344,4 +344,9 @@ TfLiteStatus MicroInterpreter::SetDecompressionMemory(
   return micro_context_.SetDecompressionMemory(regions, count);
 }
 
+TfLiteStatus MicroInterpreter::SetCustomDecodeRegistrations(
+    const MicroContext::CustomDecodeRegistration* registrations, size_t count) {
+  return micro_context_.SetCustomDecodeRegistrations(registrations, count);
+}
+
 }  // namespace tflite
