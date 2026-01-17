@@ -135,7 +135,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionTrue) {
 }
 
 TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
-  constexpr int kArenaSize = 5000;
+  constexpr int kArenaSize = 16384;
   uint8_t arena[kArenaSize];
 
   const tflite::Model* model =
@@ -163,7 +163,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
 }
 
 TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {
-  constexpr int kArenaSize = 5000;
+  constexpr int kArenaSize = 16384;
   uint8_t arena[kArenaSize];
 
   const tflite::Model* model =

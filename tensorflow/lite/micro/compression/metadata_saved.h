@@ -8,9 +8,9 @@
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 26,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 namespace tflite {
@@ -272,7 +272,7 @@ inline void Metadata::UnPackTo(MetadataT *_o, const ::flatbuffers::resolver_func
   (void)_o;
   (void)_resolver;
   { auto _e = schema_version(); _o->schema_version = _e; }
-  { auto _e = subgraphs(); if (_e) { _o->subgraphs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraphs[_i]) { _e->Get(_i)->UnPackTo(_o->subgraphs[_i].get(), _resolver); } else { _o->subgraphs[_i] = std::unique_ptr<tflite::micro::compression::SubgraphT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->subgraphs.resize(0); } }
+  { auto _e = subgraphs(); if (_e) { _o->subgraphs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraphs[_i]) { _e->Get(_i)->UnPackTo(_o->subgraphs[_i].get(), _resolver); } else { _o->subgraphs[_i] = std::unique_ptr<tflite::micro::compression::SubgraphT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->subgraphs.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<Metadata> Metadata::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MetadataT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
@@ -310,7 +310,7 @@ inline SubgraphT *Subgraph::UnPack(const ::flatbuffers::resolver_function_t *_re
 inline void Subgraph::UnPackTo(SubgraphT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = lut_tensors(); if (_e) { _o->lut_tensors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->lut_tensors[_i]) { _e->Get(_i)->UnPackTo(_o->lut_tensors[_i].get(), _resolver); } else { _o->lut_tensors[_i] = std::unique_ptr<tflite::micro::compression::LutTensorT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->lut_tensors.resize(0); } }
+  { auto _e = lut_tensors(); if (_e) { _o->lut_tensors.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->lut_tensors[_i]) { _e->Get(_i)->UnPackTo(_o->lut_tensors[_i].get(), _resolver); } else { _o->lut_tensors[_i] = std::unique_ptr<tflite::micro::compression::LutTensorT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->lut_tensors.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<Subgraph> Subgraph::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const SubgraphT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {

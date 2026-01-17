@@ -65,7 +65,7 @@ TF_LITE_MICRO_TEST(TestInterpreter) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t allocator_buffer_size = 2000;
+  constexpr size_t allocator_buffer_size = 4096;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   // Create a new scope so that we can test the destructor.
@@ -119,7 +119,7 @@ TF_LITE_MICRO_TEST(TestInterpreterCompression) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t kAllocatorBufferSize = 2000;
+  constexpr size_t kAllocatorBufferSize = 4096;
   uint8_t allocator_buffer[kAllocatorBufferSize];
 
   // Create a new scope so that we can test the destructor.
@@ -167,7 +167,7 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryAfterInit) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t kAllocatorBufferSize = 2000;
+  constexpr size_t kAllocatorBufferSize = 4096;
   uint8_t allocator_buffer[kAllocatorBufferSize];
   constexpr size_t kAltMemSize = 10;
   int16_t alt_mem_1[kAltMemSize];
@@ -195,7 +195,7 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemoryTooSmall) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t kAllocatorBufferSize = 2000;
+  constexpr size_t kAllocatorBufferSize = 4096;
   uint8_t allocator_buffer[kAllocatorBufferSize];
   constexpr size_t kAltMemSize = 10;
   int16_t alt_mem_1[kAltMemSize] = {};
@@ -257,7 +257,7 @@ TF_LITE_MICRO_TEST(TestInterpreterCompressionAltMemory) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t kAllocatorBufferSize = 2000;
+  constexpr size_t kAllocatorBufferSize = 4096;
   uint8_t allocator_buffer[kAllocatorBufferSize];
   constexpr size_t kAltMemSize = 10;
   int16_t alt_mem_1[kAltMemSize] = {};
@@ -419,7 +419,7 @@ TF_LITE_MICRO_TEST(TestKernelMemoryPlanning) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t allocator_buffer_size = 4096 + 1024;
+  constexpr size_t allocator_buffer_size = 8192 + 2048;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::RecordingMicroAllocator* allocator =
@@ -472,7 +472,7 @@ TF_LITE_MICRO_TEST(TestIncompleteInitialization) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t allocator_buffer_size = 2048;
+  constexpr size_t allocator_buffer_size = 4096;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
@@ -489,7 +489,7 @@ TF_LITE_MICRO_TEST(InterpreterWithProfilerShouldProfileOps) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t allocator_buffer_size = 2048;
+  constexpr size_t allocator_buffer_size = 4096;
   uint8_t allocator_buffer[allocator_buffer_size];
   tflite::MockProfiler profiler;
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
@@ -651,7 +651,7 @@ TF_LITE_MICRO_TEST(TestInterpreterMultipleInputs) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t allocator_buffer_size = 2000;
+  constexpr size_t allocator_buffer_size = 4096;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   // Create a new scope so that we can test the destructor.
@@ -717,7 +717,7 @@ TF_LITE_MICRO_TEST(TestInterpreterNullInputsAndOutputs) {
                           tflite::testing::GetTestingOpResolver(op_resolver));
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, op_resolver.AddCallOnce());
 
-  constexpr size_t allocator_buffer_size = 2000;
+  constexpr size_t allocator_buffer_size = 4096;
   uint8_t allocator_buffer[allocator_buffer_size];
 
   tflite::MicroInterpreter interpreter(model, op_resolver, allocator_buffer,
@@ -786,7 +786,7 @@ TF_LITE_MICRO_TEST(TestDynamicTensorFails) {
   TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
                           tflite::testing::GetTestingOpResolver(op_resolver));
 
-  constexpr size_t kAllocatorBufferSize = 2000;
+  constexpr size_t kAllocatorBufferSize = 4096;
   uint8_t allocator_buffer[kAllocatorBufferSize];
 
   // Use a new scope for each MicroInterpreter
