@@ -125,6 +125,9 @@ class MicroInterpreter {
   // Returns a pointer to the tensor for the corresponding tensor_index
   TfLiteEvalTensor* GetTensor(int tensor_index, int subgraph_index = 0);
 
+  // Zeros out a single variable tensor in a specified subgraph in the model.
+  TfLiteStatus ResetVariableTensor(int tensor_index, int subgraph_index = 0);
+
   // Reset the state to be what you would expect when the interpreter is first
   // created. i.e. after Init and Prepare is called for the very first time.
   TfLiteStatus Reset();
