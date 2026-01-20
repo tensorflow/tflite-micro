@@ -246,12 +246,6 @@ inline void InitializeTest() { InitializeTarget(); }
     }                                                                       \
   } while (false)
 
-#define TF_LITE_MICRO_FAIL(msg)                       \
-  do {                                                \
-    MicroPrintf("FAIL: %s", msg, __FILE__, __LINE__); \
-    micro_test::did_test_fail = true;                 \
-  } while (false)
-
 #define TF_LITE_MICRO_EXPECT_STRING_EQ(string1, string2)                     \
   do {                                                                       \
     for (int i = 0; string1[i] != '\0' && string2[i] != '\0'; i++) {         \
@@ -262,6 +256,121 @@ inline void InitializeTest() { InitializeTarget(); }
         break;                                                               \
       }                                                                      \
     }                                                                        \
+  } while (false)
+
+#define TF_LITE_MICRO_ASSERT(x)                             \
+  if ((x)) {                                                \
+  } else {                                                  \
+    MicroPrintf(#x " failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                       \
+    continue;                                               \
+  }
+
+#define TF_LITE_MICRO_ASSERT_EQ(x, y)                                     \
+  if ((x) == (y)) {                                                       \
+  } else {                                                                \
+    auto vx = x;                                                          \
+    auto vy = y;                                                          \
+    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);     \
+    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);     \
+    if (isFloatingX && isFloatingY) {                                     \
+      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));         \
+      if (delta > std::numeric_limits<decltype(delta)>::epsilon()) {      \
+        MicroPrintf(#x " == " #y " failed at %s:%d (%f vs %f)", __FILE__, \
+                    __LINE__, static_cast<double>(vx),                    \
+                    static_cast<double>(vy));                             \
+        micro_test::did_test_fail = true;                                 \
+        continue;                                                         \
+      }                                                                   \
+    } else {                                                              \
+      MicroPrintf(#x " == " #y " failed at %s:%d (%d vs %d)", __FILE__,   \
+                  __LINE__, static_cast<int>(vx), static_cast<int>(vy));  \
+      if (isFloatingX || isFloatingY) {                                   \
+        MicroPrintf("-----------WARNING-----------");                     \
+        MicroPrintf("Only one of the values is floating point value.");   \
+      }                                                                   \
+      micro_test::did_test_fail = true;                                   \
+      continue;                                                           \
+    }                                                                     \
+  }
+
+#define TF_LITE_MICRO_ASSERT_NE(x, y)                                     \
+  if (true) {                                                             \
+    auto vx = x;                                                          \
+    auto vy = y;                                                          \
+    bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);     \
+    bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);     \
+    if (isFloatingX && isFloatingY) {                                     \
+      auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));         \
+      if (delta <= std::numeric_limits<decltype(delta)>::epsilon()) {     \
+        MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__); \
+        micro_test::did_test_fail = true;                                 \
+        continue;                                                         \
+      }                                                                   \
+    } else if ((vx) == (vy)) {                                            \
+      MicroPrintf(#x " != " #y " failed at %s:%d", __FILE__, __LINE__);   \
+      if (isFloatingX || isFloatingY) {                                   \
+        MicroPrintf("-----------WARNING-----------");                     \
+        MicroPrintf("Only one of the values is floating point value.");   \
+      }                                                                   \
+      micro_test::did_test_fail = true;                                   \
+      continue;                                                           \
+    }                                                                     \
+  } else                                                                  \
+    (void)0
+
+#define TF_LITE_MICRO_ASSERT_GT(x, y)                                \
+  if ((x) > (y)) {                                                   \
+  } else {                                                           \
+    MicroPrintf(#x " > " #y " failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                                \
+    continue;                                                        \
+  }
+
+#define TF_LITE_MICRO_ASSERT_LT(x, y)                                \
+  if ((x) < (y)) {                                                   \
+  } else {                                                           \
+    MicroPrintf(#x " < " #y " failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                                \
+    continue;                                                        \
+  }
+
+#define TF_LITE_MICRO_ASSERT_GE(x, y)                                 \
+  if ((x) >= (y)) {                                                   \
+  } else {                                                            \
+    MicroPrintf(#x " >= " #y " failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                                 \
+    continue;                                                         \
+  }
+
+#define TF_LITE_MICRO_ASSERT_LE(x, y)                                 \
+  if ((x) <= (y)) {                                                   \
+  } else {                                                            \
+    MicroPrintf(#x " <= " #y " failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                                 \
+    continue;                                                         \
+  }
+
+#define TF_LITE_MICRO_ASSERT_TRUE(x)                                     \
+  if ((x)) {                                                             \
+  } else {                                                               \
+    MicroPrintf(#x " was not true failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                                    \
+    continue;                                                            \
+  }
+
+#define TF_LITE_MICRO_ASSERT_FALSE(x)                                     \
+  if (!(x)) {                                                             \
+  } else {                                                                \
+    MicroPrintf(#x " was not false failed at %s:%d", __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                                     \
+    continue;                                                             \
+  }
+
+#define TF_LITE_MICRO_FAIL(msg)                       \
+  do {                                                \
+    MicroPrintf("FAIL: %s", msg, __FILE__, __LINE__); \
+    micro_test::did_test_fail = true;                 \
   } while (false)
 
 #define TF_LITE_MICRO_CHECK_FAIL()   \

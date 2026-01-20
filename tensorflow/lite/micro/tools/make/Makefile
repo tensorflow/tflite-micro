@@ -342,11 +342,12 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/flatbuffer_utils_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/hexdump_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_arena_threshold_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_helpers_test.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocation_info_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_allocator_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_context_test.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_log_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_graph_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_interpreter_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_log_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_mutable_op_resolver_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_resource_variable_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/micro_time_test.cc \
