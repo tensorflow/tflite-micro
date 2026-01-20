@@ -11,9 +11,16 @@ on:
         required: true
 
 jobs:
-  call-hexagon:
-    uses: ./.github/workflows/hexagon.yml
-    with:
-      trigger-sha: ${{ inputs.trigger-sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.tflm-bot-token }}
+  hexagon_build:
+    runs-on: ubuntu-latest
+    name: Hexagon Build Test (presubmit)
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - run: |
+          rm -rf .git
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.4 \
+          /bin/bash -c \
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/"
