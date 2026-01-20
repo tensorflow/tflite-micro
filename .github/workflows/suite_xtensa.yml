@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       scope:
-        description: 'Scope of tests to run (basic or all)'
+        description: 'Scope of tests to run (basic, extended, or all)'
         required: false
         type: string
         default: 'all'
@@ -96,7 +96,7 @@ jobs:
   # --- Extended Jobs ---
 
   f1_unit_tests:
-    if: inputs.scope == 'all'
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Fusion F1 Unit Tests
     steps:
@@ -111,7 +111,7 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
 
   vision_p6_extended:
-    if: inputs.scope == 'all'
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Vision P6 Unit Tests
     steps:
@@ -126,7 +126,7 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
 
   hifimini_unit_tests:
-    if: inputs.scope == 'all'
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Hifimini Unit Tests
     steps:

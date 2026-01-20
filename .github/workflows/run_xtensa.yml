@@ -13,7 +13,9 @@ on:
 jobs:
   call-suite-xtensa:
     uses: ./.github/workflows/suite_xtensa.yml
-    if: github.repository == 'tensorflow/tflite-micro'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     with:
       trigger-sha: ${{ github.sha }}
       scope: 'all'
