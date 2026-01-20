@@ -11,7 +11,7 @@ jobs:
   check_code_style:
     runs-on: ubuntu-latest
 
-    name: Code Style (presubmit)
+    name: Code Style
     steps:
       - uses: actions/setup-python@v6
         with:
@@ -27,7 +27,7 @@ jobs:
   project_generation:
     runs-on: ubuntu-latest
 
-    name: Project Generation (presubmit)
+    name: Project Generation
     steps:
       - uses: actions/setup-python@v6
         with:
