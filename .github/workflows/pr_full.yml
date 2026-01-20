@@ -5,7 +5,7 @@
 # - ci:run_full is ephemeral (self-removing).
 # - Runs EVERYTHING: Standard Checks + Heavy Embedded Targets.
 
-name: Tests (Full Suite)
+name: PR - Full
 
 on:
   pull_request_target:
@@ -31,9 +31,9 @@ jobs:
 
   # --- Standard Checks ---
 
-  call-basics:
+  call-core:
     needs: gatekeeper
-    uses: ./.github/workflows/suite_basics.yml
+    uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
@@ -65,6 +65,7 @@ jobs:
     uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 

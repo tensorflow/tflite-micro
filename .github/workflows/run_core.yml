@@ -1,4 +1,4 @@
-name: Run-Basics
+name: Run-Core
 
 # This is the entry point for ci.yml for scheduled and workflow_dispatch events.
 
@@ -11,8 +11,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-suite-basics:
-    uses: ./.github/workflows/suite_basics.yml
+  call-suite-core:
+    uses: ./.github/workflows/suite_core.yml
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')

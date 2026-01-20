@@ -1,4 +1,4 @@
-name: Suite - Basics (x86, Lints)
+name: Suite - Core
 
 on:
   workflow_call:
@@ -28,14 +28,6 @@ jobs:
     uses: ./.github/workflows/test_makefile.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
-
-  call-cortex-m-basic:
-    uses: ./.github/workflows/suite_cortex_m.yml
-    with:
-      trigger-sha: ${{ inputs.trigger-sha }}
-      scope: 'basic'
-    secrets:
-      tflm-bot-token: ${{ secrets.tflm-bot-token }}
 
   call-ci-misc:
     uses: ./.github/workflows/test_misc.yml

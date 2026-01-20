@@ -5,7 +5,7 @@
 # - ci:ready is "sticky" (persistent) for EVERYONE.
 # - Runs fast/standard checks (CI, Hexagon, Xtensa Presubmit).
 
-name: Tests (Standard)
+name: PR - Ready
 
 on:
   pull_request_target:
@@ -33,14 +33,24 @@ jobs:
           fi
           echo "should_run=$RUN" >> $GITHUB_OUTPUT
 
-  call-basics:
+  call-core:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/suite_basics.yml
+    uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
       pr-body: ${{ github.event.pull_request.body }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-cortex-m:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'basic'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
@@ -64,7 +74,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [gatekeeper, call-basics, call-hexagon, call-xtensa]
+    needs: [gatekeeper, call-core, call-cortex-m, call-hexagon, call-xtensa]
     if: always()
     runs-on: ubuntu-latest
     steps:

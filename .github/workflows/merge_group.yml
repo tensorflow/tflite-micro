@@ -4,8 +4,8 @@ on:
   merge_group:
 
 jobs:
-  call-basics:
-    uses: ./.github/workflows/suite_basics.yml
+  call-core:
+    uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.sha }}
     secrets:
@@ -30,6 +30,7 @@ jobs:
     uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ github.sha }}
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
@@ -41,7 +42,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [call-basics, call-hexagon, call-xtensa, call-cortex-m, call-riscv]
+    needs: [call-core, call-hexagon, call-xtensa, call-cortex-m, call-riscv]
     if: always()
     runs-on: ubuntu-latest
     steps:
