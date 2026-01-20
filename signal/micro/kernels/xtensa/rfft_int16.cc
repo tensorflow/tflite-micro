@@ -19,10 +19,6 @@ limitations under the License.
 
 #if XCHAL_HAVE_HIFI3 || XCHAL_HAVE_HIFI4 || XCHAL_HAVE_HIFI5
 #include <NatureDSP_Signal.h>
-#elif XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP
-#include <xtensa/tie/xt_hifi2.h>
-
-#include "hifi2_fft/fft_core.h"
 #else
 #include "signal/src/kiss_fft_wrappers/kiss_fft_int16.h"
 #endif
@@ -46,11 +42,6 @@ struct RfftState {
   int32_t output_length;
 #endif
   fft_handle_t handle;
-};
-#elif XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP
-struct RfftState {
-  int32_t* scratch;
-  int32_t fft_length;
 };
 #else
 // Using KissFFT. No need for state.
@@ -765,9 +756,6 @@ const complex_fract16 twiddles_1024[] = {
 size_t RfftInt16GetNeededMemory(int32_t fft_length) {
 #if XCHAL_HAVE_HIFI3 || XCHAL_HAVE_HIFI4 || XCHAL_HAVE_HIFI5
   return sizeof(RfftState);
-#elif XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP
-  int scratch_size = fft_length * sizeof(int32_t);
-  return sizeof(RfftState) + scratch_size;
 #else
   size_t state_size = 0;
   kiss_fft_fixed16::kiss_fftr_alloc(fft_length, 0, nullptr, &state_size);
@@ -861,11 +849,6 @@ void* RfftInt16Init(int32_t fft_length, void* state, size_t state_size) {
 #endif
 
   return state;
-#elif XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP
-  RfftState* rfft_state = (RfftState*)state;
-  rfft_state->fft_length = fft_length;
-  rfft_state->scratch = (int32_t*)(rfft_state + 1);
-  return state;
 #else
   return kiss_fft_fixed16::kiss_fftr_alloc(fft_length, 0, state, &state_size);
 #endif
@@ -895,10 +878,6 @@ void RfftInt16Apply(void* state, const int16_t* input,
 #else
   fft_real16x16((int16_t*)output, (int16_t*)input, rfft_state->handle, 3);
 #endif
-#elif XCHAL_HAVE_HIFI_MINI || XCHAL_HAVE_HIFI2 || XCHAL_HAVE_HIFI_EP
-  RfftState* rfft_state = (RfftState*)state;
-  fft_real_i16_o16_24x24((int16_t*)input, rfft_state->fft_length,
-                         rfft_state->scratch, (int16_t*)output);
 #else
   kiss_fft_fixed16::kiss_fftr(
       static_cast<kiss_fft_fixed16::kiss_fftr_cfg>(state),
