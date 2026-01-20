@@ -26,51 +26,23 @@ jobs:
               name: 'ci:run_full'
             })
 
-  # --- Standard Checks ---
-
-  call-core:
-    needs: gatekeeper
-    uses: ./.github/workflows/suite_core.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-check-tflite-files:
-    needs: gatekeeper
-    uses: ./.github/workflows/check_tflite_files.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-      pr-number: ${{ github.event.pull_request.number }}
-      pr-body: ${{ github.event.pull_request.body }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-hexagon:
-    needs: gatekeeper
-    uses: ./.github/workflows/suite_hexagon.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+  # --- Extended Checks (Delta from pr_ready) ---
 
   call-xtensa:
     needs: gatekeeper
     uses: ./.github/workflows/suite_xtensa.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'all'
+      scope: 'extended'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  # --- Extended Checks ---
 
   call-cortex-m:
     needs: gatekeeper
     uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'all'
+      scope: 'extended'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
