@@ -38,8 +38,6 @@ jobs:
 
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
 
-  # --- Standard Checks (Run for basic OR all) ---
-
   call-core:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.scope != 'none'
@@ -69,8 +67,6 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  # --- Scoped Checks (Basic or All) ---
-
   call-cortex-m:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.scope != 'none'
@@ -90,8 +86,6 @@ jobs:
       scope: ${{ needs.gatekeeper.outputs.scope }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  # --- Full Only Checks ---
 
   call-riscv:
     needs: gatekeeper
