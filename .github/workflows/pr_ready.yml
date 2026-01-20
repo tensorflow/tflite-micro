@@ -69,7 +69,7 @@ jobs:
     uses: ./.github/workflows/suite_xtensa.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'presubmit'
+      scope: 'basic'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
