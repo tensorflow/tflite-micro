@@ -24,6 +24,8 @@ jobs:
         id: check-condition
         run: |
           RUN="false"
+          HAS_FULL="${{ contains(github.event.pull_request.labels.*.name, 'ci:full') }}"
+
           # Case 1: Just labeled 'ci:ready'
           if [[ "${{ github.event.action }}" == "labeled" && "${{ github.event.label.name }}" == "ci:ready" ]]; then
             RUN="true"
@@ -32,6 +34,11 @@ jobs:
           if [[ "${{ github.event.action }}" == "synchronize" && "${{ contains(github.event.pull_request.labels.*.name, 'ci:ready') }}" == "true" ]]; then
             RUN="true"
           fi
+
+          if [[ "$HAS_FULL" == "true" ]]; then
+            RUN="false"
+          fi
+
           echo "should_run=$RUN" >> $GITHUB_OUTPUT
 
   call-core:

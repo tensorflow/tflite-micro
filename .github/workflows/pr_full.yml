@@ -7,53 +7,103 @@ name: PR - Full
 on:
   pull_request_target:
     types:
+      - synchronize
       - labeled
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ github.event.label.name || 'void' }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
   gatekeeper:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'ci:run_full'
+    outputs:
+      should_run: ${{ steps.check-condition.outputs.should_run }}
     steps:
-      - name: remove-label
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
-          script: |
-            github.rest.issues.removeLabel({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'ci:run_full'
-            })
+      - name: check-condition
+        id: check-condition
+        run: |
+          RUN="false"
+          # Case 1: Just labeled 'ci:full'
+          if [[ "${{ github.event.action }}" == "labeled" && "${{ github.event.label.name }}" == "ci:full" ]]; then
+            RUN="true"
+          fi
+          # Case 2: Synchronize event AND 'ci:full' is present
+          if [[ "${{ github.event.action }}" == "synchronize" && "${{ contains(github.event.pull_request.labels.*.name, 'ci:full') }}" == "true" ]]; then
+            RUN="true"
+          fi
+          echo "should_run=$RUN" >> $GITHUB_OUTPUT
 
-  # --- Extended Checks (Delta from pr_ready) ---
+  # --- Standard Checks ---
+
+  call-core:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_core.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-check-tflite-files:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/check_tflite_files.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      pr-number: ${{ github.event.pull_request.number }}
+      pr-body: ${{ github.event.pull_request.body }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-hexagon:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  # --- Extended Checks ---
 
   call-xtensa:
     needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
     uses: ./.github/workflows/suite_xtensa.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'extended'
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-cortex-m:
     needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
     uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'extended'
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-riscv:
     needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
     uses: ./.github/workflows/suite_riscv.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  tests-passed:
+    needs: [gatekeeper, call-core, call-check-tflite-files, call-hexagon, call-xtensa, call-cortex-m, call-riscv]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more dependent jobs failed."
+            exit 1
+          fi
+          exit 0
