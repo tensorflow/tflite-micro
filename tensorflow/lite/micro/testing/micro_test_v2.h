@@ -340,6 +340,20 @@ inline int RunAllTests() {
     }                                                                         \
   } while (false)
 
+#define ASSERT_NEAR(x, y, epsilon)                                            \
+  do {                                                                        \
+    auto vx = (x);                                                            \
+    auto vy = (y);                                                            \
+    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));               \
+    if (vx != vy && delta > epsilon) {                                        \
+      MicroPrintf(#x " (%f) near " #y " (%f) failed at %s:%d",                \
+                  static_cast<double>(vx), static_cast<double>(vy), __FILE__, \
+                  __LINE__);                                                  \
+      micro_test::internal::DidTestFail() = true;                             \
+      return;                                                                 \
+    }                                                                         \
+  } while (false)
+
 // -----------------------------------------------------------------------------
 // Expectation Macros (Non-Fatal)
 // -----------------------------------------------------------------------------
@@ -488,10 +502,17 @@ inline int RunAllTests() {
 #define EXPECT_FLOAT_EQ(x, y) \
   EXPECT_NEAR(x, y, 4 * std::numeric_limits<float>::epsilon())
 
-#define MICRO_FAIL(msg)                               \
+#define ADD_FAILURE(msg)                              \
   do {                                                \
     MicroPrintf("FAIL: %s", msg, __FILE__, __LINE__); \
     micro_test::internal::DidTestFail() = true;       \
+  } while (false)
+
+#define FAIL(msg)                                     \
+  do {                                                \
+    MicroPrintf("FAIL: %s", msg, __FILE__, __LINE__); \
+    micro_test::internal::DidTestFail() = true;       \
+    return;                                           \
   } while (false)
 
 // Main test runner.
