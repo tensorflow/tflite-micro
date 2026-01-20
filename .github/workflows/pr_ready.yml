@@ -11,7 +11,7 @@ on:
       - labeled
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ github.event_name }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-${{ github.event.label.name || 'void' }}
   cancel-in-progress: true
 
 jobs:
