@@ -355,7 +355,9 @@ TfLiteStatus MicroInterpreterGraph::ResetTensorData(
   TF_LITE_ENSURE_STATUS(TfLiteEvalTensorByteLength(eval_tensor, &buffer_size));
 
   int value = 0;
-  if (tensor->type() == tflite::TensorType_INT8) {
+  if (tensor->type() == tflite::TensorType_INT8 && tensor->quantization() &&
+      tensor->quantization()->zero_point() &&
+      tensor->quantization->zero_point()->size() > 0) {
     value = tensor->quantization()->zero_point()->Get(0);
   }
   memset(eval_tensor->data.raw, value, buffer_size);
