@@ -1,4 +1,4 @@
-name: CI - Makefile (x86)
+name: Test - Makefile (x86)
 
 on:
   workflow_call:

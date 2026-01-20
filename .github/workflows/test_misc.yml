@@ -1,4 +1,4 @@
-name: CI - Misc (Style, Project Gen)
+name: Test - Misc (Style, Project Gen)
 
 on:
   workflow_call:

@@ -20,22 +20,25 @@ on:
 
 jobs:
   call-ci-bazel:
-    uses: ./.github/workflows/ci_bazel.yml
+    uses: ./.github/workflows/test_bazel.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
 
   call-ci-makefile:
-    uses: ./.github/workflows/ci_makefile.yml
+    uses: ./.github/workflows/test_makefile.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
 
-  call-ci-embedded:
-    uses: ./.github/workflows/ci_embedded.yml
+  call-cortex-m-basic:
+    uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
+      scope: 'basic'
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}
 
   call-ci-misc:
-    uses: ./.github/workflows/ci_misc.yml
+    uses: ./.github/workflows/test_misc.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
 
