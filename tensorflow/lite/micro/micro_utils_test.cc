@@ -57,19 +57,15 @@ TEST(MicroUtilsTest, FloatToSymmetricQuantizedInt8Test) {
   EXPECT_EQ(4, FloatToSymmetricQuantizedType<int8_t>(2, 0.5));
   EXPECT_EQ(6, FloatToSymmetricQuantizedType<int8_t>(3, 0.5));
   EXPECT_EQ(-10, FloatToSymmetricQuantizedType<int8_t>(-5, 0.5));
-  EXPECT_EQ(-127,
-                          FloatToSymmetricQuantizedType<int8_t>(-64, 0.5));
-  EXPECT_EQ(127,
-                          FloatToSymmetricQuantizedType<int8_t>(63.5, 0.5));
+  EXPECT_EQ(-127, FloatToSymmetricQuantizedType<int8_t>(-64, 0.5));
+  EXPECT_EQ(127, FloatToSymmetricQuantizedType<int8_t>(63.5, 0.5));
   // [-127, 128] -> zero_point=-1, scale=1.0
   EXPECT_EQ(1, FloatToSymmetricQuantizedType<int8_t>(1, 1.0));
   EXPECT_EQ(0, FloatToSymmetricQuantizedType<int8_t>(0, 1.0));
   EXPECT_EQ(127, FloatToSymmetricQuantizedType<int8_t>(127, 1.0));
   EXPECT_EQ(127, FloatToSymmetricQuantizedType<int8_t>(128, 1.0));
-  EXPECT_EQ(-126,
-                          FloatToSymmetricQuantizedType<int8_t>(-126, 1.0));
-  EXPECT_EQ(-127,
-                          FloatToSymmetricQuantizedType<int8_t>(-127, 1.0));
+  EXPECT_EQ(-126, FloatToSymmetricQuantizedType<int8_t>(-126, 1.0));
+  EXPECT_EQ(-127, FloatToSymmetricQuantizedType<int8_t>(-127, 1.0));
 }
 
 TEST(MicroUtilsTest, FloatToAsymmetricQuantizedInt32Test) {
@@ -77,8 +73,7 @@ TEST(MicroUtilsTest, FloatToAsymmetricQuantizedInt32Test) {
   EXPECT_EQ(0, FloatToSymmetricQuantizedType<int32_t>(0, 0.5));
   EXPECT_EQ(2, FloatToSymmetricQuantizedType<int32_t>(1, 0.5));
   EXPECT_EQ(-2, FloatToSymmetricQuantizedType<int32_t>(-1, 0.5));
-  EXPECT_EQ(-100,
-                          FloatToSymmetricQuantizedType<int32_t>(-50, 0.5));
+  EXPECT_EQ(-100, FloatToSymmetricQuantizedType<int32_t>(-50, 0.5));
   EXPECT_EQ(100, FloatToSymmetricQuantizedType<int32_t>(50, 0.5));
 }
 
