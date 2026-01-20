@@ -1,8 +1,4 @@
-# Entry point for the full test suite.
-# Triggered by 'ci:run_full' label.
-# Runs all checks including heavy embedded targets.
-
-name: PR - Full
+name: PR Tests
 
 on:
   pull_request_target:
@@ -18,27 +14,35 @@ jobs:
   gatekeeper:
     runs-on: ubuntu-latest
     outputs:
-      should_run: ${{ steps.check-condition.outputs.should_run }}
+      scope: ${{ steps.check-scope.outputs.scope }}
     steps:
-      - name: check-condition
-        id: check-condition
+      - name: check-scope
+        id: check-scope
         run: |
-          RUN="false"
-          # Case 1: Just labeled 'ci:full'
-          if [[ "${{ github.event.action }}" == "labeled" && "${{ github.event.label.name }}" == "ci:full" ]]; then
-            RUN="true"
+          SCOPE="none"
+          LABELS="${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          
+          if [[ "$LABELS" == *"ci:full"* ]]; then
+            SCOPE="all"
+          elif [[ "$LABELS" == *"ci:ready"* ]]; then
+            SCOPE="basic"
           fi
-          # Case 2: Synchronize event AND 'ci:full' is present
-          if [[ "${{ github.event.action }}" == "synchronize" && "${{ contains(github.event.pull_request.labels.*.name, 'ci:full') }}" == "true" ]]; then
-            RUN="true"
+          
+          # Handle label removal or other events where we shouldn't run if no labels match
+          if [[ "${{ github.event.action }}" == "labeled" ]]; then
+             if [[ "${{ github.event.label.name }}" != "ci:ready" && "${{ github.event.label.name }}" != "ci:full" ]]; then
+                # Triggered by unrelated label
+                SCOPE="none"
+             fi
           fi
-          echo "should_run=$RUN" >> $GITHUB_OUTPUT
 
-  # --- Standard Checks ---
+          echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+
+  # --- Standard Checks (Run for basic OR all) ---
 
   call-core:
     needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
+    if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -47,7 +51,7 @@ jobs:
 
   call-check-tflite-files:
     needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
+    if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/check_tflite_files.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -58,38 +62,40 @@ jobs:
 
   call-hexagon:
     needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
+    if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_hexagon.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  # --- Extended Checks ---
-
-  call-xtensa:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/suite_xtensa.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'all'
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+  # --- Scoped Checks (Basic or All) ---
 
   call-cortex-m:
     needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
+    if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: 'all'
+      scope: ${{ needs.gatekeeper.outputs.scope }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  call-xtensa:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/suite_xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: ${{ needs.gatekeeper.outputs.scope }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  # --- Full Only Checks ---
+
   call-riscv:
     needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
+    if: needs.gatekeeper.outputs.scope == 'all'
     uses: ./.github/workflows/suite_riscv.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
@@ -97,13 +103,17 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [gatekeeper, call-core, call-check-tflite-files, call-hexagon, call-xtensa, call-cortex-m, call-riscv]
+    needs: [gatekeeper, call-core, call-check-tflite-files, call-hexagon, call-cortex-m, call-xtensa, call-riscv]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - run: |
+          # If skipped, result is 'skipped' or 'success' depending on logic?
+          # needs.*.result contains 'skipped' if job didn't run.
+          # We fail if any result is 'failure' or 'cancelled'.
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
             echo "One or more dependent jobs failed."
             exit 1
           fi
+          # If gatekeeper said none, everything skipped. That's success (nothing failed).
           exit 0
