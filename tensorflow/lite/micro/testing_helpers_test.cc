@@ -14,11 +14,9 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(CreateQuantizedBiasTensor) {
+TEST(TestingHelpersTest, CreateQuantizedBiasTensor) {
   float input_scale = 0.5;
   float weight_scale = 0.5;
   constexpr int tensor_size = 12;
@@ -32,15 +30,15 @@ TF_LITE_MICRO_TEST(CreateQuantizedBiasTensor) {
   TfLiteTensor result = tflite::testing::CreateQuantizedBiasTensor(
       pre_quantized, quantized, dims, input_scale, weight_scale);
 
-  TF_LITE_MICRO_EXPECT_EQ(result.bytes, tensor_size * sizeof(int32_t));
-  TF_LITE_MICRO_EXPECT(result.dims == dims);
-  TF_LITE_MICRO_EXPECT_EQ(result.params.scale, input_scale * weight_scale);
+  EXPECT_EQ(result.bytes, tensor_size * sizeof(int32_t));
+  EXPECT_EQ(result.dims, dims);
+  EXPECT_EQ(result.params.scale, input_scale * weight_scale);
   for (int i = 0; i < tensor_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_quantized_values[i], result.data.i32[i]);
+    EXPECT_EQ(expected_quantized_values[i], result.data.i32[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(PackInt4Basic) {
+TEST(TestingHelpersTest, PackInt4Basic) {
   int8_t input[4] = {7, 3, 2, 5};
   int input_size = 4;
   const int8_t expect_output[2] = {0x37, 0x52};
@@ -49,11 +47,11 @@ TF_LITE_MICRO_TEST(PackInt4Basic) {
   tflite::testing::PackInt4ValuesDenselyInPlace(
       reinterpret_cast<uint8_t*>(input), input_size);
   for (int i = 0; i < output_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expect_output[i], input[i]);
+    EXPECT_EQ(expect_output[i], input[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(PackInt4BasicOddLength) {
+TEST(TestingHelpersTest, PackInt4BasicOddLength) {
   int8_t input[4] = {1, 3, 2};
   const int8_t expect_output[2] = {0x31, 0x2};
   int output_size = 2;
@@ -62,11 +60,11 @@ TF_LITE_MICRO_TEST(PackInt4BasicOddLength) {
   tflite::testing::PackInt4ValuesDenselyInPlace(
       reinterpret_cast<uint8_t*>(input), input_size);
   for (int i = 0; i < output_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expect_output[i], input[i]);
+    EXPECT_EQ(expect_output[i], input[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(CreatePerChannelQuantizedBiasTensor) {
+TEST(TestingHelpersTest, CreatePerChannelQuantizedBiasTensor) {
   float input_scale = 0.5;
   float weight_scales[] = {0.5, 1, 2, 4};
   constexpr int tensor_size = 12;
@@ -88,17 +86,17 @@ TF_LITE_MICRO_TEST(CreatePerChannelQuantizedBiasTensor) {
   // Values in scales array start at index 1 since index 0 is dedicated to
   // tracking the tensor size.
   for (int i = 0; i < channels; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(scales[i + 1], input_scale * weight_scales[i]);
+    EXPECT_EQ(scales[i + 1], input_scale * weight_scales[i]);
   }
 
-  TF_LITE_MICRO_EXPECT_EQ(result.bytes, tensor_size * sizeof(int32_t));
-  TF_LITE_MICRO_EXPECT(result.dims == dims);
+  EXPECT_EQ(result.bytes, tensor_size * sizeof(int32_t));
+  EXPECT_EQ(result.dims, dims);
   for (int i = 0; i < tensor_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_quantized_values[i], result.data.i32[i]);
+    EXPECT_EQ(expected_quantized_values[i], result.data.i32[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(CreateSymmetricPerChannelQuantizedTensor) {
+TEST(TestingHelpersTest, CreateSymmetricPerChannelQuantizedTensor) {
   const int tensor_size = 12;
   constexpr int channels = 2;
   int dims_arr[] = {4, channels, 3, 2, 1};
@@ -117,16 +115,16 @@ TF_LITE_MICRO_TEST(CreateSymmetricPerChannelQuantizedTensor) {
       tflite::testing::CreateSymmetricPerChannelQuantizedTensor(
           pre_quantized, quantized, dims, scales, zero_points, &quant, 0);
 
-  TF_LITE_MICRO_EXPECT_EQ(result.bytes, tensor_size * sizeof(int8_t));
-  TF_LITE_MICRO_EXPECT(result.dims == dims);
+  EXPECT_EQ(result.bytes, tensor_size * sizeof(int8_t));
+  EXPECT_EQ(result.dims, dims);
   TfLiteFloatArray* result_scales =
       static_cast<TfLiteAffineQuantization*>(result.quantization.params)->scale;
   for (int i = 0; i < channels; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(result_scales->data[i], expected_scales[i]);
+    EXPECT_EQ(result_scales->data[i], expected_scales[i]);
   }
   for (int i = 0; i < tensor_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_quantized_values[i], result.data.int8[i]);
+    EXPECT_EQ(expected_quantized_values[i], result.data.int8[i]);
   }
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

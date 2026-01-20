@@ -17,11 +17,9 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestSingleSubgraph) {
+TEST(MicroAllocationInfoTest, TestSingleSubgraph) {
   constexpr int kArenaSize = 1024;
   uint8_t arena[kArenaSize];
   const tflite::Model* model = tflite::testing::GetSimpleMockModel();
@@ -34,19 +32,19 @@ TF_LITE_MICRO_TEST(TestSingleSubgraph) {
       micro_allocator->StartModelAllocation(model);
   builder.InitializeAllocationInfo(nullptr, subgraph_allocations);
   builder.MarkAllocationLifetimes(0, nullptr, nullptr, subgraph_allocations);
-  TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 4);
+  EXPECT_EQ(builder.AllocationCount(), 4);
   tflite::AllocationInfo* allocation_info = builder.Finish();
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, -1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 2);
+  EXPECT_EQ(allocation_info[0].first_created, 0);
+  EXPECT_EQ(allocation_info[0].last_used, 2);
+  EXPECT_EQ(allocation_info[1].first_created, -1);
+  EXPECT_EQ(allocation_info[1].last_used, 2);
+  EXPECT_EQ(allocation_info[2].first_created, 1);
+  EXPECT_EQ(allocation_info[2].last_used, 2);
+  EXPECT_EQ(allocation_info[3].first_created, 2);
+  EXPECT_EQ(allocation_info[3].last_used, 2);
 }
 
-TF_LITE_MICRO_TEST(TestSingleSubgraphWithIntermediates) {
+TEST(MicroAllocationInfoTest, TestSingleSubgraphWithIntermediates) {
   constexpr int kArenaSize = 1024;
   uint8_t arena[kArenaSize];
   const tflite::Model* model = tflite::testing::GetSimpleStatefulModel();
@@ -59,23 +57,23 @@ TF_LITE_MICRO_TEST(TestSingleSubgraphWithIntermediates) {
       micro_allocator->StartModelAllocation(model);
   builder.InitializeAllocationInfo(nullptr, subgraph_allocations);
   builder.MarkAllocationLifetimes(0, nullptr, nullptr, subgraph_allocations);
-  TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 4);
+  EXPECT_EQ(builder.AllocationCount(), 4);
   tflite::AllocationInfo* allocation_info = builder.Finish();
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].needs_allocating, true);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].needs_allocating, true);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].needs_allocating, true);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, -1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, -1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].needs_allocating, false);
+  EXPECT_EQ(allocation_info[0].first_created, 0);
+  EXPECT_EQ(allocation_info[0].last_used, 1);
+  EXPECT_EQ(allocation_info[0].needs_allocating, true);
+  EXPECT_EQ(allocation_info[1].first_created, 1);
+  EXPECT_EQ(allocation_info[1].last_used, 1);
+  EXPECT_EQ(allocation_info[1].needs_allocating, true);
+  EXPECT_EQ(allocation_info[2].first_created, 1);
+  EXPECT_EQ(allocation_info[2].last_used, 1);
+  EXPECT_EQ(allocation_info[2].needs_allocating, true);
+  EXPECT_EQ(allocation_info[3].first_created, -1);
+  EXPECT_EQ(allocation_info[3].last_used, -1);
+  EXPECT_EQ(allocation_info[3].needs_allocating, false);
 }
 
-TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
+TEST(MicroAllocationInfoTest, TestMultiSubgraphWithIf) {
   constexpr int kArenaSize = 1024;
   uint8_t arena[kArenaSize];
   const tflite::Model* model =
@@ -89,31 +87,31 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIf) {
       micro_allocator->StartModelAllocation(model);
   builder.InitializeAllocationInfo(nullptr, subgraph_allocations);
   builder.MarkAllocationLifetimes(0, nullptr, nullptr, subgraph_allocations);
-  TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 10);
+  EXPECT_EQ(builder.AllocationCount(), 10);
   tflite::AllocationInfo* allocation_info = builder.Finish();
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].first_created, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 5);
+  EXPECT_EQ(allocation_info[0].first_created, 0);
+  EXPECT_EQ(allocation_info[0].last_used, 5);
+  EXPECT_EQ(allocation_info[1].first_created, 0);
+  EXPECT_EQ(allocation_info[1].last_used, 5);
+  EXPECT_EQ(allocation_info[2].first_created, 0);
+  EXPECT_EQ(allocation_info[2].last_used, 5);
+  EXPECT_EQ(allocation_info[3].first_created, 1);
+  EXPECT_EQ(allocation_info[3].last_used, 5);
+  EXPECT_EQ(allocation_info[4].first_created, 2);
+  EXPECT_EQ(allocation_info[4].last_used, 3);
+  EXPECT_EQ(allocation_info[5].first_created, 2);
+  EXPECT_EQ(allocation_info[5].last_used, 3);
+  EXPECT_EQ(allocation_info[6].first_created, 3);
+  EXPECT_EQ(allocation_info[6].last_used, 3);
+  EXPECT_EQ(allocation_info[7].first_created, 4);
+  EXPECT_EQ(allocation_info[7].last_used, 5);
+  EXPECT_EQ(allocation_info[8].first_created, 4);
+  EXPECT_EQ(allocation_info[8].last_used, 5);
+  EXPECT_EQ(allocation_info[9].first_created, 5);
+  EXPECT_EQ(allocation_info[9].last_used, 5);
 }
 
-TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndEmptySubgraph) {
+TEST(MicroAllocationInfoTest, TestMultiSubgraphWithIfAndEmptySubgraph) {
   constexpr int kArenaSize = 1024;
   uint8_t arena[kArenaSize];
   const tflite::Model* model =
@@ -127,31 +125,31 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndEmptySubgraph) {
       micro_allocator->StartModelAllocation(model);
   builder.InitializeAllocationInfo(nullptr, subgraph_allocations);
   builder.MarkAllocationLifetimes(0, nullptr, nullptr, subgraph_allocations);
-  TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 10);
+  EXPECT_EQ(builder.AllocationCount(), 10);
   tflite::AllocationInfo* allocation_info = builder.Finish();
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].first_created, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 4);
+  EXPECT_EQ(allocation_info[0].first_created, 0);
+  EXPECT_EQ(allocation_info[0].last_used, 4);
+  EXPECT_EQ(allocation_info[1].first_created, 0);
+  EXPECT_EQ(allocation_info[1].last_used, 4);
+  EXPECT_EQ(allocation_info[2].first_created, 0);
+  EXPECT_EQ(allocation_info[2].last_used, 4);
+  EXPECT_EQ(allocation_info[3].first_created, 1);
+  EXPECT_EQ(allocation_info[3].last_used, 4);
+  EXPECT_EQ(allocation_info[4].first_created, 2);
+  EXPECT_EQ(allocation_info[4].last_used, 3);
+  EXPECT_EQ(allocation_info[5].first_created, 2);
+  EXPECT_EQ(allocation_info[5].last_used, 3);
+  EXPECT_EQ(allocation_info[6].first_created, 3);
+  EXPECT_EQ(allocation_info[6].last_used, 3);
+  EXPECT_EQ(allocation_info[7].first_created, 4);
+  EXPECT_EQ(allocation_info[7].last_used, 4);
+  EXPECT_EQ(allocation_info[8].first_created, 4);
+  EXPECT_EQ(allocation_info[8].last_used, 4);
+  EXPECT_EQ(allocation_info[9].first_created, 4);
+  EXPECT_EQ(allocation_info[9].last_used, 4);
 }
 
-TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndInputSubgraphOverlap) {
+TEST(MicroAllocationInfoTest, TestMultiSubgraphWithIfAndInputSubgraphOverlap) {
   constexpr int kArenaSize = 2048;
   uint8_t arena[kArenaSize];
   const tflite::Model* model =
@@ -165,30 +163,30 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphWithIfAndInputSubgraphOverlap) {
       micro_allocator->StartModelAllocation(model);
   builder.InitializeAllocationInfo(nullptr, subgraph_allocations);
   builder.MarkAllocationLifetimes(0, nullptr, nullptr, subgraph_allocations);
-  TF_LITE_MICRO_EXPECT_EQ(builder.AllocationCount(), 11);
+  EXPECT_EQ(builder.AllocationCount(), 11);
   tflite::AllocationInfo* allocation_info = builder.Finish();
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[0].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[1].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].first_created, 0);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[2].last_used, 6);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].first_created, 1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[3].last_used, 6);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].first_created, 6);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[4].last_used, 6);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[5].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].first_created, 2);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[6].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].first_created, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[7].last_used, 3);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[8].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].first_created, 4);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[9].last_used, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[10].first_created, 5);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_info[10].last_used, 5);
+  EXPECT_EQ(allocation_info[0].first_created, 0);
+  EXPECT_EQ(allocation_info[0].last_used, 5);
+  EXPECT_EQ(allocation_info[1].first_created, 0);
+  EXPECT_EQ(allocation_info[1].last_used, 5);
+  EXPECT_EQ(allocation_info[2].first_created, 0);
+  EXPECT_EQ(allocation_info[2].last_used, 6);
+  EXPECT_EQ(allocation_info[3].first_created, 1);
+  EXPECT_EQ(allocation_info[3].last_used, 6);
+  EXPECT_EQ(allocation_info[4].first_created, 6);
+  EXPECT_EQ(allocation_info[4].last_used, 6);
+  EXPECT_EQ(allocation_info[5].first_created, 2);
+  EXPECT_EQ(allocation_info[5].last_used, 3);
+  EXPECT_EQ(allocation_info[6].first_created, 2);
+  EXPECT_EQ(allocation_info[6].last_used, 3);
+  EXPECT_EQ(allocation_info[7].first_created, 3);
+  EXPECT_EQ(allocation_info[7].last_used, 3);
+  EXPECT_EQ(allocation_info[8].first_created, 4);
+  EXPECT_EQ(allocation_info[8].last_used, 5);
+  EXPECT_EQ(allocation_info[9].first_created, 4);
+  EXPECT_EQ(allocation_info[9].last_used, 5);
+  EXPECT_EQ(allocation_info[10].first_created, 5);
+  EXPECT_EQ(allocation_info[10].last_used, 5);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

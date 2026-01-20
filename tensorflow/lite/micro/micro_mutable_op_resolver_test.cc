@@ -16,7 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace {
@@ -57,9 +57,7 @@ class MockErrorReporter : public ErrorReporter {
 }  // namespace
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestOperations) {
+TEST(MicroMutableOpResolverTest, TestOperations) {
   using tflite::BuiltinOperator_CONV_2D;
   using tflite::BuiltinOperator_RELU;
   using tflite::MicroMutableOpResolver;
@@ -71,28 +69,25 @@ TF_LITE_MICRO_TEST(TestOperations) {
   r.invoke = tflite::MockInvoke;
 
   MicroMutableOpResolver<1> micro_op_resolver;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          micro_op_resolver.AddCustom("mock_custom", &r));
+  EXPECT_EQ(kTfLiteOk, micro_op_resolver.AddCustom("mock_custom", &r));
 
   // Only one AddCustom per operator should return kTfLiteOk.
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
-                          micro_op_resolver.AddCustom("mock_custom", &r));
+  EXPECT_EQ(kTfLiteError, micro_op_resolver.AddCustom("mock_custom", &r));
 
   tflite::MicroOpResolver* resolver = &micro_op_resolver;
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1),
-                          micro_op_resolver.GetRegistrationLength());
+  EXPECT_EQ(static_cast<size_t>(1), micro_op_resolver.GetRegistrationLength());
 
   const TFLMRegistration* registration = resolver->FindOp(BuiltinOperator_RELU);
-  TF_LITE_MICRO_EXPECT(nullptr == registration);
+  EXPECT_EQ(nullptr, registration);
 
   registration = resolver->FindOp("mock_custom");
-  TF_LITE_MICRO_EXPECT(nullptr != registration);
-  TF_LITE_MICRO_EXPECT(nullptr == registration->init(nullptr, nullptr, 0));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, registration->prepare(nullptr, nullptr));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, registration->invoke(nullptr, nullptr));
+  EXPECT_NE(nullptr, registration);
+  EXPECT_EQ(nullptr, registration->init(nullptr, nullptr, 0));
+  EXPECT_EQ(kTfLiteOk, registration->prepare(nullptr, nullptr));
+  EXPECT_EQ(kTfLiteOk, registration->invoke(nullptr, nullptr));
 
   registration = resolver->FindOp("nonexistent_custom");
-  TF_LITE_MICRO_EXPECT(nullptr == registration);
+  EXPECT_EQ(nullptr, registration);
 }
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
