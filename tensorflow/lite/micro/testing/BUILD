@@ -35,6 +35,7 @@ tflm_cc_library(
     name = "micro_test",
     hdrs = [
         "micro_test.h",
+        "micro_test_v2.h",
     ],
     visibility = [
         ":kernel_test_friends",
@@ -55,6 +56,16 @@ tflm_cc_test(
     name = "util_test",
     srcs = [
         "util_test.cc",
+    ],
+    deps = [
+        ":micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "util_test_v2",
+    srcs = [
+        "util_test_v2.cc",
     ],
     deps = [
         ":micro_test",
