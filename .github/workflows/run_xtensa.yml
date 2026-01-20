@@ -1,7 +1,6 @@
 name: Run-Xtensa
 
-# This is the entry point for xtensa.yml for scheduled and workflow_dispatch events. 
-
+# Entry point for Xtensa tests. Triggered by schedule or workflow_dispatch.
 
 on:
   schedule:

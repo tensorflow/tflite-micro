@@ -1,9 +1,6 @@
-# tests_ci_run_full.yml
-# Entry point for the full test suite (Manual Debugging).
-#
-# - Triggered by 'ci:run_full' label only.
-# - ci:run_full is ephemeral (self-removing).
-# - Runs EVERYTHING: Standard Checks + Heavy Embedded Targets.
+# Entry point for the full test suite.
+# Triggered by 'ci:run_full' label.
+# Runs all checks including heavy embedded targets.
 
 name: PR - Full
 

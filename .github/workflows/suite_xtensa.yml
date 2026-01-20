@@ -7,21 +7,21 @@ on:
         required: true
         type: string
       scope:
-        description: 'Scope of tests to run (basic, extended, or all)'
+        description: 'Scope of tests to run (basic or all)'
         required: false
         type: string
-        default: 'basic'
+        default: 'all'
     secrets:
       tflm-bot-token:
         required: true
 
 jobs:
-  # --- Basic Jobs (Presubmit) ---
+  # --- Basic Jobs ---
 
-  vision_p6_presubmit:
+  vision_p6_basic:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Vision P6 Build (presubmit)
+    name: Vision P6 Build
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,7 +36,7 @@ jobs:
   hifi5_unit_tests:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Hifi5 Unit Tests (presubmit)
+    name: Hifi5 Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:
@@ -51,7 +51,7 @@ jobs:
   hifi5_unit_tests_with_compression:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Hifi5 Unit Tests with Compression (presubmit)
+    name: Hifi5 Unit Tests with Compression
     steps:
       - uses: actions/checkout@v6
         with:
@@ -66,7 +66,7 @@ jobs:
   hifi_3z_unit_tests:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Hifi3z Unit Tests (presubmit)
+    name: Hifi3z Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:
@@ -81,7 +81,7 @@ jobs:
   hifi_3z_unit_tests_with_compression:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Hifi3z Unit Tests with Compression (presubmit)
+    name: Hifi3z Unit Tests with Compression
     steps:
       - uses: actions/checkout@v6
         with:
@@ -93,12 +93,12 @@ jobs:
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh EXTERNAL tflite-micro/"
 
-  # --- Extended Jobs (Postmerge) ---
+  # --- Extended Jobs ---
 
   f1_unit_tests:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Fusion F1 Unit Tests (postmerge)
+    name: Fusion F1 Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:
@@ -110,10 +110,10 @@ jobs:
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
 
-  vision_p6_unit_tests:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+  vision_p6_extended:
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Vision P6 Unit Tests (postmerge)
+    name: Vision P6 Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:
@@ -126,9 +126,9 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
 
   hifimini_unit_tests:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
-    name: Hifimini Unit Tests (postmerge)
+    name: Hifimini Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:

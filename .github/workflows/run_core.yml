@@ -1,6 +1,6 @@
 name: Run-Core
 
-# This is the entry point for ci.yml for scheduled and workflow_dispatch events.
+# Entry point for Core tests. Triggered by schedule or workflow_dispatch.
 
 on:
   schedule:

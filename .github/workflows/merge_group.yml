@@ -1,5 +1,7 @@
 name: Merge Queue
 
+# Entry point for GitHub Merge Queue. Runs all tests before merging.
+
 on:
   merge_group:
 

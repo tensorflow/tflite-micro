@@ -1,9 +1,6 @@
-# tests_ci_ready.yml
-# Entry point for the standard test suite (Tier 1).
-#
-# - Triggered by 'ci:ready' label or synchronize events on PRs with 'ci:ready'.
-# - ci:ready is "sticky" (persistent) for EVERYONE.
-# - Runs fast/standard checks (CI, Hexagon, Xtensa Presubmit).
+# Entry point for the standard test suite.
+# Triggered by 'ci:ready' label or synchronize events on PRs with 'ci:ready'.
+# Runs core/standard checks.
 
 name: PR - Ready
 
