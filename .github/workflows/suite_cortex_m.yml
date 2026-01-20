@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       scope:
-        description: 'Scope of tests to run (basic, extended, or all)'
+        description: 'Scope of tests to run (basic or all)'
         required: false
         type: string
         default: 'all'
@@ -71,7 +71,7 @@ jobs:
   # --- GCC Tests ---
 
   generic_gcc:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Cortex-M Generic (GCC)
     steps:
@@ -90,7 +90,7 @@ jobs:
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
 
   corstone_300_gcc:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Cortex-M Corstone 300 (GCC)
     steps:
@@ -111,7 +111,7 @@ jobs:
   # --- Arm Clang Tests ---
 
   generic_armclang:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Cortex-M Generic (Arm Clang)
     steps:
@@ -136,7 +136,7 @@ jobs:
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh armclang
 
   corstone_300_armclang:
-    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     name: Cortex-M Corstone 300 (Arm Clang)
     steps:
@@ -159,9 +159,3 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang
-      - uses: actions/upload-artifact@v6
-        with:
-          name: my-artifact
-          path: |
-            tensorflow/
-            gen/

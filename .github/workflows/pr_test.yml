@@ -1,0 +1,113 @@
+name: PR Tests
+
+on:
+  pull_request_target:
+    types:
+      - synchronize
+      - labeled
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    outputs:
+      scope: ${{ steps.check-scope.outputs.scope }}
+    steps:
+      - name: check-scope
+        id: check-scope
+        run: |
+          SCOPE="none"
+          LABELS="${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          
+          if [[ "$LABELS" == *"ci:full"* ]]; then
+            SCOPE="all"
+          elif [[ "$LABELS" == *"ci:ready"* ]]; then
+            SCOPE="basic"
+          fi
+          
+          # Handle label removal or other events where we shouldn't run if no labels match
+          if [[ "${{ github.event.action }}" == "labeled" ]]; then
+             if [[ "${{ github.event.label.name }}" != "ci:ready" && "${{ github.event.label.name }}" != "ci:full" ]]; then
+                # Triggered by unrelated label
+                SCOPE="none"
+             fi
+          fi
+
+          echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+
+  call-core:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/suite_core.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-check-tflite-files:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/check_tflite_files.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      pr-number: ${{ github.event.pull_request.number }}
+      pr-body: ${{ github.event.pull_request.body }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-hexagon:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/suite_hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-cortex-m:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/suite_cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: ${{ needs.gatekeeper.outputs.scope }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/suite_xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: ${{ needs.gatekeeper.outputs.scope }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-riscv:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope == 'all'
+    uses: ./.github/workflows/suite_riscv.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  tests-passed:
+    needs: [gatekeeper, call-core, call-check-tflite-files, call-hexagon, call-cortex-m, call-xtensa, call-riscv]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          # If skipped, result is 'skipped' or 'success' depending on logic?
+          # needs.*.result contains 'skipped' if job didn't run.
+          # We fail if any result is 'failure' or 'cancelled'.
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more dependent jobs failed."
+            exit 1
+          fi
+          # If gatekeeper said none, everything skipped. That's success (nothing failed).
+          exit 0
