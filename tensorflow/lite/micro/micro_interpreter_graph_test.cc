@@ -15,6 +15,7 @@ limitations under the License.
 
 #include <cstdint>
 
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -44,13 +45,15 @@ TF_LITE_MICRO_TEST(TestResetVariableTensor) {
       interpreter.GetTensor(variable_tensor_idx);
   TF_LITE_MICRO_ASSERT(nullptr != variable_tensor);
 
-  if (variable_tensor->data.raw != nullptr) {
+  if (variable_tensor->data.data != nullptr) {
     // Fill the variable tensor with non-zero values.
     size_t buffer_size;
     TF_LITE_MICRO_ASSERT_EQ(kTfLiteOk, tflite::TfLiteEvalTensorByteLength(
                                            variable_tensor, &buffer_size));
+    uint8_t* variable_tensor_buffer =
+        tflite::micro::GetTensorData<uint8_t>(variable_tensor);
     for (size_t i = 0; i < buffer_size; ++i) {
-      variable_tensor->data.uint8[i] = 0xAA;
+      variable_tensor_buffer[i] = 0xAA;
     }
 
     // Reset the variable tensor.
@@ -59,7 +62,7 @@ TF_LITE_MICRO_TEST(TestResetVariableTensor) {
 
     // Verify that the variable tensor is zeroed out.
     for (size_t i = 0; i < buffer_size; ++i) {
-      TF_LITE_MICRO_EXPECT_EQ(0, variable_tensor->data.uint8[i]);
+      TF_LITE_MICRO_EXPECT_EQ(0, variable_tensor_buffer[i]);
     }
   }
 
@@ -68,17 +71,19 @@ TF_LITE_MICRO_TEST(TestResetVariableTensor) {
   TfLiteEvalTensor* non_variable_tensor =
       interpreter.GetTensor(non_variable_tensor_idx);
   TF_LITE_MICRO_ASSERT(nullptr != non_variable_tensor);
-  if (non_variable_tensor->data.raw != nullptr) {
+  if (non_variable_tensor->data.data != nullptr) {
     size_t buffer_size;
     TF_LITE_MICRO_ASSERT_EQ(kTfLiteOk, tflite::TfLiteEvalTensorByteLength(
                                            non_variable_tensor, &buffer_size));
+    uint8_t* non_variable_tensor_buffer =
+        tflite::micro::GetTensorData<uint8_t>(non_variable_tensor);
     for (size_t i = 0; i < buffer_size; ++i) {
-      non_variable_tensor->data.uint8[i] = 0xBB;
+      non_variable_tensor_buffer[i] = 0xBB;
     }
     TF_LITE_MICRO_ASSERT_EQ(kTfLiteError, interpreter.ResetVariableTensor(
                                               non_variable_tensor_idx, 0));
     for (size_t i = 0; i < buffer_size; ++i) {
-      TF_LITE_MICRO_EXPECT_EQ(0xBB, non_variable_tensor->data.uint8[i]);
+      TF_LITE_MICRO_EXPECT_EQ(0xBB, non_variable_tensor_buffer[i]);
     }
   }
 
