@@ -1,4 +1,4 @@
-name: RISC-V
+name: Run-RISCV
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
 on:
