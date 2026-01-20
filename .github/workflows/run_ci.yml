@@ -11,16 +11,18 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-ci:
-    uses: ./.github/workflows/ci.yml
+  call-suite-basics:
+    uses: ./.github/workflows/suite_basics.yml
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     with:
       trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue-on-error:
-    needs: [call-ci]
+    needs: [call-suite-basics]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:

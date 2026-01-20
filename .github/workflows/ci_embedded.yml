@@ -1,0 +1,55 @@
+name: CI - Embedded (Bluepill, QEMU)
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+
+jobs:
+  cortex_m_bluepill:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Cortex-M Bluepill Release (presubmit)
+            script: test_bluepill_release.sh
+          - name: Cortex-M Bluepill No Release (presubmit)
+            script: test_bluepill_no_release.sh
+          - name: Cortex-M Bluepill Renode (presubmit)
+            script: test_bluepill_renode.sh
+
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Test
+        run: |
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
+
+  cortex_m_qemu:
+    runs-on: ubuntu-latest
+
+    name: Cortex-M QEMU Unit Tests (presubmit)
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Test
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
+        with:
+          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh tflite-micro/

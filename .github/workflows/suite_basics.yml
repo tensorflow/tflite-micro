@@ -19,8 +19,23 @@ on:
         required: true
 
 jobs:
-  call-ci:
-    uses: ./.github/workflows/ci.yml
+  call-ci-bazel:
+    uses: ./.github/workflows/ci_bazel.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
+  call-ci-makefile:
+    uses: ./.github/workflows/ci_makefile.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
+  call-ci-embedded:
+    uses: ./.github/workflows/ci_embedded.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
+  call-ci-misc:
+    uses: ./.github/workflows/ci_misc.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
 
