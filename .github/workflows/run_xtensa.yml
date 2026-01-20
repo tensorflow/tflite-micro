@@ -12,24 +12,17 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-xtensa-presubmit:
-    uses: ./.github/workflows/xtensa_presubmit.yml
+  call-suite-xtensa:
+    uses: ./.github/workflows/suite_xtensa.yml
     if: github.repository == 'tensorflow/tflite-micro'
     with:
       trigger-sha: ${{ github.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-xtensa-postmerge:
-    uses: ./.github/workflows/xtensa_postmerge.yml
-    if: github.repository == 'tensorflow/tflite-micro'
-    with:
-      trigger-sha: ${{ github.sha }}
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue-on-error:
-    needs: [call-xtensa-presubmit,call-xtensa-postmerge]
+    needs: [call-suite-xtensa]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:
