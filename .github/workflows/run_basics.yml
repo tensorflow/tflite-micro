@@ -1,4 +1,4 @@
-name: Run-CI
+name: Run-Basics
 
 # This is the entry point for ci.yml for scheduled and workflow_dispatch events.
 
