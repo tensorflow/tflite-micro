@@ -1,6 +1,7 @@
-name: RISC-V
+name: Run-Core
 
-# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#onschedule
+# Entry point for Core tests. Triggered by schedule or workflow_dispatch.
+
 on:
   schedule:
     # 10am UTC is 3am or 4am PT depending on daylight savings.
@@ -10,26 +11,18 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  riscv_daily:
-    runs-on: ubuntu-latest
-
+  call-suite-core:
+    uses: ./.github/workflows/suite_core.yml
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-
-    name: RISC-V Continuous Builds
-    steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v6
-      - name: Test
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
-        with:
-          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh
+    with:
+      trigger-sha: ${{ github.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue-on-error:
-    needs: [riscv_daily]
+    needs: [call-suite-core]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:

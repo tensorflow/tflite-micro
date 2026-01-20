@@ -1,0 +1,55 @@
+# Entry point for the full test suite.
+# Triggered by 'ci:run_full' label.
+# Runs all checks including heavy embedded targets.
+
+name: PR - Full
+
+on:
+  pull_request_target:
+    types:
+      - labeled
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'ci:run_full'
+    steps:
+      - name: remove-label
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'ci:run_full'
+            })
+
+  # --- Extended Checks (Delta from pr_ready) ---
+
+  call-xtensa:
+    needs: gatekeeper
+    uses: ./.github/workflows/suite_xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'extended'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-cortex-m:
+    needs: gatekeeper
+    uses: ./.github/workflows/suite_cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'extended'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-riscv:
+    needs: gatekeeper
+    uses: ./.github/workflows/suite_riscv.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}

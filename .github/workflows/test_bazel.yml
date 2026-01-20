@@ -1,0 +1,64 @@
+name: Test - Bazel
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+
+jobs:
+  bazel_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Bazel (presubmit)
+            script: test_bazel.sh
+          - name: Bazel with Compression (presubmit)
+            script: test_bazel_with_compression.sh
+          - name: Bazel msan (presubmit)
+            script: test_bazel_msan.sh
+            needs-mmap-rnd: true
+          - name: Bazel with Compression [msan] (presubmit)
+            script: test_bazel_with_compression_msan.sh
+            needs-mmap-rnd: true
+          - name: Bazel asan (presubmit)
+            script: test_bazel_asan.sh
+            needs-mmap-rnd: true
+          - name: Bazel with Compression [asan] (presubmit)
+            script: test_bazel_with_compression_asan.sh
+            needs-mmap-rnd: true
+
+    name: ${{ matrix.name }}
+    steps:
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: false
+          tool-cache: false
+          swap-storage: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          sudo ci/install_bazelisk.sh
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Fix kernel mmap rnd bits
+        if: ${{ matrix.needs-mmap-rnd }}
+        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
+        # high-entropy ASLR in much newer kernels that GitHub runners are
+        # using leading to random crashes: https://reviews.llvm.org/D148280
+        run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}

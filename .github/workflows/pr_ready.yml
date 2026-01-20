@@ -1,11 +1,8 @@
-# tests_ci_ready.yml
-# Entry point for the standard test suite (Tier 1).
-#
-# - Triggered by 'ci:ready' label or synchronize events on PRs with 'ci:ready'.
-# - ci:ready is "sticky" (persistent) for EVERYONE.
-# - Runs fast/standard checks (CI, Hexagon, Xtensa Presubmit).
+# Entry point for the standard test suite.
+# Triggered by 'ci:ready' label or synchronize events on PRs with 'ci:ready'.
+# Runs core/standard checks.
 
-name: Tests (Standard)
+name: PR - Ready
 
 on:
   pull_request_target:
@@ -33,26 +30,10 @@ jobs:
           fi
           echo "should_run=$RUN" >> $GITHUB_OUTPUT
 
-  call-ci:
+  call-core:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/ci.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-
-  call-hexagon:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/hexagon.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-xtensa-presubmit:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/xtensa_presubmit.yml
+    uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:
@@ -69,8 +50,37 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  call-cortex-m:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_cortex_m.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'basic'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-hexagon:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'basic'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   tests-passed:
-    needs: [gatekeeper, call-ci, call-hexagon, call-xtensa-presubmit, call-check-tflite-files]
+    needs: [gatekeeper, call-core, call-check-tflite-files, call-cortex-m, call-hexagon, call-xtensa]
     if: always()
     runs-on: ubuntu-latest
     steps:

@@ -1,13 +1,4 @@
-# YAML schema for GitHub Actions:
-# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
-#
-# Helpful YAML parser to clarify YAML syntax:
-# https://yaml-online-parser.appspot.com/
-#
-# This file can not be run stand-alone. It is called from tests_entry.yml as part of
-# the ci automation or from run_xtensa.yml for scheduled or manual dispatch.
-
-name: Xtensa Presubmit
+name: Suite - Xtensa
 
 on:
   workflow_call:
@@ -15,16 +6,22 @@ on:
       trigger-sha:
         required: true
         type: string
+      scope:
+        description: 'Scope of tests to run (basic, extended, or all)'
+        required: false
+        type: string
+        default: 'all'
     secrets:
       tflm-bot-token:
         required: true
 
 jobs:
+  # --- Basic Jobs ---
 
-  vision_p6_presubmit:
+  vision_p6_basic:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-
-    name: Vision P6 Build (presubmit)
+    name: Vision P6 Build
     steps:
       - uses: actions/checkout@v6
         with:
@@ -37,9 +34,9 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_NO_TESTS tflite-micro/"
 
   hifi5_unit_tests:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-
-    name: Hifi5 Unit Tests (presubmit)
+    name: Hifi5 Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:
@@ -52,9 +49,9 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/"
 
   hifi5_unit_tests_with_compression:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-
-    name: Hifi5 Unit Tests with Compression (presubmit)
+    name: Hifi5 Unit Tests with Compression
     steps:
       - uses: actions/checkout@v6
         with:
@@ -67,9 +64,9 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/"
 
   hifi_3z_unit_tests:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-
-    name: Hifi3z Unit Tests (presubmit)
+    name: Hifi3z Unit Tests
     steps:
       - uses: actions/checkout@v6
         with:
@@ -82,9 +79,9 @@ jobs:
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh EXTERNAL tflite-micro/"
 
   hifi_3z_unit_tests_with_compression:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-
-    name: Hifi3z Unit Tests with Compression (presubmit)
+    name: Hifi3z Unit Tests with Compression
     steps:
       - uses: actions/checkout@v6
         with:
@@ -95,3 +92,50 @@ jobs:
           docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh EXTERNAL tflite-micro/"
+
+  # --- Extended Jobs ---
+
+  f1_unit_tests:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Fusion F1 Unit Tests
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - run: |
+          rm -rf .git
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+          /bin/bash -c \
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/"
+
+  vision_p6_extended:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Vision P6 Unit Tests
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - run: |
+          rm -rf .git
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --env XTENSA_TOOLS_VERSION=RI-2020.4-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+          /bin/bash -c \
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/"
+
+  hifimini_unit_tests:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Hifimini Unit Tests
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - run: |
+          rm -rf .git
+          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
+          docker run --env XTENSA_TOOLS_VERSION=RI-2019.2-linux --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/xtensa_xplorer_11:0.2 \
+          /bin/bash -c \
+          "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifimini.sh tflite-micro/"

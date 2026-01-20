@@ -1,13 +1,4 @@
-# YAML schema for GitHub Actions:
-# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
-#
-# Helpful YAML parser to clarify YAML syntax:
-# https://yaml-online-parser.appspot.com/
-#
-# This file can not be run stand-alone. It is called from tests_entry.yml as part of
-# the ci automation or from run_hexagon.yml for scheduled or dispatch triggering.
-
-name: Hexagon 
+name: Suite - Hexagon
 
 on:
   workflow_call:
@@ -22,7 +13,6 @@ on:
 jobs:
   hexagon_build:
     runs-on: ubuntu-latest
-
     name: Hexagon Build Test (presubmit)
     steps:
       - uses: actions/checkout@v6
@@ -34,5 +24,3 @@ jobs:
           docker run --rm -v `pwd`:/opt/tflite-micro ghcr.io/tflm-bot/hexagon:0.4 \
           /bin/bash -c \
           "cd /opt && tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/"
-
-

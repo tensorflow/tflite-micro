@@ -1,0 +1,167 @@
+name: Suite - Cortex-M
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+      scope:
+        description: 'Scope of tests to run (basic, extended, or all)'
+        required: false
+        type: string
+        default: 'all'
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  # --- Basic Tests (Bluepill, QEMU) ---
+
+  cortex_m_bluepill:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Cortex-M Bluepill Release
+            script: test_bluepill_release.sh
+          - name: Cortex-M Bluepill No Release
+            script: test_bluepill_no_release.sh
+          - name: Cortex-M Bluepill Renode
+            script: test_bluepill_renode.sh
+
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Test
+        run: |
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
+
+  cortex_m_qemu:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+
+    name: Cortex-M QEMU Unit Tests
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Test
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
+        with:
+          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh tflite-micro/
+
+  # --- Extended Tests (Generic, Corstone) ---
+
+  # --- GCC Tests ---
+
+  generic_gcc:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Cortex-M Generic (GCC)
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh
+
+  corstone_300_gcc:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Cortex-M Corstone 300 (GCC)
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
+
+  # --- Arm Clang Tests ---
+
+  generic_armclang:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Cortex-M Generic (Arm Clang)
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Install Arm tools
+        uses: ARM-software/cmsis-actions/vcpkg@v1
+        with: 
+          config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
+      - name: Activate Arm tool license
+        uses: ARM-software/cmsis-actions/armlm@v1
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh armclang
+
+  corstone_300_armclang:
+    if: inputs.scope == 'extended' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    name: Cortex-M Corstone 300 (Arm Clang)
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Install Arm tools
+        uses: ARM-software/cmsis-actions/vcpkg@v1
+        with: 
+          config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
+      - name: Activate Arm tool license
+        uses: ARM-software/cmsis-actions/armlm@v1
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang
+      - uses: actions/upload-artifact@v6
+        with:
+          name: my-artifact
+          path: |
+            tensorflow/
+            gen/

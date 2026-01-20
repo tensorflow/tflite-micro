@@ -1,0 +1,45 @@
+name: Test - Misc (Style, Project Gen)
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+
+jobs:
+  check_code_style:
+    runs-on: ubuntu-latest
+
+    name: Code Style (presubmit)
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Check
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
+        with:
+          args: /bin/sh -c "git config --global --add safe.directory /github/workspace && tensorflow/lite/micro/tools/ci_build/test_code_style.sh"
+
+  project_generation:
+    runs-on: ubuntu-latest
+
+    name: Project Generation (presubmit)
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Test
+        run: |
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh tflite-micro/

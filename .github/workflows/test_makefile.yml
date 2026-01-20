@@ -1,0 +1,44 @@
+name: Test - Makefile (x86)
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+
+jobs:
+  x86_makefile_tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Makefile x86 Release (presubmit)
+            script: test_x86_release.sh
+          - name: Makefile x86 Default (presubmit)
+            script: test_x86_default.sh
+          - name: Makefile x86 with Compression (presubmit)
+            script: test_x86_default_with_compression.sh
+          - name: Makefile x86 Out Of Tree (presubmit)
+            script: test_x86_out_of_tree.sh
+          - name: Makefile x86 No TFLite Static Memory (presubmit)
+            script: test_x86_no_tflite_static_memory.sh
+
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - name: Install dependencies
+        run: |
+          pip3 install Pillow
+          pip3 install numpy
+      - name: Test
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
+          cd ../
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
