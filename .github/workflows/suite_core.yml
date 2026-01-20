@@ -6,14 +6,6 @@ on:
       trigger-sha:
         required: true
         type: string
-      pr-number:
-        required: false
-        type: string
-        default: ''
-      pr-body:
-        required: false
-        type: string
-        default: ''
     secrets:
       tflm-bot-token:
         required: true
@@ -33,13 +25,3 @@ jobs:
     uses: ./.github/workflows/test_misc.yml
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
-
-  call-check-tflite-files:
-    if: inputs.pr-number != ''
-    uses: ./.github/workflows/check_tflite_files.yml
-    with:
-      trigger-sha: ${{ inputs.trigger-sha }}
-      pr-number: ${{ inputs.pr-number }}
-      pr-body: ${{ inputs.pr-body }}
-    secrets:
-      tflm-bot-token: ${{ secrets.tflm-bot-token }}

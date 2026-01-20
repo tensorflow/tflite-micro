@@ -33,6 +33,14 @@ jobs:
     uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-check-tflite-files:
+    needs: gatekeeper
+    uses: ./.github/workflows/check_tflite_files.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
       pr-body: ${{ github.event.pull_request.body }}
     secrets:

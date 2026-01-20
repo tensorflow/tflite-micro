@@ -36,6 +36,15 @@ jobs:
     uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-check-tflite-files:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/check_tflite_files.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
       pr-body: ${{ github.event.pull_request.body }}
     secrets:
@@ -71,7 +80,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [gatekeeper, call-core, call-cortex-m, call-hexagon, call-xtensa]
+    needs: [gatekeeper, call-core, call-check-tflite-files, call-cortex-m, call-hexagon, call-xtensa]
     if: always()
     runs-on: ubuntu-latest
     steps:
