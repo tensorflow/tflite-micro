@@ -8,7 +8,7 @@ py_binary(
     deps = [
         requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow-cpu"),
+        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )

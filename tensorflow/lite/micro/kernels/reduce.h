@@ -24,14 +24,12 @@ limitations under the License.
 
 namespace tflite {
 
-extern const int kMaxNumberOfAxis;
-extern const int kMaxNumberOfReducedAxis;
-
 struct OpDataReduce {
   int32_t multiplier;
   int shift;
-  int temp_buffer_idx;
-  int resolved_axis_idx;
+  int scratch_accumulator_idx;
+  int scratch_resolved_axis_idx;
+  int scratch_input_iter_idx;
   int input_zp;
   float input_scale;
   int output_zp;
