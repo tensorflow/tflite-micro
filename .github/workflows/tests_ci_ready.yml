@@ -33,35 +33,10 @@ jobs:
           fi
           echo "should_run=$RUN" >> $GITHUB_OUTPUT
 
-  call-ci:
+  call-basics:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/ci.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-
-  call-hexagon:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/hexagon.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-xtensa-presubmit:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/xtensa_presubmit.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-check-tflite-files:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.should_run == 'true'
-    uses: ./.github/workflows/check_tflite_files.yml
+    uses: ./.github/workflows/suite_basics.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
@@ -69,8 +44,27 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  call-hexagon:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.should_run == 'true'
+    uses: ./.github/workflows/suite_xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'presubmit'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   tests-passed:
-    needs: [gatekeeper, call-ci, call-hexagon, call-xtensa-presubmit, call-check-tflite-files]
+    needs: [gatekeeper, call-basics, call-hexagon, call-xtensa]
     if: always()
     runs-on: ubuntu-latest
     steps:

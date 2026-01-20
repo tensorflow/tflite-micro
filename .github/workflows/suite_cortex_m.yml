@@ -1,0 +1,26 @@
+name: Suite - Cortex-M
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  call-cortex-m:
+    uses: ./.github/workflows/cortex_m.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}
+
+  call-cortex-m-armclang:
+    uses: ./.github/workflows/cortex_m_arm_compiler.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}

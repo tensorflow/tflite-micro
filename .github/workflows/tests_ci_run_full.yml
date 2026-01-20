@@ -31,31 +31,9 @@ jobs:
 
   # --- Standard Checks ---
 
-  call-ci:
+  call-basics:
     needs: gatekeeper
-    uses: ./.github/workflows/ci.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-
-  call-hexagon:
-    needs: gatekeeper
-    uses: ./.github/workflows/hexagon.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-xtensa-presubmit:
-    needs: gatekeeper
-    uses: ./.github/workflows/xtensa_presubmit.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-check-tflite-files:
-    needs: gatekeeper
-    uses: ./.github/workflows/check_tflite_files.yml
+    uses: ./.github/workflows/suite_basics.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
       pr-number: ${{ github.event.pull_request.number }}
@@ -63,35 +41,36 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  call-hexagon:
+    needs: gatekeeper
+    uses: ./.github/workflows/suite_hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-xtensa:
+    needs: gatekeeper
+    uses: ./.github/workflows/suite_xtensa.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: 'all'
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   # --- Extended Checks ---
 
   call-cortex-m:
     needs: gatekeeper
-    uses: ./.github/workflows/cortex_m.yml
+    uses: ./.github/workflows/suite_cortex_m.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-cortex-m-armclang:
+  call-riscv:
     needs: gatekeeper
-    uses: ./.github/workflows/cortex_m_arm_compiler.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-riscv-postmerge:
-    needs: gatekeeper
-    uses: ./.github/workflows/riscv_postmerge.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
-  call-xtensa-postmerge:
-    needs: gatekeeper
-    uses: ./.github/workflows/xtensa_postmerge.yml
+    uses: ./.github/workflows/suite_riscv.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:

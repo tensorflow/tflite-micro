@@ -1,0 +1,19 @@
+name: Suite - Hexagon
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  call-hexagon:
+    uses: ./.github/workflows/hexagon.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}

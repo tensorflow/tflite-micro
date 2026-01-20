@@ -1,0 +1,35 @@
+name: Suite - Basics (x86, Lints)
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+      pr-number:
+        required: false
+        type: string
+        default: ''
+      pr-body:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  call-ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
+  call-check-tflite-files:
+    if: inputs.pr-number != ''
+    uses: ./.github/workflows/check_tflite_files.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+      pr-number: ${{ inputs.pr-number }}
+      pr-body: ${{ inputs.pr-body }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}

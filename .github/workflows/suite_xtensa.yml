@@ -1,0 +1,32 @@
+name: Suite - Xtensa
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+      scope:
+        description: 'Scope of tests to run (presubmit or all)'
+        required: false
+        type: string
+        default: 'presubmit'
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  call-xtensa-presubmit:
+    uses: ./.github/workflows/xtensa_presubmit.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}
+
+  call-xtensa-postmerge:
+    if: inputs.scope == 'all'
+    uses: ./.github/workflows/xtensa_postmerge.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}

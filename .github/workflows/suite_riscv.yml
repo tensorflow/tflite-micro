@@ -1,0 +1,19 @@
+name: Suite - RISC-V
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  call-riscv-postmerge:
+    uses: ./.github/workflows/riscv_postmerge.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.tflm-bot-token }}
