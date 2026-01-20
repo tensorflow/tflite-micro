@@ -159,3 +159,9 @@ jobs:
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang
+      - uses: actions/upload-artifact@v6
+        with:
+          name: my-artifact
+          path: |
+            tensorflow/
+            gen/
