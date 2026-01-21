@@ -18,7 +18,7 @@
 # 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 # Tests the microcontroller code for bluepill
 
-set -e
+set -ex
 
 TARGET=bluepill
 OPTIMIZED_KERNEL_DIR=cmsis_nn

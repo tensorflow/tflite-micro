@@ -18,7 +18,7 @@
 # 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 # Tests the microcontroller code with QEMU emulator
 
-set -e
+set -ex
 pwd
 
 TENSORFLOW_ROOT=${1}

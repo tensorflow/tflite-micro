@@ -20,7 +20,7 @@
 
 # CI test with compression enabled for x86
 
-set -e
+set -ex
 set -x
 
 TENSORFLOW_ROOT=${1}

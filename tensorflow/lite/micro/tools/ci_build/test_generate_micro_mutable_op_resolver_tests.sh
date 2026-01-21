@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 
-set -e
+set -ex
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..

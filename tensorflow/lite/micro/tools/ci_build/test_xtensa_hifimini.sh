@@ -18,7 +18,7 @@
 # 2 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 
-set -e
+set -ex
 pwd
 
 TENSORFLOW_ROOT=${1}

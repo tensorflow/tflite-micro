@@ -20,7 +20,7 @@
 
 # CI test with compression enabled for hifi3z
 
-set -e
+set -ex
 set -x
 pwd
 
