@@ -17,7 +17,101 @@ limitations under the License.
 
 namespace {
 
-// Fixture for testing TEST_F functionality.
+int g_eval_counter = 0;
+int IncrementCounter() { return ++g_eval_counter; }
+
+}  // namespace
+
+TEST(FrameworkTest, ArgumentsEvaluatedOnce) {
+  g_eval_counter = 0;
+  EXPECT_EQ(IncrementCounter(), 1);
+  ASSERT_EQ(IncrementCounter(), 2);
+  EXPECT_TRUE(IncrementCounter() == 3);
+  ASSERT_TRUE(IncrementCounter() == 4);
+}
+
+TEST(FrameworkTest, BooleanExpectations) {
+  EXPECT_TRUE(true);
+  EXPECT_TRUE(!false);
+  EXPECT_FALSE(false);
+  EXPECT_FALSE(!true);
+}
+
+TEST(FrameworkTest, IntegerEquality) {
+  EXPECT_EQ(1, 1);
+  const int kInt = 123;
+  EXPECT_EQ(kInt, 123);
+
+  EXPECT_EQ(10L, 10L);
+  EXPECT_EQ(100LL, 100LL);
+
+  EXPECT_EQ(1u, 1u);
+  EXPECT_EQ(10ul, 10ul);
+  EXPECT_EQ(100ull, 100ull);
+
+  EXPECT_EQ(static_cast<short>(5), static_cast<short>(5));
+  EXPECT_EQ(static_cast<unsigned short>(5), static_cast<unsigned short>(5));
+  EXPECT_EQ(static_cast<signed char>(5), static_cast<signed char>(5));
+  EXPECT_EQ(static_cast<unsigned char>(5), static_cast<unsigned char>(5));
+}
+
+TEST(FrameworkTest, ComparisonExpectations) {
+  EXPECT_NE(1, 2);
+  EXPECT_GT(2, 1);
+  EXPECT_GE(2, 1);
+  EXPECT_GE(2, 2);
+  EXPECT_LT(1, 2);
+  EXPECT_LE(1, 2);
+  EXPECT_LE(2, 2);
+}
+
+TEST(FrameworkTest, StringExpectations) {
+  const char* str = "hello";
+  EXPECT_STREQ(str, "hello");
+  EXPECT_STREQ("hello", "hello");
+
+  char buffer[] = "hello";
+  EXPECT_STREQ(buffer, "hello");
+
+  EXPECT_STRNE(str, "world");
+  EXPECT_STRNE("hello", "world");
+}
+
+TEST(FrameworkTest, FloatingPointExpectations) {
+  EXPECT_FLOAT_EQ(1.0f, 1.0f);
+  EXPECT_FLOAT_EQ(1.0f, 1.0000001f);
+
+  EXPECT_NEAR(1.0f, 1.1f, 0.2f);
+  EXPECT_NEAR(1.0, 1.1, 0.2);
+}
+
+TEST(FrameworkTest, PointerExpectations) {
+  int x = 10;
+  int* p1 = &x;
+  int* p2 = &x;
+  EXPECT_EQ(p1, p2);
+
+  int y = 10;
+  EXPECT_NE(&x, &y);
+}
+
+TEST(FrameworkTest, FatalAssertionsPass) {
+  ASSERT_TRUE(true);
+  ASSERT_FALSE(false);
+  ASSERT_EQ(1, 1);
+  ASSERT_NE(1, 2);
+  ASSERT_GT(2, 1);
+  ASSERT_LT(1, 2);
+  ASSERT_GE(2, 2);
+  ASSERT_LE(2, 2);
+  ASSERT_STREQ("foo", "foo");
+  ASSERT_STRNE("foo", "bar");
+  ASSERT_FLOAT_EQ(1.0f, 1.0f);
+  ASSERT_NEAR(10.0, 10.1, 0.2);
+}
+
+namespace {
+
 class LifecycleTest : public testing::Test {
  public:
   void SetUp() override { setup_count_++; }
@@ -32,90 +126,12 @@ int LifecycleTest::teardown_count_ = 0;
 
 }  // namespace
 
-// Test that macros evaluate arguments exactly once.
-TEST(FrameworkTest, ArgumentsEvaluatedOnce) {
-  int counter = 0;
-  EXPECT_EQ(++counter, 1);
-  ASSERT_EQ(++counter, 2);
-  EXPECT_TRUE(++counter == 3);
-  ASSERT_TRUE(++counter == 4);
-}
-
-// Test boolean expectations.
-TEST(FrameworkTest, ExpectBool) {
-  EXPECT_TRUE(true);
-  EXPECT_FALSE(false);
-}
-
-// Test equality expectations.
-TEST(FrameworkTest, ExpectEquality) {
-  EXPECT_EQ(1, 1);
-  EXPECT_EQ(10L, 10L);
-  EXPECT_EQ(1.0f, 1.0f);
-  EXPECT_EQ(1.0, 1.0);
-}
-
-// Test inequality expectations.
-TEST(FrameworkTest, ExpectInequality) {
-  EXPECT_NE(1, 2);
-  EXPECT_NE(1.0f, 2.0f);
-}
-
-// Test comparisons (GT, LT, GE, LE).
-TEST(FrameworkTest, ExpectComparisons) {
-  EXPECT_GT(2, 1);
-  EXPECT_GE(2, 1);
-  EXPECT_GE(2, 2);
-
-  EXPECT_LT(1, 2);
-  EXPECT_LE(1, 2);
-  EXPECT_LE(2, 2);
-}
-
-// Test string expectations.
-TEST(FrameworkTest, ExpectString) {
-  const char* str = "hello";
-  EXPECT_STREQ(str, "hello");
-  EXPECT_STREQ("hello", "hello");
-}
-
-// Test floating point approximations.
-TEST(FrameworkTest, ExpectFloat) {
-  EXPECT_FLOAT_EQ(1.0f, 1.0f);
-  EXPECT_FLOAT_EQ(1.0f,
-                  1.0f + 1e-7f);  // Within default epsilon (approx 1.19e-7)
-  EXPECT_NEAR(1.0f, 1.1f, 0.2f);
-}
-
-// Test assertions (fatal failures).
-// Note: We can't easily test that they fail and return without a subprocess,
-// so we test that they pass when condition matches.
-TEST(FrameworkTest, AssertionsPass) {
-  ASSERT_TRUE(true);
-  ASSERT_FALSE(false);
-  ASSERT_EQ(1, 1);
-  ASSERT_NE(1, 2);
-  ASSERT_GT(2, 1);
-  ASSERT_LT(1, 2);
-  ASSERT_GE(2, 2);
-  ASSERT_LE(2, 2);
-  ASSERT_STREQ("foo", "foo");
-  ASSERT_FLOAT_EQ(1.0f, 1.0f);
-  ASSERT_NEAR(10.0, 10.1, 0.2);
-}
-
-// Verify fixture lifecycle execution.
-// Since tests run in reverse order of registration (LIFO),
-// we verify that SetUp is called and counts increase monotonically.
-TEST_F(LifecycleTest, A_TestOne) {
-  // Check that SetUp was called for this instance.
+TEST_F(LifecycleTest, TestInstance1) {
   EXPECT_GT(setup_count_, 0);
-  // Teardown count lags by one because current test's teardown happens after
-  // body.
   EXPECT_EQ(teardown_count_, setup_count_ - 1);
 }
 
-TEST_F(LifecycleTest, B_TestTwo) {
+TEST_F(LifecycleTest, TestInstance2) {
   EXPECT_GT(setup_count_, 0);
   EXPECT_EQ(teardown_count_, setup_count_ - 1);
 }

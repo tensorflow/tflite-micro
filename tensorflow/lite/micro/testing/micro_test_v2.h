@@ -92,32 +92,69 @@ inline bool& DidTestFail() {
 }
 
 // Overloaded functions to print values of different types.
-inline void PrintValue(int v) { MicroPrintf("%d", v); }
-inline void PrintValue(unsigned int v) { MicroPrintf("%u", v); }
-inline void PrintValue(long v) { MicroPrintf("%ld", v); }
-inline void PrintValue(unsigned long v) { MicroPrintf("%lu", v); }
-inline void PrintValue(float v) { MicroPrintf("%f", static_cast<double>(v)); }
-inline void PrintValue(double v) { MicroPrintf("%f", v); }
-inline void PrintValue(bool v) { MicroPrintf("%s", v ? "true" : "false"); }
-inline void PrintValue(const char* v) { MicroPrintf("%s", v ? v : "(null)"); }
-inline void PrintValue(char* v) { MicroPrintf("%s", v ? v : "(null)"); }
-inline void PrintValue(const void* v) { MicroPrintf("%p", v); }
+inline void PrintValue(const char* label, int v) {
+  MicroPrintf("%s%d", label, v);
+}
+inline void PrintValue(const char* label, unsigned int v) {
+  MicroPrintf("%s%u", label, v);
+}
+inline void PrintValue(const char* label, long v) {
+  MicroPrintf("%s%ld", label, v);
+}
+inline void PrintValue(const char* label, unsigned long v) {
+  MicroPrintf("%s%lu", label, v);
+}
+inline void PrintValue(const char* label, float v) {
+  MicroPrintf("%s%f", label, static_cast<double>(v));
+}
+inline void PrintValue(const char* label, double v) {
+  MicroPrintf("%s%f", label, v);
+}
+inline void PrintValue(const char* label, bool v) {
+  MicroPrintf("%s%s", label, v ? "true" : "false");
+}
+inline void PrintValue(const char* label, const char* v) {
+  MicroPrintf("%s%s", label, v ? v : "(null)");
+}
+inline void PrintValue(const char* label, char* v) {
+  MicroPrintf("%s%s", label, v ? v : "(null)");
+}
+inline void PrintValue(const char* label, const void* v) {
+  MicroPrintf("%s%p", label, v);
+}
+inline void PrintValue(const char* label, short v) {
+  MicroPrintf("%s%d", label, v);
+}
+inline void PrintValue(const char* label, unsigned short v) {
+  MicroPrintf("%s%u", label, v);
+}
+inline void PrintValue(const char* label, signed char v) {
+  MicroPrintf("%s%d", label, v);
+}
+inline void PrintValue(const char* label, unsigned char v) {
+  MicroPrintf("%s%u", label, v);
+}
+inline void PrintValue(const char* label, long long v) {
+  MicroPrintf("%s%ld", label, static_cast<long>(v));
+}
+inline void PrintValue(const char* label, unsigned long long v) {
+  MicroPrintf("%s%lu", label, static_cast<unsigned long>(v));
+}
 
 // Fallback for types that don't match the overloads above.
 template <typename T>
-inline void PrintValue(const T&) {
-  MicroPrintf("?");
+inline void PrintValue(const char* label, const T&) {
+  MicroPrintf("%s?", label);
 }
 
 // Helper to report a failure with the file, line, and comparison details.
 template <typename T, typename U>
 void ReportFailure(const char* x_str, const char* y_str, const T& x, const U& y,
                    const char* op, const char* file, int line) {
-  MicroPrintf("%s %s %s failed at %s:%d (", x_str, op, y_str, file, line);
-  PrintValue(x);
-  MicroPrintf(" vs ");
-  PrintValue(y);
-  MicroPrintf(")\n");
+  MicroPrintf("%s:%d: Failure", file, line);
+  MicroPrintf("Expected: %s %s %s", x_str, op, y_str);
+  PrintValue("  Actual: ", x);
+  PrintValue("Expected: ", y);
 }
 
 // Helper for string equality check.
@@ -140,9 +177,10 @@ inline int RunAllTests() {
   internal::TestInfo* failed_tests = nullptr;
   internal::TestInfo** next_failed_test = &failed_tests;
 
+  MicroPrintf("[==========] Running tests.");
   for (internal::TestInfo* test = internal::GetTestList(); test != nullptr;
        test = test->next) {
-    MicroPrintf("Testing %s.%s", test->suite_name, test->test_name);
+    MicroPrintf("[ RUN      ] %s.%s", test->suite_name, test->test_name);
     internal::DidTestFail() = false;
     test->test_func();
     if (internal::DidTestFail()) {
@@ -150,23 +188,25 @@ inline int RunAllTests() {
       *next_failed_test = test;
       next_failed_test = &test->next_failure;
       test->next_failure = nullptr;
+      MicroPrintf("[  FAILED  ] %s.%s", test->suite_name, test->test_name);
     } else {
       tests_passed++;
+      MicroPrintf("[       OK ] %s.%s", test->suite_name, test->test_name);
     }
   }
 
-  MicroPrintf("%d/%d tests passed", tests_passed,
-              (tests_passed + tests_failed));
-  if (tests_failed == 0) {
-    MicroPrintf("~~~ALL TESTS PASSED~~~\n");
-    return kTfLiteOk;
-  } else {
-    MicroPrintf("~~~SOME TESTS FAILED~~~\n");
+  MicroPrintf("[==========] %d tests ran.", tests_passed + tests_failed);
+  MicroPrintf("[  PASSED  ] %d tests.", tests_passed);
+
+  if (tests_failed > 0) {
+    MicroPrintf("[  FAILED  ] %d tests, listed below:", tests_failed);
     for (internal::TestInfo* test = failed_tests; test != nullptr;
          test = test->next_failure) {
-      MicroPrintf("  %s.%s", test->suite_name, test->test_name);
+      MicroPrintf("[  FAILED  ] %s.%s", test->suite_name, test->test_name);
     }
     return kTfLiteError;
+  } else {
+    return kTfLiteOk;
   }
 }
 
@@ -212,307 +252,132 @@ inline int RunAllTests() {
   void fixture##_##name::TestBody()
 
 // -----------------------------------------------------------------------------
-// Assertion Macros (Fatal)
+// Internal Helper Macros
 // -----------------------------------------------------------------------------
 
-#define ASSERT_TRUE(x)                                                     \
-  do {                                                                     \
-    if (x) {                                                               \
-    } else {                                                               \
-      MicroPrintf(#x " was not true failed at %s:%d", __FILE__, __LINE__); \
-      micro_test::internal::DidTestFail() = true;                          \
-      return;                                                              \
-    }                                                                      \
+#define MICRO_TEST_BOOL(x, check, msg, on_fail)          \
+  do {                                                   \
+    if (check) {                                         \
+    } else {                                             \
+      MicroPrintf("%s:%d: Failure", __FILE__, __LINE__); \
+      MicroPrintf("Value of: %s", #x);                   \
+      MicroPrintf("Expected: %s", msg);                  \
+      micro_test::internal::DidTestFail() = true;        \
+      on_fail;                                           \
+    }                                                    \
   } while (false)
 
-#define ASSERT_FALSE(x)                                                     \
+#define MICRO_TEST_OP(x, y, op_str, compare, on_fail)                       \
   do {                                                                      \
-    if (!(x)) {                                                             \
+    auto vx = (x);                                                          \
+    auto vy = (y);                                                          \
+    if (compare) {                                                          \
     } else {                                                                \
-      MicroPrintf(#x " was not false failed at %s:%d", __FILE__, __LINE__); \
+      micro_test::internal::ReportFailure(#x, #y, vx, vy, op_str, __FILE__, \
+                                          __LINE__);                        \
       micro_test::internal::DidTestFail() = true;                           \
-      return;                                                               \
+      on_fail;                                                              \
     }                                                                       \
   } while (false)
 
-#define ASSERT_EQ(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx == vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "==", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-      return;                                                             \
-    }                                                                     \
+#define MICRO_TEST_NEAR(x, y, epsilon, on_fail)                 \
+  do {                                                          \
+    auto vx = (x);                                              \
+    auto vy = (y);                                              \
+    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx)); \
+    if (vx != vy && delta > epsilon) {                          \
+      MicroPrintf("%s:%d: Failure", __FILE__, __LINE__);        \
+      MicroPrintf("Expected: %s near %s", #x, #y);              \
+      micro_test::internal::PrintValue("  Actual: ", vx);       \
+      micro_test::internal::PrintValue("Expected: ", vy);       \
+      micro_test::internal::DidTestFail() = true;               \
+      on_fail;                                                  \
+    }                                                           \
   } while (false)
 
-#define ASSERT_NE(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx != vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "!=", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-      return;                                                             \
-    }                                                                     \
-  } while (false)
+// -----------------------------------------------------------------------------
+// Assertion Macros (Fatal)
+// -----------------------------------------------------------------------------
 
-#define ASSERT_GT(x, y)                                                  \
-  do {                                                                   \
-    auto vx = (x);                                                       \
-    auto vy = (y);                                                       \
-    if (vx > vy) {                                                       \
-    } else {                                                             \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, ">", __FILE__, \
-                                          __LINE__);                     \
-      micro_test::internal::DidTestFail() = true;                        \
-      return;                                                            \
-    }                                                                    \
-  } while (false)
+#define ASSERT_TRUE(x) MICRO_TEST_BOOL(x, x, "was not true", return)
 
-#define ASSERT_LT(x, y)                                                  \
-  do {                                                                   \
-    auto vx = (x);                                                       \
-    auto vy = (y);                                                       \
-    if (vx < vy) {                                                       \
-    } else {                                                             \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "<", __FILE__, \
-                                          __LINE__);                     \
-      micro_test::internal::DidTestFail() = true;                        \
-      return;                                                            \
-    }                                                                    \
-  } while (false)
+#define ASSERT_FALSE(x) MICRO_TEST_BOOL(x, !(x), "was not false", return)
 
-#define ASSERT_GE(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx >= vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, ">=", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-      return;                                                             \
-    }                                                                     \
-  } while (false)
+#define ASSERT_EQ(x, y) MICRO_TEST_OP(x, y, "==", vx == vy, return)
 
-#define ASSERT_LE(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx <= vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "<=", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-      return;                                                             \
-    }                                                                     \
-  } while (false)
+#define ASSERT_NE(x, y) MICRO_TEST_OP(x, y, "!=", vx != vy, return)
 
-#define ASSERT_STREQ(x, y)                                                \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (micro_test::internal::AreStringsEqual(vx, vy)) {                  \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "==", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-      return;                                                             \
-    }                                                                     \
-  } while (false)
+#define ASSERT_GT(x, y) MICRO_TEST_OP(x, y, ">", vx > vy, return)
 
-#define ASSERT_FLOAT_EQ(x, y)                                                 \
-  do {                                                                        \
-    auto vx = (x);                                                            \
-    auto vy = (y);                                                            \
-    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));               \
-    if (vx != vy && delta > 4 * std::numeric_limits<float>::epsilon()) {      \
-      MicroPrintf(#x " (%f) near " #y " (%f) failed at %s:%d",                \
-                  static_cast<double>(vx), static_cast<double>(vy), __FILE__, \
-                  __LINE__);                                                  \
-      micro_test::internal::DidTestFail() = true;                             \
-      return;                                                                 \
-    }                                                                         \
-  } while (false)
+#define ASSERT_LT(x, y) MICRO_TEST_OP(x, y, "<", vx < vy, return)
 
-#define ASSERT_NEAR(x, y, epsilon)                                            \
-  do {                                                                        \
-    auto vx = (x);                                                            \
-    auto vy = (y);                                                            \
-    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));               \
-    if (vx != vy && delta > epsilon) {                                        \
-      MicroPrintf(#x " (%f) near " #y " (%f) failed at %s:%d",                \
-                  static_cast<double>(vx), static_cast<double>(vy), __FILE__, \
-                  __LINE__);                                                  \
-      micro_test::internal::DidTestFail() = true;                             \
-      return;                                                                 \
-    }                                                                         \
-  } while (false)
+#define ASSERT_GE(x, y) MICRO_TEST_OP(x, y, ">=", vx >= vy, return)
+
+#define ASSERT_LE(x, y) MICRO_TEST_OP(x, y, "<=", vx <= vy, return)
+
+#define ASSERT_STREQ(x, y)                                                 \
+  MICRO_TEST_OP(x, y, "==", micro_test::internal::AreStringsEqual(vx, vy), \
+                return)
+
+#define ASSERT_STRNE(x, y)                                                  \
+  MICRO_TEST_OP(x, y, "!=", !micro_test::internal::AreStringsEqual(vx, vy), \
+                return)
+
+#define ASSERT_FLOAT_EQ(x, y) \
+  MICRO_TEST_NEAR(x, y, 4 * std::numeric_limits<float>::epsilon(), return)
+
+#define ASSERT_NEAR(x, y, epsilon) MICRO_TEST_NEAR(x, y, epsilon, return)
 
 // -----------------------------------------------------------------------------
 // Expectation Macros (Non-Fatal)
 // -----------------------------------------------------------------------------
 
-#define EXPECT_TRUE(x)                                                     \
-  do {                                                                     \
-    if (x) {                                                               \
-    } else {                                                               \
-      MicroPrintf(#x " was not true failed at %s:%d", __FILE__, __LINE__); \
-      micro_test::internal::DidTestFail() = true;                          \
-    }                                                                      \
-  } while (false)
+#define EXPECT_TRUE(x) MICRO_TEST_BOOL(x, x, "was not true", (void)0)
 
-#define EXPECT_FALSE(x)                                                     \
-  do {                                                                      \
-    if (!(x)) {                                                             \
-    } else {                                                                \
-      MicroPrintf(#x " was not false failed at %s:%d", __FILE__, __LINE__); \
-      micro_test::internal::DidTestFail() = true;                           \
-    }                                                                       \
-  } while (false)
+#define EXPECT_FALSE(x) MICRO_TEST_BOOL(x, !(x), "was not false", (void)0)
 
-#define EXPECT_EQ(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx == vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "==", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-    }                                                                     \
-  } while (false)
+#define EXPECT_EQ(x, y) MICRO_TEST_OP(x, y, "==", vx == vy, (void)0)
 
-#define EXPECT_NE(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx != vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "!=", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-    }                                                                     \
-  } while (false)
+#define EXPECT_NE(x, y) MICRO_TEST_OP(x, y, "!=", vx != vy, (void)0)
 
-// Legacy behavior: strict equality for non-floats, epsilon check for floats.
-// This is provided to facilitate migration from the old micro_test.h where
-// equality check had implicit floating point tolerance.
-#define EXPECT_LEGACY_EQ(x, y)                                              \
-  do {                                                                      \
-    auto vx = (x);                                                          \
-    auto vy = (y);                                                          \
-    if (vx == vy) {                                                         \
-    } else {                                                                \
-      bool isFloatingX = (std::is_floating_point<decltype(vx)>::value);     \
-      bool isFloatingY = (std::is_floating_point<decltype(vy)>::value);     \
-      bool approx_equal = false;                                            \
-      if (isFloatingX && isFloatingY) {                                     \
-        auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));         \
-        if (delta <= std::numeric_limits<decltype(delta)>::epsilon()) {     \
-          approx_equal = true;                                              \
-        }                                                                   \
-      }                                                                     \
-      if (!approx_equal) {                                                  \
-        micro_test::internal::ReportFailure(#x, #y, vx, vy, "==", __FILE__, \
-                                            __LINE__);                      \
-        micro_test::internal::DidTestFail() = true;                         \
-      }                                                                     \
-    }                                                                       \
-  } while (false)
+#define EXPECT_GT(x, y) MICRO_TEST_OP(x, y, ">", vx > vy, (void)0)
 
-#define EXPECT_GT(x, y)                                                  \
-  do {                                                                   \
-    auto vx = (x);                                                       \
-    auto vy = (y);                                                       \
-    if (vx > vy) {                                                       \
-    } else {                                                             \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, ">", __FILE__, \
-                                          __LINE__);                     \
-      micro_test::internal::DidTestFail() = true;                        \
-    }                                                                    \
-  } while (false)
+#define EXPECT_LT(x, y) MICRO_TEST_OP(x, y, "<", vx < vy, (void)0)
 
-#define EXPECT_LT(x, y)                                                  \
-  do {                                                                   \
-    auto vx = (x);                                                       \
-    auto vy = (y);                                                       \
-    if (vx < vy) {                                                       \
-    } else {                                                             \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "<", __FILE__, \
-                                          __LINE__);                     \
-      micro_test::internal::DidTestFail() = true;                        \
-    }                                                                    \
-  } while (false)
+#define EXPECT_GE(x, y) MICRO_TEST_OP(x, y, ">=", vx >= vy, (void)0)
 
-#define EXPECT_GE(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx >= vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, ">=", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-    }                                                                     \
-  } while (false)
+#define EXPECT_LE(x, y) MICRO_TEST_OP(x, y, "<=", vx <= vy, (void)0)
 
-#define EXPECT_LE(x, y)                                                   \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (vx <= vy) {                                                       \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "<=", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-    }                                                                     \
-  } while (false)
+#define EXPECT_STREQ(x, y)                                                 \
+  MICRO_TEST_OP(x, y, "==", micro_test::internal::AreStringsEqual(vx, vy), \
+                (void)0)
 
-#define EXPECT_STREQ(x, y)                                                \
-  do {                                                                    \
-    auto vx = (x);                                                        \
-    auto vy = (y);                                                        \
-    if (micro_test::internal::AreStringsEqual(vx, vy)) {                  \
-    } else {                                                              \
-      micro_test::internal::ReportFailure(#x, #y, vx, vy, "==", __FILE__, \
-                                          __LINE__);                      \
-      micro_test::internal::DidTestFail() = true;                         \
-    }                                                                     \
-  } while (false)
+#define EXPECT_STRNE(x, y)                                                  \
+  MICRO_TEST_OP(x, y, "!=", !micro_test::internal::AreStringsEqual(vx, vy), \
+                (void)0)
 
-#define EXPECT_NEAR(x, y, epsilon)                                            \
-  do {                                                                        \
-    auto vx = (x);                                                            \
-    auto vy = (y);                                                            \
-    auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx));               \
-    if (vx != vy && delta > epsilon) {                                        \
-      MicroPrintf(#x " (%f) near " #y " (%f) failed at %s:%d",                \
-                  static_cast<double>(vx), static_cast<double>(vy), __FILE__, \
-                  __LINE__);                                                  \
-      micro_test::internal::DidTestFail() = true;                             \
-    }                                                                         \
-  } while (false)
+#define EXPECT_NEAR(x, y, epsilon) MICRO_TEST_NEAR(x, y, epsilon, (void)0)
 
 #define EXPECT_FLOAT_EQ(x, y) \
-  EXPECT_NEAR(x, y, 4 * std::numeric_limits<float>::epsilon())
+  MICRO_TEST_NEAR(x, y, 4 * std::numeric_limits<float>::epsilon(), (void)0)
 
-#define ADD_FAILURE(msg)                              \
-  do {                                                \
-    MicroPrintf("FAIL: %s", msg, __FILE__, __LINE__); \
-    micro_test::internal::DidTestFail() = true;       \
+// -----------------------------------------------------------------------------
+// Other Macros
+// -----------------------------------------------------------------------------
+
+#define ADD_FAILURE(msg)                               \
+  do {                                                 \
+    MicroPrintf("%s:%d: Failure", __FILE__, __LINE__); \
+    MicroPrintf("Failed: %s", msg);                    \
+    micro_test::internal::DidTestFail() = true;        \
   } while (false)
 
-#define FAIL(msg)                                     \
-  do {                                                \
-    MicroPrintf("FAIL: %s", msg, __FILE__, __LINE__); \
-    micro_test::internal::DidTestFail() = true;       \
-    return;                                           \
+#define FAIL(msg)                                      \
+  do {                                                 \
+    MicroPrintf("%s:%d: Failure", __FILE__, __LINE__); \
+    MicroPrintf("Failed: %s", msg);                    \
+    micro_test::internal::DidTestFail() = true;        \
+    return;                                            \
   } while (false)
 
 // Main test runner.
