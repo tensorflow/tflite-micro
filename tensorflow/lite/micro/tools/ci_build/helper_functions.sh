@@ -18,12 +18,32 @@
 # Collection of helper functions that can be used in the different continuous
 # integration scripts.
 
-# A small utility to run the command and only print logs if the command fails.
-# On success, all logs are hidden. This helps to keep the log output clean and
-# makes debugging easier.
+# Executes a command with a timeout and formats output for GitHub Actions.
 function readable_run {
-  "$@" 2>&1
-  echo "Command completed successfully at $(date)"
+  # 1. specific GitHub Actions syntax to start a collapsible section
+  echo "::group::Running: $*"
+  
+  # Print timestamp (optional, if you want it in the raw text log)
+  echo "Starting at $(date)"
+
+  # 2. Run with timeout, but allow stdout/stderr to stream LIVE.
+  #    We don't need > log_file because GHA hides the noise inside the group.
+  timeout 60m "$@" 
+  local status=$?
+
+  # 3. Close the group. 
+  #    Everything printed between ::group:: and ::endgroup:: is folded.
+  echo "::endgroup::"
+
+  if [ $status -eq 0 ]; then
+    return 0
+  elif [ $status -eq 124 ]; then
+    echo "::error::Command timed out after 60 minutes!"
+    return 124
+  else
+    echo "::error::Command failed with exit code $status"
+    return $status
+  fi
 }
 
 # Check if the regex ${1} is to be found in the pathspec ${2}.
