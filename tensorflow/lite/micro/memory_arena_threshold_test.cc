@@ -220,14 +220,13 @@ void ValidateModelAllocationThresholds(
 
 TEST(MemoryArenaThresholdTest, TestKeywordModelMemoryThreshold) {
   tflite::MicroMutableOpResolver<4> op_resolver;
-  EXPECT_LEGACY_EQ(
+  EXPECT_EQ(
       op_resolver.AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8()),
       kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddQuantize(), kTfLiteOk);
-  EXPECT_LEGACY_EQ(
-      op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8_INT16()), kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddSvdf(tflite::Register_SVDF_INT8()),
-                   kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddQuantize(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8_INT16()),
+            kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddSvdf(tflite::Register_SVDF_INT8()), kTfLiteOk);
   tflite::RecordingMicroInterpreter interpreter(
       tflite::GetModel(g_keyword_scrambled_model_data), op_resolver,
       keyword_model_tensor_arena, kKeywordModelTensorArenaSize);
@@ -260,12 +259,12 @@ TEST(MemoryArenaThresholdTest, TestKeywordModelMemoryThreshold) {
 
 TEST(MemoryArenaThresholdTest, TestConvModelMemoryThreshold) {
   tflite::MicroMutableOpResolver<6> op_resolver;
-  EXPECT_LEGACY_EQ(op_resolver.AddConv2D(), kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddQuantize(), kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddMaxPool2D(), kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddReshape(), kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddFullyConnected(), kTfLiteOk);
-  EXPECT_LEGACY_EQ(op_resolver.AddDequantize(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddConv2D(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddQuantize(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddMaxPool2D(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddReshape(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddFullyConnected(), kTfLiteOk);
+  EXPECT_EQ(op_resolver.AddDequantize(), kTfLiteOk);
 
   tflite::RecordingMicroInterpreter interpreter(
       tflite::GetModel(kTestConvModelData), op_resolver, test_conv_tensor_arena,
