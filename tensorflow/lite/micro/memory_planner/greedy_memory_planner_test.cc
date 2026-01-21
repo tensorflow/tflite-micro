@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 // We don't declare this in the header since it's not a public interface, but we
@@ -28,9 +28,7 @@ constexpr int kScratchBufferSize = 4096;
 alignas(4) unsigned char g_scratch_buffer[kScratchBufferSize];
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestReverseSortInPlace) {
+TEST(GreedyMemoryPlannerTest, TestReverseSortInPlace) {
   constexpr int a_size = 10;
   int a_values[a_size] = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
   int a_ids[a_size] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -38,8 +36,8 @@ TF_LITE_MICRO_TEST(TestReverseSortInPlace) {
   const int a_expected_ids[a_size] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   tflite::ReverseSortInPlace(a_values, a_ids, a_size);
   for (int i = 0; i < a_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(a_expected_values[i], a_values[i]);
-    TF_LITE_MICRO_EXPECT_EQ(a_expected_ids[i], a_ids[i]);
+    EXPECT_EQ(a_expected_values[i], a_values[i]);
+    EXPECT_EQ(a_expected_ids[i], a_ids[i]);
   }
 
   constexpr int b_size = 10;
@@ -49,8 +47,8 @@ TF_LITE_MICRO_TEST(TestReverseSortInPlace) {
   const int b_expected_ids[b_size] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
   tflite::ReverseSortInPlace(b_values, b_ids, b_size);
   for (int i = 0; i < b_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(b_expected_values[i], b_values[i]);
-    TF_LITE_MICRO_EXPECT_EQ(b_expected_ids[i], b_ids[i]);
+    EXPECT_EQ(b_expected_values[i], b_values[i]);
+    EXPECT_EQ(b_expected_ids[i], b_ids[i]);
   }
 
   constexpr int c_size = 100;
@@ -82,131 +80,127 @@ TF_LITE_MICRO_TEST(TestReverseSortInPlace) {
       51, 61, 71, 81, 91, 0,  10, 20, 30, 40, 50, 60, 70, 80, 90};
   tflite::ReverseSortInPlace(c_values, c_ids, c_size);
   for (int i = 0; i < c_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(c_expected_values[i], c_values[i]);
-    TF_LITE_MICRO_EXPECT_EQ(c_expected_ids[i], c_ids[i]);
+    EXPECT_EQ(c_expected_values[i], c_values[i]);
+    EXPECT_EQ(c_expected_ids[i], c_ids[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(TestGreedyBasics) {
+TEST(GreedyMemoryPlannerTest, TestGreedyBasics) {
   tflite::GreedyMemoryPlanner planner;
   planner.Init(g_scratch_buffer, kScratchBufferSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(10, 0, 1));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(20, 2, 3));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(10, 0, 1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(20, 2, 3));
 
-  TF_LITE_MICRO_EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
+  EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(20),
-                          planner.GetMaximumMemorySize());
+  EXPECT_EQ(static_cast<size_t>(20), planner.GetMaximumMemorySize());
 
   int offset = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(0, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset));
+  EXPECT_EQ(0, offset);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(0, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset));
+  EXPECT_EQ(0, offset);
 }
 
-TF_LITE_MICRO_TEST(TestGreedyMedium) {
+TEST(GreedyMemoryPlannerTest, TestGreedyMedium) {
   tflite::GreedyMemoryPlanner planner;
   planner.Init(g_scratch_buffer, kScratchBufferSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(10, 0, 1));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(20, 1, 2));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(30, 2, 3));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(40, 3, 4));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(50, 0, 1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(10, 0, 1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(20, 1, 2));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(30, 2, 3));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(40, 3, 4));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(50, 0, 1));
 
   int offset = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(50, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset));
+  EXPECT_EQ(50, offset);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(70, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset));
+  EXPECT_EQ(70, offset);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(2, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(40, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(2, &offset));
+  EXPECT_EQ(40, offset);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(3, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(0, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(3, &offset));
+  EXPECT_EQ(0, offset);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(4, &offset));
-  TF_LITE_MICRO_EXPECT_EQ(0, offset);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(4, &offset));
+  EXPECT_EQ(0, offset);
 
   planner.PrintMemoryPlan();
 
-  TF_LITE_MICRO_EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
+  EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(90),
-                          planner.GetMaximumMemorySize());
+  EXPECT_EQ(static_cast<size_t>(90), planner.GetMaximumMemorySize());
 }
 
-TF_LITE_MICRO_TEST(TestPersonDetectionModel) {
+TEST(GreedyMemoryPlannerTest, TestPersonDetectionModel) {
   tflite::GreedyMemoryPlanner planner;
   planner.Init(g_scratch_buffer, kScratchBufferSize);
   // These buffer sizes and time ranges are taken from the 250KB MobileNet model
   // used in the person detection example.
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 0, 29));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(3, 28, 29));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(256, 27, 28));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 26, 27));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 25, 26));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 24, 25));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(1152, 23, 24));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 22, 23));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 21, 22));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 20, 21));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 19, 20));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 18, 19));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 17, 18));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 16, 17));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 15, 16));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 14, 15));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 13, 14));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 12, 13));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 11, 12));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 10, 11));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 9, 10));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 8, 9));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 7, 8));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 6, 7));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 5, 6));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 4, 5));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 3, 4));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(36864, 2, 3));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 1, 2));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 0, 1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 0, 29));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(3, 28, 29));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(256, 27, 28));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 26, 27));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 25, 26));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 24, 25));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(1152, 23, 24));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 22, 23));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 21, 22));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 20, 21));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 19, 20));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 18, 19));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 17, 18));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 16, 17));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 15, 16));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 14, 15));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 13, 14));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 12, 13));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(2304, 11, 12));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 10, 11));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 9, 10));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 8, 9));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(4608, 7, 8));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 6, 7));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 5, 6));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 4, 5));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(9216, 3, 4));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(36864, 2, 3));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 1, 2));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(18432, 0, 1));
 
   planner.PrintMemoryPlan();
 
-  TF_LITE_MICRO_EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
+  EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
 
   // The sum of all the buffers is 241,027 bytes, so we at least expect the plan
   // to come up with something smaller than this.
-  TF_LITE_MICRO_EXPECT_GT(static_cast<size_t>(241027),
-                          planner.GetMaximumMemorySize());
+  EXPECT_GT(static_cast<size_t>(241027), planner.GetMaximumMemorySize());
 }
 
-TF_LITE_MICRO_TEST(TestOverlapCase) {
+TEST(GreedyMemoryPlannerTest, TestOverlapCase) {
   tflite::GreedyMemoryPlanner planner;
   planner.Init(g_scratch_buffer, kScratchBufferSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(100, 0, 1));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(50, 2, 3));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(20, 1, 2));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(100, 0, 1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(50, 2, 3));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(20, 1, 2));
 
   planner.PrintMemoryPlan();
 
-  TF_LITE_MICRO_EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
+  EXPECT_EQ(false, planner.DoAnyBuffersOverlap());
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(120),
-                          planner.GetMaximumMemorySize());
+  EXPECT_EQ(static_cast<size_t>(120), planner.GetMaximumMemorySize());
 }
 
-TF_LITE_MICRO_TEST(TestSmallScratch) {
+TEST(GreedyMemoryPlannerTest, TestSmallScratch) {
   constexpr int scratch_buffer_size = 40;
   unsigned char scratch_buffer[scratch_buffer_size];
   tflite::GreedyMemoryPlanner planner;
   planner.Init(scratch_buffer, scratch_buffer_size);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(100, 0, 1));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, planner.AddBuffer(50, 2, 3));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(100, 0, 1));
+  EXPECT_EQ(kTfLiteError, planner.AddBuffer(50, 2, 3));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
