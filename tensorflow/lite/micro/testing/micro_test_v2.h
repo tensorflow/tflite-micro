@@ -206,6 +206,8 @@ inline int RunAllTests() {
     }
     return kTfLiteError;
   } else {
+    // This is for the CI tests expecting this meesage.
+    MicroPrintf("~~~ALL TESTS PASSED~~~");
     return kTfLiteOk;
   }
 }
