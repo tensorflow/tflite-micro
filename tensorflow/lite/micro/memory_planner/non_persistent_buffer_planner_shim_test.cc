@@ -62,41 +62,38 @@ TEST(NonPersistentBufferPlannerShimTest, TestErrorGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset = -1;
-  EXPECT_EQ(kTfLiteError,
-                          planner.GetOffsetForBuffer(kBufferCnt, &offset));
+  EXPECT_EQ(kTfLiteError, planner.GetOffsetForBuffer(kBufferCnt, &offset));
 }
 
 TEST(NonPersistentBufferPlannerShimTest, TestAddBufferSuccess) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
   EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
 }
 
 TEST(NonPersistentBufferPlannerShimTest, TestAddBufferFailWhenExceedRange) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
   EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
-  EXPECT_EQ(
-      kTfLiteError,
-      planner.AddBuffer(/*size=*/10,
-                        /*first_time_used=*/0, /*last_time_used=*/1));
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
+  EXPECT_EQ(kTfLiteError,
+            planner.AddBuffer(/*size=*/10,
+                              /*first_time_used=*/0, /*last_time_used=*/1));
 }
 
 TEST(NonPersistentBufferPlannerShimTest, TestBasics) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
-  EXPECT_EQ(static_cast<size_t>(0),
-                          planner.GetMaximumMemorySize());
+  EXPECT_EQ(static_cast<size_t>(0), planner.GetMaximumMemorySize());
 }
 
 TF_LITE_MICRO_TESTS_MAIN
