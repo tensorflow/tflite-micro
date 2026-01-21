@@ -17,7 +17,7 @@
 # Tests the microcontroller code using ARC platform.
 # These tests require a MetaWare C/C++ Compiler.
 
-set -e
+set -ex
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..

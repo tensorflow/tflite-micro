@@ -18,7 +18,7 @@
 # 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 # 3 - (optional) Path to the HEXAGON TFLM Lib
 
-set -e
+set -ex
 
 # Default prebulit core library on docker
 HEXAGON_TFLM_LIB=/root/Qualcomm/hexagon_tflm_core.a

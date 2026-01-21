@@ -20,7 +20,7 @@
 
 # CI test with compression enabled for hifi5
 
-set -e
+set -ex
 set -x
 pwd
 

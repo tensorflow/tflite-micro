@@ -19,7 +19,7 @@
 # If the optional argument string "error_on_memory_increase" is provided as the
 # script input, the script will error exit on any memory increase.
 # If no argument is provided, the script produce a size comparison report.
-set -e
+set -ex
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 

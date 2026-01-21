@@ -16,7 +16,7 @@
 #
 # Tests the RISC-V MCU platform for the SiFive FE310.
 
-set -e
+set -ex
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}

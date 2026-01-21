@@ -22,7 +22,7 @@
 # This file is a subset of the tests in test_x86.sh. It is for parallelizing the test
 # suite on github actions.
 
-set -e
+set -ex
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
