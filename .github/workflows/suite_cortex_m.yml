@@ -127,10 +127,13 @@ jobs:
           pip3 install numpy
       - name: Install Arm tools
         uses: ARM-software/cmsis-actions/vcpkg@v1
-        with: 
+        with:
           config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
       - name: Activate Arm tool license
         uses: ARM-software/cmsis-actions/armlm@v1
+      - name: Print License Logs on Failure
+        if: failure()
+        run: cat /home/runner/.armlm/logs/*.log
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_generic.sh armclang
@@ -152,10 +155,13 @@ jobs:
           pip3 install numpy
       - name: Install Arm tools
         uses: ARM-software/cmsis-actions/vcpkg@v1
-        with: 
+        with:
           config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
       - name: Activate Arm tool license
         uses: ARM-software/cmsis-actions/armlm@v1
+      - name: Print License Logs on Failure
+        if: failure()
+        run: cat /home/runner/.armlm/logs/*.log
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang
