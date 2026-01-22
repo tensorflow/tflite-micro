@@ -31,7 +31,7 @@ TEST_OUTPUT_DIR_REALPATH="$(realpath ${TEST_OUTPUT_DIR})"
 
 readable_run bazel run tensorflow/lite/micro/integration_tests:generate_per_layer_tests -- --input_tflite_file=${TEST_TFLITE_FILE} --output_dir=${TEST_OUTPUT_DIR_REALPATH}
 
-readable_run bazel test tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}:integration_test \
-  --test_output=errors
+readable_run bazel test tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}:integration_test --test_output=errors
 
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile test_integration_tests_person_detect_${KERNEL}_test
+MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} test_integration_tests_person_detect_${KERNEL}_test

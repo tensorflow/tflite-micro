@@ -25,29 +25,32 @@ cd "${ROOT_DIR}"
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 if [ $1 = "armclang" ]; then
-    TOOLCHAIN=armclang
+  TOOLCHAIN=armclang
 else
-    TOOLCHAIN=gcc
+  TOOLCHAIN=gcc
 fi
 
 TARGET=cortex_m_generic
 OPTIMIZED_KERNEL_DIR=cmsis_nn
 
+MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TARGET=${TARGET} TOOLCHAIN=${TOOLCHAIN}"
+
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=cortex-m4 TOOLCHAIN=${TOOLCHAIN} third_party_downloads
+readable_run make -f ${MAKEFILE} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} ${COMMON_ARGS} TARGET_ARCH=cortex-m4 third_party_downloads
 
 # Build for Cortex-M4 (no FPU) without CMSIS
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} TARGET_ARCH=cortex-m4 TOOLCHAIN=${TOOLCHAIN} microlite
+readable_run make -f ${MAKEFILE} clean
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} TARGET_ARCH=cortex-m4 microlite
 
 # Build for Cortex-M4F (FPU present) without CMSIS
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} TARGET_ARCH=cortex-m4+fp TOOLCHAIN=${TOOLCHAIN} microlite
+readable_run make -f ${MAKEFILE} clean
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} TARGET_ARCH=cortex-m4+fp microlite
 
 # Build for Cortex-M4 (no FPU) with CMSIS
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=cortex-m4 TOOLCHAIN=${TOOLCHAIN} microlite
+readable_run make -f ${MAKEFILE} clean
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} ${COMMON_ARGS} TARGET_ARCH=cortex-m4 microlite
 
 # Build for Cortex-M4 (FPU present) with CMSIS
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-readable_run make -j$(nproc) -f tensorflow/lite/micro/tools/make/Makefile OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=cortex-m4+fp TOOLCHAIN=${TOOLCHAIN} microlite
+readable_run make -f ${MAKEFILE} clean
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} ${COMMON_ARGS} TARGET_ARCH=cortex-m4+fp microlite

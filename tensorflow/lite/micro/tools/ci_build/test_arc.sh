@@ -23,22 +23,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
-source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
-
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
-
 TARGET_ARCH=arc
 TARGET=arc_custom
 OPTIMIZED_KERNEL_DIR=arc_mli
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=${TARGET} \
-  TARGET_ARCH=${TARGET_ARCH} \
-  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
-  build -j$(nproc)
+source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=${TARGET} \
-  TARGET_ARCH=${TARGET_ARCH} \
-  OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} \
-  test -j$(nproc)
+MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR}"
+
+readable_run make -f ${MAKEFILE} clean
+
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} test

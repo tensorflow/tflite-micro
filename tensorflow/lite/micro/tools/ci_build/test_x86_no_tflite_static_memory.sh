@@ -29,14 +29,18 @@ EXTERNAL_DIR=${2}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+
+readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} third_party_downloads ${COMMON_ARGS}
 
 # Build w/o TF_LITE_STATIC_MEMORY to catch additional errors.
 # TODO(b/160955687): We run the tests w/o TF_LITE_STATIC_MEMORY to make the
 # internal and open source CI consistent. See b/160955687#comment7 for more
 # details.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-readable_run make -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=no_tf_lite_static_memory test TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=no_tf_lite_static_memory build ${COMMON_ARGS}
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=no_tf_lite_static_memory test ${COMMON_ARGS}

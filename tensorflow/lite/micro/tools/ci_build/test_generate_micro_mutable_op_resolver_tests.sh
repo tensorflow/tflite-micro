@@ -35,12 +35,12 @@ TEST_OUTPUT_MODEL_DIR_REALPATH="$(realpath ${TEST_OUTPUT_DIR})/${MODEL_BASENAME}
 GEN_TEST_OUTPUT_DIR_RELATIVE=${TEST_OUTPUT_DIR_RELATIVE}/${MODEL}
 
 readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model -- \
-             --common_tflite_path=${TEST_TFLITE_PATH} --input_tflite_files=${TEST_TFLITE_NAME} --output_dir=${TEST_OUTPUT_MODEL_DIR_REALPATH}
+  --common_tflite_path=${TEST_TFLITE_PATH} --input_tflite_files=${TEST_TFLITE_NAME} --output_dir=${TEST_OUTPUT_MODEL_DIR_REALPATH}
 
 readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-             --input_tflite_file=${TEST_TFLITE_FILE}  -output_dir=${TEST_OUTPUT_DIR_REALPATH}
+  --input_tflite_file=${TEST_TFLITE_FILE} -output_dir=${TEST_OUTPUT_DIR_REALPATH}
 
 readable_run bazel run ${GEN_TEST_OUTPUT_DIR_RELATIVE}:micro_mutable_op_resolver_test
 
-readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile \
-             test_generated_micro_mutable_op_resolver_person_detect_test
+MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} test_generated_micro_mutable_op_resolver_person_detect_test
