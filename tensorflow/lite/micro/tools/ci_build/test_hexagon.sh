@@ -26,34 +26,19 @@ HEXAGON_TFLM_LIB=/root/Qualcomm/hexagon_tflm_core.a
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
 
-if [[ $# -ge 3 ]];
-then
+if [[ $# -ge 3 ]]; then
   HEXAGON_TFLM_LIB=$3
 fi
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TARGET=hexagon OPTIMIZED_KERNEL_DIR=hexagon OPTIMIZED_KERNEL_DIR_PREFIX=${TENSORFLOW_ROOT}third_party HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+
+readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=hexagon \
-  OPTIMIZED_KERNEL_DIR=hexagon \
-  OPTIMIZED_KERNEL_DIR_PREFIX=${TENSORFLOW_ROOT}third_party \
-  HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  build -j$(nproc)
-
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=hexagon \
-  OPTIMIZED_KERNEL_DIR=hexagon \
-  OPTIMIZED_KERNEL_DIR_PREFIX=${TENSORFLOW_ROOT}third_party \
-  HEXAGON_TFLM_LIB=${HEXAGON_TFLM_LIB} \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  test -j$(nproc)
-
-
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test

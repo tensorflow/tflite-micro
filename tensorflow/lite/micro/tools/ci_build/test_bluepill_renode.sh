@@ -23,17 +23,19 @@ pwd
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
+TARGET=bluepill
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} TARGET=${TARGET}"
 
-TARGET=bluepill
+readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
 
 # We use Renode differently when running the full test suite (make test) vs an
 # individual test. So, we test only of the kernels individually as well to have
 # both of the Renode variations be part of the CI.
-readable_run make -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile TARGET=${TARGET} test_kernel_add_test TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} test_kernel_add_test

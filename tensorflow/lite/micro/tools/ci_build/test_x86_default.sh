@@ -29,21 +29,24 @@ EXTERNAL_DIR=${2}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+
+readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} third_party_downloads ${COMMON_ARGS}
 
 # Build w/o release so that we can run the tests and get additional
 # debugging info on failures.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile build TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile test TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-readable_run make -s -j8 -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile integration_tests TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
+readable_run make -s $(get_parallel_jobs) -f ${MAKEFILE} build ${COMMON_ARGS}
+readable_run make -s $(get_parallel_jobs) -f ${MAKEFILE} test ${COMMON_ARGS}
+readable_run make -s $(get_parallel_jobs) -f ${MAKEFILE} integration_tests ${COMMON_ARGS}
 
 # run generic benchmark
-readable_run make -j$(nproc) -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} \
+  ${COMMON_ARGS} \
   EXTERNAL_DIR=${EXTERNAL_DIR} \
   GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
   run_tflm_benchmark

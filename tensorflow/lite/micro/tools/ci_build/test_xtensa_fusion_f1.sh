@@ -26,57 +26,25 @@ EXTERNAL_DIR=${3}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=F1_190305_swupgrade TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+
+readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${1} == "INTERNAL" ]]; then
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi3 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=F1_190305_swupgrade \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  build -j$(nproc)
-
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi3 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=F1_190305_swupgrade \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  test -j$(nproc)
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 else
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi3 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=F1_190305_swupgrade \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  build -j$(nproc)
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi3 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=F1_190305_swupgrade \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  test -j$(nproc)
-
-# run generic benchmark
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=hifi3 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=F1_190305_swupgrade \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-  run_tflm_benchmark -j$(nproc)
+  # run generic benchmark
+  readable_run make -f ${MAKEFILE} \
+    ${COMMON_ARGS} \
+    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
+    $(get_parallel_jobs) run_tflm_benchmark
 fi

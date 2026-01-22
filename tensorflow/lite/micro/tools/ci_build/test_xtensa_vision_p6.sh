@@ -26,43 +26,26 @@ EXTERNAL_DIR=${3}
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+COMMON_ARGS="TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P6_200528 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+
+readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
-readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-  TARGET=xtensa \
-  TARGET_ARCH=vision_p6 \
-  OPTIMIZED_KERNEL_DIR=xtensa \
-  XTENSA_CORE=P6_200528 \
-  TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-  EXTERNAL_DIR=${EXTERNAL_DIR} \
-  build -j$(nproc)
-
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 
 # Since we currently do not have optimized kernel implementations for vision_p6,
 # running the tests (in particular person_detection_int8) takes a very long
 # time. So, we have changed the default for this script to only perform a build
 # and added an option to run all the tests when that is feasible.
 if [[ ${1} == "RUN_TESTS" ]]; then
-  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-    TARGET=xtensa \
-    TARGET_ARCH=vision_p6 \
-    OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=P6_200528 \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    test -j$(nproc)
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark
-  readable_run make -f ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile \
-    TARGET=xtensa \
-    TARGET_ARCH=vision_p6 \
-    OPTIMIZED_KERNEL_DIR=xtensa \
-    XTENSA_CORE=P6_200528 \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
+  readable_run make -f ${MAKEFILE} \
+    ${COMMON_ARGS} \
     GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    run_tflm_benchmark -j$(nproc)
+    $(get_parallel_jobs) run_tflm_benchmark
 fi

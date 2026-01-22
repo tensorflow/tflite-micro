@@ -14,7 +14,6 @@
 # limitations under the License.
 # ==============================================================================
 
-
 # Collection of helper functions that can be used in the different continuous
 # integration scripts.
 
@@ -22,16 +21,16 @@
 function readable_run {
   # 1. specific GitHub Actions syntax to start a collapsible section
   echo "::group::Running: $*"
-  
+
   # Print timestamp (optional, if you want it in the raw text log)
   echo "Starting at $(date)"
 
   # 2. Run with timeout, but allow stdout/stderr to stream LIVE.
   #    We don't need > log_file because GHA hides the noise inside the group.
-  timeout 60m "$@" 
+  timeout 60m "$@"
   local status=$?
 
-  # 3. Close the group. 
+  # 3. Close the group.
   #    Everything printed between ::group:: and ::endgroup:: is folded.
   echo "::endgroup::"
 
@@ -58,5 +57,20 @@ function check_contents() {
     echo "=============================================="
     echo "${GREP_OUTPUT}"
     return 1
+  fi
+}
+
+# Determine the number of parallel jobs to use for make.
+# Respects the MAKE_JOBS_NUM environment variable if set.
+# Otherwise, defaults to the number of processing units available.
+function get_parallel_jobs {
+  if [[ -n "${MAKE_JOBS_NUM}" ]]; then
+    echo "-j${MAKE_JOBS_NUM}"
+  elif [[ "$(uname)" == "Linux" ]]; then
+    echo "-j$(nproc)"
+  elif [[ "$(uname)" == "Darwin" ]]; then
+    echo "-j$(sysctl -n hw.ncpu)"
+  else
+    echo "-j1"
   fi
 }

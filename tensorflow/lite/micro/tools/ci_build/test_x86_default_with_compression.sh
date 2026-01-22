@@ -25,38 +25,22 @@ set -x
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
-MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile 
+MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 
-make -f ${MAKEFILE} \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    third_party_downloads  # TODO(b/143715361): download first to allow parallel builds.
+source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-make -f ${MAKEFILE} \
-    -j$(nproc) \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    USE_TFLM_COMPRESSION=yes \
-    build
+COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
 
-make -f ${MAKEFILE} \
-    -j$(nproc) \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    USE_TFLM_COMPRESSION=yes \
-    test
+# TODO(b/143715361): download first to allow parallel builds.
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads 
 
-make -f ${MAKEFILE} \
-    -j$(nproc) \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    USE_TFLM_COMPRESSION=yes \
-    integration_tests
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes build
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes test
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes integration_tests
 
-make -f ${MAKEFILE} \
-    -j$(nproc) \
-    TENSORFLOW_ROOT=${TENSORFLOW_ROOT} \
-    EXTERNAL_DIR=${EXTERNAL_DIR} \
-    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    USE_TFLM_COMPRESSION=yes \
-    run_tflm_benchmark
+readable_run make -f ${MAKEFILE} \
+  $(get_parallel_jobs) \
+  ${COMMON_ARGS} \
+  GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
+  USE_TFLM_COMPRESSION=yes \
+  run_tflm_benchmark

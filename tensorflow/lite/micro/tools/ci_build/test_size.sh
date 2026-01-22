@@ -33,8 +33,9 @@ function build_target() {
   local build_type=$2
   local target=$3
   local target_arch=$4
-  readable_run make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
-  readable_run make -j8 -f tensorflow/lite/micro/tools/make/Makefile build build_type=${build_type} TARGET=${target} TARGET_ARCH=${target_arch} ${binary_target}
+  local MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+  readable_run make -f ${MAKEFILE} third_party_downloads
+  readable_run make $(get_parallel_jobs) -f ${MAKEFILE} build build_type=${build_type} TARGET=${target} TARGET_ARCH=${target_arch} ${binary_target}
 
   # Return the relative binary with path and name.
   __BINARY_TARGET_PATH="gen/${target}_${target_arch}_${build_type}/bin/${binary_target}"
@@ -55,22 +56,21 @@ readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 
 build_target ${BENCHMARK_TARGET} default linux x86_64
 CURRENT_BINARY=${__BINARY_TARGET_PATH}
-size ${CURRENT_BINARY} > ${ROOT_DIR}/ci/size_log.txt
+size ${CURRENT_BINARY} >${ROOT_DIR}/ci/size_log.txt
 
 # Get a clone of the main repo as the reference.
 REF_ROOT_DIR="$(mktemp -d ${ROOT_DIR}/../main_ref.XXXXXX)"
-git clone https://github.com/tensorflow/tflite-micro.git  ${REF_ROOT_DIR}
+git clone https://github.com/tensorflow/tflite-micro.git ${REF_ROOT_DIR}
 
 # Build a binary for the main repo.
 cd ${REF_ROOT_DIR}
 build_target ${BENCHMARK_TARGET} default linux x86_64
 REF_BINARY=${__BINARY_TARGET_PATH}
-size ${REF_BINARY} > ${REF_ROOT_DIR}/ci/size_log.txt
+size ${REF_BINARY} >${REF_ROOT_DIR}/ci/size_log.txt
 
 # Compare the two files at th root of current repo.
 cd ${ROOT_DIR}
-if [ "${FLAG_ERROR_ON_MEM_INCREASE}" = "error_on_mem_increase" ]
-then
+if [ "${FLAG_ERROR_ON_MEM_INCREASE}" = "error_on_mem_increase" ]; then
   tensorflow/lite/micro/tools/ci_build/size_comp.py -a ${REF_ROOT_DIR}/ci/size_log.txt ${ROOT_DIR}/ci/size_log.txt --error_on_mem_increase
 else
   tensorflow/lite/micro/tools/ci_build/size_comp.py -a ${REF_ROOT_DIR}/ci/size_log.txt ${ROOT_DIR}/ci/size_log.txt
