@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Vision P6 Build
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -43,6 +44,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Hifi5 Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -60,6 +62,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Hifi5 Unit Tests with Compression
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -77,6 +80,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Hifi3z Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -94,6 +98,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Hifi3z Unit Tests with Compression
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -113,6 +118,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Fusion F1 Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -130,6 +136,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Vision P6 Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
@@ -147,6 +154,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Hifimini Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}

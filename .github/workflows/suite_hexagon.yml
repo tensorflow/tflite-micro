@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
       - name: Hexagon Build Test
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
