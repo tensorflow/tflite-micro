@@ -27,14 +27,8 @@ jobs:
 
       - name: Check Files
         if: ${{ !contains(inputs.pr-body, 'NO_CHECK_TFLITE_FILES=') }}
-        run: |
-          URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pr-number }}/files"
-          PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.tflm-bot-token }}" $URL | jq -r '.[] | .filename')
-          rm -rf tmp_pull_request_files.txt
-          echo "${PR_FILES}" >> tmp_pull_request_files.txt
-          rm -rf .git
-          echo ${{ secrets.tflm-bot-token }} | docker login ghcr.io -u tflm-bot --password-stdin
-          docker run --rm -v `pwd`:/tflite-micro -w /tflite-micro ghcr.io/tflm-bot/tflm-ci:0.6.5 python3 ci/check_tflite_files.py tmp_pull_request_files.txt
-          TFLITE_FILE_TEST_STATUS=$?
-          rm -f tmp_pull_request_files.txt
-          exit ${TFLITE_FILE_TEST_STATUS}
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr-number }}
+          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
+        run: tensorflow/lite/micro/tools/ci_build/check_tflite_files.sh
