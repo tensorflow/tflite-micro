@@ -48,9 +48,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
       - name: Install dependencies
         run: |
-          sudo ci/install_bazelisk.sh
           pip3 install Pillow
           pip3 install numpy
       - name: Fix kernel mmap rnd bits

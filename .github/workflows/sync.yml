@@ -30,25 +30,26 @@ jobs:
       - uses: actions/checkout@v6
         with:
           token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
 
       - name: Install dependencies for sync
         run: |
-          sudo ./ci/install_bazelisk.sh
           pip3 install numpy
-
       - name: Sync the code
         run: |
           ./ci/sync_from_upstream_tf.sh
           git config --local user.name "TFLM-bot"
           git config --local user.email "tflm-github-bot@google.com"
           git add *
-
           if [[ $(git status --porcelain | wc -l) == 0 ]]; then
             echo "no changes"
           else
             git commit -m "Sync from upstream TF."
           fi
-
       - name: Create Pull Request
         id: create-pr
         uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725  # v8
