@@ -1,0 +1,33 @@
+name: Run-Windows
+
+# Entry point for Windows tests. Triggered by schedule or workflow_dispatch.
+
+on:
+  schedule:
+    # 10am UTC is 3am or 4am PT depending on daylight savings.
+    - cron: '0 10 * * *'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch: {}
+
+jobs:
+  call-test-windows:
+    uses: ./.github/workflows/test_windows.yml
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
+    with:
+      trigger-sha: ${{ github.sha }}
+
+  issue-on-error:
+    needs: [call-test-windows]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository }}
+      workflow: ${{ github.workflow }}
+      run_id: ${{ github.run_id }}
+      run_number: ${{ github.run_number }}
+      flag_label: ci:bot_issue
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
