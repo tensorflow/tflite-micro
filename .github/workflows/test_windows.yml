@@ -1,0 +1,62 @@
+name: Test - Windows
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+
+jobs:
+  bazel:
+    runs-on: windows-latest
+    name: Windows Bazel
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install Pillow numpy
+      - name: Test
+        shell: bash
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_bazel.sh
+
+  makefile:
+    runs-on: windows-latest
+    name: Windows Makefile
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            make
+            mingw-w64-x86_64-gcc
+            git
+            python3
+            mingw-w64-x86_64-python-pip
+            openssl
+            tar
+            unzip
+            curl
+      - name: Install python dependencies
+        shell: msys2 {0}
+        run: |
+          pip install Pillow numpy
+      - name: Test
+        shell: msys2 {0}
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_x86_default.sh ./
