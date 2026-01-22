@@ -36,5 +36,4 @@ readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERN
 readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} build
-
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} test

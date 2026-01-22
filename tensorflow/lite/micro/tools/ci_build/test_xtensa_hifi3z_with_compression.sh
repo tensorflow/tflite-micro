@@ -41,7 +41,6 @@ COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} TAR
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
 
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes build
-
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes test
 
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} \

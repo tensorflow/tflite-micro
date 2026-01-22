@@ -36,4 +36,5 @@ readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=
 # Next, build w/o release so that we can run the tests and get additional
 # debugging info on failures.
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug build
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug test

@@ -34,9 +34,7 @@ readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERN
 # TODO(b/143904317): downloading first to allow for parallel builds.
 readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
-readable_run make -f ${MAKEFILE} \
-  ${COMMON_ARGS} \
-  $(get_parallel_jobs) build
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 
 # Since we currently do not have optimized kernel implementations for vision_p6,
 # running the tests (in particular person_detection_int8) takes a very long

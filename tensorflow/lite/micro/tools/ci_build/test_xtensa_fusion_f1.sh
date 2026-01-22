@@ -36,21 +36,11 @@ readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORF
 
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${1} == "INTERNAL" ]]; then
-  readable_run make -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    $(get_parallel_jobs) build
-
-  readable_run make -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    $(get_parallel_jobs) test
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 else
-  readable_run make -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    $(get_parallel_jobs) build
-
-  readable_run make -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    $(get_parallel_jobs) test
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark
   readable_run make -f ${MAKEFILE} \

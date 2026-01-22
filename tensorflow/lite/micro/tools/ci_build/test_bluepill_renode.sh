@@ -23,6 +23,7 @@ pwd
 
 TENSORFLOW_ROOT=${1}
 EXTERNAL_DIR=${2}
+TARGET=bluepill
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
@@ -30,8 +31,6 @@ MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} TARGET=${TARGET}"
 
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
-TARGET=bluepill
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads

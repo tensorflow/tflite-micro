@@ -31,35 +31,16 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 
 COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
 
-readable_run make -f ${MAKEFILE} \
-  ${COMMON_ARGS} \
-  third_party_downloads # TODO(b/143715361): download first to allow parallel builds.
+# TODO(b/143715361): download first to allow parallel builds.
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads 
+
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes build
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes test
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes integration_tests
 
 readable_run make -f ${MAKEFILE} \
   $(get_parallel_jobs) \
   ${COMMON_ARGS} \
-  USE_TFLM_COMPRESSION=yes \
-  build
-
-readable_run make -f ${MAKEFILE} \
-  $(get_parallel_jobs) \
-  ${COMMON_ARGS} \
-  USE_TFLM_COMPRESSION=yes \
-  test
-
-readable_run make -f ${MAKEFILE} \
-  $(get_parallel_jobs) \
-  ${COMMON_ARGS} \
-  USE_TFLM_COMPRESSION=yes \
-  integration_tests
-
-readable_run make -f ${MAKEFILE} \
-  $(get_parallel_jobs) \
-  ${COMMON_ARGS} \
-  GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-  USE_TFLM_COMPRESSION=yes \
-  run_tflm_benchmark
-EXTERNAL_DIR=${EXTERNAL_DIR} \
   GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
   USE_TFLM_COMPRESSION=yes \
   run_tflm_benchmark

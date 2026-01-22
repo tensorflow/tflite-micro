@@ -36,23 +36,15 @@ COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
 
 # TODO(b/143715361): downloading first to allow for parallel builds.
-
 readable_run make -f ${MAKEFILE} third_party_downloads ${COMMON_ARGS}
 
 # Build with release and logs so that we can run the tests and get
-
 # additional debugging info on failures.
-
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
-
 readable_run make -s $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=release_with_logs build ${COMMON_ARGS}
-
 readable_run make -s $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=release_with_logs test ${COMMON_ARGS}
-
 readable_run make -s $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=release_with_logs integration_tests ${COMMON_ARGS}
 
 # Next, make sure that the release build succeeds.
-
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
-
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=release build ${COMMON_ARGS}
