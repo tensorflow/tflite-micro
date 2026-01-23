@@ -36,14 +36,24 @@ build --copt -Werror
 # Common options for --config=ci
 build:ci --action_env=CC=clang
 build:ci --action_env=CXX=clang++
-build:ci --curses=no 
-build:ci --color=no 
+build:ci --curses=no
+build:ci --color=no
 build:ci --noshow_progress
 build:ci --noshow_loading_progress
 build:ci --show_timestamps
 build:ci --terminal_columns=0
 build:ci --verbose_failures
 build:ci --test_output=errors
+
+# Windows CI options
+build:windows_ci --curses=no
+build:windows_ci --color=no
+build:windows_ci --noshow_progress
+build:windows_ci --noshow_loading_progress
+build:windows_ci --show_timestamps
+build:windows_ci --terminal_columns=0
+build:windows_ci --verbose_failures
+build:windows_ci --test_output=errors
 
 # When building with the address sanitizer
 # E.g., bazel build --config asan
