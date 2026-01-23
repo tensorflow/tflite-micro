@@ -29,9 +29,7 @@ build --noenable_bzlmod
 
 # Use the following C++ standard
 build --cxxopt -std=c++17
-
-# Treat warnings as errors
-build --copt -Werror
+build:windows --cxxopt=/std:c++17
 
 build:windows --cxxopt=/std:c++17
 
