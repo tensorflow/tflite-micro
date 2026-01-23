@@ -50,10 +50,15 @@ class StackAllocator : public flatbuffers::Allocator {
  public:
   StackAllocator(size_t alignment) : data_size_(0) {
     data_ = AlignPointerUp(data_backing_, alignment);
+    data_size_ = data_ - data_backing_;
   }
 
   uint8_t* allocate(size_t size) override {
-    TFLITE_DCHECK((data_size_ + size) <= kStackAllocatorSize);
+    if ((data_size_ + size) > sizeof(data_backing_)) {
+      MicroPrintf("allocate(size=%u) full: data_size_=%u", size, data_size_);
+      TFLITE_ABORT;
+      return nullptr;
+    }
     uint8_t* result = data_;
     data_ += size;
     data_size_ += size;
@@ -72,7 +77,9 @@ class StackAllocator : public flatbuffers::Allocator {
   static constexpr size_t kStackAllocatorSize = 8192;
 
  private:
-  uint8_t data_backing_[kStackAllocatorSize];
+  static constexpr size_t kStackAllocatorBackingSize =
+      kStackAllocatorSize + MicroArenaBufferAlignment();
+  uint8_t data_backing_[kStackAllocatorBackingSize];
   uint8_t* data_;
   int data_size_;
 
