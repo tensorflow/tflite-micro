@@ -1,0 +1,28 @@
+name: Suite - Hexagon
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  hexagon_build:
+    runs-on: ubuntu-latest
+    name: Hexagon Build Test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha }}
+      - run: rm -rf .git
+      - name: Hexagon Build Test
+        env:
+          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
+        run: |
+          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
+            ghcr.io/tflm-bot/hexagon:0.4 \
+            tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/

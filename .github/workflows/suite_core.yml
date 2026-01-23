@@ -1,0 +1,27 @@
+name: Suite - Core
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+    secrets:
+      tflm-bot-token:
+        required: true
+
+jobs:
+  call-ci-bazel:
+    uses: ./.github/workflows/test_bazel.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
+  call-ci-makefile:
+    uses: ./.github/workflows/test_makefile.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
+  call-ci-misc:
+    uses: ./.github/workflows/test_misc.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}

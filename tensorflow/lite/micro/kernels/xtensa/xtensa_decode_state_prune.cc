@@ -66,6 +66,7 @@ void XtensaDecodeStatePrune::DecompressToBufferInt8_Xtensa(void* buffer) {
   }
 
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   ae_int8x16* p_weights = (ae_int8x16*)value_table_;
   int* __restrict p_mask32 = (int*)compressed_indices_;
@@ -169,6 +170,7 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelInt8_Xtensa(
   TFLITE_DCHECK(zero_points_ != nullptr);
 
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   ae_int8x16* p_weights = (ae_int8x16*)value_table_;
   short* __restrict p_stream = (short*)compressed_indices_;
@@ -283,6 +285,7 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelAltAxisInt8_Xtensa(
   TFLITE_DCHECK(zero_points_ != nullptr);
 
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   ae_int8x16* p_weights = (ae_int8x16*)value_table_;
   short* __restrict p_stream = (short*)compressed_indices_;
@@ -387,6 +390,7 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelAltAxisInt8_Xtensa(
 
 void XtensaDecodeStatePrune::DecompressToBufferInt16_Xtensa(void* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   ae_int16x8* p_weights = (ae_int16x8*)value_table_;
   int* __restrict p_mask32 = (int*)compressed_indices_;

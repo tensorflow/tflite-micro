@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 
-set -e
+set -ex
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
@@ -163,7 +163,7 @@ popd
 
 
 # Re-enable exit on error now that we are done with the temporary git repo.
-set -e
+set -ex
 
 if [[ ${CODE_FORMAT_RESULT}  != 0 || ${BUILD_FORMAT_RESULT} != 0 ]]
 then

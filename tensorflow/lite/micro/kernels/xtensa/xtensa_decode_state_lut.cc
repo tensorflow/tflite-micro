@@ -29,6 +29,7 @@ namespace tflite {
 
 void XtensaDecodeStateLut::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   ae_int8x8 d_shuffle_t = AE_MOVINT8X8_FROMINT64(0xFB73EA62D951C840LL);
   ae_int8x8 d_shuffle_value_t = AE_MOVINT8X8_FROMINT64(0x08192A3B4C5D6E7FLL);
@@ -86,6 +87,7 @@ void XtensaDecodeStateLut::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
 
 void XtensaDecodeStateLut::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   int i, j;
   ae_int8* __restrict p_out_tmp = (ae_int8*)buffer;
@@ -208,6 +210,7 @@ void XtensaDecodeStateLut::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
 
 void XtensaDecodeStateLut::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   int i, j;
   ae_int8* __restrict p_out_tmp = (ae_int8*)buffer;
@@ -326,6 +329,7 @@ void XtensaDecodeStateLut::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
 void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt8_Xtensa(
     int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const int stride = value_table_channel_stride_;
   const uint8_t* __restrict value_table =
@@ -396,6 +400,7 @@ void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt8_Xtensa(
 void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt16_Xtensa(
     int16_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const int stride = value_table_channel_stride_;
   const uint16_t* __restrict value_table =
@@ -447,6 +452,7 @@ void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt16_Xtensa(
 void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt32_Xtensa(
     int32_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const int stride = value_table_channel_stride_;
   const uint32_t* __restrict value_table =
@@ -498,6 +504,7 @@ void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt32_Xtensa(
 void XtensaDecodeStateLut::DecompressToBufferWidthAnyInt64_Xtensa(
     int64_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
+  (void)scoped_profiler;
 
   const int stride = value_table_channel_stride_;
   const uint64_t* __restrict value_table =

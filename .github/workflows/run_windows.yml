@@ -1,6 +1,6 @@
-name: Run-CI
+name: Run-Windows
 
-# This is the entry point for ci.yml for scheduled and workflow_dispatch events.
+# Entry point for Windows tests. Triggered by schedule or workflow_dispatch.
 
 on:
   schedule:
@@ -11,8 +11,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-ci:
-    uses: ./.github/workflows/ci.yml
+  call-test-windows:
+    uses: ./.github/workflows/test_windows.yml
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
@@ -20,7 +20,7 @@ jobs:
       trigger-sha: ${{ github.sha }}
 
   issue-on-error:
-    needs: [call-ci]
+    needs: [call-test-windows]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:

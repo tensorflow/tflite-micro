@@ -1,6 +1,6 @@
-name: Run-Xtensa
+name: Run-Cortex-M
 
-# Entry point for Xtensa tests. Triggered by schedule or workflow_dispatch.
+# Entry point for Cortex-M tests. Triggered by schedule or workflow_dispatch.
 
 on:
   schedule:
@@ -11,8 +11,8 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  call-suite-xtensa:
-    uses: ./.github/workflows/suite_xtensa.yml
+  call-suite-cortex-m:
+    uses: ./.github/workflows/suite_cortex_m.yml
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
@@ -23,7 +23,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue-on-error:
-    needs: [call-suite-xtensa]
+    needs: [call-suite-cortex-m]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:

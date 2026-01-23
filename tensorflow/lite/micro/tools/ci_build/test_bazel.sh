@@ -14,12 +14,14 @@
 # limitations under the License.
 # ==============================================================================
 
-set -e
+set -ex
 set -x
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
-bazel test //... \
-  --config=ci
+BAZEL_CONFIG=${1:-ci}
+TARGETS=${2:-//...}
+
+bazel test --config=${BAZEL_CONFIG} -- ${TARGETS}
