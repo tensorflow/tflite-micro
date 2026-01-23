@@ -24,5 +24,4 @@ cd "${ROOT_DIR}"
 BAZEL_CONFIG=${1:-ci}
 TARGETS=${2:-//...}
 
-bazel test ${TARGETS} \
-  --config=${BAZEL_CONFIG}
+bazel test --config=${BAZEL_CONFIG} -- ${TARGETS}
