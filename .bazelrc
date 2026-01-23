@@ -33,6 +33,8 @@ build --cxxopt -std=c++17
 # Treat warnings as errors
 build --copt -Werror
 
+build:windows --cxxopt=/std:c++17
+
 # Common options for --config=ci
 build:ci --action_env=CC=clang
 build:ci --action_env=CXX=clang++
