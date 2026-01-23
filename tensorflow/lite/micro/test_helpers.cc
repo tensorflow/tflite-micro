@@ -74,7 +74,7 @@ class StackAllocator : public flatbuffers::Allocator {
     return *inst;
   }
 
-  static constexpr size_t kStackAllocatorSize = 8192;
+  static constexpr size_t kStackAllocatorSize = 16384;
 
  private:
   static constexpr size_t kStackAllocatorBackingSize =
