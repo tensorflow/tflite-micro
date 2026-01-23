@@ -26,6 +26,14 @@ limitations under the License.
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
+#undef DECODE_LUT_TEST_EXTRA_DEBUG
+
+#ifdef DECODE_LUT_TEST_EXTRA_DEBUG
+#define DebugPrintf(...) MicroPrintf(__VA_ARGS__)
+#else
+#define DebugPrintf(...) tflite::Unused(__VA_ARGS__)
+#endif
+
 namespace tflite {
 namespace testing {
 namespace {
@@ -352,7 +360,7 @@ TfLiteStatus TestValueTable2n(TestingInfo<T>& info) {
   info.total_value_table_elements = std::min(info.total_value_table_elements,
                                              TestingData<T>::kValueTableSize);
 
-  MicroPrintf("        Testing value table 2^n: %d",
+  DebugPrintf("        Testing value table 2^n: %d",
               info.total_value_table_elements);
   return TestDecompression(&info);
 }
@@ -370,7 +378,7 @@ TfLiteStatus TestValueTable2nMinus1(TestingInfo<T>& info) {
   info.total_value_table_elements = std::min(info.total_value_table_elements,
                                              TestingData<T>::kValueTableSize);
 
-  MicroPrintf("        Testing value table 2^n-1: %d",
+  DebugPrintf("        Testing value table 2^n-1: %d",
               info.total_value_table_elements);
   return TestDecompression(&info);
 }
@@ -390,7 +398,7 @@ void TestElementCount(TestingInfo<T>& info) {
       128, 129,
       255, TestingData<T>::kElementsPerChannel};
 
-  MicroPrintf("      Testing element count: %d thru %d",
+  DebugPrintf("      Testing element count: %d thru %d",
               elements_per_channel.begin()[0], elements_per_channel.end()[-1]);
 
   for (size_t i = 0; i < elements_per_channel.size(); i++) {
@@ -412,7 +420,7 @@ template <typename T>
 void TestSingleChannel(TestingInfo<T>& info) {
   info.channel_count = 1;
 
-  MicroPrintf("    Testing single channel");
+  DebugPrintf("    Testing single channel");
   TestElementCount(info);
 }
 
@@ -420,7 +428,7 @@ template <typename T>
 void TestMultiChannel(TestingInfo<T>& info) {
   info.channel_count = TestingData<T>::kChannels;
 
-  MicroPrintf("    Testing multiple channels: %d", info.channel_count);
+  DebugPrintf("    Testing multiple channels: %d", info.channel_count);
   TestElementCount(info);
 }
 
