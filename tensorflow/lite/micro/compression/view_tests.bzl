@@ -19,6 +19,10 @@ def generate_view_tests(targets):
             args = ["$(location {})".format(target)],
             main = "view_test.py",
             data = [target],
+            target_compatible_with = select({
+                "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+                "//conditions:default": [],
+            }),
             deps = [
                 ":view",
                 requirement("absl_py"),
