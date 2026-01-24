@@ -28,9 +28,7 @@ build --workspace_status_command=./tools/workspace_status.sh
 build --noenable_bzlmod
 
 # Use the following C++ standard
-build --cxxopt -std=c++17
-build:windows --cxxopt=/std:c++17
-
+build --cxxopt=-std=c++17
 build:windows --cxxopt=/std:c++17
 
 # Common options for --config=ci
@@ -46,6 +44,7 @@ build:ci --verbose_failures
 build:ci --test_output=errors
 
 # Windows CI options
+build:windows_ci --config=windows
 build:windows_ci --curses=no
 build:windows_ci --color=no
 build:windows_ci --noshow_progress
