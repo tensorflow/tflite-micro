@@ -62,6 +62,11 @@ py_tflm_signal_library(
     ],
 )
 
+TARGET_COMPATIBLE_WITH = select({
+    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
 py_test(
     name = "delay_op_test",
     size = "small",
@@ -71,6 +76,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":delay_op",
         requirement("numpy"),
@@ -102,6 +108,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":energy_op",
         requirement("numpy"),
@@ -133,6 +140,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":fft_ops",
         requirement("numpy"),
@@ -170,6 +178,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
@@ -201,6 +210,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":framer_op",
         requirement("numpy"),
@@ -229,6 +239,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":overlap_add_op",
         requirement("absl_py"),
@@ -261,6 +272,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":pcan_op",
         requirement("numpy"),
@@ -292,6 +304,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":stacker_op",
         requirement("numpy"),
@@ -322,6 +335,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":window_op",
         requirement("numpy"),

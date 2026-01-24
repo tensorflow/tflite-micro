@@ -35,6 +35,7 @@ def py_tflm_signal_library(
     if srcs:
         binary_path_end_pos = srcs[0].rfind("/")
         binary_path = srcs[0][0:binary_path_end_pos]
+
     binary_name = binary_path + "/_" + cc_op_kernels[0][1:] + ".so"
     if cc_op_defs:
         binary_name = "ops/_" + name + ".so"
