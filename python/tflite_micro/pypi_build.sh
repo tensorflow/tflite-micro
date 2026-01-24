@@ -63,6 +63,7 @@ IMAGE_ID=$(cat $IMAGE_ID_FILE)
 
 # Build the Python package within an ephemeral container.
 docker run \
+    --init \
     --rm \
     --interactive \
     --mount type=bind,source=$SRCDIR,destination=$SRCDIR \
