@@ -81,24 +81,21 @@ if [[ ${MODEL_FILE} ]]; then
   # Some environments (like MSYS2) are externally managed and don't allow pip install.
   python3 -m pip install absl-py tensorflow || true
 
-  if python3 -c "import absl, tensorflow" > /dev/null 2>&1; then
-    result=$(python3 \
-      "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/benchmarking/analyze_model.py" \
-      --model_file="${MODEL_FILE}" \
-      )
+  if result=$(python3 \
+    "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/benchmarking/analyze_model.py" \
+    --model_file="${MODEL_FILE}" 2>/dev/null); then
+    substitute_strings model_analysis_strings "${result}"
   else
-    result="Model analysis not available (missing absl-py or tensorflow)"
+    substitute_strings model_analysis_strings "Model analysis not available"
   fi
-  substitute_strings model_analysis_strings "${result}"
 
-  if command -v shasum > /dev/null; then
-    result=$(shasum -b "${MODEL_FILE}" | cut -f 1 -d ' ')
-  elif command -v md5sum > /dev/null; then
-    result=$(md5sum -b "${MODEL_FILE}" | cut -f 1 -d ' ')
+  if result=$(shasum -b "${MODEL_FILE}" 2>/dev/null | cut -f 1 -d ' '); then
+    substitute_strings model_sha1_strings "${result}"
+  elif result=$(md5sum -b "${MODEL_FILE}" 2>/dev/null | cut -f 1 -d ' '); then
+    substitute_strings model_sha1_strings "${result}"
   else
-    result="SHA1 not available"
+    substitute_strings model_sha1_strings "SHA1 not available"
   fi
-  substitute_strings model_sha1_strings "${result}"
 fi
 
 # compile date
