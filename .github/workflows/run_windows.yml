@@ -3,10 +3,6 @@ name: Run-Windows
 # Entry point for Windows tests. Triggered by schedule or workflow_dispatch.
 
 on:
-  schedule:
-    # 10am UTC is 3am or 4am PT depending on daylight savings.
-    - cron: '0 10 * * *'
-
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
