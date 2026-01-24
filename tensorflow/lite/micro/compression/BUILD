@@ -75,6 +75,10 @@ sh_test(
         "metadata_saved.h",
         ":metadata_cc_srcs",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 tflm_cc_test(

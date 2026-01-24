@@ -21,7 +21,11 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_SHARED_LIBRARY_H_
 #define TENSORFLOW_LITE_MICRO_TOOLS_PYTHON_INTERPRETER_SHARED_LIBRARY_H_
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif  // defined(_WIN32)
 
 namespace tflite {
 
@@ -30,9 +34,19 @@ namespace tflite {
 class SharedLibrary {
  public:
   static inline void* GetSymbol(const char* symbol) {
+#if defined(_WIN32)
+    return reinterpret_cast<void*>(GetProcAddress(GetModuleHandle(NULL), symbol));
+#else
     return dlsym(RTLD_DEFAULT, symbol);
+#endif  // defined(_WIN32)
   }
-  static inline const char* GetError() { return dlerror(); }
+  static inline const char* GetError() {
+#if defined(_WIN32)
+    return "Unknown error";
+#else
+    return dlerror();
+#endif  // defined(_WIN32)
+  }
 };
 
 }  // namespace tflite
