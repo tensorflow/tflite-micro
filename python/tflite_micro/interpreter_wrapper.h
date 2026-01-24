@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "python/tflite_micro/python_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
@@ -40,7 +41,8 @@ class InterpreterWrapper {
   InterpreterWrapper(
       PyObject* model_data, const std::vector<std::string>& registerers_by_name,
       size_t arena_size, int num_resource_variables,
-      InterpreterConfig config = InterpreterConfig::kAllocationRecording);
+      InterpreterConfig config = InterpreterConfig::kAllocationRecording,
+      size_t alt_decompression_memory_size = 0);
   ~InterpreterWrapper();
 
   void PrintAllocations();
@@ -57,6 +59,15 @@ class InterpreterWrapper {
   tflite::RecordingMicroAllocator* recording_allocator_ = nullptr;
   const PyObject* model_;
   std::unique_ptr<uint8_t[]> memory_arena_;
+  std::unique_ptr<uint8_t[]> alt_decompression_memory_;
+  tflite::MicroContext::AlternateMemoryRegion alt_decompression_region_;
+  // SetDecompressionMemory stores a pointer to its initializer_list argument,
+  // requiring the list to outlive the interpreter. Per C++ standard, an
+  // initializer_list's backing array lifetime is only extended to match the
+  // list's when initialized in a declaration, not when assigned. This makes
+  // the API difficult to use correctly; see the constructor init list.
+  std::initializer_list<tflite::MicroContext::AlternateMemoryRegion>
+      alt_decompression_regions_;
   tflite::PythonOpsResolver python_ops_resolver_;
   tflite::MicroInterpreter* interpreter_;
 };

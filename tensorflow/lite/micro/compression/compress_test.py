@@ -11,312 +11,107 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Integration tests for the compression system."""
 
-import bitarray
-import bitarray.util
 import numpy as np
 import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.micro.compression import compress
-from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
-from tflite_micro.tensorflow.lite.micro.compression import model_facade
+from tflite_micro.tensorflow.lite.micro.compression import compressor
+from tflite_micro.tensorflow.lite.micro.compression import decode_insert
+from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.micro.compression import test_models
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
-class TestPackIndices(tf.test.TestCase):
+def _build_test_model():
+  """Build test model using model_editor API."""
+  from tflite_micro.tensorflow.lite.micro.compression.model_editor import (
+      Model, Subgraph, Tensor, Operator, Quantization)
 
-  def test_basic_case(self):
-    indices = np.array([1, 2, 3])
-    bitwidth = 4
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b0001_0010, 0b0011_0000])
-    self.assertEqual(result, expected_bytes)
-
-  def test_single_element(self):
-    indices = np.array([10])
-    bitwidth = 8
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b0000_1010])
-    self.assertEqual(result, expected_bytes)
-
-  def test_different_bitwidth(self):
-    indices = np.array([1, 2, 3])
-    bitwidth = 8
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b0000_0001, 0b0000_0010, 0b0000_0011])
-    self.assertEqual(result, expected_bytes)
-
-  def test_large_numbers(self):
-    indices = np.array([255, 128, 64])
-    bitwidth = 8
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b1111_1111, 0b1000_0000, 0b0100_0000])
-    self.assertEqual(result, expected_bytes)
-
-  def test_multidimensional_array(self):
-    indices = np.array([[1, 2], [3, 4]])
-    bitwidth = 4
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b0001_0010, 0b0011_0100])
-    self.assertEqual(result, expected_bytes)
-
-  def test_zero_bitwidth(self):
-    indices = np.array([0, 1, 2])
-    bitwidth = 0
-    with self.assertRaises(ValueError):
-      compress._pack_indices(indices, bitwidth)
-
-  def test_empty_array(self):
-    indices = np.array([])
-    bitwidth = 4
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = b""
-    self.assertEqual(result, expected_bytes)
-
-  def test_bitwidth_1(self):
-    indices = np.array([1, 0, 1, 1, 0, 1])
-    bitwidth = 1
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b101101_00])
-    self.assertEqual(result, expected_bytes)
-
-  def test_bitwidth_2(self):
-    indices = np.array([1, 2, 3, 0])
-    bitwidth = 2
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b01_10_11_00])
-    self.assertEqual(result, expected_bytes)
-
-  def test_bitwidth_3(self):
-    indices = np.array([1, 3, 5, 7])
-    bitwidth = 3
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b001_011_10, 0b1_111_0000])
-    self.assertEqual(result, expected_bytes)
-
-  def test_bitwidth_5(self):
-    indices = np.array([1, 2, 16, 31])
-    bitwidth = 5
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes([0b00001_000, 0b10_10000_1, 0b1111_0000])
-    self.assertEqual(result, expected_bytes)
-
-  def test_bitwidth_7(self):
-    indices = np.array([1, 64, 127, 32])
-    bitwidth = 7
-    result = compress._pack_indices(indices, bitwidth)
-    expected_bytes = bytes(
-        [0b0000001_1, 0b000000_11, 0b11111_010, 0b0000_0000])
-    self.assertEqual(result, expected_bytes)
-
-
-class TestPackLookupTables(tf.test.TestCase):
-
-  def test_int16_positive(self):
-    tables = [np.array([0x1234, 0x5678], dtype='<i2')]
-    table_len = 2
-    expected_output = bytes([0x34, 0x12, 0x78, 0x56])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-  def test_int16_negative(self):
-    tables = [np.array([-0x1234, -0x5678], dtype='<i2')]
-    table_len = 2
-    # Expected output is two's complement
-    expected_output = bytes([0xcc, 0xed, 0x88, 0xa9])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-  def test_float16(self):
-    tables = [np.array([1.5, -2.5], dtype='<f2')]
-    table_len = 2
-    expected_output = bytes([0x00, 0x3e, 0x00, 0xc1])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-  def test_multiple_tables(self):
-    tables = [
-        np.array([0x1234, 0x5678], dtype='<i2'),
-        np.array([0x6abc, 0x7ef0], dtype='<i2')
-    ]
-    table_len = 2
-    expected_output = bytes([0x34, 0x12, 0x78, 0x56, 0xbc, 0x6a, 0xf0, 0x7e])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-  def test_int16_with_padding(self):
-    tables = [np.array([0x1234], dtype='<i2')]
-    table_len = 3
-    expected_output = bytes([0x34, 0x12, 0x00, 0x00, 0x00, 0x00])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-  def test_float16_with_padding(self):
-    tables = [np.array([1.5], dtype='<f2')]
-    table_len = 3
-    expected_output = bytes([0x00, 0x3e, 0x00, 0x00, 0x00, 0x00])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-  def test_multiple_tables_with_padding(self):
-    tables = [np.array([0x1234], dtype='<i2'), np.array([0x5678], dtype='<i2')]
-    table_len = 3
-    expected_output = bytes([
-        0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x78, 0x56, 0x00, 0x00, 0x00, 0x00
-    ])
-    result = compress._pack_lookup_tables(tables, table_len)
-    self.assertEqual(result, expected_output)
-
-
-# yapf: disable
-TEST_MODEL = {
-    "operator_codes": {
-        0: {
-            "builtin_code": tflite.BuiltinOperator.ADD,
-        },
-    },
-    "metadata": {
-        0: {
-            "name": "metadata0",
-            "buffer": 0
-        },
-    },
-    "subgraphs": {
-        0: {
-            "operators": {
-                0: {
-                    "opcode_index": 0,
-                    "inputs": (
-                        0,
-                        1,
-                    ),
-                    "outputs": (2, ),
-                },
-            },
-            "tensors": {
-                0: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.UINT8,
-                    "buffer": 1,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                1: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT8,
-                    "buffer": 2,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                2: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 3,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                3: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT32,
-                    "buffer": 4,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                4: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.INT32,
-                    "buffer": 5,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                5: {
-                    "shape": (4, 5),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 6,
-                    "quantization": {
-                        "quantized_dimension": 1,
-                        "scale": (1, 1, 1, 1, 1),
-                        "zero_point": (0, 0, 0, 0, 0),
-                    },
-                },
-                6: {
-                    "shape": (5, 4),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 7,
-                    "quantization": {
-                        "quantized_dimension": 0,
-                        "scale": (1, 1, 1, 1, 1),
-                        "zero_point": (0, 0, 0, 0, 0),
-                    },
-                },
-                7: {
-                    "shape": (5, 4),
-                    "type": tflite.TensorType.INT16,
-                    "buffer": 8,
-                    "quantization": {
-                        "quantized_dimension": 0,
-                        "scale": (1,),
-                        "zero_point": (0,),
-                    },
-                },
-                8: {
-                    "shape": (16, 1),
-                    "type": tflite.TensorType.UINT8,
-                    "buffer": 9,
-                },
-            },
-        },
-    },
-    "buffers": {
-        0: None,
-
-        1: np.array(range(16), dtype=np.dtype("<u1")),
-
-        2: np.array(range(-16, 0), dtype=np.dtype("<i1")),
-
-        3: np.array(range(-1616, -1600), dtype=np.dtype("<i2")),
-
-        4: np.array(range(-160_016, -160_000), dtype=np.dtype("<i4")),
-
-        5: np.array(range(16), dtype=np.dtype("<i4")),
-
-        6: np.array(((1, 5, 9,  13, 17),
-                     (2, 6, 10, 14, 18),
-                     (3, 7, 11, 15, 19),
-                     (4, 8, 12, 16, 20)), dtype=np.dtype("<i2")),
-
-        7: np.array(((1,  2,  3,  4),
-                     (5,  6,  7,  8),
-                     (9,  10, 11, 12),
+  # Pre-declare tensors with stable indices for compression specs
+  t0 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.UINT8,
+              data=np.array(range(16), dtype="<u1"),
+              name="tensor0",
+              quantization=Quantization(scales=1, zero_points=0))
+  t1 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT8,
+              data=np.array(range(-16, 0), dtype="<i1"),
+              name="tensor1",
+              quantization=Quantization(scales=1, zero_points=0))
+  t2 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT16,
+              data=np.array(range(-1616, -1600), dtype="<i2"),
+              name="tensor2",
+              quantization=Quantization(scales=1, zero_points=0))
+  t3 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT32,
+              data=np.array(range(-160_016, -160_000), dtype="<i4"),
+              name="tensor3",
+              quantization=Quantization(scales=1, zero_points=0))
+  t4 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.INT32,
+              data=np.array(range(16), dtype="<i4"),
+              name="tensor4_uncompressed",
+              quantization=Quantization(scales=1, zero_points=0))
+  # yapf: disable
+  t5 = Tensor(
+      shape=(4, 5),
+      dtype=tflite.TensorType.INT16,
+      data=np.array((( 1,  5,  9, 13, 17),
+                     ( 2,  6, 10, 14, 18),
+                     ( 3,  7, 11, 15, 19),
+                     ( 4,  8, 12, 16, 20)), dtype="<i2"),
+      name="tensor5_perchannel",
+      quantization=Quantization(
+          scales=[1, 1, 1, 1, 1], zero_points=[0, 0, 0, 0, 0], axis=1))
+  t6 = Tensor(
+      shape=(5, 4),
+      dtype=tflite.TensorType.INT16,
+      data=np.array((( 1,  2,  3,  4),
+                     ( 5,  6,  7,  8),
+                     ( 9, 10, 11, 12),
                      (13, 14, 15, 16),
-                     (17, 18, 19, 20)), dtype=np.dtype("<i2")),
+                     (17, 18, 19, 20)), dtype="<i2"),
+      name="tensor6_axis0",
+      quantization=Quantization(
+          scales=[1, 1, 1, 1, 1], zero_points=[0, 0, 0, 0, 0], axis=0))
+  t7 = Tensor(
+      shape=(5, 4),
+      dtype=tflite.TensorType.INT16,
+      data=np.array(((1, 2, 3, 4),
+                     (1, 2, 3, 4),
+                     (1, 2, 3, 4),
+                     (1, 2, 3, 4),
+                     (1, 2, 3, 4)), dtype="<i2"),
+      name="tensor7_pertensor",
+      quantization=Quantization(scales=1, zero_points=0))
+  # yapf: enable
+  t8 = Tensor(shape=(16, 1),
+              dtype=tflite.TensorType.UINT8,
+              data=np.array(range(16), dtype="<u1"),
+              name="tensor8_no_quantization")
 
-        8: np.array(((1, 2, 3, 4),
-                     (1, 2, 3, 4),
-                     (1, 2, 3, 4),
-                     (1, 2, 3, 4),
-                     (1, 2, 3, 4)), dtype=np.dtype("<i2")),
+  # Output tensors (no data)
+  out0 = Tensor(shape=(16, 1), dtype=tflite.TensorType.INT16, name="output0")
+  out1 = Tensor(shape=(16, 1), dtype=tflite.TensorType.INT16, name="output1")
 
-        9: np.array(range(16), dtype=np.dtype("<u1")),
-    },
-}
+  model = Model(metadata={"metadata0": b""},
+                subgraphs=[
+                    Subgraph(tensors=[t0, t1, t2, t3, t4, t5, t6, t7, t8],
+                             operators=[
+                                 Operator(opcode=tflite.BuiltinOperator.ADD,
+                                          inputs=[t0, t1],
+                                          outputs=[out0]),
+                                 Operator(opcode=tflite.BuiltinOperator.MUL,
+                                          inputs=[t2, t3],
+                                          outputs=[out1]),
+                             ])
+                ])
+
+  return model.build()
+
 
 TEST_COMPRESSION_SPEC = [
     spec.Tensor(  # spec 0
@@ -341,7 +136,6 @@ TEST_COMPRESSION_SPEC = [
     ),
 
     # Tensor 4 intentionally left uncompressed
-
     spec.Tensor(  # spec 4
         subgraph=0,
         tensor=5,
@@ -358,27 +152,167 @@ TEST_COMPRESSION_SPEC = [
         compression=[spec.LookUpTableCompression(index_bitwidth=2)],
     ),
 ]
-# yapf: enable
 
 
-class TestsCompression(tf.test.TestCase):
-  """Tests with the uncompressed model."""
+class TestCompression(tf.test.TestCase):
+  """Integration tests for the compress() function."""
 
   @classmethod
   def setUpClass(cls):
     super().setUpClass()
-    cls.flatbuffer = test_models.build(TEST_MODEL)
-    cls.uncompressed = model_facade.read(cls.flatbuffer)
+    cls.flatbuffer = _build_test_model()
+    cls.uncompressed = model_editor.read(cls.flatbuffer)
 
-  def test_compression_metadata(self):
-    """The compressed model has compression metadata."""
-    compressed = compress.compress(self.flatbuffer, TEST_COMPRESSION_SPEC)
-    model = model_facade.read(compressed)
-    self.assertIn("metadata0", self.uncompressed.metadata)
-    self.assertIn(compress.TFLITE_METADATA_KEY, model.metadata)
+  def test_compression_produces_valid_flatbuffer(self):
+    """Compressed model is a valid flatbuffer that can be read back."""
+    compressed_fb = compress.compress(self.flatbuffer, TEST_COMPRESSION_SPEC)
+    model = model_editor.read(compressed_fb)
+    self.assertIsNotNone(model)
+    self.assertEqual(len(model.subgraphs), 1)
 
-  def test_smaller_bitwidth(self):
-    """Specifying LUT compression with too small a bitwidth fails"""
+  def test_decode_operators_inserted(self):
+    """DECODE operators are inserted for compressed tensors."""
+    compressed_fb = compress.compress(self.flatbuffer, TEST_COMPRESSION_SPEC)
+    model = model_editor.read(compressed_fb)
+    sg = model.subgraphs[0]
+
+    # Find DECODE operators
+    decode_ops = [
+        op for op in sg.operators if op.opcode == tflite.BuiltinOperator.CUSTOM
+        and op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
+    ]
+
+    # Should have DECODE ops for compressed tensors that are used as inputs
+    # t0, t1 used by ADD; t2, t3 used by MUL
+    # t5, t6, t7 are not used as inputs in the test model
+    self.assertGreater(len(decode_ops), 0)
+
+  def test_decode_operator_structure(self):
+    """DECODE operators have correct input/output structure."""
+    # Build a simple model where weights are used as input
+    # yapf: disable
+    weights = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2, 1, 2],
+                       [3, 4, 3, 4],
+                       [1, 2, 1, 2],
+                       [3, 4, 3, 4]], dtype=np.int8),
+        name="weights",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    # yapf: enable
+    input_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name="input",
+    )
+    output_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name="output",
+    )
+
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(
+            tensors=[weights],
+            operators=[
+                model_editor.Operator(
+                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                    inputs=[input_t, weights],
+                    outputs=[output_t],
+                )
+            ],
+        )
+    ])
+    fb = model.build()
+
+    specs = [
+        spec.Tensor(
+            subgraph=0,
+            tensor=0,
+            compression=[spec.LookUpTableCompression(index_bitwidth=4)])
+    ]
+
+    compressed_fb = compress.compress(fb, specs)
+    result = model_editor.read(compressed_fb)
+    sg = result.subgraphs[0]
+
+    # Find DECODE operator
+    decode_ops = [
+        op for op in sg.operators if op.opcode == tflite.BuiltinOperator.CUSTOM
+        and op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
+    ]
+    self.assertEqual(len(decode_ops), 1)
+    decode_op = decode_ops[0]
+
+    # DECODE has 2 inputs: encoded tensor and ancillary data
+    self.assertEqual(len(decode_op.inputs), 2)
+    # DECODE has 1 output
+    self.assertEqual(len(decode_op.outputs), 1)
+    # Output has same shape as original weights
+    self.assertEqual(decode_op.outputs[0].shape, (4, 4))
+
+  def test_ancillary_data_format(self):
+    """Ancillary data has correct DCM header format."""
+    # yapf: disable
+    weights = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2, 1, 2],
+                       [3, 4, 3, 4],
+                       [1, 2, 1, 2],
+                       [3, 4, 3, 4]], dtype=np.int8),
+        name="weights",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    # yapf: enable
+    input_t = model_editor.Tensor(shape=(1, 4),
+                                  dtype=tflite.TensorType.INT8,
+                                  name="input")
+    output_t = model_editor.Tensor(shape=(1, 4),
+                                   dtype=tflite.TensorType.INT8,
+                                   name="output")
+
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(
+            tensors=[weights],
+            operators=[
+                model_editor.Operator(
+                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                    inputs=[input_t, weights],
+                    outputs=[output_t],
+                )
+            ],
+        )
+    ])
+    fb = model.build()
+
+    specs = [
+        spec.Tensor(
+            subgraph=0,
+            tensor=0,
+            compression=[spec.LookUpTableCompression(index_bitwidth=4)])
+    ]
+
+    compressed_fb = compress.compress(fb, specs)
+    result = model_editor.read(compressed_fb)
+
+    # Find DECODE and get ancillary tensor
+    decode_op = next(op for op in result.subgraphs[0].operators
+                     if op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME)
+    ancillary = decode_op.inputs[1]
+
+    # Verify DCM header
+    dcm_bytes = bytes(ancillary.array[:16])
+    self.assertEqual(dcm_bytes[0], 0)  # decode_type = LUT
+    self.assertEqual(dcm_bytes[1], 1)  # DCM version
+    self.assertEqual(dcm_bytes[4], 1)  # LUT version
+    self.assertEqual(dcm_bytes[5] & 0x07, 4)  # bitwidth = 4
+    self.assertEqual(dcm_bytes[6], 16)  # stride = 2^4
+
+  def test_smaller_bitwidth_raises(self):
+    """Specifying LUT compression with too small a bitwidth fails."""
     specs = [
         spec.Tensor(
             subgraph=0,
@@ -386,11 +320,11 @@ class TestsCompression(tf.test.TestCase):
             compression=[spec.LookUpTableCompression(index_bitwidth=3)],
         ),
     ]
-    self.assertRaises(compress.CompressionError,
+    self.assertRaises(compressor.CompressionError,
                       lambda: compress.compress(self.flatbuffer, specs))
 
-  def test_larger_bitwidth(self):
-    """Specifying LUT compression with too large a bitwidth succeeds"""
+  def test_larger_bitwidth_succeeds(self):
+    """Specifying LUT compression with too large a bitwidth succeeds."""
     specs = [
         spec.Tensor(
             subgraph=0,
@@ -398,10 +332,11 @@ class TestsCompression(tf.test.TestCase):
             compression=[spec.LookUpTableCompression(index_bitwidth=5)],
         ),
     ]
+    # Should not raise
     _ = compress.compress(self.flatbuffer, specs)
 
-  def test_invalid_tensor_spec(self):
-    """Specifying a tensor that doesn't exist raises CompressonError."""
+  def test_invalid_tensor_spec_raises(self):
+    """Specifying a tensor that doesn't exist raises CompressionError."""
     specs = [
         spec.Tensor(
             subgraph=666,
@@ -409,7 +344,7 @@ class TestsCompression(tf.test.TestCase):
             compression=[spec.LookUpTableCompression(index_bitwidth=4)],
         ),
     ]
-    self.assertRaises(compress.CompressionError,
+    self.assertRaises(compressor.CompressionError,
                       lambda: compress.compress(self.flatbuffer, specs))
 
     specs = [
@@ -419,10 +354,10 @@ class TestsCompression(tf.test.TestCase):
             compression=[spec.LookUpTableCompression(index_bitwidth=4)],
         ),
     ]
-    self.assertRaises(compress.CompressionError,
+    self.assertRaises(compressor.CompressionError,
                       lambda: compress.compress(self.flatbuffer, specs))
 
-  def test_no_axis(self):
+  def test_no_quantization_raises(self):
     """Raises if no quantization from which to infer compression axis."""
     specs = [
         spec.Tensor(
@@ -431,221 +366,67 @@ class TestsCompression(tf.test.TestCase):
             compression=[spec.LookUpTableCompression(index_bitwidth=4)],
         ),
     ]
-    self.assertRaises(compress.CompressionError,
+    self.assertRaises(compressor.CompressionError,
+                      lambda: compress.compress(self.flatbuffer, specs))
+
+  def test_huffman_compression_not_implemented(self):
+    """Huffman compression raises not implemented error."""
+    specs = [
+        spec.Tensor(
+            subgraph=0,
+            tensor=0,
+            compression=[spec.HuffmanCompression()],
+        ),
+    ]
+    self.assertRaises(compressor.CompressionError,
+                      lambda: compress.compress(self.flatbuffer, specs))
+
+  def test_pruning_compression_not_implemented(self):
+    """Pruning compression raises not implemented error."""
+    specs = [
+        spec.Tensor(
+            subgraph=0,
+            tensor=0,
+            compression=[spec.PruningCompression()],
+        ),
+    ]
+    self.assertRaises(compressor.CompressionError,
                       lambda: compress.compress(self.flatbuffer, specs))
 
 
-class TestLutCompressedArray(tf.test.TestCase):
+class TestPluginDispatch(tf.test.TestCase):
+  """Tests for the plugin dispatch system."""
 
-  def test_bitwidth(self):
-    """Bitwidth is determined from index values."""
-    a = compress._LutCompressedArray()
-    a.indices = np.array((0, 1, 2, 3))
-    self.assertEqual(a.index_bitwidth, 2)
+  def test_get_compressor_lut(self):
+    """LUT compression method dispatches to LutCompressor."""
+    method = spec.LookUpTableCompression(index_bitwidth=4)
+    compressor_instance = compress._get_compressor(method)
+    from tflite_micro.tensorflow.lite.micro.compression import lut
+    self.assertIsInstance(compressor_instance, lut.LutCompressor)
 
-    a.indices = np.array((0, 1, 2, 3, 4))
-    self.assertEqual(a.index_bitwidth, 3)
+  def test_get_compressor_huffman(self):
+    """Huffman compression method dispatches to HuffmanCompressor."""
+    method = spec.HuffmanCompression()
+    compressor_instance = compress._get_compressor(method)
+    from tflite_micro.tensorflow.lite.micro.compression import huffman
+    self.assertIsInstance(compressor_instance, huffman.HuffmanCompressor)
 
-    a.indices = np.array((0, 1, 1, 2, 2))
-    self.assertEqual(a.index_bitwidth, 2)
+  def test_get_compressor_pruning(self):
+    """Pruning compression method dispatches to PruningCompressor."""
+    method = spec.PruningCompression()
+    compressor_instance = compress._get_compressor(method)
+    from tflite_micro.tensorflow.lite.micro.compression import pruning
+    self.assertIsInstance(compressor_instance, pruning.PruningCompressor)
 
-    a.indices = np.array((0, 0, 0, 0))
-    self.assertEqual(a.index_bitwidth, 1)
+  def test_get_compressor_unknown_raises(self):
+    """Unknown compression method raises CompressionError."""
 
+    class UnknownCompression(spec.CompressionMethod):
+      pass
 
-class TestCompressedModel(tf.test.TestCase):
-  """Test the compressed model."""
-
-  @classmethod
-  def setUpClass(cls):
-    super().setUpClass()
-    # Create a model
-    uncompressed_fb = test_models.build(TEST_MODEL)
-    cls.uncompressed = model_facade.read(uncompressed_fb)
-
-    # Compress the model
-    compressed_fb = compress.compress(uncompressed_fb, TEST_COMPRESSION_SPEC)
-    cls.compressed = model_facade.read(compressed_fb)
-
-    # Extract the compression metadata
-    metadata_flatbuffer = cls.compressed.metadata[compress.TFLITE_METADATA_KEY]
-    cls.metadata = schema.MetadataT.InitFromPackedBuf(metadata_flatbuffer.data,
-                                                      0)
-
-  def test_uncompressed_tensors(self):
-    """Tensors not in compression spec are not compressed.
-    """
-    # For all tensors in all subgraphs
-    for subgraph in self.uncompressed.subgraphs:
-      lut_tensors = self.metadata.subgraphs[subgraph.index].lutTensors
-
-      for tensor in subgraph.tensors:
-        # Search through specs
-        match = lambda s: (s.subgraph == subgraph.index and s.tensor == tensor.
-                           index)
-        spec = next((s for s in TEST_COMPRESSION_SPEC if match(s)), None)
-
-        # If the tensor is not in specs
-        if spec is None:
-          # Search through compression metadata
-          match = lambda t: t.tensor == tensor.index
-          metadata = next((t for t in lut_tensors if match(t)), None)
-
-          # The tensor should not appear in compresion metadata
-          self.assertIsNone(metadata)
-
-  def _get_compressed(
-      self, *, subgraph: int,
-      tensor: int) -> tuple[int, bitarray.bitarray, np.ndarray]:
-    """Helper: extracts the compressed tensor parts for a given spec.
-
-    Returns:
-      bitwidth
-      indices
-      values
-    """
-    subgraph_obj = self.compressed.subgraphs[subgraph]
-    tensor_obj = subgraph_obj.tensors[tensor]
-    lut_tensors = self.metadata.subgraphs[subgraph_obj.index].lutTensors
-    lut_tensor = next(t for t in lut_tensors if t.tensor == tensor_obj.index)
-    bitwidth = lut_tensor.indexBitwidth
-
-    indices = bitarray.bitarray(buffer=tensor_obj.buffer.data, endian="big")
-    n_indices = np.prod(tensor_obj.shape)
-    indices = indices[:n_indices * bitwidth]  # trim possible padding
-
-    value_buffer = self.compressed.buffers[lut_tensor.valueBuffer]
-    values = np.frombuffer(value_buffer.data, dtype=tensor_obj.dtype)
-
-    return bitwidth, indices, values
-
-  def _make_indices(self, s: str) -> bitarray.bitarray:
-    """Helper: makes indices from "01" strings for use as expected values."""
-    return bitarray.bitarray(s, endian="big")
-
-  def test_compressed_uint8(self):
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=0)
-    self.assertEqual(bitwidth, 4)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      0000 0001 0010 0011
-      0100 0101 0110 0111
-      1000 1001 1010 1011
-      1100 1101 1110 1111
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(16), dtype="<u1")
-    self.assertAllEqual(values, expected_values)
-
-  def test_compressed_int8(self):
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=1)
-    self.assertEqual(bitwidth, 4)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      0000 0001 0010 0011
-      0100 0101 0110 0111
-      1000 1001 1010 1011
-      1100 1101 1110 1111
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(-16, 0), dtype="<i1")
-    self.assertAllEqual(values, expected_values)
-
-  def test_compressed_int16(self):
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=2)
-    self.assertEqual(bitwidth, 4)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      0000 0001 0010 0011
-      0100 0101 0110 0111
-      1000 1001 1010 1011
-      1100 1101 1110 1111
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(-1616, -1600), dtype="<i2")
-    self.assertAllEqual(values, expected_values)
-
-  def test_compressed_int32(self):
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=3)
-    self.assertEqual(bitwidth, 4)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      0000 0001 0010 0011
-      0100 0101 0110 0111
-      1000 1001 1010 1011
-      1100 1101 1110 1111
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(-160_016, -160_000), dtype="<i4")
-    self.assertAllEqual(values, expected_values)
-
-  def test_axis_1(self):
-    """Compression along quanitzation_dimension == 1."""
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=5)
-    self.assertEqual(bitwidth, 2)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      00 00 00 00 00
-      01 01 01 01 01
-      10 10 10 10 10
-      11 11 11 11 11
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(1, 21), dtype=np.dtype("<i2"))
-    self.assertAllEqual(values, expected_values)
-
-  def test_axis_0(self):
-    """Compression along quanitzation_dimension == 0."""
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=6)
-    self.assertEqual(bitwidth, 2)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      00 01 10 11
-      00 01 10 11
-      00 01 10 11
-      00 01 10 11
-      00 01 10 11
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(1, 21), dtype=np.dtype("<i2"))
-    self.assertAllEqual(values, expected_values)
-
-  def test_per_tensor(self):
-    """Compression with one value table per tensor."""
-    bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=7)
-    self.assertEqual(bitwidth, 2)
-
-    # yapf: disable
-    expected_indices = self._make_indices("""
-      00 01 10 11
-      00 01 10 11
-      00 01 10 11
-      00 01 10 11
-      00 01 10 11
-    """)
-    # yapf: enable
-    self.assertEqual(indices, expected_indices)
-
-    expected_values = np.array(range(1, 5), dtype=np.dtype("<i2"))
-    self.assertAllEqual(values, expected_values)
+    method = UnknownCompression()
+    self.assertRaises(compressor.CompressionError,
+                      lambda: compress._get_compressor(method))
 
 
 if __name__ == "__main__":
