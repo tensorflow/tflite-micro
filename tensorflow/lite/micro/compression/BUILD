@@ -242,6 +242,10 @@ py_binary(
     srcs = [
         "view.py",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":metadata_py",
         "//tensorflow/lite/python:schema_py",

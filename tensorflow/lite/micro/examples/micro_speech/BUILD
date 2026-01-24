@@ -207,6 +207,10 @@ py_binary(
     data = [
         ":samples_30ms",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         requirement("absl_py"),
         requirement("numpy"),
@@ -223,6 +227,10 @@ py_binary(
     data = [
         ":models_tflite",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":audio_preprocessor",
     ],
@@ -241,6 +249,10 @@ py_test(
         "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":evaluate",
     ],
@@ -259,6 +271,10 @@ py_test(
         "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":audio_preprocessor",
     ],
