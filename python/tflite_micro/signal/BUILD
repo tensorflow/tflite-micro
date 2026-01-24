@@ -229,7 +229,6 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":overlap_add_op",
         requirement("absl_py"),

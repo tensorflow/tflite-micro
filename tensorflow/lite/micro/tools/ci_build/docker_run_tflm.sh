@@ -37,5 +37,5 @@ shift
 echo "${TFLM_BOT_TOKEN}" | docker login ghcr.io -u tflm-bot --password-stdin
 
 # Note: DOCKER_RUN_ENV is used without quotes to allow multiple flags.
-docker run ${DOCKER_RUN_ENV:-} --rm -v "$(pwd)":/opt/tflite-micro "${IMAGE}" \
+docker run ${DOCKER_RUN_ENV:-} --init --rm -v "$(pwd)":/opt/tflite-micro "${IMAGE}" \
   /bin/bash -c "cd /opt && tflite-micro/$*"
