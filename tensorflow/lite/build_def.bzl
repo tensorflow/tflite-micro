@@ -3,7 +3,6 @@ def tflite_copts():
     return select({
         "@bazel_tools//src/conditions:windows": [
             "/DFARMHASH_NO_CXX_STRING",
-            "/EHs-",  # -fno-exceptions
             "/GR-",
         ],
         "//conditions:default": [

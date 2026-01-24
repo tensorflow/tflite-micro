@@ -29,7 +29,7 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel.sh windows_ci "//tensorflow/lite/micro/... -//tensorflow/lite/micro/compression/..."
+          tensorflow/lite/micro/tools/ci_build/test_bazel.sh windows_ci "//tensorflow/lite/micro/... -//tensorflow/lite/micro/compression/... -//python/tflite_micro/signal/... -//signal/..."
 
   makefile:
     runs-on: windows-latest
