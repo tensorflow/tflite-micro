@@ -27,8 +27,12 @@ build --workspace_status_command=./tools/workspace_status.sh
 # TODO(b/315853820): Needed for Bazel 7.0, until migrated to bzlmod
 build --noenable_bzlmod
 
+# Automatically enable the config matching the host OS
+common --enable_platform_specific_config
+
 # Use the following C++ standard
-build --cxxopt=-std=c++17
+build:linux --cxxopt=-std=c++17
+build:macos --cxxopt=-std=c++17
 build:windows --cxxopt=/std:c++17
 
 # Common options for --config=ci

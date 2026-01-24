@@ -11,6 +11,11 @@ package(
     licenses = ["notice"],
 )
 
+TARGET_COMPATIBLE_WITH = select({
+    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
 py_test(
     name = "freq_to_mel_test",
     srcs = ["freq_to_mel_test.py"],
@@ -22,6 +27,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
 )
 
 py_library(
@@ -73,5 +79,6 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     visibility = ["//visibility:public"],
 )

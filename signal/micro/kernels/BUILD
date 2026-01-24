@@ -72,11 +72,17 @@ cc_library(
     ],
 )
 
+TARGET_COMPATIBLE_WITH = select({
+    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
 cc_test(
     name = "fft_test",
     srcs = [
         "fft_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":fft_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -104,6 +110,7 @@ cc_test(
     srcs = [
         "window_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":register_signal_ops",
         ":window_flexbuffers_generated_data",
@@ -130,6 +137,7 @@ cc_test(
     srcs = [
         "framer_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":framer_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -156,6 +164,7 @@ cc_test(
     srcs = [
         "overlap_add_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":overlap_add_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -182,6 +191,7 @@ cc_test(
     srcs = [
         "delay_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":delay_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
@@ -207,6 +217,7 @@ cc_test(
     srcs = [
         "stacker_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":register_signal_ops",
         ":stacker_flexbuffers_generated_data",
@@ -233,6 +244,7 @@ cc_test(
     srcs = [
         "energy_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":energy_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -279,6 +291,7 @@ cc_test(
     srcs = [
         "filter_bank_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":filter_bank_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
@@ -294,6 +307,7 @@ cc_test(
     srcs = [
         "filter_bank_log_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":filter_bank_log_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
@@ -309,6 +323,7 @@ cc_test(
     srcs = [
         "filter_bank_spectral_subtraction_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":filter_bank_spectral_subtraction_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
@@ -324,6 +339,7 @@ cc_test(
     srcs = [
         "filter_bank_square_root_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
@@ -348,6 +364,7 @@ cc_test(
     srcs = [
         "pcan_test.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":pcan_flexbuffers_generated_data",
         "//tensorflow/lite/c:common",
