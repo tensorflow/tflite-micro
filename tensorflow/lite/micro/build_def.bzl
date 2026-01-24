@@ -12,7 +12,7 @@ def tflm_copts():
     be useful when additively overriding the defaults for a particular target.
     """
     return select({
-        "@bazel_tools//src/conditions:windows_msvc": [
+        "@bazel_tools//src/conditions:windows": [
             "/EHs-",
             "/GR-",
             "/DFLATBUFFERS_LOCALE_INDEPENDENT=0",
