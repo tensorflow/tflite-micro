@@ -36,9 +36,13 @@ def py_tflm_signal_library(
         binary_path_end_pos = srcs[0].rfind("/")
         binary_path = srcs[0][0:binary_path_end_pos]
 
-    binary_name = binary_path + "/_" + cc_op_kernels[0][1:] + ".so"
+    binary_name = binary_path + "/_" + (cc_op_kernels[0][1:] if not cc_op_defs else name) + ".so"
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    })
+
     if cc_op_defs:
-        binary_name = "ops/_" + name + ".so"
         library_name = name + "_cc"
         cc_library(
             name = library_name,
@@ -46,11 +50,14 @@ def py_tflm_signal_library(
                 "//conditions:default": ["-pthread"],
             }),
             alwayslink = 1,
+            target_compatible_with = target_compatible_with,
             deps =
                 cc_op_defs +
                 cc_op_kernels +
-                ["@tensorflow_cc_deps//:cc_library"] +
-                select({"//conditions:default": []}),
+                select({
+                    "@bazel_tools//src/conditions:windows": [],
+                    "//conditions:default": ["@tensorflow_cc_deps//:cc_library"],
+                }),
         )
         cc_binary(
             name = binary_name,
@@ -59,10 +66,13 @@ def py_tflm_signal_library(
             }),
             linkshared = 1,
             linkopts = [],
+            target_compatible_with = target_compatible_with,
             deps = [
                 ":" + library_name,
-                "@tensorflow_cc_deps//:cc_library",
-            ] + select({"//conditions:default": []}),
+            ] + select({
+                "@bazel_tools//src/conditions:windows": [],
+                "//conditions:default": ["@tensorflow_cc_deps//:cc_library"],
+            }),
         )
 
     py_library(
@@ -70,6 +80,7 @@ def py_tflm_signal_library(
         srcs = srcs,
         srcs_version = "PY2AND3",
         visibility = visibility,
+        target_compatible_with = target_compatible_with,
         data = [":" + binary_name],
         deps = deps,
     )

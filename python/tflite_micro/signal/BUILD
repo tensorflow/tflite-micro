@@ -14,8 +14,14 @@ package_group(
     packages = tflm_signal_friends(),
 )
 
+TARGET_COMPATIBLE_WITH = select({
+    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
 cc_library(
     name = "ops_lib",
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     visibility = [":signal_friends"],
     deps = [
         ":delay_op_cc",
@@ -36,6 +42,7 @@ py_library(
         "__init__.py",
         "ops/__init__.py",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     visibility = ["//visibility:public"],
     deps = [
         ":delay_op",
@@ -71,6 +78,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":delay_op",
         requirement("numpy"),
@@ -102,6 +110,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":energy_op",
         requirement("numpy"),
@@ -133,6 +142,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":fft_ops",
         requirement("numpy"),
@@ -170,6 +180,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
@@ -201,6 +212,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":framer_op",
         requirement("numpy"),
@@ -229,6 +241,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":overlap_add_op",
         requirement("absl_py"),
@@ -261,6 +274,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":pcan_op",
         requirement("numpy"),
@@ -292,6 +306,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":stacker_op",
         requirement("numpy"),
@@ -322,6 +337,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     deps = [
         ":window_op",
         requirement("numpy"),
