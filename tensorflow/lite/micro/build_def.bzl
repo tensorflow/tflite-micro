@@ -13,7 +13,6 @@ def tflm_copts():
     """
     return select({
         "@bazel_tools//src/conditions:windows": [
-            "/EHs-",
             "/GR-",
             "/DFLATBUFFERS_LOCALE_INDEPENDENT=0",
         ],

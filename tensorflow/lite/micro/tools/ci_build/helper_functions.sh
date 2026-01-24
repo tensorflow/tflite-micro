@@ -66,7 +66,7 @@ function check_contents() {
 function get_parallel_jobs {
   if [[ -n "${MAKE_JOBS_NUM}" ]]; then
     echo "-j${MAKE_JOBS_NUM}"
-  elif [[ "$(uname)" == "Linux" ]]; then
+  elif command -v nproc > /dev/null; then
     echo "-j$(nproc)"
   elif [[ "$(uname)" == "Darwin" ]]; then
     echo "-j$(sysctl -n hw.ncpu)"
