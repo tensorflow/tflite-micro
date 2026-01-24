@@ -11,6 +11,11 @@ package(
     licenses = ["notice"],
 )
 
+TARGET_COMPATIBLE_WITH = select({
+    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
+
 py_test(
     name = "freq_to_mel_test",
     srcs = ["freq_to_mel_test.py"],
@@ -22,6 +27,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
 )
 
 py_library(
@@ -29,6 +35,7 @@ py_library(
     data = [
         ":freq_to_mel_wrapper.so",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
 )
 
 pybind_extension(
@@ -36,11 +43,13 @@ pybind_extension(
     srcs = [
         "freq_to_mel_wrapper.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
 )
 
 py_library(
     name = "util",
     srcs = ["util.py"],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     visibility = ["//visibility:public"],
     deps = [
         requirement("tensorflow"),
@@ -53,6 +62,7 @@ pybind_extension(
     srcs = [
         "wide_dynamic_func_lut_wrapper.cc",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
 )
 
 py_library(
@@ -60,6 +70,7 @@ py_library(
     data = [
         ":wide_dynamic_func_lut_wrapper.so",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
 )
 
 py_test(
@@ -73,5 +84,6 @@ py_test(
         "nomsan",
         "noubsan",
     ],
+    target_compatible_with = TARGET_COMPATIBLE_WITH,
     visibility = ["//visibility:public"],
 )
