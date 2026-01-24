@@ -18,6 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -35,10 +36,12 @@ tflite::FakeMicroContext CreateFakeMicroContext(
   // safe because tests are guarateed to run serially.
   // Below structures are trivially destructible.
   static TfLiteTensor tensors[2];
-  static int input_shape[] = {1, 3};
+  alignas(tflite::MicroArenaBufferAlignment()) static int input_shape[] = {1,
+                                                                           3};
   static int input_data[] = {1, 2, 3};
 
-  static int output_shape[] = {1, 3};
+  alignas(tflite::MicroArenaBufferAlignment()) static int output_shape[] = {1,
+                                                                            3};
   static float output_data[3];
 
   tensors[0] = CreateTensor(input_data, IntArrayFromInts(input_shape));

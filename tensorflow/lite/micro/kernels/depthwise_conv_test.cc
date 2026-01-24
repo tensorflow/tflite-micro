@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -42,7 +43,8 @@ constexpr size_t kDepthwiseConvMaxInputTensors = 3;
 // Common inputs and outputs (quantized multi channel).
 // data from TfLite test:
 // PerChannelQuantizedDepthwiseConvolutionOpTest SimpleTestMixedOutputShift
-static int kInputShapeQ1[] = {4, 1, 2, 3, 2};
+alignas(tflite::MicroArenaBufferAlignment()) static int kInputShapeQ1[] = {
+    4, 1, 2, 3, 2};
 static constexpr float kInputDataQ1[] = {
     // [1 * 2 * 3 * 2] as [batch, y, x, input_channel]
     3,  2,   // batch = 0, y = 0, x = 0
@@ -55,7 +57,8 @@ static constexpr float kInputDataQ1[] = {
 constexpr size_t kInputElementsQ1 = std::extent<decltype(kInputDataQ1)>::value;
 
 constexpr int kNumChannelsQ1 = 4;
-static int kFilterShapeQ1[] = {4, 1, 2, 2, 4};
+alignas(tflite::MicroArenaBufferAlignment()) static int kFilterShapeQ1[] = {
+    4, 1, 2, 2, 4};
 static constexpr float kFilterDataQ1[] = {
     // This is a compact value table.  Original data is:
     // [1 * 2 * 2 * 4] as [input_channel, y, x, output_channel]
@@ -69,22 +72,24 @@ static constexpr float kFilterDataQ1[] = {
 constexpr size_t kFilterElementsQ1 =
     std::extent<decltype(kFilterDataQ1)>::value;
 
-static int kBiasShapeQ1[] = {1, 4};
+alignas(tflite::MicroArenaBufferAlignment()) static int kBiasShapeQ1[] = {1, 4};
 static constexpr float kBiasDataQ1[] = {3, -2, 4, 6};
 constexpr size_t kBiasElementsQ1 = std::extent<decltype(kBiasDataQ1)>::value;
 
-static int kOutputShapeQ1[] = {4, 1, 1, 2, 4};
+alignas(tflite::MicroArenaBufferAlignment()) static int kOutputShapeQ1[] = {
+    4, 1, 1, 2, 4};
 static constexpr float kGoldenDataQ1[] = {43, 48, 21, 22, 3, -4, -30, -36};
 constexpr int kOutputElementsQ1 = std::extent<decltype(kGoldenDataQ1)>::value;
 
 // compressed filter data for kBinQuant scheme, matches kFilterDataQ1
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantFilterDataQ1[] = {0x15, 0x6A, 0x8A,
-                                                         0x60};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantFilterDataQ1[] = {0x15, 0x6A, 0x8A, 0x60};
 constexpr int kBinQuantFilterBitWidthQ1 = 2;
 // compressed bias data for kBinQuant scheme, matches kBiasDataQ1
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantBiasDataQ1[] = {0x00};
 constexpr int kBinQuantBiasBitWidthQ1 = 1;
 
 #endif  // USE_TFLM_COMPRESSION

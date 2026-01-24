@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -22,7 +23,7 @@ TF_LITE_MICRO_TEST(CreateQuantizedBiasTensor) {
   float input_scale = 0.5;
   float weight_scale = 0.5;
   constexpr int tensor_size = 12;
-  int dims_arr[] = {4, 2, 3, 2, 1};
+  alignas(tflite::MicroArenaBufferAlignment()) int dims_arr[] = {4, 2, 3, 2, 1};
   int32_t quantized[tensor_size];
   float pre_quantized[] = {-10, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 10};
   int32_t expected_quantized_values[] = {-40, -20, -16, -12, -8, -4,
@@ -71,9 +72,9 @@ TF_LITE_MICRO_TEST(CreatePerChannelQuantizedBiasTensor) {
   float weight_scales[] = {0.5, 1, 2, 4};
   constexpr int tensor_size = 12;
   const int channels = 4;
-  int dims_arr[] = {4, 4, 3, 1, 1};
+  alignas(tflite::MicroArenaBufferAlignment()) int dims_arr[] = {4, 4, 3, 1, 1};
   int32_t quantized[tensor_size];
-  float scales[channels + 1];
+  alignas(tflite::MicroArenaBufferAlignment()) float scales[channels + 1];
   int zero_points[] = {4, 0, 0, 0, 0};
   float pre_quantized[] = {-10, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 10};
   int32_t expected_quantized_values[] = {-40, -20, -16, -6, -4, -2,
@@ -101,7 +102,8 @@ TF_LITE_MICRO_TEST(CreatePerChannelQuantizedBiasTensor) {
 TF_LITE_MICRO_TEST(CreateSymmetricPerChannelQuantizedTensor) {
   const int tensor_size = 12;
   constexpr int channels = 2;
-  int dims_arr[] = {4, channels, 3, 2, 1};
+  alignas(tflite::MicroArenaBufferAlignment()) int dims_arr[] = {4, channels, 3,
+                                                                 2, 1};
   int8_t quantized[12];
   const float pre_quantized[] = {-127, -55, -4, -3, -2, -1,
                                  0,    1,   2,  3,  4,  63.5};
@@ -111,7 +113,7 @@ TF_LITE_MICRO_TEST(CreateSymmetricPerChannelQuantizedTensor) {
   TfLiteIntArray* dims = tflite::testing::IntArrayFromInts(dims_arr);
 
   int zero_points[channels + 1];
-  float scales[channels + 1];
+  alignas(tflite::MicroArenaBufferAlignment()) float scales[channels + 1];
   TfLiteAffineQuantization quant;
   TfLiteTensor result =
       tflite::testing::CreateSymmetricPerChannelQuantizedTensor(

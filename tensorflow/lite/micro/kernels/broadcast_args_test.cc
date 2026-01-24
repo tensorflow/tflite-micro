@@ -15,6 +15,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -40,7 +41,7 @@ tflite::micro::KernelRunner CreateBroadcastArgsTestRunner(
   // safe because tests are guaranteed to run serially.
   // Both below structures are trivially destructible.
   static TFLMRegistration registration;
-  static TfLiteTensor tensors[3];
+  alignas(tflite::MicroArenaBufferAlignment()) static TfLiteTensor tensors[3];
 
   tensors[0] = CreateTensor(input1_data, IntArrayFromInts(input1_shape));
   tensors[1] = CreateTensor(input2_data, IntArrayFromInts(input2_shape));
@@ -78,13 +79,13 @@ void TestBroadcastArgs(int* input1_shape, DimsType* input1_data,
 TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(BroadcastArgsWithScalar) {
-  int input1_shape[] = {1, 0};
+  alignas(tflite::MicroArenaBufferAlignment()) int input1_shape[] = {1, 0};
   int32_t input1_data[] = {0};
 
-  int input2_shape[] = {1, 2};
+  alignas(tflite::MicroArenaBufferAlignment()) int input2_shape[] = {1, 2};
   int32_t input2_data[2] = {2, 4};
 
-  int output_shape[] = {1, 2};
+  alignas(tflite::MicroArenaBufferAlignment()) int output_shape[] = {1, 2};
   int32_t output_data[2];
   int32_t expected_output_data[2] = {2, 4};
 
@@ -93,13 +94,13 @@ TF_LITE_MICRO_TEST(BroadcastArgsWithScalar) {
 }
 
 TF_LITE_MICRO_TEST(BroadcastArgsDifferentDims) {
-  int input1_shape[] = {1, 1};
+  alignas(tflite::MicroArenaBufferAlignment()) int input1_shape[] = {1, 1};
   int32_t input1_data[] = {1};
 
-  int input2_shape[] = {1, 2};
+  alignas(tflite::MicroArenaBufferAlignment()) int input2_shape[] = {1, 2};
   int32_t input2_data[2] = {2, 4};
 
-  int output_shape[] = {1, 2};
+  alignas(tflite::MicroArenaBufferAlignment()) int output_shape[] = {1, 2};
   int32_t output_data[2];
   int32_t expected_output_data[2] = {2, 4};
 
@@ -108,13 +109,13 @@ TF_LITE_MICRO_TEST(BroadcastArgsDifferentDims) {
 }
 
 TF_LITE_MICRO_TEST(BroadcastArgsSameDims) {
-  int input1_shape[] = {1, 6};
+  alignas(tflite::MicroArenaBufferAlignment()) int input1_shape[] = {1, 6};
   int32_t input1_data[] = {1, 4, 6, 3, 1, 5};
 
-  int input2_shape[] = {1, 6};
+  alignas(tflite::MicroArenaBufferAlignment()) int input2_shape[] = {1, 6};
   int32_t input2_data[6] = {4, 4, 1, 3, 4, 1};
 
-  int output_shape[] = {1, 6};
+  alignas(tflite::MicroArenaBufferAlignment()) int output_shape[] = {1, 6};
   int32_t output_data[6];
   int32_t expected_output_data[6] = {4, 4, 6, 3, 4, 5};
 
@@ -123,13 +124,13 @@ TF_LITE_MICRO_TEST(BroadcastArgsSameDims) {
 }
 
 TF_LITE_MICRO_TEST(BroadcastArgsComplex) {
-  int input1_shape[] = {1, 4};
+  alignas(tflite::MicroArenaBufferAlignment()) int input1_shape[] = {1, 4};
   int32_t input1_data[] = {6, 3, 1, 5};
 
-  int input2_shape[] = {1, 6};
+  alignas(tflite::MicroArenaBufferAlignment()) int input2_shape[] = {1, 6};
   int32_t input2_data[6] = {4, 4, 1, 3, 4, 1};
 
-  int output_shape[] = {1, 6};
+  alignas(tflite::MicroArenaBufferAlignment()) int output_shape[] = {1, 6};
   int32_t output_data[6];
   int32_t expected_output_data[6] = {4, 4, 6, 3, 4, 5};
 

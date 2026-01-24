@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -29,20 +30,22 @@ namespace {
 
 // Simple test data for 2x2x10 input 2x3x10 weights.
 const int simple_input_size = 20;
-int simple_input_dims[] = {2, 2, 10};
+alignas(tflite::MicroArenaBufferAlignment()) int simple_input_dims[] = {2, 2,
+                                                                        10};
 const float simple_input_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8,  -9, -10,  // b = 0
     1, 2, 3, 4, 5, 6, 7, -8, 9,  -10,  // b = 1
 };
 const int simple_weights_size = 30;
-int simple_weights_dims[] = {2, 3, 10};
+alignas(tflite::MicroArenaBufferAlignment()) int simple_weights_dims[] = {2, 3,
+                                                                          10};
 const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 0
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 1
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
 
-int simple_bias_dims[] = {1, 3};
+alignas(tflite::MicroArenaBufferAlignment()) int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 
 #if (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA) && !defined(HEXAGON)))
@@ -57,16 +60,17 @@ constexpr size_t simple_bias_size =
 
 // compressed filter data for kBinQuant scheme
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantWeightData[] = {
-    0x01, 0x23, 0x45, 0x67, 0x89, 0x01, 0x23, 0x45,
-    0x67, 0x89, 0x01, 0x23, 0x45, 0x67, 0x89};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantWeightData[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0x01, 0x23, 0x45,
+                             0x67, 0x89, 0x01, 0x23, 0x45, 0x67, 0x89};
 constexpr float kBinQuantWeightValueTable[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 constexpr size_t kBinQuantWeightValueTableElements =
     std::extent<decltype(tflite::testing::kBinQuantWeightValueTable)>::value;
 constexpr int kBinQuantWeightBitWidth = 4;
 // compressed bias data for kBinQuant scheme
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x18};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
 
 #endif  // USE_TFLM_COMPRESSION
@@ -90,11 +94,12 @@ const float simple_golden_null_bias[] = {
 };
 
 const int simple_output_size = 6;
-int simple_output_dims[] = {2, 2, 3};
+alignas(tflite::MicroArenaBufferAlignment()) int simple_output_dims[] = {2, 2,
+                                                                         3};
 
 // Test data for 2x2x10 input 2x3x10 weights with negative outputs to test relu.
 const int relu_input_size = 20;
-int relu_input_dims[] = {2, 2, 10};
+alignas(tflite::MicroArenaBufferAlignment()) int relu_input_dims[] = {2, 2, 10};
 const float relu_input_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8,  -9, -10,  // b = 0
     1, 2, 3, 4, 5, 6, 7, -8, 9,  -10,  // b = 1

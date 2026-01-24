@@ -15,6 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_helpers.h"
 
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -23,7 +24,8 @@ namespace {
 // This just needs to be big enough to handle the array of 5 ints allocated
 // in TestAllocateOutputDimensionsFromInput below.
 const int kGlobalPersistentBufferLength = 100;
-char global_persistent_buffer[kGlobalPersistentBufferLength];
+alignas(TfLiteIntArray) char global_persistent_buffer
+    [kGlobalPersistentBufferLength];
 
 // Only need to handle a single allocation at a time for output dimensions
 // in TestAllocateOutputDimensionsFromInput.
@@ -204,9 +206,9 @@ TF_LITE_MICRO_TEST(TestBytesRequiredForTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateOutputDimensionsFromInput) {
   constexpr int kDimsLen = 4;
-  int input1_dims[] = {1, 1};
-  int input2_dims[] = {kDimsLen, 5, 5, 5, 5};
-  int output_dims[] = {0, 0, 0, 0, 0};
+  alignas(TfLiteIntArray) int input1_dims[] = {1, 1};
+  alignas(TfLiteIntArray) int input2_dims[] = {kDimsLen, 5, 5, 5, 5};
+  alignas(TfLiteIntArray) int output_dims[] = {0, 0, 0, 0, 0};
   TfLiteTensor input_tensor1 = tflite::testing::CreateTensor<int32_t>(
       nullptr, tflite::testing::IntArrayFromInts(input1_dims));
   TfLiteTensor input_tensor2 = tflite::testing::CreateTensor<int32_t>(
@@ -217,11 +219,9 @@ TF_LITE_MICRO_TEST(TestAllocateOutputDimensionsFromInput) {
   // Only need to allocate space for output_tensor.dims.  Use a simple
   // fake allocator.
   context.AllocatePersistentBuffer = FakeAllocatePersistentBuffer;
-
   TF_LITE_MICRO_EXPECT_EQ(
       kTfLiteOk, tflite::AllocateOutputDimensionsFromInput(
                      &context, &input_tensor1, &input_tensor2, &output_tensor));
-
   TF_LITE_MICRO_EXPECT_EQ(output_tensor.bytes, input_tensor2.bytes);
   for (int i = 0; i < kDimsLen; i++) {
     TF_LITE_MICRO_EXPECT_EQ(input_tensor2.dims->data[i],

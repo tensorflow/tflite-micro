@@ -145,32 +145,27 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
                                                const TfLiteTensor* input2,
                                                TfLiteTensor* output) {
   const TfLiteTensor* input = nullptr;
-
   TF_LITE_ENSURE(context, input1->dims != nullptr);
   TF_LITE_ENSURE(context, input2->dims != nullptr);
   TF_LITE_ENSURE(context, output->dims->size == 0);
 
   input = input1->dims->size > input2->dims->size ? input1 : input2;
   TF_LITE_ENSURE(context, output->type == input->type);
-
   size_t size = 0;
   TfLiteTypeSizeOf(input->type, &size);
   const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < dimensions_count; i++) {
     size *= input->dims->data[i];
   }
-
   output->bytes = size;
 
   output->dims =
       reinterpret_cast<TfLiteIntArray*>(context->AllocatePersistentBuffer(
           context, TfLiteIntArrayGetSizeInBytes(size)));
-
   output->dims->size = input->dims->size;
   for (int i = 0; i < dimensions_count; i++) {
     output->dims->data[i] = input->dims->data[i];
   }
-
   return kTfLiteOk;
 }
 
