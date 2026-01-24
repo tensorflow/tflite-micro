@@ -50,6 +50,7 @@ jobs:
             mingw-w64-x86_64-python-pip
             mingw-w64-x86_64-python-pillow
             mingw-w64-x86_64-python-numpy
+            mingw-w64-x86_64-python-absl-py
             openssl
             tar
             unzip

@@ -77,14 +77,27 @@ cp -p ${TEMPLATE_FILE} ${GENERATED_FILE}
 
 # model analysis and SHA1
 if [[ ${MODEL_FILE} ]]; then
-  python3 -m pip install absl-py tensorflow
-  result=$(python3 \
-    "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/benchmarking/analyze_model.py" \
-    --model_file="${MODEL_FILE}" \
-    )
+  # Try to install dependencies, but don't fail if it doesn't work.
+  # Some environments (like MSYS2) are externally managed and don't allow pip install.
+  python3 -m pip install absl-py tensorflow || true
+
+  if python3 -c "import absl, tensorflow" > /dev/null 2>&1; then
+    result=$(python3 \
+      "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/benchmarking/analyze_model.py" \
+      --model_file="${MODEL_FILE}" \
+      )
+  else
+    result="Model analysis not available (missing absl-py or tensorflow)"
+  fi
   substitute_strings model_analysis_strings "${result}"
 
-  result=$(shasum -b "${MODEL_FILE}" | cut -f 1 -d ' ')
+  if command -v shasum > /dev/null; then
+    result=$(shasum -b "${MODEL_FILE}" | cut -f 1 -d ' ')
+  elif command -v md5sum > /dev/null; then
+    result=$(md5sum -b "${MODEL_FILE}" | cut -f 1 -d ' ')
+  else
+    result="SHA1 not available"
+  fi
   substitute_strings model_sha1_strings "${result}"
 fi
 
