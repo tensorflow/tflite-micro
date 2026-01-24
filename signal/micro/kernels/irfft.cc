@@ -140,16 +140,16 @@ void* IrfftInitAll(TfLiteContext* context, const char* buffer, size_t length) {
 
   switch (tensor_type) {
     case TensorType_INT16: {
-      return IrfftInit<int16_t, tflm_signal::IrfftInt16GetNeededMemory,
-                       tflm_signal::IrfftInt16Init>(context, buffer, length);
+      return IrfftInit<int16_t, ::tflite::tflm_signal::IrfftInt16GetNeededMemory,
+                       ::tflite::tflm_signal::IrfftInt16Init>(context, buffer, length);
     }
     case TensorType_INT32: {
-      return IrfftInit<int32_t, tflm_signal::IrfftInt32GetNeededMemory,
-                       tflm_signal::IrfftInt32Init>(context, buffer, length);
+      return IrfftInit<int32_t, ::tflite::tflm_signal::IrfftInt32GetNeededMemory,
+                       ::tflite::tflm_signal::IrfftInt32Init>(context, buffer, length);
     }
     case TensorType_FLOAT32: {
-      return IrfftInit<float, tflm_signal::IrfftFloatGetNeededMemory,
-                       tflm_signal::IrfftFloatInit>(context, buffer, length);
+      return IrfftInit<float, ::tflite::tflm_signal::IrfftFloatGetNeededMemory,
+                       ::tflite::tflm_signal::IrfftFloatInit>(context, buffer, length);
     }
     default:
       return nullptr;
@@ -181,13 +181,13 @@ TfLiteStatus IrfftEvalAll(TfLiteContext* context, TfLiteNode* node) {
 
   switch (params->fft_type) {
     case kTfLiteInt16: {
-      return IrfftEval<int16_t, tflm_signal::IrfftInt16Apply>(context, node);
+      return IrfftEval<int16_t, ::tflite::tflm_signal::IrfftInt16Apply>(context, node);
     }
     case kTfLiteInt32: {
-      return IrfftEval<int32_t, tflm_signal::IrfftInt32Apply>(context, node);
+      return IrfftEval<int32_t, ::tflite::tflm_signal::IrfftInt32Apply>(context, node);
     }
     case kTfLiteFloat32: {
-      return IrfftEval<float, tflm_signal::IrfftFloatApply>(context, node);
+      return IrfftEval<float, ::tflite::tflm_signal::IrfftFloatApply>(context, node);
     }
     default:
       return kTfLiteError;

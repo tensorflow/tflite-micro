@@ -137,8 +137,8 @@ TfLiteStatus OverlapAddEval(TfLiteContext* context, TfLiteNode* node) {
       int input_index = (i * params->n_frames + frame) * params->frame_size;
       int output_index = (i * params->n_frames + frame) * params->frame_step;
       ::tflm_signal::OverlapAdd(&input_data[input_index], buffer,
-                              params->frame_size, &output_data[output_index],
-                              params->frame_step);
+                                params->frame_size, &output_data[output_index],
+                                params->frame_step);
     }
   }
   return kTfLiteOk;
