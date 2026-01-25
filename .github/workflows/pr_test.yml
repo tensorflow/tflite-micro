@@ -38,15 +38,6 @@ jobs:
 
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
 
-  call-core:
-    needs: gatekeeper
-    if: needs.gatekeeper.outputs.scope != 'none'
-    uses: ./.github/workflows/suite_core.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
   call-check-tflite-files:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.scope != 'none'
@@ -58,14 +49,21 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-hexagon:
+  call-core:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.scope != 'none'
-    uses: ./.github/workflows/suite_hexagon.yml
+    uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
+  call-windows:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/test_windows.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
 
   call-cortex-m:
     needs: gatekeeper
@@ -87,6 +85,15 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
+  call-hexagon:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    uses: ./.github/workflows/suite_hexagon.yml
+    with:
+      trigger-sha: ${{ github.event.pull_request.head.sha }}
+    secrets:
+      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+
   call-riscv:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.scope == 'all'
@@ -97,7 +104,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [gatekeeper, call-core, call-check-tflite-files, call-hexagon, call-cortex-m, call-xtensa, call-riscv]
+    needs: [gatekeeper, call-check-tflite-files, call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon, call-riscv]
     if: always()
     runs-on: ubuntu-latest
     steps:
