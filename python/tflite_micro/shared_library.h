@@ -35,7 +35,8 @@ class SharedLibrary {
  public:
   static inline void* GetSymbol(const char* symbol) {
 #if defined(_WIN32)
-    return reinterpret_cast<void*>(GetProcAddress(GetModuleHandle(NULL), symbol));
+    return reinterpret_cast<void*>(
+        GetProcAddress(GetModuleHandle(NULL), symbol));
 #else
     return dlsym(RTLD_DEFAULT, symbol);
 #endif  // defined(_WIN32)
