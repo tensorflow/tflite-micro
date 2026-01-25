@@ -1,3 +1,7 @@
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "INCOMPATIBLE_WITH_WINDOWS",
+)
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -69,10 +73,7 @@ py_test(
         "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":requantize_flatbuffer",
         requirement("numpy"),
@@ -86,10 +87,7 @@ pybind_extension(
     srcs = [
         "tflite_flatbuffer_align_wrapper.cc",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers",
@@ -104,10 +102,7 @@ py_binary(
     data = [
         ":tflite_flatbuffer_align_wrapper.so",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         requirement("absl_py"),
     ],
@@ -119,10 +114,7 @@ py_library(
     data = [
         ":tflite_flatbuffer_align_wrapper.so",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = [
         ":application_friends",
         ":tflm_tools",
@@ -139,10 +131,7 @@ py_library(
     data = [
         ":tflite_flatbuffer_align",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = [
         ":application_friends",
         ":tflm_tools",
@@ -183,10 +172,7 @@ cc_binary(
 py_binary(
     name = "tflm_model_transforms",
     srcs = ["tflm_model_transforms.py"],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
         requirement("absl_py"),
@@ -205,10 +191,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
         requirement("absl_py"),

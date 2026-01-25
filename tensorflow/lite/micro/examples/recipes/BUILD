@@ -1,5 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
     licenses = ["notice"],
@@ -33,10 +34,7 @@ py_test(
         "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":resource_variables_lib",
         "//python/tflite_micro:runtime",

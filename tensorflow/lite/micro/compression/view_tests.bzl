@@ -1,5 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 def generate_view_tests(targets):
     """Generates py_test targets for each target's path and a test_suite to
@@ -19,10 +20,7 @@ def generate_view_tests(targets):
             args = ["$(location {})".format(target)],
             main = "view_test.py",
             data = [target],
-            target_compatible_with = select({
-                "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-                "//conditions:default": [],
-            }),
+            target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
             deps = [
                 ":view",
                 requirement("absl_py"),

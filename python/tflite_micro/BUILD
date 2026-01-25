@@ -14,6 +14,7 @@ load(
     "tflm_cc_library",
 )
 load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
+load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
     features = ["-layering_check"],
@@ -91,10 +92,7 @@ py_test(
         "nomsan",  # Python doesn't like these symbols in _runtime.so
         "noubsan",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":runtime",
         requirement("numpy"),
@@ -311,8 +309,5 @@ sh_test(
         "notap",  # See http://b/294278650#comment4 for more details.
         "noubsan",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )

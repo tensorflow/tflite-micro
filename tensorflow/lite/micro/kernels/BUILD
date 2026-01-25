@@ -10,6 +10,7 @@ load(
 )
 load(
     "//tensorflow/lite/micro:build_def.bzl",
+    "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
     "tflm_cc_test",
     "tflm_copts",
@@ -544,6 +545,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
 tflm_cc_test(
@@ -562,6 +564,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
 tflm_cc_test(
@@ -920,6 +923,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
 tflm_cc_test(
@@ -938,6 +942,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
 tflm_cc_test(
@@ -1152,6 +1157,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
 tflm_cc_test(
@@ -1610,6 +1616,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
 tflm_cc_test(
