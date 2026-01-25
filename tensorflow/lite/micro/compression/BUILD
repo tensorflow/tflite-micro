@@ -105,6 +105,10 @@ py_test(
     size = "small",
     srcs = ["metadata_test.py"],
     main = "metadata_test.py",
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         "metadata_py",
         "@flatbuffers//:runtime_py",
@@ -150,6 +154,10 @@ py_test(
         "nomsan",  # Sanitizer symbols don't work with Python extension libs
         "noubsan",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":compress",
         ":metadata_py",
@@ -176,6 +184,10 @@ py_test(
     name = "model_facade_test",
     size = "small",
     srcs = ["model_facade_test.py"],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":model_facade",
         ":test_models",
@@ -195,6 +207,10 @@ py_test(
     name = "spec_test",
     size = "small",
     srcs = ["spec_test.py"],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":spec",
         requirement("tensorflow"),
@@ -213,6 +229,10 @@ py_test(
     name = "spec_builder_test",
     size = "small",
     srcs = ["spec_builder_test.py"],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":spec",
         ":spec_builder",
@@ -234,6 +254,10 @@ py_test(
     name = "test_models_test",
     size = "small",
     srcs = ["test_models_test.py"],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":test_models",
         "//tensorflow/lite/python:schema_py",
