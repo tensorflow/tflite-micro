@@ -21,10 +21,10 @@ limitations under the License.
 #include <cstdlib>
 #define TFLITE_ABORT abort()
 #else
+#include <cstdlib>
 inline void AbortImpl() {
   MicroPrintf("HALTED");
-  while (1) {
-  }
+  abort();
 }
 #define TFLITE_ABORT AbortImpl();
 #endif

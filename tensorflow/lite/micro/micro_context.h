@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_CONTEXT_H_
 
 #include <cstddef>
-#include <initializer_list>
+#include <utility>
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
@@ -32,6 +32,8 @@ limitations under the License.
 namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
 const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(15);
+
+class DecodeState;  // can't use decode_state.h due to circular include
 
 // MicroContext is eventually going to become the API between TFLM and the
 // kernels, replacing all the functions in TfLiteContext. The end state is code
@@ -136,7 +138,7 @@ class MicroContext {
   };
 
   // Set the alternate decompression memory regions.
-  // Can only be called during the MicroInterpreter kInit state.
+  // Can only be called during the kInit state.
   virtual TfLiteStatus SetDecompressionMemory(
       const AlternateMemoryRegion* regions, size_t count);
 
@@ -169,11 +171,35 @@ class MicroContext {
     return nullptr;
   }
 
+  struct CustomDecodeRegistration {
+    uint8_t type;       // custom decode type
+    uint8_t reserved1;  // reserved
+    uint8_t reserved2;  // reserved
+    uint8_t reserved3;  // reserved
+    tflite::DecodeState* (*create_state)(const TfLiteContext*,
+                                         MicroProfilerInterface*);
+  };
+
+  // Set the DECODE operator custom registrations.
+  // Can only be called during the kInit state.
+  virtual TfLiteStatus SetCustomDecodeRegistrations(
+      const CustomDecodeRegistration* registrations, size_t count);
+
+  // Get the custom decompression registrations.
+  virtual const std::pair<const CustomDecodeRegistration*, size_t /*count*/>
+  GetCustomDecodeRegistrations() const {
+    return std::make_pair(custom_decode_registrations_,
+                          custom_decode_registrations_size_);
+  }
+
  private:
   const AlternateMemoryRegion* decompress_regions_ = nullptr;
   size_t decompress_regions_size_ = 0;
   // array of size_t elements with length equal to decompress_regions_size_
   size_t* decompress_regions_allocations_ = nullptr;
+
+  const CustomDecodeRegistration* custom_decode_registrations_ = nullptr;
+  size_t custom_decode_registrations_size_ = 0;
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };

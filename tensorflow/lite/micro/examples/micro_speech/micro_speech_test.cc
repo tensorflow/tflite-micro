@@ -96,8 +96,10 @@ TfLiteStatus LoadMicroSpeechModelAndPerformInference(
 
   tflite::MicroInterpreter interpreter(model, op_resolver, g_arena, kArenaSize);
 
+  MicroPrintf("%s: pre AllocateTensors", __func__);
   TF_LITE_MICRO_EXPECT(interpreter.AllocateTensors() == kTfLiteOk);
   TF_LITE_MICRO_CHECK_FAIL();
+  MicroPrintf("%s: post AllocateTensors", __func__);
 
   MicroPrintf("MicroSpeech model arena size = %u",
               interpreter.arena_used_bytes());
@@ -123,8 +125,10 @@ TfLiteStatus LoadMicroSpeechModelAndPerformInference(
 
   std::copy_n(&features[0][0], kFeatureElementCount,
               tflite::GetTensorData<int8_t>(input));
+  MicroPrintf("%s: pre Invoke", __func__);
   TF_LITE_MICRO_EXPECT(interpreter.Invoke() == kTfLiteOk);
   TF_LITE_MICRO_CHECK_FAIL();
+  MicroPrintf("%s: post Invoke", __func__);
 
   // Dequantize output values
   float category_predictions[kCategoryCount];
@@ -211,6 +215,7 @@ TfLiteStatus GenerateFeatures(const int16_t* audio_data,
     feature_index++;
     audio_data += kAudioSampleStrideCount;
     remaining_samples -= kAudioSampleStrideCount;
+    MicroPrintf("Generated single feature %u", feature_index);
   }
 
   return kTfLiteOk;

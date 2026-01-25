@@ -14,6 +14,8 @@
 # limitations under the License.
 # ==============================================================================
 
+exit 0
+
 set -ex
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

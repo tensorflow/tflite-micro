@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <utility>
+
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
@@ -47,6 +49,27 @@ TfLiteStatus SetOutputTensorData(TfLiteContext* context, const TfLiteNode* node,
   }
 
   return kTfLiteOk;
+}
+
+DecodeState* GetDecodeStateFromCustomRegistration(const TfLiteContext* context,
+                                                  uint8_t type) {
+  const MicroContext* mc = GetMicroContext(context);
+  const MicroContext::CustomDecodeRegistration* registrations;
+  size_t registrations_count;
+  std::tie(registrations, registrations_count) =
+      mc->GetCustomDecodeRegistrations();
+  if (registrations == nullptr) {
+    return nullptr;
+  }
+
+  for (size_t i = 0; i < registrations_count; i++) {
+    auto& reg = registrations[i];
+    if (reg.type == type && reg.create_state != nullptr) {
+      return reg.create_state(context, mc->GetAlternateProfiler());
+    }
+  }
+
+  return nullptr;
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -113,21 +136,22 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
         dsp = DecodeState::CreateDecodeStateHuffman(
             context, micro_context->GetAlternateProfiler());
         break;
-      case DecodeState::kDcmTypeCustom:
-        MicroPrintf("Custom decode type not yet supported");
-        break;
       default:
-        MicroPrintf("unsupported decode type %u",
-                    DecodeState::Type(*ancillary));
+        uint32_t type = DecodeState::Type(*ancillary);
+        if (type >= DecodeState::kDcmTypeCustomFirst &&
+            type <= DecodeState::kDcmTypeCustomLast) {
+          dsp = GetDecodeStateFromCustomRegistration(context, type);
+        } else {
+          MicroPrintf("unsupported decode type %u", type);
+        }
         break;
-    }
-
-    status = SetOutputTensorData(context, node, i / 2, output);
-    if (status != kTfLiteOk) {
-      break;
     }
 
     if (dsp != nullptr) {
+      status = SetOutputTensorData(context, node, i / 2, output);
+      if (status != kTfLiteOk) {
+        break;
+      }
       status = dsp->Setup(*input, *ancillary, *output);
       if (status != kTfLiteOk) {
         break;

@@ -171,6 +171,18 @@ class MicroInterpreter {
   TfLiteStatus SetDecompressionMemory(
       const MicroContext::AlternateMemoryRegion* regions, size_t count);
 
+  // Set the DECODE operator custom registrations.
+  // Can only be called during the MicroInterpreter kInit state (i.e. must
+  // be called before MicroInterpreter::AllocateTensors).
+  // The regions pointer argument is the start of a
+  // MicroContext::CustomDecodeRegistration array where the length of the array
+  // is given by the count argument. The lifetime of the
+  // MicroContext::CustomDecodeRegistration array must be at least that of the
+  // MicroInterpreter.
+  TfLiteStatus SetCustomDecodeRegistrations(
+      const MicroContext::CustomDecodeRegistration* registrations,
+      size_t count);
+
  protected:
   const MicroAllocator& allocator() const { return allocator_; }
   const TfLiteContext& context() const { return context_; }

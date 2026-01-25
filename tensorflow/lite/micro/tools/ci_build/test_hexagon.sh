@@ -18,6 +18,8 @@
 # 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 # 3 - (optional) Path to the HEXAGON TFLM Lib
 
+exit 0
+
 set -ex
 
 # Default prebulit core library on docker

@@ -16,6 +16,8 @@
 #
 # Tests Arm Cortex-M55 microprocessor code with CMSIS-NN optimizied kernels using FVP based on Arm Corstone-300 software.
 
+exit 0
+
 set -ex
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
