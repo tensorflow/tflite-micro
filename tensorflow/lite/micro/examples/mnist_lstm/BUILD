@@ -39,6 +39,10 @@ py_test(
         "nomsan",  # Python doesn't like these symbols
         "noubsan",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":evaluate",
         ":train",

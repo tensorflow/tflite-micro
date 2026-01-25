@@ -24,6 +24,10 @@ py_test(
         "nomsan",  # Python doesn't like these symbols from flatbuffer_size_wrapper_pybind.so
         "noubsan",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         requirement("tensorflow"),
         "//tensorflow/lite/micro/python/tflite_size/src:flatbuffer_size",
