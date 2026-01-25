@@ -75,7 +75,8 @@ void XtensaDecodeStatePrune::DecompressToBufferInt8_Xtensa(void* buffer) {
   ae_int8x8 shfl0, shfl1, shfl2, shfl3;
   const int count = count_indices_;
   int8_t* __restrict pCoeff = static_cast<int8_t*>(buffer);
-  ae_int8x8 zero = single_zero_point_;
+  int32_t packed32_zero = single_zero_point_ | (single_zero_point_ << 8) | (single_zero_point_ << 16) | (single_zero_point_ << 24);
+  ae_int8x8 zero = AE_MOVINT8X8_FROMINT32X2(AE_MOVDA32X2(packed32_zero, packed32_zero));
   ae_int8x8 discarded;
 
   if (single_zero_point_ == 0) {
@@ -189,7 +190,9 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelInt8_Xtensa(
   AE_DBI_IP((const unsigned short*)p_stream, 16);
 
   for (size_t channel = 0; channel < num_channels_; channel++) {
-    ae_int8x8 zero = zero_points_[channel];
+    int8_t scalar_zero = zero_points_[channel];
+    int32_t packed32_zero = scalar_zero | (scalar_zero << 8) | (scalar_zero << 16) | (scalar_zero << 24);
+    ae_int8x8 zero = AE_MOVINT8X8_FROMINT32X2(AE_MOVDA32X2(packed32_zero, packed32_zero));
     uint32_t mask_low, mask_high;
 
     if (zero_points_[channel] == 0) {
