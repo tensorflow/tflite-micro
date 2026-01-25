@@ -149,11 +149,11 @@ TF_LITE_MICRO_TEST(UnsupportedInputSize) {
   int end_shape[] = {1, 5};
   int strides_shape[] = {1, 5};
   int output_shape[] = {0};
-  float input_data[] = {};
-  int32_t begin_data[] = {};
-  int32_t end_data[] = {};
-  int32_t strides_data[] = {};
-  float golden[] = {};
+  float input_data[] = {0.0f};
+  int32_t begin_data[] = {0};
+  int32_t end_data[] = {0};
+  int32_t strides_data[] = {0};
+  float golden[] = {0.0f};
   float output_data[4];
 
   TfLiteStridedSliceParams builtin_data = {};
@@ -195,7 +195,7 @@ TF_LITE_MICRO_TEST(In1D_EmptyOutput) {
   int32_t begin_data[] = {10};
   int32_t end_data[] = {3};
   int32_t strides_data[] = {1};
-  float golden[] = {};
+  float golden[] = {0.0f};
   float output_data[4];
 
   TfLiteStridedSliceParams builtin_data = {};
@@ -1243,7 +1243,7 @@ TF_LITE_MICRO_TEST(StrideOutOfBounds) {
   int end_shape[] = {1, 1};
   int strides_shape[] = {1, 1};
   int output_shape[] = {0};
-  float input_data[] = {};
+  float input_data[] = {0.0f};
   int32_t begin_data[] = {1};
   int32_t end_data[] = {4};
   int32_t strides_data[] = {7};
@@ -1264,11 +1264,11 @@ TF_LITE_MICRO_TEST(OutOfBounds) {
   int end_shape[] = {1, 1};
   int strides_shape[] = {1, 1};
   int output_shape[] = {0};
-  float input_data[] = {};
+  float input_data[] = {0.0f};
   int32_t begin_data[] = {1};
   int32_t end_data[] = {2};
   int32_t strides_data[] = {1};
-  float golden[0];
+  float golden[] = {0.0f};
   float output_data[16];
 
   TfLiteStridedSliceParams builtin_data = {0, 0, 0, 0, 1, false};

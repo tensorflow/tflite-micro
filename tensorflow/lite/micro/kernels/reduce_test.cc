@@ -999,7 +999,7 @@ TF_LITE_MICRO_TEST(SumFloatScalar) {
   int input_shape[] = {1, 1};
   int output_shape[] = {1, 1};
   int axis_shape[] = {1, 0};
-  int32_t axis_data[] = {};
+  int32_t axis_data[] = {0};
   float input_data[] = {1.0};
   float expected_output[] = {1.0};
   float actual_output_data[1];
