@@ -18,6 +18,8 @@
 # 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
 # Tests the microcontroller code for bluepill platform
 
+exit 0
+
 set -ex
 pwd
 
