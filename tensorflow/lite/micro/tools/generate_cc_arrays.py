@@ -36,20 +36,17 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
       # Header include path logic, maintaining compatibility with genfiles/ structure.
       header_path = out_fname.split("genfiles/")[-1].replace(".cc", ".h")
       out_cc_file.write('#include "{}"\n\n'.format(header_path))
-      out_cc_file.write(
-          "alignas(16) const {} {}[] = {{".format(array_type, array_name)
-      )
+      out_cc_file.write("alignas(16) const {} {}[] = {{".format(
+          array_type, array_name))
       out_cc_file.write(array_contents)
       out_cc_file.write("};\n")
   elif out_fname.endswith(".h"):
     with open(out_fname, "w") as out_hdr_file:
       out_hdr_file.write("#include <cstdint>\n\n")
-      out_hdr_file.write(
-          "constexpr unsigned int {}_size = {};\n".format(array_name, str(size))
-      )
-      out_hdr_file.write(
-          "extern const {} {}[];\n".format(array_type, array_name)
-      )
+      out_hdr_file.write("constexpr unsigned int {}_size = {};\n".format(
+          array_name, str(size)))
+      out_hdr_file.write("extern const {} {}[];\n".format(
+          array_type, array_name))
   else:
     raise ValueError("generated file must be end with .cc or .h")
 
@@ -112,21 +109,12 @@ def get_array_name_and_type(input_fname):
   elif input_fname.endswith(".wav"):
     return [base_array_name + "_audio_data", "int16_t"]
   elif input_fname.endswith(
-      ("_int32.csv", "_int16.csv", "_int8.csv", "_float.csv", ".csv", ".npy")
-  ):
+      ("_int32.csv", "_int16.csv", "_int8.csv", "_float.csv", ".csv", ".npy")):
     return [
         base_array_name + "_test_data",
-        (
-            "int32_t"
-            if "_int32.csv" in input_fname
-            else (
-                "int16_t"
-                if "_int16.csv" in input_fname
-                else "int8_t"
-                if "_int8.csv" in input_fname
-                else "float"
-            )
-        ),
+        ("int32_t" if "_int32.csv" in input_fname else
+         ("int16_t" if "_int16.csv" in input_fname else
+          "int8_t" if "_int8.csv" in input_fname else "float")),
     ]
   else:
     return [base_array_name + "_data", "unsigned char"]
@@ -142,10 +130,8 @@ def main():
   parser.add_argument(
       "inputs",
       nargs="+",
-      help=(
-          "input wav, bmp or tflite files to convert. "
-          "If output is a cc or header only one input may be specified."
-      ),
+      help=("input wav, bmp or tflite files to convert. "
+            "If output is a cc or header only one input may be specified."),
   )
   args = parser.parse_args()
 
@@ -157,9 +143,8 @@ def main():
   else:
     # Deduplicate inputs to prevent duplicate generated files (ODR issue).
     for input_file in list(dict.fromkeys(args.inputs)):
-      output_base_fname = os.path.join(
-          args.output, os.path.splitext(input_file)[0]
-      )
+      output_base_fname = os.path.join(args.output,
+                                       os.path.splitext(input_file)[0])
       if input_file.endswith(".tflite"):
         output_base_fname += "_model_data"
       elif input_file.endswith(".bmp"):
@@ -170,8 +155,7 @@ def main():
         output_base_fname += "_test_data"
       else:
         raise ValueError(
-            "input file must be .tflite, .bmp, .wav , .npy or .csv"
-        )
+            "input file must be .tflite, .bmp, .wav , .npy or .csv")
 
       output_cc_fname = output_base_fname + ".cc"
       # Print output cc filename for Make to include it in the build.
