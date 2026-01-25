@@ -3,6 +3,7 @@ load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library")
 load("//tensorflow:extra_rules.bzl", "tflm_signal_friends")
+load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
     default_visibility = [":__subpackages__"],
@@ -14,14 +15,9 @@ package_group(
     packages = tflm_signal_friends(),
 )
 
-TARGET_COMPATIBLE_WITH = select({
-    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-    "//conditions:default": [],
-})
-
 cc_library(
     name = "ops_lib",
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = [":signal_friends"],
     deps = [
         ":delay_op_cc",
@@ -42,7 +38,7 @@ py_library(
         "__init__.py",
         "ops/__init__.py",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
     deps = [
         ":delay_op",
@@ -78,7 +74,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":delay_op",
         requirement("numpy"),
@@ -110,7 +106,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":energy_op",
         requirement("numpy"),
@@ -142,7 +138,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":fft_ops",
         requirement("numpy"),
@@ -180,7 +176,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
@@ -212,7 +208,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":framer_op",
         requirement("numpy"),
@@ -241,7 +237,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":overlap_add_op",
         requirement("absl_py"),
@@ -274,7 +270,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":pcan_op",
         requirement("numpy"),
@@ -306,7 +302,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":stacker_op",
         requirement("numpy"),
@@ -337,7 +333,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = TARGET_COMPATIBLE_WITH,
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":window_op",
         requirement("numpy"),

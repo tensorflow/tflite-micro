@@ -1,5 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 licenses(["notice"])
 
@@ -24,10 +25,7 @@ py_test(
         "nomsan",  # Python doesn't like these symbols from flatbuffer_size_wrapper_pybind.so
         "noubsan",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         requirement("tensorflow"),
         "//tensorflow/lite/micro/python/tflite_size/src:flatbuffer_size",
