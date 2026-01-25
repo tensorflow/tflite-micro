@@ -139,7 +139,8 @@ def main():
     assert len(args.inputs) == 1
     size, cc_array = generate_array(args.inputs[0])
     generated_array_name, array_type = get_array_name_and_type(args.inputs[0])
-    generate_file(args.output, generated_array_name, array_type, cc_array, size)
+    generate_file(args.output, generated_array_name, array_type, cc_array,
+                  size)
   else:
     # Deduplicate inputs to prevent duplicate generated files (ODR issue).
     for input_file in list(dict.fromkeys(args.inputs)):
