@@ -79,7 +79,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(BroadcastArgsWithScalar) {
   int input1_shape[] = {1, 0};
-  int32_t input1_data[] = {};
+  int32_t input1_data[] = {0};
 
   int input2_shape[] = {1, 2};
   int32_t input2_data[2] = {2, 4};

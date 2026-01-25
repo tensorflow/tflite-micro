@@ -165,9 +165,9 @@ TF_LITE_MICRO_TEST(ReshapeWithMismatchedDimensionsShouldFail) {
   const int32_t shape_int32[] = {2, 1};
   int output_dims[] = {2, 2, 1};
   const int golden_output_len = 0;
-  const float golden_output[] = {};
+  const float golden_output[] = {0.0f};
   const int golden_dims_len = 0;
-  int golden_dims[] = {};
+  int golden_dims[] = {0};
   tflite::testing::TestReshape(
       input_dims, input_data, shape_dims, shape_int32, output_dims, output_data,
       golden_output, golden_output_len, golden_dims, golden_dims_len, true);
@@ -197,9 +197,9 @@ TF_LITE_MICRO_TEST(ReshapeWithTooManySpecialDimensionsShouldFail) {
   const int32_t shape_int32[] = {-1, -1, 2, 4};
   int output_dims[] = {4, -1, -1, 2, 4};
   const int golden_output_len = 2;
-  const float golden_output[] = {};
+  const float golden_output[] = {0.0f};
   const int golden_dims_len = 9;
-  int golden_dims[] = {};
+  int golden_dims[] = {0};
   tflite::testing::TestReshape(
       input_dims, input, shape_dims, shape_int32, output_dims, output_data,
       golden_output, golden_output_len, golden_dims, golden_dims_len, true);
@@ -218,9 +218,9 @@ TF_LITE_MICRO_TEST(ReshapeWithInvalidShapeShouldFail) {
   TfLiteIntArray* output_dims =
       tflite::testing::IntArrayFromInts(output_dims_data);
   auto output_tensor = tflite::testing::CreateTensor(output_data, output_dims);
-  const int expected_output[] = {};
+  const int expected_output[] = {0};
   const int expected_output_len = 0;
-  int expected_dims[] = {};
+  int expected_dims[] = {0};
   const int expected_dims_len = 0;
   tflite::testing::TestReshapeWithoutShape(
       &input_tensor, &output_tensor, expected_output, expected_output_len,
@@ -314,14 +314,14 @@ TF_LITE_MICRO_TEST(ReshapeWithScalarOutputShouldSucceed) {
   const int8_t input_int8[] = {3};
   const uint8_t input_uint8[] = {3};
   int shape_dims[] = {0};
-  const int32_t shape_int32[] = {};
+  const int32_t shape_int32[] = {0};
   int output_dims[] = {0};
   const int golden_output_len = 1;
   const float golden_output_float[] = {3};
   const int8_t golden_output_int8[] = {3};
   const uint8_t golden_output_uint8[] = {3};
   const int golden_dims_len = 0;
-  int golden_dims[] = {};
+  int golden_dims[] = {0};
   tflite::testing::TestReshape(input_dims, input_float, shape_dims, shape_int32,
                                output_dims, output_data_float,
                                golden_output_float, golden_output_len,
@@ -357,11 +357,11 @@ TF_LITE_MICRO_TEST(ReshapeWithLegacyScalarOutputShouldSucceed) {
 
   const int32_t shape_data[] = {0};
   auto shape_tensor = tflite::testing::CreateTensor(shape_data, shape_dims);
-  const float expected_output_with_shape[] = {};
+  const float expected_output_with_shape[] = {0.0f};
   const int expected_output_with_shape_len = 0;
   const float expected_output_no_shape[] = {3};
   const int expected_output_no_shape_len = 1;
-  int expected_dims[] = {};
+  int expected_dims[] = {0};
   const int expected_dims_len = 0;
   tflite::testing::TestReshapeWithShape<float>(
       &input_tensor, &shape_tensor, &output_tensor, expected_output_with_shape,
