@@ -60,8 +60,8 @@ void TestUnpackThreeOutputsFloat(
   }
 
   TfLiteUnpackParams builtin_data = {
-      .num = 3,
-      .axis = axis,
+      3,
+      axis,
   };
 
   int inputs_array_data[] = {1, 0};
@@ -110,8 +110,8 @@ void TestUnpackOneOutputFloat(int* input_dims_data, const float* input_data,
   }
 
   TfLiteUnpackParams builtin_data = {
-      .num = 1,
-      .axis = axis,
+      1,
+      axis,
   };
 
   int inputs_array_data[] = {1, 0};
@@ -172,8 +172,8 @@ void TestUnpackThreeOutputs(int* input_dims_data, const T* input_data, int axis,
   }
 
   TfLiteUnpackParams builtin_data = {
-      .num = 3,
-      .axis = axis,
+      3,
+      axis,
   };
 
   int inputs_array_data[] = {1, 0};

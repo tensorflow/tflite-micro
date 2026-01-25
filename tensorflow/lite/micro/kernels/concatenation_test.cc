@@ -43,8 +43,8 @@ void TestConcatenateOneInput(int* input1_dims_data, const T* input1_data,
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLiteConcatenationParams builtin_data = {
-      .axis = axis,
-      .activation = kTfLiteActNone  // Only activation supported in this impl
+      axis,
+      kTfLiteActNone  // Only activation supported in this impl
   };
 
   const TFLMRegistration registration = Register_CONCATENATION();
@@ -97,8 +97,8 @@ void TestConcatenateTwoInputs(
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLiteConcatenationParams builtin_data = {
-      .axis = axis,
-      .activation = kTfLiteActNone  // Only activation supported in this impl
+      axis,
+      kTfLiteActNone  // Only activation supported in this impl
   };
 
   const TFLMRegistration registration = Register_CONCATENATION();
@@ -166,8 +166,8 @@ void TestConcatenateQuantizedTwoInputs(
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLiteConcatenationParams builtin_data = {
-      .axis = axis,
-      .activation = kTfLiteActNone  // Only activation supported in this impl
+      axis,
+      kTfLiteActNone  // Only activation supported in this impl
   };
 
   const TFLMRegistration registration = Register_CONCATENATION();
@@ -226,8 +226,8 @@ void TestConcatenateQuantizedTwoInputsCompressed(
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLiteConcatenationParams builtin_data = {
-      .axis = axis,
-      .activation = kTfLiteActNone  // Only activation supported in this impl
+      axis,
+      kTfLiteActNone  // Only activation supported in this impl
   };
 
   const TFLMRegistration registration = Register_CONCATENATION();

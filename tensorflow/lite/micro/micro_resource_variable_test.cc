@@ -116,10 +116,9 @@ TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
                         23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
   int dims[] = {1, 32};
   TfLiteEvalTensor assign_tensor = {
-      .data = {golden},
-      .dims = tflite::testing::IntArrayFromInts(dims),
-
-      .type = kTfLiteFloat32,
+      {reinterpret_cast<float*>(golden)},
+      tflite::testing::IntArrayFromInts(dims),
+      kTfLiteFloat32,
   };
   resource_variables->Assign(
       id, tflite::EvalTensorBytes(&assign_tensor),
@@ -127,9 +126,9 @@ TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
 
   int32_t buffer[32];
   TfLiteEvalTensor read_tensor = {
-      .data = {buffer},
-      .dims = tflite::testing::IntArrayFromInts(dims),
-      .type = kTfLiteInt32,
+      {reinterpret_cast<float*>(buffer)},
+      tflite::testing::IntArrayFromInts(dims),
+      kTfLiteInt32,
   };
   resource_variables->Read(id, &read_tensor);
   for (int i = 0; i < 32; i++) {

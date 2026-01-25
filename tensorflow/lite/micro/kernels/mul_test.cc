@@ -45,9 +45,7 @@ template <typename T>
 void ValidateMulGoldens(TfLiteTensor* tensors, int tensors_size,
                         TfLiteFusedActivation activation, const T* golden,
                         int output_len, float tolerance, T* output) {
-  TfLiteMulParams builtin_data = {
-      .activation = activation,
-  };
+  TfLiteMulParams builtin_data = {activation};
 
   int inputs_array_data[] = {2, 0, 1};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
