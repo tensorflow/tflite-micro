@@ -13,10 +13,16 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-hexagon:
-    uses: ./.github/workflows/suite_hexagon.yml
+  call-windows:
+    uses: ./.github/workflows/test_windows.yml
     with:
       trigger-sha: ${{ github.sha }}
+
+  call-cortex-m:
+    uses: ./.github/workflows/suite_cortex_m.yml
+    with:
+      trigger-sha: ${{ github.sha }}
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
@@ -28,11 +34,10 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-cortex-m:
-    uses: ./.github/workflows/suite_cortex_m.yml
+  call-hexagon:
+    uses: ./.github/workflows/suite_hexagon.yml
     with:
       trigger-sha: ${{ github.sha }}
-      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
@@ -44,7 +49,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [call-core, call-hexagon, call-xtensa, call-cortex-m, call-riscv]
+    needs: [call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon, call-riscv]
     if: always()
     runs-on: ubuntu-latest
     steps:
