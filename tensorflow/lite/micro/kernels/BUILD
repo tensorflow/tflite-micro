@@ -533,6 +533,10 @@ tflm_cc_test(
     srcs = [
         "broadcast_args_test.cc",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
@@ -540,10 +544,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 tflm_cc_test(
@@ -551,6 +551,10 @@ tflm_cc_test(
     srcs = [
         "broadcast_to_test.cc",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
@@ -558,10 +562,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 tflm_cc_test(
@@ -908,6 +908,10 @@ tflm_cc_test(
 tflm_cc_test(
     name = "expand_dims_test",
     srcs = ["expand_dims_test.cc"],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
@@ -916,10 +920,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 tflm_cc_test(
@@ -927,6 +927,10 @@ tflm_cc_test(
     srcs = [
         "fill_test.cc",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
@@ -934,10 +938,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 tflm_cc_test(
@@ -1143,15 +1143,15 @@ tflm_cc_test(
     srcs = [
         "lstm_eval_test.cc",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":lstm_eval_test_lib",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 tflm_cc_test(
@@ -1596,6 +1596,10 @@ tflm_cc_test(
     srcs = [
         "unidirectional_sequence_lstm_test.cc",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":kernel_runner",
         ":lstm_eval_test_lib",
@@ -1606,10 +1610,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
-    target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
 )
 
 tflm_cc_test(
