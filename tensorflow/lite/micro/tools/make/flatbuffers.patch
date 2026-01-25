@@ -5,7 +5,7 @@ index 987dcbc4..0b49748b 100644
 @@ -1,6 +1,16 @@
  #ifndef FLATBUFFERS_BASE_H_
  #define FLATBUFFERS_BASE_H_
-
+ 
 +// For TFLM, we always want FLATBUFFERS_LOCALE_INDEPENDENT to be defined as 0.
 +// We could achieve this by adding -DFLATBUFFERS_LOCALE_INDEPENDENT=0 to the
 +// TFLM Makefile. However, for (at least) the Arduino, adding additional build
@@ -17,7 +17,7 @@ index 987dcbc4..0b49748b 100644
 +#endif
 +
  // clang-format off
-
+ 
  // If activate should be declared and included first.
 diff --git a/include/flatbuffers/default_allocator.h b/include/flatbuffers/default_allocator.h
 index d1cab08d..b253b598 100644
@@ -31,7 +31,7 @@ index d1cab08d..b253b598 100644
 -                   : DefaultAllocator().allocate(size);
 +  return allocator->allocate(size);
  }
-
+ 
  inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
 -  if (allocator)
 -    allocator->deallocate(p, size);
@@ -39,7 +39,7 @@ index d1cab08d..b253b598 100644
 -    DefaultAllocator().deallocate(p, size);
 +  allocator->deallocate(p, size);
  }
-
+ 
  inline uint8_t* ReallocateDownward(Allocator* allocator, uint8_t* old_p,
                                     size_t old_size, size_t new_size,
                                     size_t in_use_back, size_t in_use_front) {
@@ -50,7 +50,7 @@ index d1cab08d..b253b598 100644
 +  return allocator->reallocate_downward(old_p, old_size, new_size, in_use_back,
 +                                        in_use_front);
  }
-
+ 
  }  // namespace flatbuffers
 diff --git a/include/flatbuffers/flatbuffer_builder.h b/include/flatbuffers/flatbuffer_builder.h
 index 9eea6bab..843244d4 100644
@@ -64,13 +64,13 @@ index 9eea6bab..843244d4 100644
 +    // TFLM doesn't use dynamic memory allocation.
 +    // swap(string_pool, other.string_pool);
    }
-
+ 
    ~FlatBufferBuilderImpl() {
 -    if (string_pool) delete string_pool;
 +    // TFLM doesn't use dynamic memory allocation.
 +    // if (string_pool) delete string_pool;
    }
-
+ 
    void Reset() {
 @@ -173,7 +175,8 @@ class FlatBufferBuilderImpl {
      finished = false;
@@ -80,7 +80,7 @@ index 9eea6bab..843244d4 100644
 +    // TFLM doesn't use dynamic memory allocation.
 +    // if (string_pool) string_pool->clear();
    }
-
+ 
    /// @brief The current size of the serialized buffer, counting from the end.
 diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
 index 2784dafb..a82fabde 100644
@@ -118,7 +118,7 @@ index 0313e74d..607b6a38 100644
 @@ -23,6 +23,12 @@
  #include "flatbuffers/base.h"
  #include "flatbuffers/stl_emulation.h"
-
+ 
 +// For TFLM we always want to use FLATBUFFERS_PREFER_PRINTF=1. See
 +// http://b/211811553 for more context.
 +#ifndef FLATBUFFERS_PREFER_PRINTF
@@ -130,4 +130,4 @@ index 0313e74d..607b6a38 100644
  #include <sstream>
 --
 2.52.0.457.g6b5491de43-goog
-
+ 

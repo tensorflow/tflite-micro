@@ -31,24 +31,21 @@ namespace testing {
 namespace {
 // Common inputs and outputs.
 constexpr int kInputElements = 16;
-alignas(tflite::MicroArenaBufferAlignment()) static int kInputShape[] = {
-    4, 2, 2, 4, 1};
+static int kInputShape[] = {4, 2, 2, 4, 1};
 static const float kInputData[kInputElements] = {1, 1, 1, 1, 2, 2, 2, 2,
                                                  1, 2, 3, 4, 1, 2, 3, 4};
 
 constexpr int kFilterElements = 12;
-alignas(tflite::MicroArenaBufferAlignment()) static int kFilterShape[] = {
-    4, 3, 2, 2, 1};
+static int kFilterShape[] = {4, 3, 2, 2, 1};
 static const float kFilterData[kFilterElements] = {1,  2, 3,  4,  -1, 1,
                                                    -1, 1, -1, -1, 1,  1};
 
 constexpr int kBiasElements = 3;
-alignas(tflite::MicroArenaBufferAlignment()) static int kBiasShape[] = {1, 3};
+static int kBiasShape[] = {1, 3};
 static const float kBiasData[kBiasElements] = {1, 2, 3};
 
 constexpr int kOutputElements = 12;
-alignas(tflite::MicroArenaBufferAlignment()) static int kOutputShape[] = {
-    4, 2, 1, 2, 3};
+static int kOutputShape[] = {4, 2, 1, 2, 3};
 static const float kGoldenData[kOutputElements] = {18, 2, 5, 18, 2, 5,
                                                    17, 4, 3, 37, 4, 3};
 
@@ -74,8 +71,7 @@ constexpr int kBinQuantBiasBitWidth = 2;
 
 // Common inputs and outputs for quantized compressed tensor tests.
 // Values from TfLite conv_test.cc SimplePerChannelTest.
-alignas(tflite::MicroArenaBufferAlignment()) static int kInputShapeQ1[] = {
-    4, 1, 2, 3, 2};
+static int kInputShapeQ1[] = {4, 1, 2, 3, 2};
 static const float kInputDataQ1[] = {
     // [1 * 2 * 3 * 2] as [batch, y, x, input_channel]
     3,  2,   // batch = 0, y = 0, x = 0
@@ -88,8 +84,7 @@ static const float kInputDataQ1[] = {
 constexpr size_t kInputElementsQ1 = std::extent<decltype(kInputDataQ1)>::value;
 
 constexpr int kNumChannelsQ1 = 2;
-alignas(tflite::MicroArenaBufferAlignment()) static int kFilterShapeQ1[] = {
-    4, 2, 2, 2, 2};
+static int kFilterShapeQ1[] = {4, 2, 2, 2, 2};
 // Original filter data:
 // static constexpr float kFilterDataQ1[] = {
 //     // [2 * 2 * 2 * 2] as [output_channel, y, x, input_channel]
@@ -103,7 +98,7 @@ alignas(tflite::MicroArenaBufferAlignment()) static int kFilterShapeQ1[] = {
 //     1, 2,  // out channel = 1, y = 1, x = 1
 // };
 
-alignas(tflite::MicroArenaBufferAlignment()) static int kBiasShapeQ1[] = {1, 2};
+static int kBiasShapeQ1[] = {1, 2};
 static const float kBiasDataQ1[] = {3, -2};
 constexpr size_t kBiasElementsQ1 = std::extent<decltype(kBiasDataQ1)>::value;
 

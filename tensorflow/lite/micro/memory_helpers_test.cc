@@ -15,6 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_helpers.h"
 
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -24,7 +25,7 @@ namespace {
 // This just needs to be big enough to handle the array of 5 ints allocated
 // in TestAllocateOutputDimensionsFromInput below.
 const int kGlobalPersistentBufferLength = 100;
-alignas(TfLiteIntArray) char global_persistent_buffer
+alignas(tflite::MicroArenaBufferAlignment()) char global_persistent_buffer
     [kGlobalPersistentBufferLength];
 
 // Only need to handle a single allocation at a time for output dimensions

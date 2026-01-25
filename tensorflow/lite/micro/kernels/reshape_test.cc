@@ -160,12 +160,11 @@ TF_LITE_MICRO_TESTS_BEGIN
 
 TF_LITE_MICRO_TEST(ReshapeWithMismatchedDimensionsShouldFail) {
   float output_data[32];
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims[] = {4, 1, 2, 4,
-                                                                   1};
+  int input_dims[] = {4, 1, 2, 4, 1};
   const float input_data[] = {3};
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims[] = {1, 2};
+  int shape_dims[] = {1, 2};
   const int32_t shape_int32[] = {2, 1};
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims[] = {2, 2, 1};
+  int output_dims[] = {2, 2, 1};
   const int golden_output_len = 0;
   const float golden_output[1] = {0};
   const int golden_dims_len = 0;
@@ -177,13 +176,11 @@ TF_LITE_MICRO_TEST(ReshapeWithMismatchedDimensionsShouldFail) {
 
 TF_LITE_MICRO_TEST(ReshapeWithManyDimensionsShouldSucceed) {
   float output_data[32];
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims[] = {
-      9, 1, 1, 2, 1, 1, 1, 1, 1, 1};
+  int input_dims[] = {9, 1, 1, 2, 1, 1, 1, 1, 1, 1};
   const float input[] = {3, 2};
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims[] = {1, 9};
+  int shape_dims[] = {1, 9};
   const int32_t shape_int32[] = {1, 1, 1, 1, 1, 1, 1, 1, 2};
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims[] = {
-      9, 1, 1, 1, 1, 1, 1, 1, 1, 2};
+  int output_dims[] = {9, 1, 1, 1, 1, 1, 1, 1, 1, 2};
   const int golden_output_len = 2;
   const float golden_output[] = {3, 2};
   const int golden_dims_len = 9;
@@ -195,13 +192,11 @@ TF_LITE_MICRO_TEST(ReshapeWithManyDimensionsShouldSucceed) {
 
 TF_LITE_MICRO_TEST(ReshapeWithTooManySpecialDimensionsShouldFail) {
   float output_data[32];
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims[] = {4, 1, 2, 4,
-                                                                   11};
+  int input_dims[] = {4, 1, 2, 4, 11};
   const float input[] = {3};
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims[] = {1, 4};
+  int shape_dims[] = {1, 4};
   const int32_t shape_int32[] = {-1, -1, 2, 4};
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims[] = {4, -1, -1,
-                                                                    2, 4};
+  int output_dims[] = {4, -1, -1, 2, 4};
   const int golden_output_len = 2;
   const float golden_output[1] = {0};
   const int golden_dims_len = 9;
@@ -214,15 +209,13 @@ TF_LITE_MICRO_TEST(ReshapeWithTooManySpecialDimensionsShouldFail) {
 // Create the model with a 2x2 shape. Processing still works because the new
 // shape ends up being hardcoded as a flat vector.
 TF_LITE_MICRO_TEST(ReshapeWithInvalidShapeShouldFail) {
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims_data[] = {3, 1, 2,
-                                                                        2};
+  int input_dims_data[] = {3, 1, 2, 2};
   TfLiteIntArray* input_dims =
       tflite::testing::IntArrayFromInts(input_dims_data);
   const float input_data[] = {3.0f};
   auto input_tensor = tflite::testing::CreateTensor(input_data, input_dims);
   float output_data[4];
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims_data[6] = {
-      2, 2, 1, 2, 2, 1};
+  int output_dims_data[6] = {2, 2, 1, 2, 2, 1};
   TfLiteIntArray* output_dims =
       tflite::testing::IntArrayFromInts(output_dims_data);
   auto output_tensor = tflite::testing::CreateTensor(output_data, output_dims);
@@ -240,15 +233,14 @@ TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
   int8_t output_data_int8[32];
   uint8_t output_data_uint8[32];
   int16_t output_data_int16[32];
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims[] = {4, 1, 2, 4,
-                                                                   1};
+  int input_dims[] = {4, 1, 2, 4, 1};
   const float input_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t input_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const uint8_t input_uint8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int16_t input_int16[] = {1, 2, 3, 4, 5, 6, 7, 8};
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims[] = {1, 3};
+  int shape_dims[] = {1, 3};
   const int32_t shape_int32[] = {2, 2, 2};
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims[] = {3, 2, 2, 2};
+  int output_dims[] = {3, 2, 2, 2};
   const int golden_output_len = 8;
   const float golden_output_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t golden_output_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
@@ -280,16 +272,14 @@ TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
   int8_t output_data_int8[32];
   uint8_t output_data_uint8[32];
   int16_t output_data_int16[32];
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims[] = {4, 1, 2, 4,
-                                                                   1};
+  int input_dims[] = {4, 1, 2, 4, 1};
   const float input_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t input_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const uint8_t input_uint8[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int16_t input_int16[] = {1, 2, 3, 4, 5, 6, 7, 8};
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims[] = {1, 3};
+  int shape_dims[] = {1, 3};
   const int32_t shape_int32[] = {2, 1, -1};
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims[] = {3, 2, 1,
-                                                                    -1};
+  int output_dims[] = {3, 2, 1, -1};
   const int golden_output_len = 8;
   const float golden_output_float[] = {1, 2, 3, 4, 5, 6, 7, 8};
   const int8_t golden_output_int8[] = {1, 2, 3, 4, 5, 6, 7, 8};
@@ -320,13 +310,13 @@ TF_LITE_MICRO_TEST(ReshapeWithScalarOutputShouldSucceed) {
   float output_data_float[4];
   int8_t output_data_int8[4];
   uint8_t output_data_uint8[4];
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims[] = {1, 1};
+  int input_dims[] = {1, 1};
   const float input_float[] = {3};
   const int8_t input_int8[] = {3};
   const uint8_t input_uint8[] = {3};
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims[] = {0};
+  int shape_dims[] = {0};
   const int32_t shape_int32[1] = {0};
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims[] = {0};
+  int output_dims[] = {0};
   const int golden_output_len = 1;
   const float golden_output_float[] = {3};
   const int8_t golden_output_int8[] = {3};
@@ -353,17 +343,17 @@ TF_LITE_MICRO_TEST(ReshapeWithLegacyScalarOutputShouldSucceed) {
   using tflite::testing::CreateTensor;
   using tflite::testing::IntArrayFromInts;
 
-  alignas(tflite::MicroArenaBufferAlignment()) int input_dims_data[] = {1, 1};
+  int input_dims_data[] = {1, 1};
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   const float input_data[] = {3.0f};
   auto input_tensor = CreateTensor(input_data, input_dims);
 
   float output_data[1];
-  alignas(tflite::MicroArenaBufferAlignment()) int output_dims_data[2] = {1, 0};
+  int output_dims_data[2] = {1, 0};
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   auto output_tensor = CreateTensor(output_data, output_dims);
 
-  alignas(tflite::MicroArenaBufferAlignment()) int shape_dims_data[] = {1, 0};
+  int shape_dims_data[] = {1, 0};
   TfLiteIntArray* shape_dims = IntArrayFromInts(shape_dims_data);
 
   const int32_t shape_data[] = {0};

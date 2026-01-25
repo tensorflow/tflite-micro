@@ -43,8 +43,7 @@ constexpr size_t kDepthwiseConvMaxInputTensors = 3;
 // Common inputs and outputs (quantized multi channel).
 // data from TfLite test:
 // PerChannelQuantizedDepthwiseConvolutionOpTest SimpleTestMixedOutputShift
-alignas(tflite::MicroArenaBufferAlignment()) static int kInputShapeQ1[] = {
-    4, 1, 2, 3, 2};
+static int kInputShapeQ1[] = {4, 1, 2, 3, 2};
 static constexpr float kInputDataQ1[] = {
     // [1 * 2 * 3 * 2] as [batch, y, x, input_channel]
     3,  2,   // batch = 0, y = 0, x = 0
@@ -57,8 +56,7 @@ static constexpr float kInputDataQ1[] = {
 constexpr size_t kInputElementsQ1 = std::extent<decltype(kInputDataQ1)>::value;
 
 constexpr int kNumChannelsQ1 = 4;
-alignas(tflite::MicroArenaBufferAlignment()) static int kFilterShapeQ1[] = {
-    4, 1, 2, 2, 4};
+static int kFilterShapeQ1[] = {4, 1, 2, 2, 4};
 static constexpr float kFilterDataQ1[] = {
     // This is a compact value table.  Original data is:
     // [1 * 2 * 2 * 4] as [input_channel, y, x, output_channel]
@@ -72,12 +70,11 @@ static constexpr float kFilterDataQ1[] = {
 constexpr size_t kFilterElementsQ1 =
     std::extent<decltype(kFilterDataQ1)>::value;
 
-alignas(tflite::MicroArenaBufferAlignment()) static int kBiasShapeQ1[] = {1, 4};
+static int kBiasShapeQ1[] = {1, 4};
 static constexpr float kBiasDataQ1[] = {3, -2, 4, 6};
 constexpr size_t kBiasElementsQ1 = std::extent<decltype(kBiasDataQ1)>::value;
 
-alignas(tflite::MicroArenaBufferAlignment()) static int kOutputShapeQ1[] = {
-    4, 1, 1, 2, 4};
+static int kOutputShapeQ1[] = {4, 1, 1, 2, 4};
 static constexpr float kGoldenDataQ1[] = {43, 48, 21, 22, 3, -4, -30, -36};
 constexpr int kOutputElementsQ1 = std::extent<decltype(kGoldenDataQ1)>::value;
 

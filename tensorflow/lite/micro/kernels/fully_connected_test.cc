@@ -30,22 +30,20 @@ namespace {
 
 // Simple test data for 2x2x10 input 2x3x10 weights.
 const int simple_input_size = 20;
-alignas(tflite::MicroArenaBufferAlignment()) int simple_input_dims[] = {2, 2,
-                                                                        10};
+int simple_input_dims[] = {2, 2, 10};
 const float simple_input_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8,  -9, -10,  // b = 0
     1, 2, 3, 4, 5, 6, 7, -8, 9,  -10,  // b = 1
 };
 const int simple_weights_size = 30;
-alignas(tflite::MicroArenaBufferAlignment()) int simple_weights_dims[] = {2, 3,
-                                                                          10};
+int simple_weights_dims[] = {2, 3, 10};
 const float simple_weights_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 0
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 1
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  // u = 2
 };
 
-alignas(tflite::MicroArenaBufferAlignment()) int simple_bias_dims[] = {1, 3};
+int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 
 #if (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA) && !defined(HEXAGON)))
@@ -94,12 +92,11 @@ const float simple_golden_null_bias[] = {
 };
 
 const int simple_output_size = 6;
-alignas(tflite::MicroArenaBufferAlignment()) int simple_output_dims[] = {2, 2,
-                                                                         3};
+int simple_output_dims[] = {2, 2, 3};
 
 // Test data for 2x2x10 input 2x3x10 weights with negative outputs to test relu.
 const int relu_input_size = 20;
-alignas(tflite::MicroArenaBufferAlignment()) int relu_input_dims[] = {2, 2, 10};
+int relu_input_dims[] = {2, 2, 10};
 const float relu_input_data[] = {
     1, 2, 3, 4, 5, 6, 7, 8,  -9, -10,  // b = 0
     1, 2, 3, 4, 5, 6, 7, -8, 9,  -10,  // b = 1

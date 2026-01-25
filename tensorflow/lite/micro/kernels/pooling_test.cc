@@ -34,10 +34,9 @@ void ValidatePoolingGoldens(TfLiteTensor* tensors, int tensors_size,
                             const T* golden, const int output_length,
                             TfLitePadding padding,
                             TfLiteFusedActivation activation, T* output_data) {
-  alignas(tflite::MicroArenaBufferAlignment()) int inputs_array_data[] = {1, 0};
+  int inputs_array_data[] = {1, 0};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
-  alignas(tflite::MicroArenaBufferAlignment()) int outputs_array_data[] = {1,
-                                                                           1};
+  int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
   TfLitePoolParams builtin_data = {padding,
