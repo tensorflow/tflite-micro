@@ -1,0 +1,17 @@
+[tool.black]
+line-length = 80
+skip-string-normalization = true
+target-version = ['py310']
+
+[tool.isort]
+profile = "google"
+line_length = 80
+
+[tool.pylint.messages_control]
+disable = [
+    "C0330", # Bad indentation (handled by Black)
+    "C0326", # Bad whitespace (handled by Black)
+]
+
+[tool.pylint.format]
+max-line-length = 80
