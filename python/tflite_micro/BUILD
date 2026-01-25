@@ -306,4 +306,8 @@ sh_test(
         "notap",  # See http://b/294278650#comment4 for more details.
         "noubsan",
     ],
+    target_compatible_with = select({
+        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )

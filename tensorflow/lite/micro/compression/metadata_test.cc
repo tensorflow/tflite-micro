@@ -36,17 +36,9 @@ struct ExpectedLutTensor {
   int index_bitwidth;
 };
 
-constexpr ExpectedLutTensor kExpected0 = {
-    .tensor = 63,
-    .value_buffer = 128,
-    .index_bitwidth = 2,
-};
+constexpr ExpectedLutTensor kExpected0 = {63, 128, 2};
 
-constexpr ExpectedLutTensor kExpected1 = {
-    .tensor = 64,
-    .value_buffer = 129,
-    .index_bitwidth = 4,
-};
+constexpr ExpectedLutTensor kExpected1 = {64, 129, 4};
 
 bool operator==(const ExpectedLutTensor& a, const LutTensor& b) {
   return a.tensor == b.tensor() && a.value_buffer == b.value_buffer() &&
