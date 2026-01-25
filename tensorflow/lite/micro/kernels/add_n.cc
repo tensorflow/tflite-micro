@@ -86,7 +86,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
                                    context, scratch_size, &scratch_index));
     node->user_data =
-        reinterpret_cast<decltype(node->user_data)>(scratch_index);
+        reinterpret_cast<void*>(static_cast<intptr_t>(scratch_index));
   } else if (output->type == kTfLiteInt8) {
     node->user_data =
         context->AllocatePersistentBuffer(context, sizeof(OpData));

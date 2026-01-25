@@ -63,8 +63,8 @@ void TestPackTwoInputsFloat(int* input1_dims_data, const float* input1_data,
                                         CreateTensor(output_data, output_dims)};
 
   TfLitePackParams builtin_data = {
-      .values_count = 2,
-      .axis = axis,
+      2,
+      axis,
   };
   int inputs_array_data[] = {2, 0, 1};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
@@ -97,8 +97,8 @@ void TestPackThreeInputsFloat(int* input1_dims_data, const float* input1_data,
                                         CreateTensor(output_data, output_dims)};
 
   TfLitePackParams builtin_data = {
-      .values_count = 3,
-      .axis = axis,
+      3,
+      axis,
   };
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
@@ -128,8 +128,8 @@ void TestPackTwoInputs(int* input1_dims_data, const T* input1_data,
                                         CreateTensor(output_data, output_dims)};
 
   TfLitePackParams builtin_data = {
-      .values_count = 2,
-      .axis = axis,
+      2,
+      axis,
   };
   int inputs_array_data[] = {2, 0, 1};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);

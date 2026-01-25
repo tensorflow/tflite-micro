@@ -70,9 +70,7 @@ void TestL2Normalization(int* input_dims_data, const T* input_data,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  TfLiteL2NormParams builtin_data = {
-      .activation = kTfLiteActNone,
-  };
+  TfLiteL2NormParams builtin_data = {kTfLiteActNone};
 
   const TFLMRegistration registration = tflite::Register_L2_NORMALIZATION();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,

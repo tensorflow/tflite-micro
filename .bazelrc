@@ -48,6 +48,7 @@ build:ci --show_timestamps
 build:ci --terminal_columns=0
 build:ci --verbose_failures
 build:ci --test_output=errors
+build:ci --keep_going
 
 # Windows CI options
 build:windows_ci --config=windows
@@ -59,6 +60,7 @@ build:windows_ci --show_timestamps
 build:windows_ci --terminal_columns=0
 build:windows_ci --verbose_failures
 build:windows_ci --test_output=errors
+build:windows_ci --keep_going
 
 # When building with the address sanitizer
 # E.g., bazel build --config asan
