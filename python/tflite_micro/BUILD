@@ -11,10 +11,10 @@ load(
 )
 load(
     "//tensorflow/lite/micro:build_def.bzl",
+    "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
 )
 load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
-load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
     features = ["-layering_check"],

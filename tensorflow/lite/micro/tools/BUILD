@@ -1,13 +1,13 @@
-load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "INCOMPATIBLE_WITH_WINDOWS",
-)
 load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "INCOMPATIBLE_WITH_WINDOWS",
+)
 
 package(
     default_visibility = ["//:__subpackages__"],
