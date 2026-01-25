@@ -37,4 +37,4 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
 # debugging info on failures.
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug build
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug test
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug test
