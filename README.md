@@ -1,13 +1,13 @@
 <!--ts-->
-   * [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
-   * [Build Status](#build-status)
-      * [Official Builds](#official-builds)
-      * [Community Supported TFLM Examples](#community-supported-tflm-examples)
-      * [Community Supported Kernels and Unit Tests](#community-supported-kernels-and-unit-tests)
-   * [Contributing](#contributing)
-   * [Getting Help](#getting-help)
-   * [Additional Documentation](#additional-documentation)
-   * [RFCs](#rfcs)
+- [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
+- [Build Status](#build-status)
+  - [Official Builds](#official-builds)
+  - [Community Supported TFLM Examples](#community-supported-tflm-examples)
+  - [Community Supported Kernels and Unit Tests](#community-supported-kernels-and-unit-tests)
+- [Contributing](#contributing)
+- [Getting Help](#getting-help)
+- [Additional Documentation](#additional-documentation)
+- [RFCs](#rfcs)
 
 <!-- Added by: advaitjain, at: Mon 04 Oct 2021 11:23:57 AM PDT -->
 
@@ -31,7 +31,8 @@ Additional Links:
 
 Build Type       |    Status     |
 -----------      | --------------|
-CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_ci.yml) |
+CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml) |
+CI (Windows)     | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml) |
 Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
 
 

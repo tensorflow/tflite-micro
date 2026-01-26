@@ -5,7 +5,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 INCOMPATIBLE_WITH_WINDOWS = select({
-    "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+    "@platforms//os:windows": ["@platforms//:incompatible"],
     "//conditions:default": [],
 })
 
@@ -17,7 +17,7 @@ def tflm_copts():
     be useful when additively overriding the defaults for a particular target.
     """
     return select({
-        "@bazel_tools//src/conditions:windows": [
+        "@platforms//os:windows": [
             "/GR-",
             "/DFLATBUFFERS_LOCALE_INDEPENDENT=0",
         ],
