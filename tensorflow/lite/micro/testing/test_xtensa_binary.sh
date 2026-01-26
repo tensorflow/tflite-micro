@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 # Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,8 @@
 #
 # Second argument is a regular expression that's required to be in the output
 # logs for the test to pass.
+
+set -e
 
 declare -r TEST_TMPDIR=/tmp/test_xtensa_binary/
 declare -r MICRO_LOG_PATH=${TEST_TMPDIR}/$1
