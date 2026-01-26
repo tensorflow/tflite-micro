@@ -189,8 +189,7 @@ void XtensaDecodeStatePrune::DecompressToBufferPerChannelInt8_Xtensa(
   AE_DBI_IP((const unsigned short*)p_stream, 16);
 
   for (size_t channel = 0; channel < num_channels_; channel++) {
-    int8_t scalar_zero = zero_points_[channel];
-    ae_int8x8 zero = AE_MOVDA8((int)scalar_zero);
+    ae_int8x8 zero = AE_MOVDA8((int)zero_points_[channel]);
 
     uint32_t mask_low, mask_high;
 
