@@ -1,9 +1,8 @@
 <!--ts-->
 - [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
 - [Build Status](#build-status)
-  - [Official Builds](#official-builds)
+  - [CI Status](#ci-status)
   - [Community Supported TFLM Examples](#community-supported-tflm-examples)
-  - [Community Supported Kernels and Unit Tests](#community-supported-kernels-and-unit-tests)
 - [Contributing](#contributing)
 - [Getting Help](#getting-help)
 - [Additional Documentation](#additional-documentation)
@@ -25,15 +24,12 @@ Additional Links:
 
 # Build Status
 
- * [GitHub Status](https://www.githubstatus.com/)
-
-## Official Builds
-
-Build Type       |    Status     |
------------      | --------------|
-CI (Linux)       | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml) |
-CI (Windows)     | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml) |
-Code Sync        | [![Sync from Upstream TF](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
+## CI Status
+| Group | Status |
+| :--- | :--- |
+| **Core** | **Linux** [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml) • **Windows** [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml) • **Sync** [![Sync](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
+| **Targets** | **Cortex-M** [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml) • **RISC-V** [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml) • **Hexagon** [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml) • **Xtensa** [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml) |
+| **Misc** | **Integration** [![Generate Integration Test](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml) |
 
 
 ## Community Supported TFLM Examples
@@ -51,19 +47,6 @@ Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/t
 Silicon Labs Dev Kits        | [TFLM Examples for Silicon Labs Dev Kits](https://github.com/SiliconLabs/tflite-micro-efr32-examples)
 Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
 Texas Instruments Dev Boards | [![Texas Instruments Dev Boards](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml/badge.svg?event=status)](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml)
-
-
-## Community Supported Kernels and Unit Tests
-This is a list of targets that have optimized kernel implementations and/or run
-the TFLM unit tests using software emulation or instruction set simulators.
-
-Build Type      |    Status     |
------------     | --------------|
-Cortex-M        | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/cortex_m.yml) |
-Hexagon         | [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml) |
-RISC-V          | [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/riscv.yml) |
-Xtensa          | [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml) |
-Generate Integration Test          | [![Generate Integration Test](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml) |
 
 
 # Contributing
