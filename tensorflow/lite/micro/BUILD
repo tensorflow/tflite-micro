@@ -491,6 +491,19 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
+    name = "micro_interpreter_graph_test",
+    srcs = [
+        "micro_interpreter_graph_test.cc",
+    ],
+    deps = [
+        ":micro_allocator",
+        ":micro_interpreter_graph",
+        ":test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "micro_interpreter_test",
     srcs = [
         "micro_interpreter_test.cc",
