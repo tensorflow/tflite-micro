@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 #include "tensorflow/lite/micro/testing/test_conv_model.h"
@@ -1382,6 +1383,103 @@ TF_LITE_MICRO_TEST(TestMultiSubgraphNumScratchAllocations) {
 
   TF_LITE_MICRO_EXPECT_EQ(used_bytes_with_scratch,
                           used_bytes + sizeof(tflite::ScratchBufferHandle) * 2);
+}
+
+// New tests validating invalid buffer index guards in tensor initialization
+// and model allocation paths.
+
+TF_LITE_MICRO_TEST(TestInitializeTensorInvalidBufferIndex) {
+  // Arena and allocator for temporary/persistent allocations used by init.
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::SingleArenaBufferAllocator* simple_allocator =
+      tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
+
+  // Build a flatbuffer Tensor that references a non-existent buffer index.
+  flatbuffers::FlatBufferBuilder builder;
+  const int32_t dims_data[] = {1};
+  auto dims_vec = builder.CreateVector(dims_data, 1);
+  // Use an invalid buffer index (>= buffers->size()).
+  const uint32_t kInvalidBufferIndex = 5;
+  auto name_str = builder.CreateString("invalid_buffer_tensor");
+  auto tensor_offset = tflite::CreateTensor(
+      builder, /*shape=*/dims_vec, tflite::TensorType_INT32,
+      /*buffer=*/kInvalidBufferIndex, /*name=*/name_str,
+      /*quantization=*/0, /*is_variable=*/false, /*sparsity=*/0);
+  builder.Finish(tensor_offset);
+  const tflite::Tensor* bad_tensor =
+      flatbuffers::GetRoot<tflite::Tensor>(builder.GetBufferPointer());
+
+  // Create a buffers vector with a single empty buffer.
+  const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
+      tflite::testing::CreateFlatbufferBuffers();
+
+  TfLiteTensor out_tensor;
+  TfLiteEvalTensor out_eval_tensor;
+
+  // Expect kTfLiteError due to invalid buffer index.
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteError,
+      tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
+          simple_allocator, simple_allocator, /*allocate_temp=*/false,
+          *bad_tensor, buffers, &out_tensor));
+  TF_LITE_MICRO_EXPECT_EQ(
+      kTfLiteError, tflite::internal::InitializeTfLiteEvalTensorFromFlatbuffer(
+                        *bad_tensor, buffers, &out_eval_tensor));
+}
+
+TF_LITE_MICRO_TEST(TestModelAllocationSubgraphInvalidBufferIndex) {
+  // Build a minimal model with a single tensor that references an invalid
+  // buffer index. Make it an output tensor to mimic output-table invalid case
+  // but the allocator will validate all tensors equally, so this also
+  // simulates intermediate cases.
+  flatbuffers::FlatBufferBuilder fbb;
+
+  // One empty buffer at index 0 in Model.buffers().
+  flatbuffers::Offset<tflite::Buffer> buffers_arr[1] = {
+      tflite::CreateBuffer(fbb)};
+  auto buffers_fb = fbb.CreateVector(buffers_arr, 1);
+
+  // Tensor with invalid buffer index.
+  const int32_t dims_data[] = {1};
+  auto dims_vec = fbb.CreateVector(dims_data, 1);
+  const uint32_t kInvalidBufferIndex = 3;  // >= buffers_vec.size()
+  auto t_name = fbb.CreateString("out_tensor_invalid_buf");
+  auto tensor = tflite::CreateTensor(
+      fbb, dims_vec, tflite::TensorType_INT32, kInvalidBufferIndex, t_name,
+      /*quantization=*/0, /*is_variable=*/false, /*sparsity=*/0);
+  auto tensors_vec = fbb.CreateVector(&tensor, 1);
+
+  // Subgraph with the tensor as an output; no operators required.
+  const int32_t outputs_idx[] = {0};
+  auto outputs = fbb.CreateVector(outputs_idx, 1);
+  auto inputs = fbb.CreateVector<int32_t>({});
+  auto ops = fbb.CreateVector<flatbuffers::Offset<tflite::Operator>>({});
+  auto subgraph = tflite::CreateSubGraph(fbb, tensors_vec, inputs, outputs, ops,
+                                         fbb.CreateString("sg0"));
+  auto subgraphs = fbb.CreateVector(&subgraph, 1);
+
+  // Minimal model (no operator codes needed as there are no operators).
+  auto model =
+      tflite::CreateModel(fbb, /*version=*/TFLITE_SCHEMA_VERSION,
+                          /*operator_codes=*/0, subgraphs,
+                          fbb.CreateString("invalid_buf_model"), buffers_fb);
+  tflite::FinishModelBuffer(fbb, model);
+  const tflite::Model* m =
+      flatbuffers::GetRoot<tflite::Model>(fbb.GetBufferPointer());
+
+  // Allocate an arena and create the allocator.
+  constexpr size_t arena_size = 2048;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, arena_size);
+  TF_LITE_MICRO_EXPECT(nullptr != allocator);
+
+  // StartModelAllocation should fail (return nullptr) because initializing
+  // any eval tensor with an invalid buffer index returns kTfLiteError.
+  tflite::SubgraphAllocations* subgraph_allocations =
+      allocator->StartModelAllocation(m);
+  TF_LITE_MICRO_EXPECT(nullptr == subgraph_allocations);
 }
 
 TF_LITE_MICRO_TESTS_END
