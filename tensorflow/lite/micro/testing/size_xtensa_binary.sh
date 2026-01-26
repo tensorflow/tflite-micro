@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 # Copyright 2021 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,8 @@
 # First argument is the binary location.
 # Second argument is a regular expression for symbols that need to be excluded
 # from the measurement
+
+set -e
 
 declare -r TEST_TMPDIR=/tmp/test_xtensa_binary/
 declare -r MICRO_LOG_PATH=${TEST_TMPDIR}/$1
