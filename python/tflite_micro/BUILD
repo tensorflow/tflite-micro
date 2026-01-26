@@ -112,7 +112,7 @@ py_test(
     ],
     # Only compatible when compression is NOT enabled
     target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
         "//:with_compression_enabled": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),

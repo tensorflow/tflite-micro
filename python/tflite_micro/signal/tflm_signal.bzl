@@ -38,7 +38,7 @@ def py_tflm_signal_library(
 
     binary_name = binary_path + "/_" + (cc_op_kernels[0][1:] if not cc_op_defs else name) + ".so"
     target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     })
 
@@ -55,7 +55,7 @@ def py_tflm_signal_library(
                 cc_op_defs +
                 cc_op_kernels +
                 select({
-                    "@bazel_tools//src/conditions:windows": [],
+                    "@platforms//os:windows": [],
                     "//conditions:default": ["@tensorflow_cc_deps//:cc_library"],
                 }),
         )
@@ -70,7 +70,7 @@ def py_tflm_signal_library(
             deps = [
                 ":" + library_name,
             ] + select({
-                "@bazel_tools//src/conditions:windows": [],
+                "@platforms//os:windows": [],
                 "//conditions:default": ["@tensorflow_cc_deps//:cc_library"],
             }),
         )
