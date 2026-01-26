@@ -12,6 +12,19 @@ index 82e16c7..ce7fb75 100644
    #define onchip
    #define NASSERT(x) {(void)__builtin_expect((x)!=0,1);}
  #else
+diff --git a/library/include_private/__renaming__.h b/library/include_private/__renaming__.h
+index af48b03..5c3092a 100644
+--- a/library/include_private/__renaming__.h
++++ b/library/include_private/__renaming__.h
+@@ -561,7 +561,7 @@
+ #define 	fft_16x16_stage_first_scl2_DFT3	NatureDSP_Signal_579
+ #define 	fft_16	NatureDSP_Signal_580
+ #define 	fft_128	NatureDSP_Signal_581
+-#define 	expftblf	NatureDSP_Signal_582
++// #define 	expftblf	NatureDSP_Signal_582
+ #define 	dct4_twd	NatureDSP_Signal_583
+ #define 	dct4_twd_512	NatureDSP_Signal_584
+ #define 	dct4_twd_32	NatureDSP_Signal_585
 diff --git a/library/include_private/common.h b/library/include_private/common.h
 index 2eaf70f..9df811c 100644
 --- a/library/include_private/common.h
