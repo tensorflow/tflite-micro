@@ -57,6 +57,9 @@ CXX_TOOL := g++
 CC_TOOL := gcc
 AR_TOOL := ar
 
+MKDIR_P := mkdir -p
+RM_RF := rm -rf
+
 ifneq ($(TAGS),)
   $(error The TAGS command line option is no longer supported in the TFLM Makefile.)
 endif
@@ -646,7 +649,7 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
 # directory.
-$(shell mkdir -p ${DOWNLOADS_DIR})
+$(shell $(MKDIR_P) ${DOWNLOADS_DIR})
 
 # Directly download the flatbuffers library.
 DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
@@ -791,6 +794,11 @@ ALL_SRCS := \
 # 6. Build Rules and Targets
 # ==============================================================================
 
+.PHONY: all microlite build test integration_tests generated_micro_mutable_op_resolver \
+        clean clean_downloads list_gendir list_library_sources list_library_headers \
+        list_third_party_sources list_third_party_headers list_generator_dir \
+        third_party_downloads
+
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
 CXX := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${CXX_TOOL}
@@ -845,63 +853,63 @@ MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
 $(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_KERNEL_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CXX) $(CXXFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_KERNEL_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_KERNEL_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 
 # Gathers together all the objects we've compiled into a single '.a' archive.
 $(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS) $(MICROLITE_CUSTOM_OP_OBJS)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
 	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS) $(MICROLITE_CUSTOM_OP_OBJS)
 
 $(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $< \
 	$(MICROLITE_LIB_PATH) $(LDFLAGS) $(MICROLITE_LIBS)
@@ -917,12 +925,12 @@ ifeq ($(TOOLCHAIN), armclang)
   CXXFLAGS += -ffp-mode=full
   FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
   $(BINDIR)%.bin: $(BINDIR)%
-		@mkdir -p $(dir $@)
+		@$(MKDIR_P) $(dir $@)
 		$(FROMELF) --bin --output=$@ $<
 else
   OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
   $(BINDIR)%.bin: $(BINDIR)%
-		@mkdir -p $(dir $@)
+		@$(MKDIR_P) $(dir $@)
 		$(OBJCOPY) $< $@ -O binary
 endif
 
@@ -1010,11 +1018,11 @@ list_generator_dir:
 
 # Gets rid of all generated files.
 clean:
-	rm -rf $(BASE_GENDIR)
+	$(RM_RF) $(BASE_GENDIR)
 
 # Removes third-party downloads.
 clean_downloads:
-	rm -rf $(DOWNLOADS_DIR)
+	$(RM_RF) $(DOWNLOADS_DIR)
 
 $(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
