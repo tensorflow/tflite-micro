@@ -116,7 +116,8 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
   
   ifeq ($(TARGET_ARCH), hifi4)
     EXCLUDED_NNLIB_SRCS += \
-      $(NNLIB_PATH)/algo/kernels/activations/hifi4/xa_nn_activations_asym8_asym8.c
+      $(NNLIB_PATH)/algo/kernels/activations/hifi4/xa_nn_activations_asym8_asym8.c \
+      $(NNLIB_PATH)/algo/kernels/norm/hifi4/xa_nn_norm3D_16.c
   endif
 
   THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
