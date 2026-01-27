@@ -13,6 +13,10 @@
 # limitations under the License.
 # ==============================================================================
 
+# ==============================================================================
+# 1. Environment and Toolchain Discovery
+# ==============================================================================
+
 ifneq (3.82,$(firstword $(sort $(MAKE_VERSION) 3.82)))
   $(error "Requires make version 3.82 or later (current is $(MAKE_VERSION))")
 endif
@@ -28,15 +32,15 @@ include $(MAKEFILE_DIR)/helper_functions.inc
 # Try to figure out the host system
 HOST_OS :=
 ifeq ($(OS),Windows_NT)
-	HOST_OS = windows
+  HOST_OS = windows
 else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		HOST_OS := linux
-	endif
-	ifeq ($(UNAME_S),Darwin)
-		HOST_OS := osx
-	endif
+  UNAME_S := $(shell uname -s)
+  ifeq ($(UNAME_S),Linux)
+    HOST_OS := linux
+  endif
+  ifeq ($(UNAME_S),Darwin)
+    HOST_OS := osx
+  endif
 endif
 
 # Determine the host architecture, with any ix86 architecture being labelled x86_32
@@ -48,7 +52,7 @@ TARGET := $(HOST_OS)
 TARGET_ARCH := $(HOST_ARCH)
 
 # Default compiler and tool names:
-TOOLCHAIN:=gcc
+TOOLCHAIN := gcc
 CXX_TOOL := g++
 CC_TOOL := gcc
 AR_TOOL := ar
@@ -56,6 +60,10 @@ AR_TOOL := ar
 ifneq ($(TAGS),)
   $(error The TAGS command line option is no longer supported in the TFLM Makefile.)
 endif
+
+# ==============================================================================
+# 2. Build Configuration
+# ==============================================================================
 
 # Specify which specialized kernel implementation should be pulled in.
 OPTIMIZED_KERNEL_DIR :=
@@ -221,49 +229,49 @@ TARGET_TOOLCHAIN_ROOT :=
 # https://github.com/tensorflow/tensorflow/pull/42314#issuecomment-694360567
 BUILD_TYPE := default
 ifeq ($(BUILD_TYPE), debug)
-	# Specifying BUILD_TYPE=debug adds debug symbols to the binary (and makes it
-	# larger) and should be used to run a binary with gdb.
-	CXXFLAGS += -g
-	CCFLAGS  += -g
+  # Specifying BUILD_TYPE=debug adds debug symbols to the binary (and makes it
+  # larger) and should be used to run a binary with gdb.
+  CXXFLAGS += -g
+  CCFLAGS  += -g
 else ifeq ($(BUILD_TYPE), release)
-	# The 'release' build results in the smallest binary (by virtue of removing
-	# strings from log messages, DCHECKs ...).
-	#
-	# The down-side is that we currently do not have a good mechanism to allow
-	# for logging that is not related to errors (e.g. profiling information, or
-	# logs that help determine if tests pass or fail). As a result, we are unable
-	# to run tests or benchmarks with BUILD_TYPE=release (which is a bit
-	# counter-intuitive). TODO(b/158205789): A global error reporter might help.
-	#
-	# For a close approximation of the release build use
-	# BUILD_TYPE=release_with_logs.
-	CXXFLAGS += -DNDEBUG -DTF_LITE_STRIP_ERROR_STRINGS
-	CCFLAGS  += -DNDEBUG -DTF_LITE_STRIP_ERROR_STRINGS
+  # The 'release' build results in the smallest binary (by virtue of removing
+  # strings from log messages, DCHECKs ...).
+  #
+  # The down-side is that we currently do not have a good mechanism to allow
+  # for logging that is not related to errors (e.g. profiling information, or
+  # logs that help determine if tests pass or fail). As a result, we are unable
+  # to run tests or benchmarks with BUILD_TYPE=release (which is a bit
+  # counter-intuitive). TODO(b/158205789): A global error reporter might help.
+  #
+  # For a close approximation of the release build use
+  # BUILD_TYPE=release_with_logs.
+  CXXFLAGS += -DNDEBUG -DTF_LITE_STRIP_ERROR_STRINGS
+  CCFLAGS  += -DNDEBUG -DTF_LITE_STRIP_ERROR_STRINGS
 else ifeq ($(BUILD_TYPE), release_with_logs)
-	# The latency with BUILD_TYPE=release_with_logs will be close to the 'release'
-	# build and there will still be error logs. This build type may be preferable
-	# for profiling and benchmarking.
-	CXXFLAGS += -DNDEBUG
-	CCFLAGS  += -DNDEBUG
+  # The latency with BUILD_TYPE=release_with_logs will be close to the 'release'
+  # build and there will still be error logs. This build type may be preferable
+  # for profiling and benchmarking.
+  CXXFLAGS += -DNDEBUG
+  CCFLAGS  += -DNDEBUG
 else ifeq ($(BUILD_TYPE), no_tf_lite_static_memory)
-	# TODO(b/287320282): remove the no_tf_lite_static_memory build.
-	#
-	# This build should not be used to run any binaries/tests since
-	# TF_LITE_STATIC_MEMORY should be defined for all micro builds. However,
-	# having a build without TF_LITE_STATIC_MEMORY is useful to catch errors in
-	# code that is shared between TfLite Mobile and TfLite Micro. See this issue
-	# for more details:
-	# https://github.com/tensorflow/tensorflow/issues/43076
-	CXXFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CXXFLAGS))
-	CCFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CCFLAGS))
+  # TODO(b/287320282): remove the no_tf_lite_static_memory build.
+  #
+  # This build should not be used to run any binaries/tests since
+  # TF_LITE_STATIC_MEMORY should be defined for all micro builds. However,
+  # having a build without TF_LITE_STATIC_MEMORY is useful to catch errors in
+  # code that is shared between TfLite Mobile and TfLite Micro. See this issue
+  # for more details:
+  # https://github.com/tensorflow/tensorflow/issues/43076
+  CXXFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CXXFLAGS))
+  CCFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CCFLAGS))
 endif
 
 ifeq ($(CC_VER11), true)
-  CXXFLAGS+=-std=c++11
-  CCFLAGS+=-std=c11
+  CXXFLAGS += -std=c++11
+  CCFLAGS += -std=c11
 else
-  CXXFLAGS+=-std=c++17
-  CCFLAGS+=-std=c17
+  CXXFLAGS += -std=c++17
+  CCFLAGS += -std=c17
 endif
 
 # This library is the main target for this makefile. It will contain a minimal
@@ -280,6 +288,10 @@ ifneq ($(USE_TFLM_COMPRESSION),)
     ENABLE_COMPRESSION := yes
   endif
 endif
+
+# ==============================================================================
+# 3. Directory Definitions
+# ==============================================================================
 
 # Where compiled objects are stored.
 BASE_GENDIR := gen
@@ -303,6 +315,10 @@ GENERATED_SRCS_DIR := $(GENDIR)genfiles/
 BINDIR := $(GENDIR)bin/
 LIBDIR := $(GENDIR)lib/
 PRJDIR := $(GENDIR)prj/
+
+# ==============================================================================
+# 4. Source File Definitions
+# ==============================================================================
 
 # These two must be defined before we include the target specific Makefile.inc
 # because we filter out the examples that are not supported for those targets.
@@ -612,6 +628,10 @@ $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
 $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
 $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
+# ==============================================================================
+# 5. Third-Party & Specialization Logic
+# ==============================================================================
+
 THIRD_PARTY_CC_SRCS :=
 THIRD_PARTY_KERNEL_CC_SRCS :=
 
@@ -657,11 +677,11 @@ $(HOST_OS)
 
 # This specific string needs to be outputted for a test to be recognized as
 # having passed.
-TEST_PASS_STRING:='~~~ALL TESTS PASSED~~~'
+TEST_PASS_STRING := '~~~ALL TESTS PASSED~~~'
 
 # ${TARGET}_makefile.inc can set this to true to allow it to defined a custom
 # implementation for `make test`. See bluepill_makefile as an example.
-TARGET_SPECIFIC_MAKE_TEST:=0
+TARGET_SPECIFIC_MAKE_TEST := 0
 
 ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
   include $(MAKEFILE_DIR)/targets/$(TARGET)_makefile.inc
@@ -766,6 +786,10 @@ ALL_SRCS := \
 	$(MICROLITE_CC_SRCS) \
 	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
+
+# ==============================================================================
+# 6. Build Rules and Targets
+# ==============================================================================
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
@@ -923,7 +947,7 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_conv_model.h
   EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/models/keyword_scrambled.tflite
-  $(eval $(call microlite_test,memory_arena_threshold_test,\
+  $(eval $(call microlite_test,memory_arena_threshold_test, \
   $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS), \
   $(EXPLICITLY_SPECIFIED_TEST_GENERATOR_INPUTS)))
 endif
@@ -936,7 +960,7 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_conv_model.cc
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_conv_model.h
-  $(eval $(call microlite_test,micro_allocator_test,\
+  $(eval $(call microlite_test,micro_allocator_test, \
   $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS)))
 endif
 
@@ -948,13 +972,13 @@ ifneq ($(findstring $(EXPLICITLY_SPECIFIED_TEST),$(MICROLITE_TEST_SRCS)),)
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_conv_model.cc
   EXPLICITLY_SPECIFIED_TEST_HDRS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_conv_model.h
-  $(eval $(call microlite_test,recording_micro_allocator_test,\
+  $(eval $(call microlite_test,recording_micro_allocator_test, \
   $(EXPLICITLY_SPECIFIED_TEST_SRCS),$(EXPLICITLY_SPECIFIED_TEST_HDRS)))
 endif
 
 # For all the tests that do not have any additional dependencies, we can
 # add a make target in a common way.
-$(foreach TEST_TARGET,$(filter-out $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/%,$(MICROLITE_TEST_SRCS)),\
+$(foreach TEST_TARGET,$(filter-out $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/%,$(MICROLITE_TEST_SRCS)), \
 $(eval $(call microlite_test,$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET))))
 
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
