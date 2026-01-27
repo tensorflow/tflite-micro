@@ -61,6 +61,7 @@ pybind_extension(
         "python_utils.h",
         "shared_library.h",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":python_ops_resolver",
         "//tensorflow/lite/micro:micro_framework",
@@ -76,6 +77,7 @@ py_library(
         "runtime.py",
     ],
     data = [":_runtime.so"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),

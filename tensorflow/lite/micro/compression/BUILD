@@ -83,6 +83,7 @@ tflm_cc_test(
     name = "metadata_test_cc",
     size = "small",
     srcs = ["metadata_test.cc"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":metadata_saved",
         "//tensorflow/lite/micro:hexdump",
@@ -133,6 +134,7 @@ py_binary(
     srcs = [
         "compress.py",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress_lib",
     ],
