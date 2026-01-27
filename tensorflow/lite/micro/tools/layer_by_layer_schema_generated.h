@@ -22,9 +22,9 @@ limitations under the License.
 
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
-static_assert(FLATBUFFERS_VERSION_MAJOR == 23 &&
-              FLATBUFFERS_VERSION_MINOR == 5 &&
-              FLATBUFFERS_VERSION_REVISION == 26,
+static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
+              FLATBUFFERS_VERSION_MINOR == 9 &&
+              FLATBUFFERS_VERSION_REVISION == 23,
              "Non-compatible flatbuffers version included");
 
 struct TensorData;
@@ -496,7 +496,7 @@ inline SubgraphDataT *SubgraphData::UnPack(const ::flatbuffers::resolver_functio
 inline void SubgraphData::UnPackTo(SubgraphDataT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = outputs(); if (_e) { _o->outputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->outputs[_i]) { _e->Get(_i)->UnPackTo(_o->outputs[_i].get(), _resolver); } else { _o->outputs[_i] = std::unique_ptr<TensorDataT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->outputs.resize(0); } }
+  { auto _e = outputs(); if (_e) { _o->outputs.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->outputs[_i]) { _e->Get(_i)->UnPackTo(_o->outputs[_i].get(), _resolver); } else { _o->outputs[_i] = std::unique_ptr<TensorDataT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->outputs.resize(0); } }
   { auto _e = subgraph_index(); _o->subgraph_index = _e; }
 }
 
@@ -538,8 +538,8 @@ inline ModelTestDataT *ModelTestData::UnPack(const ::flatbuffers::resolver_funct
 inline void ModelTestData::UnPackTo(ModelTestDataT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
-  { auto _e = input_data(); if (_e) { _o->input_data.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->input_data[_i]) { _e->Get(_i)->UnPackTo(_o->input_data[_i].get(), _resolver); } else { _o->input_data[_i] = std::unique_ptr<TensorDataT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->input_data.resize(0); } }
-  { auto _e = subgraph_data(); if (_e) { _o->subgraph_data.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraph_data[_i]) { _e->Get(_i)->UnPackTo(_o->subgraph_data[_i].get(), _resolver); } else { _o->subgraph_data[_i] = std::unique_ptr<SubgraphDataT>(_e->Get(_i)->UnPack(_resolver)); }; } } else { _o->subgraph_data.resize(0); } }
+  { auto _e = input_data(); if (_e) { _o->input_data.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->input_data[_i]) { _e->Get(_i)->UnPackTo(_o->input_data[_i].get(), _resolver); } else { _o->input_data[_i] = std::unique_ptr<TensorDataT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->input_data.resize(0); } }
+  { auto _e = subgraph_data(); if (_e) { _o->subgraph_data.resize(_e->size()); for (::flatbuffers::uoffset_t _i = 0; _i < _e->size(); _i++) { if(_o->subgraph_data[_i]) { _e->Get(_i)->UnPackTo(_o->subgraph_data[_i].get(), _resolver); } else { _o->subgraph_data[_i] = std::unique_ptr<SubgraphDataT>(_e->Get(_i)->UnPack(_resolver)); } } } else { _o->subgraph_data.resize(0); } }
 }
 
 inline ::flatbuffers::Offset<ModelTestData> ModelTestData::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const ModelTestDataT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {

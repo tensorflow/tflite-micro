@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -57,16 +58,17 @@ constexpr size_t simple_bias_size =
 
 // compressed filter data for kBinQuant scheme
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantWeightData[] = {
-    0x01, 0x23, 0x45, 0x67, 0x89, 0x01, 0x23, 0x45,
-    0x67, 0x89, 0x01, 0x23, 0x45, 0x67, 0x89};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantWeightData[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0x01, 0x23, 0x45,
+                             0x67, 0x89, 0x01, 0x23, 0x45, 0x67, 0x89};
 constexpr float kBinQuantWeightValueTable[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 constexpr size_t kBinQuantWeightValueTableElements =
     std::extent<decltype(tflite::testing::kBinQuantWeightValueTable)>::value;
 constexpr int kBinQuantWeightBitWidth = 4;
 // compressed bias data for kBinQuant scheme
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x18};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
 
 #endif  // USE_TFLM_COMPRESSION

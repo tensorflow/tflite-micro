@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/testdata/conv_test_data.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
@@ -52,8 +53,9 @@ static const float kGoldenData[kOutputElements] = {18, 2, 5, 18, 2, 5,
 
 // compressed filter data for kBinQuant scheme, matches kFilterData
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantFilterData[] = {
-    0x05, 0x38, 0x20, 0x90, 0x00,
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantFilterData[] = {
+        0x05, 0x38, 0x20, 0x90, 0x00,
 };
 constexpr float kBinQuantFilterValueTable[] = {
     1, 2, 3, 4, -1,
@@ -63,7 +65,8 @@ constexpr size_t kBinQuantFilterValueTableElements =
 constexpr int kBinQuantFilterBitWidth = 3;
 // compressed bias data for kBinQuant scheme, matches kBiasData
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantBiasData[] = {0x18};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantBiasData[] = {0x18};
 constexpr int kBinQuantBiasBitWidth = 2;
 
 // Common inputs and outputs for quantized compressed tensor tests.

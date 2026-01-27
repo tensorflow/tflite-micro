@@ -1,5 +1,5 @@
 diff --git a/include/flatbuffers/base.h b/include/flatbuffers/base.h
-index 5c4cae79..1a631641 100644
+index 987dcbc4..0b49748b 100644
 --- a/include/flatbuffers/base.h
 +++ b/include/flatbuffers/base.h
 @@ -1,6 +1,16 @@
@@ -20,19 +20,19 @@ index 5c4cae79..1a631641 100644
  
  // If activate should be declared and included first.
 diff --git a/include/flatbuffers/default_allocator.h b/include/flatbuffers/default_allocator.h
-index d4724122..975d9380 100644
+index d1cab08d..b253b598 100644
 --- a/include/flatbuffers/default_allocator.h
 +++ b/include/flatbuffers/default_allocator.h
 @@ -39,24 +39,18 @@ class DefaultAllocator : public Allocator {
  // This is to avoid having a statically or dynamically allocated default
  // allocator, or having to move it between the classes that may own it.
- inline uint8_t *Allocate(Allocator *allocator, size_t size) {
+ inline uint8_t* Allocate(Allocator* allocator, size_t size) {
 -  return allocator ? allocator->allocate(size)
 -                   : DefaultAllocator().allocate(size);
 +  return allocator->allocate(size);
  }
  
- inline void Deallocate(Allocator *allocator, uint8_t *p, size_t size) {
+ inline void Deallocate(Allocator* allocator, uint8_t* p, size_t size) {
 -  if (allocator)
 -    allocator->deallocate(p, size);
 -  else
@@ -40,7 +40,7 @@ index d4724122..975d9380 100644
 +  allocator->deallocate(p, size);
  }
  
- inline uint8_t *ReallocateDownward(Allocator *allocator, uint8_t *old_p,
+ inline uint8_t* ReallocateDownward(Allocator* allocator, uint8_t* old_p,
                                     size_t old_size, size_t new_size,
                                     size_t in_use_back, size_t in_use_front) {
 -  return allocator ? allocator->reallocate_downward(old_p, old_size, new_size,
@@ -52,13 +52,43 @@ index d4724122..975d9380 100644
  }
  
  }  // namespace flatbuffers
+diff --git a/include/flatbuffers/flatbuffer_builder.h b/include/flatbuffers/flatbuffer_builder.h
+index 9eea6bab..843244d4 100644
+--- a/include/flatbuffers/flatbuffer_builder.h
++++ b/include/flatbuffers/flatbuffer_builder.h
+@@ -152,11 +152,13 @@ class FlatBufferBuilderImpl {
+     swap(minalign_, other.minalign_);
+     swap(force_defaults_, other.force_defaults_);
+     swap(dedup_vtables_, other.dedup_vtables_);
+-    swap(string_pool, other.string_pool);
++    // TFLM doesn't use dynamic memory allocation.
++    // swap(string_pool, other.string_pool);
+   }
+ 
+   ~FlatBufferBuilderImpl() {
+-    if (string_pool) delete string_pool;
++    // TFLM doesn't use dynamic memory allocation.
++    // if (string_pool) delete string_pool;
+   }
+ 
+   void Reset() {
+@@ -173,7 +175,8 @@ class FlatBufferBuilderImpl {
+     finished = false;
+     minalign_ = 1;
+     length_of_64_bit_region_ = 0;
+-    if (string_pool) string_pool->clear();
++    // TFLM doesn't use dynamic memory allocation.
++    // if (string_pool) string_pool->clear();
+   }
+ 
+   /// @brief The current size of the serialized buffer, counting from the end.
 diff --git a/include/flatbuffers/flexbuffers.h b/include/flatbuffers/flexbuffers.h
-index 8e8cac14..52dae316 100644
+index 2784dafb..a82fabde 100644
 --- a/include/flatbuffers/flexbuffers.h
 +++ b/include/flatbuffers/flexbuffers.h
-@@ -495,9 +495,24 @@ class Reference {
-           return static_cast<double>(ReadUInt64(Indirect(), byte_width_));
-         case FBT_NULL: return 0.0;
+@@ -542,9 +542,24 @@ class Reference {
+         case FBT_NULL:
+           return 0.0;
          case FBT_STRING: {
 +#if 1
 +#if !defined( _MSC_VER)
@@ -79,10 +109,10 @@ index 8e8cac14..52dae316 100644
            return d;
 +#endif
          }
-         case FBT_VECTOR: return static_cast<double>(AsVector().size());
-         case FBT_BOOL:
+         case FBT_VECTOR:
+           return static_cast<double>(AsVector().size());
 diff --git a/include/flatbuffers/util.h b/include/flatbuffers/util.h
-index 1ccf3517..34a75193 100644
+index 0313e74d..607b6a38 100644
 --- a/include/flatbuffers/util.h
 +++ b/include/flatbuffers/util.h
 @@ -23,6 +23,12 @@
@@ -96,5 +126,8 @@ index 1ccf3517..34a75193 100644
 +#endif
 +
  #ifndef FLATBUFFERS_PREFER_PRINTF
- #  include <iomanip>
- #  include <sstream>
+ #include <iomanip>
+ #include <sstream>
+--
+2.52.0.457.g6b5491de43-goog
+ 
