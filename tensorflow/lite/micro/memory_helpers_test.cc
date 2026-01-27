@@ -207,9 +207,9 @@ TF_LITE_MICRO_TEST(TestBytesRequiredForTensor) {
 
 TF_LITE_MICRO_TEST(TestAllocateOutputDimensionsFromInput) {
   constexpr int kDimsLen = 4;
-  alignas(TfLiteIntArray) int input1_dims[] = {1, 1};
-  alignas(TfLiteIntArray) int input2_dims[] = {kDimsLen, 5, 5, 5, 5};
-  alignas(TfLiteIntArray) int output_dims[] = {0, 0, 0, 0, 0};
+  int input1_dims[] = {1, 1};
+  int input2_dims[] = {kDimsLen, 5, 5, 5, 5};
+  int output_dims[] = {0, 0, 0, 0, 0};
   TfLiteTensor input_tensor1 = tflite::testing::CreateTensor<int32_t>(
       nullptr, tflite::testing::IntArrayFromInts(input1_dims));
   TfLiteTensor input_tensor2 = tflite::testing::CreateTensor<int32_t>(
