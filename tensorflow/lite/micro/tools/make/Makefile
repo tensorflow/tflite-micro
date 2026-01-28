@@ -60,6 +60,12 @@ AR_TOOL := ar
 MKDIR_P := mkdir -p
 RM_RF := rm -rf
 
+ifeq ($(V),1)
+  Q :=
+else
+  Q := @
+endif
+
 ifneq ($(TAGS),)
   $(error The TAGS command line option is no longer supported in the TFLM Makefile.)
 endif
@@ -855,64 +861,64 @@ MICROLITE_KERNEL_OBJS := $(addprefix $(KERNEL_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_KERNEL_SRCS)))))
 
 $(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_KERNEL_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CXX) $(CXXFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CXX) $(CXXFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_KERNEL_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_KERNEL_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 $(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
-	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
 microlite: $(MICROLITE_LIB_PATH)
 
 # Gathers together all the objects we've compiled into a single '.a' archive.
 $(MICROLITE_LIB_PATH): $(MICROLITE_LIB_OBJS) $(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS) $(MICROLITE_CUSTOM_OP_OBJS)
-	@$(MKDIR_P) $(dir $@)
-	$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(AR) $(ARFLAGS) $(MICROLITE_LIB_PATH) $(MICROLITE_LIB_OBJS) \
 	$(MICROLITE_KERNEL_OBJS) $(MICROLITE_THIRD_PARTY_OBJS) $(MICROLITE_THIRD_PARTY_KERNEL_OBJS) $(MICROLITE_CUSTOM_OP_OBJS)
 
 $(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
-	@$(MKDIR_P) $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) \
+	$(Q)$(MKDIR_P) $(dir $@)
+	$(Q)$(CXX) $(CXXFLAGS) $(INCLUDES) \
 	-o $@ $< \
 	$(MICROLITE_LIB_PATH) $(LDFLAGS) $(MICROLITE_LIBS)
 
@@ -927,13 +933,13 @@ ifeq ($(TOOLCHAIN), armclang)
   CXXFLAGS += -ffp-mode=full
   FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
   $(BINDIR)%.bin: $(BINDIR)%
-		@$(MKDIR_P) $(dir $@)
-		$(FROMELF) --bin --output=$@ $<
+		$(Q)$(MKDIR_P) $(dir $@)
+		$(Q)$(FROMELF) --bin --output=$@ $<
 else
   OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
   $(BINDIR)%.bin: $(BINDIR)%
-		@$(MKDIR_P) $(dir $@)
-		$(OBJCOPY) $< $@ -O binary
+		$(Q)$(MKDIR_P) $(dir $@)
+		$(Q)$(OBJCOPY) $< $@ -O binary
 endif
 
 # Create kernel test targets.
