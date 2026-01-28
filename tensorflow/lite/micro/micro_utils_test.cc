@@ -68,7 +68,7 @@ TEST(MicroUtilsTest, FloatToSymmetricQuantizedInt8Test) {
   EXPECT_EQ(-127, FloatToSymmetricQuantizedType<int8_t>(-127, 1.0));
 }
 
-TEST(MicroUtilsTest, FloatToAsymmetricQuantizedInt32Test) {
+TEST(MicroUtilsTest, FloatToSymmetricQuantizedInt32Test) {
   using tflite::FloatToSymmetricQuantizedType;
   EXPECT_EQ(0, FloatToSymmetricQuantizedType<int32_t>(0, 0.5));
   EXPECT_EQ(2, FloatToSymmetricQuantizedType<int32_t>(1, 0.5));

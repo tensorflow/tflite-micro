@@ -63,9 +63,9 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
-    name = "util_test_v2",
+    name = "util_v2_test",
     srcs = [
-        "util_test_v2.cc",
+        "util_v2_test.cc",
     ],
     deps = [
         ":micro_test",

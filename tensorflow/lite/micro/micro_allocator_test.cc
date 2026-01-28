@@ -129,9 +129,10 @@ void VerifyRegistrationAndNodeAllocation(
     int num_subgraphs) {
   for (int subgraph_idx = 0; subgraph_idx < num_subgraphs; subgraph_idx++) {
     for (size_t i = 0; i < count; i++) {
-      EXPECT_TRUE(&subgraph_allocations[subgraph_idx]
-                       .node_and_registrations[i]
-                       .registration);
+      EXPECT_NE(&subgraph_allocations[subgraph_idx]
+                     .node_and_registrations[i]
+                     .registration,
+                nullptr);
     }
   }
 }

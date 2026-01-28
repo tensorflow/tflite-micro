@@ -39,8 +39,8 @@ TEST(SpanTest, TestEquality) {
   tflite::Span<const int> s_a{a};
   tflite::Span<const int> s_b{b};
   tflite::Span<const int> s_c{c};
-  EXPECT_EQ(s_a, s_b);
-  EXPECT_NE(s_a, s_c);
+  EXPECT_TRUE(s_a == s_b);
+  EXPECT_FALSE(s_a == s_c);
 }
 
 TEST(SpanTest, TestInequality) {
@@ -50,8 +50,8 @@ TEST(SpanTest, TestInequality) {
   tflite::Span<const int> s_a{a};
   tflite::Span<const int> s_b{b};
   tflite::Span<const int> s_c{c};
-  EXPECT_EQ(s_a, s_b);
-  EXPECT_NE(s_a, s_c);
+  EXPECT_FALSE(s_a != s_b);
+  EXPECT_TRUE(s_a != s_c);
 }
 
 TF_LITE_MICRO_TESTS_MAIN

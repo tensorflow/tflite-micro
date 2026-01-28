@@ -116,9 +116,6 @@ inline void PrintValue(const char* label, bool v) {
 inline void PrintValue(const char* label, const char* v) {
   MicroPrintf("%s%s", label, v ? v : "(null)");
 }
-inline void PrintValue(const char* label, char* v) {
-  MicroPrintf("%s%s", label, v ? v : "(null)");
-}
 inline void PrintValue(const char* label, const void* v) {
   MicroPrintf("%s%p", label, v);
 }
@@ -135,10 +132,10 @@ inline void PrintValue(const char* label, unsigned char v) {
   MicroPrintf("%s%u", label, v);
 }
 inline void PrintValue(const char* label, long long v) {
-  MicroPrintf("%s%ld", label, static_cast<long>(v));
+  MicroPrintf("%s%lld", label, v);
 }
 inline void PrintValue(const char* label, unsigned long long v) {
-  MicroPrintf("%s%lu", label, static_cast<unsigned long>(v));
+  MicroPrintf("%s%llu", label, static_cast<unsigned long>(v));
 }
 
 // Fallback for types that don't match the overloads above.
@@ -149,12 +146,13 @@ inline void PrintValue(const char* label, const T&) {
 
 // Helper to report a failure with the file, line, and comparison details.
 template <typename T, typename U>
-void ReportFailure(const char* x_str, const char* y_str, const T& x, const U& y,
-                   const char* op, const char* file, int line) {
+void ReportFailure(const char* actual_str, const char* expected_str,
+                   const T& actual, const U& expected, const char* op,
+                   const char* file, int line) {
   MicroPrintf("%s:%d: Failure", file, line);
-  MicroPrintf("Expected: %s %s %s", x_str, op, y_str);
-  PrintValue("  Actual: ", x);
-  PrintValue("Expected: ", y);
+  MicroPrintf("Expected: %s %s %s", actual_str, op, expected_str);
+  PrintValue("  Actual: ", actual);
+  PrintValue("Expected: ", expected);
 }
 
 // Helper for string equality check.
@@ -171,7 +169,7 @@ inline bool AreStringsEqual(const char* s1, const char* s2) {
 
 // Runs all registered tests and returns kTfLiteOk if all pass, or kTfLiteError
 // if any fail.
-inline int RunAllTests() {
+inline TfLiteStatus RunAllTests() {
   int tests_passed = 0;
   int tests_failed = 0;
   internal::TestInfo* failed_tests = nullptr;

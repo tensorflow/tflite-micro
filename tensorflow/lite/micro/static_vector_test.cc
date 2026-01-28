@@ -54,27 +54,27 @@ TEST(StaticVectorTest, StaticVectorInitializationFull) {
 TEST(StaticVectorTest, StaticVectorEquality) {
   const StaticVector a{1, 2, 3};
   const StaticVector b{1, 2, 3};
-  EXPECT_EQ(a, b);
+  EXPECT_TRUE(a == b);
   EXPECT_FALSE(a != b);
 }
 
 TEST(StaticVectorTest, StaticVectorInequality) {
   const StaticVector a{1, 2, 3};
   const StaticVector b{3, 2, 1};
-  EXPECT_NE(a, b);
   EXPECT_TRUE(a != b);
+  EXPECT_FALSE(a == b);
 }
 
 TEST(StaticVectorTest, StaticVectorSizeInequality) {
   const StaticVector a{1, 2};
   const StaticVector b{1, 2, 3};
-  EXPECT_NE(a, b);
+  EXPECT_TRUE(a != b);
 }
 
 TEST(StaticVectorTest, StaticVectorPartialSizeInequality) {
   const StaticVector<int, 3> a{1, 2};
   const StaticVector<int, 3> b{1, 2, 3};
-  EXPECT_NE(a, b);
+  EXPECT_TRUE(a != b);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
