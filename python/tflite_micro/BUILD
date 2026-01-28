@@ -61,6 +61,7 @@ pybind_extension(
         "python_utils.h",
         "shared_library.h",
     ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":python_ops_resolver",
         "//tensorflow/lite/micro:micro_framework",
@@ -76,6 +77,7 @@ py_library(
         "runtime.py",
     ],
     data = [":_runtime.so"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),
@@ -112,7 +114,7 @@ py_test(
     ],
     # Only compatible when compression is NOT enabled
     target_compatible_with = select({
-        "@bazel_tools//src/conditions:windows": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
         "//:with_compression_enabled": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),

@@ -10,17 +10,17 @@ exports_files(["LICENSE"])
 
 config_setting(
     name = "platform_freebsd",
-    values = {"cpu": "freebsd"},
+    constraint_values = ["@platforms//os:freebsd"],
 )
 
 config_setting(
     name = "platform_openbsd",
-    values = {"cpu": "openbsd"},
+    constraint_values = ["@platforms//os:openbsd"],
 )
 
 config_setting(
     name = "windows",
-    values = {"cpu": "x64_windows"},
+    constraint_values = ["@platforms//os:windows"],
 )
 
 # Public flatc library to compile flatbuffer files at runtime.

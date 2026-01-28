@@ -150,6 +150,7 @@ py_library(
 cc_binary(
     name = "layer_by_layer_output_tool",
     srcs = ["layer_by_layer.cc"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":layer_by_layer_schema",
         "//tensorflow/lite/c:c_api_types",
@@ -203,6 +204,7 @@ py_test(
 py_binary(
     name = "layer_by_layer_debugger",
     srcs = ["layer_by_layer_debugger.py"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",

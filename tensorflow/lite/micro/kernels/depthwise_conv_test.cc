@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test.h"
 
@@ -79,12 +80,13 @@ constexpr int kOutputElementsQ1 = std::extent<decltype(kGoldenDataQ1)>::value;
 
 // compressed filter data for kBinQuant scheme, matches kFilterDataQ1
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantFilterDataQ1[] = {0x15, 0x6A, 0x8A,
-                                                         0x60};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantFilterDataQ1[] = {0x15, 0x6A, 0x8A, 0x60};
 constexpr int kBinQuantFilterBitWidthQ1 = 2;
 // compressed bias data for kBinQuant scheme, matches kBiasDataQ1
 // Align the tensor data the same as a Buffer in the schema
-alignas(16) constexpr uint8_t kBinQuantBiasDataQ1[] = {0x00};
+alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
+    kBinQuantBiasDataQ1[] = {0x00};
 constexpr int kBinQuantBiasBitWidthQ1 = 1;
 
 #endif  // USE_TFLM_COMPRESSION

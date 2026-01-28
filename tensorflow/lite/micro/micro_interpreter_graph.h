@@ -62,6 +62,10 @@ class MicroInterpreterGraph : public MicroGraph {
   // Zeros out all variable tensors in all subgraphs in the model.
   virtual TfLiteStatus ResetVariableTensors();
 
+  // Zeros out a single variable tensor in a specified subgraph in the model.
+  virtual TfLiteStatus ResetVariableTensor(int tensor_index,
+                                           int subgraph_index = 0);
+
   // Number of tensor inputs to a specified subgraph in the model.
   virtual size_t NumSubgraphInputs(int subgraph_idx);
 
@@ -99,6 +103,9 @@ class MicroInterpreterGraph : public MicroGraph {
   MicroResourceVariables* GetResourceVariables() { return resource_variables_; }
 
  private:
+  TfLiteStatus ResetTensorData(const tflite::Tensor* tensor,
+                               TfLiteEvalTensor* eval_tensor);
+
   TfLiteContext* context_;
   const Model* model_;
   MicroAllocator* allocator_;

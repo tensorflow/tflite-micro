@@ -37,66 +37,53 @@ build:windows --cxxopt=/std:c++17
 build:windows --experimental_strict_action_env
 build:windows --features=compiler_param_file
 
-# Common options for --config=ci
+# Common options for CI
+build:_ci_base --curses=no
+build:_ci_base --color=no
+build:_ci_base --noshow_progress
+build:_ci_base --noshow_loading_progress
+build:_ci_base --show_timestamps
+build:_ci_base --terminal_columns=0
+build:_ci_base --verbose_failures
+build:_ci_base --test_output=errors
+build:_ci_base --keep_going
+
+build:ci --config=_ci_base
 build:ci --action_env=CC=clang
 build:ci --action_env=CXX=clang++
-build:ci --curses=no
-build:ci --color=no
-build:ci --noshow_progress
-build:ci --noshow_loading_progress
-build:ci --show_timestamps
-build:ci --terminal_columns=0
-build:ci --verbose_failures
-build:ci --test_output=errors
-build:ci --keep_going
 
 # Windows CI options
+build:windows_ci --config=_ci_base
 build:windows_ci --config=windows
-build:windows_ci --curses=no
-build:windows_ci --color=no
-build:windows_ci --noshow_progress
-build:windows_ci --noshow_loading_progress
-build:windows_ci --show_timestamps
-build:windows_ci --terminal_columns=0
-build:windows_ci --verbose_failures
-build:windows_ci --test_output=errors
-build:windows_ci --keep_going
+
+# Common options for sanitizers
+build:_sanitizer_base --action_env=CC=clang
+build:_sanitizer_base --action_env=CXX=clang++
+build:_sanitizer_base --strip=never
+build:_sanitizer_base --copt=-g
+build:_sanitizer_base --copt=-O3
+build:_sanitizer_base --copt=-fno-omit-frame-pointer
 
 # When building with the address sanitizer
 # E.g., bazel build --config asan
-build:asan --action_env=CC=clang
-build:asan --action_env=CXX=clang++
-build:asan --strip=never
-build:asan --copt -fsanitize=address
-build:asan --copt -DADDRESS_SANITIZER
-build:asan --copt -g
-build:asan --copt -O3
-build:asan --copt -fno-omit-frame-pointer
-build:asan --linkopt -fsanitize=address
+build:asan --config=_sanitizer_base
+build:asan --copt=-fsanitize=address
+build:asan --copt=-DADDRESS_SANITIZER
+build:asan --linkopt=-fsanitize=address
 
 # When building with the memory sanitizer
 # E.g., bazel build --config msan
-build:msan --action_env=CC=clang
-build:msan --action_env=CXX=clang++
-build:msan --strip=never
-build:msan --copt -fsanitize=memory
-build:msan --copt -DADDRESS_SANITIZER
-build:msan --copt -g
-build:msan --copt -O3
-build:msan --copt -fno-omit-frame-pointer
-build:msan --linkopt -fsanitize=memory
+build:msan --config=_sanitizer_base
+build:msan --copt=-fsanitize=memory
+build:msan --copt=-DADDRESS_SANITIZER
+build:msan --linkopt=-fsanitize=memory
 
 # When building with the undefined behavior sanitizer
 # E.g., bazel build --config ubsan
-build:ubsan --action_env=CC=clang
-build:ubsan --action_env=CXX=clang++
-build:ubsan --strip=never
-build:ubsan --copt -fsanitize=undefined
-build:ubsan --copt -g
-build:ubsan --copt -O3
-build:ubsan --copt -fno-omit-frame-pointer
-build:ubsan --linkopt -fsanitize=undefined
-build:ubsan --linkopt -lubsan
+build:ubsan --config=_sanitizer_base
+build:ubsan --copt=-fsanitize=undefined
+build:ubsan --linkopt=-fsanitize=undefined
+build:ubsan --linkopt=-lubsan
 
 # Hooks for defining local configuration
 try-import ../bazelrc.local
