@@ -381,7 +381,8 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/single_arena_buffer_allo
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing_helpers_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/greedy_memory_planner_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/linear_memory_planner_test.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/one_hot_test.cc
 
 MICROLITE_CC_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations.cc \
@@ -457,6 +458,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mirror_pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/neg.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/one_hot.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad_common.cc \
@@ -500,7 +502,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.cc 
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/var_handle.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like.cc \
 
 MICROLITE_CC_SIGNAL_KERNEL_SRCS := \
 $(TENSORFLOW_ROOT)signal/micro/kernels/delay.cc \
