@@ -40,9 +40,9 @@ def QuantizationDetailsCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == QuantizationDetails().CustomQuantization:
+    if unionType == QuantizationDetails.CustomQuantization:
         return CustomQuantizationT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == QuantizationDetails().BlockwiseQuantization:
+    if unionType == QuantizationDetails.BlockwiseQuantization:
         return BlockwiseQuantizationT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
@@ -62,11 +62,11 @@ def SparseIndexVectorCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == SparseIndexVector().Int32Vector:
+    if unionType == SparseIndexVector.Int32Vector:
         return Int32VectorT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == SparseIndexVector().Uint16Vector:
+    if unionType == SparseIndexVector.Uint16Vector:
         return Uint16VectorT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == SparseIndexVector().Uint8Vector:
+    if unionType == SparseIndexVector.Uint8Vector:
         return Uint8VectorT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
@@ -417,257 +417,257 @@ def BuiltinOptionsCreator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == BuiltinOptions().Conv2DOptions:
+    if unionType == BuiltinOptions.Conv2DOptions:
         return Conv2DOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().DepthwiseConv2DOptions:
+    if unionType == BuiltinOptions.DepthwiseConv2DOptions:
         return DepthwiseConv2DOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ConcatEmbeddingsOptions:
+    if unionType == BuiltinOptions.ConcatEmbeddingsOptions:
         return ConcatEmbeddingsOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LSHProjectionOptions:
+    if unionType == BuiltinOptions.LSHProjectionOptions:
         return LSHProjectionOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().Pool2DOptions:
+    if unionType == BuiltinOptions.Pool2DOptions:
         return Pool2DOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SVDFOptions:
+    if unionType == BuiltinOptions.SVDFOptions:
         return SVDFOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().RNNOptions:
+    if unionType == BuiltinOptions.RNNOptions:
         return RNNOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().FullyConnectedOptions:
+    if unionType == BuiltinOptions.FullyConnectedOptions:
         return FullyConnectedOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SoftmaxOptions:
+    if unionType == BuiltinOptions.SoftmaxOptions:
         return SoftmaxOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ConcatenationOptions:
+    if unionType == BuiltinOptions.ConcatenationOptions:
         return ConcatenationOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().AddOptions:
+    if unionType == BuiltinOptions.AddOptions:
         return AddOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().L2NormOptions:
+    if unionType == BuiltinOptions.L2NormOptions:
         return L2NormOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LocalResponseNormalizationOptions:
+    if unionType == BuiltinOptions.LocalResponseNormalizationOptions:
         return LocalResponseNormalizationOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LSTMOptions:
+    if unionType == BuiltinOptions.LSTMOptions:
         return LSTMOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ResizeBilinearOptions:
+    if unionType == BuiltinOptions.ResizeBilinearOptions:
         return ResizeBilinearOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().CallOptions:
+    if unionType == BuiltinOptions.CallOptions:
         return CallOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ReshapeOptions:
+    if unionType == BuiltinOptions.ReshapeOptions:
         return ReshapeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SkipGramOptions:
+    if unionType == BuiltinOptions.SkipGramOptions:
         return SkipGramOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SpaceToDepthOptions:
+    if unionType == BuiltinOptions.SpaceToDepthOptions:
         return SpaceToDepthOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().EmbeddingLookupSparseOptions:
+    if unionType == BuiltinOptions.EmbeddingLookupSparseOptions:
         return EmbeddingLookupSparseOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().MulOptions:
+    if unionType == BuiltinOptions.MulOptions:
         return MulOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().PadOptions:
+    if unionType == BuiltinOptions.PadOptions:
         return PadOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().GatherOptions:
+    if unionType == BuiltinOptions.GatherOptions:
         return GatherOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BatchToSpaceNDOptions:
+    if unionType == BuiltinOptions.BatchToSpaceNDOptions:
         return BatchToSpaceNDOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SpaceToBatchNDOptions:
+    if unionType == BuiltinOptions.SpaceToBatchNDOptions:
         return SpaceToBatchNDOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().TransposeOptions:
+    if unionType == BuiltinOptions.TransposeOptions:
         return TransposeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ReducerOptions:
+    if unionType == BuiltinOptions.ReducerOptions:
         return ReducerOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SubOptions:
+    if unionType == BuiltinOptions.SubOptions:
         return SubOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().DivOptions:
+    if unionType == BuiltinOptions.DivOptions:
         return DivOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SqueezeOptions:
+    if unionType == BuiltinOptions.SqueezeOptions:
         return SqueezeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SequenceRNNOptions:
+    if unionType == BuiltinOptions.SequenceRNNOptions:
         return SequenceRNNOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().StridedSliceOptions:
+    if unionType == BuiltinOptions.StridedSliceOptions:
         return StridedSliceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ExpOptions:
+    if unionType == BuiltinOptions.ExpOptions:
         return ExpOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().TopKV2Options:
+    if unionType == BuiltinOptions.TopKV2Options:
         return TopKV2OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SplitOptions:
+    if unionType == BuiltinOptions.SplitOptions:
         return SplitOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LogSoftmaxOptions:
+    if unionType == BuiltinOptions.LogSoftmaxOptions:
         return LogSoftmaxOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().CastOptions:
+    if unionType == BuiltinOptions.CastOptions:
         return CastOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().DequantizeOptions:
+    if unionType == BuiltinOptions.DequantizeOptions:
         return DequantizeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().MaximumMinimumOptions:
+    if unionType == BuiltinOptions.MaximumMinimumOptions:
         return MaximumMinimumOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ArgMaxOptions:
+    if unionType == BuiltinOptions.ArgMaxOptions:
         return ArgMaxOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LessOptions:
+    if unionType == BuiltinOptions.LessOptions:
         return LessOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().NegOptions:
+    if unionType == BuiltinOptions.NegOptions:
         return NegOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().PadV2Options:
+    if unionType == BuiltinOptions.PadV2Options:
         return PadV2OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().GreaterOptions:
+    if unionType == BuiltinOptions.GreaterOptions:
         return GreaterOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().GreaterEqualOptions:
+    if unionType == BuiltinOptions.GreaterEqualOptions:
         return GreaterEqualOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LessEqualOptions:
+    if unionType == BuiltinOptions.LessEqualOptions:
         return LessEqualOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SelectOptions:
+    if unionType == BuiltinOptions.SelectOptions:
         return SelectOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SliceOptions:
+    if unionType == BuiltinOptions.SliceOptions:
         return SliceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().TransposeConvOptions:
+    if unionType == BuiltinOptions.TransposeConvOptions:
         return TransposeConvOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SparseToDenseOptions:
+    if unionType == BuiltinOptions.SparseToDenseOptions:
         return SparseToDenseOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().TileOptions:
+    if unionType == BuiltinOptions.TileOptions:
         return TileOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ExpandDimsOptions:
+    if unionType == BuiltinOptions.ExpandDimsOptions:
         return ExpandDimsOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().EqualOptions:
+    if unionType == BuiltinOptions.EqualOptions:
         return EqualOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().NotEqualOptions:
+    if unionType == BuiltinOptions.NotEqualOptions:
         return NotEqualOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ShapeOptions:
+    if unionType == BuiltinOptions.ShapeOptions:
         return ShapeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().PowOptions:
+    if unionType == BuiltinOptions.PowOptions:
         return PowOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ArgMinOptions:
+    if unionType == BuiltinOptions.ArgMinOptions:
         return ArgMinOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().FakeQuantOptions:
+    if unionType == BuiltinOptions.FakeQuantOptions:
         return FakeQuantOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().PackOptions:
+    if unionType == BuiltinOptions.PackOptions:
         return PackOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LogicalOrOptions:
+    if unionType == BuiltinOptions.LogicalOrOptions:
         return LogicalOrOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().OneHotOptions:
+    if unionType == BuiltinOptions.OneHotOptions:
         return OneHotOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LogicalAndOptions:
+    if unionType == BuiltinOptions.LogicalAndOptions:
         return LogicalAndOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LogicalNotOptions:
+    if unionType == BuiltinOptions.LogicalNotOptions:
         return LogicalNotOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UnpackOptions:
+    if unionType == BuiltinOptions.UnpackOptions:
         return UnpackOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().FloorDivOptions:
+    if unionType == BuiltinOptions.FloorDivOptions:
         return FloorDivOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SquareOptions:
+    if unionType == BuiltinOptions.SquareOptions:
         return SquareOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ZerosLikeOptions:
+    if unionType == BuiltinOptions.ZerosLikeOptions:
         return ZerosLikeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().FillOptions:
+    if unionType == BuiltinOptions.FillOptions:
         return FillOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BidirectionalSequenceLSTMOptions:
+    if unionType == BuiltinOptions.BidirectionalSequenceLSTMOptions:
         return BidirectionalSequenceLSTMOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BidirectionalSequenceRNNOptions:
+    if unionType == BuiltinOptions.BidirectionalSequenceRNNOptions:
         return BidirectionalSequenceRNNOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UnidirectionalSequenceLSTMOptions:
+    if unionType == BuiltinOptions.UnidirectionalSequenceLSTMOptions:
         return UnidirectionalSequenceLSTMOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().FloorModOptions:
+    if unionType == BuiltinOptions.FloorModOptions:
         return FloorModOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().RangeOptions:
+    if unionType == BuiltinOptions.RangeOptions:
         return RangeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ResizeNearestNeighborOptions:
+    if unionType == BuiltinOptions.ResizeNearestNeighborOptions:
         return ResizeNearestNeighborOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().LeakyReluOptions:
+    if unionType == BuiltinOptions.LeakyReluOptions:
         return LeakyReluOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SquaredDifferenceOptions:
+    if unionType == BuiltinOptions.SquaredDifferenceOptions:
         return SquaredDifferenceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().MirrorPadOptions:
+    if unionType == BuiltinOptions.MirrorPadOptions:
         return MirrorPadOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().AbsOptions:
+    if unionType == BuiltinOptions.AbsOptions:
         return AbsOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SplitVOptions:
+    if unionType == BuiltinOptions.SplitVOptions:
         return SplitVOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UniqueOptions:
+    if unionType == BuiltinOptions.UniqueOptions:
         return UniqueOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ReverseV2Options:
+    if unionType == BuiltinOptions.ReverseV2Options:
         return ReverseV2OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().AddNOptions:
+    if unionType == BuiltinOptions.AddNOptions:
         return AddNOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().GatherNdOptions:
+    if unionType == BuiltinOptions.GatherNdOptions:
         return GatherNdOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().CosOptions:
+    if unionType == BuiltinOptions.CosOptions:
         return CosOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().WhereOptions:
+    if unionType == BuiltinOptions.WhereOptions:
         return WhereOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().RankOptions:
+    if unionType == BuiltinOptions.RankOptions:
         return RankOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ReverseSequenceOptions:
+    if unionType == BuiltinOptions.ReverseSequenceOptions:
         return ReverseSequenceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().MatrixDiagOptions:
+    if unionType == BuiltinOptions.MatrixDiagOptions:
         return MatrixDiagOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().QuantizeOptions:
+    if unionType == BuiltinOptions.QuantizeOptions:
         return QuantizeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().MatrixSetDiagOptions:
+    if unionType == BuiltinOptions.MatrixSetDiagOptions:
         return MatrixSetDiagOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().HardSwishOptions:
+    if unionType == BuiltinOptions.HardSwishOptions:
         return HardSwishOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().IfOptions:
+    if unionType == BuiltinOptions.IfOptions:
         return IfOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().WhileOptions:
+    if unionType == BuiltinOptions.WhileOptions:
         return WhileOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().DepthToSpaceOptions:
+    if unionType == BuiltinOptions.DepthToSpaceOptions:
         return DepthToSpaceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().NonMaxSuppressionV4Options:
+    if unionType == BuiltinOptions.NonMaxSuppressionV4Options:
         return NonMaxSuppressionV4OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().NonMaxSuppressionV5Options:
+    if unionType == BuiltinOptions.NonMaxSuppressionV5Options:
         return NonMaxSuppressionV5OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ScatterNdOptions:
+    if unionType == BuiltinOptions.ScatterNdOptions:
         return ScatterNdOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SelectV2Options:
+    if unionType == BuiltinOptions.SelectV2Options:
         return SelectV2OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().DensifyOptions:
+    if unionType == BuiltinOptions.DensifyOptions:
         return DensifyOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SegmentSumOptions:
+    if unionType == BuiltinOptions.SegmentSumOptions:
         return SegmentSumOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BatchMatMulOptions:
+    if unionType == BuiltinOptions.BatchMatMulOptions:
         return BatchMatMulOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().CumsumOptions:
+    if unionType == BuiltinOptions.CumsumOptions:
         return CumsumOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().CallOnceOptions:
+    if unionType == BuiltinOptions.CallOnceOptions:
         return CallOnceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BroadcastToOptions:
+    if unionType == BuiltinOptions.BroadcastToOptions:
         return BroadcastToOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().Rfft2dOptions:
+    if unionType == BuiltinOptions.Rfft2dOptions:
         return Rfft2dOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().Conv3DOptions:
+    if unionType == BuiltinOptions.Conv3DOptions:
         return Conv3DOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().HashtableOptions:
+    if unionType == BuiltinOptions.HashtableOptions:
         return HashtableOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().HashtableFindOptions:
+    if unionType == BuiltinOptions.HashtableFindOptions:
         return HashtableFindOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().HashtableImportOptions:
+    if unionType == BuiltinOptions.HashtableImportOptions:
         return HashtableImportOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().HashtableSizeOptions:
+    if unionType == BuiltinOptions.HashtableSizeOptions:
         return HashtableSizeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().VarHandleOptions:
+    if unionType == BuiltinOptions.VarHandleOptions:
         return VarHandleOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ReadVariableOptions:
+    if unionType == BuiltinOptions.ReadVariableOptions:
         return ReadVariableOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().AssignVariableOptions:
+    if unionType == BuiltinOptions.AssignVariableOptions:
         return AssignVariableOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().RandomOptions:
+    if unionType == BuiltinOptions.RandomOptions:
         return RandomOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BucketizeOptions:
+    if unionType == BuiltinOptions.BucketizeOptions:
         return BucketizeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().GeluOptions:
+    if unionType == BuiltinOptions.GeluOptions:
         return GeluOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().DynamicUpdateSliceOptions:
+    if unionType == BuiltinOptions.DynamicUpdateSliceOptions:
         return DynamicUpdateSliceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UnsortedSegmentProdOptions:
+    if unionType == BuiltinOptions.UnsortedSegmentProdOptions:
         return UnsortedSegmentProdOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UnsortedSegmentMaxOptions:
+    if unionType == BuiltinOptions.UnsortedSegmentMaxOptions:
         return UnsortedSegmentMaxOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UnsortedSegmentMinOptions:
+    if unionType == BuiltinOptions.UnsortedSegmentMinOptions:
         return UnsortedSegmentMinOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().UnsortedSegmentSumOptions:
+    if unionType == BuiltinOptions.UnsortedSegmentSumOptions:
         return UnsortedSegmentSumOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().ATan2Options:
+    if unionType == BuiltinOptions.ATan2Options:
         return ATan2OptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().SignOptions:
+    if unionType == BuiltinOptions.SignOptions:
         return SignOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BitcastOptions:
+    if unionType == BuiltinOptions.BitcastOptions:
         return BitcastOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().BitwiseXorOptions:
+    if unionType == BuiltinOptions.BitwiseXorOptions:
         return BitwiseXorOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions().RightShiftOptions:
+    if unionType == BuiltinOptions.RightShiftOptions:
         return RightShiftOptionsT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
@@ -702,51 +702,51 @@ def BuiltinOptions2Creator(unionType, table):
     from flatbuffers.table import Table
     if not isinstance(table, Table):
         return None
-    if unionType == BuiltinOptions2().StablehloConcatenateOptions:
+    if unionType == BuiltinOptions2.StablehloConcatenateOptions:
         return StablehloConcatenateOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloBroadcastInDimOptions:
+    if unionType == BuiltinOptions2.StablehloBroadcastInDimOptions:
         return StablehloBroadcastInDimOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloSliceOptions:
+    if unionType == BuiltinOptions2.StablehloSliceOptions:
         return StablehloSliceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloConvolutionOptions:
+    if unionType == BuiltinOptions2.StablehloConvolutionOptions:
         return StablehloConvolutionOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloCustomCallOptions:
+    if unionType == BuiltinOptions2.StablehloCustomCallOptions:
         return StablehloCustomCallOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloReduceOptions:
+    if unionType == BuiltinOptions2.StablehloReduceOptions:
         return StablehloReduceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloScatterOptions:
+    if unionType == BuiltinOptions2.StablehloScatterOptions:
         return StablehloScatterOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloCompareOptions:
+    if unionType == BuiltinOptions2.StablehloCompareOptions:
         return StablehloCompareOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloDynamicSliceOptions:
+    if unionType == BuiltinOptions2.StablehloDynamicSliceOptions:
         return StablehloDynamicSliceOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloPadOptions:
+    if unionType == BuiltinOptions2.StablehloPadOptions:
         return StablehloPadOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloIotaOptions:
+    if unionType == BuiltinOptions2.StablehloIotaOptions:
         return StablehloIotaOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloDotGeneralOptions:
+    if unionType == BuiltinOptions2.StablehloDotGeneralOptions:
         return StablehloDotGeneralOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloReduceWindowOptions:
+    if unionType == BuiltinOptions2.StablehloReduceWindowOptions:
         return StablehloReduceWindowOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloSortOptions:
+    if unionType == BuiltinOptions2.StablehloSortOptions:
         return StablehloSortOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloWhileOptions:
+    if unionType == BuiltinOptions2.StablehloWhileOptions:
         return StablehloWhileOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloGatherOptions:
+    if unionType == BuiltinOptions2.StablehloGatherOptions:
         return StablehloGatherOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloTransposeOptions:
+    if unionType == BuiltinOptions2.StablehloTransposeOptions:
         return StablehloTransposeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().DilateOptions:
+    if unionType == BuiltinOptions2.DilateOptions:
         return DilateOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloRngBitGeneratorOptions:
+    if unionType == BuiltinOptions2.StablehloRngBitGeneratorOptions:
         return StablehloRngBitGeneratorOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().ReduceWindowOptions:
+    if unionType == BuiltinOptions2.ReduceWindowOptions:
         return ReduceWindowOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StableHLOCompositeOptions:
+    if unionType == BuiltinOptions2.StableHLOCompositeOptions:
         return StableHLOCompositeOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloShiftLeftOptions:
+    if unionType == BuiltinOptions2.StablehloShiftLeftOptions:
         return StablehloShiftLeftOptionsT.InitFromBuf(table.Bytes, table.Pos)
-    if unionType == BuiltinOptions2().StablehloCaseOptions:
+    if unionType == BuiltinOptions2.StablehloCaseOptions:
         return StablehloCaseOptionsT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
@@ -905,8 +905,11 @@ except:
 class CustomQuantizationT(object):
 
     # CustomQuantizationT
-    def __init__(self):
-        self.custom = None  # type: List[int]
+    def __init__(
+        self,
+        custom = None,
+    ):
+        self.custom = custom  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1017,10 +1020,15 @@ def BlockwiseQuantizationEnd(builder):
 class BlockwiseQuantizationT(object):
 
     # BlockwiseQuantizationT
-    def __init__(self):
-        self.scales = 0  # type: int
-        self.zeroPoints = 0  # type: int
-        self.blockSize = 0  # type: int
+    def __init__(
+        self,
+        scales = 0,
+        zeroPoints = 0,
+        blockSize = 0,
+    ):
+        self.scales = scales  # type: int
+        self.zeroPoints = zeroPoints  # type: int
+        self.blockSize = blockSize  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1259,14 +1267,23 @@ except:
 class QuantizationParametersT(object):
 
     # QuantizationParametersT
-    def __init__(self):
-        self.min = None  # type: List[float]
-        self.max = None  # type: List[float]
-        self.scale = None  # type: List[float]
-        self.zeroPoint = None  # type: List[int]
-        self.detailsType = 0  # type: int
-        self.details = None  # type: Union[None, CustomQuantizationT, BlockwiseQuantizationT]
-        self.quantizedDimension = 0  # type: int
+    def __init__(
+        self,
+        min = None,
+        max = None,
+        scale = None,
+        zeroPoint = None,
+        detailsType = 0,
+        details = None,
+        quantizedDimension = 0,
+    ):
+        self.min = min  # type: Optional[List[float]]
+        self.max = max  # type: Optional[List[float]]
+        self.scale = scale  # type: Optional[List[float]]
+        self.zeroPoint = zeroPoint  # type: Optional[List[int]]
+        self.detailsType = detailsType  # type: int
+        self.details = details  # type: Union[None, 'CustomQuantizationT', 'BlockwiseQuantizationT']
+        self.quantizedDimension = quantizedDimension  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1444,8 +1461,11 @@ except:
 class Int32VectorT(object):
 
     # Int32VectorT
-    def __init__(self):
-        self.values = None  # type: List[int]
+    def __init__(
+        self,
+        values = None,
+    ):
+        self.values = values  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1563,8 +1583,11 @@ except:
 class Uint16VectorT(object):
 
     # Uint16VectorT
-    def __init__(self):
-        self.values = None  # type: List[int]
+    def __init__(
+        self,
+        values = None,
+    ):
+        self.values = values  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1682,8 +1705,11 @@ except:
 class Uint8VectorT(object):
 
     # Uint8VectorT
-    def __init__(self):
-        self.values = None  # type: List[int]
+    def __init__(
+        self,
+        values = None,
+    ):
+        self.values = values  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1834,13 +1860,21 @@ except:
 class DimensionMetadataT(object):
 
     # DimensionMetadataT
-    def __init__(self):
-        self.format = 0  # type: int
-        self.denseSize = 0  # type: int
-        self.arraySegmentsType = 0  # type: int
-        self.arraySegments = None  # type: Union[None, Int32VectorT, Uint16VectorT, Uint8VectorT]
-        self.arrayIndicesType = 0  # type: int
-        self.arrayIndices = None  # type: Union[None, Int32VectorT, Uint16VectorT, Uint8VectorT]
+    def __init__(
+        self,
+        format = 0,
+        denseSize = 0,
+        arraySegmentsType = 0,
+        arraySegments = None,
+        arrayIndicesType = 0,
+        arrayIndices = None,
+    ):
+        self.format = format  # type: int
+        self.denseSize = denseSize  # type: int
+        self.arraySegmentsType = arraySegmentsType  # type: int
+        self.arraySegments = arraySegments  # type: Union[None, 'Int32VectorT', 'Uint16VectorT', 'Uint8VectorT']
+        self.arrayIndicesType = arrayIndicesType  # type: int
+        self.arrayIndices = arrayIndices  # type: Union[None, 'Int32VectorT', 'Uint16VectorT', 'Uint8VectorT']
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2022,10 +2056,15 @@ except:
 class SparsityParametersT(object):
 
     # SparsityParametersT
-    def __init__(self):
-        self.traversalOrder = None  # type: List[int]
-        self.blockMap = None  # type: List[int]
-        self.dimMetadata = None  # type: List[DimensionMetadataT]
+    def __init__(
+        self,
+        traversalOrder = None,
+        blockMap = None,
+        dimMetadata = None,
+    ):
+        self.traversalOrder = traversalOrder  # type: Optional[List[int]]
+        self.blockMap = blockMap  # type: Optional[List[int]]
+        self.dimMetadata = dimMetadata  # type: Optional[List[DimensionMetadataT]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2198,10 +2237,15 @@ except:
 class VariantSubTypeT(object):
 
     # VariantSubTypeT
-    def __init__(self):
-        self.shape = None  # type: List[int]
-        self.type = 0  # type: int
-        self.hasRank = False  # type: bool
+    def __init__(
+        self,
+        shape = None,
+        type = 0,
+        hasRank = False,
+    ):
+        self.shape = shape  # type: Optional[List[int]]
+        self.type = type  # type: int
+        self.hasRank = hasRank  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2472,18 +2516,31 @@ except:
 class TensorT(object):
 
     # TensorT
-    def __init__(self):
-        self.shape = None  # type: List[int]
-        self.type = 0  # type: int
-        self.buffer = 0  # type: int
-        self.name = None  # type: str
-        self.quantization = None  # type: Optional[QuantizationParametersT]
-        self.isVariable = False  # type: bool
-        self.sparsity = None  # type: Optional[SparsityParametersT]
-        self.shapeSignature = None  # type: List[int]
-        self.hasRank = False  # type: bool
-        self.variantTensors = None  # type: List[VariantSubTypeT]
-        self.externalBuffer = 0  # type: int
+    def __init__(
+        self,
+        shape = None,
+        type = 0,
+        buffer = 0,
+        name = None,
+        quantization = None,
+        isVariable = False,
+        sparsity = None,
+        shapeSignature = None,
+        hasRank = False,
+        variantTensors = None,
+        externalBuffer = 0,
+    ):
+        self.shape = shape  # type: Optional[List[int]]
+        self.type = type  # type: int
+        self.buffer = buffer  # type: int
+        self.name = name  # type: Optional[str]
+        self.quantization = quantization  # type: Optional[QuantizationParametersT]
+        self.isVariable = isVariable  # type: bool
+        self.sparsity = sparsity  # type: Optional[SparsityParametersT]
+        self.shapeSignature = shapeSignature  # type: Optional[List[int]]
+        self.hasRank = hasRank  # type: bool
+        self.variantTensors = variantTensors  # type: Optional[List[VariantSubTypeT]]
+        self.externalBuffer = externalBuffer  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2782,13 +2839,21 @@ except:
 class StablehloGatherOptionsT(object):
 
     # StablehloGatherOptionsT
-    def __init__(self):
-        self.offsetDims = None  # type: List[int]
-        self.collapsedSliceDims = None  # type: List[int]
-        self.startIndexMap = None  # type: List[int]
-        self.indexVectorDim = 0  # type: int
-        self.sliceSizes = None  # type: List[int]
-        self.indicesAreSorted = False  # type: bool
+    def __init__(
+        self,
+        offsetDims = None,
+        collapsedSliceDims = None,
+        startIndexMap = None,
+        indexVectorDim = 0,
+        sliceSizes = None,
+        indicesAreSorted = False,
+    ):
+        self.offsetDims = offsetDims  # type: Optional[List[int]]
+        self.collapsedSliceDims = collapsedSliceDims  # type: Optional[List[int]]
+        self.startIndexMap = startIndexMap  # type: Optional[List[int]]
+        self.indexVectorDim = indexVectorDim  # type: int
+        self.sliceSizes = sliceSizes  # type: Optional[List[int]]
+        self.indicesAreSorted = indicesAreSorted  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -2961,8 +3026,11 @@ except:
 class StablehloTransposeOptionsT(object):
 
     # StablehloTransposeOptionsT
-    def __init__(self):
-        self.permutation = None  # type: List[int]
+    def __init__(
+        self,
+        permutation = None,
+    ):
+        self.permutation = permutation  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -3212,12 +3280,19 @@ except:
 class StablehloDotGeneralOptionsT(object):
 
     # StablehloDotGeneralOptionsT
-    def __init__(self):
-        self.lhsBatchingDimensions = None  # type: List[int]
-        self.rhsBatchingDimensions = None  # type: List[int]
-        self.lhsContractingDimensions = None  # type: List[int]
-        self.rhsContractingDimensions = None  # type: List[int]
-        self.precisionConfig = None  # type: List[int]
+    def __init__(
+        self,
+        lhsBatchingDimensions = None,
+        rhsBatchingDimensions = None,
+        lhsContractingDimensions = None,
+        rhsContractingDimensions = None,
+        precisionConfig = None,
+    ):
+        self.lhsBatchingDimensions = lhsBatchingDimensions  # type: Optional[List[int]]
+        self.rhsBatchingDimensions = rhsBatchingDimensions  # type: Optional[List[int]]
+        self.lhsContractingDimensions = lhsContractingDimensions  # type: Optional[List[int]]
+        self.rhsContractingDimensions = rhsContractingDimensions  # type: Optional[List[int]]
+        self.precisionConfig = precisionConfig  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -3545,13 +3620,21 @@ except:
 class StablehloReduceWindowOptionsT(object):
 
     # StablehloReduceWindowOptionsT
-    def __init__(self):
-        self.windowDimensions = None  # type: List[int]
-        self.windowStrides = None  # type: List[int]
-        self.baseDilations = None  # type: List[int]
-        self.windowDilations = None  # type: List[int]
-        self.padding = None  # type: List[int]
-        self.bodySubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        windowDimensions = None,
+        windowStrides = None,
+        baseDilations = None,
+        windowDilations = None,
+        padding = None,
+        bodySubgraphIndex = 0,
+    ):
+        self.windowDimensions = windowDimensions  # type: Optional[List[int]]
+        self.windowStrides = windowStrides  # type: Optional[List[int]]
+        self.baseDilations = baseDilations  # type: Optional[List[int]]
+        self.windowDilations = windowDilations  # type: Optional[List[int]]
+        self.padding = padding  # type: Optional[List[int]]
+        self.bodySubgraphIndex = bodySubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -3722,9 +3805,13 @@ def StablehloWhileOptionsEnd(builder):
 class StablehloWhileOptionsT(object):
 
     # StablehloWhileOptionsT
-    def __init__(self):
-        self.condSubgraphIndex = 0  # type: int
-        self.bodySubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        condSubgraphIndex = 0,
+        bodySubgraphIndex = 0,
+    ):
+        self.condSubgraphIndex = condSubgraphIndex  # type: int
+        self.bodySubgraphIndex = bodySubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -3822,10 +3909,15 @@ def StablehloSortOptionsEnd(builder):
 class StablehloSortOptionsT(object):
 
     # StablehloSortOptionsT
-    def __init__(self):
-        self.dimension = 0  # type: int
-        self.isStable = False  # type: bool
-        self.comparatorSubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        dimension = 0,
+        isStable = False,
+        comparatorSubgraphIndex = 0,
+    ):
+        self.dimension = dimension  # type: int
+        self.isStable = isStable  # type: bool
+        self.comparatorSubgraphIndex = comparatorSubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -3905,8 +3997,11 @@ def StablehloConcatenateOptionsEnd(builder):
 class StablehloConcatenateOptionsT(object):
 
     # StablehloConcatenateOptionsT
-    def __init__(self):
-        self.dimension = 0  # type: int
+    def __init__(
+        self,
+        dimension = 0,
+    ):
+        self.dimension = dimension  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4009,8 +4104,11 @@ except:
 class StablehloBroadcastInDimOptionsT(object):
 
     # StablehloBroadcastInDimOptionsT
-    def __init__(self):
-        self.broadcastDimensions = None  # type: List[int]
+    def __init__(
+        self,
+        broadcastDimensions = None,
+    ):
+        self.broadcastDimensions = broadcastDimensions  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4111,9 +4209,13 @@ def StablehloCompareOptionsEnd(builder):
 class StablehloCompareOptionsT(object):
 
     # StablehloCompareOptionsT
-    def __init__(self):
-        self.comparisonDirection = 0  # type: int
-        self.compareType = 0  # type: int
+    def __init__(
+        self,
+        comparisonDirection = 0,
+        compareType = 0,
+    ):
+        self.comparisonDirection = comparisonDirection  # type: int
+        self.compareType = compareType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4218,8 +4320,11 @@ except:
 class StablehloDynamicSliceOptionsT(object):
 
     # StablehloDynamicSliceOptionsT
-    def __init__(self):
-        self.sliceSizes = None  # type: List[int]
+    def __init__(
+        self,
+        sliceSizes = None,
+    ):
+        self.sliceSizes = sliceSizes  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4403,10 +4508,15 @@ except:
 class StablehloPadOptionsT(object):
 
     # StablehloPadOptionsT
-    def __init__(self):
-        self.edgePaddingLow = None  # type: List[int]
-        self.edgePaddingHigh = None  # type: List[int]
-        self.interiorPadding = None  # type: List[int]
+    def __init__(
+        self,
+        edgePaddingLow = None,
+        edgePaddingHigh = None,
+        interiorPadding = None,
+    ):
+        self.edgePaddingLow = edgePaddingLow  # type: Optional[List[int]]
+        self.edgePaddingHigh = edgePaddingHigh  # type: Optional[List[int]]
+        self.interiorPadding = interiorPadding  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4531,8 +4641,11 @@ def StablehloIotaOptionsEnd(builder):
 class StablehloIotaOptionsT(object):
 
     # StablehloIotaOptionsT
-    def __init__(self):
-        self.iotaDimension = 0  # type: int
+    def __init__(
+        self,
+        iotaDimension = 0,
+    ):
+        self.iotaDimension = iotaDimension  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4708,13 +4821,21 @@ except:
 class StablehloCustomCallOptionsT(object):
 
     # StablehloCustomCallOptionsT
-    def __init__(self):
-        self.callTargetName = None  # type: str
-        self.hasSideEffect = False  # type: bool
-        self.backendConfig = None  # type: str
-        self.apiVersion = 0  # type: int
-        self.calledComputations = None  # type: List[int]
-        self.customAttributes = None  # type: List[int]
+    def __init__(
+        self,
+        callTargetName = None,
+        hasSideEffect = False,
+        backendConfig = None,
+        apiVersion = 0,
+        calledComputations = None,
+        customAttributes = None,
+    ):
+        self.callTargetName = callTargetName  # type: Optional[str]
+        self.hasSideEffect = hasSideEffect  # type: bool
+        self.backendConfig = backendConfig  # type: Optional[str]
+        self.apiVersion = apiVersion  # type: int
+        self.calledComputations = calledComputations  # type: Optional[List[int]]
+        self.customAttributes = customAttributes  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -4873,9 +4994,13 @@ except:
 class StablehloReduceOptionsT(object):
 
     # StablehloReduceOptionsT
-    def __init__(self):
-        self.dimensions = None  # type: List[int]
-        self.bodySubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        dimensions = None,
+        bodySubgraphIndex = 0,
+    ):
+        self.dimensions = dimensions  # type: Optional[List[int]]
+        self.bodySubgraphIndex = bodySubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -5061,10 +5186,15 @@ except:
 class StablehloSliceOptionsT(object):
 
     # StablehloSliceOptionsT
-    def __init__(self):
-        self.startIndices = None  # type: List[int]
-        self.limitIndices = None  # type: List[int]
-        self.strides = None  # type: List[int]
+    def __init__(
+        self,
+        startIndices = None,
+        limitIndices = None,
+        strides = None,
+    ):
+        self.startIndices = startIndices  # type: Optional[List[int]]
+        self.limitIndices = limitIndices  # type: Optional[List[int]]
+        self.strides = strides  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -5560,24 +5690,43 @@ except:
 class StablehloConvolutionOptionsT(object):
 
     # StablehloConvolutionOptionsT
-    def __init__(self):
-        self.windowStrides = None  # type: List[int]
-        self.padding = None  # type: List[int]
-        self.lhsDilation = None  # type: List[int]
-        self.rhsDilation = None  # type: List[int]
-        self.windowReversal = None  # type: List[bool]
-        self.inputBatchDimension = 0  # type: int
-        self.inputFeatureDimension = 0  # type: int
-        self.inputSpatialDimensions = None  # type: List[int]
-        self.kernelInputFeatureDimension = 0  # type: int
-        self.kernelOutputFeatureDimension = 0  # type: int
-        self.kernelSpatialDimensions = None  # type: List[int]
-        self.outputBatchDimension = 0  # type: int
-        self.outputFeatureDimension = 0  # type: int
-        self.outputSpatialDimensions = None  # type: List[int]
-        self.featureGroupCount = 0  # type: int
-        self.batchGroupCount = 0  # type: int
-        self.precisionConfig = None  # type: List[int]
+    def __init__(
+        self,
+        windowStrides = None,
+        padding = None,
+        lhsDilation = None,
+        rhsDilation = None,
+        windowReversal = None,
+        inputBatchDimension = 0,
+        inputFeatureDimension = 0,
+        inputSpatialDimensions = None,
+        kernelInputFeatureDimension = 0,
+        kernelOutputFeatureDimension = 0,
+        kernelSpatialDimensions = None,
+        outputBatchDimension = 0,
+        outputFeatureDimension = 0,
+        outputSpatialDimensions = None,
+        featureGroupCount = 0,
+        batchGroupCount = 0,
+        precisionConfig = None,
+    ):
+        self.windowStrides = windowStrides  # type: Optional[List[int]]
+        self.padding = padding  # type: Optional[List[int]]
+        self.lhsDilation = lhsDilation  # type: Optional[List[int]]
+        self.rhsDilation = rhsDilation  # type: Optional[List[int]]
+        self.windowReversal = windowReversal  # type: Optional[List[bool]]
+        self.inputBatchDimension = inputBatchDimension  # type: int
+        self.inputFeatureDimension = inputFeatureDimension  # type: int
+        self.inputSpatialDimensions = inputSpatialDimensions  # type: Optional[List[int]]
+        self.kernelInputFeatureDimension = kernelInputFeatureDimension  # type: int
+        self.kernelOutputFeatureDimension = kernelOutputFeatureDimension  # type: int
+        self.kernelSpatialDimensions = kernelSpatialDimensions  # type: Optional[List[int]]
+        self.outputBatchDimension = outputBatchDimension  # type: int
+        self.outputFeatureDimension = outputFeatureDimension  # type: int
+        self.outputSpatialDimensions = outputSpatialDimensions  # type: Optional[List[int]]
+        self.featureGroupCount = featureGroupCount  # type: int
+        self.batchGroupCount = batchGroupCount  # type: int
+        self.precisionConfig = precisionConfig  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -5953,14 +6102,23 @@ except:
 class StablehloScatterOptionsT(object):
 
     # StablehloScatterOptionsT
-    def __init__(self):
-        self.indicesAreSorted = False  # type: bool
-        self.updateWindowDims = None  # type: List[int]
-        self.insertedWindowDims = None  # type: List[int]
-        self.scatterDimsToOperandDims = None  # type: List[int]
-        self.indexVectorDim = 0  # type: int
-        self.uniqueIndices = False  # type: bool
-        self.updateComputationSubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        indicesAreSorted = False,
+        updateWindowDims = None,
+        insertedWindowDims = None,
+        scatterDimsToOperandDims = None,
+        indexVectorDim = 0,
+        uniqueIndices = False,
+        updateComputationSubgraphIndex = 0,
+    ):
+        self.indicesAreSorted = indicesAreSorted  # type: bool
+        self.updateWindowDims = updateWindowDims  # type: Optional[List[int]]
+        self.insertedWindowDims = insertedWindowDims  # type: Optional[List[int]]
+        self.scatterDimsToOperandDims = scatterDimsToOperandDims  # type: Optional[List[int]]
+        self.indexVectorDim = indexVectorDim  # type: int
+        self.uniqueIndices = uniqueIndices  # type: bool
+        self.updateComputationSubgraphIndex = updateComputationSubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6120,8 +6278,11 @@ except:
 class StablehloCaseOptionsT(object):
 
     # StablehloCaseOptionsT
-    def __init__(self):
-        self.branchSubgraphIndices = None  # type: List[int]
+    def __init__(
+        self,
+        branchSubgraphIndices = None,
+    ):
+        self.branchSubgraphIndices = branchSubgraphIndices  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6212,8 +6373,11 @@ def StablehloRngBitGeneratorOptionsEnd(builder):
 class StablehloRngBitGeneratorOptionsT(object):
 
     # StablehloRngBitGeneratorOptionsT
-    def __init__(self):
-        self.algorithm = 0  # type: int
+    def __init__(
+        self,
+        algorithm = 0,
+    ):
+        self.algorithm = algorithm  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6349,14 +6513,23 @@ def Conv2DOptionsEnd(builder):
 class Conv2DOptionsT(object):
 
     # Conv2DOptionsT
-    def __init__(self):
-        self.padding = 0  # type: int
-        self.strideW = 0  # type: int
-        self.strideH = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
-        self.dilationWFactor = 1  # type: int
-        self.dilationHFactor = 1  # type: int
-        self.quantizedBiasType = 0  # type: int
+    def __init__(
+        self,
+        padding = 0,
+        strideW = 0,
+        strideH = 0,
+        fusedActivationFunction = 0,
+        dilationWFactor = 1,
+        dilationHFactor = 1,
+        quantizedBiasType = 0,
+    ):
+        self.padding = padding  # type: int
+        self.strideW = strideW  # type: int
+        self.strideH = strideH  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.dilationWFactor = dilationWFactor  # type: int
+        self.dilationHFactor = dilationHFactor  # type: int
+        self.quantizedBiasType = quantizedBiasType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6514,15 +6687,25 @@ def Conv3DOptionsEnd(builder):
 class Conv3DOptionsT(object):
 
     # Conv3DOptionsT
-    def __init__(self):
-        self.padding = 0  # type: int
-        self.strideD = 0  # type: int
-        self.strideW = 0  # type: int
-        self.strideH = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
-        self.dilationDFactor = 1  # type: int
-        self.dilationWFactor = 1  # type: int
-        self.dilationHFactor = 1  # type: int
+    def __init__(
+        self,
+        padding = 0,
+        strideD = 0,
+        strideW = 0,
+        strideH = 0,
+        fusedActivationFunction = 0,
+        dilationDFactor = 1,
+        dilationWFactor = 1,
+        dilationHFactor = 1,
+    ):
+        self.padding = padding  # type: int
+        self.strideD = strideD  # type: int
+        self.strideW = strideW  # type: int
+        self.strideH = strideH  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.dilationDFactor = dilationDFactor  # type: int
+        self.dilationWFactor = dilationWFactor  # type: int
+        self.dilationHFactor = dilationHFactor  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6662,13 +6845,21 @@ def Pool2DOptionsEnd(builder):
 class Pool2DOptionsT(object):
 
     # Pool2DOptionsT
-    def __init__(self):
-        self.padding = 0  # type: int
-        self.strideW = 0  # type: int
-        self.strideH = 0  # type: int
-        self.filterWidth = 0  # type: int
-        self.filterHeight = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
+    def __init__(
+        self,
+        padding = 0,
+        strideW = 0,
+        strideH = 0,
+        filterWidth = 0,
+        filterHeight = 0,
+        fusedActivationFunction = 0,
+    ):
+        self.padding = padding  # type: int
+        self.strideW = strideW  # type: int
+        self.strideH = strideH  # type: int
+        self.filterWidth = filterWidth  # type: int
+        self.filterHeight = filterHeight  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6814,14 +7005,23 @@ def DepthwiseConv2DOptionsEnd(builder):
 class DepthwiseConv2DOptionsT(object):
 
     # DepthwiseConv2DOptionsT
-    def __init__(self):
-        self.padding = 0  # type: int
-        self.strideW = 0  # type: int
-        self.strideH = 0  # type: int
-        self.depthMultiplier = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
-        self.dilationWFactor = 1  # type: int
-        self.dilationHFactor = 1  # type: int
+    def __init__(
+        self,
+        padding = 0,
+        strideW = 0,
+        strideH = 0,
+        depthMultiplier = 0,
+        fusedActivationFunction = 0,
+        dilationWFactor = 1,
+        dilationHFactor = 1,
+    ):
+        self.padding = padding  # type: int
+        self.strideW = strideW  # type: int
+        self.strideH = strideH  # type: int
+        self.depthMultiplier = depthMultiplier  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.dilationWFactor = dilationWFactor  # type: int
+        self.dilationHFactor = dilationHFactor  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -6979,10 +7179,15 @@ except:
 class ConcatEmbeddingsOptionsT(object):
 
     # ConcatEmbeddingsOptionsT
-    def __init__(self):
-        self.numChannels = 0  # type: int
-        self.numColumnsPerChannel = None  # type: List[int]
-        self.embeddingDimPerChannel = None  # type: List[int]
+    def __init__(
+        self,
+        numChannels = 0,
+        numColumnsPerChannel = None,
+        embeddingDimPerChannel = None,
+    ):
+        self.numChannels = numChannels  # type: int
+        self.numColumnsPerChannel = numColumnsPerChannel  # type: Optional[List[int]]
+        self.embeddingDimPerChannel = embeddingDimPerChannel  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7092,8 +7297,11 @@ def LSHProjectionOptionsEnd(builder):
 class LSHProjectionOptionsT(object):
 
     # LSHProjectionOptionsT
-    def __init__(self):
-        self.type = 0  # type: int
+    def __init__(
+        self,
+        type = 0,
+    ):
+        self.type = type  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7189,10 +7397,15 @@ def SVDFOptionsEnd(builder):
 class SVDFOptionsT(object):
 
     # SVDFOptionsT
-    def __init__(self):
-        self.rank = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        rank = 0,
+        fusedActivationFunction = 0,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.rank = rank  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7282,9 +7495,13 @@ def RNNOptionsEnd(builder):
 class RNNOptionsT(object):
 
     # RNNOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7382,10 +7599,15 @@ def SequenceRNNOptionsEnd(builder):
 class SequenceRNNOptionsT(object):
 
     # SequenceRNNOptionsT
-    def __init__(self):
-        self.timeMajor = False  # type: bool
-        self.fusedActivationFunction = 0  # type: int
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        timeMajor = False,
+        fusedActivationFunction = 0,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.timeMajor = timeMajor  # type: bool
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7495,11 +7717,17 @@ def BidirectionalSequenceRNNOptionsEnd(builder):
 class BidirectionalSequenceRNNOptionsT(object):
 
     # BidirectionalSequenceRNNOptionsT
-    def __init__(self):
-        self.timeMajor = False  # type: bool
-        self.fusedActivationFunction = 0  # type: int
-        self.mergeOutputs = False  # type: bool
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        timeMajor = False,
+        fusedActivationFunction = 0,
+        mergeOutputs = False,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.timeMajor = timeMajor  # type: bool
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.mergeOutputs = mergeOutputs  # type: bool
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7621,12 +7849,19 @@ def FullyConnectedOptionsEnd(builder):
 class FullyConnectedOptionsT(object):
 
     # FullyConnectedOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.weightsFormat = 0  # type: int
-        self.keepNumDims = False  # type: bool
-        self.asymmetricQuantizeInputs = False  # type: bool
-        self.quantizedBiasType = 0  # type: int
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        weightsFormat = 0,
+        keepNumDims = False,
+        asymmetricQuantizeInputs = False,
+        quantizedBiasType = 0,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.weightsFormat = weightsFormat  # type: int
+        self.keepNumDims = keepNumDims  # type: bool
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
+        self.quantizedBiasType = quantizedBiasType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7710,8 +7945,11 @@ def SoftmaxOptionsEnd(builder):
 class SoftmaxOptionsT(object):
 
     # SoftmaxOptionsT
-    def __init__(self):
-        self.beta = 0.0  # type: float
+    def __init__(
+        self,
+        beta = 0.0,
+    ):
+        self.beta = beta  # type: float
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7797,9 +8035,13 @@ def ConcatenationOptionsEnd(builder):
 class ConcatenationOptionsT(object):
 
     # ConcatenationOptionsT
-    def __init__(self):
-        self.axis = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
+    def __init__(
+        self,
+        axis = 0,
+        fusedActivationFunction = 0,
+    ):
+        self.axis = axis  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7887,9 +8129,13 @@ def AddOptionsEnd(builder):
 class AddOptionsT(object):
 
     # AddOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.potScaleInt16 = True  # type: bool
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        potScaleInt16 = True,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.potScaleInt16 = potScaleInt16  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -7967,8 +8213,11 @@ def MulOptionsEnd(builder):
 class MulOptionsT(object):
 
     # MulOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8044,8 +8293,11 @@ def L2NormOptionsEnd(builder):
 class L2NormOptionsT(object):
 
     # L2NormOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8151,11 +8403,17 @@ def LocalResponseNormalizationOptionsEnd(builder):
 class LocalResponseNormalizationOptionsT(object):
 
     # LocalResponseNormalizationOptionsT
-    def __init__(self):
-        self.radius = 0  # type: int
-        self.bias = 0.0  # type: float
-        self.alpha = 0.0  # type: float
-        self.beta = 0.0  # type: float
+    def __init__(
+        self,
+        radius = 0,
+        bias = 0.0,
+        alpha = 0.0,
+        beta = 0.0,
+    ):
+        self.radius = radius  # type: int
+        self.bias = bias  # type: float
+        self.alpha = alpha  # type: float
+        self.beta = beta  # type: float
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8277,12 +8535,19 @@ def LSTMOptionsEnd(builder):
 class LSTMOptionsT(object):
 
     # LSTMOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.cellClip = 0.0  # type: float
-        self.projClip = 0.0  # type: float
-        self.kernelType = 0  # type: int
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        cellClip = 0.0,
+        projClip = 0.0,
+        kernelType = 0,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.cellClip = cellClip  # type: float
+        self.projClip = projClip  # type: float
+        self.kernelType = kernelType  # type: int
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8416,13 +8681,21 @@ def UnidirectionalSequenceLSTMOptionsEnd(builder):
 class UnidirectionalSequenceLSTMOptionsT(object):
 
     # UnidirectionalSequenceLSTMOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.cellClip = 0.0  # type: float
-        self.projClip = 0.0  # type: float
-        self.timeMajor = False  # type: bool
-        self.asymmetricQuantizeInputs = False  # type: bool
-        self.diagonalRecurrentTensors = False  # type: bool
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        cellClip = 0.0,
+        projClip = 0.0,
+        timeMajor = False,
+        asymmetricQuantizeInputs = False,
+        diagonalRecurrentTensors = False,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.cellClip = cellClip  # type: float
+        self.projClip = projClip  # type: float
+        self.timeMajor = timeMajor  # type: bool
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
+        self.diagonalRecurrentTensors = diagonalRecurrentTensors  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8558,13 +8831,21 @@ def BidirectionalSequenceLSTMOptionsEnd(builder):
 class BidirectionalSequenceLSTMOptionsT(object):
 
     # BidirectionalSequenceLSTMOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.cellClip = 0.0  # type: float
-        self.projClip = 0.0  # type: float
-        self.mergeOutputs = False  # type: bool
-        self.timeMajor = True  # type: bool
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        cellClip = 0.0,
+        projClip = 0.0,
+        mergeOutputs = False,
+        timeMajor = True,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.cellClip = cellClip  # type: float
+        self.projClip = projClip  # type: float
+        self.mergeOutputs = mergeOutputs  # type: bool
+        self.timeMajor = timeMajor  # type: bool
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8660,9 +8941,13 @@ def ResizeBilinearOptionsEnd(builder):
 class ResizeBilinearOptionsT(object):
 
     # ResizeBilinearOptionsT
-    def __init__(self):
-        self.alignCorners = False  # type: bool
-        self.halfPixelCenters = False  # type: bool
+    def __init__(
+        self,
+        alignCorners = False,
+        halfPixelCenters = False,
+    ):
+        self.alignCorners = alignCorners  # type: bool
+        self.halfPixelCenters = halfPixelCenters  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8750,9 +9035,13 @@ def ResizeNearestNeighborOptionsEnd(builder):
 class ResizeNearestNeighborOptionsT(object):
 
     # ResizeNearestNeighborOptionsT
-    def __init__(self):
-        self.alignCorners = False  # type: bool
-        self.halfPixelCenters = False  # type: bool
+    def __init__(
+        self,
+        alignCorners = False,
+        halfPixelCenters = False,
+    ):
+        self.alignCorners = alignCorners  # type: bool
+        self.halfPixelCenters = halfPixelCenters  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8830,8 +9119,11 @@ def CallOptionsEnd(builder):
 class CallOptionsT(object):
 
     # CallOptionsT
-    def __init__(self):
-        self.subgraph = 0  # type: int
+    def __init__(
+        self,
+        subgraph = 0,
+    ):
+        self.subgraph = subgraph  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8897,7 +9189,9 @@ def PadOptionsEnd(builder):
 class PadOptionsT(object):
 
     # PadOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -8962,7 +9256,9 @@ def PadV2OptionsEnd(builder):
 class PadV2OptionsT(object):
 
     # PadV2OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -9064,8 +9360,11 @@ except:
 class ReshapeOptionsT(object):
 
     # ReshapeOptionsT
-    def __init__(self):
-        self.newShape = None  # type: List[int]
+    def __init__(
+        self,
+        newShape = None,
+    ):
+        self.newShape = newShape  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9146,7 +9445,9 @@ def SpaceToBatchNDOptionsEnd(builder):
 class SpaceToBatchNDOptionsT(object):
 
     # SpaceToBatchNDOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -9211,7 +9512,9 @@ def BatchToSpaceNDOptionsEnd(builder):
 class BatchToSpaceNDOptionsT(object):
 
     # BatchToSpaceNDOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -9306,10 +9609,15 @@ def SkipGramOptionsEnd(builder):
 class SkipGramOptionsT(object):
 
     # SkipGramOptionsT
-    def __init__(self):
-        self.ngramSize = 0  # type: int
-        self.maxSkipSize = 0  # type: int
-        self.includeAllNgrams = False  # type: bool
+    def __init__(
+        self,
+        ngramSize = 0,
+        maxSkipSize = 0,
+        includeAllNgrams = False,
+    ):
+        self.ngramSize = ngramSize  # type: int
+        self.maxSkipSize = maxSkipSize  # type: int
+        self.includeAllNgrams = includeAllNgrams  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9389,8 +9697,11 @@ def SpaceToDepthOptionsEnd(builder):
 class SpaceToDepthOptionsT(object):
 
     # SpaceToDepthOptionsT
-    def __init__(self):
-        self.blockSize = 0  # type: int
+    def __init__(
+        self,
+        blockSize = 0,
+    ):
+        self.blockSize = blockSize  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9466,8 +9777,11 @@ def DepthToSpaceOptionsEnd(builder):
 class DepthToSpaceOptionsT(object):
 
     # DepthToSpaceOptionsT
-    def __init__(self):
-        self.blockSize = 0  # type: int
+    def __init__(
+        self,
+        blockSize = 0,
+    ):
+        self.blockSize = blockSize  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9553,9 +9867,13 @@ def SubOptionsEnd(builder):
 class SubOptionsT(object):
 
     # SubOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
-        self.potScaleInt16 = True  # type: bool
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+        potScaleInt16 = True,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.potScaleInt16 = potScaleInt16  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9633,8 +9951,11 @@ def DivOptionsEnd(builder):
 class DivOptionsT(object):
 
     # DivOptionsT
-    def __init__(self):
-        self.fusedActivationFunction = 0  # type: int
+    def __init__(
+        self,
+        fusedActivationFunction = 0,
+    ):
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9700,7 +10021,9 @@ def TopKV2OptionsEnd(builder):
 class TopKV2OptionsT(object):
 
     # TopKV2OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -9775,8 +10098,11 @@ def EmbeddingLookupSparseOptionsEnd(builder):
 class EmbeddingLookupSparseOptionsT(object):
 
     # EmbeddingLookupSparseOptionsT
-    def __init__(self):
-        self.combiner = 0  # type: int
+    def __init__(
+        self,
+        combiner = 0,
+    ):
+        self.combiner = combiner  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9862,9 +10188,13 @@ def GatherOptionsEnd(builder):
 class GatherOptionsT(object):
 
     # GatherOptionsT
-    def __init__(self):
-        self.axis = 0  # type: int
-        self.batchDims = 0  # type: int
+    def __init__(
+        self,
+        axis = 0,
+        batchDims = 0,
+    ):
+        self.axis = axis  # type: int
+        self.batchDims = batchDims  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -9932,7 +10262,9 @@ def TransposeOptionsEnd(builder):
 class TransposeOptionsT(object):
 
     # TransposeOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -9997,7 +10329,9 @@ def ExpOptionsEnd(builder):
 class ExpOptionsT(object):
 
     # ExpOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -10062,7 +10396,9 @@ def CosOptionsEnd(builder):
 class CosOptionsT(object):
 
     # CosOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -10137,8 +10473,11 @@ def ReducerOptionsEnd(builder):
 class ReducerOptionsT(object):
 
     # ReducerOptionsT
-    def __init__(self):
-        self.keepDims = False  # type: bool
+    def __init__(
+        self,
+        keepDims = False,
+    ):
+        self.keepDims = keepDims  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -10241,8 +10580,11 @@ except:
 class SqueezeOptionsT(object):
 
     # SqueezeOptionsT
-    def __init__(self):
-        self.squeezeDims = None  # type: List[int]
+    def __init__(
+        self,
+        squeezeDims = None,
+    ):
+        self.squeezeDims = squeezeDims  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -10333,8 +10675,11 @@ def SplitOptionsEnd(builder):
 class SplitOptionsT(object):
 
     # SplitOptionsT
-    def __init__(self):
-        self.numSplits = 0  # type: int
+    def __init__(
+        self,
+        numSplits = 0,
+    ):
+        self.numSplits = numSplits  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -10410,8 +10755,11 @@ def SplitVOptionsEnd(builder):
 class SplitVOptionsT(object):
 
     # SplitVOptionsT
-    def __init__(self):
-        self.numSplits = 0  # type: int
+    def __init__(
+        self,
+        numSplits = 0,
+    ):
+        self.numSplits = numSplits  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -10537,13 +10885,21 @@ def StridedSliceOptionsEnd(builder):
 class StridedSliceOptionsT(object):
 
     # StridedSliceOptionsT
-    def __init__(self):
-        self.beginMask = 0  # type: int
-        self.endMask = 0  # type: int
-        self.ellipsisMask = 0  # type: int
-        self.newAxisMask = 0  # type: int
-        self.shrinkAxisMask = 0  # type: int
-        self.offset = False  # type: bool
+    def __init__(
+        self,
+        beginMask = 0,
+        endMask = 0,
+        ellipsisMask = 0,
+        newAxisMask = 0,
+        shrinkAxisMask = 0,
+        offset = False,
+    ):
+        self.beginMask = beginMask  # type: int
+        self.endMask = endMask  # type: int
+        self.ellipsisMask = ellipsisMask  # type: int
+        self.newAxisMask = newAxisMask  # type: int
+        self.shrinkAxisMask = shrinkAxisMask  # type: int
+        self.offset = offset  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -10619,7 +10975,9 @@ def LogSoftmaxOptionsEnd(builder):
 class LogSoftmaxOptionsT(object):
 
     # LogSoftmaxOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -10704,9 +11062,13 @@ def CastOptionsEnd(builder):
 class CastOptionsT(object):
 
     # CastOptionsT
-    def __init__(self):
-        self.inDataType = 0  # type: int
-        self.outDataType = 0  # type: int
+    def __init__(
+        self,
+        inDataType = 0,
+        outDataType = 0,
+    ):
+        self.inDataType = inDataType  # type: int
+        self.outDataType = outDataType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -10774,7 +11136,9 @@ def DequantizeOptionsEnd(builder):
 class DequantizeOptionsT(object):
 
     # DequantizeOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -10839,7 +11203,9 @@ def MaximumMinimumOptionsEnd(builder):
 class MaximumMinimumOptionsT(object):
 
     # MaximumMinimumOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -10904,7 +11270,9 @@ def TileOptionsEnd(builder):
 class TileOptionsT(object):
 
     # TileOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -10979,8 +11347,11 @@ def ArgMaxOptionsEnd(builder):
 class ArgMaxOptionsT(object):
 
     # ArgMaxOptionsT
-    def __init__(self):
-        self.outputType = 0  # type: int
+    def __init__(
+        self,
+        outputType = 0,
+    ):
+        self.outputType = outputType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -11056,8 +11427,11 @@ def ArgMinOptionsEnd(builder):
 class ArgMinOptionsT(object):
 
     # ArgMinOptionsT
-    def __init__(self):
-        self.outputType = 0  # type: int
+    def __init__(
+        self,
+        outputType = 0,
+    ):
+        self.outputType = outputType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -11123,7 +11497,9 @@ def GreaterOptionsEnd(builder):
 class GreaterOptionsT(object):
 
     # GreaterOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11188,7 +11564,9 @@ def GreaterEqualOptionsEnd(builder):
 class GreaterEqualOptionsT(object):
 
     # GreaterEqualOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11253,7 +11631,9 @@ def LessOptionsEnd(builder):
 class LessOptionsT(object):
 
     # LessOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11318,7 +11698,9 @@ def LessEqualOptionsEnd(builder):
 class LessEqualOptionsT(object):
 
     # LessEqualOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11383,7 +11765,9 @@ def NegOptionsEnd(builder):
 class NegOptionsT(object):
 
     # NegOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11448,7 +11832,9 @@ def SelectOptionsEnd(builder):
 class SelectOptionsT(object):
 
     # SelectOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11513,7 +11899,9 @@ def SliceOptionsEnd(builder):
 class SliceOptionsT(object):
 
     # SliceOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11628,12 +12016,19 @@ def TransposeConvOptionsEnd(builder):
 class TransposeConvOptionsT(object):
 
     # TransposeConvOptionsT
-    def __init__(self):
-        self.padding = 0  # type: int
-        self.strideW = 0  # type: int
-        self.strideH = 0  # type: int
-        self.fusedActivationFunction = 0  # type: int
-        self.quantizedBiasType = 0  # type: int
+    def __init__(
+        self,
+        padding = 0,
+        strideW = 0,
+        strideH = 0,
+        fusedActivationFunction = 0,
+        quantizedBiasType = 0,
+    ):
+        self.padding = padding  # type: int
+        self.strideW = strideW  # type: int
+        self.strideH = strideH  # type: int
+        self.fusedActivationFunction = fusedActivationFunction  # type: int
+        self.quantizedBiasType = quantizedBiasType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -11707,7 +12102,9 @@ def ExpandDimsOptionsEnd(builder):
 class ExpandDimsOptionsT(object):
 
     # ExpandDimsOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11782,8 +12179,11 @@ def SparseToDenseOptionsEnd(builder):
 class SparseToDenseOptionsT(object):
 
     # SparseToDenseOptionsT
-    def __init__(self):
-        self.validateIndices = False  # type: bool
+    def __init__(
+        self,
+        validateIndices = False,
+    ):
+        self.validateIndices = validateIndices  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -11849,7 +12249,9 @@ def EqualOptionsEnd(builder):
 class EqualOptionsT(object):
 
     # EqualOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11914,7 +12316,9 @@ def NotEqualOptionsEnd(builder):
 class NotEqualOptionsT(object):
 
     # NotEqualOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -11989,8 +12393,11 @@ def ShapeOptionsEnd(builder):
 class ShapeOptionsT(object):
 
     # ShapeOptionsT
-    def __init__(self):
-        self.outType = 0  # type: int
+    def __init__(
+        self,
+        outType = 0,
+    ):
+        self.outType = outType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -12056,7 +12463,9 @@ def RankOptionsEnd(builder):
 class RankOptionsT(object):
 
     # RankOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12121,7 +12530,9 @@ def PowOptionsEnd(builder):
 class PowOptionsT(object):
 
     # PowOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12226,11 +12637,17 @@ def FakeQuantOptionsEnd(builder):
 class FakeQuantOptionsT(object):
 
     # FakeQuantOptionsT
-    def __init__(self):
-        self.min = 0.0  # type: float
-        self.max = 0.0  # type: float
-        self.numBits = 0  # type: int
-        self.narrowRange = False  # type: bool
+    def __init__(
+        self,
+        min = 0.0,
+        max = 0.0,
+        numBits = 0,
+        narrowRange = False,
+    ):
+        self.min = min  # type: float
+        self.max = max  # type: float
+        self.numBits = numBits  # type: int
+        self.narrowRange = narrowRange  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -12322,9 +12739,13 @@ def PackOptionsEnd(builder):
 class PackOptionsT(object):
 
     # PackOptionsT
-    def __init__(self):
-        self.valuesCount = 0  # type: int
-        self.axis = 0  # type: int
+    def __init__(
+        self,
+        valuesCount = 0,
+        axis = 0,
+    ):
+        self.valuesCount = valuesCount  # type: int
+        self.axis = axis  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -12392,7 +12813,9 @@ def LogicalOrOptionsEnd(builder):
 class LogicalOrOptionsT(object):
 
     # LogicalOrOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12467,8 +12890,11 @@ def OneHotOptionsEnd(builder):
 class OneHotOptionsT(object):
 
     # OneHotOptionsT
-    def __init__(self):
-        self.axis = 0  # type: int
+    def __init__(
+        self,
+        axis = 0,
+    ):
+        self.axis = axis  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -12534,7 +12960,9 @@ def AbsOptionsEnd(builder):
 class AbsOptionsT(object):
 
     # AbsOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12599,7 +13027,9 @@ def HardSwishOptionsEnd(builder):
 class HardSwishOptionsT(object):
 
     # HardSwishOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12664,7 +13094,9 @@ def LogicalAndOptionsEnd(builder):
 class LogicalAndOptionsT(object):
 
     # LogicalAndOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12729,7 +13161,9 @@ def LogicalNotOptionsEnd(builder):
 class LogicalNotOptionsT(object):
 
     # LogicalNotOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12814,9 +13248,13 @@ def UnpackOptionsEnd(builder):
 class UnpackOptionsT(object):
 
     # UnpackOptionsT
-    def __init__(self):
-        self.num = 0  # type: int
-        self.axis = 0  # type: int
+    def __init__(
+        self,
+        num = 0,
+        axis = 0,
+    ):
+        self.num = num  # type: int
+        self.axis = axis  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -12884,7 +13322,9 @@ def FloorDivOptionsEnd(builder):
 class FloorDivOptionsT(object):
 
     # FloorDivOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -12949,7 +13389,9 @@ def SquareOptionsEnd(builder):
 class SquareOptionsT(object):
 
     # SquareOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13014,7 +13456,9 @@ def ZerosLikeOptionsEnd(builder):
 class ZerosLikeOptionsT(object):
 
     # ZerosLikeOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13079,7 +13523,9 @@ def FillOptionsEnd(builder):
 class FillOptionsT(object):
 
     # FillOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13144,7 +13590,9 @@ def FloorModOptionsEnd(builder):
 class FloorModOptionsT(object):
 
     # FloorModOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13209,7 +13657,9 @@ def RangeOptionsEnd(builder):
 class RangeOptionsT(object):
 
     # RangeOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13284,8 +13734,11 @@ def LeakyReluOptionsEnd(builder):
 class LeakyReluOptionsT(object):
 
     # LeakyReluOptionsT
-    def __init__(self):
-        self.alpha = 0.0  # type: float
+    def __init__(
+        self,
+        alpha = 0.0,
+    ):
+        self.alpha = alpha  # type: float
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -13351,7 +13804,9 @@ def SquaredDifferenceOptionsEnd(builder):
 class SquaredDifferenceOptionsT(object):
 
     # SquaredDifferenceOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13426,8 +13881,11 @@ def MirrorPadOptionsEnd(builder):
 class MirrorPadOptionsT(object):
 
     # MirrorPadOptionsT
-    def __init__(self):
-        self.mode = 0  # type: int
+    def __init__(
+        self,
+        mode = 0,
+    ):
+        self.mode = mode  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -13503,8 +13961,11 @@ def UniqueOptionsEnd(builder):
 class UniqueOptionsT(object):
 
     # UniqueOptionsT
-    def __init__(self):
-        self.idxOutType = 2  # type: int
+    def __init__(
+        self,
+        idxOutType = 2,
+    ):
+        self.idxOutType = idxOutType  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -13570,7 +14031,9 @@ def ReverseV2OptionsEnd(builder):
 class ReverseV2OptionsT(object):
 
     # ReverseV2OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13635,7 +14098,9 @@ def AddNOptionsEnd(builder):
 class AddNOptionsT(object):
 
     # AddNOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13700,7 +14165,9 @@ def GatherNdOptionsEnd(builder):
 class GatherNdOptionsT(object):
 
     # GatherNdOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13765,7 +14232,9 @@ def WhereOptionsEnd(builder):
 class WhereOptionsT(object):
 
     # WhereOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13850,9 +14319,13 @@ def ReverseSequenceOptionsEnd(builder):
 class ReverseSequenceOptionsT(object):
 
     # ReverseSequenceOptionsT
-    def __init__(self):
-        self.seqDim = 0  # type: int
-        self.batchDim = 0  # type: int
+    def __init__(
+        self,
+        seqDim = 0,
+        batchDim = 0,
+    ):
+        self.seqDim = seqDim  # type: int
+        self.batchDim = batchDim  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -13920,7 +14393,9 @@ def MatrixDiagOptionsEnd(builder):
 class MatrixDiagOptionsT(object):
 
     # MatrixDiagOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -13985,7 +14460,9 @@ def QuantizeOptionsEnd(builder):
 class QuantizeOptionsT(object):
 
     # QuantizeOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14050,7 +14527,9 @@ def MatrixSetDiagOptionsEnd(builder):
 class MatrixSetDiagOptionsT(object):
 
     # MatrixSetDiagOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14135,9 +14614,13 @@ def IfOptionsEnd(builder):
 class IfOptionsT(object):
 
     # IfOptionsT
-    def __init__(self):
-        self.thenSubgraphIndex = 0  # type: int
-        self.elseSubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        thenSubgraphIndex = 0,
+        elseSubgraphIndex = 0,
+    ):
+        self.thenSubgraphIndex = thenSubgraphIndex  # type: int
+        self.elseSubgraphIndex = elseSubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -14215,8 +14698,11 @@ def CallOnceOptionsEnd(builder):
 class CallOnceOptionsT(object):
 
     # CallOnceOptionsT
-    def __init__(self):
-        self.initSubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        initSubgraphIndex = 0,
+    ):
+        self.initSubgraphIndex = initSubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -14302,9 +14788,13 @@ def WhileOptionsEnd(builder):
 class WhileOptionsT(object):
 
     # WhileOptionsT
-    def __init__(self):
-        self.condSubgraphIndex = 0  # type: int
-        self.bodySubgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        condSubgraphIndex = 0,
+        bodySubgraphIndex = 0,
+    ):
+        self.condSubgraphIndex = condSubgraphIndex  # type: int
+        self.bodySubgraphIndex = bodySubgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -14372,7 +14862,9 @@ def NonMaxSuppressionV4OptionsEnd(builder):
 class NonMaxSuppressionV4OptionsT(object):
 
     # NonMaxSuppressionV4OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14437,7 +14929,9 @@ def NonMaxSuppressionV5OptionsEnd(builder):
 class NonMaxSuppressionV5OptionsT(object):
 
     # NonMaxSuppressionV5OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14502,7 +14996,9 @@ def ScatterNdOptionsEnd(builder):
 class ScatterNdOptionsT(object):
 
     # ScatterNdOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14567,7 +15063,9 @@ def SelectV2OptionsEnd(builder):
 class SelectV2OptionsT(object):
 
     # SelectV2OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14632,7 +15130,9 @@ def DensifyOptionsEnd(builder):
 class DensifyOptionsT(object):
 
     # DensifyOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14697,7 +15197,9 @@ def SegmentSumOptionsEnd(builder):
 class SegmentSumOptionsT(object):
 
     # SegmentSumOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -14792,10 +15294,15 @@ def BatchMatMulOptionsEnd(builder):
 class BatchMatMulOptionsT(object):
 
     # BatchMatMulOptionsT
-    def __init__(self):
-        self.adjX = False  # type: bool
-        self.adjY = False  # type: bool
-        self.asymmetricQuantizeInputs = False  # type: bool
+    def __init__(
+        self,
+        adjX = False,
+        adjY = False,
+        asymmetricQuantizeInputs = False,
+    ):
+        self.adjX = adjX  # type: bool
+        self.adjY = adjY  # type: bool
+        self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -14885,9 +15392,13 @@ def CumsumOptionsEnd(builder):
 class CumsumOptionsT(object):
 
     # CumsumOptionsT
-    def __init__(self):
-        self.exclusive = False  # type: bool
-        self.reverse = False  # type: bool
+    def __init__(
+        self,
+        exclusive = False,
+        reverse = False,
+    ):
+        self.exclusive = exclusive  # type: bool
+        self.reverse = reverse  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -14955,7 +15466,9 @@ def BroadcastToOptionsEnd(builder):
 class BroadcastToOptionsT(object):
 
     # BroadcastToOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15020,7 +15533,9 @@ def Rfft2dOptionsEnd(builder):
 class Rfft2dOptionsT(object):
 
     # Rfft2dOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15115,10 +15630,15 @@ def HashtableOptionsEnd(builder):
 class HashtableOptionsT(object):
 
     # HashtableOptionsT
-    def __init__(self):
-        self.tableId = 0  # type: int
-        self.keyDtype = 0  # type: int
-        self.valueDtype = 0  # type: int
+    def __init__(
+        self,
+        tableId = 0,
+        keyDtype = 0,
+        valueDtype = 0,
+    ):
+        self.tableId = tableId  # type: int
+        self.keyDtype = keyDtype  # type: int
+        self.valueDtype = valueDtype  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -15188,7 +15708,9 @@ def HashtableFindOptionsEnd(builder):
 class HashtableFindOptionsT(object):
 
     # HashtableFindOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15253,7 +15775,9 @@ def HashtableImportOptionsEnd(builder):
 class HashtableImportOptionsT(object):
 
     # HashtableImportOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15318,7 +15842,9 @@ def HashtableSizeOptionsEnd(builder):
 class HashtableSizeOptionsT(object):
 
     # HashtableSizeOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15403,9 +15929,13 @@ def VarHandleOptionsEnd(builder):
 class VarHandleOptionsT(object):
 
     # VarHandleOptionsT
-    def __init__(self):
-        self.container = None  # type: str
-        self.sharedName = None  # type: str
+    def __init__(
+        self,
+        container = None,
+        sharedName = None,
+    ):
+        self.container = container  # type: Optional[str]
+        self.sharedName = sharedName  # type: Optional[str]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -15479,7 +16009,9 @@ def ReadVariableOptionsEnd(builder):
 class ReadVariableOptionsT(object):
 
     # ReadVariableOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15544,7 +16076,9 @@ def AssignVariableOptionsEnd(builder):
 class AssignVariableOptionsT(object):
 
     # AssignVariableOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15629,9 +16163,13 @@ def RandomOptionsEnd(builder):
 class RandomOptionsT(object):
 
     # RandomOptionsT
-    def __init__(self):
-        self.seed = 0  # type: int
-        self.seed2 = 0  # type: int
+    def __init__(
+        self,
+        seed = 0,
+        seed2 = 0,
+    ):
+        self.seed = seed  # type: int
+        self.seed2 = seed2  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -15736,8 +16274,11 @@ except:
 class BucketizeOptionsT(object):
 
     # BucketizeOptionsT
-    def __init__(self):
-        self.boundaries = None  # type: List[float]
+    def __init__(
+        self,
+        boundaries = None,
+    ):
+        self.boundaries = boundaries  # type: Optional[List[float]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -15828,8 +16369,11 @@ def GeluOptionsEnd(builder):
 class GeluOptionsT(object):
 
     # GeluOptionsT
-    def __init__(self):
-        self.approximate = False  # type: bool
+    def __init__(
+        self,
+        approximate = False,
+    ):
+        self.approximate = approximate  # type: bool
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -15895,7 +16439,9 @@ def DynamicUpdateSliceOptionsEnd(builder):
 class DynamicUpdateSliceOptionsT(object):
 
     # DynamicUpdateSliceOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -15960,7 +16506,9 @@ def UnsortedSegmentProdOptionsEnd(builder):
 class UnsortedSegmentProdOptionsT(object):
 
     # UnsortedSegmentProdOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16025,7 +16573,9 @@ def UnsortedSegmentMaxOptionsEnd(builder):
 class UnsortedSegmentMaxOptionsT(object):
 
     # UnsortedSegmentMaxOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16090,7 +16640,9 @@ def UnsortedSegmentSumOptionsEnd(builder):
 class UnsortedSegmentSumOptionsT(object):
 
     # UnsortedSegmentSumOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16155,7 +16707,9 @@ def ATan2OptionsEnd(builder):
 class ATan2OptionsT(object):
 
     # ATan2OptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16220,7 +16774,9 @@ def UnsortedSegmentMinOptionsEnd(builder):
 class UnsortedSegmentMinOptionsT(object):
 
     # UnsortedSegmentMinOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16285,7 +16841,9 @@ def SignOptionsEnd(builder):
 class SignOptionsT(object):
 
     # SignOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16350,7 +16908,9 @@ def BitcastOptionsEnd(builder):
 class BitcastOptionsT(object):
 
     # BitcastOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16415,7 +16975,9 @@ def BitwiseXorOptionsEnd(builder):
 class BitwiseXorOptionsT(object):
 
     # BitwiseXorOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16480,7 +17042,9 @@ def RightShiftOptionsEnd(builder):
 class RightShiftOptionsT(object):
 
     # RightShiftOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16545,7 +17109,9 @@ def DilateOptionsEnd(builder):
 class DilateOptionsT(object):
 
     # DilateOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -16620,8 +17186,11 @@ def ReduceWindowOptionsEnd(builder):
 class ReduceWindowOptionsT(object):
 
     # ReduceWindowOptionsT
-    def __init__(self):
-        self.reduceFunction = 0  # type: int
+    def __init__(
+        self,
+        reduceFunction = 0,
+    ):
+        self.reduceFunction = reduceFunction  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -16727,11 +17296,17 @@ def OperatorCodeEnd(builder):
 class OperatorCodeT(object):
 
     # OperatorCodeT
-    def __init__(self):
-        self.deprecatedBuiltinCode = 0  # type: int
-        self.customCode = None  # type: str
-        self.version = 1  # type: int
-        self.builtinCode = 0  # type: int
+    def __init__(
+        self,
+        deprecatedBuiltinCode = 0,
+        customCode = None,
+        version = 1,
+        builtinCode = 0,
+    ):
+        self.deprecatedBuiltinCode = deprecatedBuiltinCode  # type: int
+        self.customCode = customCode  # type: Optional[str]
+        self.version = version  # type: int
+        self.builtinCode = builtinCode  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -16883,12 +17458,19 @@ except:
 class StableHLOCompositeOptionsT(object):
 
     # StableHLOCompositeOptionsT
-    def __init__(self):
-        self.name = None  # type: str
-        self.decompositionSubgraphIndex = 0  # type: int
-        self.compositeAttributes = None  # type: List[int]
-        self.compositeAttributesFormat = 0  # type: int
-        self.version = 0  # type: int
+    def __init__(
+        self,
+        name = None,
+        decompositionSubgraphIndex = 0,
+        compositeAttributes = None,
+        compositeAttributesFormat = 0,
+        version = 0,
+    ):
+        self.name = name  # type: Optional[str]
+        self.decompositionSubgraphIndex = decompositionSubgraphIndex  # type: int
+        self.compositeAttributes = compositeAttributes  # type: Optional[List[int]]
+        self.compositeAttributesFormat = compositeAttributesFormat  # type: int
+        self.version = version  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -16980,7 +17562,9 @@ def StablehloShiftLeftOptionsEnd(builder):
 class StablehloShiftLeftOptionsT(object):
 
     # StablehloShiftLeftOptionsT
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         pass
 
     @classmethod
@@ -17310,21 +17894,37 @@ except:
 class OperatorT(object):
 
     # OperatorT
-    def __init__(self):
-        self.opcodeIndex = 0  # type: int
-        self.inputs = None  # type: List[int]
-        self.outputs = None  # type: List[int]
-        self.builtinOptionsType = 0  # type: int
-        self.builtinOptions = None  # type: Union[None, Conv2DOptionsT, DepthwiseConv2DOptionsT, ConcatEmbeddingsOptionsT, LSHProjectionOptionsT, Pool2DOptionsT, SVDFOptionsT, RNNOptionsT, FullyConnectedOptionsT, SoftmaxOptionsT, ConcatenationOptionsT, AddOptionsT, L2NormOptionsT, LocalResponseNormalizationOptionsT, LSTMOptionsT, ResizeBilinearOptionsT, CallOptionsT, ReshapeOptionsT, SkipGramOptionsT, SpaceToDepthOptionsT, EmbeddingLookupSparseOptionsT, MulOptionsT, PadOptionsT, GatherOptionsT, BatchToSpaceNDOptionsT, SpaceToBatchNDOptionsT, TransposeOptionsT, ReducerOptionsT, SubOptionsT, DivOptionsT, SqueezeOptionsT, SequenceRNNOptionsT, StridedSliceOptionsT, ExpOptionsT, TopKV2OptionsT, SplitOptionsT, LogSoftmaxOptionsT, CastOptionsT, DequantizeOptionsT, MaximumMinimumOptionsT, ArgMaxOptionsT, LessOptionsT, NegOptionsT, PadV2OptionsT, GreaterOptionsT, GreaterEqualOptionsT, LessEqualOptionsT, SelectOptionsT, SliceOptionsT, TransposeConvOptionsT, SparseToDenseOptionsT, TileOptionsT, ExpandDimsOptionsT, EqualOptionsT, NotEqualOptionsT, ShapeOptionsT, PowOptionsT, ArgMinOptionsT, FakeQuantOptionsT, PackOptionsT, LogicalOrOptionsT, OneHotOptionsT, LogicalAndOptionsT, LogicalNotOptionsT, UnpackOptionsT, FloorDivOptionsT, SquareOptionsT, ZerosLikeOptionsT, FillOptionsT, BidirectionalSequenceLSTMOptionsT, BidirectionalSequenceRNNOptionsT, UnidirectionalSequenceLSTMOptionsT, FloorModOptionsT, RangeOptionsT, ResizeNearestNeighborOptionsT, LeakyReluOptionsT, SquaredDifferenceOptionsT, MirrorPadOptionsT, AbsOptionsT, SplitVOptionsT, UniqueOptionsT, ReverseV2OptionsT, AddNOptionsT, GatherNdOptionsT, CosOptionsT, WhereOptionsT, RankOptionsT, ReverseSequenceOptionsT, MatrixDiagOptionsT, QuantizeOptionsT, MatrixSetDiagOptionsT, HardSwishOptionsT, IfOptionsT, WhileOptionsT, DepthToSpaceOptionsT, NonMaxSuppressionV4OptionsT, NonMaxSuppressionV5OptionsT, ScatterNdOptionsT, SelectV2OptionsT, DensifyOptionsT, SegmentSumOptionsT, BatchMatMulOptionsT, CumsumOptionsT, CallOnceOptionsT, BroadcastToOptionsT, Rfft2dOptionsT, Conv3DOptionsT, HashtableOptionsT, HashtableFindOptionsT, HashtableImportOptionsT, HashtableSizeOptionsT, VarHandleOptionsT, ReadVariableOptionsT, AssignVariableOptionsT, RandomOptionsT, BucketizeOptionsT, GeluOptionsT, DynamicUpdateSliceOptionsT, UnsortedSegmentProdOptionsT, UnsortedSegmentMaxOptionsT, UnsortedSegmentMinOptionsT, UnsortedSegmentSumOptionsT, ATan2OptionsT, SignOptionsT, BitcastOptionsT, BitwiseXorOptionsT, RightShiftOptionsT]
-        self.customOptions = None  # type: List[int]
-        self.customOptionsFormat = 0  # type: int
-        self.mutatingVariableInputs = None  # type: List[bool]
-        self.intermediates = None  # type: List[int]
-        self.largeCustomOptionsOffset = 0  # type: int
-        self.largeCustomOptionsSize = 0  # type: int
-        self.builtinOptions2Type = 0  # type: int
-        self.builtinOptions2 = None  # type: Union[None, StablehloConcatenateOptionsT, StablehloBroadcastInDimOptionsT, StablehloSliceOptionsT, StablehloConvolutionOptionsT, StablehloCustomCallOptionsT, StablehloReduceOptionsT, StablehloScatterOptionsT, StablehloCompareOptionsT, StablehloDynamicSliceOptionsT, StablehloPadOptionsT, StablehloIotaOptionsT, StablehloDotGeneralOptionsT, StablehloReduceWindowOptionsT, StablehloSortOptionsT, StablehloWhileOptionsT, StablehloGatherOptionsT, StablehloTransposeOptionsT, DilateOptionsT, StablehloRngBitGeneratorOptionsT, ReduceWindowOptionsT, StableHLOCompositeOptionsT, StablehloShiftLeftOptionsT, StablehloCaseOptionsT]
-        self.debugMetadataIndex = -1  # type: int
+    def __init__(
+        self,
+        opcodeIndex = 0,
+        inputs = None,
+        outputs = None,
+        builtinOptionsType = 0,
+        builtinOptions = None,
+        customOptions = None,
+        customOptionsFormat = 0,
+        mutatingVariableInputs = None,
+        intermediates = None,
+        largeCustomOptionsOffset = 0,
+        largeCustomOptionsSize = 0,
+        builtinOptions2Type = 0,
+        builtinOptions2 = None,
+        debugMetadataIndex = -1,
+    ):
+        self.opcodeIndex = opcodeIndex  # type: int
+        self.inputs = inputs  # type: Optional[List[int]]
+        self.outputs = outputs  # type: Optional[List[int]]
+        self.builtinOptionsType = builtinOptionsType  # type: int
+        self.builtinOptions = builtinOptions  # type: Union[None, 'Conv2DOptionsT', 'DepthwiseConv2DOptionsT', 'ConcatEmbeddingsOptionsT', 'LSHProjectionOptionsT', 'Pool2DOptionsT', 'SVDFOptionsT', 'RNNOptionsT', 'FullyConnectedOptionsT', 'SoftmaxOptionsT', 'ConcatenationOptionsT', 'AddOptionsT', 'L2NormOptionsT', 'LocalResponseNormalizationOptionsT', 'LSTMOptionsT', 'ResizeBilinearOptionsT', 'CallOptionsT', 'ReshapeOptionsT', 'SkipGramOptionsT', 'SpaceToDepthOptionsT', 'EmbeddingLookupSparseOptionsT', 'MulOptionsT', 'PadOptionsT', 'GatherOptionsT', 'BatchToSpaceNDOptionsT', 'SpaceToBatchNDOptionsT', 'TransposeOptionsT', 'ReducerOptionsT', 'SubOptionsT', 'DivOptionsT', 'SqueezeOptionsT', 'SequenceRNNOptionsT', 'StridedSliceOptionsT', 'ExpOptionsT', 'TopKV2OptionsT', 'SplitOptionsT', 'LogSoftmaxOptionsT', 'CastOptionsT', 'DequantizeOptionsT', 'MaximumMinimumOptionsT', 'ArgMaxOptionsT', 'LessOptionsT', 'NegOptionsT', 'PadV2OptionsT', 'GreaterOptionsT', 'GreaterEqualOptionsT', 'LessEqualOptionsT', 'SelectOptionsT', 'SliceOptionsT', 'TransposeConvOptionsT', 'SparseToDenseOptionsT', 'TileOptionsT', 'ExpandDimsOptionsT', 'EqualOptionsT', 'NotEqualOptionsT', 'ShapeOptionsT', 'PowOptionsT', 'ArgMinOptionsT', 'FakeQuantOptionsT', 'PackOptionsT', 'LogicalOrOptionsT', 'OneHotOptionsT', 'LogicalAndOptionsT', 'LogicalNotOptionsT', 'UnpackOptionsT', 'FloorDivOptionsT', 'SquareOptionsT', 'ZerosLikeOptionsT', 'FillOptionsT', 'BidirectionalSequenceLSTMOptionsT', 'BidirectionalSequenceRNNOptionsT', 'UnidirectionalSequenceLSTMOptionsT', 'FloorModOptionsT', 'RangeOptionsT', 'ResizeNearestNeighborOptionsT', 'LeakyReluOptionsT', 'SquaredDifferenceOptionsT', 'MirrorPadOptionsT', 'AbsOptionsT', 'SplitVOptionsT', 'UniqueOptionsT', 'ReverseV2OptionsT', 'AddNOptionsT', 'GatherNdOptionsT', 'CosOptionsT', 'WhereOptionsT', 'RankOptionsT', 'ReverseSequenceOptionsT', 'MatrixDiagOptionsT', 'QuantizeOptionsT', 'MatrixSetDiagOptionsT', 'HardSwishOptionsT', 'IfOptionsT', 'WhileOptionsT', 'DepthToSpaceOptionsT', 'NonMaxSuppressionV4OptionsT', 'NonMaxSuppressionV5OptionsT', 'ScatterNdOptionsT', 'SelectV2OptionsT', 'DensifyOptionsT', 'SegmentSumOptionsT', 'BatchMatMulOptionsT', 'CumsumOptionsT', 'CallOnceOptionsT', 'BroadcastToOptionsT', 'Rfft2dOptionsT', 'Conv3DOptionsT', 'HashtableOptionsT', 'HashtableFindOptionsT', 'HashtableImportOptionsT', 'HashtableSizeOptionsT', 'VarHandleOptionsT', 'ReadVariableOptionsT', 'AssignVariableOptionsT', 'RandomOptionsT', 'BucketizeOptionsT', 'GeluOptionsT', 'DynamicUpdateSliceOptionsT', 'UnsortedSegmentProdOptionsT', 'UnsortedSegmentMaxOptionsT', 'UnsortedSegmentMinOptionsT', 'UnsortedSegmentSumOptionsT', 'ATan2OptionsT', 'SignOptionsT', 'BitcastOptionsT', 'BitwiseXorOptionsT', 'RightShiftOptionsT']
+        self.customOptions = customOptions  # type: Optional[List[int]]
+        self.customOptionsFormat = customOptionsFormat  # type: int
+        self.mutatingVariableInputs = mutatingVariableInputs  # type: Optional[List[bool]]
+        self.intermediates = intermediates  # type: Optional[List[int]]
+        self.largeCustomOptionsOffset = largeCustomOptionsOffset  # type: int
+        self.largeCustomOptionsSize = largeCustomOptionsSize  # type: int
+        self.builtinOptions2Type = builtinOptions2Type  # type: int
+        self.builtinOptions2 = builtinOptions2  # type: Union[None, 'StablehloConcatenateOptionsT', 'StablehloBroadcastInDimOptionsT', 'StablehloSliceOptionsT', 'StablehloConvolutionOptionsT', 'StablehloCustomCallOptionsT', 'StablehloReduceOptionsT', 'StablehloScatterOptionsT', 'StablehloCompareOptionsT', 'StablehloDynamicSliceOptionsT', 'StablehloPadOptionsT', 'StablehloIotaOptionsT', 'StablehloDotGeneralOptionsT', 'StablehloReduceWindowOptionsT', 'StablehloSortOptionsT', 'StablehloWhileOptionsT', 'StablehloGatherOptionsT', 'StablehloTransposeOptionsT', 'DilateOptionsT', 'StablehloRngBitGeneratorOptionsT', 'ReduceWindowOptionsT', 'StableHLOCompositeOptionsT', 'StablehloShiftLeftOptionsT', 'StablehloCaseOptionsT']
+        self.debugMetadataIndex = debugMetadataIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -17647,13 +18247,21 @@ except:
 class SubGraphT(object):
 
     # SubGraphT
-    def __init__(self):
-        self.tensors = None  # type: List[TensorT]
-        self.inputs = None  # type: List[int]
-        self.outputs = None  # type: List[int]
-        self.operators = None  # type: List[OperatorT]
-        self.name = None  # type: str
-        self.debugMetadataIndex = -1  # type: int
+    def __init__(
+        self,
+        tensors = None,
+        inputs = None,
+        outputs = None,
+        operators = None,
+        name = None,
+        debugMetadataIndex = -1,
+    ):
+        self.tensors = tensors  # type: Optional[List[TensorT]]
+        self.inputs = inputs  # type: Optional[List[int]]
+        self.outputs = outputs  # type: Optional[List[int]]
+        self.operators = operators  # type: Optional[List[OperatorT]]
+        self.name = name  # type: Optional[str]
+        self.debugMetadataIndex = debugMetadataIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -17851,10 +18459,15 @@ except:
 class BufferT(object):
 
     # BufferT
-    def __init__(self):
-        self.data = None  # type: List[int]
-        self.offset = 0  # type: int
-        self.size = 0  # type: int
+    def __init__(
+        self,
+        data = None,
+        offset = 0,
+        size = 0,
+    ):
+        self.data = data  # type: Optional[List[int]]
+        self.offset = offset  # type: int
+        self.size = size  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -17949,8 +18562,11 @@ def ExternalBufferGroupEnd(builder):
 class ExternalBufferGroupT(object):
 
     # ExternalBufferGroupT
-    def __init__(self):
-        self.name = None  # type: str
+    def __init__(
+        self,
+        name = None,
+    ):
+        self.name = name  # type: Optional[str]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -18069,12 +18685,19 @@ def ExternalBufferEnd(builder):
 class ExternalBufferT(object):
 
     # ExternalBufferT
-    def __init__(self):
-        self.id = 0  # type: int
-        self.group = 0  # type: int
-        self.offset = 0  # type: int
-        self.length = 0  # type: int
-        self.packing = None  # type: str
+    def __init__(
+        self,
+        id = 0,
+        group = 0,
+        offset = 0,
+        length = 0,
+        packing = None,
+    ):
+        self.id = id  # type: int
+        self.group = group  # type: int
+        self.offset = offset  # type: int
+        self.length = length  # type: int
+        self.packing = packing  # type: Optional[str]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -18171,9 +18794,13 @@ def MetadataEnd(builder):
 class MetadataT(object):
 
     # MetadataT
-    def __init__(self):
-        self.name = None  # type: str
-        self.buffer = 0  # type: int
+    def __init__(
+        self,
+        name = None,
+        buffer = 0,
+    ):
+        self.name = name  # type: Optional[str]
+        self.buffer = buffer  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -18264,9 +18891,13 @@ def TensorMapEnd(builder):
 class TensorMapT(object):
 
     # TensorMapT
-    def __init__(self):
-        self.name = None  # type: str
-        self.tensorIndex = 0  # type: int
+    def __init__(
+        self,
+        name = None,
+        tensorIndex = 0,
+    ):
+        self.name = name  # type: Optional[str]
+        self.tensorIndex = tensorIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -18421,11 +19052,17 @@ except:
 class SignatureDefT(object):
 
     # SignatureDefT
-    def __init__(self):
-        self.inputs = None  # type: List[TensorMapT]
-        self.outputs = None  # type: List[TensorMapT]
-        self.signatureKey = None  # type: str
-        self.subgraphIndex = 0  # type: int
+    def __init__(
+        self,
+        inputs = None,
+        outputs = None,
+        signatureKey = None,
+        subgraphIndex = 0,
+    ):
+        self.inputs = inputs  # type: Optional[List[TensorMapT]]
+        self.outputs = outputs  # type: Optional[List[TensorMapT]]
+        self.signatureKey = signatureKey  # type: Optional[str]
+        self.subgraphIndex = subgraphIndex  # type: int
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -18799,17 +19436,29 @@ except:
 class ModelT(object):
 
     # ModelT
-    def __init__(self):
-        self.version = 0  # type: int
-        self.operatorCodes = None  # type: List[OperatorCodeT]
-        self.subgraphs = None  # type: List[SubGraphT]
-        self.description = None  # type: str
-        self.buffers = None  # type: List[BufferT]
-        self.metadataBuffer = None  # type: List[int]
-        self.metadata = None  # type: List[MetadataT]
-        self.signatureDefs = None  # type: List[SignatureDefT]
-        self.externalBufferGroups = None  # type: List[ExternalBufferGroupT]
-        self.externalBuffers = None  # type: List[ExternalBufferT]
+    def __init__(
+        self,
+        version = 0,
+        operatorCodes = None,
+        subgraphs = None,
+        description = None,
+        buffers = None,
+        metadataBuffer = None,
+        metadata = None,
+        signatureDefs = None,
+        externalBufferGroups = None,
+        externalBuffers = None,
+    ):
+        self.version = version  # type: int
+        self.operatorCodes = operatorCodes  # type: Optional[List[OperatorCodeT]]
+        self.subgraphs = subgraphs  # type: Optional[List[SubGraphT]]
+        self.description = description  # type: Optional[str]
+        self.buffers = buffers  # type: Optional[List[BufferT]]
+        self.metadataBuffer = metadataBuffer  # type: Optional[List[int]]
+        self.metadata = metadata  # type: Optional[List[MetadataT]]
+        self.signatureDefs = signatureDefs  # type: Optional[List[SignatureDefT]]
+        self.externalBufferGroups = externalBufferGroups  # type: Optional[List[ExternalBufferGroupT]]
+        self.externalBuffers = externalBuffers  # type: Optional[List[ExternalBufferT]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
