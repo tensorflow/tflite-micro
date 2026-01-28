@@ -32,7 +32,7 @@ include $(MAKEFILE_DIR)/helper_functions.inc
 # Try to figure out the host system
 HOST_OS :=
 ifeq ($(OS),Windows_NT)
-  HOST_OS = windows
+  HOST_OS := windows
 else
   UNAME_S := $(shell uname -s)
   ifeq ($(UNAME_S),Linux)
@@ -657,20 +657,20 @@ MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SR
 # The download scripts require that the downloads directory already exist for
 # improved error checking. To accomodate that, we first create a downloads
 # directory.
-$(shell $(MKDIR_P) ${DOWNLOADS_DIR})
+$(shell $(MKDIR_P) $(DOWNLOADS_DIR))
 
 # Directly download the flatbuffers library.
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/flatbuffers_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the flatbuffers download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/kissfft_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the kissfft download: $(DOWNLOAD_RESULT))
 endif
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/pigweed_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
 ifneq ($(DOWNLOAD_RESULT), SUCCESS)
   $(error Something went wrong with the pigweed download: $(DOWNLOAD_RESULT))
 endif
@@ -690,7 +690,7 @@ $(HOST_OS)
 # having passed.
 TEST_PASS_STRING := '~~~ALL TESTS PASSED~~~'
 
-# ${TARGET}_makefile.inc can set this to true to allow it to defined a custom
+# $(TARGET)_makefile.inc can set this to true to allow it to defined a custom
 # implementation for `make test`. See bluepill_makefile as an example.
 TARGET_SPECIFIC_MAKE_TEST := 0
 
@@ -809,9 +809,9 @@ ALL_SRCS := \
 
 MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
 
-CXX := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${CXX_TOOL}
-CC := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${CC_TOOL}
-AR := $(TARGET_TOOLCHAIN_ROOT)${TARGET_TOOLCHAIN_PREFIX}${AR_TOOL}
+CXX := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(CXX_TOOL)
+CC := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(CC_TOOL)
+AR := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(AR_TOOL)
 
 # The default Makefile target(all) must appear before any target,
 # which is compiled if there's no command-line arguments.
@@ -828,12 +828,12 @@ include $(MICRO_LITE_EXAMPLE_TESTS)
 include $(MICRO_LITE_INTEGRATION_TESTS)
 
 # Load generated micro mutable op resolver test.
-include ${MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST}
+include $(MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST)
 
 # Load layer_by_layer_output_tool
 ifneq ($(TARGET), $(filter $(TARGET), \
   bluepill cortex_m_corstone_300 riscv32_generic hexagon))
-include ${MICRO_LITE_LAYER_BY_LAYER_OUTPUT}
+include $(MICRO_LITE_LAYER_BY_LAYER_OUTPUT)
 endif
 
 # Load the benchmarks.
@@ -931,12 +931,12 @@ $(BINDIR)%.test_target: $(BINDIR)%_test
 # of the linker into a binary image that can be loaded directly.
 ifeq ($(TOOLCHAIN), armclang)
   CXXFLAGS += -ffp-mode=full
-  FROMELF := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)fromelf
+  FROMELF := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)fromelf
   $(BINDIR)%.bin: $(BINDIR)%
 		$(Q)$(MKDIR_P) $(dir $@)
 		$(Q)$(FROMELF) --bin --output=$@ $<
 else
-  OBJCOPY := ${TARGET_TOOLCHAIN_ROOT}$(TARGET_TOOLCHAIN_PREFIX)objcopy
+  OBJCOPY := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)objcopy
   $(BINDIR)%.bin: $(BINDIR)%
 		$(Q)$(MKDIR_P) $(dir $@)
 		$(Q)$(OBJCOPY) $< $@ -O binary
