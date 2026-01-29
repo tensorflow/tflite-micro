@@ -1,8 +1,3 @@
-load(
-    "@flatbuffers//:build_defs.bzl",
-    "flatbuffer_cc_library",
-    "flatbuffer_py_library",
-)
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
@@ -11,6 +6,11 @@ load(
     "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
     "tflm_cc_test",
+)
+load(
+    "//third_party/flatbuffers:build_defs.bzl",
+    "flatbuffer_cc_library",
+    "flatbuffer_py_library",
 )
 load("view_tests.bzl", "generate_view_tests")
 
@@ -107,7 +107,8 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         "metadata_py",
-        "@flatbuffers//:runtime_py",
+        "//:tflite_micro_shim",
+        requirement("flatbuffers"),
         requirement("tensorflow"),
     ],
 )
@@ -123,7 +124,7 @@ py_library(
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
         requirement("absl_py"),
-        "@flatbuffers//:runtime_py",
+        requirement("flatbuffers"),
         requirement("bitarray"),
         requirement("numpy"),
     ],
@@ -169,6 +170,7 @@ py_library(
     name = "model_facade",
     srcs = ["model_facade.py"],
     deps = [
+        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("flatbuffers"),
     ],
@@ -190,6 +192,7 @@ py_library(
     name = "spec",
     srcs = ["spec.py"],
     deps = [
+        "//:tflite_micro_shim",
         requirement("pyyaml"),
     ],
 )
@@ -229,6 +232,7 @@ py_library(
     name = "test_models",
     srcs = ["test_models.py"],
     deps = [
+        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("flatbuffers"),
         requirement("numpy"),
@@ -255,9 +259,11 @@ py_binary(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":metadata_py",
+        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("absl_py"),
         requirement("bitarray"),
+        requirement("numpy"),
         requirement("prettyprinter"),
     ],
 )

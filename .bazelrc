@@ -24,9 +24,6 @@ build --embed_label=0
 # Get stamp values from a script's output
 build --workspace_status_command=./tools/workspace_status.sh
 
-# TODO(b/315853820): Needed for Bazel 7.0, until migrated to bzlmod
-build --noenable_bzlmod
-
 # Automatically enable the config matching the host OS
 common --enable_platform_specific_config
 
