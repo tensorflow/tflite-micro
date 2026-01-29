@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -54,8 +54,8 @@ void ExecuteEmbeddingLookupTest(TfLiteTensor* tensors, int tensors_count) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <size_t N>
@@ -84,15 +84,13 @@ void TestEmbeddingLookupQuantized(TestEmbeddingLookupParams<N>& params,
 
   // check output data against expected
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTestTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTestTolerance);
   }
 
   // check output dimensions (relocated) against original dimensions
-  TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
-                          tensors[kOutputTensorIndex].dims->size);
+  EXPECT_EQ(output_dims->size, tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output_dims->data[i],
-                            tensors[kOutputTensorIndex].dims->data[i]);
+    EXPECT_EQ(output_dims->data[i], tensors[kOutputTensorIndex].dims->data[i]);
   }
 }  // namespace
 
@@ -116,15 +114,13 @@ void TestEmbeddingLookup(int* input_dims_data[kNumInputs],
 
   // check output data against expected
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTestTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTestTolerance);
   }
 
   // check output dimensions (relocated) against original dimensions
-  TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
-                          tensors[kOutputTensorIndex].dims->size);
+  EXPECT_EQ(output_dims->size, tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output_dims->data[i],
-                            tensors[kOutputTensorIndex].dims->data[i]);
+    EXPECT_EQ(output_dims->data[i], tensors[kOutputTensorIndex].dims->data[i]);
   }
 }
 
@@ -132,9 +128,7 @@ void TestEmbeddingLookup(int* input_dims_data[kNumInputs],
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(EmbeddingLookupOpTestSimpleFloat) {
+TEST(EmbeddingLookupTest, EmbeddingLookupOpTestSimpleFloat) {
   int kInputDims_0[] = {1, 3};
   int kInputDims_1[] = {3, 3, 2, 4};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -158,7 +152,7 @@ TF_LITE_MICRO_TEST(EmbeddingLookupOpTestSimpleFloat) {
                                        kOutputDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(HybridEmbeddingLookupHybridOpTestSimple2DTestInt8) {
+TEST(EmbeddingLookupTest, HybridEmbeddingLookupHybridOpTestSimple2DTestInt8) {
   int kInputDims_0[] = {1, 3};
   int kInputDims_1[] = {2, 3, 8};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -189,7 +183,7 @@ TF_LITE_MICRO_TEST(HybridEmbeddingLookupHybridOpTestSimple2DTestInt8) {
                                                 output_data);
 }
 
-TF_LITE_MICRO_TEST(HybridEmbeddingLookupHybridOpTestSimple3DTestInt8) {
+TEST(EmbeddingLookupTest, HybridEmbeddingLookupHybridOpTestSimple3DTestInt8) {
   int kInputDims_0[] = {1, 3};
   int kInputDims_1[] = {3, 3, 2, 4};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -220,7 +214,7 @@ TF_LITE_MICRO_TEST(HybridEmbeddingLookupHybridOpTestSimple3DTestInt8) {
                                                 output_data);
 }
 
-TF_LITE_MICRO_TEST(HybridEmbeddingLookupHybridOpTestSimple4DTestInt8) {
+TEST(EmbeddingLookupTest, HybridEmbeddingLookupHybridOpTestSimple4DTestInt8) {
   int kInputDims_0[] = {1, 3};
   int kInputDims_1[] = {4, 3, 2, 2, 2};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -251,7 +245,7 @@ TF_LITE_MICRO_TEST(HybridEmbeddingLookupHybridOpTestSimple4DTestInt8) {
                                                 output_data);
 }
 
-TF_LITE_MICRO_TEST(EmbeddingLookupOpTestSimpleInt8) {
+TEST(EmbeddingLookupTest, EmbeddingLookupOpTestSimpleInt8) {
   int kInputDims_0[] = {1, 3};
   int kInputDims_1[] = {3, 3, 2, 4};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -275,4 +269,4 @@ TF_LITE_MICRO_TEST(EmbeddingLookupOpTestSimpleInt8) {
                                        kOutputDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

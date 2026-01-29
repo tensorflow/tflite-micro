@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -47,19 +47,17 @@ void TestExp(int* input_dims_data, const float* input_data,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SingleDim) {
+TEST(ExpTest, SingleDim) {
   constexpr int kInputSize = 7;
   float output_data[kInputSize];
   int input_dims[] = {2, 1, kInputSize};
@@ -73,4 +71,4 @@ TF_LITE_MICRO_TEST(SingleDim) {
   tflite::testing::TestExp(input_dims, input_values, golden, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
