@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef ETHOS_U
@@ -73,13 +73,10 @@ inline void print_output_data(TfLiteTensor* output) {
 template <typename T>
 void check_output_elem(TfLiteTensor* output, const T* expected_output,
                        const int index) {
-  TF_LITE_MICRO_EXPECT_EQ(tflite::GetTensorData<T>(output)[index],
-                          expected_output[index]);
+  EXPECT_EQ(tflite::GetTensorData<T>(output)[index], expected_output[index]);
 }
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestInvoke) {
+TEST(NetworkTesterTest, TestInvoke) {
 #ifdef ETHOS_U
   const tflite::Model* model = ::tflite::GetModel(g_person_detect_model_data);
 #else
@@ -128,7 +125,7 @@ TF_LITE_MICRO_TEST(TestInvoke) {
       MicroPrintf("Invoke failed\n");
       return kTfLiteError;
     }
-    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
+    EXPECT_EQ(kTfLiteOk, invoke_status);
 
 #ifdef NUM_BYTES_TO_PRINT
     // Print all of the output data, or the first NUM_BYTES_TO_PRINT bytes,
@@ -160,4 +157,4 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   MicroPrintf("~~~ALL TESTS PASSED~~~\n");
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

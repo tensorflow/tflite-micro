@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/models/person_detect_model_data.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
@@ -32,9 +32,7 @@ constexpr int tensor_arena_size = 136 * 1024;
 #endif  // defined(XTENSA) && defined(VISION_P6)
 uint8_t tensor_arena[tensor_arena_size];
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestInvoke) {
+TEST(PersonDetectionTest, TestInvoke) {
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model = ::tflite::GetModel(g_person_detect_model_data);
@@ -67,13 +65,13 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TfLiteTensor* input = interpreter.input(0);
 
   // Make sure the input has the properties we expect.
-  TF_LITE_MICRO_EXPECT(input != nullptr);
-  TF_LITE_MICRO_EXPECT_EQ(4, input->dims->size);
-  TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(kNumRows, input->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(kNumCols, input->dims->data[2]);
-  TF_LITE_MICRO_EXPECT_EQ(kNumChannels, input->dims->data[3]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
+  EXPECT_NE(input, nullptr);
+  EXPECT_EQ(4, input->dims->size);
+  EXPECT_EQ(1, input->dims->data[0]);
+  EXPECT_EQ(kNumRows, input->dims->data[1]);
+  EXPECT_EQ(kNumCols, input->dims->data[2]);
+  EXPECT_EQ(kNumChannels, input->dims->data[3]);
+  EXPECT_EQ(kTfLiteInt8, input->type);
 
   // Copy an image with a person into the memory area used for the input.
   TFLITE_DCHECK_EQ(input->bytes, static_cast<size_t>(g_person_image_data_size));
@@ -84,22 +82,22 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   if (invoke_status != kTfLiteOk) {
     MicroPrintf("Invoke failed\n");
   }
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
+  EXPECT_EQ(kTfLiteOk, invoke_status);
 
   // Get the output from the model, and make sure it's the expected size and
   // type.
   TfLiteTensor* output = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(2, output->dims->size);
-  TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(kCategoryCount, output->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
+  EXPECT_EQ(2, output->dims->size);
+  EXPECT_EQ(1, output->dims->data[0]);
+  EXPECT_EQ(kCategoryCount, output->dims->data[1]);
+  EXPECT_EQ(kTfLiteInt8, output->type);
 
   // Make sure that the expected "Person" score is higher than the other class.
   int8_t person_score = output->data.int8[kPersonIndex];
   int8_t no_person_score = output->data.int8[kNotAPersonIndex];
   MicroPrintf("person data.  person score: %d, no person score: %d\n",
               person_score, no_person_score);
-  TF_LITE_MICRO_EXPECT_GT(person_score, no_person_score);
+  EXPECT_GT(person_score, no_person_score);
 
   memcpy(input->data.int8, g_no_person_image_data, input->bytes);
 
@@ -108,24 +106,24 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   if (invoke_status != kTfLiteOk) {
     MicroPrintf("Invoke failed\n");
   }
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
+  EXPECT_EQ(kTfLiteOk, invoke_status);
 
   // Get the output from the model, and make sure it's the expected size and
   // type.
   output = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(2, output->dims->size);
-  TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(kCategoryCount, output->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
+  EXPECT_EQ(2, output->dims->size);
+  EXPECT_EQ(1, output->dims->data[0]);
+  EXPECT_EQ(kCategoryCount, output->dims->data[1]);
+  EXPECT_EQ(kTfLiteInt8, output->type);
 
   // Make sure that the expected "No Person" score is higher.
   person_score = output->data.int8[kPersonIndex];
   no_person_score = output->data.int8[kNotAPersonIndex];
   MicroPrintf("no person data.  person score: %d, no person score: %d\n",
               person_score, no_person_score);
-  TF_LITE_MICRO_EXPECT_GT(no_person_score, person_score);
+  EXPECT_GT(no_person_score, person_score);
 
   MicroPrintf("Ran successfully\n");
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
