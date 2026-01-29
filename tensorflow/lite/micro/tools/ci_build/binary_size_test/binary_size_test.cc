@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 // Change this number to have a binary with a different
@@ -23,17 +23,15 @@ constexpr int kSize = 64;
 long random_array[kSize] = {1, 2, 3, 4, 5, 6, 7, 8};
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(BinarySizeChangeBykSize) {
+TEST(BinarySizeTest, BinarySizeChangeBykSize) {
   // Just some code to create a binary and keep data section.
   for (int i = 0; i < kSize; i++) {
     random_array[i] = i + 1;
   }
 
   for (int i = 0; i < kSize; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(random_array[i], i + 1);
+    EXPECT_EQ(random_array[i], i + 1);
   }
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
