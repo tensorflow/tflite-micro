@@ -1,5 +1,5 @@
-load("@flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library")
 
 package(
     default_visibility = [

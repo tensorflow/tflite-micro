@@ -12,5 +12,8 @@ py_binary(
 py_test(
     name = "expand_stamp_vars_test",
     srcs = ["expand_stamp_vars_test.py"],
-    deps = [":expand_stamp_vars"],
+    deps = [
+        ":expand_stamp_vars",
+        "//:tflite_micro_shim",
+    ],
 )
