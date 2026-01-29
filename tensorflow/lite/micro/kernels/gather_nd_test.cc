@@ -16,7 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -47,8 +47,8 @@ void TestGatherNd(int* param_dims, const ParamType* param_data, int* index_dims,
   const TFLMRegistration registration = Register_GATHER_ND();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(expected_status, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(expected_status, runner.Invoke());
 
   if (expected_status == kTfLiteOk) {
     // The output tensor's data and shape have been updated by the kernel.
@@ -56,7 +56,7 @@ void TestGatherNd(int* param_dims, const ParamType* param_data, int* index_dims,
     TfLiteIntArray* actual_output_dims = actual_output_tensor->dims;
     const int output_size = ElementCount(*actual_output_dims);
     for (int i = 0; i < output_size; ++i) {
-      TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+      EXPECT_EQ(expected_output_data[i], output_data[i]);
     }
   }
 }
@@ -65,9 +65,7 @@ void TestGatherNd(int* param_dims, const ParamType* param_data, int* index_dims,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(GatherNd_ElementIndexingIntoMatrix) {
+TEST(GatherNdTest, GatherNd_ElementIndexingIntoMatrix) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -82,7 +80,7 @@ TF_LITE_MICRO_TEST(GatherNd_ElementIndexingIntoMatrix) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_SliceIndexingIntoMatrix) {
+TEST(GatherNdTest, GatherNd_SliceIndexingIntoMatrix) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -97,7 +95,7 @@ TF_LITE_MICRO_TEST(GatherNd_SliceIndexingIntoMatrix) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoMatrix1) {
+TEST(GatherNdTest, GatherNd_BatchedIndexingIntoMatrix1) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -112,7 +110,7 @@ TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoMatrix1) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoMatrix2) {
+TEST(GatherNdTest, GatherNd_BatchedIndexingIntoMatrix2) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -127,7 +125,7 @@ TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoMatrix2) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_DuplicateIndexingIntoMatrix) {
+TEST(GatherNdTest, GatherNd_DuplicateIndexingIntoMatrix) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -142,7 +140,7 @@ TF_LITE_MICRO_TEST(GatherNd_DuplicateIndexingIntoMatrix) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_ElementIndexingIntoRank3Tensor) {
+TEST(GatherNdTest, GatherNd_ElementIndexingIntoRank3Tensor) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -159,7 +157,7 @@ TF_LITE_MICRO_TEST(GatherNd_ElementIndexingIntoRank3Tensor) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_SliceIndexingIntoRank3Tensor) {
+TEST(GatherNdTest, GatherNd_SliceIndexingIntoRank3Tensor) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -177,7 +175,7 @@ TF_LITE_MICRO_TEST(GatherNd_SliceIndexingIntoRank3Tensor) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor1) {
+TEST(GatherNdTest, GatherNd_BatchedIndexingIntoRank3Tensor1) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -194,7 +192,7 @@ TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor1) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor2) {
+TEST(GatherNdTest, GatherNd_BatchedIndexingIntoRank3Tensor2) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -213,7 +211,7 @@ TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor2) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor3) {
+TEST(GatherNdTest, GatherNd_BatchedIndexingIntoRank3Tensor3) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -231,7 +229,7 @@ TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor3) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor4) {
+TEST(GatherNdTest, GatherNd_BatchedIndexingIntoRank3Tensor4) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -248,7 +246,7 @@ TF_LITE_MICRO_TEST(GatherNd_BatchedIndexingIntoRank3Tensor4) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_DuplicateIndexingIntoRank3Tensor) {
+TEST(GatherNdTest, GatherNd_DuplicateIndexingIntoRank3Tensor) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -265,7 +263,7 @@ TF_LITE_MICRO_TEST(GatherNd_DuplicateIndexingIntoRank3Tensor) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_Float32Int32) {
+TEST(GatherNdTest, GatherNd_Float32Int32) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -282,7 +280,7 @@ TF_LITE_MICRO_TEST(GatherNd_Float32Int32) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_Int8Int32) {
+TEST(GatherNdTest, GatherNd_Int8Int32) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {3, 3, 2, 3};
@@ -299,7 +297,7 @@ TF_LITE_MICRO_TEST(GatherNd_Int8Int32) {
       golden_data);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_ReadOOB) {
+TEST(GatherNdTest, GatherNd_ReadOOB) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -313,7 +311,7 @@ TF_LITE_MICRO_TEST(GatherNd_ReadOOB) {
       nullptr, kTfLiteError);
 }
 
-TF_LITE_MICRO_TEST(GatherNd_ReadOOBNegative) {
+TEST(GatherNdTest, GatherNd_ReadOOBNegative) {
   // For input_dims[], index_dims[], or output_dims[], element 0 is the
   // number of dimensions in that array, not the actual dimension data.
   int input_dims[] = {2, 2, 2};
@@ -327,4 +325,4 @@ TF_LITE_MICRO_TEST(GatherNd_ReadOOBNegative) {
       nullptr, kTfLiteError);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
