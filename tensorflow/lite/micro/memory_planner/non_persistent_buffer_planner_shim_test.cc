@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_planner/non_persistent_buffer_planner_shim.h"
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 constexpr int32_t kBufferCnt = 2;
@@ -46,59 +46,54 @@ tflite::BufferPlan* CreateBufferPlan() {
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestGetOffsetForBuffer) {
+TEST(NonPersistentBufferPlannerShimTest, TestGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset0 = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset0));
-  TF_LITE_MICRO_EXPECT_EQ(kBuffer0Offset, offset0);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(0, &offset0));
+  EXPECT_EQ(kBuffer0Offset, offset0);
 
   int offset1 = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset1));
-  TF_LITE_MICRO_EXPECT_EQ(kBuffer1Offset, offset1);
+  EXPECT_EQ(kTfLiteOk, planner.GetOffsetForBuffer(1, &offset1));
+  EXPECT_EQ(kBuffer1Offset, offset1);
 }
 
-TF_LITE_MICRO_TEST(TestErrorGetOffsetForBuffer) {
+TEST(NonPersistentBufferPlannerShimTest, TestErrorGetOffsetForBuffer) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
   int offset = -1;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError,
-                          planner.GetOffsetForBuffer(kBufferCnt, &offset));
+  EXPECT_EQ(kTfLiteError, planner.GetOffsetForBuffer(kBufferCnt, &offset));
 }
 
-TF_LITE_MICRO_TEST(TestAddBufferSuccess) {
+TEST(NonPersistentBufferPlannerShimTest, TestAddBufferSuccess) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
 }
 
-TF_LITE_MICRO_TEST(TestAddBufferFailWhenExceedRange) {
+TEST(NonPersistentBufferPlannerShimTest, TestAddBufferFailWhenExceedRange) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
-                                                       /*first_time_used=*/0,
-                                                       /*last_time_used=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteError,
-      planner.AddBuffer(/*size=*/10,
-                        /*first_time_used=*/0, /*last_time_used=*/1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/10,
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
+  EXPECT_EQ(kTfLiteOk, planner.AddBuffer(/*size=*/20,
+                                         /*first_time_used=*/0,
+                                         /*last_time_used=*/1));
+  EXPECT_EQ(kTfLiteError,
+            planner.AddBuffer(/*size=*/10,
+                              /*first_time_used=*/0, /*last_time_used=*/1));
 }
 
-TF_LITE_MICRO_TEST(TestBasics) {
+TEST(NonPersistentBufferPlannerShimTest, TestBasics) {
   tflite::NonPersistentMemoryPlannerShim planner(CreateBufferPlan());
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
-                          planner.GetMaximumMemorySize());
+  EXPECT_EQ(static_cast<size_t>(0), planner.GetMaximumMemorySize());
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

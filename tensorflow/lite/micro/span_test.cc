@@ -16,44 +16,42 @@
 
 #include <array>
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestArrayInitialization) {
+TEST(SpanTest, TestArrayInitialization) {
   int a[]{1, 2, 3};
   tflite::Span<int> s{a};
-  TF_LITE_MICRO_EXPECT(s.data() == a);
-  TF_LITE_MICRO_EXPECT(s.size() == sizeof(a) / sizeof(int));
+  EXPECT_EQ(s.data(), a);
+  EXPECT_EQ(s.size(), sizeof(a) / sizeof(int));
 }
 
-TF_LITE_MICRO_TEST(TestStdArrayInitialization) {
+TEST(SpanTest, TestStdArrayInitialization) {
   std::array<char, 20> a;
   tflite::Span<char> s{a};
-  TF_LITE_MICRO_EXPECT(s.data() == a.data());
-  TF_LITE_MICRO_EXPECT(s.size() == a.size());
+  EXPECT_EQ(s.data(), a.data());
+  EXPECT_EQ(s.size(), a.size());
 }
 
-TF_LITE_MICRO_TEST(TestEquality) {
+TEST(SpanTest, TestEquality) {
   constexpr int a[]{1, 2, 3};
   constexpr int b[]{1, 2, 3};
   constexpr int c[]{3, 2, 1};
   tflite::Span<const int> s_a{a};
   tflite::Span<const int> s_b{b};
   tflite::Span<const int> s_c{c};
-  TF_LITE_MICRO_EXPECT_TRUE(s_a == s_b);
-  TF_LITE_MICRO_EXPECT_FALSE(s_a == s_c);
+  EXPECT_TRUE(s_a == s_b);
+  EXPECT_FALSE(s_a == s_c);
 }
 
-TF_LITE_MICRO_TEST(TestInequality) {
+TEST(SpanTest, TestInequality) {
   constexpr int a[]{1, 2, 3};
   constexpr int b[]{1, 2, 3};
   constexpr int c[]{3, 2, 1};
   tflite::Span<const int> s_a{a};
   tflite::Span<const int> s_b{b};
   tflite::Span<const int> s_c{c};
-  TF_LITE_MICRO_EXPECT_FALSE(s_a != s_b);
-  TF_LITE_MICRO_EXPECT_TRUE(s_a != s_c);
+  EXPECT_FALSE(s_a != s_b);
+  EXPECT_TRUE(s_a != s_c);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

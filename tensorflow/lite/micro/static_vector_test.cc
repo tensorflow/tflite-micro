@@ -14,69 +14,67 @@
 
 #include "tensorflow/lite/micro/static_vector.h"
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 using tflite::StaticVector;
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(StaticVectorPushBack) {
+TEST(StaticVectorTest, StaticVectorPushBack) {
   StaticVector<int, 4> a;
-  TF_LITE_MICRO_EXPECT(a.max_size() == 4);
-  TF_LITE_MICRO_EXPECT(a.size() == 0);
+  EXPECT_EQ(a.max_size(), 4u);
+  EXPECT_EQ(a.size(), 0u);
 
   a.push_back(1);
-  TF_LITE_MICRO_EXPECT(a.size() == 1);
-  TF_LITE_MICRO_EXPECT(a[0] == 1);
+  EXPECT_EQ(a.size(), 1u);
+  EXPECT_EQ(a[0], 1);
 
   a.push_back(2);
-  TF_LITE_MICRO_EXPECT(a.size() == 2);
-  TF_LITE_MICRO_EXPECT(a[1] == 2);
+  EXPECT_EQ(a.size(), 2u);
+  EXPECT_EQ(a[1], 2);
 
   a.push_back(3);
-  TF_LITE_MICRO_EXPECT(a.size() == 3);
-  TF_LITE_MICRO_EXPECT(a[2] == 3);
+  EXPECT_EQ(a.size(), 3u);
+  EXPECT_EQ(a[2], 3);
 }
 
-TF_LITE_MICRO_TEST(StaticVectorInitializationPartial) {
+TEST(StaticVectorTest, StaticVectorInitializationPartial) {
   const StaticVector<int, 4> a{1, 2, 3};
-  TF_LITE_MICRO_EXPECT(a.max_size() == 4);
-  TF_LITE_MICRO_EXPECT(a.size() == 3);
-  TF_LITE_MICRO_EXPECT(a[0] == 1);
-  TF_LITE_MICRO_EXPECT(a[1] == 2);
-  TF_LITE_MICRO_EXPECT(a[2] == 3);
+  EXPECT_EQ(a.max_size(), 4u);
+  EXPECT_EQ(a.size(), 3u);
+  EXPECT_EQ(a[0], 1);
+  EXPECT_EQ(a[1], 2);
+  EXPECT_EQ(a[2], 3);
 }
 
-TF_LITE_MICRO_TEST(StaticVectorInitializationFull) {
+TEST(StaticVectorTest, StaticVectorInitializationFull) {
   const StaticVector b{1, 2, 3};
-  TF_LITE_MICRO_EXPECT(b.max_size() == 3);
-  TF_LITE_MICRO_EXPECT(b.size() == 3);
+  EXPECT_EQ(b.max_size(), 3u);
+  EXPECT_EQ(b.size(), 3UL);
 }
 
-TF_LITE_MICRO_TEST(StaticVectorEquality) {
+TEST(StaticVectorTest, StaticVectorEquality) {
   const StaticVector a{1, 2, 3};
   const StaticVector b{1, 2, 3};
-  TF_LITE_MICRO_EXPECT(a == b);
-  TF_LITE_MICRO_EXPECT(!(a != b));
+  EXPECT_TRUE(a == b);
+  EXPECT_FALSE(a != b);
 }
 
-TF_LITE_MICRO_TEST(StaticVectorInequality) {
+TEST(StaticVectorTest, StaticVectorInequality) {
   const StaticVector a{1, 2, 3};
   const StaticVector b{3, 2, 1};
-  TF_LITE_MICRO_EXPECT(a != b);
-  TF_LITE_MICRO_EXPECT(!(a == b));
+  EXPECT_TRUE(a != b);
+  EXPECT_FALSE(a == b);
 }
 
-TF_LITE_MICRO_TEST(StaticVectorSizeInequality) {
+TEST(StaticVectorTest, StaticVectorSizeInequality) {
   const StaticVector a{1, 2};
   const StaticVector b{1, 2, 3};
-  TF_LITE_MICRO_EXPECT(a != b);
+  EXPECT_TRUE(a != b);
 }
 
-TF_LITE_MICRO_TEST(StaticVectorPartialSizeInequality) {
+TEST(StaticVectorTest, StaticVectorPartialSizeInequality) {
   const StaticVector<int, 3> a{1, 2};
   const StaticVector<int, 3> b{1, 2, 3};
-  TF_LITE_MICRO_EXPECT(a != b);
+  EXPECT_TRUE(a != b);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
