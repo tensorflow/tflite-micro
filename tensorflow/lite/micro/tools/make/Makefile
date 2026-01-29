@@ -366,6 +366,125 @@ include $(MAKEFILE_DIR)/sources.inc
 include $(MAKEFILE_DIR)/third_party.inc
 
 MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_TEST_SRCS), $(MICROLITE_CC_BASE_SRCS))
+MICROLITE_CC_SRCS := $(filter-out $(MICROLITE_BENCHMARK_SRCS), $(MICROLITE_CC_SRCS))
+
+# The target-specific makefile must have a name that is exactly
+# TARGET_makefile.inc and is only needed for cross-compilation (i.e. when TARGET
+# is different from the HOST_OS).
+TARGETS_WITHOUT_MAKEFILES := \
+$(HOST_OS)
+
+# This specific string needs to be outputted for a test to be recognized as
+# having passed.
+TEST_PASS_STRING := '~~~ALL TESTS PASSED~~~'
+
+# $(TARGET)_makefile.inc can set this to true to allow it to defined a custom
+# implementation for `make test`. See bluepill_makefile as an example.
+TARGET_SPECIFIC_MAKE_TEST := 0
+
+ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
+  include $(MAKEFILE_DIR)/targets/$(TARGET)_makefile.inc
+endif
+
+# Validate valid options.
+ifeq (,$(filter $(OPTIMIZE_KERNELS_FOR),KERNELS_OPTIMIZED_FOR_SPEED KERNELS_OPTIMIZED_FOR_SIZE))
+    $(error Incorrect OPTIMIZE_KERNELS_FOR: $(OPTIMIZE_KERNELS_FOR))
+endif
+
+ifneq ($(OPTIMIZED_KERNEL_DIR),)
+  PATH_TO_OPTIMIZED_KERNELS := $(OPTIMIZED_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
+  PATH_TO_SIGNAL_OPTIMIZED_KERNELS := $(OPTIMIZED_SIGNAL_KERNEL_DIR_PREFIX)/$(OPTIMIZED_KERNEL_DIR)
+
+  # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
+  # reference kernels. See http://b/183546742 for more context.
+  RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_OPTIMIZED_KERNELS))
+  ifneq ($(RESULT), SUCCESS)
+    $(error Incorrect OPTIMIZED_KERNEL_DIR: $(RESULT))
+  endif
+
+  include $(MAKEFILE_DIR)/ext_libs/$(OPTIMIZED_KERNEL_DIR).inc
+  # Specialize for the optimized kernels
+  MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+		--base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+		--specialize_directory $(PATH_TO_OPTIMIZED_KERNELS))
+
+  ifneq ($(filter $(OPTIMIZED_KERNEL_DIR), xtensa hexagon),)
+    # Check that OPTIMIZED_KERNEL_DIR is valid to avoid unexpected fallback to
+    # reference kernels. See http://b/183546742 for more context.
+    RESULT := $(shell $(MAKEFILE_DIR)/check_optimized_kernel_dir.sh $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))
+    ifneq ($(RESULT), SUCCESS)
+      $(error Incorrect SIGNAL OPTIMIZED_KERNEL_DIR: $(RESULT))
+    endif
+
+    # Specialize for the optimized kernels
+    MICROLITE_CC_SIGNAL_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+      --base_files "$(MICROLITE_CC_SIGNAL_KERNEL_SRCS)" \
+      --specialize_directory $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS))
+    MICROLITE_CC_KERNEL_SRCS += $(wildcard $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS)/*.S)
+    MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_SIGNAL_OPTIMIZED_KERNELS)/*.h)
+  endif
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($(.SHELLSTATUS),0)
+      $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+    endif
+  endif
+
+  # Optimized kernel directories can have their own header files which need to
+  # be included in MICROLITE_CC_HDRS for project generation to have a complete
+  # list of headers.
+  MICROLITE_CC_HDRS += $(wildcard $(PATH_TO_OPTIMIZED_KERNELS)/*.h)
+endif
+
+MICROLITE_CC_KERNEL_SRCS += $(MICROLITE_CC_SIGNAL_KERNEL_SRCS)
+
+# If a co-processor is specified on the command line with
+# CO_PROCESSOR=<co_processor> then we will include ext_libs/<co_processor>.inc
+# and find additional kernel sources in kernels/<co_processor>/
+#
+# That the co-processor specialization of the kernel sources happens after the
+# optimized_kernel_dir means that if there is an implementation of the same
+# kernel in both directories, the one from co_processor will be used.
+ifneq ($(CO_PROCESSOR),)
+  include $(MAKEFILE_DIR)/ext_libs/$(CO_PROCESSOR).inc
+  # Specialize for the coprocessor kernels.
+  PATH_TO_COPROCESSOR_KERNELS := $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/$(CO_PROCESSOR)
+  MICROLITE_CC_KERNEL_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+    --base_files "$(MICROLITE_CC_KERNEL_SRCS)" \
+    --specialize_directory $(PATH_TO_COPROCESSOR_KERNELS))
+
+  # The first ifneq is needed to be compatible with make versions prior to 4.2
+  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+  # Ubuntu 18.04 only has version 4.1
+  ifneq ($(.SHELLSTATUS),)
+    ifneq ($(.SHELLSTATUS),0)
+      $(error Error with specialize_files.py $(MICROLITE_CC_KERNEL_SRCS))
+    endif
+  endif
+endif
+
+# Specialize for debug_log. micro_time etc.
+PATH_TO_TARGET_SRCS := $(TENSORFLOW_ROOT)tensorflow/lite/micro/$(TARGET)
+MICROLITE_CC_SRCS := $(shell python3 $(MAKEFILE_DIR)/specialize_files.py \
+  --base_files "$(MICROLITE_CC_SRCS)" \
+  --specialize_directory $(PATH_TO_TARGET_SRCS))
+
+# The first ifneq is needed to be compatible with make versions prior to 4.2
+# which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+# Ubuntu 18.04 only has version 4.1
+ifneq ($(.SHELLSTATUS),)
+  ifneq ($(.SHELLSTATUS),0)
+    $(error Error with specialize_files.py $(MICROLITE_CC_SRCS))
+  endif
+endif
+
+ALL_SRCS := \
+	$(MICROLITE_CC_SRCS) \
+	$(MICROLITE_CC_KERNEL_SRCS) \
+	$(MICROLITE_TEST_SRCS)
 
 MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))))
