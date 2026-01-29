@@ -86,6 +86,33 @@ $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
 $(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h \
 $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 
+# These two must be defined before we include the target specific Makefile.inc
+# because we filter out the examples that are not supported for those targets.
+# See targets/xtensa_xpg_makefile.inc for an example.
+#
+# We limit max depth of directories to search to not include target specific
+# Makefiles that are included directly by the main example Makefile. See
+# examples/micro_speech/Makefile.inc for an example. At the same time, we
+# search till an arbitrary depth for files named Makefile_internal.inc as a way
+# to bypass this check and allow for deeper directory structures.
+MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
+
+# Internal examples are copied outside the TFLM repo in google.
+ifneq ($(EXTERNAL_DIR),)
+  MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
+endif
+
+# Kernel integration tests must be excluded on certain targets.
+MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests -name Makefile.inc)
+
+MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
+
+OLD_MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/Makefile.inc)
+MICRO_LITE_BENCHMARKS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/Makefile.inc)
+
+MICRO_LITE_LAYER_BY_LAYER_OUTPUT := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/Makefile.inc)
+
 MICROLITE_BENCHMARK_SRCS := \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*benchmark.cc) \
 $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/benchmarking/*benchmark.cc)
