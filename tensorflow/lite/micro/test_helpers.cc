@@ -65,11 +65,6 @@ class StackAllocator : public flatbuffers::Allocator {
 
   void deallocate(uint8_t* p, size_t) override {}
 
-  static StackAllocator& instance() {
-    static StackAllocator inst;
-    return inst;
-  }
-
  private:
   alignas(MicroArenaBufferAlignment()) uint8_t buffer_[kSize];
   size_t offset_;

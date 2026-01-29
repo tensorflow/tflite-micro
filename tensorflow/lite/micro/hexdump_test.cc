@@ -18,7 +18,7 @@
 #include <cstdint>
 
 #include "tensorflow/lite/micro/span.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 constexpr tflite::Span<const char> input{
     "This is an input string for testing."};
@@ -38,22 +38,20 @@ constexpr tflite::Span<const char> expected{
 constexpr tflite::Span<const char> expected_no_null{expected.data(),
                                                     expected.size() - 1};
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestOutputToBuffer) {
+TEST(HexdumpTest, TestOutputToBuffer) {
   // Allocate a buffer with an arbitrary amount of extra room so the test has
   // the possibility of failing if hexdump mishandles the extra space.
   std::array<char, expected.size() + 10> buffer;
 
   tflite::Span<char> output = tflite::hexdump(region, buffer);
-  TF_LITE_MICRO_EXPECT(output == expected_no_null);
+  EXPECT_EQ(output, expected_no_null);
 }
 
-TF_LITE_MICRO_TEST(TestOutputToDebugLog) {
+TEST(HexdumpTest, TestOutputToDebugLog) {
   // There's no easy way to verify DebugLog output; however, test it anyhow to
   // catch an outright crash, and so the output appears in the log should
   // someone wish to examine it.
   tflite::hexdump(region);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

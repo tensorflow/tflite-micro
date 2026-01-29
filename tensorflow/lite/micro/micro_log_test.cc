@@ -18,7 +18,7 @@ limitations under the License.
 #include <cstddef>
 #include <cstring>
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -30,11 +30,9 @@ const char* kExpect = "42 42.42 0x42 \"42\"";
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
 
-TF_LITE_MICRO_TEST(MicroPrintfTest) {
+TEST(MicroLogTest, MicroPrintfTest) {
   MicroPrintf("Integer 42: %d", 42);
   MicroPrintf("Float 42.42: %2.2f", 42.42);
   MicroPrintf("String \"Hello World!\": %s", "\"Hello World!\"");
@@ -42,15 +40,15 @@ TF_LITE_MICRO_TEST(MicroPrintfTest) {
   MicroPrintf("Another %# badly-formed %% format string");
 }
 
-TF_LITE_MICRO_TEST(MicroSnprintf) {
+TEST(MicroLogTest, MicroSnprintf) {
   char buffer[kMaxBufferSize];
   buffer[0] = '\0';
   size_t result =
       MicroSnprintf(buffer, kMaxBufferSize, kFormat, 42, 42.42, 0x42, "\"42\"");
-  TF_LITE_MICRO_EXPECT_EQ(result, strlen(buffer));
-  TF_LITE_MICRO_EXPECT_STRING_EQ(kExpect, buffer);
+  EXPECT_EQ(result, strlen(buffer));
+  EXPECT_STREQ(kExpect, buffer);
 }
 
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

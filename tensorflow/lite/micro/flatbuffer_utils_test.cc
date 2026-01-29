@@ -19,11 +19,9 @@ limitations under the License.
 
 #include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
+TEST(FlatbufferUtilsTest, TestFlexbufferWrapper) {
   struct TestParam {
     std::string name;
     std::string type;
@@ -66,16 +64,15 @@ TF_LITE_MICRO_TEST(TestFlexbufferWrapper) {
   for (int i = 0; i < param_num; i++) {
     std::string& param_value = params[params_sorted[i]].value;
     if (params[params_sorted[i]].type == "Int") {
-      TF_LITE_MICRO_EXPECT(wrapper.ElementAsInt32(i) == std::stoi(param_value));
+      EXPECT_EQ(wrapper.ElementAsInt32(i), std::stoi(param_value));
     } else if (params[params_sorted[i]].type == "Bool") {
-      TF_LITE_MICRO_EXPECT(wrapper.ElementAsBool(i) == (param_value == "true"));
+      EXPECT_EQ(wrapper.ElementAsBool(i), (param_value == "true"));
     } else if (params[params_sorted[i]].type == "Double") {
-      TF_LITE_MICRO_EXPECT(wrapper.ElementAsDouble(i) ==
-                           std::stod(param_value));
+      EXPECT_EQ(wrapper.ElementAsDouble(i), std::stod(param_value));
     } else if (params[params_sorted[i]].type == "Float") {
-      TF_LITE_MICRO_EXPECT(wrapper.ElementAsFloat(i) == std::stof(param_value));
+      EXPECT_EQ(wrapper.ElementAsFloat(i), std::stof(param_value));
     }
   }
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

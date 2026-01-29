@@ -15,11 +15,9 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_time.h"
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestBasicTimerFunctionality) {
+TEST(MicroTimeTest, TestBasicTimerFunctionality) {
   uint32_t ticks_per_second = tflite::ticks_per_second();
 
   // Retry enough times to guarantee a tick advance, while not taking too long
@@ -41,8 +39,8 @@ TF_LITE_MICRO_TEST(TestBasicTimerFunctionality) {
   // 0x80000001(min int + 1) - 0x7FFFFFFE(max int - 1) = 0x00000003 == 3.
   // GetTicksPerSecond() == 0 means the timer is not implemented on this
   // platform.
-  TF_LITE_MICRO_EXPECT(ticks_per_second == 0 ||
-                       tflite::GetCurrentTimeTicks() - start_time > 0);
+  EXPECT_TRUE(ticks_per_second == 0 ||
+              tflite::GetCurrentTimeTicks() - start_time > 0);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
