@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/debug_log.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -84,14 +84,14 @@ void TestSplitVFloat(int* input_dims_data, const float* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < N; i++) {
     int dim_count = ElementCount(*output_dims[i]);
     for (int j = 0; j < dim_count; j++) {
-      TF_LITE_MICRO_EXPECT_NEAR((output_tensors.expected_output_data[i])[j],
-                                (output_tensors.data[i])[j], 1e-5f);
+      EXPECT_NEAR((output_tensors.expected_output_data[i])[j],
+                  (output_tensors.data[i])[j], 1e-5f);
     }
   }
 }
@@ -99,9 +99,7 @@ void TestSplitVFloat(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SPLIT_V_ThreeOutputs) {
+TEST(SplitVTest, SPLIT_V_ThreeOutputs) {
   constexpr int output1_dims_count = 3;
   constexpr int output2_dims_count = 3;
   constexpr int output3_dims_count = 6;
@@ -139,7 +137,7 @@ TF_LITE_MICRO_TEST(SPLIT_V_ThreeOutputs) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatAxis0) {
+TEST(SplitVTest, SPLIT_V_FourDimensionalFloatAxis0) {
   constexpr int output1_dims_count = 8;
   constexpr int output2_dims_count = 8;
   float output1_data[output1_dims_count];
@@ -173,7 +171,7 @@ TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatAxis0) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatAxis1) {
+TEST(SplitVTest, SPLIT_V_FourDimensionalFloatAxis1) {
   constexpr int output1_dims_count = 8;
   constexpr int output2_dims_count = 8;
   float output1_data[output1_dims_count];
@@ -207,7 +205,7 @@ TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatAxis1) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_VFourDimensionalFloatAxis2) {
+TEST(SplitVTest, SPLIT_VFourDimensionalFloatAxis2) {
   constexpr int output1_dims_count = 8;
   constexpr int output2_dims_count = 8;
   float output1_data[output1_dims_count];
@@ -241,7 +239,7 @@ TF_LITE_MICRO_TEST(SPLIT_VFourDimensionalFloatAxis2) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatAxis3) {
+TEST(SplitVTest, SPLIT_V_FourDimensionalFloatAxis3) {
   constexpr int output1_dims_count = 8;
   constexpr int output2_dims_count = 8;
   float output1_data[output1_dims_count];
@@ -274,7 +272,7 @@ TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatAxis3) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatNegativeAxis) {
+TEST(SplitVTest, SPLIT_V_FourDimensionalFloatNegativeAxis) {
   constexpr int output1_dims_count = 8;
   constexpr int output2_dims_count = 8;
   float output1_data[output1_dims_count];
@@ -308,7 +306,7 @@ TF_LITE_MICRO_TEST(SPLIT_V_FourDimensionalFloatNegativeAxis) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_V_OneDimensionalFloatAxis0) {
+TEST(SplitVTest, SPLIT_V_OneDimensionalFloatAxis0) {
   constexpr int output1_dims_count = 1;
   constexpr int output2_dims_count = 1;
   constexpr int output3_dims_count = 1;
@@ -386,7 +384,7 @@ TF_LITE_MICRO_TEST(SPLIT_V_OneDimensionalFloatAxis0) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TEST(SPLIT_V_OneDimensionalFloatTest2) {
+TEST(SplitVTest, SPLIT_V_OneDimensionalFloatTest2) {
   constexpr int output1_dims_count = 1;
   constexpr int output2_dims_count = 1;
   constexpr int output3_dims_count = 1;
@@ -463,4 +461,4 @@ TF_LITE_MICRO_TEST(SPLIT_V_OneDimensionalFloatTest2) {
                                    output_tensors);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

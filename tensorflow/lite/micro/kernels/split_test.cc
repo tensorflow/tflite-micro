@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/debug_log.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -66,15 +66,15 @@ void TestSplitTwoOutputsFloat(int* input_dims_data, const float* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output1_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output1_data[i], output1_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output1_data[i], output1_data[i], 1e-5f);
   }
 
   for (int i = 0; i < output2_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output2_data[i], output2_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output2_data[i], output2_data[i], 1e-5f);
   }
 }
 
@@ -134,20 +134,20 @@ void TestSplitFourOutputsFloat(
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output1_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output1_data[i], output1_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output1_data[i], output1_data[i], 1e-5f);
   }
   for (int i = 0; i < output2_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output2_data[i], output2_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output2_data[i], output2_data[i], 1e-5f);
   }
   for (int i = 0; i < output3_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output3_data[i], output3_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output3_data[i], output3_data[i], 1e-5f);
   }
   for (int i = 0; i < output4_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output4_data[i], output4_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output4_data[i], output4_data[i], 1e-5f);
   }
 }
 
@@ -197,15 +197,15 @@ void TestSplitTwoOutputsQuantized(int* input_dims_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output1_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output1_data[i], output1_data[i]);
+    EXPECT_EQ(expected_output1_data[i], output1_data[i]);
   }
 
   for (int i = 0; i < output2_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output2_data[i], output2_data[i]);
+    EXPECT_EQ(expected_output2_data[i], output2_data[i]);
   }
 }
 
@@ -252,24 +252,22 @@ void TestSplitTwoOutputsQuantized32(
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output1_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output1_data[i], output1_data[i]);
+    EXPECT_EQ(expected_output1_data[i], output1_data[i]);
   }
 
   for (int i = 0; i < output2_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output2_data[i], output2_data[i]);
+    EXPECT_EQ(expected_output2_data[i], output2_data[i]);
   }
 }
 
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisZero) {
+TEST(SplitTest, TwoSplitFourDimensionalAxisZero) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const float input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -289,7 +287,7 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisZero) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisOne) {
+TEST(SplitTest, TwoSplitFourDimensionalAxisOne) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const float input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -309,7 +307,7 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisOne) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisTwo) {
+TEST(SplitTest, TwoSplitFourDimensionalAxisTwo) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const float input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -329,7 +327,7 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisTwo) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisThree) {
+TEST(SplitTest, TwoSplitFourDimensionalAxisThree) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const float input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -349,7 +347,7 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalAxisThree) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalNegativeAxis) {
+TEST(SplitTest, TwoSplitFourDimensionalNegativeAxis) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const float input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -369,7 +367,7 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalNegativeAxis) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(FourSplit) {
+TEST(SplitTest, FourSplit) {
   int input_shape[] = {1, 4};
   const float input_data[] = {1, 2, 3, 4};
   int axis_shape[] = {1, 1};
@@ -397,7 +395,7 @@ TF_LITE_MICRO_TEST(FourSplit) {
       output1_data, output2_data, output3_data, output4_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitOneDimensional) {
+TEST(SplitTest, TwoSplitOneDimensional) {
   int input_shape[] = {1, 2};
   const float input_data[] = {1, 2};
   int axis_shape[] = {1, 1};
@@ -416,7 +414,7 @@ TF_LITE_MICRO_TEST(TwoSplitOneDimensional) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalQuantized) {
+TEST(SplitTest, TwoSplitFourDimensionalQuantized) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const int8_t input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                                9, 10, 11, 12, 13, 14, 15, 16};
@@ -436,7 +434,7 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalQuantized) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TEST(TwoSplitFourDimensionalQuantized32) {
+TEST(SplitTest, TwoSplitFourDimensionalQuantized32) {
   int input_shape[] = {4, 2, 2, 2, 2};
   const int32_t input_data[] = {1, 2,  3,  4,  5,  6,  7,  8,
                                 9, 10, 11, 12, 13, 14, 15, 16};
@@ -456,4 +454,4 @@ TF_LITE_MICRO_TEST(TwoSplitFourDimensionalQuantized32) {
       output2_shape, golden2, output1_data, output2_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

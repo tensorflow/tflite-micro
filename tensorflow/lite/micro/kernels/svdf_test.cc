@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -505,8 +505,8 @@ void ValidateSVDFGoldens(const int batch_size, const int num_units,
                              outputs_array, &params);
 
   TfLiteStatus init_and_prepare_status = runner.InitAndPrepare();
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, init_and_prepare_status);
-  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
+  EXPECT_EQ(kTfLiteOk, init_and_prepare_status);
+  EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 
   // Abort early to make it clear init and prepare failed.
   if (init_and_prepare_status != kTfLiteOk) {
@@ -521,20 +521,19 @@ void ValidateSVDFGoldens(const int batch_size, const int num_units,
 
     memcpy(tensors[0].data.raw, input_batch_start, tensors[0].bytes);
     TfLiteStatus status = runner.Invoke();
-    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, status);
+    EXPECT_EQ(kTfLiteOk, status);
 
     // Only validate outputs when invoke has succeeded.
     if (status == kTfLiteOk) {
       int output_idx = 0;
       int golden_idx = i * batch_size * num_units;
       for (int j = golden_idx; j < golden_idx + batch_size * num_units; ++j) {
-        TF_LITE_MICRO_EXPECT_NEAR(expected_output[j], output_data[output_idx],
-                                  tolerance);
+        EXPECT_NEAR(expected_output[j], output_data[output_idx], tolerance);
         output_idx++;
       }
     }
   }
-  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
+  EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 }
 
 void TestSVDF(const int batch_size, const int num_units, const int input_size,
@@ -830,9 +829,7 @@ void SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden() {
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SvdfFloat2x2Input2x4OutputShouldMatchGolden) {
+TEST(SvdfTest, SvdfFloat2x2Input2x4OutputShouldMatchGolden) {
   constexpr int batch_size = 2;
   constexpr int num_units = 4;
   constexpr int input_size = 2;
@@ -869,16 +866,16 @@ TF_LITE_MICRO_TEST(SvdfFloat2x2Input2x4OutputShouldMatchGolden) {
 
 // Only reference kernels support full int8 svdf currently.
 #if !defined(HEXAGON)
-TF_LITE_MICRO_TEST(SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt8) {
+TEST(SvdfTest, SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized2x2Input2x4OutputShouldMatchGolden<int8_t>();
 }
 #endif
 
-TF_LITE_MICRO_TEST(SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt16) {
+TEST(SvdfTest, SvdfQuantized2x2Input2x4OutputShouldMatchGoldenInt16) {
   tflite::testing::SvdfQuantized2x2Input2x4OutputShouldMatchGolden<int16_t>();
 }
 
-TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputShouldMatchGolden) {
+TEST(SvdfTest, SvdfFloat1x16Input64x1OutputShouldMatchGolden) {
   constexpr int batch_size = 1;
   constexpr int num_units = 64;
   constexpr int input_size = 16;
@@ -909,7 +906,7 @@ TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputShouldMatchGolden) {
       tflite::testing::golden_output_16x1x1);
 }
 
-TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputReluShouldMatchGolden) {
+TEST(SvdfTest, SvdfFloat1x16Input64x1OutputReluShouldMatchGolden) {
   constexpr int batch_size = 1;
   constexpr int num_units = 64;
   constexpr int input_size = 16;
@@ -942,26 +939,26 @@ TF_LITE_MICRO_TEST(SvdfFloat1x16Input64x1OutputReluShouldMatchGolden) {
 
 // Only reference kernels support full int8 svdf currently.
 #if !defined(HEXAGON)
-TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt8) {
+TEST(SvdfTest, SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputShouldMatchGolden<int8_t>();
 }
 #endif
 
-TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt16) {
+TEST(SvdfTest, SvdfQuantized1x16Input64x1OutputShouldMatchGoldenInt16) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputShouldMatchGolden<int16_t>();
 }
 
 // Only reference kernels support full int8 svdf currently.
 #if !defined(HEXAGON)
-TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt8) {
+TEST(SvdfTest, SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt8) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden<
       int8_t>();
 }
 #endif
 
-TF_LITE_MICRO_TEST(SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt16) {
+TEST(SvdfTest, SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt16) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden<
       int16_t>();
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
