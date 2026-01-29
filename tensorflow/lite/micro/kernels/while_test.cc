@@ -21,11 +21,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helper_custom_ops.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(WhileShouldNeverInvokeConditionFalse) {
+TEST(WhileTest, WhileShouldNeverInvokeConditionFalse) {
   constexpr int kArenaSize = 5000;
   uint8_t arena[kArenaSize];
 
@@ -36,7 +34,7 @@ TF_LITE_MICRO_TEST(WhileShouldNeverInvokeConditionFalse) {
   resolver.AddAdd();
   resolver.AddLess();
   tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+  EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
   TfLiteTensor* input0 = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
   TfLiteTensor* output0 = interpreter.output(0);
@@ -46,11 +44,11 @@ TF_LITE_MICRO_TEST(WhileShouldNeverInvokeConditionFalse) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_EQ(output0->data.f[0], 3.0f);
-  TF_LITE_MICRO_EXPECT_EQ(output1->data.f[0], 2.0f);
+  EXPECT_EQ(output0->data.f[0], 3.0f);
+  EXPECT_EQ(output1->data.f[0], 2.0f);
 }
 
-TF_LITE_MICRO_TEST(WhileShouldInvokeOnce) {
+TEST(WhileTest, WhileShouldInvokeOnce) {
   constexpr int kArenaSize = 5000;
   uint8_t arena[kArenaSize];
 
@@ -61,7 +59,7 @@ TF_LITE_MICRO_TEST(WhileShouldInvokeOnce) {
   resolver.AddAdd();
   resolver.AddLess();
   tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+  EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
   TfLiteTensor* input0 = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
   TfLiteTensor* output0 = interpreter.output(0);
@@ -71,8 +69,8 @@ TF_LITE_MICRO_TEST(WhileShouldInvokeOnce) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_EQ(output0->data.f[0], 5.0f);
-  TF_LITE_MICRO_EXPECT_EQ(output1->data.f[0], 3.0f);
+  EXPECT_EQ(output0->data.f[0], 5.0f);
+  EXPECT_EQ(output1->data.f[0], 3.0f);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
