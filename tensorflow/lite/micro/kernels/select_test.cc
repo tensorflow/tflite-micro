@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -55,8 +55,8 @@ void TestSelect(int* input1_dims_data, const bool* input1_data,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -64,7 +64,7 @@ void ExpectEqual(int* dims, const T* expected_data, const T* output_data) {
   TfLiteIntArray* dims_array = IntArrayFromInts(dims);
   const int element_count = ElementCount(*dims_array);
   for (int i = 0; i < element_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
+    EXPECT_EQ(expected_data[i], output_data[i]);
   }
 }
 
@@ -73,16 +73,14 @@ void ExpectNear(int* dims, const T* expected_data, const T* output_data) {
   TfLiteIntArray* dims_array = IntArrayFromInts(dims);
   const int element_count = ElementCount(*dims_array);
   for (int i = 0; i < element_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_data[i], output_data[i], 1e-5f);
   }
 }
 
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SelectFloat) {
+TEST(SelectTest, SelectFloat) {
   int inout_shape[] = {4, 1, 1, 1, 4};
 
   const bool input1_data[] = {true, false, true, false};
@@ -97,7 +95,7 @@ TF_LITE_MICRO_TEST(SelectFloat) {
   tflite::testing::ExpectNear(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(SelectInt8) {
+TEST(SelectTest, SelectInt8) {
   int inout_shape[] = {4, 1, 1, 1, 4};
 
   const bool input1_data[] = {false, true, false, false};
@@ -112,7 +110,7 @@ TF_LITE_MICRO_TEST(SelectInt8) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(SelectInt16) {
+TEST(SelectTest, SelectInt16) {
   int inout_shape[] = {4, 1, 1, 1, 4};
 
   const bool input1_data[] = {false, true, false, false};
@@ -127,7 +125,7 @@ TF_LITE_MICRO_TEST(SelectInt16) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithSingleValue) {
+TEST(SelectTest, BroadcastSelectInt16OneDimensionConditionWithSingleValue) {
   int input1_shape[] = {1, 1};
   int input2_shape[] = {5, 1, 2, 2, 2, 1};
   int input3_shape[] = {4, 1, 2, 2, 1};
@@ -144,7 +142,7 @@ TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithSingleValue) {
   tflite::testing::ExpectEqual(input2_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt16LesserThan4D) {
+TEST(SelectTest, BroadcastSelectInt16LesserThan4D) {
   int input1_shape[] = {2, 1, 2};
   int inout_shape[] = {3, 1, 2, 2};
 
@@ -160,7 +158,7 @@ TF_LITE_MICRO_TEST(BroadcastSelectInt16LesserThan4D) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt16OnFalseValue) {
+TEST(SelectTest, BroadcastSelectInt16OnFalseValue) {
   int input1_shape[] = {1, 1};
   int inout_shape[] = {3, 1, 2, 2};
 
@@ -176,7 +174,7 @@ TF_LITE_MICRO_TEST(BroadcastSelectInt16OnFalseValue) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt16) {
+TEST(SelectTest, BroadcastSelectInt16) {
   int input1_shape[] = {2, 1, 2};
   int inout_shape[] = {3, 1, 2, 2};
 
@@ -192,7 +190,7 @@ TF_LITE_MICRO_TEST(BroadcastSelectInt16) {
   tflite::testing::ExpectEqual(inout_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithTwoValues) {
+TEST(SelectTest, BroadcastSelectInt16OneDimensionConditionWithTwoValues) {
   int input1_shape[] = {1, 2};
   int input_shape[] = {4, 2, 1, 2, 1};
   int output_shape[] = {4, 2, 1, 2, 2};
@@ -209,7 +207,7 @@ TF_LITE_MICRO_TEST(BroadcastSelectInt16OneDimensionConditionWithTwoValues) {
   tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputConditionTensor) {
+TEST(SelectTest, MixedFlatSizeOneInputsWithScalarInputConditionTensor) {
   int input1_shape[] = {0};  // conditional data is a scalar
   int input_shape[] = {1, 1};
   int output_shape[] = {0};  // output data is a scalar
@@ -226,7 +224,7 @@ TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputConditionTensor) {
   tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputXTensor) {
+TEST(SelectTest, MixedFlatSizeOneInputsWithScalarInputXTensor) {
   int input2_shape[] = {0};  // x data is a scalar
   int input_shape[] = {1, 1};
   int output_shape[] = {0};  // output data is a scalar
@@ -243,7 +241,7 @@ TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputXTensor) {
   tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputYTensor) {
+TEST(SelectTest, MixedFlatSizeOneInputsWithScalarInputYTensor) {
   int input3_shape[] = {0};  // y data is a scalar
   int input_shape[] = {1, 1};
   int output_shape[] = {0};  // output data is a scalar
@@ -260,4 +258,4 @@ TF_LITE_MICRO_TEST(MixedFlatSizeOneInputsWithScalarInputYTensor) {
   tflite::testing::ExpectEqual(output_shape, expected_output, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 using tflite::ElementCount;
 using tflite::testing::CreateTensor;
@@ -28,14 +28,14 @@ namespace {
 
 void ExpectEq(TfLiteIntArray* a, TfLiteIntArray* b) {
   for (int i = 0; i < a->size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(a->data[i], b->data[i]);
+    EXPECT_EQ(a->data[i], b->data[i]);
   }
 }
 
 template <typename T>
 void ExpectNear(const T a[], const T b[], int size, float tolerance = 1e-5) {
   for (int i = 0; i < size; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(a[i], b[i], tolerance);
+    EXPECT_NEAR(a[i], b[i], tolerance);
   }
 }
 
@@ -77,8 +77,8 @@ void TestSpaceToDepth(const SpaceToDepthTest<T>& args) {
   tflite::micro::KernelRunner runner(registration, tensors, tensor_count,
                                      input_indexes, output_indexes,
                                      static_cast<void*>(&op_params));
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   const TfLiteTensor* output_tensor = &tensors[kOutputIndex];
   TfLiteIntArray* expect_dims = IntArrayFromInts(args.expect_dims);
@@ -88,9 +88,7 @@ void TestSpaceToDepth(const SpaceToDepthTest<T>& args) {
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SpaceToDepth_Float32_1222) {
+TEST(SpaceToDepthTest, SpaceToDepth_Float32_1222) {
   using value_type = float;
   SpaceToDepthTest<value_type> test;
 
@@ -112,7 +110,7 @@ TF_LITE_MICRO_TEST(SpaceToDepth_Float32_1222) {
   TestSpaceToDepth(test);
 }
 
-TF_LITE_MICRO_TEST(SpaceToDepth_Int8_1221) {
+TEST(SpaceToDepthTest, SpaceToDepth_Int8_1221) {
   using value_type = int8_t;
   SpaceToDepthTest<value_type> test;
 
@@ -134,7 +132,7 @@ TF_LITE_MICRO_TEST(SpaceToDepth_Int8_1221) {
   TestSpaceToDepth(test);
 }
 
-TF_LITE_MICRO_TEST(SpaceToDepth_Int8_1223) {
+TEST(SpaceToDepthTest, SpaceToDepth_Int8_1223) {
   using value_type = int8_t;
   SpaceToDepthTest<value_type> test;
 
@@ -156,7 +154,7 @@ TF_LITE_MICRO_TEST(SpaceToDepth_Int8_1223) {
   TestSpaceToDepth(test);
 }
 
-TF_LITE_MICRO_TEST(SpaceToDepth_Int8_1441) {
+TEST(SpaceToDepthTest, SpaceToDepth_Int8_1441) {
   using value_type = int8_t;
   SpaceToDepthTest<value_type> test;
 
@@ -181,4 +179,4 @@ TF_LITE_MICRO_TEST(SpaceToDepth_Int8_1441) {
   TestSpaceToDepth(test);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

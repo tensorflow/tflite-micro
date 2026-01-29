@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -35,11 +35,11 @@ void ValidateShape(TfLiteTensor* tensors, const int tensor_count,
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output[i], output_data[i]);
+    EXPECT_EQ(expected_output[i], output_data[i]);
   }
 }
 
@@ -66,9 +66,7 @@ void TestShape(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestShape0) {
+TEST(ShapeTest, TestShape0) {
   int input_shape[] = {1, 5};
   float input_values[] = {1, 3, 1, 3, 5};
   int output_dims[] = {1, 1};  // this is actually input_shapes shape
@@ -79,7 +77,7 @@ TF_LITE_MICRO_TEST(TestShape0) {
                              expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(TestShape1) {
+TEST(ShapeTest, TestShape1) {
   int input_shape[] = {2, 4, 3};
   float input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   int output_dims[] = {2, 1, 1};
@@ -90,7 +88,7 @@ TF_LITE_MICRO_TEST(TestShape1) {
                              expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(TestShape2) {
+TEST(ShapeTest, TestShape2) {
   int input_shape[] = {2, 12, 1};
   float input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   int output_dims[] = {2, 1, 1};
@@ -101,7 +99,7 @@ TF_LITE_MICRO_TEST(TestShape2) {
                              expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(TestShape3) {
+TEST(ShapeTest, TestShape3) {
   int input_shape[] = {2, 2, 6};
   float input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   int output_dims[] = {2, 1, 1};
@@ -112,7 +110,7 @@ TF_LITE_MICRO_TEST(TestShape3) {
                              expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(TestShape4) {
+TEST(ShapeTest, TestShape4) {
   int input_shape[] = {2, 2, 2, 3};
   float input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   int output_dims[] = {3, 1, 1, 1};
@@ -123,7 +121,7 @@ TF_LITE_MICRO_TEST(TestShape4) {
                              expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(TestShape5) {
+TEST(ShapeTest, TestShape5) {
   int input_shape[] = {1, 1};
   float input_values[] = {1};
   int output_dims[] = {1, 1};
@@ -134,4 +132,4 @@ TF_LITE_MICRO_TEST(TestShape5) {
                              expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
