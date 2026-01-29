@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -50,12 +50,12 @@ void TestLogicalOp(const TFLMRegistration& registration, int* input1_dims_data,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  TF_LITE_MICRO_EXPECT_EQ(output_dims_count, 4);
+  EXPECT_EQ(output_dims_count, 4);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -63,9 +63,7 @@ void TestLogicalOp(const TFLMRegistration& registration, int* input1_dims_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(LogicalOr) {
+TEST(LogicalTest, LogicalOr) {
   int shape[] = {4, 1, 1, 1, 4};
   const bool input1[] = {true, false, false, true};
   const bool input2[] = {true, false, true, false};
@@ -75,7 +73,7 @@ TF_LITE_MICRO_TEST(LogicalOr) {
                                  shape, input2, shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastLogicalOr) {
+TEST(LogicalTest, BroadcastLogicalOr) {
   int input1_shape[] = {4, 1, 1, 1, 4};
   const bool input1[] = {true, false, false, true};
   int input2_shape[] = {4, 1, 1, 1, 1};
@@ -87,7 +85,7 @@ TF_LITE_MICRO_TEST(BroadcastLogicalOr) {
                                  golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(LogicalAnd) {
+TEST(LogicalTest, LogicalAnd) {
   int shape[] = {4, 1, 1, 1, 4};
   const bool input1[] = {true, false, false, true};
   const bool input2[] = {true, false, true, false};
@@ -97,7 +95,7 @@ TF_LITE_MICRO_TEST(LogicalAnd) {
                                  shape, input2, shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastLogicalAnd) {
+TEST(LogicalTest, BroadcastLogicalAnd) {
   int input1_shape[] = {4, 1, 1, 1, 4};
   const bool input1[] = {true, false, false, true};
   int input2_shape[] = {4, 1, 1, 1, 1};
@@ -109,4 +107,4 @@ TF_LITE_MICRO_TEST(BroadcastLogicalAnd) {
                                  golden, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
