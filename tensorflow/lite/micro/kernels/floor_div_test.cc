@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -35,8 +35,8 @@ void ExecuteFloorDivTest(TfLiteTensor* tensors, int tensors_count) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -58,7 +58,7 @@ void TestFloorDiv(int* input1_dims_data, const T* input1_data,
   ExecuteFloorDivTest(tensors, tensors_count);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
+    EXPECT_EQ(expected_data[i], output_data[i]);
   }
 }
 
@@ -66,9 +66,7 @@ void TestFloorDiv(int* input1_dims_data, const T* input1_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloorDivTestSimpleFloat) {
+TEST(FloorDivTest, FloorDivTestSimpleFloat) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {10.05, 9.09, 11.9, 3.01};
   constexpr float kInput2[] = {2.05, 2.03, 3.03, 4.03};
@@ -80,7 +78,7 @@ TF_LITE_MICRO_TEST(FloorDivTestSimpleFloat) {
                                 output_data);
 }
 
-TF_LITE_MICRO_TEST(FloorDivTestNegativeValueFloat) {
+TEST(FloorDivTest, FloorDivTestNegativeValueFloat) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {10.03, -9.9, -11.0, 7.0};
   constexpr float kInput2[] = {2.0, 2.3, -3.0, -4.1};
@@ -92,7 +90,7 @@ TF_LITE_MICRO_TEST(FloorDivTestNegativeValueFloat) {
                                 output_data);
 }
 
-TF_LITE_MICRO_TEST(FloorDivTestBroadcastFloat) {
+TEST(FloorDivTest, FloorDivTestBroadcastFloat) {
   int kDims1[] = {4, 1, 2, 2, 1};
   int kDims2[] = {1, 1};
   constexpr float kInput1[] = {10.03, -9.9, -11.0, 7.0};
@@ -105,4 +103,4 @@ TF_LITE_MICRO_TEST(FloorDivTestBroadcastFloat) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

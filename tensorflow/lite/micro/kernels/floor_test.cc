@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -46,11 +46,11 @@ void TestFloor(int* input_dims_data, const float* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -58,9 +58,7 @@ void TestFloor(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloorOpSingleDimFloat32) {
+TEST(FloorTest, FloorOpSingleDimFloat32) {
   int dims[] = {1, 2};
   const float input[] = {8.5f, 0.0f};
   const float golden[] = {8, 0};
@@ -68,7 +66,7 @@ TF_LITE_MICRO_TEST(FloorOpSingleDimFloat32) {
   tflite::testing::TestFloor(dims, input, golden, dims, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloorOpMultiDimFloat32) {
+TEST(FloorTest, FloorOpMultiDimFloat32) {
   int dims[] = {4, 2, 1, 1, 5};
   const float input[] = {0.0001f,  8.0001f,  0.9999f,  9.9999f,  0.5f,
                          -0.0001f, -8.0001f, -0.9999f, -9.9999f, -0.5f};
@@ -78,4 +76,4 @@ TF_LITE_MICRO_TEST(FloorOpMultiDimFloat32) {
   tflite::testing::TestFloor(dims, input, golden, dims, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
