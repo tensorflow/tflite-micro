@@ -16,7 +16,7 @@ limitations under the License.
 #include "signal/micro/kernels/energy_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -64,7 +64,7 @@ TfLiteStatus TestEnergy(int* input_dims_data, const int16_t* input_data,
   }
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
   return kTfLiteOk;
 }
@@ -73,9 +73,7 @@ TfLiteStatus TestEnergy(int* input_dims_data, const int16_t* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(EnergyTestMiddle) {
+TEST(EnergyTest, EnergyTestMiddle) {
   int input_shape[] = {1, 16};
   int output_shape[] = {1, 8};
   const int16_t input[] = {1, 2,  3,  4,  5,  6,  7,  8,
@@ -83,14 +81,13 @@ TF_LITE_MICRO_TEST(EnergyTestMiddle) {
   const uint32_t golden[] = {0, 0, 61, 113, 0, 0, 0, 0};
   uint32_t output[8];
   memset(output, 0, sizeof(output));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestEnergy(
-                     input_shape, input, output_shape, golden,
-                     g_gen_data_start_index_2_end_index_4,
-                     g_gen_data_size_start_index_2_end_index_4, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
+                           input_shape, input, output_shape, golden,
+                           g_gen_data_start_index_2_end_index_4,
+                           g_gen_data_size_start_index_2_end_index_4, output));
 }
 
-TF_LITE_MICRO_TEST(EnergyTestStart) {
+TEST(EnergyTest, EnergyTestStart) {
   int input_shape[] = {1, 16};
   int output_shape[] = {1, 8};
   const int16_t input[] = {1, 2,  3,  4,  5,  6,  7,  8,
@@ -98,14 +95,13 @@ TF_LITE_MICRO_TEST(EnergyTestStart) {
   const uint32_t golden[] = {5, 25, 61, 113, 0, 0, 0, 0};
   uint32_t output[8];
   memset(output, 0, sizeof(output));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestEnergy(
-                     input_shape, input, output_shape, golden,
-                     g_gen_data_start_index_0_end_index_4,
-                     g_gen_data_size_start_index_0_end_index_4, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
+                           input_shape, input, output_shape, golden,
+                           g_gen_data_start_index_0_end_index_4,
+                           g_gen_data_size_start_index_0_end_index_4, output));
 }
 
-TF_LITE_MICRO_TEST(EnergyTestEnd) {
+TEST(EnergyTest, EnergyTestEnd) {
   int input_shape[] = {1, 16};
   int output_shape[] = {1, 8};
   const int16_t input[] = {1, 2,  3,  4,  5,  6,  7,  8,
@@ -113,11 +109,10 @@ TF_LITE_MICRO_TEST(EnergyTestEnd) {
   const uint32_t golden[] = {0, 0, 0, 0, 181, 265, 365, 481};
   uint32_t output[8];
   memset(output, 0, sizeof(output));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestEnergy(
-                     input_shape, input, output_shape, golden,
-                     g_gen_data_start_index_4_end_index_8,
-                     g_gen_data_size_start_index_4_end_index_8, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
+                           input_shape, input, output_shape, golden,
+                           g_gen_data_start_index_4_end_index_8,
+                           g_gen_data_size_start_index_4_end_index_8, output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

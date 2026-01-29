@@ -15,7 +15,7 @@ limitations under the License.
 #include "signal/micro/kernels/framer_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace {
@@ -83,23 +83,22 @@ void TestFramerInvoke(int* input_dims_data, int16_t* input_data,
     outer_dims *= input_dims_data[i];
   }
   int n_frames = output_dims_data[output_dims_data[0] - 1];
-  TF_LITE_MICRO_EXPECT_EQ(frame_size, output_dims_data[output_dims_data[0]]);
+  EXPECT_EQ(frame_size, output_dims_data[output_dims_data[0]]);
   for (int i = 0; i < golden_len - latency_samples; i += input_size) {
     for (int outer_dim = 0; outer_dim < outer_dims; outer_dim++) {
       memcpy(&input_data[outer_dim * input_size], &golden[latency_samples + i],
              input_size * sizeof(int16_t));
     }
-    TF_LITE_MICRO_EXPECT_EQ(runner->Invoke(), kTfLiteOk);
-    TF_LITE_MICRO_EXPECT_EQ(*output_ready, (i >= latency_samples) || prefill);
+    EXPECT_EQ(runner->Invoke(), kTfLiteOk);
+    EXPECT_EQ(*output_ready, (i >= latency_samples) || prefill);
     if (*output_ready == true) {
       for (int outer_dim = 0; outer_dim < outer_dims; outer_dim++) {
         for (int frame = 0; frame < n_frames; frame++) {
           int output_idx =
               outer_dim * frame_size * n_frames + frame * frame_size;
           int golden_idx = i + frame * frame_step;
-          TF_LITE_MICRO_EXPECT_EQ(
-              0, memcmp(&golden[golden_idx], &output_data[output_idx],
-                        frame_size * sizeof(int16_t)));
+          EXPECT_EQ(0, memcmp(&golden[golden_idx], &output_data[output_idx],
+                              frame_size * sizeof(int16_t)));
         }
       }
     }
@@ -120,10 +119,10 @@ void TestFramer(int* input_dims_data, int16_t* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(framer_runner->kernel_runner().InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(framer_runner->kernel_runner().InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden,
                    golden_len, output_ready_dims_data, flexbuffers_data,
                    flexbuffers_data_size, output_data, &output_ready,
@@ -144,10 +143,10 @@ void TestFramerReset(int* input_dims_data, int16_t* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(framer_runner->kernel_runner().InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(framer_runner->kernel_runner().InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestFramerInvoke(input_dims_data, input_data, output_dims_data, golden,
                    golden_len, output_ready_dims_data, flexbuffers_data,
                    flexbuffers_data_size, output_data, &output_ready,
@@ -162,9 +161,7 @@ void TestFramerReset(int* input_dims_data, int16_t* input_data,
 }  // namespace
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FramerTest_3_1_0) {
+TEST(FramerTest, FramerTest_3_1_0) {
   const int kInputSize = 1;
   const int kOutputSize = 3;
   int input_dims_data[] = {1, kInputSize};
@@ -180,7 +177,7 @@ TF_LITE_MICRO_TEST(FramerTest_3_1_0) {
                      output_data);
 }
 
-TF_LITE_MICRO_TEST(FramerTest_5_2_1) {
+TEST(FramerTest, FramerTest_5_2_1) {
   const int kInputSize = 2;
   const int kOutputSize = 5;
   int input_dims_data[] = {1, kInputSize};
@@ -197,7 +194,7 @@ TF_LITE_MICRO_TEST(FramerTest_5_2_1) {
                      output_data);
 }
 
-TF_LITE_MICRO_TEST(FramerTest_5_2_1_NFrames2) {
+TEST(FramerTest, FramerTest_5_2_1_NFrames2) {
   const int kInputSize = 4;
   const int kOutputSize = 5;
   const int kNFrames = 2;
@@ -215,7 +212,7 @@ TF_LITE_MICRO_TEST(FramerTest_5_2_1_NFrames2) {
                      output_data);
 }
 
-TF_LITE_MICRO_TEST(FramerTest_5_2_1_NFrames2OuterDims4) {
+TEST(FramerTest, FramerTest_5_2_1_NFrames2OuterDims4) {
   const int kInputSize = 4;
   const int kOutputSize = 5;
   int input_dims_data[] = {3, 2, 2, kInputSize};
@@ -232,7 +229,7 @@ TF_LITE_MICRO_TEST(FramerTest_5_2_1_NFrames2OuterDims4) {
                      output_data);
 }
 
-TF_LITE_MICRO_TEST(TestReset) {
+TEST(FramerTest, TestReset) {
   const int kInputSize = 1;
   const int kOutputSize = 3;
   int input_dims_data[] = {1, kInputSize};
@@ -247,4 +244,4 @@ TF_LITE_MICRO_TEST(TestReset) {
                           g_gen_data_size_3_1_0_framer, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

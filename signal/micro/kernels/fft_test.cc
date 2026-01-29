@@ -19,7 +19,7 @@ limitations under the License.
 #include "signal/testdata/fft_test_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -49,7 +49,7 @@ TfLiteStatus ValidateFFTGoldens(
     return status;
   }
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], tolerance);
+    EXPECT_NEAR(golden[i], output_data[i], tolerance);
   }
   return kTfLiteOk;
 }
@@ -117,7 +117,7 @@ TfLiteStatus TestFFTAutoScale(int* input_dims_data, const int16_t* input_data,
       tensors, kTensorsSize, inputs_array, outputs_array, output_len, golden,
       registration, flexbuffers_data, flexbuffers_data_len, output_data, 0));
 
-  TF_LITE_MICRO_EXPECT_EQ(scale_bit_golden, *scale_bit);
+  EXPECT_EQ(scale_bit_golden, *scale_bit);
 
   return kTfLiteOk;
 }
@@ -127,9 +127,7 @@ TfLiteStatus TestFFTAutoScale(int* input_dims_data, const int16_t* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(RfftTestSize64Float) {
+TEST(FftTest, RfftTestSize64Float) {
   constexpr int kOutputLen = 66;
   int input_shape[] = {1, 64};
   const float input[] = {16384., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -147,16 +145,15 @@ TF_LITE_MICRO_TEST(RfftTestSize64Float) {
   float output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_FLOAT();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<float>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_float,
-                     g_gen_data_size_fft_length_64_float, output, 1e-7));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<float>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_float,
+                           g_gen_data_size_fft_length_64_float, output, 1e-7));
 }
 
 #if !defined __XTENSA__
 // Currently, only 16-bit RFFT of size 512 is supported.
-TF_LITE_MICRO_TEST(RfftTestSize64Int16) {
+TEST(FftTest, RfftTestSize64Int16) {
   constexpr int kOutputLen = 66;
   int input_shape[] = {1, 64};
   const int16_t input[] = {16384, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -172,15 +169,14 @@ TF_LITE_MICRO_TEST(RfftTestSize64Int16) {
   int16_t output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_INT16();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int16_t>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_int16,
-                     g_gen_data_size_fft_length_64_int16, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int16_t>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_int16,
+                           g_gen_data_size_fft_length_64_int16, output, 0));
 }
 #endif
 
-TF_LITE_MICRO_TEST(RfftTestSize64Int32) {
+TEST(FftTest, RfftTestSize64Int32) {
   constexpr int kOutputLen = 66;
   int input_shape[] = {1, 64};
   const int32_t input[] = {16384, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -196,14 +192,13 @@ TF_LITE_MICRO_TEST(RfftTestSize64Int32) {
   int32_t output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_INT32();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int32_t>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_int32,
-                     g_gen_data_size_fft_length_64_int32, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int32_t>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_int32,
+                           g_gen_data_size_fft_length_64_int32, output, 0));
 }
 
-TF_LITE_MICRO_TEST(RfftTestSize64Int32OuterDims4) {
+TEST(FftTest, RfftTestSize64Int32OuterDims4) {
   constexpr int kOutputLen = 66;
   constexpr int kOuterDim = 2;
   int input_shape[] = {3, kOuterDim, kOuterDim, 64};
@@ -242,14 +237,13 @@ TF_LITE_MICRO_TEST(RfftTestSize64Int32OuterDims4) {
   int32_t output[kOuterDim * kOuterDim * kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_INT32();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int32_t>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_int32,
-                     g_gen_data_size_fft_length_64_int32, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int32_t>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_int32,
+                           g_gen_data_size_fft_length_64_int32, output, 0));
 }
 
-TF_LITE_MICRO_TEST(RfftTestSize512Float) {
+TEST(FftTest, RfftTestSize512Float) {
   constexpr int kOutputLen = 514;
   int input_shape[] = {1, 512};
   int output_shape[] = {1, kOutputLen};
@@ -257,15 +251,14 @@ TF_LITE_MICRO_TEST(RfftTestSize512Float) {
   float output[kOutputLen * 2];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_FLOAT();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<float>(
-                     input_shape, tflite::kRfftFloatLength512Input,
-                     output_shape, tflite::kRfftFloatLength512Golden,
-                     *registration, g_gen_data_fft_length_512_float,
-                     g_gen_data_size_fft_length_512_float, output, 1e-5));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<float>(
+                           input_shape, tflite::kRfftFloatLength512Input,
+                           output_shape, tflite::kRfftFloatLength512Golden,
+                           *registration, g_gen_data_fft_length_512_float,
+                           g_gen_data_size_fft_length_512_float, output, 1e-5));
 }
 
-TF_LITE_MICRO_TEST(RfftTestSize512Int16) {
+TEST(FftTest, RfftTestSize512Int16) {
   constexpr int kOutputLen = 514;
   int input_shape[] = {1, 512};
   int output_shape[] = {1, kOutputLen};
@@ -279,15 +272,15 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int16) {
 #else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   int tolerance = 3;
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int16_t>(
-                     input_shape, tflite::kRfftInt16Length512Input,
-                     output_shape, tflite::kRfftInt16Length512Golden,
-                     *registration, g_gen_data_fft_length_512_int16,
-                     g_gen_data_size_fft_length_512_int16, output, tolerance));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFFT<int16_t>(
+                input_shape, tflite::kRfftInt16Length512Input, output_shape,
+                tflite::kRfftInt16Length512Golden, *registration,
+                g_gen_data_fft_length_512_int16,
+                g_gen_data_size_fft_length_512_int16, output, tolerance));
 }
 
-TF_LITE_MICRO_TEST(RfftTestSize512Int32) {
+TEST(FftTest, RfftTestSize512Int32) {
   constexpr int kOutputLen = 514;
   int input_shape[] = {1, 512};
   int output_shape[] = {1, kOutputLen};
@@ -295,15 +288,14 @@ TF_LITE_MICRO_TEST(RfftTestSize512Int32) {
   int32_t output[kOutputLen * 2];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_INT32();
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          tflite::testing::TestFFT<int32_t>(
-                              input_shape, tflite::kRfftInt32Length512Input,
-                              output_shape, tflite::kRfftInt32Length512Golden,
-                              *registration, g_gen_data_fft_length_512_int32,
-                              g_gen_data_size_fft_length_512_int32, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int32_t>(
+                           input_shape, tflite::kRfftInt32Length512Input,
+                           output_shape, tflite::kRfftInt32Length512Golden,
+                           *registration, g_gen_data_fft_length_512_int32,
+                           g_gen_data_size_fft_length_512_int32, output, 0));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength64Float) {
+TEST(FftTest, IrfftTestLength64Float) {
   constexpr int kOutputLen = 64;
   int input_shape[] = {1, 66};
   const float input[] = {256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0, 256, 0,
@@ -319,14 +311,13 @@ TF_LITE_MICRO_TEST(IrfftTestLength64Float) {
   float output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_FLOAT();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<float>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_float,
-                     g_gen_data_size_fft_length_64_int16, output, 1e-7));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<float>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_float,
+                           g_gen_data_size_fft_length_64_int16, output, 1e-7));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength64Int16) {
+TEST(FftTest, IrfftTestLength64Int16) {
   constexpr int kOutputLen = 64;
   int input_shape[] = {1, 66};
   const int16_t input[] = {
@@ -342,14 +333,13 @@ TF_LITE_MICRO_TEST(IrfftTestLength64Int16) {
   int16_t output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_INT16();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int16_t>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_int16,
-                     g_gen_data_size_fft_length_64_int16, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int16_t>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_int16,
+                           g_gen_data_size_fft_length_64_int16, output, 0));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength64Int32) {
+TEST(FftTest, IrfftTestLength64Int32) {
   constexpr int kOutputLen = 64;
   int input_shape[] = {1, 66};
   const int32_t input[] = {
@@ -365,14 +355,13 @@ TF_LITE_MICRO_TEST(IrfftTestLength64Int32) {
   int32_t output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_INT32();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int32_t>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_int32,
-                     g_gen_data_size_fft_length_64_int32, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int32_t>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_int32,
+                           g_gen_data_size_fft_length_64_int32, output, 0));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength64Int32OuterDims4) {
+TEST(FftTest, IrfftTestLength64Int32OuterDims4) {
   constexpr int kOutputLen = 64;
   constexpr int kOuterDim = 2;
   int input_shape[] = {3, kOuterDim, kOuterDim, 66};
@@ -409,59 +398,55 @@ TF_LITE_MICRO_TEST(IrfftTestLength64Int32OuterDims4) {
   int32_t output[kOuterDim * kOuterDim * kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_INT32();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<int32_t>(
-                     input_shape, input, output_shape, golden, *registration,
-                     g_gen_data_fft_length_64_int32,
-                     g_gen_data_size_fft_length_64_int32, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int32_t>(
+                           input_shape, input, output_shape, golden,
+                           *registration, g_gen_data_fft_length_64_int32,
+                           g_gen_data_size_fft_length_64_int32, output, 0));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength512Float) {
+TEST(FftTest, IrfftTestLength512Float) {
   constexpr int kOutputLen = 512;
   int input_shape[] = {1, 514};
   int output_shape[] = {1, kOutputLen};
   float output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_FLOAT();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, tflite::testing::TestFFT<float>(
-                     input_shape, tflite::kIrfftFloatLength512Input,
-                     output_shape, tflite::kIrfftFloatLength512Golden,
-                     *registration, g_gen_data_fft_length_512_float,
-                     g_gen_data_size_fft_length_512_float, output, 1e-6));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<float>(
+                           input_shape, tflite::kIrfftFloatLength512Input,
+                           output_shape, tflite::kIrfftFloatLength512Golden,
+                           *registration, g_gen_data_fft_length_512_float,
+                           g_gen_data_size_fft_length_512_float, output, 1e-6));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength512Int16) {
+TEST(FftTest, IrfftTestLength512Int16) {
   constexpr int kOutputLen = 512;
   int input_shape[] = {1, 514};
   int output_shape[] = {1, kOutputLen};
   int16_t output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_INT16();
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          tflite::testing::TestFFT<int16_t>(
-                              input_shape, tflite::kIrfftInt16Length512Input,
-                              output_shape, tflite::kIrfftInt16Length512Golden,
-                              *registration, g_gen_data_fft_length_512_int16,
-                              g_gen_data_size_fft_length_512_int16, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int16_t>(
+                           input_shape, tflite::kIrfftInt16Length512Input,
+                           output_shape, tflite::kIrfftInt16Length512Golden,
+                           *registration, g_gen_data_fft_length_512_int16,
+                           g_gen_data_size_fft_length_512_int16, output, 0));
 }
 
-TF_LITE_MICRO_TEST(IrfftTestLength512Int32) {
+TEST(FftTest, IrfftTestLength512Int32) {
   constexpr int kOutputLen = 512;
   int input_shape[] = {1, 514};
   int output_shape[] = {1, kOutputLen};
   int32_t output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_IRFFT_INT32();
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          tflite::testing::TestFFT<int32_t>(
-                              input_shape, tflite::kIrfftInt32Length512Input,
-                              output_shape, tflite::kIrfftInt32Length512Golden,
-                              *registration, g_gen_data_fft_length_512_int32,
-                              g_gen_data_size_fft_length_512_int32, output, 0));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFT<int32_t>(
+                           input_shape, tflite::kIrfftInt32Length512Input,
+                           output_shape, tflite::kIrfftInt32Length512Golden,
+                           *registration, g_gen_data_fft_length_512_int32,
+                           g_gen_data_size_fft_length_512_int32, output, 0));
 }
 
-TF_LITE_MICRO_TEST(FftAutoScaleTestSmall) {
+TEST(FftTest, FftAutoScaleTestSmall) {
   constexpr int kTensorsSize = 8;
   int shape[] = {1, 8};
   const int16_t input[] = {0x0000, 0x1111, 0x2222, 0x3333,
@@ -474,14 +459,13 @@ TF_LITE_MICRO_TEST(FftAutoScaleTestSmall) {
   const int32_t scale_bit_golden = 1;
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_FFT_AUTO_SCALE();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFFTAutoScale(
-          shape, input, shape, golden, scale_bit_shape, scale_bit_golden,
-          *registration, nullptr, 0, output, &scale_bit));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFFTAutoScale(
+                shape, input, shape, golden, scale_bit_shape, scale_bit_golden,
+                *registration, nullptr, 0, output, &scale_bit));
 }
 
-TF_LITE_MICRO_TEST(FftAutoScaleTestScaleBit) {
+TEST(FftTest, FftAutoScaleTestScaleBit) {
   constexpr int kTensorsSize = 8;
   int shape[] = {1, 8};
   const int16_t input[] = {238, 113, -88, -243, -5, -130, 159, -70};
@@ -493,14 +477,13 @@ TF_LITE_MICRO_TEST(FftAutoScaleTestScaleBit) {
   const int32_t scale_bit_golden = 7;
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_FFT_AUTO_SCALE();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFFTAutoScale(
-          shape, input, shape, golden, scale_bit_shape, scale_bit_golden,
-          *registration, nullptr, 0, output, &scale_bit));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFFTAutoScale(
+                shape, input, shape, golden, scale_bit_shape, scale_bit_golden,
+                *registration, nullptr, 0, output, &scale_bit));
 }
 
-TF_LITE_MICRO_TEST(FftAutoScaleTestLarge) {
+TEST(FftTest, FftAutoScaleTestLarge) {
   constexpr int kTensorsSize = 400;
   int shape[] = {1, kTensorsSize};
   int16_t output[kTensorsSize];
@@ -510,12 +493,11 @@ TF_LITE_MICRO_TEST(FftAutoScaleTestLarge) {
   const int32_t scale_bit_golden = 0;
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_FFT_AUTO_SCALE();
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFFTAutoScale(
-          shape, tflite::kFftAutoScaleLength512Input, shape,
-          tflite::kFftAutoScaleLength512Golden, scale_bit_shape,
-          scale_bit_golden, *registration, nullptr, 0, output, &scale_bit));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFFTAutoScale(
+                           shape, tflite::kFftAutoScaleLength512Input, shape,
+                           tflite::kFftAutoScaleLength512Golden,
+                           scale_bit_shape, scale_bit_golden, *registration,
+                           nullptr, 0, output, &scale_bit));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

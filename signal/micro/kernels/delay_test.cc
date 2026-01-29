@@ -19,7 +19,7 @@ limitations under the License.
 #include "signal/micro/kernels/delay_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace {
@@ -60,9 +60,9 @@ void TestDelayInvoke(const int16_t* input_data, int16_t* output_data,
   for (int i = 0; i < input_num; i++) {
     memcpy(input_buffer, &input_data[i * input_size],
            sizeof(input_data[0]) * input_size);
-    TF_LITE_MICRO_EXPECT_EQ(runner->Invoke(), kTfLiteOk);
+    EXPECT_EQ(runner->Invoke(), kTfLiteOk);
     for (int j = 0; j < input_size; ++j) {
-      TF_LITE_MICRO_EXPECT_EQ(golden[i * input_size + j], output_data[j]);
+      EXPECT_EQ(golden[i * input_size + j], output_data[j]);
     }
   }
 }
@@ -80,10 +80,10 @@ void TestDelay(int* input_dims_data, const int16_t* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(delay_runner.kernel_runner().InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(delay_runner.kernel_runner().InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestDelayInvoke(input_data, output_data, golden, input_size, input_num,
                   &delay_runner.kernel_runner(), input_buffer);
 }
@@ -104,10 +104,10 @@ void TestDelayReset(int* input_dims_data, const int16_t* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(delay_runner.kernel_runner().InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(delay_runner.kernel_runner().InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestDelayInvoke(input_data, output_data, golden, input_size, input_num,
                   &delay_runner.kernel_runner(), input_buffer);
   delay_runner.kernel_runner().Reset();
@@ -118,9 +118,7 @@ void TestDelayReset(int* input_dims_data, const int16_t* input_data,
 }  // namespace
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(DelayTestSingleDimDelayLessThanFrameSize) {
+TEST(DelayTest, DelayTestSingleDimDelayLessThanFrameSize) {
   const int kInputSize = 8;
   const int kInputNum = 2;
   int input_shape[] = {1, kInputSize};
@@ -141,7 +139,7 @@ TF_LITE_MICRO_TEST(DelayTestSingleDimDelayLessThanFrameSize) {
                     g_gen_data_size_3_delay, input_buffer);
 }
 
-TF_LITE_MICRO_TEST(DelayTestSingleDimDelayGreaterThanFrameSize) {
+TEST(DelayTest, DelayTestSingleDimDelayGreaterThanFrameSize) {
   const int kInputSize = 3;
   const int kInputNum = 3;
   int input_shape[] = {1, kInputSize};
@@ -161,7 +159,7 @@ TF_LITE_MICRO_TEST(DelayTestSingleDimDelayGreaterThanFrameSize) {
                     g_gen_data_size_5_delay, input_buffer);
 }
 
-TF_LITE_MICRO_TEST(DelayTestMultiDimDelayLessThanFrameSize) {
+TEST(DelayTest, DelayTestMultiDimDelayLessThanFrameSize) {
   const int kInputSize = 16;
   const int kInputNum = 2;
   int input_shape[] = {2, 4, 4};
@@ -220,7 +218,7 @@ TF_LITE_MICRO_TEST(DelayTestMultiDimDelayLessThanFrameSize) {
                     g_gen_data_size_3_delay, input_buffer);
 }
 
-TF_LITE_MICRO_TEST(DelayTestMultiDimDelayGreaterThanFrameSize) {
+TEST(DelayTest, DelayTestMultiDimDelayGreaterThanFrameSize) {
   const int kInputSize = 16;
   const int kInputNum = 3;
   int input_shape[] = {2, 4, 4};
@@ -297,7 +295,7 @@ TF_LITE_MICRO_TEST(DelayTestMultiDimDelayGreaterThanFrameSize) {
                     g_gen_data_size_5_delay, input_buffer);
 }
 
-TF_LITE_MICRO_TEST(DelayTestResetSingleDimDelayLessThanFrameSize) {
+TEST(DelayTest, DelayTestResetSingleDimDelayLessThanFrameSize) {
   const int kInputSize = 8;
   const int kInputNum = 2;
   int input_shape[] = {1, kInputSize};
@@ -318,7 +316,7 @@ TF_LITE_MICRO_TEST(DelayTestResetSingleDimDelayLessThanFrameSize) {
                          g_gen_data_size_3_delay, input_buffer);
 }
 
-TF_LITE_MICRO_TEST(DelayTestResetSingleResetDimDelayGreaterThanFrameSize) {
+TEST(DelayTest, DelayTestResetSingleResetDimDelayGreaterThanFrameSize) {
   const int kInputSize = 3;
   const int kInputNum = 3;
   int input_shape[] = {1, kInputSize};
@@ -338,4 +336,4 @@ TF_LITE_MICRO_TEST(DelayTestResetSingleResetDimDelayGreaterThanFrameSize) {
                          g_gen_data_size_5_delay, input_buffer);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -16,7 +16,7 @@ limitations under the License.
 #include "signal/micro/kernels/pcan_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace tflm_signal {
@@ -73,7 +73,7 @@ TfLiteStatus TestPCAN(const unsigned char* init_data, int init_data_size,
     return status;
   }
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
   return kTfLiteOk;
 }
@@ -82,9 +82,7 @@ TfLiteStatus TestPCAN(const unsigned char* init_data, int init_data_size,
 }  // namespace tflm_signal
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(Mix1Ref1Case) {
+TEST(PcanTest, Mix1Ref1Case) {
   int input_shape[] = {1, 40};
   int noise_estimate_shape[] = {1, 40};
   int gain_lut_shape[] = {1, 125};
@@ -121,12 +119,11 @@ TF_LITE_MICRO_TEST(Mix1Ref1Case) {
                              1546, 908, 1496, 904, 1527, 895, 1346, 758,
                              999,  548, 378,  344, 908,  761, 1274, 843};
   memset(output, 0, sizeof(output));
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::tflm_signal::TestPCAN(
-          g_gen_data_snr_shift_6_test, g_gen_data_size_snr_shift_6_test,
-          input_shape, input, noise_estimate_shape, noise_estimate,
-          gain_lut_shape, gain_lut, output_shape, golden, output));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::tflm_signal::TestPCAN(
+                g_gen_data_snr_shift_6_test, g_gen_data_size_snr_shift_6_test,
+                input_shape, input, noise_estimate_shape, noise_estimate,
+                gain_lut_shape, gain_lut, output_shape, golden, output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

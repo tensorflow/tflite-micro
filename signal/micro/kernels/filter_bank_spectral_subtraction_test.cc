@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -76,8 +76,8 @@ TfLiteStatus TestFilterBankSpectralSubtractionInvoke(
   TF_LITE_ENSURE_STATUS(kernel_runner.Invoke());
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden1[i], output1_data[i]);
-    TF_LITE_MICRO_EXPECT_EQ(golden2[i], output2_data[i]);
+    EXPECT_EQ(golden1[i], output1_data[i]);
+    EXPECT_EQ(golden2[i], output2_data[i]);
   }
 
   return kTfLiteOk;
@@ -141,9 +141,8 @@ TfLiteStatus TestFilterBankSpectralSubtractionReset(
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest32Channel) {
+TEST(FilterBankSpectralSubtractionTest,
+     FilterBankSpectralSubtractionTest32Channel) {
   int input_shape[] = {1, 32};
   int output_shape[] = {1, 32};
 
@@ -159,16 +158,16 @@ TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest32Channel) {
                               1,  2,  1, 1, 1, 1,  2,  4,  10, 19};
   uint32_t output1[32];
   uint32_t output2[32];
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFilterBankSpectralSubtraction(
-          input_shape, input, output_shape, golden1, golden2,
-          g_gen_data_filter_bank_spectral_subtraction_32_channel,
-          g_gen_data_size_filter_bank_spectral_subtraction_32_channel, output1,
-          output2));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFilterBankSpectralSubtraction(
+                input_shape, input, output_shape, golden1, golden2,
+                g_gen_data_filter_bank_spectral_subtraction_32_channel,
+                g_gen_data_size_filter_bank_spectral_subtraction_32_channel,
+                output1, output2));
 }
 
-TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest16Channel) {
+TEST(FilterBankSpectralSubtractionTest,
+     FilterBankSpectralSubtractionTest16Channel) {
   int input_shape[] = {1, 16};
   int output_shape[] = {1, 16};
 
@@ -180,16 +179,16 @@ TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest16Channel) {
                               6,  14, 14, 12, 6,  12, 8,  12};
   uint32_t output1[32];
   uint32_t output2[32];
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFilterBankSpectralSubtraction(
-          input_shape, input, output_shape, golden1, golden2,
-          g_gen_data_filter_bank_spectral_subtraction_16_channel,
-          g_gen_data_size_filter_bank_spectral_subtraction_16_channel, output1,
-          output2));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFilterBankSpectralSubtraction(
+                input_shape, input, output_shape, golden1, golden2,
+                g_gen_data_filter_bank_spectral_subtraction_16_channel,
+                g_gen_data_size_filter_bank_spectral_subtraction_16_channel,
+                output1, output2));
 }
 
-TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest32ChannelReset) {
+TEST(FilterBankSpectralSubtractionTest,
+     FilterBankSpectralSubtractionTest32ChannelReset) {
   int input_shape[] = {1, 32};
   int output_shape[] = {1, 32};
 
@@ -206,16 +205,16 @@ TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest32ChannelReset) {
 
   uint32_t output1[32];
   uint32_t output2[32];
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFilterBankSpectralSubtractionReset(
-          input_shape, input, output_shape, golden1, golden2,
-          g_gen_data_filter_bank_spectral_subtraction_32_channel,
-          g_gen_data_size_filter_bank_spectral_subtraction_32_channel, output1,
-          output2));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFilterBankSpectralSubtractionReset(
+                input_shape, input, output_shape, golden1, golden2,
+                g_gen_data_filter_bank_spectral_subtraction_32_channel,
+                g_gen_data_size_filter_bank_spectral_subtraction_32_channel,
+                output1, output2));
 }
 
-TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest16ChannelReset) {
+TEST(FilterBankSpectralSubtractionTest,
+     FilterBankSpectralSubtractionTest16ChannelReset) {
   int input_shape[] = {1, 16};
   int output_shape[] = {1, 16};
 
@@ -227,13 +226,12 @@ TF_LITE_MICRO_TEST(FilterBankSpectralSubtractionTest16ChannelReset) {
                               6,  14, 14, 12, 6,  12, 8,  12};
   uint32_t output1[32];
   uint32_t output2[32];
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFilterBankSpectralSubtractionReset(
-          input_shape, input, output_shape, golden1, golden2,
-          g_gen_data_filter_bank_spectral_subtraction_16_channel,
-          g_gen_data_size_filter_bank_spectral_subtraction_16_channel, output1,
-          output2));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFilterBankSpectralSubtractionReset(
+                input_shape, input, output_shape, golden1, golden2,
+                g_gen_data_filter_bank_spectral_subtraction_16_channel,
+                g_gen_data_size_filter_bank_spectral_subtraction_16_channel,
+                output1, output2));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -18,7 +18,7 @@ limitations under the License.
 #include "signal/micro/kernels/filter_bank_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -77,7 +77,7 @@ TfLiteStatus TestFilterBank(int* input1_dims_data, const uint32_t* input1_data,
   TF_LITE_ENSURE_STATUS(runner.Invoke());
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
   return kTfLiteOk;
 }
@@ -86,9 +86,7 @@ TfLiteStatus TestFilterBank(int* input1_dims_data, const uint32_t* input1_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FilterBankTest32Channel) {
+TEST(FilterBankTest, FilterBankTest32Channel) {
   int input1_shape[] = {1, 257};
   int input2_shape[] = {1, 117};
   int input3_shape[] = {1, 117};
@@ -187,7 +185,7 @@ TF_LITE_MICRO_TEST(FilterBankTest32Channel) {
       1957080469, 1034203505, 1541805928, 1710818326,  2432875876, 2254716277,
       275382345,  57293224};
 
-  TF_LITE_MICRO_EXPECT_EQ(
+  EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestFilterBank(
           input1_shape, input1, input2_shape, input2, input3_shape, input3,
@@ -196,7 +194,7 @@ TF_LITE_MICRO_TEST(FilterBankTest32Channel) {
           g_gen_data_size_filter_bank_32_channel, output));
 }
 
-TF_LITE_MICRO_TEST(FilterBankTest16Channel) {
+TEST(FilterBankTest, FilterBankTest16Channel) {
   int input1_shape[] = {1, 129};
   int input2_shape[] = {1, 59};
   int input3_shape[] = {1, 59};
@@ -249,7 +247,7 @@ TF_LITE_MICRO_TEST(FilterBankTest16Channel) {
                              94840835,  57788823,  531528204, 318265707,
                              263149795, 188110467, 501443259, 200747781};
 
-  TF_LITE_MICRO_EXPECT_EQ(
+  EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestFilterBank(
           input1_shape, input1, input2_shape, input2, input3_shape, input3,
@@ -258,4 +256,4 @@ TF_LITE_MICRO_TEST(FilterBankTest16Channel) {
           g_gen_data_size_filter_bank_16_channel, output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
