@@ -44,6 +44,7 @@ tflm_cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
