@@ -40,3 +40,17 @@ EMBARC_MLI_PRE_COMPILED_URL := "https://github.com/foss-for-synopsys-dwc-arc-pro
 EMBARC_MLI_PRE_COMPILED_MD5 := "173990c2dde4efef6a2c95b92d1f0244"
 
 # Skip md5sum-check since ethos-u-core-driver download link is non-deterministic, see  https://github.com/google/gitiles/issues/84
+
+FLATBUFFERS_URL := "https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.zip"
+FLATBUFFERS_MD5 := "023eca1e211d64007124420cd6be29c7"
+FLATBUFFERS_PATCH_PATH := "tensorflow/lite/micro/tools/make/flatbuffers.patch"
+
+KISSFFT_URL := "https://github.com/mborgerding/kissfft/archive/refs/tags/v130.zip"
+KISSFFT_MD5 := "438ba1fef5783cc5f5f201395cc477ca"
+KISSFFT_PATCH_PATH := "third_party/kissfft/kissfft.patch"
+
+EYALROZ_PRINTF_URL := "https://github.com/eyalroz/printf/archive/f8ed5a9bd9fa8384430973465e94aa14c925872d.zip"
+EYALROZ_PRINTF_MD5 := "5772534c1d6f718301bca1fefaba28f3"
+
+# The pigweed download uses git and is more complex than a simple download and
+# extract. It is left as a shell script for now.

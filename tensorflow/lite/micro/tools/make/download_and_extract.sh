@@ -164,6 +164,15 @@ download_and_extract() {
 
   if [[ ${action} == "patch_am_sdk" ]]; then
     patch_am_sdk ${dir}
+  elif [[ ${action} == "patch_from_url" ]]; then
+    local patch_url=${action_param1}
+    local patch_file=$(mktemp)
+    curl -LsS --fail --retry 5 "${patch_url}" > ${patch_file}
+    patch -p1 -d ${dir} < ${patch_file}
+    rm -f ${patch_file}
+  elif [[ ${action} == "patch_file" ]]; then
+    local patch_file=${action_param1}
+    patch -p1 -d ${dir} < ${patch_file}
   elif [[ ${action} == "patch_cifar10_dataset" ]]; then
     patch_cifar10_dataset ${dir}
   elif [[ ${action} == "build_embarc_mli" ]]; then
