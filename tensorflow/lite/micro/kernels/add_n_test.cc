@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -42,15 +42,15 @@ void ExecuteAddN(TfLiteTensor* tensors, int tensors_count) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
 void TestAddN(int* input_dims_data, const T* const* input_data,
               int input_data_count, int* expected_dims, const T* expected_data,
               T* output_data) {
-  TF_LITE_MICRO_EXPECT_LE(input_data_count, kMaxInputTensors);
+  EXPECT_LE(input_data_count, kMaxInputTensors);
 
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
@@ -65,7 +65,7 @@ void TestAddN(int* input_dims_data, const T* const* input_data,
   ExecuteAddN(tensors, input_data_count + 1);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
+    EXPECT_EQ(expected_data[i], output_data[i]);
   }
 }
 
@@ -92,7 +92,7 @@ void TestAddNQuantized(TestQuantParams<T, kNumInputs, kOutputSize>* params,
                        int* input_dims_data, const float* const* input_data,
                        int* expected_dims, const float* expected_data,
                        float* output_data) {
-  TF_LITE_MICRO_EXPECT_LE(kNumInputs, kMaxInputTensors);
+  EXPECT_LE(kNumInputs, kMaxInputTensors);
 
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(expected_dims);
@@ -114,7 +114,7 @@ void TestAddNQuantized(TestQuantParams<T, kNumInputs, kOutputSize>* params,
   Dequantize(params->output_data, kOutputSize, scale, zero_point, output_data);
   const float kTolerance = GetTolerance<T>(params->data_min, params->data_max);
   for (int i = 0; i < kOutputSize; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -122,9 +122,7 @@ void TestAddNQuantized(TestQuantParams<T, kNumInputs, kOutputSize>* params,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatAddNOpAddMultipleTensors) {
+TEST(AddNTest, FloatAddNOpAddMultipleTensors) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {-2.0, 0.2, 0.7, 0.8};
   constexpr float kInput2[] = {0.1, 0.2, 0.3, 0.5};
@@ -143,7 +141,7 @@ TF_LITE_MICRO_TEST(FloatAddNOpAddMultipleTensors) {
                             output_data);
 }
 
-TF_LITE_MICRO_TEST(Int8AddNOpAddMultipleTensors) {
+TEST(AddNTest, Int8AddNOpAddMultipleTensors) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {-2.0, 0.2, 0.7, 0.8};
   constexpr float kInput2[] = {0.1, 0.2, 0.3, 0.5};
@@ -167,4 +165,4 @@ TF_LITE_MICRO_TEST(Int8AddNOpAddMultipleTensors) {
       &params, kDims, kInputs, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

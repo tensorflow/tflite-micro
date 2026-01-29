@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 using ::tflite::testing::CreateTensor;
@@ -65,20 +65,18 @@ void TestBroadcastArgs(int* input1_shape, DimsType* input1_data,
       CreateBroadcastArgsTestRunner(input1_shape, input1_data, input2_shape,
                                     input2_data, output_shape, output_data);
 
-  TF_LITE_MICRO_EXPECT_EQ(runner.InitAndPrepare(), kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(runner.Invoke(), kTfLiteOk);
+  EXPECT_EQ(runner.InitAndPrepare(), kTfLiteOk);
+  EXPECT_EQ(runner.Invoke(), kTfLiteOk);
 
   // The output elements contain the fill value.
   const auto elements = tflite::ElementCount(*IntArrayFromInts(output_shape));
   for (int i = 0; i < elements; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(output_data[i], expected_output_data[i]);
+    EXPECT_EQ(output_data[i], expected_output_data[i]);
   }
 }
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(BroadcastArgsWithScalar) {
+TEST(BroadcastArgsTest, BroadcastArgsWithScalar) {
   int input1_shape[] = {1, 0};
   int32_t input1_data[] = {0};
 
@@ -93,7 +91,7 @@ TF_LITE_MICRO_TEST(BroadcastArgsWithScalar) {
                     output_shape, output_data, expected_output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastArgsDifferentDims) {
+TEST(BroadcastArgsTest, BroadcastArgsDifferentDims) {
   int input1_shape[] = {1, 1};
   int32_t input1_data[] = {1};
 
@@ -108,7 +106,7 @@ TF_LITE_MICRO_TEST(BroadcastArgsDifferentDims) {
                     output_shape, output_data, expected_output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastArgsSameDims) {
+TEST(BroadcastArgsTest, BroadcastArgsSameDims) {
   int input1_shape[] = {1, 6};
   int32_t input1_data[] = {1, 4, 6, 3, 1, 5};
 
@@ -123,7 +121,7 @@ TF_LITE_MICRO_TEST(BroadcastArgsSameDims) {
                     output_shape, output_data, expected_output_data);
 }
 
-TF_LITE_MICRO_TEST(BroadcastArgsComplex) {
+TEST(BroadcastArgsTest, BroadcastArgsComplex) {
   int input1_shape[] = {1, 4};
   int32_t input1_data[] = {6, 3, 1, 5};
 
@@ -138,4 +136,4 @@ TF_LITE_MICRO_TEST(BroadcastArgsComplex) {
                     output_shape, output_data, expected_output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

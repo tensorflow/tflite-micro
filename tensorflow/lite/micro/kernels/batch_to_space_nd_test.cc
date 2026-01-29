@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -55,7 +55,7 @@ TfLiteStatus ValidateBatchToSpaceNdGoldens(TfLiteTensor* tensors,
 
   for (int i = 0; i < output_size; ++i) {
     // TODO(b/158102673): workaround for not having fatal test assertions.
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output[i]);
+    EXPECT_EQ(golden[i], output[i]);
     if (golden[i] != output[i]) {
       return kTfLiteError;
     }
@@ -123,11 +123,9 @@ TfLiteStatus TestBatchToSpaceNdQuantized(
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(BatchToSpaceBasicFloat) {
+TEST(BatchToSpaceNdTest, BatchToSpaceBasicFloat) {
   float output[tflite::testing::kBasicInputOutputSize];
-  TF_LITE_MICRO_EXPECT_EQ(
+  EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestBatchToSpaceNdFloat(
           tflite::testing::basic_input_dims, tflite::testing::basic_input,
@@ -137,11 +135,11 @@ TF_LITE_MICRO_TEST(BatchToSpaceBasicFloat) {
           tflite::testing::basic_golden, output));
 }
 
-TF_LITE_MICRO_TEST(BatchToSpaceBasicInt8) {
+TEST(BatchToSpaceNdTest, BatchToSpaceBasicInt8) {
   int8_t output[tflite::testing::kBasicInputOutputSize];
   int8_t input_quantized[tflite::testing::kBasicInputOutputSize];
   int8_t golden_quantized[tflite::testing::kBasicInputOutputSize];
-  TF_LITE_MICRO_EXPECT_EQ(
+  EXPECT_EQ(
       kTfLiteOk,
       tflite::testing::TestBatchToSpaceNdQuantized(
           tflite::testing::basic_input_dims, tflite::testing::basic_input,
@@ -151,4 +149,4 @@ TF_LITE_MICRO_TEST(BatchToSpaceBasicInt8) {
           tflite::testing::basic_golden, golden_quantized, 1.0f, 0, output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
