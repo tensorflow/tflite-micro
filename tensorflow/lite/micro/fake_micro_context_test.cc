@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace {
@@ -53,9 +53,7 @@ tflite::FakeMicroContext CreateFakeMicroContext(
 }  // namespace
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
+TEST(FakeMicroContextTest, TestGetBeforeRequestScratchBufferWouldReturnNull) {
   constexpr size_t kArenaSize = 1024;
   uint8_t arena_buffer[kArenaSize];
   tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
@@ -65,10 +63,10 @@ TF_LITE_MICRO_TEST(TestGetBeforeRequestScratchBufferWouldReturnNull) {
   tflite::FakeMicroContext micro_context = tflite::CreateFakeMicroContext(
       &simple_memory_allocator, &dummy_micro_graph);
 
-  TF_LITE_MICRO_EXPECT(micro_context.GetScratchBuffer(0) == nullptr);
+  EXPECT_EQ(micro_context.GetScratchBuffer(0), nullptr);
 }
 
-TF_LITE_MICRO_TEST(TestRequestScratchBufferAndThenGetShouldSucceed) {
+TEST(FakeMicroContextTest, TestRequestScratchBufferAndThenGetShouldSucceed) {
   constexpr size_t kArenaSize = 1024;
   uint8_t arena_buffer[kArenaSize];
   tflite::SingleArenaBufferAllocator simple_memory_allocator(arena_buffer,
@@ -80,19 +78,17 @@ TF_LITE_MICRO_TEST(TestRequestScratchBufferAndThenGetShouldSucceed) {
 
   constexpr size_t kScratchBufferSize = 16;
   int scratch_buffer_index = -1;
-  TF_LITE_MICRO_EXPECT_EQ(micro_context.RequestScratchBufferInArena(
-                              kScratchBufferSize, &scratch_buffer_index),
-                          kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(scratch_buffer_index, 0);
-  TF_LITE_MICRO_EXPECT(micro_context.GetScratchBuffer(scratch_buffer_index) !=
-                       nullptr);
+  EXPECT_EQ(micro_context.RequestScratchBufferInArena(kScratchBufferSize,
+                                                      &scratch_buffer_index),
+            kTfLiteOk);
+  EXPECT_EQ(scratch_buffer_index, 0);
+  EXPECT_NE(micro_context.GetScratchBuffer(scratch_buffer_index), nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(micro_context.RequestScratchBufferInArena(
-                              kScratchBufferSize, &scratch_buffer_index),
-                          kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(scratch_buffer_index, 1);
-  TF_LITE_MICRO_EXPECT(micro_context.GetScratchBuffer(scratch_buffer_index) !=
-                       nullptr);
+  EXPECT_EQ(micro_context.RequestScratchBufferInArena(kScratchBufferSize,
+                                                      &scratch_buffer_index),
+            kTfLiteOk);
+  EXPECT_EQ(scratch_buffer_index, 1);
+  EXPECT_NE(micro_context.GetScratchBuffer(scratch_buffer_index), nullptr);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

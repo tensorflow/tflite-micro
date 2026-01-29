@@ -19,7 +19,7 @@
 #include "tensorflow/lite/micro/hexdump.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/span.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 using tflite::micro::compression::LutTensor;
 using tflite::micro::compression::LutTensorT;
@@ -49,8 +49,6 @@ constexpr unsigned kExpectedSchemaVersion = 1;
 
 }  // end anonymous namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 // Create these objects on the stack and copy them into the subgraph's vector,
 // so they can be compared later to what is read from the flatbuffer.
 LutTensorT lut_tensor0;
@@ -77,21 +75,20 @@ auto flatbuffer = tflite::Span<const uint8_t>{
     reinterpret_cast<const uint8_t*>(builder.GetBufferPointer()),
     builder.GetSize()};
 
-TF_LITE_MICRO_TEST(ReadbackEqualsWrite) {
+TEST(MetadataTest, ReadbackEqualsWrite) {
   const Metadata* read_metadata =
       tflite::micro::compression::GetMetadata(flatbuffer.data());
   const Subgraph* read_subgraph0 = read_metadata->subgraphs()->Get(0);
   const LutTensor* read_lut_tensor0 = read_subgraph0->lut_tensors()->Get(0);
   const LutTensor* read_lut_tensor1 = read_subgraph0->lut_tensors()->Get(1);
-  TF_LITE_MICRO_EXPECT(kExpected0 == *read_lut_tensor0);
-  TF_LITE_MICRO_EXPECT(kExpected1 == *read_lut_tensor1);
+  EXPECT_EQ(kExpected0, *read_lut_tensor0);
+  EXPECT_EQ(kExpected1, *read_lut_tensor1);
 
-  TF_LITE_MICRO_EXPECT(read_metadata->schema_version() ==
-                       kExpectedSchemaVersion);
+  EXPECT_EQ(read_metadata->schema_version(), kExpectedSchemaVersion);
 
   // Print representation of the binary flatbuffer for debugging purposes.
   tflite::hexdump(flatbuffer);
   MicroPrintf("length: %i", flatbuffer.size());
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
