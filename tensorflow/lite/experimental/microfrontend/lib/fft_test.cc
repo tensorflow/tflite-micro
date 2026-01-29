@@ -15,7 +15,7 @@ limitations under the License.
 #include "tensorflow/lite/experimental/microfrontend/lib/fft.h"
 
 #include "tensorflow/lite/experimental/microfrontend/lib/fft_util.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -26,11 +26,9 @@ const int kScaleShift = 0;
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FftTest_CheckOutputValues) {
+TEST(FftTest, FftTest_CheckOutputValues) {
   struct FftState state;
-  TF_LITE_MICRO_EXPECT(
+  EXPECT_TRUE(
       FftPopulateState(&state, sizeof(kFakeWindow) / sizeof(kFakeWindow[0])));
 
   FftInit(&state);
@@ -40,15 +38,14 @@ TF_LITE_MICRO_TEST(FftTest_CheckOutputValues) {
       {0, 0},    {-10, 9},     {-20, 0},   {-9, -10},     {0, 25},  {-119, 119},
       {-887, 0}, {3000, 3000}, {0, -6401}, {-3000, 3000}, {886, 0}, {118, 119},
       {0, 25},   {9, -10},     {19, 0},    {9, 9},        {0, 0}};
-  TF_LITE_MICRO_EXPECT_EQ(state.fft_size / 2 + 1,
-                          sizeof(expected) / sizeof(expected[0]));
+  EXPECT_EQ(state.fft_size / 2 + 1, sizeof(expected) / sizeof(expected[0]));
   unsigned int i;
   for (i = 0; i <= state.fft_size / 2; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.output[i].real, expected[i].real);
-    TF_LITE_MICRO_EXPECT_EQ(state.output[i].imag, expected[i].imag);
+    EXPECT_EQ(state.output[i].real, expected[i].real);
+    EXPECT_EQ(state.output[i].imag, expected[i].imag);
   }
 
   FftFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

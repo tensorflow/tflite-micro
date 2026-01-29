@@ -17,7 +17,7 @@ limitations under the License.
 #include <cstring>
 
 #include "tensorflow/lite/experimental/microfrontend/lib/filterbank_util.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -45,125 +45,118 @@ class FilterbankTestConfig {
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FilterbankTest_CheckStartIndex) {
+TEST(FilterbankTest, FilterbankTest_CheckStartIndex) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
-  TF_LITE_MICRO_EXPECT_EQ(state.start_index, kStartIndex);
+  EXPECT_EQ(state.start_index, kStartIndex);
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckEndIndex) {
+TEST(FilterbankTest, FilterbankTest_CheckEndIndex) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
-  TF_LITE_MICRO_EXPECT_EQ(state.end_index, kEndIndex);
+  EXPECT_EQ(state.end_index, kEndIndex);
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckChannelFrequencyStarts) {
+TEST(FilterbankTest, FilterbankTest_CheckChannelFrequencyStarts) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
   const int16_t expected[] = {0, 4, 8};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.num_channels + 1,
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.num_channels + 1,
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.channel_frequency_starts[i], expected[i]);
+    EXPECT_EQ(state.channel_frequency_starts[i], expected[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckChannelWeightStarts) {
+TEST(FilterbankTest, FilterbankTest_CheckChannelWeightStarts) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
   const int16_t expected[] = {0, 8, 16};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.num_channels + 1,
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.num_channels + 1,
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.channel_weight_starts[i], expected[i]);
+    EXPECT_EQ(state.channel_weight_starts[i], expected[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckChannelWidths) {
+TEST(FilterbankTest, FilterbankTest_CheckChannelWidths) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
   const int16_t expected[] = {8, 8, 8};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.num_channels + 1,
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.num_channels + 1,
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.channel_widths[i], expected[i]);
+    EXPECT_EQ(state.channel_widths[i], expected[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckWeights) {
+TEST(FilterbankTest, FilterbankTest_CheckWeights) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
   const int16_t expected[] = {0, 3277, 2217, 1200, 222,  0,   0,   0,
                               0, 3376, 2468, 1591, 744,  0,   0,   0,
                               0, 4020, 3226, 2456, 1708, 983, 277, 0};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.channel_weight_starts[state.num_channels] +
-          state.channel_widths[state.num_channels],
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.channel_weight_starts[state.num_channels] +
+                state.channel_widths[state.num_channels],
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.weights[i], expected[i]);
+    EXPECT_EQ(state.weights[i], expected[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckUnweights) {
+TEST(FilterbankTest, FilterbankTest_CheckUnweights) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
   const int16_t expected[] = {0, 819, 1879, 2896, 3874, 0,    0,    0,
                               0, 720, 1628, 2505, 3352, 0,    0,    0,
                               0, 76,  870,  1640, 2388, 3113, 3819, 0};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.channel_weight_starts[state.num_channels] +
-          state.channel_widths[state.num_channels],
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.channel_weight_starts[state.num_channels] +
+                state.channel_widths[state.num_channels],
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.unweights[i], expected[i]);
+    EXPECT_EQ(state.unweights[i], expected[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckConvertFftComplexToEnergy) {
+TEST(FilterbankTest, FilterbankTest_CheckConvertFftComplexToEnergy) {
   struct FilterbankState state;
   state.start_index = kStartIndex;
   state.end_index = kEndIndex;
@@ -177,47 +170,46 @@ TF_LITE_MICRO_TEST(FilterbankTest_CheckConvertFftComplexToEnergy) {
 
   int i;
   for (i = state.start_index; i < state.end_index; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(energy[i], kEnergy[i]);
+    EXPECT_EQ(energy[i], kEnergy[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckAccumulateChannels) {
+TEST(FilterbankTest, FilterbankTest_CheckAccumulateChannels) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
 
   FilterbankAccumulateChannels(&state, kEnergy);
 
-  TF_LITE_MICRO_EXPECT_EQ(state.num_channels + 1,
-                          static_cast<int>(sizeof(kWork) / sizeof(kWork[0])));
+  EXPECT_EQ(state.num_channels + 1,
+            static_cast<int>(sizeof(kWork) / sizeof(kWork[0])));
   int i;
   for (i = 0; i <= state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.work[i], kWork[i]);
+    EXPECT_EQ(state.work[i], kWork[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(FilterbankTest_CheckSqrt) {
+TEST(FilterbankTest, FilterbankTest_CheckSqrt) {
   FilterbankTestConfig config;
   struct FilterbankState state;
-  TF_LITE_MICRO_EXPECT(FilterbankPopulateState(&config.config_, &state,
-                                               kSampleRate, kSpectrumSize));
+  EXPECT_TRUE(FilterbankPopulateState(&config.config_, &state, kSampleRate,
+                                      kSpectrumSize));
   std::memcpy(state.work, kWork, sizeof(kWork));
 
   uint32_t* scaled_filterbank = FilterbankSqrt(&state, kScaleShift);
 
   const uint32_t expected[] = {247311, 508620};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.num_channels,
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.num_channels,
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(scaled_filterbank[i], expected[i]);
+    EXPECT_EQ(scaled_filterbank[i], expected[i]);
   }
 
   FilterbankFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
