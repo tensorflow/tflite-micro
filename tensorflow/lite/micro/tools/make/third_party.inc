@@ -31,8 +31,3 @@ THIRD_PARTY_KERNEL_CC_SRCS :=
 
 # Load custom kernels.
 include $(MAKEFILE_DIR)/additional_kernels.inc
-
-# Create rules for downloading third-party dependencies.
-THIRD_PARTY_TARGETS :=
-$(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
-third_party_downloads: $(THIRD_PARTY_TARGETS)

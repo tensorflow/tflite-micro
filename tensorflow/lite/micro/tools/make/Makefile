@@ -386,6 +386,11 @@ ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
   include $(MAKEFILE_DIR)/targets/$(TARGET)_makefile.inc
 endif
 
+# Create rules for downloading third-party dependencies.
+THIRD_PARTY_TARGETS :=
+$(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
+third_party_downloads: $(THIRD_PARTY_TARGETS)
+
 # Validate valid options.
 ifeq (,$(filter $(OPTIMIZE_KERNELS_FOR),KERNELS_OPTIMIZED_FOR_SPEED KERNELS_OPTIMIZED_FOR_SIZE))
     $(error Incorrect OPTIMIZE_KERNELS_FOR: $(OPTIMIZE_KERNELS_FOR))
