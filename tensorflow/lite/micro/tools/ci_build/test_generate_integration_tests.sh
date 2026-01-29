@@ -34,4 +34,5 @@ readable_run bazel run tensorflow/lite/micro/integration_tests:generate_per_laye
 readable_run bazel test tensorflow/lite/micro/integration_tests/person_detect/${KERNEL}:integration_test --test_output=errors
 
 MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+readable_run make -f ${MAKEFILE} config_info
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} test_integration_tests_person_detect_${KERNEL}_test

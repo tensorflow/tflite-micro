@@ -32,6 +32,8 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
 
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
+
 readable_run make -f ${MAKEFILE} TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} clean
 
 # TODO(b/143715361): downloading first to allow for parallel builds.

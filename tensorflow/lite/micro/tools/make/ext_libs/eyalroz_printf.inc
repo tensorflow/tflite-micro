@@ -13,10 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/eyalroz_printf_download.sh  $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the printf download: $(DOWNLOAD_RESULT))
-endif
+$(eval $(call add_third_party_download,$(EYALROZ_PRINTF_URL),$(EYALROZ_PRINTF_MD5),eyalroz_printf,))
 
 PRINTF_PATH := $(DOWNLOADS_DIR)/eyalroz_printf
 THIRD_PARTY_CC_SRCS += \

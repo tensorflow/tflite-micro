@@ -83,6 +83,7 @@ rm -rf "${TEST_OUTPUT_DIR}"
 
 # Remove existing state prior to testing project generation for cortex-m target.
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
+make -f ${MAKEFILE} config_info TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
 make -f ${MAKEFILE} clean clean_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
 
 TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"

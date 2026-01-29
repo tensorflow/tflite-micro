@@ -51,8 +51,8 @@ $(1)_LOCAL_OBJS := $$(addprefix $$(CORE_OBJDIR), \
 $$(patsubst %.S,%.o,$$(patsubst %.cc,%.o,$$(patsubst %.c,%.o,$$($(1)_LOCAL_SRCS)))))
 $(1)_BINARY := $$(BINDIR)$(1)
 $$($(1)_BINARY): $$($(1)_LOCAL_OBJS) $$(MICROLITE_LIB_PATH)
-	@$(MKDIR_P) $$(dir $$@)
-	$$(CXX) $$(CXXFLAGS) $$(INCLUDES) \
+	$$(Q)$(MKDIR_P) $$(dir $$@)
+	$$(Q)$$(CXX) $$(CXXFLAGS) $$(INCLUDES) \
 	-o $$($(1)_BINARY) $$($(1)_LOCAL_OBJS) \
 	$$(MICROLITE_LIB_PATH) $$(LDFLAGS) $$(MICROLITE_LIBS)
 $(1): $$($(1)_BINARY)
@@ -117,3 +117,9 @@ endef
 # 2 - File pattern, e.g: *.h
 recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))
 
+# Generic debug target to print any variable.
+# Usage: make print-VARIABLE
+print-%:
+	@echo '$*=$($*)'
+	@echo '  origin = $(origin $*)'
+	@echo '  flavor = $(flavor $*)'

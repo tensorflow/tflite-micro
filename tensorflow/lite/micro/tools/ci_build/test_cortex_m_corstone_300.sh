@@ -38,6 +38,8 @@ TOOLCHAINS=(gcc armclang)
 MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN}"
 
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
+
 # TODO(b/143715361): downloading first to allow for parallel builds.
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
 

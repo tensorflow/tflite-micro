@@ -43,4 +43,5 @@ readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver
 readable_run bazel run ${GEN_TEST_OUTPUT_DIR_RELATIVE}:micro_mutable_op_resolver_test
 
 MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
+readable_run make -f ${MAKEFILE} config_info
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} test_generated_micro_mutable_op_resolver_person_detect_test
