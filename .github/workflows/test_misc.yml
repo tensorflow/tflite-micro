@@ -29,6 +29,15 @@ jobs:
 
     name: C++ Build Warnings
     steps:
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: false
+          tool-cache: false
+          swap-storage: false    
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
