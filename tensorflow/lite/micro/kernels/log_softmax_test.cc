@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -36,8 +36,8 @@ void ExecuteLogSoftmaxTest(int tensors_count, TfLiteTensor* tensors) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -56,7 +56,7 @@ void TestLogSoftmax(const float tolerance, int* input_dims_data,
   ExecuteLogSoftmaxTest(kTensorsCount, tensors);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], tolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], tolerance);
   }
 }
 
@@ -98,21 +98,18 @@ void TestLogSoftmaxQuantized(const TestLogSoftmaxParams<T>& params,
   ExecuteLogSoftmaxTest(kTensorsCount, tensors);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data_quantized[i], params.output_data[i]);
+    EXPECT_EQ(expected_data_quantized[i], params.output_data[i]);
   }
   Dequantize(params.output_data, output_count, kOutputScale, kOutputZeroPoint,
              output_data);
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i],
-                              params.tolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], params.tolerance);
   }
 }
 
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
-
-TF_LITE_MICRO_TESTS_BEGIN
 
 // This contains the same test values as the Softmax test, but reference answer
 // generated via the following snippet of python:
@@ -123,7 +120,7 @@ TF_LITE_MICRO_TESTS_BEGIN
 //   with tf.Session() as sess:
 //     print('lsm1', sess.run(lsm1))
 //     print('lsm2', sess.run(lsm2))
-TF_LITE_MICRO_TEST(FloatActivationsOpTestLogSoftmax) {
+TEST(LogSoftmaxTest, FloatActivationsOpTestLogSoftmax) {
   int kDims1[] = {2, 2, 4};
   constexpr float kInput[] = {
       0, -6, 2, 4, 3, -2, 10, 1,
@@ -151,7 +148,7 @@ TF_LITE_MICRO_TEST(FloatActivationsOpTestLogSoftmax) {
                                   output_data);
 }
 
-TF_LITE_MICRO_TEST(LogSoftmaxOpTestSimpleTest) {
+TEST(LogSoftmaxTest, LogSoftmaxOpTestSimpleTest) {
   int kDims[] = {2, 2, 5};
   constexpr float kInput[] = {
       1.0,  2.0,  3.0,  4.0,  5.0,   //
@@ -170,7 +167,7 @@ TF_LITE_MICRO_TEST(LogSoftmaxOpTestSimpleTest) {
                                   output_data);
 }
 
-TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLogSoftmaxInt8) {
+TEST(LogSoftmaxTest, QuantizedActivationsOpTestLogSoftmaxInt8) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {
       0, -6, 2, 4, 3, -2, 10, 1,
@@ -202,7 +199,7 @@ TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLogSoftmaxInt8) {
       params, kDims, kInput, kDims, kExpect, kExpectQuantized, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExtraTestLogSoftmaxInt8) {
+TEST(LogSoftmaxTest, ExtraTestLogSoftmaxInt8) {
   int kDims[] = {2, 3, 1};
   constexpr float kInput[] = {0, -1, 1};
   constexpr float kExpect[] = {0, 0, 0};
@@ -227,4 +224,4 @@ TF_LITE_MICRO_TEST(ExtraTestLogSoftmaxInt8) {
       params, kDims, kInput, kDims, kExpect, kExpectQuantized, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

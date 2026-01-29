@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -59,8 +59,8 @@ void ExecuteL2Pool2DTest(const L2Pool2DTestParams& params,
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&op_params));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -80,13 +80,12 @@ void TestL2Pool2D(L2Pool2DTestParams& params, int* input_dims_data,
   ExecuteL2Pool2DTest(params, tensors, tensors_count);
 
   for (int i = 0; i < expected_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i],
-                              params.compare_tolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], params.compare_tolerance);
   }
   for (int i = 0; i < expected_dims->size; i++) {
     // output dims will have been relocated during prepare phase,
     // so use the tensor dims pointer.
-    TF_LITE_MICRO_EXPECT_EQ(expected_dims->data[i], tensors[1].dims->data[i]);
+    EXPECT_EQ(expected_dims->data[i], tensors[1].dims->data[i]);
   }
 }
 
@@ -94,9 +93,7 @@ void TestL2Pool2D(L2Pool2DTestParams& params, int* input_dims_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2Pool) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2Pool) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       0, 6, 2,  4,  //
@@ -112,7 +109,7 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2Pool) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolActivationRelu) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2PoolActivationRelu) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       -1, -6, 2,  4,  //
@@ -129,7 +126,7 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolActivationRelu) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolActivationRelu1) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2PoolActivationRelu1) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       -0.1, -0.6, 2,  4,  //
@@ -146,7 +143,7 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolActivationRelu1) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolActivationRelu6) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2PoolActivationRelu6) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       -0.1, -0.6, 2,  4,  //
@@ -163,7 +160,7 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolActivationRelu6) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolPaddingSame) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2PoolPaddingSame) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       0, 6, 2,  4,  //
@@ -180,7 +177,7 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolPaddingSame) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolPaddingSameStride1) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2PoolPaddingSameStride1) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       0, 6, 2,  4,  //
@@ -201,7 +198,7 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolPaddingSameStride1) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolPaddingValidStride1) {
+TEST(L2Pool2dTest, FloatPoolingOpTestL2PoolPaddingValidStride1) {
   int kInputDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       0, 6, 2,  4,  //
@@ -219,4 +216,4 @@ TF_LITE_MICRO_TEST(FloatPoolingOpTestL2PoolPaddingValidStride1) {
                                 kExpect, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
