@@ -55,18 +55,18 @@ TEST(SingleArenaBufferAllocatorTest, TestAdjustHeadSizeMisalignment) {
 
   // Offset alignment of 12 can lead to allocation within 8 byte range of
   // requested bytes based to arena alignment at runtime:
-  EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 100);
-  EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 100 + 11);
+  EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 100u);
+  EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 100u + 11u);
 
   EXPECT_EQ(kTfLiteOk, allocator.ResizeBuffer(resizable_buf, /*size=*/10,
                                               /*alignment=*/12));
-  EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 10);
-  EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 100 + 11);
+  EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 10u);
+  EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 100u + 11u);
 
   EXPECT_EQ(kTfLiteOk, allocator.ResizeBuffer(resizable_buf, /*size=*/1000,
                                               /*alignment=*/12));
-  EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 1000);
-  EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 1000 + 11);
+  EXPECT_GE(allocator.GetNonPersistentUsedBytes(), 1000u);
+  EXPECT_LE(allocator.GetNonPersistentUsedBytes(), 1000u + 11u);
 }
 
 TEST(SingleArenaBufferAllocatorTest,
