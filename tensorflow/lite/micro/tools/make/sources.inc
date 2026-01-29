@@ -95,15 +95,15 @@ $(DOWNLOADS_DIR)/ruy/ruy/profiler/instrumentation.h
 # examples/micro_speech/Makefile.inc for an example. At the same time, we
 # search till an arbitrary depth for files named Makefile_internal.inc as a way
 # to bypass this check and allow for deeper directory structures.
-MICRO_LITE_EXAMPLE_TESTS := $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/ -maxdepth 2 -name Makefile.inc)
+MICRO_LITE_EXAMPLE_TESTS := $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/*/Makefile.inc)
 
 # Internal examples are copied outside the TFLM repo in google.
 ifneq ($(EXTERNAL_DIR),)
-  MICRO_LITE_EXAMPLE_TESTS += $(shell find $(EXTERNAL_DIR) -name Makefile_internal.inc)
+  MICRO_LITE_EXAMPLE_TESTS += $(call recursive_find,$(EXTERNAL_DIR)/,Makefile_internal.inc)
 endif
 
 # Kernel integration tests must be excluded on certain targets.
-MICRO_LITE_INTEGRATION_TESTS += $(shell find $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests -name Makefile.inc)
+MICRO_LITE_INTEGRATION_TESTS += $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/integration_tests/*/Makefile.inc)
 
 MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST += \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver_test/person_detect/Makefile.inc)
