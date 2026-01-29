@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -39,8 +39,8 @@ void ExecuteDivTest(TfLiteTensor* tensors, int tensors_count,
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&builtin_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -66,7 +66,7 @@ void TestDiv(int* input1_dims_data, const T* input1_data, int* input2_dims_data,
 
   constexpr float kTolerance = 1e-5;
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -118,7 +118,7 @@ void TestDivQuantized(int* input1_dims_data, const float* input1_data,
   Dequantize(params->output_data, output_count, scale, zero_point, output_data);
   const float kTolerance = GetTolerance(params->data_min, params->data_max);
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -177,9 +177,7 @@ void TestDivMultiBroadcastQuant(int** shapes, const int shapes_count,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatDivOpTestActNone) {
+TEST(DivTest, FloatDivOpTestActNone) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {-0.2, 0.2, -1.2, 0.8};
   constexpr float kInput2[] = {0.5, 0.2, -1.5, 0.5};
@@ -191,7 +189,7 @@ TF_LITE_MICRO_TEST(FloatDivOpTestActNone) {
                            output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(FloatDivOpTestActReluN1To1) {
+TEST(DivTest, FloatDivOpTestActReluN1To1) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {-0.2, 0.2, -1.2, 0.8};
   constexpr float kInput2[] = {0.1, 0.2, -1.5, 0.5};
@@ -203,7 +201,7 @@ TF_LITE_MICRO_TEST(FloatDivOpTestActReluN1To1) {
                            output_data, kTfLiteActReluN1To1);
 }
 
-TF_LITE_MICRO_TEST(FloatDivOpTestMultiShape) {
+TEST(DivTest, FloatDivOpTestMultiShape) {
   int kShape1[] = {1, 6};
   int kShape2[] = {2, 2, 3};
   int kShape3[] = {3, 2, 1, 3};
@@ -221,7 +219,7 @@ TF_LITE_MICRO_TEST(FloatDivOpTestMultiShape) {
                                      kExpect, output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(FloatDivOpTestBroadcast) {
+TEST(DivTest, FloatDivOpTestBroadcast) {
   int kShape1[] = {1, 8};
   int kShape2[] = {2, 2, 4};
   int kShape3[] = {3, 2, 1, 4};
@@ -240,7 +238,7 @@ TF_LITE_MICRO_TEST(FloatDivOpTestBroadcast) {
                                          kExpect, output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(FloatDivOpTestBroadcast5D) {
+TEST(DivTest, FloatDivOpTestBroadcast5D) {
   int kShape1[] = {5, 1, 2, 1, 2, 2};
   int* kDims[] = {kShape1};
   constexpr int kDimsCount = std::extent<decltype(kDims)>::value;
@@ -256,7 +254,7 @@ TF_LITE_MICRO_TEST(FloatDivOpTestBroadcast5D) {
                                          kExpect, output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(QuantizedDivOpTestActNone) {
+TEST(DivTest, QuantizedDivOpTestActNone) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {-0.8, -0.2, 0.3, 0.7};
   constexpr float kInput2[] = {-0.8, 0.4, 0.8, 1.0};
@@ -280,7 +278,7 @@ TF_LITE_MICRO_TEST(QuantizedDivOpTestActNone) {
                                     &params);
 }
 
-TF_LITE_MICRO_TEST(QuantizedDivOpTestActReluN1To1) {
+TEST(DivTest, QuantizedDivOpTestActReluN1To1) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr float kInput1[] = {-0.8, 0.2, 0.9, 0.7};
   constexpr float kInput2[] = {0.6, 0.4, 0.9, -0.8};
@@ -312,7 +310,7 @@ TF_LITE_MICRO_TEST(QuantizedDivOpTestActReluN1To1) {
                                     &params);
 }
 
-TF_LITE_MICRO_TEST(QuantizedDivOpTestMultiShape) {
+TEST(DivTest, QuantizedDivOpTestMultiShape) {
   int kShape1[] = {1, 6};
   int kShape2[] = {2, 2, 3};
   int kShape3[] = {3, 2, 1, 3};
@@ -342,7 +340,7 @@ TF_LITE_MICRO_TEST(QuantizedDivOpTestMultiShape) {
                                           &params);
 }
 
-TF_LITE_MICRO_TEST(QuantizedDivOpTestBroadcast) {
+TEST(DivTest, QuantizedDivOpTestBroadcast) {
   int kShape1[] = {1, 8};
   int kShape2[] = {2, 2, 4};
   int kShape3[] = {3, 2, 1, 4};
@@ -374,7 +372,7 @@ TF_LITE_MICRO_TEST(QuantizedDivOpTestBroadcast) {
                                               kTfLiteActNone, &params);
 }
 
-TF_LITE_MICRO_TEST(IntegerDivOpTestNoActivation) {
+TEST(DivTest, IntegerDivOpTestNoActivation) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr int32_t kInput1[] = {-2, 2, -15, 8};
   constexpr int32_t kInput2[] = {5, -2, -3, 5};
@@ -386,7 +384,7 @@ TF_LITE_MICRO_TEST(IntegerDivOpTestNoActivation) {
                            output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(IntegerDivOpTestActivationRELU_N1_TO_1) {
+TEST(DivTest, IntegerDivOpTestActivationRELU_N1_TO_1) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr int32_t kInput1[] = {-2, 2, -12, 8};
   constexpr int32_t kInput2[] = {1, 2, -15, 5};
@@ -398,7 +396,7 @@ TF_LITE_MICRO_TEST(IntegerDivOpTestActivationRELU_N1_TO_1) {
                            output_data, kTfLiteActReluN1To1);
 }
 
-TF_LITE_MICRO_TEST(IntegerDivOpTestVariousInputShapes) {
+TEST(DivTest, IntegerDivOpTestVariousInputShapes) {
   int kShape1[] = {1, 6};
   int kShape2[] = {2, 2, 3};
   int kShape3[] = {3, 2, 1, 3};
@@ -416,7 +414,7 @@ TF_LITE_MICRO_TEST(IntegerDivOpTestVariousInputShapes) {
                                      kExpect, output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TEST(IntegerDivOpTestWithBroadcast) {
+TEST(DivTest, IntegerDivOpTestWithBroadcast) {
   int kShape1[] = {1, 8};
   int kShape2[] = {2, 2, 4};
   int kShape3[] = {3, 2, 1, 4};
@@ -435,4 +433,4 @@ TF_LITE_MICRO_TEST(IntegerDivOpTestWithBroadcast) {
                                          kExpect, output_data, kTfLiteActNone);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
