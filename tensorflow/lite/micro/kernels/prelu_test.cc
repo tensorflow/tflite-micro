@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -35,8 +35,8 @@ void ExecutePReluTest(const int tensors_count, TfLiteTensor* tensors) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 void TestPreluFloat(int* input_dims_data, const float* input_data,
@@ -59,7 +59,7 @@ void TestPreluFloat(int* input_dims_data, const float* input_data,
   ExecutePReluTest(tensors_size, tensors);
 
   for (int i = 0; i < output_dims_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -94,16 +94,14 @@ void TestPreluQuantized(int* input_dims_data, const float* input_data,
              output_zero_point, output_data);
 
   for (int i = 0; i < output_dims_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], kQuantizedTolerance);
+    EXPECT_NEAR(golden[i], output_data[i], kQuantizedTolerance);
   }
 }
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatPreluActivationsOpTest) {
+TEST(PreluTest, FloatPreluActivationsOpTest) {
   int input_shape[] = {3, 2, 2, 3};
   const float input_values[] = {
       0.0f,  0.0f,  0.0f,   // Row 1, Column 1
@@ -127,7 +125,7 @@ TF_LITE_MICRO_TEST(FloatPreluActivationsOpTest) {
                                   output_data);
 }
 
-TF_LITE_MICRO_TEST(QuantizedInt8PreluActivationsOpTest) {
+TEST(PreluTest, QuantizedInt8PreluActivationsOpTest) {
   int input_shape[] = {3, 2, 2, 3};
   const float input_values[] = {
       0.0f,   0.0f,   0.0f,    // Row 1, Column 1
@@ -157,7 +155,7 @@ TF_LITE_MICRO_TEST(QuantizedInt8PreluActivationsOpTest) {
       scale, zero_point, output_shape, output_data_q, output_data_f);
 }
 
-TF_LITE_MICRO_TEST(QuantizedInt16PreluActivationsOpTest) {
+TEST(PreluTest, QuantizedInt16PreluActivationsOpTest) {
   int input_shape[] = {3, 2, 2, 3};
   const float input_values[] = {
       0.0f,   0.0f,   0.0f,    // Row 1, Column 1
@@ -188,4 +186,4 @@ TF_LITE_MICRO_TEST(QuantizedInt16PreluActivationsOpTest) {
       zero_point, golden, scale_input_output, zero_point, output_shape,
       output_data_q, output_data_f);
 }
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

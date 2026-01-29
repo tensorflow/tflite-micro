@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -51,11 +51,11 @@ void ValidatePoolingGoldens(TfLiteTensor* tensors, int tensors_size,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(golden[i], output_data[i], 1e-5f);
   }
 }
 
@@ -177,9 +177,7 @@ void TestMaxPoolQuantized(int* input_dims_data, const T* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestFloat) {
+TEST(PoolingTest, SimpleAveragePoolTestFloat) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values[] = {0, 6, 2, 4, 3, 2, 10, 7};
   const int filter_width = 2;
@@ -195,7 +193,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestFloat) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingValidStride2ActNone) {
+TEST(PoolingTest, SimpleAveragePoolTestInt8PaddingValidStride2ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
   const int filter_width = 2;
@@ -217,7 +215,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingValidStride2ActNone) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingValidStride1Stride2Relu) {
+TEST(PoolingTest, SimpleAveragePoolTestInt8PaddingValidStride1Stride2Relu) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
   const int filter_width = 2;
@@ -239,8 +237,8 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingValidStride1Stride2Relu) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(
-    SimpleAveragePoolTestInt8PaddingValidStride2Stride1ReluN1To1) {
+TEST(PoolingTest,
+     SimpleAveragePoolTestInt8PaddingValidStride2Stride1ReluN1To1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
   const int filter_width = 2;
@@ -262,7 +260,7 @@ TF_LITE_MICRO_TEST(
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingValidStride2Relu6) {
+TEST(PoolingTest, SimpleAveragePoolTestInt8PaddingValidStride2Relu6) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values[] = {12, -24, 32, 16, 12, 8, 40, 28};
   const int filter_width = 2;
@@ -284,7 +282,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingValidStride2Relu6) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingSameStride1ActNone) {
+TEST(PoolingTest, SimpleAveragePoolTestInt8PaddingSameStride1ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values[] = {12, -24, 32, 16, 12, 8, 40, 28};
   const int filter_width = 2;
@@ -306,7 +304,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt8PaddingSameStride1ActNone) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride2ActNone) {
+TEST(PoolingTest, SimpleAveragePoolTestInt16PaddingValidStride2ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
   const int filter_width = 2;
@@ -328,7 +326,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride2ActNone) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride1Stride2Relu) {
+TEST(PoolingTest, SimpleAveragePoolTestInt16PaddingValidStride1Stride2Relu) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
   const int filter_width = 2;
@@ -350,8 +348,8 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride1Stride2Relu) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(
-    SimpleAveragePoolTestInt16PaddingValidStride2Stride1ReluN1To1) {
+TEST(PoolingTest,
+     SimpleAveragePoolTestInt16PaddingValidStride2Stride1ReluN1To1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values[] = {0, -24, 8, 16, 12, 8, -40, 28};
   const int filter_width = 2;
@@ -373,7 +371,7 @@ TF_LITE_MICRO_TEST(
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride2Relu6) {
+TEST(PoolingTest, SimpleAveragePoolTestInt16PaddingValidStride2Relu6) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values[] = {12, -24, 32, 16, 12, 8, 40, 28};
   const int filter_width = 2;
@@ -395,7 +393,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingValidStride2Relu6) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingSameStride1ActNone) {
+TEST(PoolingTest, SimpleAveragePoolTestInt16PaddingSameStride1ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values[] = {12, -24, 32, 16, 12, 8, 40, 28};
   const int filter_width = 2;
@@ -417,7 +415,7 @@ TF_LITE_MICRO_TEST(SimpleAveragePoolTestInt16PaddingSameStride1ActNone) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloat) {
+TEST(PoolingTest, SimpleMaxPoolTestFloat) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values[] = {0, 6, 2, 4, 3, 2, 10, 7};
   const int filter_width = 2;
@@ -433,7 +431,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloat) {
                                     kTfLiteActNone, output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloatRelu) {
+TEST(PoolingTest, SimpleMaxPoolTestFloatRelu) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values[] = {-1, -6, 2, 4, -3, -2, 10.5, 7};
   const int filter_width = 2;
@@ -449,7 +447,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloatRelu) {
                                     kTfLiteActRelu, output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloatReluN1To1) {
+TEST(PoolingTest, SimpleMaxPoolTestFloatReluN1To1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values1[] = {-2.75, -6, 0.2, 0.4, -3, -2, -0.3, 0.7};
   const int filter_width = 2;
@@ -472,7 +470,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloatReluN1To1) {
                                     kTfLiteActReluN1To1, output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloatRelu6) {
+TEST(PoolingTest, SimpleMaxPoolTestFloatRelu6) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values1[] = {-1.5, -6, 12, 4, -3, -2, 10, 7};
   const int filter_width = 2;
@@ -495,7 +493,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestFloatRelu6) {
                                     kTfLiteActRelu6, output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestPaddingSameStride1) {
+TEST(PoolingTest, SimpleMaxPoolTestPaddingSameStride1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values[] = {0, 6, 2, 4, 3, 2, 10, 7};
   const int filter_width = 2;
@@ -511,7 +509,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestPaddingSameStride1) {
                                     kTfLiteActNone, output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestPaddingValidStride1) {
+TEST(PoolingTest, SimpleMaxPoolTestPaddingValidStride1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const float input_values[] = {0, 6, 2, 4, 3, 2, 10, 7};
   const int filter_width = 2;
@@ -527,7 +525,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestPaddingValidStride1) {
                                     kTfLiteActNone, output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestInt8ActNone) {
+TEST(PoolingTest, SimpleMaxPoolTestInt8ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values1[] = {0, 6, 2, 4, 3, 2, 10, 7};
   const int filter_width = 2;
@@ -549,7 +547,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestInt8ActNone) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(MaxPoolTestInt8ActRelu) {
+TEST(PoolingTest, MaxPoolTestInt8ActRelu) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values1[] = {-3, -12, 4, 8, -6, -4, 20, 14};
   const int filter_width = 2;
@@ -571,7 +569,7 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt8ActRelu) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(MaxPoolTestInt8ActReluN1To1) {
+TEST(PoolingTest, MaxPoolTestInt8ActReluN1To1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values1[] = {-2, -6, -2, -4, -3, -2, 10, 7};
   const int filter_width = 2;
@@ -593,7 +591,7 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt8ActReluN1To1) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(MaxPoolTestInt8ActRelu6) {
+TEST(PoolingTest, MaxPoolTestInt8ActRelu6) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int8_t input_values1[] = {0, -6, 12, 4, -3, -2, 10, 7};
   const int filter_width = 2;
@@ -615,7 +613,7 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt8ActRelu6) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(SimpleMaxPoolTestInt16ActNone) {
+TEST(PoolingTest, SimpleMaxPoolTestInt16ActNone) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values1[] = {0, 6, 2, 4, 3, 2, 10, 7};
   const int filter_width = 2;
@@ -637,7 +635,7 @@ TF_LITE_MICRO_TEST(SimpleMaxPoolTestInt16ActNone) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(MaxPoolTestInt16ActRelu) {
+TEST(PoolingTest, MaxPoolTestInt16ActRelu) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values1[] = {-3, -12, 4, 8, -6, -4, 20, 14};
   const int filter_width = 2;
@@ -659,7 +657,7 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt16ActRelu) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(MaxPoolTestInt16ActReluN1To1) {
+TEST(PoolingTest, MaxPoolTestInt16ActReluN1To1) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values1[] = {-2, -6, -2, -4, -3, -2, 10, 7};
   const int filter_width = 2;
@@ -681,7 +679,7 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt16ActReluN1To1) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(MaxPoolTestInt16ActRelu6) {
+TEST(PoolingTest, MaxPoolTestInt16ActRelu6) {
   int input_shape[] = {4, 1, 2, 4, 1};
   const int16_t input_values1[] = {0, -6, 12, 4, -3, -2, 10, 7};
   const int filter_width = 2;
@@ -703,4 +701,4 @@ TF_LITE_MICRO_TEST(MaxPoolTestInt16ActRelu6) {
       output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
