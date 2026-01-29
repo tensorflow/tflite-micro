@@ -5,6 +5,7 @@
 *audio_frontend*
 *google*
 *__pycache__*
+.venv
 venv
 gen
 
