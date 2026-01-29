@@ -35,6 +35,7 @@ limitations under the License.
 // ----------------------------------------------------------------------------
 
 #include <limits>
+#include <type_traits>
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -150,7 +151,7 @@ void ReportFailure(const char* actual_str, const char* expected_str,
                    const T& actual, const U& expected, const char* op,
                    const char* file, int line) {
   MicroPrintf("%s:%d: Failure", file, line);
-  MicroPrintf("Expected: %s %s %s", actual_str, op, expected_str);
+  MicroPrintf("Value of: %s %s %s", actual_str, op, expected_str);
   PrintValue("  Actual: ", actual);
   PrintValue("Expected: ", expected);
 }
@@ -174,6 +175,17 @@ inline TfLiteStatus RunAllTests() {
   int tests_failed = 0;
   internal::TestInfo* failed_tests = nullptr;
   internal::TestInfo** next_failed_test = &failed_tests;
+
+  // Reverse the list to run tests in the order they were defined.
+  internal::TestInfo* prev = nullptr;
+  internal::TestInfo* current = internal::GetTestList();
+  while (current != nullptr) {
+    internal::TestInfo* next = current->next;
+    current->next = prev;
+    prev = current;
+    current = next;
+  }
+  internal::GetTestList() = prev;
 
   MicroPrintf("[==========] Running tests.");
   for (internal::TestInfo* test = internal::GetTestList(); test != nullptr;
@@ -234,21 +246,24 @@ inline TfLiteStatus RunAllTests() {
 // Arguments:
 //   fixture: The name of the fixture class (must inherit from testing::Test).
 //   name: The name of the test case.
-#define TEST_F(fixture, name)                                        \
-  class fixture##_##name : public fixture {                          \
-   public:                                                           \
-    void TestBody();                                                 \
-  };                                                                 \
-  void fixture##_##name##_Run() {                                    \
-    fixture##_##name test;                                           \
-    test.SetUp();                                                    \
-    test.TestBody();                                                 \
-    test.TearDown();                                                 \
-  }                                                                  \
-  static micro_test::internal::TestInfo fixture##_##name##_Info = {  \
-      #fixture, #name, fixture##_##name##_Run, nullptr, nullptr};    \
-  static micro_test::internal::TestRegistrar fixture##_##name##_Reg( \
-      &fixture##_##name##_Info);                                     \
+#define TEST_F(fixture, name)                                                \
+  static_assert(std::is_base_of<testing::Test, fixture>::value,              \
+                "fixture: The name of the fixture class (must inherit from " \
+                "testing::Test).");                                          \
+  class fixture##_##name : public fixture {                                  \
+   public:                                                                   \
+    void TestBody();                                                         \
+  };                                                                         \
+  void fixture##_##name##_Run() {                                            \
+    fixture##_##name test;                                                   \
+    test.SetUp();                                                            \
+    test.TestBody();                                                         \
+    test.TearDown();                                                         \
+  }                                                                          \
+  static micro_test::internal::TestInfo fixture##_##name##_Info = {          \
+      #fixture, #name, fixture##_##name##_Run, nullptr, nullptr};            \
+  static micro_test::internal::TestRegistrar fixture##_##name##_Reg(         \
+      &fixture##_##name##_Info);                                             \
   void fixture##_##name::TestBody()
 
 // -----------------------------------------------------------------------------
@@ -287,7 +302,7 @@ inline TfLiteStatus RunAllTests() {
     auto delta = ((vx) > (vy)) ? ((vx) - (vy)) : ((vy) - (vx)); \
     if (vx != vy && delta > epsilon) {                          \
       MicroPrintf("%s:%d: Failure", __FILE__, __LINE__);        \
-      MicroPrintf("Expected: %s near %s", #x, #y);              \
+      MicroPrintf("Value of: %s near %s", #x, #y);              \
       micro_test::internal::PrintValue("  Actual: ", vx);       \
       micro_test::internal::PrintValue("Expected: ", vy);       \
       micro_test::internal::DidTestFail() = true;               \
