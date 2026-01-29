@@ -13,8 +13,8 @@ include $(MAKEFILE_DIR)/third_party_downloads.inc
 THIRD_PARTY_DOWNLOADS :=
 $(eval $(call add_third_party_download,$(GEMMLOWP_URL),$(GEMMLOWP_MD5),gemmlowp,))
 $(eval $(call add_third_party_download,$(RUY_URL),$(RUY_MD5),ruy,))
-$(eval $(call add_third_party_download,$(FLATBUFFERS_URL),$(FLATBUFFERS_MD5),flatbuffers,patch_file,$(FLATBUFFERS_PATCH_PATH)))
-$(eval $(call add_third_party_download,$(KISSFFT_URL),$(KISSFFT_MD5),kissfft,patch_file,$(KISSFFT_PATCH_PATH)))
+$(eval $(call add_third_party_download,$(FLATBUFFERS_URL),$(FLATBUFFERS_MD5),flatbuffers,patch_file,$(TENSORFLOW_ROOT)$(FLATBUFFERS_PATCH_PATH)))
+$(eval $(call add_third_party_download,$(KISSFFT_URL),$(KISSFFT_MD5),kissfft,patch_file,$(TENSORFLOW_ROOT)$(KISSFFT_PATCH_PATH)))
 
 THIRD_PARTY_CC_SRCS :=
 THIRD_PARTY_KERNEL_CC_SRCS :=
