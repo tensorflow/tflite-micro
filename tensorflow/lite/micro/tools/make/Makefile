@@ -486,6 +486,51 @@ ALL_SRCS := \
 	$(MICROLITE_CC_KERNEL_SRCS) \
 	$(MICROLITE_TEST_SRCS)
 
+# ==============================================================================
+# 6. Build Rules and Targets
+# ==============================================================================
+
+.PHONY: all microlite build test integration_tests generated_micro_mutable_op_resolver \
+        clean clean_downloads list_gendir list_library_sources list_library_headers \
+        list_third_party_sources list_third_party_headers list_generator_dir \
+        third_party_downloads
+
+MICROLITE_LIB_PATH := $(LIBDIR)$(MICROLITE_LIB_NAME)
+
+CXX := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(CXX_TOOL)
+CC := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(CC_TOOL)
+AR := $(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(AR_TOOL)
+
+# The default Makefile target(all) must appear before any target,
+# which is compiled if there's no command-line arguments.
+all: $(MICROLITE_LIB_PATH)
+
+# Include output directory since example cc files depend on generated headers.
+INCLUDES += -I$(GENERATED_SRCS_DIR)
+INCLUDES += -I$(GENERATED_SRCS_DIR)$(TENSORFLOW_ROOT)
+
+# Load the examples.
+include $(MICRO_LITE_EXAMPLE_TESTS)
+
+# Load the integration tests.
+include $(MICRO_LITE_INTEGRATION_TESTS)
+
+# Load generated micro mutable op resolver test.
+include $(MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST)
+
+# Load layer_by_layer_output_tool
+ifneq ($(TARGET), $(filter $(TARGET), \
+  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+include $(MICRO_LITE_LAYER_BY_LAYER_OUTPUT)
+endif
+
+# Load the benchmarks.
+include $(OLD_MICRO_LITE_BENCHMARKS)
+include $(MICRO_LITE_BENCHMARKS)
+
+# Load custom kernel tests.
+include $(MAKEFILE_DIR)/additional_tests.inc
+
 MICROLITE_LIB_OBJS := $(addprefix $(CORE_OBJDIR), \
 $(patsubst %.S,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(MICROLITE_CC_SRCS)))))
 
