@@ -32,6 +32,8 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR}"
 
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
+
 readable_run make -f ${MAKEFILE} clean
 
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build

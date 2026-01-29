@@ -36,6 +36,8 @@ OPTIMIZED_KERNEL_DIR=cmsis_nn
 MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="TARGET=${TARGET} TOOLCHAIN=${TOOLCHAIN}"
 
+readable_run make -f ${MAKEFILE} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} ${COMMON_ARGS} TARGET_ARCH=cortex-m4 config_info
+
 # TODO(b/143715361): downloading first to allow for parallel builds.
 readable_run make -f ${MAKEFILE} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} ${COMMON_ARGS} TARGET_ARCH=cortex-m4 third_party_downloads
 

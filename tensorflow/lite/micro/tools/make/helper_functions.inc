@@ -117,3 +117,9 @@ endef
 # 2 - File pattern, e.g: *.h
 recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))
 
+# Generic debug target to print any variable.
+# Usage: make print-VARIABLE
+print-%:
+	@echo '$*=$($*)'
+	@echo '  origin = $(origin $*)'
+	@echo '  flavor = $(flavor $*)'

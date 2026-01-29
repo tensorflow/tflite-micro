@@ -29,6 +29,8 @@ MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 
 COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi5 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=PRD_H5_RDO_07_01_2022 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
 
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
+
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # TODO(b/143904317): downloading first to allow for parallel builds.

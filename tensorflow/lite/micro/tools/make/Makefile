@@ -632,3 +632,22 @@ $(DEPDIR)/%.d: ;
 .PRECIOUS: $(BINDIR)%_test
 
 -include $(patsubst %,$(DEPDIR)/%.d,$(basename $(ALL_SRCS)))
+
+# Target to print build configuration info for debugging.
+config_info:
+	@echo "Build Configuration:"
+	@echo "  TARGET: $(TARGET)"
+	@echo "  TARGET_ARCH: $(TARGET_ARCH)"
+	@echo "  TOOLCHAIN: $(TOOLCHAIN)"
+	@echo "  BUILD_TYPE: $(BUILD_TYPE)"
+	@echo "  TENSORFLOW_ROOT: $(TENSORFLOW_ROOT)"
+	@echo "  EXTERNAL_DIR: $(EXTERNAL_DIR)"
+	@echo "  DOWNLOADS_DIR: $(DOWNLOADS_DIR)"
+	@echo "  GENDIR: $(GENDIR)"
+	@echo "  OPTIMIZED_KERNEL_DIR: $(OPTIMIZED_KERNEL_DIR)"
+	@echo "  CO_PROCESSOR: $(CO_PROCESSOR)"
+	@echo "  TARGET_TOOLCHAIN_ROOT: $(TARGET_TOOLCHAIN_ROOT)"
+	@echo "  INCLUDES (first 5): $(wordlist 1,5,$(INCLUDES))"
+	@echo "  THIRD_PARTY_DOWNLOADS (first 5): $(wordlist 1,5,$(THIRD_PARTY_DOWNLOADS))"
+	@echo "  MICROLITE_BENCHMARK_SRCS (count): $(words $(MICROLITE_BENCHMARK_SRCS))"
+	@echo "  MICROLITE_TEST_SRCS (count): $(words $(MICROLITE_TEST_SRCS))"

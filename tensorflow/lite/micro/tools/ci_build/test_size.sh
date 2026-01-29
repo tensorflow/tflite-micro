@@ -51,6 +51,7 @@ ROOT_DIR=${SCRIPT_DIR}/../../../../..
 
 # Build a binary for the current repo
 cd "${ROOT_DIR}"
+readable_run make -f tensorflow/lite/micro/tools/make/Makefile config_info
 # Clean once.
 readable_run make -f tensorflow/lite/micro/tools/make/Makefile clean
 
