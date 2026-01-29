@@ -25,7 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro//micro_log.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 #undef DECOMPRESS_TEST_EXTRA_DEBUG
 
@@ -279,7 +279,7 @@ TfLiteStatus TestDecompression(TestingInfo<T>* info) {
   bool saved_fail_state = micro_test::did_test_fail;
   micro_test::did_test_fail = false;
   for (size_t i = 0; i < info->total_elements; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(info->goldens[i], info->output[i]);
+    EXPECT_EQ(info->goldens[i], info->output[i]);
     if (micro_test::did_test_fail) {
       return kTfLiteError;
     }
@@ -408,15 +408,19 @@ void TestAllBitWidths() {
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
+TEST(DecompressTest, TestBool) { tflite::testing::TestAllBitWidths<bool>(); }
+TEST(DecompressTest, TestFloat) { tflite::testing::TestAllBitWidths<float>(); }
+TEST(DecompressTest, TestInt8) { tflite::testing::TestAllBitWidths<int8_t>(); }
+TEST(DecompressTest, TestInt16) {
+  tflite::testing::TestAllBitWidths<int16_t>();
+}
+TEST(DecompressTest, TestInt32) {
+  tflite::testing::TestAllBitWidths<int32_t>();
+}
+TEST(DecompressTest, TestInt64) {
+  tflite::testing::TestAllBitWidths<int64_t>();
+}
 
-TF_LITE_MICRO_TEST(TestBool) { tflite::testing::TestAllBitWidths<bool>(); }
-TF_LITE_MICRO_TEST(TestFloat) { tflite::testing::TestAllBitWidths<float>(); }
-TF_LITE_MICRO_TEST(TestInt8) { tflite::testing::TestAllBitWidths<int8_t>(); }
-TF_LITE_MICRO_TEST(TestInt16) { tflite::testing::TestAllBitWidths<int16_t>(); }
-TF_LITE_MICRO_TEST(TestInt32) { tflite::testing::TestAllBitWidths<int32_t>(); }
-TF_LITE_MICRO_TEST(TestInt64) { tflite::testing::TestAllBitWidths<int64_t>(); }
-
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
 
 #endif  // USE_TFLM_COMPRESSION

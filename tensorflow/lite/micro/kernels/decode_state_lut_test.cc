@@ -24,7 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 #undef DECODE_LUT_TEST_EXTRA_DEBUG
 
@@ -467,13 +467,23 @@ void TestAllBitWidths() {
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
+TEST(DecodeStateLutTest, TestBool) {
+  tflite::testing::TestAllBitWidths<bool>();
+}
+TEST(DecodeStateLutTest, TestFloat) {
+  tflite::testing::TestAllBitWidths<float>();
+}
+TEST(DecodeStateLutTest, TestInt8) {
+  tflite::testing::TestAllBitWidths<int8_t>();
+}
+TEST(DecodeStateLutTest, TestInt16) {
+  tflite::testing::TestAllBitWidths<int16_t>();
+}
+TEST(DecodeStateLutTest, TestInt32) {
+  tflite::testing::TestAllBitWidths<int32_t>();
+}
+TEST(DecodeStateLutTest, TestInt64) {
+  tflite::testing::TestAllBitWidths<int64_t>();
+}
 
-TF_LITE_MICRO_TEST(TestBool) { tflite::testing::TestAllBitWidths<bool>(); }
-TF_LITE_MICRO_TEST(TestFloat) { tflite::testing::TestAllBitWidths<float>(); }
-TF_LITE_MICRO_TEST(TestInt8) { tflite::testing::TestAllBitWidths<int8_t>(); }
-TF_LITE_MICRO_TEST(TestInt16) { tflite::testing::TestAllBitWidths<int16_t>(); }
-TF_LITE_MICRO_TEST(TestInt32) { tflite::testing::TestAllBitWidths<int32_t>(); }
-TF_LITE_MICRO_TEST(TestInt64) { tflite::testing::TestAllBitWidths<int64_t>(); }
-
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

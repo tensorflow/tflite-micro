@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -189,13 +189,11 @@ constexpr int8_t kExpectPrune5[] = {
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 using tflite::testing::AncillaryData;
 using tflite::testing::TensorInDatum;
 using tflite::testing::TensorOutDatum;
 
-TF_LITE_MICRO_TEST(DecodePruneFloat) {
+TEST(DecodeStatePruneTest, DecodePruneFloat) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) float output_data[std::size(kExpectPrune2)] = {};
   alignas(16) const AncillaryData<float, std::size(kAncillaryDataPrune2)>
@@ -246,7 +244,7 @@ TF_LITE_MICRO_TEST(DecodePruneFloat) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneInt8) {
+TEST(DecodeStatePruneTest, DecodePruneInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune3)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune3)>
@@ -292,7 +290,7 @@ TF_LITE_MICRO_TEST(DecodePruneInt8) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneQuantizedInt8) {
+TEST(DecodeStatePruneTest, DecodePruneQuantizedInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune3)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune3)>
@@ -337,7 +335,7 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedInt8) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneQuantizedMixedZeroPointInt8) {
+TEST(DecodeStatePruneTest, DecodePruneQuantizedMixedZeroPointInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune0)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune0)>
@@ -382,7 +380,7 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedMixedZeroPointInt8) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneQuantizedSingleChannelInt8) {
+TEST(DecodeStatePruneTest, DecodePruneQuantizedSingleChannelInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune5)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune5)>
@@ -427,7 +425,7 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedSingleChannelInt8) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneQuantizedAltAxisInt8) {
+TEST(DecodeStatePruneTest, DecodePruneQuantizedAltAxisInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune4)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune4)>
@@ -477,7 +475,7 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedAltAxisInt8) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneQuantizedInt16) {
+TEST(DecodeStatePruneTest, DecodePruneQuantizedInt16) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int16_t output_data[std::size(kExpectPrune1)] = {};
   alignas(16) const AncillaryData<int16_t, std::size(kAncillaryDataPrune1)>
@@ -527,7 +525,7 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedInt16) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodePruneQuantizedInvalidZeroPointInt16) {
+TEST(DecodeStatePruneTest, DecodePruneQuantizedInvalidZeroPointInt16) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int16_t output_data[std::size(kExpectPrune1)] = {};
   alignas(16) const AncillaryData<int16_t, std::size(kAncillaryDataPrune1)>
@@ -578,4 +576,4 @@ TF_LITE_MICRO_TEST(DecodePruneQuantizedInvalidZeroPointInt16) {
       nullptr, kTfLiteError);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

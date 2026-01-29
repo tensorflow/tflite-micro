@@ -27,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -73,8 +73,7 @@ TfLiteStatus CheckOutput(const TfLiteTensor& output,
   constexpr float kTolerance = 1e-5;
   const size_t kOutputCount = tflite::NumElements(&output);
   for (size_t i = 0; i < kOutputCount; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
-    TF_LITE_MICRO_CHECK_FAIL();
+    ASSERT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 
   return kTfLiteOk;
@@ -133,7 +132,7 @@ TfLiteStatus ExecuteDecodeTest(
         status = CheckOutput<int64_t>(output_tensors[i], expected.begin()[i]);
         break;
       default:
-        TF_LITE_MICRO_FAIL("unsupported tensor type in test");
+        FAIL("unsupported tensor type in test");
         break;
     }
   }
@@ -184,7 +183,7 @@ void TestDecode(
 
   TfLiteStatus s = ExecuteDecodeTest<kNumInputs, kNumOutputs>(
       tensors, registration, expected, amr);
-  TF_LITE_MICRO_EXPECT_EQ(s, expected_status);
+  EXPECT_EQ(s, expected_status);
 }
 
 }  // namespace

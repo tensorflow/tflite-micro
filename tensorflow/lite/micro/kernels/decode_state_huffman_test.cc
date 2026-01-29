@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -168,13 +168,11 @@ constexpr uint32_t kAncillaryDataHuffman32[] = {
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 using tflite::testing::AncillaryData;
 using tflite::testing::TensorInDatum;
 using tflite::testing::TensorOutDatum;
 
-TF_LITE_MICRO_TEST(DecodeHuffmanTable16BitsInt8) {
+TEST(DecodeStateHuffmanTest, DecodeHuffmanTable16BitsInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectHuffmanInt8)] = {};
   alignas(16) const AncillaryData<uint16_t, std::size(kAncillaryDataHuffman16)>
@@ -221,7 +219,7 @@ TF_LITE_MICRO_TEST(DecodeHuffmanTable16BitsInt8) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodeHuffmanTable16BitsInt16Fail) {
+TEST(DecodeStateHuffmanTest, DecodeHuffmanTable16BitsInt16Fail) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int16_t output_data[std::size(kExpectHuffmanInt16)] = {};
   alignas(16) const AncillaryData<uint16_t, std::size(kAncillaryDataHuffman16)>
@@ -274,7 +272,7 @@ TF_LITE_MICRO_TEST(DecodeHuffmanTable16BitsInt16Fail) {
       nullptr, kTfLiteError);
 }
 
-TF_LITE_MICRO_TEST(DecodeHuffmanTable32BitsInt8) {
+TEST(DecodeStateHuffmanTest, DecodeHuffmanTable32BitsInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectHuffmanInt8)] = {};
   alignas(16) const AncillaryData<uint32_t, std::size(kAncillaryDataHuffman32)>
@@ -321,7 +319,7 @@ TF_LITE_MICRO_TEST(DecodeHuffmanTable32BitsInt8) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodeHuffmanTable32BitsInt16) {
+TEST(DecodeStateHuffmanTest, DecodeHuffmanTable32BitsInt16) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int16_t output_data[std::size(kExpectHuffmanInt16)] = {};
   alignas(16) const AncillaryData<uint32_t, std::size(kAncillaryDataHuffman32)>
@@ -373,4 +371,4 @@ TF_LITE_MICRO_TEST(DecodeHuffmanTable32BitsInt16) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
