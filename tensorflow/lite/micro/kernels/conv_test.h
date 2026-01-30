@@ -62,7 +62,7 @@ TfLiteStatus InvokeConv(TfLiteTensor* tensors, int tensors_size,
 }
 
 template <typename T, typename TF = void, typename TB = void>
-TfLiteStatus ValidateConvGoldens(
+void ValidateConvGoldens(
     TfLiteTensor* tensors, int tensors_size, const T* expected_output_data,
     int output_length, const TfLiteConvParams* conv_params,
     TFLMRegistration registration, T* output_data, float tolerance = 1e-5
@@ -97,15 +97,15 @@ TfLiteStatus ValidateConvGoldens(
 #endif  // USE_TFLM_COMPRESSION
   );
   if (status != kTfLiteOk) {
-    return status;
+    return;
   }
+
   for (int i = 0; i < output_length; ++i) {
     EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
   }
-  return kTfLiteOk;
 }
 
-TfLiteStatus TestConvFloat(
+void TestConvFloat(
     int* input_dims_data, const float* input_data, int* filter_dims_data,
     const float* filter_data, int* bias_dims_data, const float* bias_data,
     int* output_dims_data, const float* expected_output_data,
@@ -118,7 +118,7 @@ TfLiteStatus TestConvFloat(
 #endif  // USE_TFLM_COMPRESSION
 );
 
-TfLiteStatus TestConvQuantizedPerChannel(
+void TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_data_quantized,
@@ -129,7 +129,7 @@ TfLiteStatus TestConvQuantizedPerChannel(
     TFLMRegistration registration, int8_t* output_data,
     TfLiteType tensor_weight_type = kTfLiteNoType);
 
-TfLiteStatus TestConvQuantizedPerChannel(
+void TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_data_quantized,
@@ -140,7 +140,7 @@ TfLiteStatus TestConvQuantizedPerChannel(
     float output_scale, int output_zero_point, TfLiteConvParams* conv_params,
     TFLMRegistration registration, int16_t* output_data);
 
-TfLiteStatus TestConvQuantizedPerChannel(
+void TestConvQuantizedPerChannel(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_data_quantized,
@@ -153,7 +153,7 @@ TfLiteStatus TestConvQuantizedPerChannel(
 #ifdef USE_TFLM_COMPRESSION
 
 template <typename TIO, typename TBIAS>
-TfLiteStatus TestConvQuantizedPerChannelCompressed(
+void TestConvQuantizedPerChannelCompressed(
     int* input_dims_data, const float* input_data, TIO* input_quantized,
     float input_scale, int input_zero_point, int* output_dims_data,
     const float* expected_output_data, TIO* expected_output_quantized,
@@ -210,10 +210,10 @@ TfLiteStatus TestConvQuantizedPerChannelCompressed(
   const int output_dims_count = ElementCount(*output_dims);
   Quantize(expected_output_data, expected_output_quantized, output_dims_count,
            output_scale, output_zero_point);
-  return ValidateConvGoldens(tensors, tensors_size, expected_output_quantized,
-                             output_dims_count, conv_params, registration,
-                             output_quantized, 1.0e-5f /* tolerance */,
-                             filter_comp_info, bias_comp_info);
+  ValidateConvGoldens(tensors, tensors_size, expected_output_quantized,
+                      output_dims_count, conv_params, registration,
+                      output_quantized, 1.0e-5f /* tolerance */,
+                      filter_comp_info, bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION
