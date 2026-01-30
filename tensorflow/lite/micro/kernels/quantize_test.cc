@@ -268,7 +268,7 @@ TEST(QuantizeTest, QuantizeOpTestInt32toInt8) {
 
 // TODO(b/155682734): Hifimini optimized quantize requires input scale to be
 // smaller than output scale.
-TEST(QuantizeTest, QuantizeOpTestInt16toInt8) {
+TEST(QuantizeTest, QuantizeOpTestInt16toInt8_2) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-64, -62, -60, -58, -56, 54, 56, 58, 60, 62};
