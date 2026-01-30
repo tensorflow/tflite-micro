@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -46,11 +46,11 @@ void ValidateSquaredDifferenceGoldens(TfLiteTensor* tensors, int tensors_size,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], tolerance);
+    EXPECT_NEAR(golden[i], output[i], tolerance);
   }
 }
 
@@ -128,14 +128,14 @@ void TestSquaredDifferenceQuantized(
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   Dequantize(output_data, output_size, output_qparams.scale,
              output_qparams.zero_point, dequantized_output);
 
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], dequantized_output[i], tolerance);
+    EXPECT_NEAR(golden[i], dequantized_output[i], tolerance);
   }
 }
 
@@ -143,9 +143,7 @@ void TestSquaredDifferenceQuantized(
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatSquaredDifferenceSameShape) {
+TEST(SquaredDifferenceTest, FloatSquaredDifferenceSameShape) {
   constexpr int data_size = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-0.2, 0.2, -1.2, 0.8};
@@ -157,7 +155,7 @@ TF_LITE_MICRO_TEST(FloatSquaredDifferenceSameShape) {
       golden_values, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatSquaredDifferenceVariousShapes) {
+TEST(SquaredDifferenceTest, FloatSquaredDifferenceVariousShapes) {
   constexpr int data_size = 6;
   const float input1_values[] = {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0};
   const float input2_values[] = {1.0, 0.2, 0.6, 0.4, -1.0, -0.0};
@@ -171,7 +169,7 @@ TF_LITE_MICRO_TEST(FloatSquaredDifferenceVariousShapes) {
   }
 }
 
-TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
+TEST(SquaredDifferenceTest, FloatSquaredDifferenceWithBroadcast) {
   constexpr int data_size = 6;
 
   // input 2 is scalar
@@ -188,7 +186,7 @@ TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
   }
 }
 
-TF_LITE_MICRO_TEST(IntegerSquaredDifferenceSameShape) {
+TEST(SquaredDifferenceTest, IntegerSquaredDifferenceSameShape) {
   constexpr int data_size = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const int32_t input1_values[] = {-2, 2, -15, 8};
@@ -200,7 +198,7 @@ TF_LITE_MICRO_TEST(IntegerSquaredDifferenceSameShape) {
       golden_values, output_data);
 }
 
-TF_LITE_MICRO_TEST(IntegerSquaredDifferenceVariousShapes) {
+TEST(SquaredDifferenceTest, IntegerSquaredDifferenceVariousShapes) {
   constexpr int data_size = 6;
   const int32_t input1_values[] = {-20, 2, 3, 8, 11, -20};
   const int32_t input2_values[] = {1, 2, 6, 5, -5, -20};
@@ -214,7 +212,7 @@ TF_LITE_MICRO_TEST(IntegerSquaredDifferenceVariousShapes) {
   }
 }
 
-TF_LITE_MICRO_TEST(IntegerSquaredDifferenceWithBroadcast) {
+TEST(SquaredDifferenceTest, IntegerSquaredDifferenceWithBroadcast) {
   constexpr int data_size = 6;
 
   // input 2 is a scalar
@@ -231,7 +229,7 @@ TF_LITE_MICRO_TEST(IntegerSquaredDifferenceWithBroadcast) {
   }
 }
 
-TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceSameShape) {
+TEST(SquaredDifferenceTest, QuantizedSquaredDifferenceSameShape) {
   constexpr int data_size = 4;
   int inout_shape[] = {4, 1, 2, 2, 1};
   const float input1_values[] = {-0.2, 0.2, -1.2, 0.8};
@@ -262,7 +260,7 @@ TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceSameShape) {
       /*narrow_range=*/true);
 }
 
-TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapes) {
+TEST(SquaredDifferenceTest, QuantizedSquaredDifferenceVariousShapes) {
   constexpr int data_size = 6;
   const float input1_values[] = {-2.0, 0.2, 0.3, 0.8, 1.1, -2.0};
   const float input2_values[] = {1.0, 0.2, 0.6, 0.4, -1.0, -0.0};
@@ -296,7 +294,7 @@ TF_LITE_MICRO_TEST(QuantizedSquaredDifferenceVariousShapes) {
   }
 }
 
-TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
+TEST(SquaredDifferenceTest, FloatSquaredDifferenceWithBroadcast2) {
   constexpr int data_size = 6;
 
   // input 2 is a scalar
@@ -332,4 +330,4 @@ TF_LITE_MICRO_TEST(FloatSquaredDifferenceWithBroadcast) {
   }
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

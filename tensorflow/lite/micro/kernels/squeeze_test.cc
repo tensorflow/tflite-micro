@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -59,23 +59,21 @@ void TestSqueezeOp(int* input_dims_data, const int32_t* input_data,
                              reinterpret_cast<void*>(squeeze_params));
 
   const char* init_data = reinterpret_cast<const char*>(squeeze_params);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare(init_data));
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare(init_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < expected_output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
 
-  TF_LITE_MICRO_EXPECT(runner.ValidateTempBufferDeallocated());
+  EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 }
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SqueezeAll) {
+TEST(SqueezeTest, SqueezeAll) {
   int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{}, 0};
 
@@ -87,7 +85,7 @@ TF_LITE_MICRO_TEST(SqueezeAll) {
                                  &squeeze_params);
 }
 
-TF_LITE_MICRO_TEST(SqueezeSelectedAxis) {
+TEST(SqueezeTest, SqueezeSelectedAxis) {
   int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{2}, 1};
   int output_dims_data_common[] = {2, 1, 24};
@@ -99,7 +97,7 @@ TF_LITE_MICRO_TEST(SqueezeSelectedAxis) {
       tflite::testing::expected_output_size_common, &squeeze_params);
 }
 
-TF_LITE_MICRO_TEST(SqueezeNegativeAxis) {
+TEST(SqueezeTest, SqueezeNegativeAxis) {
   int32_t output_data[24];
   TfLiteSqueezeParams squeeze_params = {{-1, 0}, 2};
 
@@ -111,7 +109,7 @@ TF_LITE_MICRO_TEST(SqueezeNegativeAxis) {
                                  &squeeze_params);
 }
 
-TF_LITE_MICRO_TEST(SqueezeAllDims) {
+TEST(SqueezeTest, SqueezeAllDims) {
   int input_dims_data[] = {7, 1, 1, 1, 1, 1, 1, 1};
   int output_dims_data[] = {1, 1};
   const int32_t input_data[] = {3};
@@ -126,4 +124,4 @@ TF_LITE_MICRO_TEST(SqueezeAllDims) {
                                  &squeeze_params);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
