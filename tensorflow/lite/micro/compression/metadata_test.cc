@@ -49,40 +49,39 @@ constexpr unsigned kExpectedSchemaVersion = 1;
 
 }  // end anonymous namespace
 
-// Create these objects on the stack and copy them into the subgraph's vector,
-// so they can be compared later to what is read from the flatbuffer.
-LutTensorT lut_tensor0;
-lut_tensor0.tensor = kExpected0.tensor;
-lut_tensor0.value_buffer = kExpected0.value_buffer;
-lut_tensor0.index_bitwidth = kExpected0.index_bitwidth;
-
-LutTensorT lut_tensor1;
-lut_tensor1.tensor = kExpected1.tensor;
-lut_tensor1.value_buffer = kExpected1.value_buffer;
-lut_tensor1.index_bitwidth = kExpected1.index_bitwidth;
-
-auto subgraph0 = std::make_unique<SubgraphT>();
-subgraph0->lut_tensors.push_back(std::make_unique<LutTensorT>(lut_tensor0));
-subgraph0->lut_tensors.push_back(std::make_unique<LutTensorT>(lut_tensor1));
-
-auto metadata = std::make_unique<MetadataT>();
-metadata->subgraphs.push_back(std::move(subgraph0));
-
-flatbuffers::FlatBufferBuilder builder;
-auto root = Metadata::Pack(builder, metadata.get());
-builder.Finish(root);
-auto flatbuffer = tflite::Span<const uint8_t>{
-    reinterpret_cast<const uint8_t*>(builder.GetBufferPointer()),
-    builder.GetSize()};
-
 TEST(MetadataTest, ReadbackEqualsWrite) {
+  // Create these objects on the stack and copy them into the subgraph's vector,
+  // so they can be compared later to what is read from the flatbuffer.
+  LutTensorT lut_tensor0;
+  lut_tensor0.tensor = kExpected0.tensor;
+  lut_tensor0.value_buffer = kExpected0.value_buffer;
+  lut_tensor0.index_bitwidth = kExpected0.index_bitwidth;
+
+  LutTensorT lut_tensor1;
+  lut_tensor1.tensor = kExpected1.tensor;
+  lut_tensor1.value_buffer = kExpected1.value_buffer;
+  lut_tensor1.index_bitwidth = kExpected1.index_bitwidth;
+
+  auto subgraph0 = std::make_unique<SubgraphT>();
+  subgraph0->lut_tensors.push_back(std::make_unique<LutTensorT>(lut_tensor0));
+  subgraph0->lut_tensors.push_back(std::make_unique<LutTensorT>(lut_tensor1));
+
+  auto metadata = std::make_unique<MetadataT>();
+  metadata->subgraphs.push_back(std::move(subgraph0));
+
+  flatbuffers::FlatBufferBuilder builder;
+  auto root = Metadata::Pack(builder, metadata.get());
+  builder.Finish(root);
+  auto flatbuffer = tflite::Span<const uint8_t>{
+      reinterpret_cast<const uint8_t*>(builder.GetBufferPointer()),
+      builder.GetSize()};
   const Metadata* read_metadata =
       tflite::micro::compression::GetMetadata(flatbuffer.data());
   const Subgraph* read_subgraph0 = read_metadata->subgraphs()->Get(0);
   const LutTensor* read_lut_tensor0 = read_subgraph0->lut_tensors()->Get(0);
   const LutTensor* read_lut_tensor1 = read_subgraph0->lut_tensors()->Get(1);
-  EXPECT_EQ(kExpected0, *read_lut_tensor0);
-  EXPECT_EQ(kExpected1, *read_lut_tensor1);
+  EXPECT_TRUE(kExpected0 == *read_lut_tensor0);
+  EXPECT_TRUE(kExpected1 == *read_lut_tensor1);
 
   EXPECT_EQ(read_metadata->schema_version(), kExpectedSchemaVersion);
 
