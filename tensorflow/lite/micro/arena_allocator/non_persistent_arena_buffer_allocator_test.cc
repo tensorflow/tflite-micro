@@ -18,40 +18,33 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
-
-TF_LITE_MICRO_TESTS_BEGIN
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 // Test the creation of the resizable buffer and exercise resize.
-TF_LITE_MICRO_TEST(TestResizableBuffer) {
+TEST(NonPersistentArenaBufferAllocatorTest, TestResizableBuffer) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
 
   uint8_t* resizable_buf = allocator.AllocateResizableBuffer(10, 1);
-  TF_LITE_MICRO_EXPECT(resizable_buf == arena);
+  EXPECT_EQ(resizable_buf, arena);
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, /*size=*/100, /*alignment=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(100),
-                          allocator.GetNonPersistentUsedBytes());
+  EXPECT_EQ(kTfLiteOk, allocator.ResizeBuffer(resizable_buf, /*size=*/100,
+                                              /*alignment=*/1));
+  EXPECT_EQ(static_cast<size_t>(100), allocator.GetNonPersistentUsedBytes());
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      allocator.ResizeBuffer(resizable_buf, /*size=*/10, /*alignment=*/1));
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(10),
-                          allocator.GetNonPersistentUsedBytes());
+  EXPECT_EQ(kTfLiteOk, allocator.ResizeBuffer(resizable_buf, /*size=*/10,
+                                              /*alignment=*/1));
+  EXPECT_EQ(static_cast<size_t>(10), allocator.GetNonPersistentUsedBytes());
 
-  TF_LITE_MICRO_EXPECT_EQ(
+  EXPECT_EQ(
       allocator.ResizeBuffer(resizable_buf, /*size=*/1000, /*alignment=*/1),
       kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(1000),
-                          allocator.GetNonPersistentUsedBytes());
+  EXPECT_EQ(static_cast<size_t>(1000), allocator.GetNonPersistentUsedBytes());
 }
 
 // Test allocate and deallocate temp buffer.
-TF_LITE_MICRO_TEST(TestTempBuffer) {
+TEST(NonPersistentArenaBufferAllocatorTest, TestTempBuffer) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
@@ -59,26 +52,24 @@ TF_LITE_MICRO_TEST(TestTempBuffer) {
   constexpr size_t allocation_size = 100;
   uint8_t* temp = allocator.AllocateTemp(/*size=*/allocation_size,
                                          /*alignment=*/1);
-  TF_LITE_MICRO_EXPECT_EQ(allocation_size,
-                          allocator.GetNonPersistentUsedBytes());
+  EXPECT_EQ(allocation_size, allocator.GetNonPersistentUsedBytes());
 
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
-                          arena_size - allocation_size);
+  EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
+            arena_size - allocation_size);
 
   // Reset temp allocations and ensure GetAvailableMemory() is back to the
   // starting size:
   allocator.DeallocateTemp(temp);
   allocator.ResetTempAllocations();
 
-  TF_LITE_MICRO_EXPECT_EQ(static_cast<size_t>(0),
-                          allocator.GetNonPersistentUsedBytes());
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1),
-                          arena_size);
+  EXPECT_EQ(static_cast<size_t>(0), allocator.GetNonPersistentUsedBytes());
+  EXPECT_EQ(allocator.GetAvailableMemory(/*alignment=*/1), arena_size);
 }
 
 // Resizable buffer cannot be allocated if there is still outstanding temp
 // buffers.
-TF_LITE_MICRO_TEST(TestAllocateResizeFailIfTempStillExists) {
+TEST(NonPersistentArenaBufferAllocatorTest,
+     TestAllocateResizeFailIfTempStillExists) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
@@ -89,12 +80,11 @@ TF_LITE_MICRO_TEST(TestAllocateResizeFailIfTempStillExists) {
   // Deallocate does not free up temp buffer.
   allocator.DeallocateTemp(temp);
 
-  TF_LITE_MICRO_EXPECT(allocator.AllocateResizableBuffer(allocation_size, 1) ==
-                       nullptr);
+  EXPECT_EQ(allocator.AllocateResizableBuffer(allocation_size, 1), nullptr);
 }
 
 // Resizable buffer can be allocated if there are no  outstanding temp buffers.
-TF_LITE_MICRO_TEST(TestAllocateResizePassIfNoTemp) {
+TEST(NonPersistentArenaBufferAllocatorTest, TestAllocateResizePassIfNoTemp) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
@@ -104,30 +94,29 @@ TF_LITE_MICRO_TEST(TestAllocateResizePassIfNoTemp) {
                                          /*alignment=*/1);
   // Deallocate does not free up temp buffer.
   allocator.DeallocateTemp(temp);
-  TF_LITE_MICRO_EXPECT_EQ(allocator.ResetTempAllocations(), kTfLiteOk);
+  EXPECT_EQ(allocator.ResetTempAllocations(), kTfLiteOk);
 
-  TF_LITE_MICRO_EXPECT(allocator.AllocateResizableBuffer(allocation_size, 1) ==
-                       arena);
+  EXPECT_EQ(allocator.AllocateResizableBuffer(allocation_size, 1), arena);
 }
 
 // Cannot allocate more than one resizable buffer.
-TF_LITE_MICRO_TEST(TestAllocateResizableFailIfResizableExists) {
+TEST(NonPersistentArenaBufferAllocatorTest,
+     TestAllocateResizableFailIfResizableExists) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
 
   constexpr size_t allocation_size = 100;
-  TF_LITE_MICRO_EXPECT(
-      allocator.AllocateResizableBuffer(/*size=*/allocation_size,
-                                        /*alignment=*/1) != nullptr);
+  EXPECT_TRUE(allocator.AllocateResizableBuffer(/*size=*/allocation_size,
+                                                /*alignment=*/1) != nullptr);
 
-  TF_LITE_MICRO_EXPECT(
-      allocator.AllocateResizableBuffer(/*size=*/allocation_size,
-                                        /*alignment=*/1) == nullptr);
+  EXPECT_TRUE(allocator.AllocateResizableBuffer(/*size=*/allocation_size,
+                                                /*alignment=*/1) == nullptr);
 }
 
 // ResetTempAllocations() fail if there are still outstanding temp buffers
-TF_LITE_MICRO_TEST(TestResetTempFailIfTempStillExists) {
+TEST(NonPersistentArenaBufferAllocatorTest,
+     TestResetTempFailIfTempStillExists) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
@@ -136,58 +125,57 @@ TF_LITE_MICRO_TEST(TestResetTempFailIfTempStillExists) {
   allocator.AllocateTemp(/*size=*/allocation_size,
                          /*alignment=*/1);
 
-  TF_LITE_MICRO_EXPECT_EQ(allocator.ResetTempAllocations(), kTfLiteError);
+  EXPECT_EQ(allocator.ResetTempAllocations(), kTfLiteError);
 }
 
 // Request more than allocated size for temp will fail
-TF_LITE_MICRO_TEST(TestAllocateTempFailIfExceedAllowance) {
+TEST(NonPersistentArenaBufferAllocatorTest,
+     TestAllocateTempFailIfExceedAllowance) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
 
-  TF_LITE_MICRO_EXPECT(allocator.AllocateTemp(/*size=*/arena_size + 1,
-                                              /*alignment=*/1) == nullptr);
+  EXPECT_TRUE(allocator.AllocateTemp(/*size=*/arena_size + 1,
+                                     /*alignment=*/1) == nullptr);
 }
 
 // Request more than allocated size for resizable will fail
-TF_LITE_MICRO_TEST(TestAllocateTempFailIfExceedAllowance) {
+TEST(NonPersistentArenaBufferAllocatorTest,
+     TestAllocateTempFailIfExceedAllowance2) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
 
-  TF_LITE_MICRO_EXPECT(allocator.AllocateResizableBuffer(
-                           /*size=*/arena_size + 1, /*alignment=*/1) ==
-                       nullptr);
+  EXPECT_TRUE(allocator.AllocateResizableBuffer(
+                  /*size=*/arena_size + 1, /*alignment=*/1) == nullptr);
 
   constexpr size_t allocation_size = 100;
   uint8_t* resizable_buffer =
       allocator.AllocateResizableBuffer(/*size=*/allocation_size,
                                         /*alignment=*/1);
-  TF_LITE_MICRO_EXPECT(resizable_buffer == arena);
+  EXPECT_EQ(resizable_buffer, arena);
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      allocator.ResizeBuffer(resizable_buffer, /*size=*/arena_size + 1,
-                             /*alignment=*/1),
-      kTfLiteError);
+  EXPECT_EQ(allocator.ResizeBuffer(resizable_buffer, /*size=*/arena_size + 1,
+                                   /*alignment=*/1),
+            kTfLiteError);
 }
 
 // GetNonPersistentUsedBytes() reports memory for both resizable buffer and temp
 // buffers.
-TF_LITE_MICRO_TEST(TestGetNonPersistentUsedBytes) {
+TEST(NonPersistentArenaBufferAllocatorTest, TestGetNonPersistentUsedBytes) {
   constexpr size_t arena_size = 1024;
   uint8_t arena[arena_size];
   tflite::NonPersistentArenaBufferAllocator allocator(arena, arena_size);
 
   constexpr size_t allocation_size = 100;
-  TF_LITE_MICRO_EXPECT(
-      arena == allocator.AllocateResizableBuffer(/*size=*/allocation_size,
-                                                 /*alignment=*/1));
+  EXPECT_TRUE(arena ==
+              allocator.AllocateResizableBuffer(/*size=*/allocation_size,
+                                                /*alignment=*/1));
 
-  TF_LITE_MICRO_EXPECT(
-      allocator.AllocateTemp(/*size=*/arena_size - allocation_size,
-                             /*alignment=*/1) != nullptr);
+  EXPECT_TRUE(allocator.AllocateTemp(/*size=*/arena_size - allocation_size,
+                                     /*alignment=*/1) != nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(allocator.GetNonPersistentUsedBytes(), arena_size);
+  EXPECT_EQ(allocator.GetNonPersistentUsedBytes(), arena_size);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

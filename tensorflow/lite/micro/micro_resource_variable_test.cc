@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace {
@@ -41,75 +41,69 @@ TfLiteContext* GetMockContext() {
 }  // namespace
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(CreateVariables) {
+TEST(MicroResourceVariableTest, CreateVariables) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
                                          tflite::kMaxBufferSize),
           4);
   int id1 = resource_variables->CreateIdIfNoneFound("", "var1");
-  TF_LITE_MICRO_EXPECT_GE(id1, 0);
+  EXPECT_GE(id1, 0);
 
   int id2 = resource_variables->CreateIdIfNoneFound("", "var2");
-  TF_LITE_MICRO_EXPECT_NE(id1, id2);
+  EXPECT_NE(id1, id2);
 
   int id3 = resource_variables->CreateIdIfNoneFound("foo", "var1");
-  TF_LITE_MICRO_EXPECT_NE(id1, id3);
-  TF_LITE_MICRO_EXPECT_NE(id2, id3);
+  EXPECT_NE(id1, id3);
+  EXPECT_NE(id2, id3);
 
   int id4 = resource_variables->CreateIdIfNoneFound("foo", "var2");
-  TF_LITE_MICRO_EXPECT_NE(id1, id4);
-  TF_LITE_MICRO_EXPECT_NE(id2, id4);
-  TF_LITE_MICRO_EXPECT_NE(id3, id4);
+  EXPECT_NE(id1, id4);
+  EXPECT_NE(id2, id4);
+  EXPECT_NE(id3, id4);
 
-  TF_LITE_MICRO_EXPECT_EQ(id2,
-                          resource_variables->CreateIdIfNoneFound("", "var2"));
-  TF_LITE_MICRO_EXPECT_EQ(id1,
-                          resource_variables->CreateIdIfNoneFound("", "var1"));
-  TF_LITE_MICRO_EXPECT_EQ(
-      id4, resource_variables->CreateIdIfNoneFound("foo", "var2"));
-  TF_LITE_MICRO_EXPECT_EQ(
-      id3, resource_variables->CreateIdIfNoneFound("foo", "var1"));
+  EXPECT_EQ(id2, resource_variables->CreateIdIfNoneFound("", "var2"));
+  EXPECT_EQ(id1, resource_variables->CreateIdIfNoneFound("", "var1"));
+  EXPECT_EQ(id4, resource_variables->CreateIdIfNoneFound("foo", "var2"));
+  EXPECT_EQ(id3, resource_variables->CreateIdIfNoneFound("foo", "var1"));
 }
 
-TF_LITE_MICRO_TEST(AllocateResourceBuffers) {
+TEST(MicroResourceVariableTest, AllocateResourceBuffers) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
                                          tflite::kMaxBufferSize),
           2);
   int id1 = resource_variables->CreateIdIfNoneFound("", "var1");
-  TF_LITE_MICRO_EXPECT_GE(id1, 0);
+  EXPECT_GE(id1, 0);
 
   int id2 = resource_variables->CreateIdIfNoneFound("", "var2");
-  TF_LITE_MICRO_EXPECT_NE(id1, id2);
+  EXPECT_NE(id1, id2);
 
   TfLiteTensor tensor = {};
   tensor.bytes = 42;
   resource_variables->Allocate(id1, tflite::GetMockContext(), &tensor);
-  TF_LITE_MICRO_EXPECT_EQ(42, tflite::last_allocation_size_);
+  EXPECT_EQ(42, tflite::last_allocation_size_);
 
   tensor.bytes = 100;
   resource_variables->Allocate(id2, tflite::GetMockContext(), &tensor);
-  TF_LITE_MICRO_EXPECT_EQ(100, tflite::last_allocation_size_);
+  EXPECT_EQ(100, tflite::last_allocation_size_);
 }
 
-TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
+TEST(MicroResourceVariableTest, VerifyAssignAndReadResourceBuffer) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
                                          tflite::kMaxBufferSize),
           1);
   int id = resource_variables->CreateIdIfNoneFound("", "var1");
-  TF_LITE_MICRO_EXPECT_GE(id, 0);
+  EXPECT_GE(id, 0);
 
   TfLiteTensor tensor = {};
   const int bytes = 32 * sizeof(int32_t);
   tensor.bytes = bytes;
   resource_variables->Allocate(id, tflite::GetMockContext(), &tensor);
-  TF_LITE_MICRO_EXPECT_EQ(bytes, tflite::last_allocation_size_);
+  EXPECT_EQ(bytes, tflite::last_allocation_size_);
 
   int32_t golden[32] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
                         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
@@ -132,26 +126,24 @@ TF_LITE_MICRO_TEST(VerifyAssignAndReadResourceBuffer) {
   };
   resource_variables->Read(id, &read_tensor);
   for (int i = 0; i < 32; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(buffer[i], golden[i]);
+    EXPECT_EQ(buffer[i], golden[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(CreateVariablesNullContainer) {
+TEST(MicroResourceVariableTest, CreateVariablesNullContainer) {
   tflite::MicroResourceVariables* resource_variables =
       tflite::MicroResourceVariables::Create(
           tflite::MicroAllocator::Create(tflite::buffer_,
                                          tflite::kMaxBufferSize),
           4);
   int id1 = resource_variables->CreateIdIfNoneFound(nullptr, "var1");
-  TF_LITE_MICRO_EXPECT_GE(id1, 0);
+  EXPECT_GE(id1, 0);
 
   int id2 = resource_variables->CreateIdIfNoneFound(nullptr, "var2");
-  TF_LITE_MICRO_EXPECT_NE(id1, id2);
+  EXPECT_NE(id1, id2);
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      id2, resource_variables->CreateIdIfNoneFound(nullptr, "var2"));
-  TF_LITE_MICRO_EXPECT_EQ(
-      id1, resource_variables->CreateIdIfNoneFound(nullptr, "var1"));
+  EXPECT_EQ(id2, resource_variables->CreateIdIfNoneFound(nullptr, "var2"));
+  EXPECT_EQ(id1, resource_variables->CreateIdIfNoneFound(nullptr, "var1"));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
