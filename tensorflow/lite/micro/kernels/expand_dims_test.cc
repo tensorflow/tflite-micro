@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -53,7 +53,7 @@ micro::KernelRunner CreateExpandDimsKernelRunner(
 
   const int out_dims_size = out_dims->size;
   const int in_dims_size = in_dims->size;
-  TF_LITE_MICRO_EXPECT_EQ(out_dims_size, (in_dims_size + 1));
+  EXPECT_EQ(out_dims_size, (in_dims_size + 1));
 
   tensors[kDimsTensorIndex] = CreateTensor(input_data, in_dims);
   tensors[kAxisTensorIndex] = CreateTensor(axis_data, ax_dims);
@@ -82,15 +82,15 @@ void TestExpandDims(int* input_dims, const T* input_data, int* axis_dims,
   micro::KernelRunner runner = CreateExpandDimsKernelRunner(
       input_dims, input_data, axis_dims, axis_data, output_dims, output_data);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   // The output tensor's data have been updated by the kernel.
   TfLiteIntArray* actual_out_dims = IntArrayFromInts(output_dims);
   const int output_size = ElementCount(*actual_out_dims);
 
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -98,9 +98,7 @@ void TestExpandDims(int* input_dims, const T* input_data, int* axis_dims,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest0) {
+TEST(ExpandDimsTest, ExpandDimsPositiveAxisTest0) {
   int8_t output_data[4];
   int input_dims[] = {2, 2, 2};
   const int8_t input_data[] = {-1, 1, -2, 2};
@@ -114,7 +112,7 @@ TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest0) {
                                           golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest1) {
+TEST(ExpandDimsTest, ExpandDimsPositiveAxisTest1) {
   float output_data[4];
   int input_dims[] = {2, 2, 2};
   const float input_data[] = {-1.1, 1.2, -2.1, 2.2};
@@ -128,7 +126,7 @@ TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest1) {
                                          golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest2) {
+TEST(ExpandDimsTest, ExpandDimsPositiveAxisTest2) {
   int8_t output_data[4];
   int input_dims[] = {2, 2, 2};
   const int8_t input_data[] = {-1, 1, -2, 2};
@@ -142,7 +140,7 @@ TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest2) {
                                           golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest3) {
+TEST(ExpandDimsTest, ExpandDimsPositiveAxisTest3) {
   int16_t output_data[6];
   int input_dims[] = {3, 3, 1, 2};
   const int16_t input_data[] = {-1, 1, 2, -2, 0, 3};
@@ -156,7 +154,7 @@ TF_LITE_MICRO_TEST(ExpandDimsPositiveAxisTest3) {
                                            golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest4) {
+TEST(ExpandDimsTest, ExpandDimsNegativeAxisTest4) {
   int8_t output_data[6];
   int input_dims[] = {3, 3, 1, 2};
   const int8_t input_data[] = {-1, 1, 2, -2, 0, 3};
@@ -170,7 +168,7 @@ TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest4) {
                                           golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest3) {
+TEST(ExpandDimsTest, ExpandDimsNegativeAxisTest3) {
   float output_data[6];
   int input_dims[] = {3, 3, 1, 2};
   const float input_data[] = {0.1, -0.8, -1.2, -0.5, 0.9, 1.3};
@@ -184,7 +182,7 @@ TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest3) {
                                          golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest2) {
+TEST(ExpandDimsTest, ExpandDimsNegativeAxisTest2) {
   int8_t output_data[6];
   int input_dims[] = {3, 1, 2, 3};
   const int8_t input_data[] = {-1, 1, 2, -2, 0, 3};
@@ -198,7 +196,7 @@ TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest2) {
                                           golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest1) {
+TEST(ExpandDimsTest, ExpandDimsNegativeAxisTest1) {
   float output_data[6];
   int input_dims[] = {3, 1, 3, 2};
   const float input_data[] = {0.1, -0.8, -1.2, -0.5, 0.9, 1.3};
@@ -212,7 +210,7 @@ TF_LITE_MICRO_TEST(ExpandDimsNegativeAxisTest1) {
                                          golden_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsInputOutputDimsMismatchShallFail) {
+TEST(ExpandDimsTest, ExpandDimsInputOutputDimsMismatchShallFail) {
   float output_data[6];
   int input_dims[] = {3, 1, 3, 2};
   const float input_data[] = {0.1, -0.8, -1.2, -0.5, 0.9, 1.3};
@@ -229,10 +227,10 @@ TF_LITE_MICRO_TEST(ExpandDimsInputOutputDimsMismatchShallFail) {
                                                     axis_dims, axis_data,
                                                     output_dims, output_data);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteError, runner.InitAndPrepare());
 }
 
-TF_LITE_MICRO_TEST(ExpandDimsAxisOutOfRangeShallFail) {
+TEST(ExpandDimsTest, ExpandDimsAxisOutOfRangeShallFail) {
   int8_t output_data[6];
   int input_dims[] = {3, 1, 3, 2};
   const int8_t input_data[] = {1, 8, 2, 5, 9, 3};
@@ -247,7 +245,7 @@ TF_LITE_MICRO_TEST(ExpandDimsAxisOutOfRangeShallFail) {
                                                     axis_dims, axis_data,
                                                     output_dims, output_data);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteError, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteError, runner.InitAndPrepare());
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

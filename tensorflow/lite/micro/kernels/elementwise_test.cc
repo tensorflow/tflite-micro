@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/debug_log.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -51,11 +51,11 @@ void TestElementwiseFloat(const TFLMRegistration& registration,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -104,13 +104,13 @@ void TestElementwiseQuantized(const TFLMRegistration& registration,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array,
                              /*builtin_data=*/nullptr);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(expected_invoke_status, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(expected_invoke_status, runner.Invoke());
 
   if (expected_invoke_status == kTfLiteOk) {
     for (int i = 0; i < output_dims_count; ++i) {
       float f = (output_data[i] - output_zero_point) * output_scale;
-      TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], f, input_scale);
+      EXPECT_NEAR(expected_output_data[i], f, input_scale);
     }
   }
 }
@@ -143,20 +143,18 @@ void TestElementwiseBool(const TFLMRegistration& registration,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(Abs) {
+TEST(ElementwiseTest, Abs) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {0.01, -0.01, 10, -10};
@@ -166,7 +164,7 @@ TF_LITE_MICRO_TEST(Abs) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(AbsInt8) {
+TEST(ElementwiseTest, AbsInt8) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., -142., -1., -17., -49., 113.};
@@ -188,7 +186,7 @@ TF_LITE_MICRO_TEST(AbsInt8) {
       output_zero_point);
 }
 
-TF_LITE_MICRO_TEST(AbsInt8SameScale) {
+TEST(ElementwiseTest, AbsInt8SameScale) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., -142., -1., -17., -49., 113.};
@@ -206,7 +204,7 @@ TF_LITE_MICRO_TEST(AbsInt8SameScale) {
       zero_point, shape, golden, output_quantized, scale, -128);
 }
 
-TF_LITE_MICRO_TEST(AbsInt16) {
+TEST(ElementwiseTest, AbsInt16) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., -142., -1., -17., -49., 113.};
@@ -225,7 +223,7 @@ TF_LITE_MICRO_TEST(AbsInt16) {
       /*output_zero_point*/ 0);
 }
 
-TF_LITE_MICRO_TEST(Sin) {
+TEST(ElementwiseTest, Sin) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {0, 3.1415926, -3.1415926, 1};
@@ -235,7 +233,7 @@ TF_LITE_MICRO_TEST(Sin) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(Cos) {
+TEST(ElementwiseTest, Cos) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {0, 3.1415926, -3.1415926, 1};
@@ -245,7 +243,7 @@ TF_LITE_MICRO_TEST(Cos) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(Log) {
+TEST(ElementwiseTest, Log) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {1, 2.7182818, 0.5, 2};
@@ -255,7 +253,7 @@ TF_LITE_MICRO_TEST(Log) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(Sqrt) {
+TEST(ElementwiseTest, Sqrt) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {0, 1, 2, 4};
@@ -265,7 +263,7 @@ TF_LITE_MICRO_TEST(Sqrt) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(Rsqrt) {
+TEST(ElementwiseTest, Rsqrt) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {1, 2, 4, 9};
@@ -275,7 +273,7 @@ TF_LITE_MICRO_TEST(Rsqrt) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(RsqrtInt8) {
+TEST(ElementwiseTest, RsqrtInt8) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., 142., 1., 17., 49., 113.};
@@ -296,7 +294,7 @@ TF_LITE_MICRO_TEST(RsqrtInt8) {
       output_zero_point);
 }
 
-TF_LITE_MICRO_TEST(RsqrtInt16) {
+TEST(ElementwiseTest, RsqrtInt16) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., 142., 1., 17., 49., 113.};
@@ -316,7 +314,7 @@ TF_LITE_MICRO_TEST(RsqrtInt16) {
       output_zero_point);
 }
 
-TF_LITE_MICRO_TEST(RsqrtCloseTo0Int8) {
+TEST(ElementwiseTest, RsqrtCloseTo0Int8) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., 142., 1., 0.1, 49., 113.};
@@ -337,7 +335,7 @@ TF_LITE_MICRO_TEST(RsqrtCloseTo0Int8) {
       output_zero_point);
 }
 
-TF_LITE_MICRO_TEST(RsqrtNanInt8) {
+TEST(ElementwiseTest, RsqrtNanInt8) {
   int shape[] = {2, 1, 8};
 
   const float input_data[] = {15., 46., 78., 142., 1., 17., -49., 113.};
@@ -359,7 +357,7 @@ TF_LITE_MICRO_TEST(RsqrtNanInt8) {
       output_zero_point, kTfLiteError);
 }
 
-TF_LITE_MICRO_TEST(Square) {
+TEST(ElementwiseTest, Square) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const float input[] = {1, 2, 0.5, -3.0};
@@ -369,7 +367,7 @@ TF_LITE_MICRO_TEST(Square) {
                                         shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(LogicalNot) {
+TEST(ElementwiseTest, LogicalNot) {
   constexpr int output_dims_count = 4;
   int shape[] = {2, 2, 2};
   const bool input[] = {true, false, false, true};
@@ -379,4 +377,4 @@ TF_LITE_MICRO_TEST(LogicalNot) {
                                        input, shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -63,8 +63,8 @@ void ExecuteEluTest(TfLiteTensor* tensors, int tensors_count) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -83,7 +83,7 @@ void TestElu(int* input_dims_data, const T* input_data, int* expected_dims,
 
   constexpr float kTolerance = 1e-5;
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -111,7 +111,7 @@ void TestEluQuantized(const TestEluParams<T>& params, int* input_dims_data,
   Dequantize(params.output_data, output_count, scale, zero_point, output_data);
   const float kTolerance = params.tolerance;
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -119,9 +119,7 @@ void TestEluQuantized(const TestEluParams<T>& params, int* input_dims_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatActivationsOpTestElu) {
+TEST(EluTest, FloatActivationsOpTestElu) {
   int kDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       0, -6, 2,  -4,    //
@@ -137,7 +135,7 @@ TF_LITE_MICRO_TEST(FloatActivationsOpTestElu) {
   tflite::testing::TestElu(kDims, kInput, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(QuantizedActivationsOpTestEluInt8) {
+TEST(EluTest, QuantizedActivationsOpTestEluInt8) {
   int kDims[] = {4, 1, 2, 4, 1};
   constexpr float kInput[] = {
       0, -6, 2, -4,    //
@@ -166,4 +164,4 @@ TF_LITE_MICRO_TEST(QuantizedActivationsOpTestEluInt8) {
                                     output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
