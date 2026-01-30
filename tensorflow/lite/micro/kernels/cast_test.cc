@@ -119,7 +119,7 @@ TEST(CastTest, CastUInt32ToInt32) {
   tflite::testing::TestCast(input_dims, input_values, golden, output_data);
 }
 
-TEST(CastTest, CastUInt32ToInt32) {
+TEST(CastTest, CastInt32ToUInt32) {
   uint32_t output_data[6];
   int input_dims[] = {2, 2, 3};
   const int32_t input_values[] = {100, 200, 300, 400, 500, 600};
