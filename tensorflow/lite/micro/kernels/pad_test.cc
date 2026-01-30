@@ -408,35 +408,7 @@ TEST(PadTest, Test2DInt32V2) {
       output_data);
 }
 
-TEST(PadTest, Test2DInt8V2ExpectFailurePadValueQuantizationMismatch) {
-  int input_dims[] = {4, 1, 2, 2, 1};
-  const float input_values[] = {1, 2, 3, 4};
-  const float input_scale = 1.0f;
-  const int input_zero_point = 0;
-  int pad_dims[] = {2, 4, 2};
-  const int32_t pad_values[] = {1, 1, 0, 0, 1, 1, 0, 0};
-  const float pad_value = 42;
-  // Causes failure since this is in a different quantization space than input.
-  const float pad_value_scale = .5;
-  const float pad_value_zero_point = 0;
-  int output_dims[] = {4, 3, 2, 4, 1};
-  const float golden[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  const float output_scale = 1.0f;
-  const int output_zero_point = 0;
-  int8_t output_data[24] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  int8_t input_quantized[4];
-  int8_t golden_quantized[24];
-
-  tflite::testing::TestPadV2Quantized(
-      input_dims, input_values, input_quantized, input_scale, input_zero_point,
-      pad_dims, pad_values, pad_value, pad_value_scale, pad_value_zero_point,
-      output_dims, golden, golden_quantized, output_scale, output_zero_point,
-      output_data, kTfLiteError);
-}
-
-TEST(PadTest, Test2DInt8V2ExpectFailurePadValueQuantizationMismatch) {
+TEST(PadTest, Test2DInt8V2ExpectFailurePadValueQuantizationMismatch2) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
