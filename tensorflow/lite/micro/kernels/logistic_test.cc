@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -149,11 +149,11 @@ void ValidateLogisticGoldens(TfLiteTensor* tensors, const int tensor_count,
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output_data[i], tolerance);
+    EXPECT_NEAR(golden[i], output_data[i], tolerance);
   }
 }
 
@@ -208,16 +208,14 @@ void TestLogisticQuantized(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(LogisticFloatBasicShouldMatchGolden) {
+TEST(LogisticTest, LogisticFloatBasicShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_basic];
   tflite::testing::TestLogisticFloat(
       tflite::testing::shape_basic, tflite::testing::input_data_basic,
       tflite::testing::golden_basic, tflite::testing::shape_basic, output_data);
 }
 
-TF_LITE_MICRO_TEST(LogisticQuantizedInt8BasicShouldMatchGolden) {
+TEST(LogisticTest, LogisticQuantizedInt8BasicShouldMatchGolden) {
   const float input_scale = 0.1;
   const int input_zero_point = 0;
   int8_t input_quantized[tflite::testing::flat_size_basic];
@@ -233,7 +231,7 @@ TF_LITE_MICRO_TEST(LogisticQuantizedInt8BasicShouldMatchGolden) {
       tflite::testing::quantized_output_zero_point_int8, output_data, 1.0f);
 }
 
-TF_LITE_MICRO_TEST(LogisticFloatWideRangeShouldMatchGolden) {
+TEST(LogisticTest, LogisticFloatWideRangeShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_wide_range];
   tflite::testing::TestLogisticFloat(
       tflite::testing::shape_wide_range, tflite::testing::input_data_wide_range,
@@ -241,7 +239,7 @@ TF_LITE_MICRO_TEST(LogisticFloatWideRangeShouldMatchGolden) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(LogisticQuantizedInt8WideRangeShouldMatchGolden) {
+TEST(LogisticTest, LogisticQuantizedInt8WideRangeShouldMatchGolden) {
   const float input_scale = 1.0;
   const int input_zero_point = 0;
   int8_t input_quantized[tflite::testing::flat_size_wide_range];
@@ -257,7 +255,7 @@ TF_LITE_MICRO_TEST(LogisticQuantizedInt8WideRangeShouldMatchGolden) {
       tflite::testing::quantized_output_zero_point_int8, output_data, 1.0f);
 }
 
-TF_LITE_MICRO_TEST(LogisticQuantizedInt16ShouldMatchGolden) {
+TEST(LogisticTest, LogisticQuantizedInt16ShouldMatchGolden) {
   const float input_scale = 32.f / 65536.f;
   const int input_zero_point = 0;
   const float output_scale = 2.f / 65536.f;
@@ -274,4 +272,4 @@ TF_LITE_MICRO_TEST(LogisticQuantizedInt16ShouldMatchGolden) {
       output_data, 16.0f);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
