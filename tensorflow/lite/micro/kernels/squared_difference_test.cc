@@ -294,7 +294,7 @@ TEST(SquaredDifferenceTest, QuantizedSquaredDifferenceVariousShapes) {
   }
 }
 
-TEST(SquaredDifferenceTest, FloatSquaredDifferenceWithBroadcast) {
+TEST(SquaredDifferenceTest, FloatSquaredDifferenceWithBroadcast2) {
   constexpr int data_size = 6;
 
   // input 2 is a scalar
