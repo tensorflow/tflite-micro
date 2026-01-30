@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -54,11 +54,11 @@ void TestSlice(int* input_dims_data, const dataT* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -66,9 +66,7 @@ void TestSlice(int* input_dims_data, const dataT* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(In1D) {
+TEST(SliceTest, In1D) {
   int input_shape[] = {1, 4};
   float input_values[] = {1, 2, 3, 4};
   int begin_shape[] = {1, 1};
@@ -84,7 +82,7 @@ TF_LITE_MICRO_TEST(In1D) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(In2D) {
+TEST(SliceTest, In2D) {
   int input_shape[] = {2, 2, 3};
   float input_values[] = {1, 2, 3, 4, 5, 6};
   int begin_shape[] = {1, 2};
@@ -100,7 +98,7 @@ TF_LITE_MICRO_TEST(In2D) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(In3D) {
+TEST(SliceTest, In3D) {
   int input_shape[] = {3, 2, 3, 2};
   float input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
   int begin_shape[] = {1, 3};
@@ -116,7 +114,7 @@ TF_LITE_MICRO_TEST(In3D) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(In5D) {
+TEST(SliceTest, In5D) {
   int input_shape[] = {5, 5, 1, 1, 1, 1};
   float input_values[] = {1, 2, 3, 4, 5};
   int begin_shape[] = {1, 5};
@@ -132,7 +130,7 @@ TF_LITE_MICRO_TEST(In5D) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(InputFloat) {
+TEST(SliceTest, InputFloat) {
   int input_shape[] = {4, 4, 1, 1, 1};
   float input_values[] = {1, 2, 3, 4};
   int begin_shape[] = {1, 4};
@@ -148,7 +146,7 @@ TF_LITE_MICRO_TEST(InputFloat) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(IndexInt64) {
+TEST(SliceTest, IndexInt64) {
   int input_shape[] = {4, 4, 1, 1, 1};
   float input_values[] = {1, 2, 3, 4};
   int begin_shape[] = {1, 4};
@@ -166,7 +164,7 @@ TF_LITE_MICRO_TEST(IndexInt64) {
 
 // See these test cases under:
 // https://www.tensorflow.org/versions/master/api_docs/python/tf/slice
-TF_LITE_MICRO_TEST(InputInteger1) {
+TEST(SliceTest, InputInteger1) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int32_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -183,7 +181,7 @@ TF_LITE_MICRO_TEST(InputInteger1) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(InputInteger2) {
+TEST(SliceTest, InputInteger2) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int32_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -200,7 +198,7 @@ TF_LITE_MICRO_TEST(InputInteger2) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(InputInteger3) {
+TEST(SliceTest, InputInteger3) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int32_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -217,7 +215,7 @@ TF_LITE_MICRO_TEST(InputInteger3) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(SizeMinus1) {
+TEST(SliceTest, SizeMinus1) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int32_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -234,7 +232,7 @@ TF_LITE_MICRO_TEST(SizeMinus1) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(BeginNonZeroSizeMinus1Axis1) {
+TEST(SliceTest, BeginNonZeroSizeMinus1Axis1) {
   int input_shape[] = {4, 3, 3, 2, 1};
   int32_t input_values[] = {1, 1, 2, 2, 3, 3, 4, 4, 5,
                             5, 6, 6, 7, 7, 8, 8, 9, 9};
@@ -251,7 +249,7 @@ TF_LITE_MICRO_TEST(BeginNonZeroSizeMinus1Axis1) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(BeginNonZeroSizeMinus1Axis2) {
+TEST(SliceTest, BeginNonZeroSizeMinus1Axis2) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int32_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -268,7 +266,7 @@ TF_LITE_MICRO_TEST(BeginNonZeroSizeMinus1Axis2) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(BeginNonZeroSizeMinus1Axis3) {
+TEST(SliceTest, BeginNonZeroSizeMinus1Axis3) {
   int input_shape[] = {4, 3, 1, 2, 3};
   int32_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -285,7 +283,7 @@ TF_LITE_MICRO_TEST(BeginNonZeroSizeMinus1Axis3) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(SliceInt8) {
+TEST(SliceTest, SliceInt8) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int8_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                            4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -302,7 +300,7 @@ TF_LITE_MICRO_TEST(SliceInt8) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(SliceInt16) {
+TEST(SliceTest, SliceInt16) {
   int input_shape[] = {4, 3, 2, 3, 1};
   int16_t input_values[] = {1, 1, 1, 2, 2, 2, 3, 3, 3,
                             4, 4, 4, 5, 5, 5, 6, 6, 6};
@@ -319,7 +317,7 @@ TF_LITE_MICRO_TEST(SliceInt16) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TEST(SliceBool) {
+TEST(SliceTest, SliceBool) {
   int input_shape[] = {4, 3, 2, 3, 1};
   bool input_values[] = {false, false, false, false, false, false,
                          true,  false, true,  false, false, false,
@@ -337,4 +335,4 @@ TF_LITE_MICRO_TEST(SliceBool) {
                              output_shape, expected_output_data, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
