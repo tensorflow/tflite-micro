@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -78,7 +78,7 @@ void TestHardSwishQuantized(int size, const T* output_data,
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_elements_count = ElementCount(*output_dims);
 
-  TF_LITE_MICRO_EXPECT_EQ(output_elements_count, size);
+  EXPECT_EQ(output_elements_count, size);
 
   GenerateUniformRandomVector(size, input_min, input_max, random_engine,
                               float_input_values);
@@ -108,15 +108,14 @@ void TestHardSwishQuantized(int size, const T* output_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   Dequantize<T>(output_data, output_elements_count, output_scale,
                 output_zero_point, dequantized_output);
 
   for (int i = 0; i < output_elements_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(float_ref_output_values[i], dequantized_output[i],
-                              kTolerance);
+    EXPECT_NEAR(float_ref_output_values[i], dequantized_output[i], kTolerance);
   }
 }
 
@@ -138,8 +137,8 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
 
   // In this bias-focused test case, no need for randomly generated input
   // values.
-  TF_LITE_MICRO_EXPECT_LE(input_min, -3.0f);
-  TF_LITE_MICRO_EXPECT_GE(input_max, 3.0f);
+  EXPECT_LE(input_min, -3.0f);
+  EXPECT_GE(input_max, 3.0f);
   const int quantized_input_negative_three = TfLiteRound(
       std::numeric_limits<T>::min() + (-3.0f - input_min) / input_scale);
   const int quantized_input_positive_three = TfLiteRound(
@@ -165,7 +164,7 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_elements_count = ElementCount(*output_dims);
 
-  TF_LITE_MICRO_EXPECT_EQ(output_elements_count, size);
+  EXPECT_EQ(output_elements_count, size);
 
   constexpr int inputs_size = 1;
   constexpr int outputs_size = 1;
@@ -186,8 +185,8 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   Dequantize<T>(output_data, output_elements_count, output_scale,
                 output_zero_point, dequantized_output);
@@ -197,7 +196,7 @@ void TestHardSwishQuantizedBias(const int size, const T* output_data,
     sum_diff += dequantized_output[i] - float_ref_output_values[i];
   }
   const float bias = sum_diff / (size * max_scale);
-  TF_LITE_MICRO_EXPECT_LE(std::abs(bias), tolerated_bias);
+  EXPECT_LE(std::abs(bias), tolerated_bias);
 }
 
 void TestHardSwishFloat(const int size, float* output_data,
@@ -218,7 +217,7 @@ void TestHardSwishFloat(const int size, float* output_data,
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_elements_count = ElementCount(*output_dims);
 
-  TF_LITE_MICRO_EXPECT_EQ(output_elements_count, size);
+  EXPECT_EQ(output_elements_count, size);
 
   constexpr int inputs_size = 1;
   constexpr int outputs_size = 1;
@@ -237,12 +236,11 @@ void TestHardSwishFloat(const int size, float* output_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_elements_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(float_ref_output_values[i], output_data[i],
-                              1e-5f);
+    EXPECT_NEAR(float_ref_output_values[i], output_data[i], 1e-5f);
   }
 }
 
@@ -250,9 +248,7 @@ void TestHardSwishFloat(const int size, float* output_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SimpleHardSwishTestFloat) {
+TEST(HardSwishTest, SimpleHardSwishTestFloat) {
   std::minstd_rand random_engine;
   constexpr int size = 100;
   float output_data[size] = {0.f};
@@ -263,7 +259,7 @@ TF_LITE_MICRO_TEST(SimpleHardSwishTestFloat) {
                                       input_values, output_values);
 }
 
-TF_LITE_MICRO_TEST(SimpleHardSwishTestInt8) {
+TEST(HardSwishTest, SimpleHardSwishTestInt8) {
   std::minstd_rand random_engine;
   constexpr int pairs = 4, one_pair = 2;
   constexpr int size = 101;
@@ -290,4 +286,4 @@ TF_LITE_MICRO_TEST(SimpleHardSwishTestInt8) {
   }
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

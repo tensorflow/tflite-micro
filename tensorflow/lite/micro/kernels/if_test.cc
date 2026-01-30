@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helper_custom_ops.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -59,32 +59,30 @@ void TestIf(int* input1_dims_data, const bool* input1_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, &params);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
 
-  TF_LITE_MICRO_EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
+  EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  TF_LITE_MICRO_EXPECT_EQ(output_dims_count, 2);
+  EXPECT_EQ(output_dims_count, 2);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 
-  TF_LITE_MICRO_EXPECT_EQ(subgraph1_invoke_count_golden,
-                          runner.GetMockGraph()->get_invoke_count(1));
-  TF_LITE_MICRO_EXPECT_EQ(subgraph2_invoke_count_golden,
-                          runner.GetMockGraph()->get_invoke_count(2));
+  EXPECT_EQ(subgraph1_invoke_count_golden,
+            runner.GetMockGraph()->get_invoke_count(1));
+  EXPECT_EQ(subgraph2_invoke_count_golden,
+            runner.GetMockGraph()->get_invoke_count(2));
 
-  TF_LITE_MICRO_EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
+  EXPECT_TRUE(runner.ValidateTempBufferDeallocated());
 }
 
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphWithMockModelConditionTrue) {
+TEST(IfTest, IfShouldInvokeSubgraphWithMockModelConditionTrue) {
   int shape[] = {2, 1, 2};
   int condition_shape[] = {1, 1};
   const bool condition[] = {true};
@@ -95,7 +93,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphWithMockModelConditionTrue) {
                           golden, 1, 0, output_data);
 }
 
-TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphWithMockModelConditionFalse) {
+TEST(IfTest, IfShouldInvokeSubgraphWithMockModelConditionFalse) {
   int shape[] = {2, 1, 2};
   int condition_shape[] = {1, 1};
   const bool condition[] = {false};
@@ -106,7 +104,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphWithMockModelConditionFalse) {
                           golden, 0, 1, output_data);
 }
 
-TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionTrue) {
+TEST(IfTest, IfShouldInvokeSubgraphConditionTrue) {
   constexpr int kArenaSize = 5000;
   uint8_t arena[kArenaSize];
 
@@ -117,7 +115,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionTrue) {
   resolver.AddAdd();
   resolver.AddMul();
   tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+  EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
   TfLiteTensor* condition = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
   TfLiteTensor* input2 = interpreter.input(2);
@@ -130,11 +128,11 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionTrue) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_EQ(output->data.f[0], 5.0f);
-  TF_LITE_MICRO_EXPECT_EQ(output->data.f[1], 12.0f);
+  EXPECT_EQ(output->data.f[0], 5.0f);
+  EXPECT_EQ(output->data.f[1], 12.0f);
 }
 
-TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
+TEST(IfTest, IfShouldInvokeSubgraphConditionFalse) {
   constexpr int kArenaSize = 5000;
   uint8_t arena[kArenaSize];
 
@@ -145,7 +143,7 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
   resolver.AddAdd();
   resolver.AddMul();
   tflite::MicroInterpreter interpreter(model, resolver, arena, kArenaSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+  EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
   TfLiteTensor* condition = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
   TfLiteTensor* input2 = interpreter.input(2);
@@ -158,11 +156,11 @@ TF_LITE_MICRO_TEST(IfShouldInvokeSubgraphConditionFalse) {
 
   interpreter.Invoke();
 
-  TF_LITE_MICRO_EXPECT_EQ(output->data.f[0], 6.0f);
-  TF_LITE_MICRO_EXPECT_EQ(output->data.f[1], 35.0f);
+  EXPECT_EQ(output->data.f[0], 6.0f);
+  EXPECT_EQ(output->data.f[1], 35.0f);
 }
 
-TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {
+TEST(IfTest, IfShouldNotOverwriteTensorAcrossSubgraphs) {
   constexpr int kArenaSize = 5000;
   uint8_t arena[kArenaSize];
 
@@ -170,11 +168,10 @@ TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {
       tflite::testing::GetModelWithIfAndSubgraphInputTensorOverlap();
 
   tflite::testing::TestingOpResolver op_resolver;
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk,
-                          tflite::testing::GetTestingOpResolver(op_resolver));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::GetTestingOpResolver(op_resolver));
 
   tflite::MicroInterpreter interpreter(model, op_resolver, arena, kArenaSize);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
+  EXPECT_EQ(kTfLiteOk, interpreter.AllocateTensors());
 
   TfLiteTensor* condition = interpreter.input(0);
   TfLiteTensor* input1 = interpreter.input(1);
@@ -196,8 +193,8 @@ TF_LITE_MICRO_TEST(IfShouldNotOverwriteTensorAcrossSubgraphs) {
                                                 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
                                                 5, 5, 6, 6, 6, 6, 0, 0, 0, 0};
   for (int i = 0; i < 8 * block_size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output->data.i32[i], expect_output_data[i]);
+    EXPECT_EQ(output->data.i32[i], expect_output_data[i]);
   }
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
