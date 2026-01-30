@@ -15,7 +15,7 @@ limitations under the License.
 #include "tensorflow/lite/experimental/microfrontend/lib/noise_reduction.h"
 
 #include "tensorflow/lite/experimental/microfrontend/lib/noise_reduction_util.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -36,48 +36,44 @@ class NoiseReductionTestConfig {
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(NoiseReductionTest_TestNoiseReductionEstimate) {
+TEST(NoiseReductionTest, NoiseReductionTest_TestNoiseReductionEstimate) {
   NoiseReductionTestConfig config;
   struct NoiseReductionState state;
-  TF_LITE_MICRO_EXPECT(
+  EXPECT_TRUE(
       NoiseReductionPopulateState(&config.config_, &state, kNumChannels));
 
   uint32_t signal[] = {247311, 508620};
   NoiseReductionApply(&state, signal);
 
   const uint32_t expected[] = {6321887, 31248341};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.num_channels,
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.num_channels,
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(state.estimate[i], expected[i]);
+    EXPECT_EQ(state.estimate[i], expected[i]);
   }
 
   NoiseReductionFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TEST(NoiseReductionTest_TestNoiseReduction) {
+TEST(NoiseReductionTest, NoiseReductionTest_TestNoiseReduction) {
   NoiseReductionTestConfig config;
   struct NoiseReductionState state;
-  TF_LITE_MICRO_EXPECT(
+  EXPECT_TRUE(
       NoiseReductionPopulateState(&config.config_, &state, kNumChannels));
 
   uint32_t signal[] = {247311, 508620};
   NoiseReductionApply(&state, signal);
 
   const uint32_t expected[] = {241137, 478104};
-  TF_LITE_MICRO_EXPECT_EQ(
-      state.num_channels,
-      static_cast<int>(sizeof(expected) / sizeof(expected[0])));
+  EXPECT_EQ(state.num_channels,
+            static_cast<int>(sizeof(expected) / sizeof(expected[0])));
   int i;
   for (i = 0; i < state.num_channels; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(signal[i], expected[i]);
+    EXPECT_EQ(signal[i], expected[i]);
   }
 
   NoiseReductionFreeStateContents(&state);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
