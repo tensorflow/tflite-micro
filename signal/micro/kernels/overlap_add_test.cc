@@ -18,7 +18,7 @@ limitations under the License.
 #include "signal/micro/kernels/overlap_add_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 
@@ -87,11 +87,11 @@ void TestOverlapAddInvoke(int* input_dims_data, T* input_data,
       memcpy(&input_data[input_idx], &golden_input[golden_input_idx],
              n_frames * frame_size * sizeof(T));
     }
-    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->Invoke());
+    EXPECT_EQ(kTfLiteOk, runner->Invoke());
     for (int outer_dim = 0; outer_dim < outer_dims; outer_dim++) {
       int output_idx = outer_dim * n_frames * frame_step;
       int golden_output_idx = i * n_frames * frame_step;
-      TF_LITE_MICRO_EXPECT_EQ(
+      EXPECT_EQ(
           0, memcmp(&output_data[output_idx], &golden_output[golden_output_idx],
                     n_frames * frame_step * sizeof(T)));
     }
@@ -110,10 +110,10 @@ void TestOverlapAdd(int* input_dims_data, T* input_data, int* output_dims_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(overlap_add_runner->GetKernelRunner().InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(overlap_add_runner->GetKernelRunner().InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestOverlapAddInvoke<T>(input_dims_data, input_data, output_dims_data,
                           golden_input, golden_output, iters, flexbuffers_data,
                           flexbuffers_data_size, output_data,
@@ -134,10 +134,10 @@ void TestOverlapAddReset(int* input_dims_data, T* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(overlap_add_runner->GetKernelRunner().InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(overlap_add_runner->GetKernelRunner().InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestOverlapAddInvoke(input_dims_data, input_data, output_dims_data,
                        golden_input, golden_output, iters, flexbuffers_data,
                        flexbuffers_data_size, output_data,
@@ -151,9 +151,7 @@ void TestOverlapAddReset(int* input_dims_data, T* input_data,
 
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(OverlapAddTestInt16) {
+TEST(OverlapAddTest, OverlapAddTestInt16) {
   const int kInputSize = 3;
   const int kOutputSize = 1;
   int input_dims_data[] = {2, 1, kInputSize};
@@ -171,7 +169,7 @@ TF_LITE_MICRO_TEST(OverlapAddTestInt16) {
                          g_gen_data_size_overlap_add_int16, &output_data);
 }
 
-TF_LITE_MICRO_TEST(OverlapAddTestFloat) {
+TEST(OverlapAddTest, OverlapAddTestFloat) {
   const int kInputSize = 3;
   const int kOutputSize = 1;
   int input_dims_data[] = {2, 1, kInputSize};
@@ -189,7 +187,7 @@ TF_LITE_MICRO_TEST(OverlapAddTestFloat) {
                          g_gen_data_size_overlap_add_float, &output_data);
 }
 
-TF_LITE_MICRO_TEST(OverlapAddTestNframes4Int16) {
+TEST(OverlapAddTest, OverlapAddTestNframes4Int16) {
   const int kInputSize = 3;
   const int kOutputSize = 1;
   const int kNFrames = 4;
@@ -209,7 +207,7 @@ TF_LITE_MICRO_TEST(OverlapAddTestNframes4Int16) {
                          g_gen_data_size_overlap_add_int16, output_data);
 }
 
-TF_LITE_MICRO_TEST(OverlapAddTestNframes4OuterDims4Int16) {
+TEST(OverlapAddTest, OverlapAddTestNframes4OuterDims4Int16) {
   const int kInputSize = 3;
   const int kOutputSize = 1;
   const int kNFrames = 4;
@@ -229,7 +227,7 @@ TF_LITE_MICRO_TEST(OverlapAddTestNframes4OuterDims4Int16) {
                          g_gen_data_size_overlap_add_int16, output_data);
 }
 
-TF_LITE_MICRO_TEST(testReset) {
+TEST(OverlapAddTest, testReset) {
   const int kInputSize = 3;
   const int kOutputSize = 1;
   const int kNFrames = 4;
@@ -249,4 +247,4 @@ TF_LITE_MICRO_TEST(testReset) {
                               g_gen_data_size_overlap_add_int16, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

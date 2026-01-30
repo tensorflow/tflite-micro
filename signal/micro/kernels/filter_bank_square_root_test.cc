@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -62,7 +62,7 @@ TfLiteStatus TestFilterBankSquareRoot(
   TF_LITE_ENSURE_STATUS(runner.Invoke());
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
 
   return kTfLiteOk;
@@ -72,9 +72,7 @@ TfLiteStatus TestFilterBankSquareRoot(
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FilterBankSquareRoot32Channel) {
+TEST(FilterBankSquareRootTest, FilterBankSquareRoot32Channel) {
   int input1_shape[] = {1, 32};
   int input2_shape[] = {0};
   int output_shape[] = {1, 32};
@@ -91,12 +89,12 @@ TF_LITE_MICRO_TEST(FilterBankSquareRoot32Channel) {
                              105, 140,  84,   50,  39,  27,  33,  37,
                              69,  57,   39,   51,  41,  30,  35,  33};
   uint32_t output[32];
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, tflite::testing::TestFilterBankSquareRoot(
-                                         input1_shape, input1, input2_shape,
-                                         input2, output_shape, golden, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFilterBankSquareRoot(
+                           input1_shape, input1, input2_shape, input2,
+                           output_shape, golden, output));
 }
 
-TF_LITE_MICRO_TEST(FilterBankSquareRoot16Channel) {
+TEST(FilterBankSquareRootTest, FilterBankSquareRoot16Channel) {
   int input1_shape[] = {1, 16};
   int input2_shape[] = {0};
   int output_shape[] = {1, 16};
@@ -109,9 +107,9 @@ TF_LITE_MICRO_TEST(FilterBankSquareRoot16Channel) {
   const uint32_t golden[] = {3570, 3818, 4302, 2919, 2525, 3556, 3173, 2951,
                              2804, 4102, 2682, 1157, 4414, 4076, 2144, 4165};
   uint32_t output[16];
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, tflite::testing::TestFilterBankSquareRoot(
-                                         input1_shape, input1, input2_shape,
-                                         input2, output_shape, golden, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestFilterBankSquareRoot(
+                           input1_shape, input1, input2_shape, input2,
+                           output_shape, golden, output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -18,7 +18,7 @@ limitations under the License.
 #include "signal/micro/kernels/filter_bank_log_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -63,7 +63,7 @@ TfLiteStatus TestFilterBankLog(int* input_dims_data, const uint32_t* input_data,
   TF_LITE_ENSURE_STATUS(runner.Invoke());
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
 
   return kTfLiteOk;
@@ -73,9 +73,7 @@ TfLiteStatus TestFilterBankLog(int* input_dims_data, const uint32_t* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FilterBankLogTest32Channel) {
+TEST(FilterBankLogTest, FilterBankLogTest32Channel) {
   int input_shape[] = {1, 32};
   int output_shape[] = {1, 32};
   const uint32_t input[] = {29, 21, 29, 40, 19, 11, 13, 23, 13, 11, 25,
@@ -86,16 +84,15 @@ TF_LITE_MICRO_TEST(FilterBankLogTest32Channel) {
                             7860, 7550, 8120, 7550, 7011, 7011, 7660, 7164,
                             7860, 7303, 7660, 7763, 8038, 7952, 6194, 4436};
   int16_t output[32];
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFilterBankLog(
-          input_shape, input, output_shape, golden,
-          g_gen_data_filter_bank_log_scale_1600_correction_bits_3,
-          g_gen_data_size_filter_bank_log_scale_1600_correction_bits_3,
-          output));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFilterBankLog(
+                input_shape, input, output_shape, golden,
+                g_gen_data_filter_bank_log_scale_1600_correction_bits_3,
+                g_gen_data_size_filter_bank_log_scale_1600_correction_bits_3,
+                output));
 }
 
-TF_LITE_MICRO_TEST(FilterBankLogTest16Channel) {
+TEST(FilterBankLogTest, FilterBankLogTest16Channel) {
   int input_shape[] = {1, 16};
   int output_shape[] = {1, 16};
   const uint32_t input[] = {48, 20, 19, 24, 35, 47, 23, 30,
@@ -104,13 +101,12 @@ TF_LITE_MICRO_TEST(FilterBankLogTest16Channel) {
                             19701, 28407, 29482, 32767, 32767, 16720,
                             32767, 3434,  11669, 24955};
   int16_t output[16];
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestFilterBankLog(
-          input_shape, input, output_shape, golden,
-          g_gen_data_filter_bank_log_scale_32768_correction_bits_5,
-          g_gen_data_size_filter_bank_log_scale_32768_correction_bits_5,
-          output));
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestFilterBankLog(
+                input_shape, input, output_shape, golden,
+                g_gen_data_filter_bank_log_scale_32768_correction_bits_5,
+                g_gen_data_size_filter_bank_log_scale_32768_correction_bits_5,
+                output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

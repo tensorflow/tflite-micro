@@ -18,7 +18,7 @@ limitations under the License.
 #include "signal/micro/kernels/window_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -66,7 +66,7 @@ TfLiteStatus TestWindow(int* input1_dims_data, const int16_t* input1_data,
   TF_LITE_ENSURE_STATUS(runner.Invoke());
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
 
   return kTfLiteOk;
@@ -76,9 +76,7 @@ TfLiteStatus TestWindow(int* input1_dims_data, const int16_t* input1_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(WindowTestLength16Shift12) {
+TEST(WindowTest, WindowTestLength16Shift12) {
   int input1_shape[] = {1, 16};
   int input2_shape[] = {1, 16};
   int output_shape[] = {1, 16};
@@ -93,14 +91,13 @@ TF_LITE_MICRO_TEST(WindowTestLength16Shift12) {
 
   int16_t output[16];
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestWindow(
-          input1_shape, input1, input2_shape, input2, output_shape, golden,
-          g_gen_data_window_shift_12, g_gen_data_size_window_shift_12, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestWindow(
+                           input1_shape, input1, input2_shape, input2,
+                           output_shape, golden, g_gen_data_window_shift_12,
+                           g_gen_data_size_window_shift_12, output));
 }
 
-TF_LITE_MICRO_TEST(WindowTestLength32Shift8) {
+TEST(WindowTest, WindowTestLength32Shift8) {
   int input1_shape[] = {1, 32};
   int input2_shape[] = {1, 32};
   int output_shape[] = {1, 32};
@@ -120,14 +117,13 @@ TF_LITE_MICRO_TEST(WindowTestLength32Shift8) {
 
   int16_t output[32];
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestWindow(
-          input1_shape, input1, input2_shape, input2, output_shape, golden,
-          g_gen_data_window_shift_8, g_gen_data_size_window_shift_8, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestWindow(
+                           input1_shape, input1, input2_shape, input2,
+                           output_shape, golden, g_gen_data_window_shift_8,
+                           g_gen_data_size_window_shift_8, output));
 }
 
-TF_LITE_MICRO_TEST(WindowTestLength16Shift12OuterDims4) {
+TEST(WindowTest, WindowTestLength16Shift12OuterDims4) {
   const int kOuterDim = 2;
   int input1_shape[] = {3, kOuterDim, kOuterDim, 16};
   int input2_shape[] = {1, 16};
@@ -152,11 +148,10 @@ TF_LITE_MICRO_TEST(WindowTestLength16Shift12OuterDims4) {
 
   int16_t output[kOuterDim * kOuterDim * 16];
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestWindow(
-          input1_shape, input1, input2_shape, input2, output_shape, golden,
-          g_gen_data_window_shift_12, g_gen_data_size_window_shift_12, output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestWindow(
+                           input1_shape, input1, input2_shape, input2,
+                           output_shape, golden, g_gen_data_window_shift_12,
+                           g_gen_data_size_window_shift_12, output));
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

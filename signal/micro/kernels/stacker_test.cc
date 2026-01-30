@@ -18,7 +18,7 @@ limitations under the License.
 #include "signal/micro/kernels/stacker_flexbuffers_generated_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace {
@@ -65,11 +65,11 @@ void TestStackerInvoke(int* output_dims_data, int16_t* output_data,
 
   const int output_len = ElementCount(*output_dims);
 
-  TF_LITE_MICRO_EXPECT_EQ(kernel_runner->Invoke(), kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(*ouput_ready_data, 1);
+  EXPECT_EQ(kernel_runner->Invoke(), kTfLiteOk);
+  EXPECT_EQ(*ouput_ready_data, 1);
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
 }
 
@@ -86,10 +86,10 @@ void TestStacker(int* input_dims_data, const int16_t* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(stacker_runner.kernel_runner()->InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(stacker_runner.kernel_runner()->InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestStackerInvoke(output_dims_data, output_data, ouput_ready_data, golden,
                     stacker_runner.kernel_runner());
 }
@@ -112,10 +112,10 @@ void TestStackerReset(int* input_dims_data, const int16_t* input_data,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(stacker_runner.kernel_runner()->InitAndPrepare(
-                              reinterpret_cast<const char*>(flexbuffers_data),
-                              flexbuffers_data_size),
-                          kTfLiteOk);
+  EXPECT_EQ(stacker_runner.kernel_runner()->InitAndPrepare(
+                reinterpret_cast<const char*>(flexbuffers_data),
+                flexbuffers_data_size),
+            kTfLiteOk);
   TestStackerInvoke(output_dims_data, output_data, ouput_ready_data, golden,
                     stacker_runner.kernel_runner());
   stacker_runner.kernel_runner()->Reset();
@@ -126,9 +126,7 @@ void TestStackerReset(int* input_dims_data, const int16_t* input_data,
 }  // namespace
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(StackerTest3ChannelStep1) {
+TEST(StackerTest, StackerTest3ChannelStep1) {
   int input_shape[] = {1, 3};
   int output_shape[] = {1, 6};
   int output_ready_shape[] = {0};
@@ -144,7 +142,7 @@ TF_LITE_MICRO_TEST(StackerTest3ChannelStep1) {
                       g_gen_data_size_stacker_3_channels_step_1);
 }
 
-TF_LITE_MICRO_TEST(StackerTest10ChannelStep2_1stTest) {
+TEST(StackerTest, StackerTest10ChannelStep2_1stTest) {
   int input_shape[] = {1, 10};
   int output_shape[] = {1, 20};
   int output_ready_shape[] = {0};
@@ -164,7 +162,7 @@ TF_LITE_MICRO_TEST(StackerTest10ChannelStep2_1stTest) {
                       g_gen_data_size_stacker_10_channels_step_2);
 }
 
-TF_LITE_MICRO_TEST(StackerTest10ChannelStep2_2ndTest) {
+TEST(StackerTest, StackerTest10ChannelStep2_2ndTest) {
   int input_shape[] = {1, 10};
   int output_shape[] = {1, 20};
   int output_ready_shape[] = {0};
@@ -184,7 +182,7 @@ TF_LITE_MICRO_TEST(StackerTest10ChannelStep2_2ndTest) {
                       g_gen_data_size_stacker_10_channels_step_2);
 }
 
-TF_LITE_MICRO_TEST(StackerTestReset3ChannelStep1) {
+TEST(StackerTest, StackerTestReset3ChannelStep1) {
   int input_shape[] = {1, 3};
   int output_shape[] = {1, 6};
   int output_ready_shape[] = {0};
@@ -200,7 +198,7 @@ TF_LITE_MICRO_TEST(StackerTestReset3ChannelStep1) {
                            g_gen_data_size_stacker_3_channels_step_1);
 }
 
-TF_LITE_MICRO_TEST(StackerTestReset10ChannelStep2_1stTest) {
+TEST(StackerTest, StackerTestReset10ChannelStep2_1stTest) {
   int input_shape[] = {1, 10};
   int output_shape[] = {1, 20};
   int output_ready_shape[] = {0};
@@ -220,7 +218,7 @@ TF_LITE_MICRO_TEST(StackerTestReset10ChannelStep2_1stTest) {
                            g_gen_data_size_stacker_10_channels_step_2);
 }
 
-TF_LITE_MICRO_TEST(StackerTestReset10ChannelStep2_2ndTest) {
+TEST(StackerTest, StackerTestReset10ChannelStep2_2ndTest) {
   int input_shape[] = {1, 10};
   int output_shape[] = {1, 20};
   int output_ready_shape[] = {0};
@@ -240,4 +238,4 @@ TF_LITE_MICRO_TEST(StackerTestReset10ChannelStep2_2ndTest) {
                            g_gen_data_size_stacker_10_channels_step_2);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
