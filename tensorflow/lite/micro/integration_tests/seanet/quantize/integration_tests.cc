@@ -75,15 +75,6 @@ void RunModel(const uint8_t* model, const inputT* input0,
 }  // namespace micro
 }  // namespace tflite
 
-if (argc > 2) {
-  MicroPrintf("wrong number of command line args!\n");
-  MicroPrintf("Correct way to run the test is :\n");
-  MicroPrintf("if you want to print logs -> ./{PATH TO BINARY} print_logs\n");
-  MicroPrintf("if don't want to print logs -> ./{PATH TO BINARY}\n");
-} else if ((argc == 2) && (strcmp(argv[1], "print_logs") == 0)) {
-  print_log = true;
-}
-
 TEST(IntegrationTests, quantize0_test) {
   tflite::micro::RunModel(
       g_quantize0_model_data, g_quantize0_input0_int32_test_data,
@@ -100,4 +91,15 @@ TEST(IntegrationTests, quantize1_test) {
       g_quantize1_golden_int32_test_data_size, "quantize1 test");
 }
 
-TF_LITE_MICRO_TESTS_MAIN
+int main(int argc, char** argv) {
+  tflite::InitializeTest();
+  if (argc > 2) {
+    MicroPrintf("wrong number of command line args!\n");
+    MicroPrintf("Correct way to run the test is :\n");
+    MicroPrintf("if you want to print logs -> ./{PATH TO BINARY} print_logs\n");
+    MicroPrintf("if don't want to print logs -> ./{PATH TO BINARY}\n");
+  } else if ((argc == 2) && (strcmp(argv[1], "print_logs") == 0)) {
+    print_log = true;
+  }
+  return RUN_ALL_TESTS();
+}
