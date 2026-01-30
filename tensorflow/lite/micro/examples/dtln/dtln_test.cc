@@ -22,10 +22,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-MicroPrintf(
-    "\nThis example demonstrates LSTM layers on HiFi DSP, NOT for evaluating "
-    "noise suppression quality.\n");
 TEST(DtlnTest, TestInvoke) {
+  MicroPrintf(
+      "\nThis example demonstrates LSTM layers on HiFi DSP, NOT for evaluating "
+      "noise suppression quality.\n");
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model =

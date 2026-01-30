@@ -87,7 +87,7 @@ TEST(NetworkTesterTest, TestInvoke) {
         "Model provided is schema version %d not equal "
         "to supported version %d.\n",
         model->version(), TFLITE_SCHEMA_VERSION);
-    return kTfLiteError;
+    return;
   }
 #ifdef ETHOS_U
   tflite::MicroMutableOpResolver<1> resolver;
@@ -108,7 +108,7 @@ TEST(NetworkTesterTest, TestInvoke) {
   TfLiteStatus allocate_status = interpreter.AllocateTensors();
   if (allocate_status != kTfLiteOk) {
     MicroPrintf("Tensor allocation failed\n");
-    return kTfLiteError;
+    return;
   }
 
   for (int n = 0; n < NUM_INFERENCES; n++) {
@@ -123,7 +123,7 @@ TEST(NetworkTesterTest, TestInvoke) {
     TfLiteStatus invoke_status = interpreter.Invoke();
     if (invoke_status != kTfLiteOk) {
       MicroPrintf("Invoke failed\n");
-      return kTfLiteError;
+      return;
     }
     EXPECT_EQ(kTfLiteOk, invoke_status);
 
