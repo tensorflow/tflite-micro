@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -39,11 +39,11 @@ void ValidateMirrorPadGoldens(TfLiteTensor* tensors, int tensors_size,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, &builtin_data);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output[i]);
+    EXPECT_EQ(golden[i], output[i]);
   }
 }
 
@@ -73,9 +73,7 @@ void TestMirrorPad(int* input_shape, const T* input_data, int* pad_shape,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(EmptyPad) {
+TEST(MirrorPadTest, EmptyPad) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 2, 3};
@@ -90,7 +88,7 @@ TF_LITE_MICRO_TEST(EmptyPad) {
                                  kTfLiteMirrorPaddingReflect, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadOneSide_right_Reflect) {
+TEST(MirrorPadTest, PadOneSide_right_Reflect) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 3, 4};
@@ -105,7 +103,7 @@ TF_LITE_MICRO_TEST(PadOneSide_right_Reflect) {
                                  kTfLiteMirrorPaddingReflect, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadOneSide_left_Reflect) {
+TEST(MirrorPadTest, PadOneSide_left_Reflect) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 3, 4};
@@ -120,7 +118,7 @@ TF_LITE_MICRO_TEST(PadOneSide_left_Reflect) {
                                  kTfLiteMirrorPaddingReflect, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadOneSide_right_Symmetric) {
+TEST(MirrorPadTest, PadOneSide_right_Symmetric) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 3, 4};
@@ -135,7 +133,7 @@ TF_LITE_MICRO_TEST(PadOneSide_right_Symmetric) {
                                  kTfLiteMirrorPaddingSymmetric, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadOneSide_left_Symmetric) {
+TEST(MirrorPadTest, PadOneSide_left_Symmetric) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 3, 4};
@@ -149,7 +147,7 @@ TF_LITE_MICRO_TEST(PadOneSide_left_Symmetric) {
                                  output_shape, golden_data,
                                  kTfLiteMirrorPaddingSymmetric, output_data);
 }
-TF_LITE_MICRO_TEST(PadBothSides_Symmetric) {
+TEST(MirrorPadTest, PadBothSides_Symmetric) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 4, 5};
@@ -165,7 +163,7 @@ TF_LITE_MICRO_TEST(PadBothSides_Symmetric) {
                                  kTfLiteMirrorPaddingSymmetric, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadBothSides_Reflect) {
+TEST(MirrorPadTest, PadBothSides_Reflect) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 4, 5};
@@ -181,7 +179,7 @@ TF_LITE_MICRO_TEST(PadBothSides_Reflect) {
                                  kTfLiteMirrorPaddingReflect, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadBothSides_Symmetric_Whole) {
+TEST(MirrorPadTest, PadBothSides_Symmetric_Whole) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 6, 9};
@@ -199,7 +197,7 @@ TF_LITE_MICRO_TEST(PadBothSides_Symmetric_Whole) {
                                  kTfLiteMirrorPaddingSymmetric, output_data);
 }
 
-TF_LITE_MICRO_TEST(PadBothSides_Reflect_Whole) {
+TEST(MirrorPadTest, PadBothSides_Reflect_Whole) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 4, 7};
@@ -215,7 +213,7 @@ TF_LITE_MICRO_TEST(PadBothSides_Reflect_Whole) {
                                  kTfLiteMirrorPaddingReflect, output_data);
 }
 
-TF_LITE_MICRO_TEST(Pad_Symmetric) {
+TEST(MirrorPadTest, Pad_Symmetric) {
   int input_shape[] = {2, 2, 3};
   int pad_shape[] = {2, 2, 2};
   int output_shape[] = {2, 4, 7};
@@ -231,7 +229,7 @@ TF_LITE_MICRO_TEST(Pad_Symmetric) {
                                  kTfLiteMirrorPaddingSymmetric, output_data);
 }
 
-TF_LITE_MICRO_TEST(Pad_1D_Reflect) {
+TEST(MirrorPadTest, Pad_1D_Reflect) {
   int input_shape[] = {1, 3};
   int pad_shape[] = {2, 1, 2};
   int output_shape[] = {1, 5};
@@ -246,7 +244,7 @@ TF_LITE_MICRO_TEST(Pad_1D_Reflect) {
                                  kTfLiteMirrorPaddingReflect, output_data);
 }
 
-TF_LITE_MICRO_TEST(Pad_1D_Symmetric) {
+TEST(MirrorPadTest, Pad_1D_Symmetric) {
   int input_shape[] = {1, 3};
   int pad_shape[] = {2, 1, 2};
   int output_shape[] = {1, 5};
@@ -261,4 +259,4 @@ TF_LITE_MICRO_TEST(Pad_1D_Symmetric) {
                                  kTfLiteMirrorPaddingSymmetric, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

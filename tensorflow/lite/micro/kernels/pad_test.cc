@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -50,7 +50,7 @@ TfLiteStatus ValidatePadGoldens(TfLiteTensor* tensors, int tensors_size,
   }
 
   for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
   return kTfLiteOk;
 }
@@ -82,7 +82,7 @@ TfLiteStatus ValidatePadV2Goldens(TfLiteTensor* tensors, int tensors_size,
   }
 
   for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output_data[i]);
+    EXPECT_EQ(golden[i], output_data[i]);
   }
   return kTfLiteOk;
 }
@@ -107,9 +107,9 @@ void TestPadFloat(int* input_dims_data, const float* input_data,
   // Pad tensor must be constant.
   tensors[1].allocation_type = kTfLiteMmapRo;
 
-  TF_LITE_MICRO_EXPECT_EQ(expected_status,
-                          ValidatePadGoldens(tensors, tensors_size, golden,
-                                             output_data, output_dims_count));
+  EXPECT_EQ(expected_status,
+            ValidatePadGoldens(tensors, tensors_size, golden, output_data,
+                               output_dims_count));
 }
 
 // output data and golden must be shaped correctly
@@ -135,9 +135,9 @@ void TestPadV2Float(int* input_dims_data, const float* input_data,
   // Pad tensor must be constant.
   tensors[1].allocation_type = kTfLiteMmapRo;
 
-  TF_LITE_MICRO_EXPECT_EQ(expected_status,
-                          ValidatePadV2Goldens(tensors, tensors_size, golden,
-                                               output_data, output_dims_count));
+  EXPECT_EQ(expected_status,
+            ValidatePadV2Goldens(tensors, tensors_size, golden, output_data,
+                                 output_dims_count));
 }
 
 template <typename T>
@@ -167,10 +167,9 @@ void TestPadQuantized(int* input_dims_data, const float* input_data,
 
   tflite::Quantize(golden, golden_quantized, output_dims_count, output_scale,
                    output_zero_point);
-  TF_LITE_MICRO_EXPECT_EQ(
-      expected_status,
-      ValidatePadGoldens(tensors, tensors_size, golden_quantized, output_data,
-                         output_dims_count));
+  EXPECT_EQ(expected_status,
+            ValidatePadGoldens(tensors, tensors_size, golden_quantized,
+                               output_data, output_dims_count));
 }
 
 template <typename T>
@@ -207,19 +206,16 @@ void TestPadV2Quantized(
 
   tflite::Quantize(golden, golden_quantized, output_dims_count, output_scale,
                    output_zero_point);
-  TF_LITE_MICRO_EXPECT_EQ(
-      expected_status,
-      ValidatePadV2Goldens(tensors, tensors_size, golden_quantized, output_data,
-                           output_dims_count));
+  EXPECT_EQ(expected_status,
+            ValidatePadV2Goldens(tensors, tensors_size, golden_quantized,
+                                 output_data, output_dims_count));
 }
 
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(Test2DFloat) {
+TEST(PadTest, Test2DFloat) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   int pad_dims[] = {2, 4, 2};
@@ -233,7 +229,7 @@ TF_LITE_MICRO_TEST(Test2DFloat) {
                                 output_dims, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(Test4DFloat) {
+TEST(PadTest, Test4DFloat) {
   int input_dims[] = {4, 1, 1, 1, 1};
   const float input_values[] = {42};
   int pad_dims[] = {2, 4, 2};
@@ -252,7 +248,7 @@ TF_LITE_MICRO_TEST(Test4DFloat) {
                                 output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DFloatV2) {
+TEST(PadTest, Test2DFloatV2) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   int pad_dims[] = {2, 4, 2};
@@ -268,7 +264,7 @@ TF_LITE_MICRO_TEST(Test2DFloatV2) {
                                   output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt8) {
+TEST(PadTest, Test2DInt8) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -290,7 +286,7 @@ TF_LITE_MICRO_TEST(Test2DInt8) {
       output_zero_point, output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt16) {
+TEST(PadTest, Test2DInt16) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -312,7 +308,7 @@ TF_LITE_MICRO_TEST(Test2DInt16) {
       output_zero_point, output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt32) {
+TEST(PadTest, Test2DInt32) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -334,7 +330,7 @@ TF_LITE_MICRO_TEST(Test2DInt32) {
       output_zero_point, output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt8V2) {
+TEST(PadTest, Test2DInt8V2) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -360,7 +356,7 @@ TF_LITE_MICRO_TEST(Test2DInt8V2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt16V2) {
+TEST(PadTest, Test2DInt16V2) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -386,7 +382,7 @@ TF_LITE_MICRO_TEST(Test2DInt16V2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt32V2) {
+TEST(PadTest, Test2DInt32V2) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -412,7 +408,7 @@ TF_LITE_MICRO_TEST(Test2DInt32V2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt8V2ExpectFailurePadValueQuantizationMismatch) {
+TEST(PadTest, Test2DInt8V2ExpectFailurePadValueQuantizationMismatch2) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -440,35 +436,7 @@ TF_LITE_MICRO_TEST(Test2DInt8V2ExpectFailurePadValueQuantizationMismatch) {
       output_data, kTfLiteError);
 }
 
-TF_LITE_MICRO_TEST(Test2DInt8V2ExpectFailurePadValueQuantizationMismatch) {
-  int input_dims[] = {4, 1, 2, 2, 1};
-  const float input_values[] = {1, 2, 3, 4};
-  const float input_scale = 1.0f;
-  const int input_zero_point = 0;
-  int pad_dims[] = {2, 4, 2};
-  const int32_t pad_values[] = {1, 1, 0, 0, 1, 1, 0, 0};
-  const float pad_value = 42;
-  // Causes failure since this is in a different quantization space than input.
-  const float pad_value_scale = .5;
-  const float pad_value_zero_point = 0;
-  int output_dims[] = {4, 3, 2, 4, 1};
-  const float golden[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  const float output_scale = 1.0f;
-  const int output_zero_point = 0;
-  int8_t output_data[24] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  int8_t input_quantized[4];
-  int8_t golden_quantized[24];
-
-  tflite::testing::TestPadV2Quantized(
-      input_dims, input_values, input_quantized, input_scale, input_zero_point,
-      pad_dims, pad_values, pad_value, pad_value_scale, pad_value_zero_point,
-      output_dims, golden, golden_quantized, output_scale, output_zero_point,
-      output_data, kTfLiteError);
-}
-
-TF_LITE_MICRO_TEST(Test2DInt8ExpectFailureQuantizationRangeExcludesZero) {
+TEST(PadTest, Test2DInt8ExpectFailureQuantizationRangeExcludesZero) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_values[] = {1, 2, 3, 4};
   const float input_scale = 1.0f;
@@ -491,4 +459,4 @@ TF_LITE_MICRO_TEST(Test2DInt8ExpectFailureQuantizationRangeExcludesZero) {
       output_zero_point, output_data, kTfLiteError);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

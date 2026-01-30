@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/debug_log.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -37,11 +37,11 @@ void ValidatePackGoldens(TfLiteTensor* tensors, int tensors_size,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(&params));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], tolerance);
+    EXPECT_NEAR(golden[i], output[i], tolerance);
   }
 }
 
@@ -144,9 +144,7 @@ void TestPackTwoInputs(int* input1_dims_data, const T* input1_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(PackFloatThreeInputs) {
+TEST(PackTest, PackFloatThreeInputs) {
   int input_shape[] = {1, 2};
   int output_shape[] = {2, 3, 2};
   const float input1_values[] = {1, 4};
@@ -162,7 +160,7 @@ TF_LITE_MICRO_TEST(PackFloatThreeInputs) {
       input3_values, axis, output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackFloatThreeInputsDifferentAxis) {
+TEST(PackTest, PackFloatThreeInputsDifferentAxis) {
   int input_shape[] = {1, 2};
   int output_shape[] = {2, 2, 3};
   const float input1_values[] = {1, 4};
@@ -178,7 +176,7 @@ TF_LITE_MICRO_TEST(PackFloatThreeInputsDifferentAxis) {
       input3_values, axis, output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackFloatThreeInputsNegativeAxis) {
+TEST(PackTest, PackFloatThreeInputsNegativeAxis) {
   int input_shape[] = {1, 2};
   int output_shape[] = {2, 2, 3};
   const float input1_values[] = {1, 4};
@@ -194,7 +192,7 @@ TF_LITE_MICRO_TEST(PackFloatThreeInputsNegativeAxis) {
       input3_values, axis, output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackFloatMultiDimensions) {
+TEST(PackTest, PackFloatMultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const float input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -209,7 +207,7 @@ TF_LITE_MICRO_TEST(PackFloatMultiDimensions) {
                                           output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackInt8MultiDimensions) {
+TEST(PackTest, PackInt8MultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const int8_t input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -224,7 +222,7 @@ TF_LITE_MICRO_TEST(PackInt8MultiDimensions) {
                                              output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackInt16MultiDimensions) {
+TEST(PackTest, PackInt16MultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const int16_t input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -239,7 +237,7 @@ TF_LITE_MICRO_TEST(PackInt16MultiDimensions) {
       output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(PackInt32MultiDimensions) {
+TEST(PackTest, PackInt32MultiDimensions) {
   int input_shape[] = {2, 2, 3};
   int output_shape[] = {3, 2, 2, 3};
   const int32_t input1_values[] = {1, 2, 3, 4, 5, 6};
@@ -254,4 +252,4 @@ TF_LITE_MICRO_TEST(PackInt32MultiDimensions) {
       output_shape, golden, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

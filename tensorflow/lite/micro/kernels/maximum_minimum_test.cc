@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -51,11 +51,11 @@ void TestMaxMinFloat(const TFLMRegistration& registration,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -93,11 +93,11 @@ void TestMaxMinQuantized(const TFLMRegistration& registration,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -135,11 +135,11 @@ void TestMaxMinQuantizedInt16(
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 void TestMaxMinQuantizedInt32(const TFLMRegistration& registration,
@@ -170,11 +170,11 @@ void TestMaxMinQuantizedInt32(const TFLMRegistration& registration,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -182,9 +182,7 @@ void TestMaxMinQuantizedInt32(const TFLMRegistration& registration,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(FloatTest) {
+TEST(MaximumMinimumTest, FloatTest) {
   int dims[] = {3, 3, 1, 2};
   const float data1[] = {1.0, 0.0, -1.0, 11.0, -2.0, -1.44};
   const float data2[] = {-1.0, 0.0, 1.0, 12.0, -3.0, -1.43};
@@ -199,7 +197,7 @@ TF_LITE_MICRO_TEST(FloatTest) {
                                    dims, data2, golden_min, dims, output_data);
 }
 
-TF_LITE_MICRO_TEST(Int8Test) {
+TEST(MaximumMinimumTest, Int8Test) {
   int dims[] = {3, 3, 1, 2};
   const int8_t data1[] = {1, 0, 2, 11, 2, 23};
   const int8_t data2[] = {0, 0, 1, 12, 127, 1};
@@ -224,7 +222,7 @@ TF_LITE_MICRO_TEST(Int8Test) {
       output_zero_point, dims, output_data);
 }
 
-TF_LITE_MICRO_TEST(Int16Test) {
+TEST(MaximumMinimumTest, Int16Test) {
   int dims[] = {3, 3, 1, 2};
   const int16_t data1[] = {-30, 0, 2124, -123, -32768, 26236};
   const int16_t data2[] = {24, 0, 1, -4256, 32767, -577};
@@ -249,7 +247,7 @@ TF_LITE_MICRO_TEST(Int16Test) {
       output_zero_point, dims, output_data);
 }
 
-TF_LITE_MICRO_TEST(FloatWithBroadcastTest) {
+TEST(MaximumMinimumTest, FloatWithBroadcastTest) {
   int dims[] = {3, 3, 1, 2};
   int dims_scalar[] = {1, 2};
   const float data1[] = {1.0, 0.0, -1.0, -2.0, -1.44, 11.0};
@@ -267,7 +265,7 @@ TF_LITE_MICRO_TEST(FloatWithBroadcastTest) {
                                    output_data);
 }
 
-TF_LITE_MICRO_TEST(Int32WithBroadcastTest) {
+TEST(MaximumMinimumTest, Int32WithBroadcastTest) {
   int dims[] = {3, 3, 1, 2};
   int dims_scalar[] = {1, 1};
   const int32_t data1[] = {1, 0, -1, -2, 3, 11};
@@ -285,4 +283,4 @@ TF_LITE_MICRO_TEST(Int32WithBroadcastTest) {
                                             golden_min, dims, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
