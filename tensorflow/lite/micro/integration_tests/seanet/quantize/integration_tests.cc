@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 constexpr size_t kTensorArenaSize = 1024 * 100;
 uint8_t tensor_arena[kTensorArenaSize];
@@ -50,10 +50,10 @@ void RunModel(const uint8_t* model, const inputT* input0,
                                kTensorArenaSize, nullptr, &profiler);
   interpreter.AllocateTensors();
   TfLiteTensor* input_tensor0 = interpreter.input(0);
-  TF_LITE_MICRO_EXPECT_EQ(input_tensor0->bytes, input0_size * sizeof(inputT));
+  EXPECT_EQ(input_tensor0->bytes, input0_size * sizeof(inputT));
   memcpy(interpreter.input(0)->data.raw, input0, input_tensor0->bytes);
   if (kTfLiteOk != interpreter.Invoke()) {
-    TF_LITE_MICRO_EXPECT(false);
+    EXPECT_TRUE(false);
     return;
   }
   if (print_log == true) {
@@ -62,12 +62,12 @@ void RunModel(const uint8_t* model, const inputT* input0,
   MicroPrintf("");
 
   TfLiteTensor* output_tensor = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(outputT));
+  EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(outputT));
   outputT* output = ::tflite::GetTensorData<outputT>(output_tensor);
   for (uint32_t i = 0; i < golden_size; i++) {
     // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
     // off by 1.
-    TF_LITE_MICRO_EXPECT_NEAR(golden[i], output[i], 1);
+    EXPECT_NEAR(golden[i], output[i], 1);
   }
 }
 
@@ -75,18 +75,7 @@ void RunModel(const uint8_t* model, const inputT* input0,
 }  // namespace micro
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-if (argc > 2) {
-  MicroPrintf("wrong number of command line args!\n");
-  MicroPrintf("Correct way to run the test is :\n");
-  MicroPrintf("if you want to print logs -> ./{PATH TO BINARY} print_logs\n");
-  MicroPrintf("if don't want to print logs -> ./{PATH TO BINARY}\n");
-} else if ((argc == 2) && (strcmp(argv[1], "print_logs") == 0)) {
-  print_log = true;
-}
-
-TF_LITE_MICRO_TEST(quantize0_test) {
+TEST(IntegrationTests, quantize0_test) {
   tflite::micro::RunModel(
       g_quantize0_model_data, g_quantize0_input0_int32_test_data,
       g_quantize0_input0_int32_test_data_size,
@@ -94,7 +83,7 @@ TF_LITE_MICRO_TEST(quantize0_test) {
       g_quantize0_golden_int16_test_data_size, "quantize0 test");
 }
 
-TF_LITE_MICRO_TEST(quantize1_test) {
+TEST(IntegrationTests, quantize1_test) {
   tflite::micro::RunModel(
       g_quantize1_model_data, g_quantize1_input0_int16_test_data,
       g_quantize1_input0_int16_test_data_size,
@@ -102,4 +91,15 @@ TF_LITE_MICRO_TEST(quantize1_test) {
       g_quantize1_golden_int32_test_data_size, "quantize1 test");
 }
 
-TF_LITE_MICRO_TESTS_END
+int main(int argc, char** argv) {
+  tflite::InitializeTest();
+  if (argc > 2) {
+    MicroPrintf("wrong number of command line args!\n");
+    MicroPrintf("Correct way to run the test is :\n");
+    MicroPrintf("if you want to print logs -> ./{PATH TO BINARY} print_logs\n");
+    MicroPrintf("if don't want to print logs -> ./{PATH TO BINARY}\n");
+  } else if ((argc == 2) && (strcmp(argv[1], "print_logs") == 0)) {
+    print_log = true;
+  }
+  return RUN_ALL_TESTS();
+}
