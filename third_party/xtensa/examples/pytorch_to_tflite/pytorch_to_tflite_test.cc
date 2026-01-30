@@ -38,17 +38,15 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_op_resolver.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 #if defined(HIFI5)
 
-TF_LITE_MICRO_TEST(TestInvoke) {
+TEST(PytorchToTfliteTest, TestInvoke) {
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   const tflite::Model* model =
@@ -78,13 +76,13 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   TfLiteTensor* input = interpreter.input(0);
 
   // Make sure the input has the properties we expect.
-  TF_LITE_MICRO_EXPECT(input != nullptr);
-  TF_LITE_MICRO_EXPECT_EQ(4, input->dims->size);
-  TF_LITE_MICRO_EXPECT_EQ(1, input->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(3, input->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(224, input->dims->data[2]);
-  TF_LITE_MICRO_EXPECT_EQ(224, input->dims->data[3]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, input->type);
+  EXPECT_NE(input, nullptr);
+  EXPECT_EQ(4, input->dims->size);
+  EXPECT_EQ(1, input->dims->data[0]);
+  EXPECT_EQ(3, input->dims->data[1]);
+  EXPECT_EQ(224, input->dims->data[2]);
+  EXPECT_EQ(224, input->dims->data[3]);
+  EXPECT_EQ(kTfLiteInt8, input->type);
   // Make sure the input has the properties we expect.
   MicroPrintf("input->dims->size:%d", input->dims->size);
   MicroPrintf("input->dims->data[0]:%d", input->dims->data[0]);
@@ -104,15 +102,15 @@ TF_LITE_MICRO_TEST(TestInvoke) {
   if (invoke_status != kTfLiteOk) {
     MicroPrintf("Invoke failed\n");
   }
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, invoke_status);
+  EXPECT_EQ(kTfLiteOk, invoke_status);
 
   // Get the output from the model, and make sure it's the expected size and
   // type.
   TfLiteTensor* output = interpreter.output(0);
-  TF_LITE_MICRO_EXPECT_EQ(2, output->dims->size);
-  TF_LITE_MICRO_EXPECT_EQ(1, output->dims->data[0]);
-  TF_LITE_MICRO_EXPECT_EQ(1000, output->dims->data[1]);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteInt8, output->type);
+  EXPECT_EQ(2, output->dims->size);
+  EXPECT_EQ(1, output->dims->data[0]);
+  EXPECT_EQ(1000, output->dims->data[1]);
+  EXPECT_EQ(kTfLiteInt8, output->type);
   MicroPrintf("output->dims->size:%d", output->dims->size);
   MicroPrintf("output->dims->data[0]:%d", output->dims->data[0]);
   MicroPrintf("output->dims->data[1]:%d", output->dims->data[1]);
@@ -133,4 +131,4 @@ TF_LITE_MICRO_TEST(TestInvoke) {
 }
 #endif  // defined(HIFI5)
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
