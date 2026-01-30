@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -69,7 +69,7 @@ micro::KernelRunner* GetKernelRunnerInstance(
         micro::KernelRunner(registration, tensors, tensors_count, inputs_array,
                             outputs_array, &params);
 
-    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->InitAndPrepare());
+    EXPECT_EQ(kTfLiteOk, runner->InitAndPrepare());
   }
 
   return runner;
@@ -103,20 +103,17 @@ void TestBatchMatMulFloat(const TfLiteBatchMatMulParams& params,
   constexpr int kTensorCount = std::extent<decltype(tensors)>::value;
   micro::KernelRunner* runner =
       GetKernelRunnerInstance(tensors, kTensorCount, params, need_init_prepare);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->Invoke());
+  EXPECT_EQ(kTfLiteOk, runner->Invoke());
 
   // check output data against expected
   for (int i = 0; i < kOutputCount; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i],
-                              kFloatTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kFloatTolerance);
   }
 
   // check output dimensions (relocated) against original dimensions
-  TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
-                          tensors[kOutputTensorIndex].dims->size);
+  EXPECT_EQ(output_dims->size, tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output_dims->data[i],
-                            tensors[kOutputTensorIndex].dims->data[i]);
+    EXPECT_EQ(output_dims->data[i], tensors[kOutputTensorIndex].dims->data[i]);
   }
 }
 
@@ -163,28 +160,24 @@ void TestBatchMatMulQuantized(
   constexpr int kTensorCount = std::extent<decltype(tensors)>::value;
   micro::KernelRunner* runner =
       GetKernelRunnerInstance(tensors, kTensorCount, params, true);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner->Invoke());
+  EXPECT_EQ(kTfLiteOk, runner->Invoke());
 
   // check output data against expected
   for (int i = 0; i < kOutputCount; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i],
-                            quantization_output->quantized_data[i]);
+    EXPECT_EQ(expected_data[i], quantization_output->quantized_data[i]);
   }
   // check dequantized output data against expected
   for (int i = 0; i < kOutputCount; i++) {
     float dequantized_value = (quantization_output->quantized_data[i] -
                                quantization_output->zero_point) *
                               quantization_output->scale;
-    TF_LITE_MICRO_EXPECT_NEAR(output_data[i], dequantized_value,
-                              kFloatTolerance);
+    EXPECT_NEAR(output_data[i], dequantized_value, kFloatTolerance);
   }
 
   // check output dimensions (relocated) against original dimensions
-  TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
-                          tensors[kOutputTensorIndex].dims->size);
+  EXPECT_EQ(output_dims->size, tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output_dims->data[i],
-                            tensors[kOutputTensorIndex].dims->data[i]);
+    EXPECT_EQ(output_dims->data[i], tensors[kOutputTensorIndex].dims->data[i]);
   }
 }
 
@@ -192,9 +185,7 @@ void TestBatchMatMulQuantized(
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Ones) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Ones) {
   constexpr int kLhsInputDims[] = {4, 3, 2, 1, 4};
   constexpr int kRhsInputDims[] = {4, 3, 1, 4, 1};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -224,7 +215,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Ones) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Flatten) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Flatten) {
   constexpr int kLhsInputDims[] = {4, 3, 2, 2, 4};
   constexpr int kRhsInputDims[] = {4, 3, 1, 4, 1};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -255,7 +246,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Flatten) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Simple) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Simple) {
   constexpr int kLhsInputDims[] = {3, 1, 2, 3};
   constexpr int kRhsInputDims[] = {3, 1, 3, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -285,7 +276,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Simple) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleRHSAdjoint) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_SimpleRHSAdjoint) {
   constexpr int kLhsInputDims[] = {3, 1, 2, 3};
   constexpr int kRhsInputDims[] = {3, 1, 4, 3};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -313,7 +304,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleRHSAdjoint) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleLHSAdjoint) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_SimpleLHSAdjoint) {
   constexpr int kLhsInputDims[] = {3, 1, 3, 2};
   constexpr int kRhsInputDims[] = {3, 1, 3, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -340,7 +331,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_SimpleLHSAdjoint) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BatchSizeTwo) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_BatchSizeTwo) {
   constexpr int kLhsInputDims[] = {3, 2, 2, 3};
   constexpr int kRhsInputDims[] = {3, 2, 3, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -370,7 +361,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BatchSizeTwo) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Broadcast) {
   constexpr int kLhsInputDims[] = {3, 2, 2, 3};
   constexpr int kRhsInputDims[] = {2, 3, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -400,7 +391,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastLHSAdjoint) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_BroadcastLHSAdjoint) {
   constexpr int kLhsInputDims[] = {3, 2, 3, 2};
   constexpr int kRhsInputDims[] = {2, 3, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -429,7 +420,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastLHSAdjoint) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Broadcast2) {
   constexpr int kLhsInputDims[] = {4, 2, 1, 3, 2};
   constexpr int kRhsInputDims[] = {3, 3, 2, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -465,7 +456,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2LHSAdjoint) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Broadcast2LHSAdjoint) {
   constexpr int kLhsInputDims[] = {4, 2, 1, 2, 3};
   constexpr int kRhsInputDims[] = {3, 3, 2, 4};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -499,7 +490,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2LHSAdjoint) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2RHSAdjoint) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Broadcast2RHSAdjoint) {
   constexpr int kLhsInputDims[] = {4, 2, 1, 3, 2};
   constexpr int kRhsInputDims[] = {3, 3, 4, 2};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -535,7 +526,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2RHSAdjoint) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2BothAdjoint) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Broadcast2BothAdjoint) {
   constexpr int kLhsInputDims[] = {4, 2, 1, 2, 3};
   constexpr int kRhsInputDims[] = {3, 3, 4, 2};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -569,7 +560,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_Broadcast2BothAdjoint) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastFromRHS) {
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_BroadcastFromRHS) {
   constexpr int kLhsInputDims[] = {2, 4, 5};
   constexpr int kRhsInputDims[] = {4, 3, 1, 5, 2};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -602,7 +593,7 @@ TF_LITE_MICRO_TEST(BatchMatMulOpTestFloat32Test_BroadcastFromRHS) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(ConstRHSBatchMatMulOpModelRHSNotAdjoint) {
+TEST(BatchMatmulTest, ConstRHSBatchMatMulOpModelRHSNotAdjoint) {
   constexpr int kLhsInputDims[] = {3, 1, 6, 2};
   constexpr int kRhsInputDims[] = {2, 2, 3};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -633,7 +624,7 @@ TF_LITE_MICRO_TEST(ConstRHSBatchMatMulOpModelRHSNotAdjoint) {
                                         output_data, true, false);
 }
 
-TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt8) {
+TEST(BatchMatmulTest, QuantizedBatchMatMulOpTestSimpleTestQuantizedInt8) {
   constexpr int kLhsInputDims[] = {2, 2, 10};
   constexpr int kRhsInputDims[] = {2, 10, 3};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -687,7 +678,7 @@ TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt8) {
       kOutputDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt16) {
+TEST(BatchMatmulTest, QuantizedBatchMatMulOpTestSimpleTestQuantizedInt16) {
   constexpr int kLhsInputDims[] = {2, 2, 10};
   constexpr int kRhsInputDims[] = {2, 10, 3};
   const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
@@ -733,4 +724,4 @@ TF_LITE_MICRO_TEST(QuantizedBatchMatMulOpTestSimpleTestQuantizedInt16) {
       kOutputDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -37,11 +37,11 @@ void ValidateArgMinMaxGoldens(TfLiteTensor* tensors, int tensors_size,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_size; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden[i], output[i]);
+    EXPECT_EQ(golden[i], output[i]);
   }
 }
 
@@ -97,9 +97,7 @@ void TestArgMinMaxQuantized(int* input_dims_data, const float* input_values,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(GetMaxArgFloat) {
+TEST(ArgMinMaxTest, GetMaxArgFloat) {
   int32_t output_data[1];
   int input_dims[] = {4, 1, 1, 1, 4};
   const float input_values[] = {0.1, 0.9, 0.7, 0.3};
@@ -113,7 +111,7 @@ TF_LITE_MICRO_TEST(GetMaxArgFloat) {
                                       goldens, false);
 }
 
-TF_LITE_MICRO_TEST(GetMinArgFloat) {
+TEST(ArgMinMaxTest, GetMinArgFloat) {
   int32_t output_data[1];
   int input_dims[] = {4, 1, 1, 1, 4};
   const float input_values[] = {0.1, 0.9, 0.7, 0.3};
@@ -127,7 +125,7 @@ TF_LITE_MICRO_TEST(GetMinArgFloat) {
                                       goldens, true);
 }
 
-TF_LITE_MICRO_TEST(GetMaxArgInt8) {
+TEST(ArgMinMaxTest, GetMaxArgInt8) {
   int32_t output_data[1];
   const int input_size = 4;
   int input_dims[] = {4, 1, 1, 1, input_size};
@@ -146,7 +144,7 @@ TF_LITE_MICRO_TEST(GetMaxArgInt8) {
       axis_dims, axis_values, output_dims, output_data, goldens, false);
 }
 
-TF_LITE_MICRO_TEST(GetMinArgInt8) {
+TEST(ArgMinMaxTest, GetMinArgInt8) {
   int32_t output_data[1];
   const int input_size = 4;
   int input_dims[] = {4, 1, 1, 1, input_size};
@@ -165,7 +163,7 @@ TF_LITE_MICRO_TEST(GetMinArgInt8) {
       axis_dims, axis_values, output_dims, output_data, goldens, true);
 }
 
-TF_LITE_MICRO_TEST(GetMaxArgMulDimensions) {
+TEST(ArgMinMaxTest, GetMaxArgMulDimensions) {
   int32_t output_data[2];
   const int input_size = 8;
   int input_dims[] = {4, 1, 1, 2, 4};
@@ -184,7 +182,7 @@ TF_LITE_MICRO_TEST(GetMaxArgMulDimensions) {
       axis_dims, axis_values, output_dims, output_data, goldens, false);
 }
 
-TF_LITE_MICRO_TEST(GetMinArgMulDimensions) {
+TEST(ArgMinMaxTest, GetMinArgMulDimensions) {
   int32_t output_data[2];
   const int input_size = 8;
   int input_dims[] = {4, 1, 1, 2, 4};
@@ -203,7 +201,7 @@ TF_LITE_MICRO_TEST(GetMinArgMulDimensions) {
       axis_dims, axis_values, output_dims, output_data, goldens, true);
 }
 
-TF_LITE_MICRO_TEST(GetMaxArgNegativeAxis) {
+TEST(ArgMinMaxTest, GetMaxArgNegativeAxis) {
   const int input_size = 8;
   const int output_size = 4;
   int input_dims[] = {4, 1, 1, 2, 4};
@@ -223,4 +221,4 @@ TF_LITE_MICRO_TEST(GetMaxArgNegativeAxis) {
       axis_dims, axis_values, output_dims, output_data, goldens, false);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
