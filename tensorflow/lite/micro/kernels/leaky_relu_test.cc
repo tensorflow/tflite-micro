@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -54,8 +54,8 @@ void ExecuteLeakyReluTest(const float alpha, const int tensors_count,
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&builtin_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -74,7 +74,7 @@ void TestLeakyRelu(const TestLeakyReluParams<T>& params, int* input_dims_data,
   ExecuteLeakyReluTest(params.alpha, tensors_count, tensors);
 
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_data[i], output_data[i]);
+    EXPECT_EQ(expected_data[i], output_data[i]);
   }
 }
 
@@ -100,7 +100,7 @@ void TestLeakyReluQuantized(const TestLeakyReluParams<T>& params,
              output_data);
   const float kTolerance = params.tolerance;
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -169,9 +169,7 @@ void QuantizedActivationsOpTestLeakyRelu() {
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt8_1) {
+TEST(LeakyReluTest, QuantizedActivationsOpTestLeakyReluInt8_1) {
   int kDims[] = {2, 2, 3};
   constexpr float kInput[] = {0.0f, 1.0f, 3.0f, 1.0f, -1.0f, -2.0f};
   constexpr float kExpect[] = {0.0f, 1.0f, 3.0f, 1.0f, -0.5f, -1.0f};
@@ -194,11 +192,11 @@ TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt8_1) {
                                           output_data);
 }
 
-TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt8_2) {
+TEST(LeakyReluTest, QuantizedActivationsOpTestLeakyReluInt8_2) {
   tflite::testing::QuantizedActivationsOpTestLeakyRelu<int8_t>();
 }
 
-TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt16_1) {
+TEST(LeakyReluTest, QuantizedActivationsOpTestLeakyReluInt16_1) {
   int kDims[] = {2, 2, 3};
   constexpr float kInput[] = {0.0f, 1.0f, 3.0f, 1.0f, -1.0f, -2.0f};
   constexpr float kExpect[] = {0.0f, 1.0f, 3.0f, 1.0f, -0.5f, -1.0f};
@@ -221,11 +219,11 @@ TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt16_1) {
                                           output_data);
 }
 
-TF_LITE_MICRO_TEST(QuantizedActivationsOpTestLeakyReluInt16_2) {
+TEST(LeakyReluTest, QuantizedActivationsOpTestLeakyReluInt16_2) {
   tflite::testing::QuantizedActivationsOpTestLeakyRelu<int16_t>();
 }
 
-TF_LITE_MICRO_TEST(FloatActivationsOpTestLeakyRelu) {
+TEST(LeakyReluTest, FloatActivationsOpTestLeakyRelu) {
   int kDims[] = {2, 2, 3};
   constexpr float kInput[] = {0.0f, 1.0f, 3.0f, 1.0f, -1.0f, -2.0f};
   constexpr float kExpect[] = {0.0f, 1.0f, 3.0f, 1.0f, -0.5f, -1.0f};
@@ -238,4 +236,4 @@ TF_LITE_MICRO_TEST(FloatActivationsOpTestLeakyRelu) {
                                  output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
