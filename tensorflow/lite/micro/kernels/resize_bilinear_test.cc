@@ -16,7 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -45,12 +45,11 @@ TfLiteStatus ValidateGoldens(TfLiteTensor* tensors, int tensors_size,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, params);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              tolerance);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
   }
 
   return kTfLiteOk;
@@ -81,19 +80,16 @@ void TestResizeBilinear(int* input_dims_data, const T* input_data,
       TestCreateTensor(output_data, output_dims),
   };
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      ValidateGoldens(tensors, tensors_size, expected_output_data, output_data,
-                      output_dims_count, params, tolerance));
+  EXPECT_EQ(kTfLiteOk,
+            ValidateGoldens(tensors, tensors_size, expected_output_data,
+                            output_data, output_dims_count, params, tolerance));
 }
 
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(HorizontalResize) {
+TEST(ResizeBilinearTest, HorizontalResize) {
   int input_dims[] = {4, 1, 1, 2, 1};
   const float input_data[] = {3, 6};
   const int32_t expected_size_data[] = {1, 3};
@@ -111,7 +107,7 @@ TF_LITE_MICRO_TEST(HorizontalResize) {
                                       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(HorizontalResizeInt8) {
+TEST(ResizeBilinearTest, HorizontalResizeInt8) {
   int input_dims[] = {4, 1, 1, 2, 1};
   const int8_t input_data[] = {3, 6};
   const int32_t expected_size_data[] = {1, 3};
@@ -129,7 +125,7 @@ TF_LITE_MICRO_TEST(HorizontalResizeInt8) {
       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(VerticalResize) {
+TEST(ResizeBilinearTest, VerticalResize) {
   int input_dims[] = {4, 1, 2, 1, 1};
   const float input_data[] = {3, 9};
   const int32_t expected_size_data[] = {3, 1};
@@ -147,7 +143,7 @@ TF_LITE_MICRO_TEST(VerticalResize) {
                                       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(VerticalResizeInt8) {
+TEST(ResizeBilinearTest, VerticalResizeInt8) {
   int input_dims[] = {4, 1, 2, 1, 1};
   const int8_t input_data[] = {3, 9};
   const int32_t expected_size_data[] = {3, 1};
@@ -165,7 +161,7 @@ TF_LITE_MICRO_TEST(VerticalResizeInt8) {
       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(TwoDimensionalResize) {
+TEST(ResizeBilinearTest, TwoDimensionalResize) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const float input_data[] = {
       3,
@@ -193,7 +189,7 @@ TF_LITE_MICRO_TEST(TwoDimensionalResize) {
                                       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(TwoDimensionalResizeInt8) {
+TEST(ResizeBilinearTest, TwoDimensionalResizeInt8) {
   int input_dims[] = {4, 1, 2, 2, 1};
   const int8_t input_data[] = {
       3,
@@ -220,7 +216,7 @@ TF_LITE_MICRO_TEST(TwoDimensionalResizeInt8) {
       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(TwoDimensionalResizeWithTwoBatches) {
+TEST(ResizeBilinearTest, TwoDimensionalResizeWithTwoBatches) {
   int input_dims[] = {4, 2, 2, 2, 1};
   const float input_data[] = {
       3,  6,   //
@@ -250,7 +246,7 @@ TF_LITE_MICRO_TEST(TwoDimensionalResizeWithTwoBatches) {
                                       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(TwoDimensionalResizeWithTwoBatchesInt8) {
+TEST(ResizeBilinearTest, TwoDimensionalResizeWithTwoBatchesInt8) {
   int input_dims[] = {4, 2, 2, 2, 1};
   const int8_t input_data[] = {
       3,  6,   //
@@ -280,7 +276,7 @@ TF_LITE_MICRO_TEST(TwoDimensionalResizeWithTwoBatchesInt8) {
       output_dims, output_data, &params, /*tolerance=*/1);
 }
 
-TF_LITE_MICRO_TEST(ThreeDimensionalResize) {
+TEST(ResizeBilinearTest, ThreeDimensionalResize) {
   int input_dims[] = {4, 1, 2, 2, 2};
   const float input_data[] = {
       3, 4,  6,  10,  //
@@ -305,7 +301,7 @@ TF_LITE_MICRO_TEST(ThreeDimensionalResize) {
                                       output_dims, output_data, &params);
 }
 
-TF_LITE_MICRO_TEST(ThreeDimensionalResizeInt8) {
+TEST(ResizeBilinearTest, ThreeDimensionalResizeInt8) {
   int input_dims[] = {4, 1, 2, 2, 2};
   const int8_t input_data[] = {
       3,  4,  6,  10,  //
@@ -330,4 +326,4 @@ TF_LITE_MICRO_TEST(ThreeDimensionalResizeInt8) {
       output_dims, output_data, &params, /*tolerance=*/1);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

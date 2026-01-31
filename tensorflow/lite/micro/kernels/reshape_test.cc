@@ -23,7 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -45,22 +45,21 @@ void ValidateReshapeGoldens(TfLiteTensor* tensors, int tensors_size,
                              /*builtin_data=*/nullptr);
 
   if (expect_failure) {
-    TF_LITE_MICRO_EXPECT_NE(kTfLiteOk, runner.InitAndPrepare());
+    EXPECT_NE(kTfLiteOk, runner.InitAndPrepare());
     return;
   }
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   TfLiteTensor* output_tensor = &tensors[outputs_array->data[0]];
   const T* output_data = GetTensorData<T>(output_tensor);
   for (size_t i = 0; i < expected_output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output[i], output_data[i], 1e-5f);
   }
-  TF_LITE_MICRO_EXPECT_EQ(expected_dims_len,
-                          static_cast<size_t>(output_tensor->dims->size));
+  EXPECT_EQ(expected_dims_len, static_cast<size_t>(output_tensor->dims->size));
   for (size_t i = 0; i < expected_dims_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_dims[i], output_tensor->dims->data[i]);
+    EXPECT_EQ(expected_dims[i], output_tensor->dims->data[i]);
   }
 }
 
@@ -156,9 +155,7 @@ void TestReshapeQuantized(int* input_dims_data, const T* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(ReshapeWithMismatchedDimensionsShouldFail) {
+TEST(ReshapeTest, ReshapeWithMismatchedDimensionsShouldFail) {
   float output_data[32];
   int input_dims[] = {4, 1, 2, 4, 1};
   const float input_data[] = {3};
@@ -174,7 +171,7 @@ TF_LITE_MICRO_TEST(ReshapeWithMismatchedDimensionsShouldFail) {
       golden_output, golden_output_len, golden_dims, golden_dims_len, true);
 }
 
-TF_LITE_MICRO_TEST(ReshapeWithManyDimensionsShouldSucceed) {
+TEST(ReshapeTest, ReshapeWithManyDimensionsShouldSucceed) {
   float output_data[32];
   int input_dims[] = {9, 1, 1, 2, 1, 1, 1, 1, 1, 1};
   const float input[] = {3, 2};
@@ -190,7 +187,7 @@ TF_LITE_MICRO_TEST(ReshapeWithManyDimensionsShouldSucceed) {
       golden_output, golden_output_len, golden_dims, golden_dims_len, false);
 }
 
-TF_LITE_MICRO_TEST(ReshapeWithTooManySpecialDimensionsShouldFail) {
+TEST(ReshapeTest, ReshapeWithTooManySpecialDimensionsShouldFail) {
   float output_data[32];
   int input_dims[] = {4, 1, 2, 4, 11};
   const float input[] = {3};
@@ -208,7 +205,7 @@ TF_LITE_MICRO_TEST(ReshapeWithTooManySpecialDimensionsShouldFail) {
 
 // Create the model with a 2x2 shape. Processing still works because the new
 // shape ends up being hardcoded as a flat vector.
-TF_LITE_MICRO_TEST(ReshapeWithInvalidShapeShouldFail) {
+TEST(ReshapeTest, ReshapeWithInvalidShapeShouldFail) {
   int input_dims_data[] = {3, 1, 2, 2};
   TfLiteIntArray* input_dims =
       tflite::testing::IntArrayFromInts(input_dims_data);
@@ -228,7 +225,7 @@ TF_LITE_MICRO_TEST(ReshapeWithInvalidShapeShouldFail) {
       expected_dims, expected_dims_len, true);
 }
 
-TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
+TEST(ReshapeTest, ReshapeWithRegularShapesShouldSucceed) {
   float output_data_float[32];
   int8_t output_data_int8[32];
   uint8_t output_data_uint8[32];
@@ -267,7 +264,7 @@ TF_LITE_MICRO_TEST(ReshapeWithRegularShapesShouldSucceed) {
 }
 
 // Stretch is not supported with TF Micro
-TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
+TEST(ReshapeTest, ReshapeWithStretchDimensionShouldSucceed) {
   float output_data_float[32];
   int8_t output_data_int8[32];
   uint8_t output_data_uint8[32];
@@ -306,7 +303,7 @@ TF_LITE_MICRO_TEST(ReshapeWithStretchDimensionShouldSucceed) {
 }
 
 // Empty shape indicates scalar output.
-TF_LITE_MICRO_TEST(ReshapeWithScalarOutputShouldSucceed) {
+TEST(ReshapeTest, ReshapeWithScalarOutputShouldSucceed) {
   float output_data_float[4];
   int8_t output_data_int8[4];
   uint8_t output_data_uint8[4];
@@ -339,7 +336,7 @@ TF_LITE_MICRO_TEST(ReshapeWithScalarOutputShouldSucceed) {
 
 // Some old models specify '[0]' as the new shape, indicating that both input
 // and output are scalars.
-TF_LITE_MICRO_TEST(ReshapeWithLegacyScalarOutputShouldSucceed) {
+TEST(ReshapeTest, ReshapeWithLegacyScalarOutputShouldSucceed) {
   using tflite::testing::CreateTensor;
   using tflite::testing::IntArrayFromInts;
 
@@ -372,4 +369,4 @@ TF_LITE_MICRO_TEST(ReshapeWithLegacyScalarOutputShouldSucceed) {
       &input_tensor, &output_tensor, expected_output_no_shape,
       expected_output_no_shape_len, expected_dims, expected_dims_len, false);
 }
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -84,17 +84,16 @@ TfLiteStatus ValidateReduceGoldens(TfLiteTensor* tensors, int tensors_size,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, params);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   if (std::is_same<T, bool>::value) {
     for (int i = 0; i < output_length; ++i) {
-      TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+      EXPECT_EQ(expected_output_data[i], output_data[i]);
     }
   } else {
     for (int i = 0; i < output_length; ++i) {
-      TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                                tolerance);
+      EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
     }
   }
   return kTfLiteOk;
@@ -122,10 +121,10 @@ void TestReduceOp(int* input_dims_data, const T* input_data,
       CreateTensor(output_data, output_dims),
   };
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, ValidateReduceGoldens(
-                     tensors, tensors_size, expected_output_data, output_data,
-                     output_dims_count, registration, params, tolerance));
+  EXPECT_EQ(kTfLiteOk,
+            ValidateReduceGoldens(tensors, tensors_size, expected_output_data,
+                                  output_data, output_dims_count, registration,
+                                  params, tolerance));
 }
 
 template <typename T>
@@ -161,20 +160,17 @@ void TestReduceOpQuantized(int* input_dims_data, const float* input_data,
   tflite::Quantize(expected_output_data, expected_output_data_quant,
                    output_dims_count, output_scale, output_zero_point);
 
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk,
-      ValidateReduceGoldens(tensors, tensors_size, expected_output_data_quant,
-                            output_data_quant, output_dims_count, registration,
-                            params, tolerance));
+  EXPECT_EQ(kTfLiteOk, ValidateReduceGoldens(
+                           tensors, tensors_size, expected_output_data_quant,
+                           output_data_quant, output_dims_count, registration,
+                           params, tolerance));
 }
 
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(MeanFloat2DKeepDims) {
+TEST(ReduceTest, MeanFloat2DKeepDims) {
   float output_data[tflite::testing::kOutputElements2D];
 
   TfLiteReducerParams params = {true};
@@ -186,7 +182,7 @@ TF_LITE_MICRO_TEST(MeanFloat2DKeepDims) {
       tflite::testing::kGoldenData2D, tflite::Register_MEAN(), &params);
 }
 
-TF_LITE_MICRO_TEST(MeanInt82DKeepDims) {
+TEST(ReduceTest, MeanInt82DKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements2D];
   int8_t output_data_quant[tflite::testing::kOutputElements2D];
   int8_t input_data_quant[tflite::testing::kInputElements2D];
@@ -209,7 +205,7 @@ TF_LITE_MICRO_TEST(MeanInt82DKeepDims) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanInt162DKeepDims) {
+TEST(ReduceTest, MeanInt162DKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements2D];
   int16_t output_data_quant[tflite::testing::kOutputElements2D];
   int16_t input_data_quant[tflite::testing::kInputElements2D];
@@ -232,7 +228,7 @@ TF_LITE_MICRO_TEST(MeanInt162DKeepDims) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanFloat3DKeepDims) {
+TEST(ReduceTest, MeanFloat3DKeepDims) {
   float output_data[tflite::testing::kOutputElements3D];
 
   TfLiteReducerParams params = {true};
@@ -244,7 +240,7 @@ TF_LITE_MICRO_TEST(MeanFloat3DKeepDims) {
       tflite::testing::kGoldenData3D, tflite::Register_MEAN(), &params);
 }
 
-TF_LITE_MICRO_TEST(MeanInt83DKeepDims) {
+TEST(ReduceTest, MeanInt83DKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements3D];
   int8_t output_data_quant[tflite::testing::kOutputElements3D];
   int8_t input_data_quant[tflite::testing::kInputElements3D];
@@ -267,7 +263,7 @@ TF_LITE_MICRO_TEST(MeanInt83DKeepDims) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanInt163DKeepDims) {
+TEST(ReduceTest, MeanInt163DKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements3D];
   int16_t output_data_quant[tflite::testing::kOutputElements3D];
   int16_t input_data_quant[tflite::testing::kInputElements3D];
@@ -290,7 +286,7 @@ TF_LITE_MICRO_TEST(MeanInt163DKeepDims) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanFloat4DKeepDims) {
+TEST(ReduceTest, MeanFloat4DKeepDims) {
   float output_data[tflite::testing::kOutputElements4D];
 
   TfLiteReducerParams params = {
@@ -304,7 +300,7 @@ TF_LITE_MICRO_TEST(MeanFloat4DKeepDims) {
       tflite::testing::kGoldenData4D, tflite::Register_MEAN(), &params);
 }
 
-TF_LITE_MICRO_TEST(MeanInt84DKeepDims) {
+TEST(ReduceTest, MeanInt84DKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int8_t output_data_quant[tflite::testing::kOutputElements4D];
   int8_t input_data_quant[tflite::testing::kInputElements4D];
@@ -327,7 +323,7 @@ TF_LITE_MICRO_TEST(MeanInt84DKeepDims) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanInt164DKeepDims) {
+TEST(ReduceTest, MeanInt164DKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int16_t output_data_quant[tflite::testing::kOutputElements4D];
   int16_t input_data_quant[tflite::testing::kInputElements4D];
@@ -350,7 +346,7 @@ TF_LITE_MICRO_TEST(MeanInt164DKeepDims) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDims) {
+TEST(ReduceTest, MeanFloat4DWithoutKeepDims) {
   int kOutputShape4D[] = {2, 2, 2};
   float output_data[tflite::testing::kOutputElements4D];
   TfLiteReducerParams params = {
@@ -364,7 +360,7 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDims) {
       tflite::Register_MEAN(), &params);
 }
 
-TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDims) {
+TEST(ReduceTest, MeanInt84DWithoutKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int8_t output_data_quant[tflite::testing::kOutputElements4D];
   int8_t input_data_quant[tflite::testing::kInputElements4D];
@@ -387,7 +383,7 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDims) {
       tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDims) {
+TEST(ReduceTest, MeanInt164DWithoutKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int16_t output_data_quant[tflite::testing::kOutputElements4D];
   int16_t input_data_quant[tflite::testing::kInputElements4D];
@@ -410,7 +406,7 @@ TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDims) {
       tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
+TEST(ReduceTest, MeanInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int16_t output_data_quant[tflite::testing::kOutputElements4D];
   int16_t input_data_quant[tflite::testing::kInputElements4D];
@@ -433,7 +429,7 @@ TF_LITE_MICRO_TEST(MeanInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
       tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDimsWithPrecision) {
+TEST(ReduceTest, MeanFloat4DWithoutKeepDimsWithPrecision) {
   int kInputShape4D[] = {4, 2, 2, 3, 1};
   const float kInputData4D[] = {1.0,  24.0, 13.0, 3.0,  9.0,  17.0,
                                 11.0, 36.0, 14.0, 19.0, 17.0, 22.0};
@@ -451,7 +447,7 @@ TF_LITE_MICRO_TEST(MeanFloat4DWithoutKeepDimsWithPrecision) {
       tflite::Register_MEAN(), &params);
 }
 
-TF_LITE_MICRO_TEST(FloatMaxOpTestNotKeepDims) {
+TEST(ReduceTest, FloatMaxOpTestNotKeepDims) {
   int input_shape[] = {3, 4, 3, 2};
   const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
                               9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
@@ -469,7 +465,7 @@ TF_LITE_MICRO_TEST(FloatMaxOpTestNotKeepDims) {
       expected_output_data, tflite::Register_REDUCE_MAX(), &params);
 }
 
-TF_LITE_MICRO_TEST(FloatMaxOpTestKeepDims) {
+TEST(ReduceTest, FloatMaxOpTestKeepDims) {
   int input_shape[] = {3, 4, 3, 2};
   const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
                               9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
@@ -487,7 +483,7 @@ TF_LITE_MICRO_TEST(FloatMaxOpTestKeepDims) {
       expected_output_data, tflite::Register_REDUCE_MAX(), &params);
 }
 
-TF_LITE_MICRO_TEST(Int8MaxOpTestKeepDims) {
+TEST(ReduceTest, Int8MaxOpTestKeepDims) {
   int input_shape[] = {3, 1, 3, 2};
   const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
   int axis_shape[] = {1, 1};
@@ -511,7 +507,7 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestKeepDims) {
       tflite::Register_REDUCE_MAX(), &params);
 }
 
-TF_LITE_MICRO_TEST(Int8MaxOpTestWithoutKeepDims) {
+TEST(ReduceTest, Int8MaxOpTestWithoutKeepDims) {
   int input_shape[] = {3, 1, 3, 2};
   const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
   int axis_shape[] = {1, 1};
@@ -537,7 +533,7 @@ TF_LITE_MICRO_TEST(Int8MaxOpTestWithoutKeepDims) {
       tflite::Register_REDUCE_MAX(), &params);
 }
 
-TF_LITE_MICRO_TEST(FloatMinOpTestNotKeepDims) {
+TEST(ReduceTest, FloatMinOpTestNotKeepDims) {
   int input_shape[] = {3, 4, 3, 2};
   const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
                               9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
@@ -555,7 +551,7 @@ TF_LITE_MICRO_TEST(FloatMinOpTestNotKeepDims) {
       expected_output_data, tflite::Register_REDUCE_MIN(), &params);
 }
 
-TF_LITE_MICRO_TEST(FloatMinOpTestKeepDims) {
+TEST(ReduceTest, FloatMinOpTestKeepDims) {
   int input_shape[] = {3, 4, 3, 2};
   const float input_data[] = {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,
                               9.0,  10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
@@ -573,7 +569,7 @@ TF_LITE_MICRO_TEST(FloatMinOpTestKeepDims) {
       expected_output_data, tflite::Register_REDUCE_MIN(), &params);
 }
 
-TF_LITE_MICRO_TEST(Int8MinOpTestKeepDims) {
+TEST(ReduceTest, Int8MinOpTestKeepDims) {
   int input_shape[] = {3, 1, 3, 2};
   const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
   int axis_shape[] = {1, 1};
@@ -597,7 +593,7 @@ TF_LITE_MICRO_TEST(Int8MinOpTestKeepDims) {
       tflite::Register_REDUCE_MIN(), &params);
 }
 
-TF_LITE_MICRO_TEST(Int8MinOpTestWithoutKeepDims) {
+TEST(ReduceTest, Int8MinOpTestWithoutKeepDims) {
   int input_shape[] = {3, 1, 3, 2};
   const float input_data[] = {0.4, 0.2, 0.3, 0.4, 0.5, 0.6};
   int axis_shape[] = {1, 1};
@@ -623,7 +619,7 @@ TF_LITE_MICRO_TEST(Int8MinOpTestWithoutKeepDims) {
       tflite::Register_REDUCE_MIN(), &params);
 }
 
-TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
+TEST(ReduceTest, MeanInt84DWithoutKeepDimsWithPrecision) {
   int kInputShape4D[] = {4, 2, 2, 3, 1};
   const float kInputData4D[] = {1.0,  24.0, 13.0, 3.0,  9.0,  17.0,
                                 11.0, 36.0, 14.0, 19.0, 17.0, 22.0};
@@ -649,7 +645,7 @@ TF_LITE_MICRO_TEST(MeanInt84DWithoutKeepDimsWithPrecision) {
       output_zero_point, tflite::Register_MEAN(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
+TEST(ReduceTest, SumFloatFlatten2ReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
   int output_shape[] = {1, 4};
   int axis_shape[] = {1, 2};
@@ -667,7 +663,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2ReduceDims) {
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumFloatFlatten2NonReduceDims) {
+TEST(ReduceTest, SumFloatFlatten2NonReduceDims) {
   int input_shape[] = {3, 4, 3, 2};
   int output_shape[] = {1, 12};
   int axis_shape[] = {1, 1};
@@ -686,7 +682,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2NonReduceDims) {
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumFloatFlatten2MiddleDims) {
+TEST(ReduceTest, SumFloatFlatten2MiddleDims) {
   int input_shape[] = {4, 2, 2, 3, 2};
   int output_shape[] = {2, 2, 2};
   int axis_shape[] = {1, 2};
@@ -704,7 +700,7 @@ TF_LITE_MICRO_TEST(SumFloatFlatten2MiddleDims) {
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumFloat2DKeepDims) {
+TEST(ReduceTest, SumFloat2DKeepDims) {
   float output_data[tflite::testing::kOutputElements2D];
 
   TfLiteReducerParams params = {true};
@@ -716,7 +712,7 @@ TF_LITE_MICRO_TEST(SumFloat2DKeepDims) {
       tflite::testing::kGoldenDataSum2D, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumInt82DKeepDims) {
+TEST(ReduceTest, SumInt82DKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements2D];
   int8_t output_data_quant[tflite::testing::kOutputElements2D];
   int8_t input_data_quant[tflite::testing::kInputElements2D];
@@ -739,7 +735,7 @@ TF_LITE_MICRO_TEST(SumInt82DKeepDims) {
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumInt162DKeepDims) {
+TEST(ReduceTest, SumInt162DKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements2D];
   int16_t output_data_quant[tflite::testing::kOutputElements2D];
   int16_t input_data_quant[tflite::testing::kInputElements2D];
@@ -762,7 +758,7 @@ TF_LITE_MICRO_TEST(SumInt162DKeepDims) {
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumFloat3DKeepDims) {
+TEST(ReduceTest, SumFloat3DKeepDims) {
   float output_data[tflite::testing::kOutputElements3D];
 
   TfLiteReducerParams params = {true};
@@ -774,7 +770,7 @@ TF_LITE_MICRO_TEST(SumFloat3DKeepDims) {
       tflite::testing::kGoldenDataSum3D, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumInt83DKeepDims) {
+TEST(ReduceTest, SumInt83DKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements3D];
   int8_t output_data_quant[tflite::testing::kOutputElements3D];
   int8_t input_data_quant[tflite::testing::kInputElements3D];
@@ -797,7 +793,7 @@ TF_LITE_MICRO_TEST(SumInt83DKeepDims) {
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumInt163DKeepDims) {
+TEST(ReduceTest, SumInt163DKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements3D];
   int16_t output_data_quant[tflite::testing::kOutputElements3D];
   int16_t input_data_quant[tflite::testing::kInputElements3D];
@@ -820,7 +816,7 @@ TF_LITE_MICRO_TEST(SumInt163DKeepDims) {
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumFloat4DKeepDims) {
+TEST(ReduceTest, SumFloat4DKeepDims) {
   float output_data[tflite::testing::kOutputElements4D];
 
   TfLiteReducerParams params = {
@@ -834,7 +830,7 @@ TF_LITE_MICRO_TEST(SumFloat4DKeepDims) {
       tflite::testing::kGoldenDataSum4D, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumInt84DKeepDims) {
+TEST(ReduceTest, SumInt84DKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int8_t output_data_quant[tflite::testing::kOutputElements4D];
   int8_t input_data_quant[tflite::testing::kInputElements4D];
@@ -857,7 +853,7 @@ TF_LITE_MICRO_TEST(SumInt84DKeepDims) {
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumInt164DKeepDims) {
+TEST(ReduceTest, SumInt164DKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int16_t output_data_quant[tflite::testing::kOutputElements4D];
   int16_t input_data_quant[tflite::testing::kInputElements4D];
@@ -880,7 +876,7 @@ TF_LITE_MICRO_TEST(SumInt164DKeepDims) {
       output_zero_point, tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumFloat4DWithoutKeepDims) {
+TEST(ReduceTest, SumFloat4DWithoutKeepDims) {
   int kOutputShape4D[] = {2, 2, 2};
   float output_data[tflite::testing::kOutputElements4D];
   TfLiteReducerParams params = {
@@ -894,7 +890,7 @@ TF_LITE_MICRO_TEST(SumFloat4DWithoutKeepDims) {
       tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumInt84DWithoutKeepDims) {
+TEST(ReduceTest, SumInt84DWithoutKeepDims) {
   int8_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int8_t output_data_quant[tflite::testing::kOutputElements4D];
   int8_t input_data_quant[tflite::testing::kInputElements4D];
@@ -917,7 +913,7 @@ TF_LITE_MICRO_TEST(SumInt84DWithoutKeepDims) {
       tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumInt164DWithoutKeepDims) {
+TEST(ReduceTest, SumInt164DWithoutKeepDims) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int16_t output_data_quant[tflite::testing::kOutputElements4D];
   int16_t input_data_quant[tflite::testing::kInputElements4D];
@@ -940,7 +936,7 @@ TF_LITE_MICRO_TEST(SumInt164DWithoutKeepDims) {
       tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
+TEST(ReduceTest, SumInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
   int16_t expected_output_data_quant[tflite::testing::kOutputElements4D];
   int16_t output_data_quant[tflite::testing::kOutputElements4D];
   int16_t input_data_quant[tflite::testing::kInputElements4D];
@@ -963,7 +959,7 @@ TF_LITE_MICRO_TEST(SumInt164DWithoutKeepDimsDifferentScaleAndZeroPoint) {
       tflite::Register_SUM(), &params, 1.0);
 }
 
-TF_LITE_MICRO_TEST(SumFloatSize1) {
+TEST(ReduceTest, SumFloatSize1) {
   int input_shape[] = {1, 1};
   int output_shape[] = {1, 1};
   int axis_shape[] = {1, 1};
@@ -979,7 +975,7 @@ TF_LITE_MICRO_TEST(SumFloatSize1) {
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumFloat2DRedundantDims) {
+TEST(ReduceTest, SumFloat2DRedundantDims) {
   int input_shape[] = {3, 1, 2, 4};
   int output_shape[] = {2, 1, 4};
   int axis_shape[] = {1, 1};
@@ -995,7 +991,7 @@ TF_LITE_MICRO_TEST(SumFloat2DRedundantDims) {
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(SumFloatScalar) {
+TEST(ReduceTest, SumFloatScalar) {
   int input_shape[] = {1, 1};
   int output_shape[] = {1, 1};
   int axis_shape[] = {1, 0};
@@ -1011,7 +1007,7 @@ TF_LITE_MICRO_TEST(SumFloatScalar) {
       actual_output_data, expected_output, tflite::Register_SUM(), &params);
 }
 
-TF_LITE_MICRO_TEST(AllOpTestNotKeepDims) {
+TEST(ReduceTest, AllOpTestNotKeepDims) {
   int input_shape[] = {3, 2, 3, 2};
   const bool input_data[] = {true, true, true, true, true, false,
                              true, true, true, true, true, true};
@@ -1028,7 +1024,7 @@ TF_LITE_MICRO_TEST(AllOpTestNotKeepDims) {
       expected_output_data, tflite::Register_REDUCE_ALL(), &params);
 }
 
-TF_LITE_MICRO_TEST(AllOpTestKeepDims) {
+TEST(ReduceTest, AllOpTestKeepDims) {
   int input_shape[] = {3, 2, 3, 2};
   const bool input_data[] = {true, true, true, true, true, false,
                              true, true, true, true, true, true};
@@ -1045,4 +1041,4 @@ TF_LITE_MICRO_TEST(AllOpTestKeepDims) {
       expected_output_data, tflite::Register_REDUCE_ALL(), &params);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

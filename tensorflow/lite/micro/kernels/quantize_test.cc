@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -39,13 +39,13 @@ void ValidateQuantizeGoldens(TfLiteTensor* tensors, int tensors_size,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   // Use reference quantization from test utils to compare against op output.
   Quantize(golden, golden_quantized, output_len, scale, zero_point);
   for (int i = 0; i < output_len; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(golden_quantized[i], output_data[i]);
+    EXPECT_EQ(golden_quantized[i], output_data[i]);
   }
 }
 
@@ -117,8 +117,7 @@ void TestRequantize(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16) {
+TEST(QuantizeTest, QuantizeOpTestInt16) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-63.5, -63,  -62.5, -62,  -61.5,
@@ -131,7 +130,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16) {
       dims, values, dims, values, values_quantized, scale, zero_point, output);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16NoScale) {
+TEST(QuantizeTest, QuantizeOpTestInt16NoScale) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-128, -127, -126, -125, -124,
@@ -144,7 +143,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16NoScale) {
       dims, values, dims, values, values_quantized, scale, zero_point, output);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt16) {
+TEST(QuantizeTest, QuantizeOpTestInt16toInt16) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-64, -62, -60, -58, -56, 54, 56, 58, 60, 62};
@@ -161,7 +160,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt16) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt16NoZeroPoint) {
+TEST(QuantizeTest, QuantizeOpTestInt16toInt16NoZeroPoint) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -178,7 +177,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt16NoZeroPoint) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt8) {
+TEST(QuantizeTest, QuantizeOpTestInt8toInt8) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-64, -62, -60, -58, -56, 54, 56, 58, 60, 62};
@@ -195,7 +194,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt8) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt8NoZeroPoint) {
+TEST(QuantizeTest, QuantizeOpTestInt8toInt8NoZeroPoint) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -212,7 +211,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt8NoZeroPoint) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt16) {
+TEST(QuantizeTest, QuantizeOpTestInt8toInt16) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-64, -62, -60, -58, -56, 54, 56, 58, 60, 62};
@@ -229,7 +228,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt16) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt16) {
+TEST(QuantizeTest, QuantizeOpTestInt32toInt16) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -248,7 +247,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt16) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt8) {
+TEST(QuantizeTest, QuantizeOpTestInt32toInt8) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -269,7 +268,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt32toInt8) {
 
 // TODO(b/155682734): Hifimini optimized quantize requires input scale to be
 // smaller than output scale.
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
+TEST(QuantizeTest, QuantizeOpTestInt16toInt8_2) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-64, -62, -60, -58, -56, 54, 56, 58, 60, 62};
@@ -287,7 +286,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
 }
 
 // Test the fast algorithm from int8 to uint8 when zero point diff = -128
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Fast) {
+TEST(QuantizeTest, QuantizeOpTestInt8toUInt8Fast) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -305,7 +304,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Fast) {
 }
 
 // Test the normal requant algorithm from int8 to uint8
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Normal) {
+TEST(QuantizeTest, QuantizeOpTestInt8toUInt8Normal) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -323,7 +322,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toUInt8Normal) {
 }
 
 // Test the fast algorithm from uint8 to int8 when zero point diff = 128
-TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Fast) {
+TEST(QuantizeTest, QuantizeOpTestUInt8toInt8Fast) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -341,7 +340,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Fast) {
 }
 
 // Test the normal requant algorithm from uint8 to int8
-TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Normal) {
+TEST(QuantizeTest, QuantizeOpTestUInt8toInt8Normal) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -358,7 +357,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestUInt8toInt8Normal) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt32) {
+TEST(QuantizeTest, QuantizeOpTestInt8toInt32) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -375,7 +374,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8toInt32) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt32) {
+TEST(QuantizeTest, QuantizeOpTestInt16toInt32) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -392,7 +391,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt32) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
+TEST(QuantizeTest, QuantizeOpTestInt16toInt8) {
   constexpr int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -411,7 +410,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt16toInt8) {
                                   output_zero_point, output_quantized);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8) {
+TEST(QuantizeTest, QuantizeOpTestInt8) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-63.5, -63,  -62.5, -62,  -61.5,
@@ -424,7 +423,7 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8) {
       dims, values, dims, values, values_quantized, scale, zero_point, output);
 }
 
-TF_LITE_MICRO_TEST(QuantizeOpTestInt8NoZeroPoint) {
+TEST(QuantizeTest, QuantizeOpTestInt8NoZeroPoint) {
   const int kLength = 10;
   int dims[] = {2, 2, 5};
   const float values[] = {-32, -31, -30, -29, -28, 27, 28, 29, 30, 31};
@@ -436,4 +435,4 @@ TF_LITE_MICRO_TEST(QuantizeOpTestInt8NoZeroPoint) {
       dims, values, dims, values, values_quantized, scale, zero_point, output);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
