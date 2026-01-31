@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -47,11 +47,11 @@ void TestZerosLike(int* input_dims_data, const T* input_data,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -59,9 +59,7 @@ void TestZerosLike(int* input_dims_data, const T* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestZerosLikeFloat) {
+TEST(ZerosLikeTest, TestZerosLikeFloat) {
   float output_data[6];
   int input_dims[] = {2, 2, 3};
   const float input_values[] = {-2.0, -1.0, 0.0, 1.0, 2.0, 3.0};
@@ -70,7 +68,7 @@ TF_LITE_MICRO_TEST(TestZerosLikeFloat) {
                                         output_data);
 }
 
-TF_LITE_MICRO_TEST(TestZerosLikeInt8) {
+TEST(ZerosLikeTest, TestZerosLikeInt8) {
   int8_t output_data[6];
   int input_dims[] = {3, 1, 2, 3};
   const int8_t input_values[] = {-2, -1, 0, 1, 2, 3};
@@ -79,7 +77,7 @@ TF_LITE_MICRO_TEST(TestZerosLikeInt8) {
                                          output_data);
 }
 
-TF_LITE_MICRO_TEST(TestZerosLikeInt32) {
+TEST(ZerosLikeTest, TestZerosLikeInt32) {
   int32_t output_data[4];
   int input_dims[] = {4, 1, 2, 2, 1};
   const int32_t input_values[] = {-2, -1, 0, 3};
@@ -88,7 +86,7 @@ TF_LITE_MICRO_TEST(TestZerosLikeInt32) {
                                           output_data);
 }
 
-TF_LITE_MICRO_TEST(TestZerosLikeInt64) {
+TEST(ZerosLikeTest, TestZerosLikeInt64) {
   int64_t output_data[4];
   int input_dims[] = {4, 1, 2, 2, 1};
   const int64_t input_values[] = {-2, -1, 0, 3};
@@ -97,4 +95,4 @@ TF_LITE_MICRO_TEST(TestZerosLikeInt64) {
                                           output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -178,12 +178,11 @@ void TestTanhFloat(int input_dims_data[], const float* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_elements_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
-                              tolerance);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
   }
 }
 
@@ -219,12 +218,11 @@ void TestTanhQuantized(int input_dims_data[], const float* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_elements_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_quantized[i], output_quantized[i],
-                              tolerance);
+    EXPECT_NEAR(expected_output_quantized[i], output_quantized[i], tolerance);
   }
 }
 
@@ -232,9 +230,7 @@ void TestTanhQuantized(int input_dims_data[], const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SimpleTestTanhFloat) {
+TEST(TanhTest, SimpleTestTanhFloat) {
   using tflite::testing::tanh_input_vec_fp;
   using tflite::testing::tanh_output_vec_fp;
   using tflite::testing::tanh_vec_size;
@@ -251,7 +247,7 @@ TF_LITE_MICRO_TEST(SimpleTestTanhFloat) {
       output_data, 1e-7 /* tolerance */);
 }
 
-TF_LITE_MICRO_TEST(SimpleTestTanhInt8) {
+TEST(TanhTest, SimpleTestTanhInt8) {
   using tflite::testing::tanh_input_vec_fp;
   using tflite::testing::tanh_output_vec_fp;
   using tflite::testing::tanh_vec_size;
@@ -279,7 +275,7 @@ TF_LITE_MICRO_TEST(SimpleTestTanhInt8) {
   );
 }
 
-TF_LITE_MICRO_TEST(TestTanhInt16WideRange) {
+TEST(TanhTest, TestTanhInt16WideRange) {
   using tflite::testing::tanh_int16_input_vec_fp;
   using tflite::testing::tanh_int16_output_vec_fp;
   using tflite::testing::tanh_int16_vec_size;
@@ -309,4 +305,4 @@ TF_LITE_MICRO_TEST(TestTanhInt16WideRange) {
   );
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
