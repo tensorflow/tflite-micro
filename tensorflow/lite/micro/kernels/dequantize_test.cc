@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -37,11 +37,11 @@ void ValidateDequantizeGoldens(TfLiteTensor* tensors, int tensors_size,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_length; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 0.001f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 0.001f);
   }
 }
 
@@ -71,9 +71,7 @@ void TestDequantizeToFloat(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(DequantizeOpTestInt8) {
+TEST(DequantizeTest, DequantizeOpTestInt8) {
   const int length = 10;
   int dims[] = {2, 5, 2};
   const float values[] = {-63.5, -63,  -62.5, -62,  -61.5,
@@ -86,7 +84,7 @@ TF_LITE_MICRO_TEST(DequantizeOpTestInt8) {
                                          zero_point, dims, values, output);
 }
 
-TF_LITE_MICRO_TEST(DequantizeOpTestInt16) {
+TEST(DequantizeTest, DequantizeOpTestInt16) {
   const int length = 10;
   int dims[] = {2, 5, 2};
   const float values[] = {-63.5, -63,  -62.5, -62,  -61.5,
@@ -99,7 +97,7 @@ TF_LITE_MICRO_TEST(DequantizeOpTestInt16) {
                                          zero_point, dims, values, output);
 }
 
-TF_LITE_MICRO_TEST(DequantizeOpTestUint8) {
+TEST(DequantizeTest, DequantizeOpTestUint8) {
   const int length = 10;
   int dims[] = {2, 5, 2};
   const float values[] = {-63.5, -63,  -62.5, -62,  -61.5,
@@ -112,4 +110,4 @@ TF_LITE_MICRO_TEST(DequantizeOpTestUint8) {
                                          zero_point, dims, values, output);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

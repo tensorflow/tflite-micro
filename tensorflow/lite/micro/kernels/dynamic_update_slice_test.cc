@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -44,8 +44,8 @@ void ExecuteDynamicUpdateSliceTest(TfLiteTensor* tensors, int tensors_count) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T, typename U>
@@ -70,15 +70,13 @@ void TestDynamicUpdateSlice(int* input_dims_data[kNumInputs],
 
   // check output data against expected
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(golden_data[i], output_data[i]);
+    EXPECT_EQ(golden_data[i], output_data[i]);
   }
 
   // check output dimensions (relocated) against original dimensions
-  TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
-                          tensors[kOutputTensorIndex].dims->size);
+  EXPECT_EQ(output_dims->size, tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output_dims->data[i],
-                            tensors[kOutputTensorIndex].dims->data[i]);
+    EXPECT_EQ(output_dims->data[i], tensors[kOutputTensorIndex].dims->data[i]);
   }
 }
 
@@ -86,9 +84,7 @@ void TestDynamicUpdateSlice(int* input_dims_data[kNumInputs],
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleFloat) {
+TEST(DynamicUpdateSliceTest, DynamicUpdateSliceOpTestSimpleFloat) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
@@ -108,7 +104,7 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleFloat) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8) {
+TEST(DynamicUpdateSliceTest, DynamicUpdateSliceOpTestSimpleInt8) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
@@ -128,7 +124,7 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt16) {
+TEST(DynamicUpdateSliceTest, DynamicUpdateSliceOpTestSimpleInt16) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
@@ -148,7 +144,7 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt16) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt32) {
+TEST(DynamicUpdateSliceTest, DynamicUpdateSliceOpTestSimpleInt32) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
@@ -168,7 +164,7 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt32) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8IndicesI64) {
+TEST(DynamicUpdateSliceTest, DynamicUpdateSliceOpTestSimpleInt8IndicesI64) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 1};
   int kInputDims_2[] = {1, 2};
@@ -188,7 +184,7 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestSimpleInt8IndicesI64) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
+TEST(DynamicUpdateSliceTest, DynamicUpdateSliceOpTestBoundaryTest) {
   int kInputDims_0[] = {2, 3, 3};
   int kInputDims_1[] = {2, 2, 2};
   int kInputDims_2[] = {1, 2};
@@ -207,4 +203,4 @@ TF_LITE_MICRO_TEST(DynamicUpdateSliceOpTestBoundaryTest) {
       kInputDims, kInput_0, kInput_1, kInput_2, kExpect, kOutputDims,
       output_data);
 }
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

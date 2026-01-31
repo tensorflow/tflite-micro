@@ -18,7 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -46,8 +46,8 @@ void ExecuteDepthToSpaceTest(const DepthToSpaceTestParams& params,
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&op_params));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -68,12 +68,12 @@ void TestDepthToSpace(DepthToSpaceTestParams& params, int* input_dims_data,
 
   constexpr float kTolerance = 1e-5;
   for (int i = 0; i < expected_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
   for (int i = 0; i < expected_dims->size; i++) {
     // output dims will have been relocated during prepare phase,
     // so use the tensor dims pointer.
-    TF_LITE_MICRO_EXPECT_EQ(expected_dims->data[i], tensors[1].dims->data[i]);
+    EXPECT_EQ(expected_dims->data[i], tensors[1].dims->data[i]);
   }
 }
 
@@ -125,12 +125,12 @@ void TestDepthToSpaceQuantized(DepthToSpaceTestParams& params,
   const float kTolerance =
       GetTolerance<T>(quant_params->data_min, quant_params->data_max);
   for (int i = 0; i < kOutputSize; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
   for (int i = 0; i < expected_dims->size; i++) {
     // output dims will have been relocated during prepare phase,
     // so use the tensor dims pointer.
-    TF_LITE_MICRO_EXPECT_EQ(expected_dims->data[i], tensors[1].dims->data[i]);
+    EXPECT_EQ(expected_dims->data[i], tensors[1].dims->data[i]);
   }
 }
 
@@ -138,9 +138,7 @@ void TestDepthToSpaceQuantized(DepthToSpaceTestParams& params,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1114_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelFloat32_1114_2) {
   int kInputDims[] = {4, 1, 1, 1, 4};
   constexpr float kInput[] = {1.4, 2.3, 3.2, 4.1};
   int kExpectDims[] = {4, 1, 2, 2, 1};
@@ -154,7 +152,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1114_2) {
                                     kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1124_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelFloat32_1124_2) {
   int kInputDims[] = {4, 1, 1, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   int kExpectDims[] = {4, 1, 2, 4, 1};
@@ -168,7 +166,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1124_2) {
                                     kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1214_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelFloat32_1214_2) {
   int kInputDims[] = {4, 1, 2, 1, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   int kExpectDims[] = {4, 1, 4, 2, 1};
@@ -182,7 +180,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1214_2) {
                                     kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1224_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelFloat32_1224_2) {
   int kInputDims[] = {4, 1, 2, 2, 4};
   constexpr float kInput[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -198,7 +196,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1224_2) {
                                     kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1111_1) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelFloat32_1111_1) {
   int kInputDims[] = {4, 1, 1, 1, 1};
   constexpr float kInput[] = {4};
   int kExpectDims[] = {4, 1, 1, 1, 1};
@@ -212,7 +210,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelFloat32_1111_1) {
                                     kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1114_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelInt8_1114_2) {
   int kInputDims[] = {4, 1, 1, 1, 4};
   constexpr float kInput[] = {1.4, 2.3, 3.2, 4.1};
   int kExpectDims[] = {4, 1, 2, 2, 1};
@@ -230,7 +228,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1114_2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1124_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelInt8_1124_2) {
   int kInputDims[] = {4, 1, 1, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   int kExpectDims[] = {4, 1, 2, 4, 1};
@@ -248,7 +246,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1124_2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1214_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelInt8_1214_2) {
   int kInputDims[] = {4, 1, 2, 1, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   int kExpectDims[] = {4, 1, 4, 2, 1};
@@ -266,7 +264,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1214_2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1224_2) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelInt8_1224_2) {
   int kInputDims[] = {4, 1, 2, 2, 4};
   constexpr float kInput[] = {1, 2,  3,  4,  5,  6,  7,  8,
                               9, 10, 11, 12, 13, 14, 15, 16};
@@ -286,7 +284,7 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1224_2) {
       output_data);
 }
 
-TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1111_1) {
+TEST(DepthToSpaceTest, DepthToSpaceOpModelInt8_1111_1) {
   int kInputDims[] = {4, 1, 1, 1, 1};
   constexpr float kInput[] = {4};
   int kExpectDims[] = {4, 1, 1, 1, 1};
@@ -304,4 +302,4 @@ TF_LITE_MICRO_TEST(DepthToSpaceOpModelInt8_1111_1) {
       output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
