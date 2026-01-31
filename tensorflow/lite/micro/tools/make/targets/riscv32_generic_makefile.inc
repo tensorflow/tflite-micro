@@ -7,7 +7,7 @@ RISCV_ABI := ilp32
 RISCV_CODE_MODEL := medany
 
 # Allow additional flags on the command line for debugging.
-RISCV_EXTRA_CFLAGS :=
+RISCV_EXTRA_CFLAGS := -fno-strict-aliasing
 
 TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/riscv_toolchain/bin/
 TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)

@@ -36,6 +36,6 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
 # Next, build w/o release so that we can run the tests and get additional
 # debugging info on failures.
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/downloads/riscv_toolchain/bin/riscv64-unknown-elf-gcc --version
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug build
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug test
-${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/downloads/riscv_toolchain/bin/riscv64-unknown-elf-gcc --version
