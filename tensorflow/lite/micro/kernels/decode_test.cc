@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
 
@@ -68,13 +68,11 @@ constexpr int16_t kExpectLUT1[] = {5, 6, 7, 8, 8, 7, 6, 5};
 
 }  // namespace
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 using tflite::testing::AncillaryData;
 using tflite::testing::TensorInDatum;
 using tflite::testing::TensorOutDatum;
 
-TF_LITE_MICRO_TEST(DecodeSingleTensorLUT) {
+TEST(DecodeTest, DecodeSingleTensorLUT) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectLUT0)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataLUT0)>
@@ -121,7 +119,7 @@ TF_LITE_MICRO_TEST(DecodeSingleTensorLUT) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodeTwoTensorsLUT) {
+TEST(DecodeTest, DecodeTwoTensorsLUT) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data0[std::size(kExpectLUT0)] = {};
   alignas(16) int16_t output_data1[std::size(kExpectLUT1)] = {};
@@ -196,7 +194,7 @@ TF_LITE_MICRO_TEST(DecodeTwoTensorsLUT) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
 }
 
-TF_LITE_MICRO_TEST(DecodeWithAltDecompressionMemory) {
+TEST(DecodeTest, DecodeWithAltDecompressionMemory) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectLUT0)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataLUT0)>
@@ -246,4 +244,4 @@ TF_LITE_MICRO_TEST(DecodeWithAltDecompressionMemory) {
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE(), &amr);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

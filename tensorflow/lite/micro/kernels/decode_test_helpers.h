@@ -27,11 +27,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
-namespace {
 
 struct TensorInDatum {
   const void* const data;
@@ -65,25 +64,22 @@ struct AncillaryData {
 };
 
 template <typename T>
-TfLiteStatus CheckOutput(const TfLiteTensor& output,
-                         const void* const expected) {
+void CheckOutput(const TfLiteTensor& output, const void* const expected) {
   const T* const expected_data = reinterpret_cast<const T*>(expected);
   const T* const output_data = tflite::GetTensorData<T>(&output);
 
   constexpr float kTolerance = 1e-5;
   const size_t kOutputCount = tflite::NumElements(&output);
   for (size_t i = 0; i < kOutputCount; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
-    TF_LITE_MICRO_CHECK_FAIL();
+    ASSERT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
-
-  return kTfLiteOk;
 }
 
 template <size_t kNumInputs, size_t kNumOutputs>
-TfLiteStatus ExecuteDecodeTest(
+void ExecuteDecodeTest(
     TfLiteTensor* tensors, const TFLMRegistration& registration,
     const std::initializer_list<const void*>& expected,
+    TfLiteStatus expected_status,
     const std::initializer_list<MicroContext::AlternateMemoryRegion>* amr =
         nullptr) {
   int kInputArrayData[kNumInputs + 1] = {kNumInputs};
@@ -106,39 +102,45 @@ TfLiteStatus ExecuteDecodeTest(
                                                          amr->size());
   }
 
-  if (runner.InitAndPrepare() != kTfLiteOk || runner.Invoke() != kTfLiteOk) {
-    return kTfLiteError;
+  TfLiteStatus status = runner.InitAndPrepare();
+  if (status == kTfLiteOk) {
+    status = runner.Invoke();
+  }
+  ASSERT_EQ(status, expected_status);
+
+  if (status != kTfLiteOk) {
+    return;
   }
 
   const TfLiteTensor* const output_tensors = &tensors[kNumInputs];
-  TfLiteStatus status = kTfLiteError;
   for (size_t i = 0; i < kNumOutputs; i++) {
     switch (output_tensors[i].type) {
       case kTfLiteBool:
-        status = CheckOutput<bool>(output_tensors[i], expected.begin()[i]);
+        CheckOutput<bool>(output_tensors[i], expected.begin()[i]);
         break;
       case kTfLiteInt8:
-        status = CheckOutput<int8_t>(output_tensors[i], expected.begin()[i]);
+        CheckOutput<int8_t>(output_tensors[i], expected.begin()[i]);
         break;
       case kTfLiteInt16:
-        status = CheckOutput<int16_t>(output_tensors[i], expected.begin()[i]);
+        CheckOutput<int16_t>(output_tensors[i], expected.begin()[i]);
         break;
       case kTfLiteFloat32:
-        status = CheckOutput<float>(output_tensors[i], expected.begin()[i]);
+        CheckOutput<float>(output_tensors[i], expected.begin()[i]);
         break;
       case kTfLiteInt32:
-        status = CheckOutput<int32_t>(output_tensors[i], expected.begin()[i]);
+        CheckOutput<int32_t>(output_tensors[i], expected.begin()[i]);
         break;
       case kTfLiteInt64:
-        status = CheckOutput<int64_t>(output_tensors[i], expected.begin()[i]);
+        CheckOutput<int64_t>(output_tensors[i], expected.begin()[i]);
         break;
       default:
-        TF_LITE_MICRO_FAIL("unsupported tensor type in test");
+        FAIL("unsupported tensor type in test");
         break;
     }
+    if (micro_test::HasFailure()) {
+      return;
+    }
   }
-
-  return status;
 }
 
 template <size_t kNumInputs, size_t kNumOutputs>
@@ -182,12 +184,10 @@ void TestDecode(
     }
   }
 
-  TfLiteStatus s = ExecuteDecodeTest<kNumInputs, kNumOutputs>(
-      tensors, registration, expected, amr);
-  TF_LITE_MICRO_EXPECT_EQ(s, expected_status);
+  ExecuteDecodeTest<kNumInputs, kNumOutputs>(tensors, registration, expected,
+                                             expected_status, amr);
 }
 
-}  // namespace
 }  // namespace testing
 }  // namespace tflite
 
