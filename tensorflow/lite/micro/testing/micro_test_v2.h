@@ -50,17 +50,6 @@ namespace tflite {
 inline void InitializeTest() { InitializeTarget(); }
 }  // namespace tflite
 
-namespace testing {
-// Base class for test fixtures. Tests using TEST_F should define a class that
-// inherits from this and implements SetUp() and TearDown().
-class Test {
- public:
-  virtual ~Test() = default;
-  virtual void SetUp() {}
-  virtual void TearDown() {}
-};
-}  // namespace testing
-
 namespace micro_test {
 namespace internal {
 
@@ -91,6 +80,16 @@ class TestRegistrar {
 
 // Global state to track if the current test has failed.
 inline bool& DidTestFail() {
+  static bool fail = false;
+  return fail;
+}
+
+inline bool& DidTestFatalFail() {
+  static bool fail = false;
+  return fail;
+}
+
+inline bool& DidTestNonfatalFail() {
   static bool fail = false;
   return fail;
 }
@@ -176,6 +175,29 @@ inline bool AreStringsEqual(const char* s1, const char* s2) {
 
 }  // namespace internal
 
+inline bool HasFatalFailure() { return internal::DidTestFatalFail(); }
+inline bool HasNonfatalFailure() { return internal::DidTestNonfatalFail(); }
+inline bool HasFailure() { return internal::DidTestFail(); }
+
+}  // namespace micro_test
+
+namespace testing {
+// Base class for test fixtures. Tests using TEST_F should define a class that
+// inherits from this and implements SetUp() and TearDown().
+class Test {
+ public:
+  virtual ~Test() = default;
+  virtual void SetUp() {}
+  virtual void TearDown() {}
+
+  static bool HasFatalFailure() { return micro_test::HasFatalFailure(); }
+  static bool HasNonfatalFailure() { return micro_test::HasNonfatalFailure(); }
+  static bool HasFailure() { return micro_test::HasFailure(); }
+};
+}  // namespace testing
+
+namespace micro_test {
+
 // Runs all registered tests and returns kTfLiteOk if all pass, or kTfLiteError
 // if any fail.
 inline TfLiteStatus RunAllTests() {
@@ -200,6 +222,8 @@ inline TfLiteStatus RunAllTests() {
        test = test->next) {
     internal::Printf("[ RUN      ] %s.%s\n", test->suite_name, test->test_name);
     internal::DidTestFail() = false;
+    internal::DidTestFatalFail() = false;
+    internal::DidTestNonfatalFail() = false;
     test->test_func();
     if (internal::DidTestFail()) {
       tests_failed++;
@@ -280,7 +304,7 @@ inline TfLiteStatus RunAllTests() {
 // Internal Helper Macros
 // -----------------------------------------------------------------------------
 
-#define MICRO_TEST_BOOL(a, b, on_fail)                                   \
+#define MICRO_TEST_BOOL(a, b, fatal, on_fail)                            \
   do {                                                                   \
     auto va = (a);                                                       \
     if (va == (b)) {                                                     \
@@ -288,11 +312,16 @@ inline TfLiteStatus RunAllTests() {
       micro_test::internal::ReportFailure(#a, #b, va, b, "==", __FILE__, \
                                           __LINE__);                     \
       micro_test::internal::DidTestFail() = true;                        \
+      if (fatal) {                                                       \
+        micro_test::internal::DidTestFatalFail() = true;                 \
+      } else {                                                           \
+        micro_test::internal::DidTestNonfatalFail() = true;              \
+      }                                                                  \
       on_fail;                                                           \
     }                                                                    \
   } while (false)
 
-#define MICRO_TEST_OP(a, b, op_str, compare, on_fail)                       \
+#define MICRO_TEST_OP(a, b, op_str, compare, fatal, on_fail)                \
   do {                                                                      \
     auto va = (a);                                                          \
     auto vb = (b);                                                          \
@@ -301,11 +330,16 @@ inline TfLiteStatus RunAllTests() {
       micro_test::internal::ReportFailure(#a, #b, va, vb, op_str, __FILE__, \
                                           __LINE__);                        \
       micro_test::internal::DidTestFail() = true;                           \
+      if (fatal) {                                                          \
+        micro_test::internal::DidTestFatalFail() = true;                    \
+      } else {                                                              \
+        micro_test::internal::DidTestNonfatalFail() = true;                 \
+      }                                                                     \
       on_fail;                                                              \
     }                                                                       \
   } while (false)
 
-#define MICRO_TEST_NEAR(a, b, epsilon, on_fail)                             \
+#define MICRO_TEST_NEAR(a, b, epsilon, fatal, on_fail)                      \
   do {                                                                      \
     auto va = (a);                                                          \
     auto vb = (b);                                                          \
@@ -314,6 +348,11 @@ inline TfLiteStatus RunAllTests() {
       micro_test::internal::ReportFailureNear(#a, #b, #epsilon, delta,      \
                                               epsilon, __FILE__, __LINE__); \
       micro_test::internal::DidTestFail() = true;                           \
+      if (fatal) {                                                          \
+        micro_test::internal::DidTestFatalFail() = true;                    \
+      } else {                                                              \
+        micro_test::internal::DidTestNonfatalFail() = true;                 \
+      }                                                                     \
       on_fail;                                                              \
     }                                                                       \
   } while (false)
@@ -322,67 +361,87 @@ inline TfLiteStatus RunAllTests() {
 // Assertion Macros (Fatal)
 // -----------------------------------------------------------------------------
 
-#define ASSERT_TRUE(x) MICRO_TEST_BOOL(x, true, return)
+#define ASSERT_TRUE(x) MICRO_TEST_BOOL(x, true, true, return)
 
-#define ASSERT_FALSE(x) MICRO_TEST_BOOL(x, false, return)
+#define ASSERT_FALSE(x) MICRO_TEST_BOOL(x, false, true, return)
 
-#define ASSERT_EQ(a, b) MICRO_TEST_OP(a, b, "==", va == vb, return)
+#define ASSERT_EQ(a, b) MICRO_TEST_OP(a, b, "==", va == vb, true, return)
 
-#define ASSERT_NE(a, b) MICRO_TEST_OP(a, b, "!=", va != vb, return)
+#define ASSERT_NE(a, b) MICRO_TEST_OP(a, b, "!=", va != vb, true, return)
 
-#define ASSERT_GT(a, b) MICRO_TEST_OP(a, b, ">", va > vb, return)
+#define ASSERT_GT(a, b) MICRO_TEST_OP(a, b, ">", va > vb, true, return)
 
-#define ASSERT_LT(a, b) MICRO_TEST_OP(a, b, "<", va < vb, return)
+#define ASSERT_LT(a, b) MICRO_TEST_OP(a, b, "<", va < vb, true, return)
 
-#define ASSERT_GE(a, b) MICRO_TEST_OP(a, b, ">=", va >= vb, return)
+#define ASSERT_GE(a, b) MICRO_TEST_OP(a, b, ">=", va >= vb, true, return)
 
-#define ASSERT_LE(a, b) MICRO_TEST_OP(a, b, "<=", va <= vb, return)
+#define ASSERT_LE(a, b) MICRO_TEST_OP(a, b, "<=", va <= vb, true, return)
 
 #define ASSERT_STREQ(a, b)                                                 \
   MICRO_TEST_OP(a, b, "==", micro_test::internal::AreStringsEqual(va, vb), \
-                return)
+                true, return)
 
 #define ASSERT_STRNE(a, b)                                                  \
   MICRO_TEST_OP(a, b, "!=", !micro_test::internal::AreStringsEqual(va, vb), \
-                return)
+                true, return)
 
 #define ASSERT_FLOAT_EQ(a, b) \
-  MICRO_TEST_NEAR(a, b, 4 * std::numeric_limits<float>::epsilon(), return)
+  MICRO_TEST_NEAR(a, b, 4 * std::numeric_limits<float>::epsilon(), true, return)
 
-#define ASSERT_NEAR(a, b, epsilon) MICRO_TEST_NEAR(a, b, epsilon, return)
+#define ASSERT_NEAR(a, b, epsilon) MICRO_TEST_NEAR(a, b, epsilon, true, return)
+
+#define ASSERT_NO_FATAL_FAILURE(statement)                        \
+  do {                                                            \
+    bool fatal_failure_before = micro_test::HasFatalFailure();    \
+    statement;                                                    \
+    if (!fatal_failure_before && micro_test::HasFatalFailure()) { \
+      FAIL("Expected no fatal failure, but one occurred.");       \
+    }                                                             \
+  } while (false)
 
 // -----------------------------------------------------------------------------
 // Expectation Macros (Non-Fatal)
 // -----------------------------------------------------------------------------
 
-#define EXPECT_TRUE(x) MICRO_TEST_BOOL(x, true, (void)0)
+#define EXPECT_TRUE(x) MICRO_TEST_BOOL(x, true, false, (void)0)
 
-#define EXPECT_FALSE(x) MICRO_TEST_BOOL(x, false, (void)0)
+#define EXPECT_FALSE(x) MICRO_TEST_BOOL(x, false, false, (void)0)
 
-#define EXPECT_EQ(a, b) MICRO_TEST_OP(a, b, "==", va == vb, (void)0)
+#define EXPECT_EQ(a, b) MICRO_TEST_OP(a, b, "==", va == vb, false, (void)0)
 
-#define EXPECT_NE(a, b) MICRO_TEST_OP(a, b, "!=", va != vb, (void)0)
+#define EXPECT_NE(a, b) MICRO_TEST_OP(a, b, "!=", va != vb, false, (void)0)
 
-#define EXPECT_GT(a, b) MICRO_TEST_OP(a, b, ">", va > vb, (void)0)
+#define EXPECT_GT(a, b) MICRO_TEST_OP(a, b, ">", va > vb, false, (void)0)
 
-#define EXPECT_LT(a, b) MICRO_TEST_OP(a, b, "<", va < vb, (void)0)
+#define EXPECT_LT(a, b) MICRO_TEST_OP(a, b, "<", va < vb, false, (void)0)
 
-#define EXPECT_GE(a, b) MICRO_TEST_OP(a, b, ">=", va >= vb, (void)0)
+#define EXPECT_GE(a, b) MICRO_TEST_OP(a, b, ">=", va >= vb, false, (void)0)
 
-#define EXPECT_LE(a, b) MICRO_TEST_OP(a, b, "<=", va <= vb, (void)0)
+#define EXPECT_LE(a, b) MICRO_TEST_OP(a, b, "<=", va <= vb, false, (void)0)
 
 #define EXPECT_STREQ(a, b)                                                 \
   MICRO_TEST_OP(a, b, "==", micro_test::internal::AreStringsEqual(va, vb), \
-                (void)0)
+                false, (void)0)
 
 #define EXPECT_STRNE(a, b)                                                  \
   MICRO_TEST_OP(a, b, "!=", !micro_test::internal::AreStringsEqual(va, vb), \
-                (void)0)
+                false, (void)0)
 
-#define EXPECT_NEAR(a, b, epsilon) MICRO_TEST_NEAR(a, b, epsilon, (void)0)
+#define EXPECT_NEAR(a, b, epsilon) \
+  MICRO_TEST_NEAR(a, b, epsilon, false, (void)0)
 
-#define EXPECT_FLOAT_EQ(a, b) \
-  MICRO_TEST_NEAR(a, b, 4 * std::numeric_limits<float>::epsilon(), (void)0)
+#define EXPECT_FLOAT_EQ(a, b)                                             \
+  MICRO_TEST_NEAR(a, b, 4 * std::numeric_limits<float>::epsilon(), false, \
+                  (void)0)
+
+#define EXPECT_NO_FATAL_FAILURE(statement)                         \
+  do {                                                             \
+    bool fatal_failure_before = micro_test::HasFatalFailure();     \
+    statement;                                                     \
+    if (!fatal_failure_before && micro_test::HasFatalFailure()) {  \
+      ADD_FAILURE("Expected no fatal failure, but one occurred."); \
+    }                                                              \
+  } while (false)
 
 // -----------------------------------------------------------------------------
 // Other Macros
@@ -393,6 +452,7 @@ inline TfLiteStatus RunAllTests() {
     micro_test::internal::Printf("%s:%d: Failure\n", __FILE__, __LINE__); \
     micro_test::internal::Printf("Failed: %s\n", msg);                    \
     micro_test::internal::DidTestFail() = true;                           \
+    micro_test::internal::DidTestNonfatalFail() = true;                   \
   } while (false)
 
 #define FAIL(msg)                                                         \
@@ -400,6 +460,7 @@ inline TfLiteStatus RunAllTests() {
     micro_test::internal::Printf("%s:%d: Failure\n", __FILE__, __LINE__); \
     micro_test::internal::Printf("Failed: %s\n", msg);                    \
     micro_test::internal::DidTestFail() = true;                           \
+    micro_test::internal::DidTestFatalFail() = true;                      \
     return;                                                               \
   } while (false)
 
@@ -412,5 +473,12 @@ inline TfLiteStatus RunAllTests() {
     tflite::InitializeTest();       \
     return RUN_ALL_TESTS();         \
   }
+
+// -----------------------------------------------------------------------------
+// Global accessors for test failures (gtest compatibility)
+// -----------------------------------------------------------------------------
+inline bool HasFatalFailure() { return micro_test::HasFatalFailure(); }
+inline bool HasNonfatalFailure() { return micro_test::HasNonfatalFailure(); }
+inline bool HasFailure() { return micro_test::HasFailure(); }
 
 #endif  // TENSORFLOW_LITE_MICRO_TESTING_MICRO_TEST_V2_H_
