@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test_v2.h"
+#include "tensorflow/lite/micro/testing/micro_test.h"
 
 namespace tflite {
 namespace testing {
@@ -76,14 +76,18 @@ TfLiteStatus ValidateConvGoldens(
 
   TestCompressedList<kConvMaxInputTensors> tcl;
   if (filter_comp_info != nullptr) {
-    ASSERT_EQ(tcl.AddInput(*filter_comp_info, tensors[kConvWeightsTensor],
-                           kConvWeightsTensor),
-              kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddInput(*filter_comp_info, tensors[kConvWeightsTensor],
+                     kConvWeightsTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
   }
   if (bias_comp_info) {
-    ASSERT_EQ(tcl.AddInput(*bias_comp_info, tensors[kConvBiasTensor],
-                           kConvBiasTensor),
-              kTfLiteOk);
+    TF_LITE_MICRO_EXPECT_EQ(
+        tcl.AddInput(*bias_comp_info, tensors[kConvBiasTensor],
+                     kConvBiasTensor),
+        kTfLiteOk);
+    TF_LITE_MICRO_CHECK_FAIL();
   }
   const CompressedTensorList* comp_list_p = tcl.GetCompressedTensorList();
 
@@ -100,7 +104,8 @@ TfLiteStatus ValidateConvGoldens(
     return status;
   }
   for (int i = 0; i < output_length; ++i) {
-    EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
+    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i],
+                              tolerance);
   }
   return kTfLiteOk;
 }
