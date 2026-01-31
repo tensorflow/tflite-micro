@@ -559,7 +559,7 @@ TfLiteStatus ComparisonsPrepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempInputTensor(node, kInputTensor2);
   TF_LITE_ENSURE(context, input2 != nullptr);
 
-  if (input1->type == kTfLiteInt8) {
+  if (input1->type == kTfLiteInt8 || input1->type == kTfLiteInt16) {
     auto input1_offset = -input1->params.zero_point;
     auto input2_offset = -input2->params.zero_point;
     const int kLeftShift = 8;
