@@ -20,9 +20,9 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/op_macros.h"
-#include "tensorflow/lite/micro//micro_log.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
@@ -266,7 +266,7 @@ void TestDataSetup(TestingInfo<T>* info, TestingData<T>* data) {
 }
 
 template <typename T>
-TfLiteStatus TestDecompression(TestingInfo<T>* info) {
+void TestDecompression(TestingInfo<T>* info) {
   GenerateData(*info);
 
   const size_t stride = info->total_value_table_elements / info->channel_count;
@@ -333,22 +333,14 @@ TfLiteStatus TestDecompression(TestingInfo<T>* info) {
 
   std::fill_n(info->output, info->total_elements, static_cast<T>(~0ULL));
 
-  bool saved_fail_state = micro_test::did_test_fail;
-  micro_test::did_test_fail = false;
   constexpr size_t kNumInputs = 2;
   constexpr size_t kNumOutputs = 1;
   tflite::testing::TestDecode<kNumInputs, kNumOutputs>(
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE());
-  if (micro_test::did_test_fail) {
-    return kTfLiteError;
-  }
-  micro_test::did_test_fail = saved_fail_state;
-
-  return kTfLiteOk;
 }
 
 template <typename T>
-TfLiteStatus TestValueTable2n(TestingInfo<T>& info) {
+void TestValueTable2n(TestingInfo<T>& info) {
   if (std::is_same<T, bool>::value) {
     info.total_value_table_elements = 2 * info.channel_count;
   } else {
@@ -362,11 +354,11 @@ TfLiteStatus TestValueTable2n(TestingInfo<T>& info) {
 
   DebugPrintf("        Testing value table 2^n: %d",
               info.total_value_table_elements);
-  return TestDecompression(&info);
+  TestDecompression(&info);
 }
 
 template <typename T>
-TfLiteStatus TestValueTable2nMinus1(TestingInfo<T>& info) {
+void TestValueTable2nMinus1(TestingInfo<T>& info) {
   if (std::is_same<T, bool>::value) {
     info.total_value_table_elements = 1 * info.channel_count;
   } else {
@@ -380,7 +372,7 @@ TfLiteStatus TestValueTable2nMinus1(TestingInfo<T>& info) {
 
   DebugPrintf("        Testing value table 2^n-1: %d",
               info.total_value_table_elements);
-  return TestDecompression(&info);
+  TestDecompression(&info);
 }
 
 template <typename T>
@@ -404,14 +396,15 @@ void TestElementCount(TestingInfo<T>& info) {
   for (size_t i = 0; i < elements_per_channel.size(); i++) {
     info.total_elements = elements_per_channel.begin()[i] * info.channel_count;
 
-    TfLiteStatus s;
-    s = TestValueTable2n(info);
-    if (s == kTfLiteError) {
+    TestValueTable2n(info);
+    if (micro_test::HasFailure()) {
       MicroPrintf("       Failed element count: %d", info.total_elements);
+      return;
     }
-    s = TestValueTable2nMinus1(info);
-    if (s == kTfLiteError) {
+    TestValueTable2nMinus1(info);
+    if (micro_test::HasFailure()) {
       MicroPrintf("       Failed element count: %d", info.total_elements);
+      return;
     }
   }
 }
