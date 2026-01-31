@@ -194,7 +194,7 @@ TfLiteStatus InvokeTransposeConv(
 }
 
 template <typename T, typename TF = void, typename TB = void>
-TfLiteStatus ValidateTransposeConvGoldens(
+void ValidateTransposeConvGoldens(
     TfLiteTensor* tensors, int tensors_size, const T* expected_output_data,
     int output_length, const TfLiteConvParams* conv_params, T* output_data,
     float tolerance = 1e-5f
@@ -229,16 +229,13 @@ TfLiteStatus ValidateTransposeConvGoldens(
       comp_list_p
 #endif  // USE_TFLM_COMPRESSION
   );
-  if (status != kTfLiteOk) {
-    return status;
-  }
+  ASSERT_EQ(status, kTfLiteOk);
   for (int i = 0; i < output_length; ++i) {
     EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
   }
-  return kTfLiteOk;
 }
 
-TfLiteStatus TestTransposeConvFloat(
+void TestTransposeConvFloat(
     int* input_dims_data, const float* input_data, int* filter_dims_data,
     const float* filter_data, int* bias_dims_data, const float* bias_data,
     int* output_dims_data, const float* expected_output_data,
@@ -270,17 +267,16 @@ TfLiteStatus TestTransposeConvFloat(
       CreateTensor(output_data, output_dims),
   };
 
-  return ValidateTransposeConvGoldens(tensors, tensors_size,
-                                      expected_output_data, output_dims_count,
-                                      conv_params, output_data
+  ValidateTransposeConvGoldens(tensors, tensors_size, expected_output_data,
+                               output_dims_count, conv_params, output_data
 #ifdef USE_TFLM_COMPRESSION
-                                      ,
-                                      1e-5, filter_comp_info, bias_comp_info
+                               ,
+                               1e-5, filter_comp_info, bias_comp_info
 #endif  // USE_TFLM_COMPRESSION
   );
 }
 
-TfLiteStatus TestTransposeConvQuantized(
+void TestTransposeConvQuantized(
     int* input_dims_data, const float* input_data, int8_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_quantized, float filter_scale,
@@ -320,13 +316,13 @@ TfLiteStatus TestTransposeConvQuantized(
       CreateQuantizedTensor(output_data, output_dims, output_scale,
                             output_zero_point)};
 
-  return ValidateTransposeConvGoldens(
-      tensors, tensors_size, expected_output_quantized, output_dims_count,
-      conv_params, output_data, 1.0f);
+  ValidateTransposeConvGoldens(tensors, tensors_size, expected_output_quantized,
+                               output_dims_count, conv_params, output_data,
+                               1.0f);
 }
 
 template <typename T>
-TfLiteStatus TestTransposeConvQuantized(
+void TestTransposeConvQuantized(
     int* input_dims_data, const float* input_data, int16_t* input_quantized,
     float input_scale, int input_zero_point, int* filter_dims_data,
     const float* filter_data, int8_t* filter_quantized, float filter_scale,
@@ -368,15 +364,15 @@ TfLiteStatus TestTransposeConvQuantized(
 
   // Tolerance is slightly looser for 8x16 compared with float, since quant
   // error is more pronounced on the finer-grained 16-bit output.
-  return ValidateTransposeConvGoldens(
-      tensors, tensors_size, expected_output_quantized, output_dims_count,
-      conv_params, output_data, 4.0f);
+  ValidateTransposeConvGoldens(tensors, tensors_size, expected_output_quantized,
+                               output_dims_count, conv_params, output_data,
+                               4.0f);
 }
 
 #ifdef USE_TFLM_COMPRESSION
 
 template <typename TIO, typename TBIAS>
-TfLiteStatus TestTransposeConvQuantizedCompressed(
+void TestTransposeConvQuantizedCompressed(
     int* input_dims_data, const float* input_data, TIO* input_quantized,
     float input_scale, int input_zero_point, int* output_dims_data,
     const float* expected_output_data, TIO* expected_output_quantized,
@@ -439,10 +435,9 @@ TfLiteStatus TestTransposeConvQuantizedCompressed(
   const int output_dims_count = ElementCount(*output_dims);
   Quantize(expected_output_data, expected_output_quantized, output_dims_count,
            output_scale, output_zero_point);
-  return ValidateTransposeConvGoldens(
-      tensors, tensors_size, expected_output_quantized, output_dims_count,
-      conv_params, output_quantized, tolerance, filter_comp_info,
-      bias_comp_info);
+  ValidateTransposeConvGoldens(tensors, tensors_size, expected_output_quantized,
+                               output_dims_count, conv_params, output_quantized,
+                               tolerance, filter_comp_info, bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION
@@ -454,13 +449,12 @@ TfLiteStatus TestTransposeConvQuantizedCompressed(
 TEST(TransposeConvTest, SimpleTestFloat) {
   float output_data[tflite::testing::kOutputElements];
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvFloat(
-                tflite::testing::kInputShape, tflite::testing::kInputData,
-                tflite::testing::kFilterShape, tflite::testing::kFilterData,
-                tflite::testing::kBiasShape, tflite::testing::kBiasData,
-                tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-                &tflite::testing::common_conv_params, output_data));
+  tflite::testing::TestTransposeConvFloat(
+      tflite::testing::kInputShape, tflite::testing::kInputData,
+      tflite::testing::kFilterShape, tflite::testing::kFilterData,
+      tflite::testing::kBiasShape, tflite::testing::kBiasData,
+      tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+      &tflite::testing::common_conv_params, output_data);
 }
 
 #ifdef USE_TFLM_COMPRESSION
@@ -483,17 +477,15 @@ TEST(TransposeConvTest, SimpleTestFloatCompressed) {
 
   float output_data[tflite::testing::kOutputElements];
 
-  EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestTransposeConvFloat(
-          tflite::testing::kInputShape, tflite::testing::kInputData,
-          tflite::testing::kFilterShape,
-          reinterpret_cast<const float*>(tflite::testing::kBinQuantFilterData),
-          tflite::testing::kBiasShape,
-          reinterpret_cast<const float*>(tflite::testing::kBinQuantBiasData),
-          tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-          &tflite::testing::common_conv_params, output_data, &filter_comp_info,
-          &bias_comp_info));
+  tflite::testing::TestTransposeConvFloat(
+      tflite::testing::kInputShape, tflite::testing::kInputData,
+      tflite::testing::kFilterShape,
+      reinterpret_cast<const float*>(tflite::testing::kBinQuantFilterData),
+      tflite::testing::kBiasShape,
+      reinterpret_cast<const float*>(tflite::testing::kBinQuantBiasData),
+      tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+      &tflite::testing::common_conv_params, output_data, &filter_comp_info,
+      &bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION
@@ -515,12 +507,10 @@ TEST(TransposeConvTest, fusedRELUTest) {
                                   1,
                                   kTfLiteNoType};
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvFloat(
-                input_shape, input_data, filter_shape, filter_data,
-                tflite::testing::kBiasShape, tflite::testing::kBiasData,
-                tflite::testing::kOutputShape, golden_data, &conv_params,
-                output_data));
+  tflite::testing::TestTransposeConvFloat(
+      input_shape, input_data, filter_shape, filter_data,
+      tflite::testing::kBiasShape, tflite::testing::kBiasData,
+      tflite::testing::kOutputShape, golden_data, &conv_params, output_data);
 }
 
 TEST(TransposeConvTest, AccuracyWithFusedActivationTest) {
@@ -539,11 +529,10 @@ TEST(TransposeConvTest, AccuracyWithFusedActivationTest) {
                                   1,
                                   kTfLiteNoType};
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvFloat(
-                input_shape, input_data, filter_shape, filter_data,
-                tflite::testing::kBiasShape, tflite::testing::kBiasData,
-                output_shape, golden_data, &conv_params, output_data));
+  tflite::testing::TestTransposeConvFloat(
+      input_shape, input_data, filter_shape, filter_data,
+      tflite::testing::kBiasShape, tflite::testing::kBiasData, output_shape,
+      golden_data, &conv_params, output_data);
 }
 
 TEST(TransposeConvTest, MultiChannelBiasWithFusedActivationTest) {
@@ -568,10 +557,9 @@ TEST(TransposeConvTest, MultiChannelBiasWithFusedActivationTest) {
                                   1,
                                   kTfLiteNoType};
 
-  EXPECT_EQ(kTfLiteOk, tflite::testing::TestTransposeConvFloat(
-                           input_shape, input_data, filter_shape, filter_data,
-                           bias_shape, bias_data, output_shape, golden_data,
-                           &conv_params, output_data));
+  tflite::testing::TestTransposeConvFloat(
+      input_shape, input_data, filter_shape, filter_data, bias_shape, bias_data,
+      output_shape, golden_data, &conv_params, output_data);
 }
 
 TEST(TransposeConvTest, SimpleTestQuantizedPerChannel) {
@@ -590,16 +578,15 @@ TEST(TransposeConvTest, SimpleTestQuantizedPerChannel) {
   int zero_points[tflite::testing::kBiasElements + 1];
   float scales[tflite::testing::kBiasElements + 1];
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvQuantized(
-                tflite::testing::kInputShape, tflite::testing::kInputData,
-                input_quantized, input_scale, input_zero_point,
-                tflite::testing::kFilterShape, tflite::testing::kFilterData,
-                filter_quantized, filter_scale, tflite::testing::kBiasShape,
-                tflite::testing::kBiasData, bias_quantized, scales, zero_points,
-                tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-                golden_quantized, output_scale, output_zero_point,
-                &tflite::testing::common_conv_params, output_data));
+  tflite::testing::TestTransposeConvQuantized(
+      tflite::testing::kInputShape, tflite::testing::kInputData,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kFilterShape, tflite::testing::kFilterData,
+      filter_quantized, filter_scale, tflite::testing::kBiasShape,
+      tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+      tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+      golden_quantized, output_scale, output_zero_point,
+      &tflite::testing::common_conv_params, output_data);
 }
 
 TEST(TransposeConvTest, SimpleTestQuantized16x8PerChannel) {
@@ -618,16 +605,15 @@ TEST(TransposeConvTest, SimpleTestQuantized16x8PerChannel) {
   int zero_points[tflite::testing::kBiasElements + 1];
   float scales[tflite::testing::kBiasElements + 1];
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvQuantized(
-                tflite::testing::kInputShape, tflite::testing::kInputData,
-                input_quantized, input_scale, input_zero_point,
-                tflite::testing::kFilterShape, tflite::testing::kFilterData,
-                filter_quantized, filter_scale, tflite::testing::kBiasShape,
-                tflite::testing::kBiasData, bias_quantized, scales, zero_points,
-                tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-                golden_quantized, output_scale, output_zero_point,
-                &tflite::testing::common_conv_params, output_data));
+  tflite::testing::TestTransposeConvQuantized(
+      tflite::testing::kInputShape, tflite::testing::kInputData,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kFilterShape, tflite::testing::kFilterData,
+      filter_quantized, filter_scale, tflite::testing::kBiasShape,
+      tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+      tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+      golden_quantized, output_scale, output_zero_point,
+      &tflite::testing::common_conv_params, output_data);
 }
 
 TEST(TransposeConvTest, SimpleTestQuantized16x8PerChannelWithInt16Bias) {
@@ -646,16 +632,15 @@ TEST(TransposeConvTest, SimpleTestQuantized16x8PerChannelWithInt16Bias) {
   int zero_points[tflite::testing::kBiasElements + 1];
   float scales[tflite::testing::kBiasElements + 1];
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvQuantized(
-                tflite::testing::kInputShape, tflite::testing::kInputData,
-                input_quantized, input_scale, input_zero_point,
-                tflite::testing::kFilterShape, tflite::testing::kFilterData,
-                filter_quantized, filter_scale, tflite::testing::kBiasShape,
-                tflite::testing::kBiasData, bias_quantized, scales, zero_points,
-                tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-                golden_quantized, output_scale, output_zero_point,
-                &tflite::testing::common_conv_params, output_data));
+  tflite::testing::TestTransposeConvQuantized(
+      tflite::testing::kInputShape, tflite::testing::kInputData,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kFilterShape, tflite::testing::kFilterData,
+      filter_quantized, filter_scale, tflite::testing::kBiasShape,
+      tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+      tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+      golden_quantized, output_scale, output_zero_point,
+      &tflite::testing::common_conv_params, output_data);
 }
 
 TEST(TransposeConvTest, InputOutputDifferentTypeIsError) {
@@ -781,14 +766,13 @@ TEST(TransposeConvTest, SimpleTestQuantizedPerChannelSingleChannelCompressed) {
   bias_comp_info.scales = bias_scales;
   bias_comp_info.zero_points = bias_zero_points;
 
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvQuantizedCompressed(
-                tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
-                input_quantized, input_scale, input_zero_point,
-                tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
-                golden_quantized, output_quantized, output_scale,
-                output_zero_point, &tflite::testing::common_conv_params, 0,
-                &filter_comp_info, &bias_comp_info));
+  tflite::testing::TestTransposeConvQuantizedCompressed(
+      tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
+      golden_quantized, output_quantized, output_scale, output_zero_point,
+      &tflite::testing::common_conv_params, 0, &filter_comp_info,
+      &bias_comp_info);
 }
 
 TEST(TransposeConvTest,
@@ -847,14 +831,13 @@ TEST(TransposeConvTest,
   // The quantized output is compared to the expected output (quantized).
   // A tolerance of 81 is approx. 0.1582f which is less than the TfLite
   // tolerance of 0.19f.
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvQuantizedCompressed(
-                tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
-                input_quantized, input_scale, input_zero_point,
-                tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
-                golden_quantized, output_quantized, output_scale,
-                output_zero_point, &tflite::testing::common_conv_params, 81,
-                &filter_comp_info, &bias_comp_info));
+  tflite::testing::TestTransposeConvQuantizedCompressed(
+      tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
+      golden_quantized, output_quantized, output_scale, output_zero_point,
+      &tflite::testing::common_conv_params, 81, &filter_comp_info,
+      &bias_comp_info);
 }
 
 TEST(TransposeConvTest,
@@ -913,14 +896,13 @@ TEST(TransposeConvTest,
   // The quantized output is compared to the expected output (quantized).
   // A tolerance of 81 is approx. 0.1582f which is less than the TfLite
   // tolerance of 0.19f.
-  EXPECT_EQ(kTfLiteOk,
-            tflite::testing::TestTransposeConvQuantizedCompressed(
-                tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
-                input_quantized, input_scale, input_zero_point,
-                tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
-                golden_quantized, output_quantized, output_scale,
-                output_zero_point, &tflite::testing::common_conv_params, 81,
-                &filter_comp_info, &bias_comp_info));
+  tflite::testing::TestTransposeConvQuantizedCompressed(
+      tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
+      golden_quantized, output_quantized, output_scale, output_zero_point,
+      &tflite::testing::common_conv_params, 81, &filter_comp_info,
+      &bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION

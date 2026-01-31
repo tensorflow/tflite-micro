@@ -98,7 +98,7 @@ constexpr int kBinQuantBiasBitWidthQ1 = 1;
 // The tensors parameter contains both the input tensors as well as a
 // preallocated output tensor into which the output is stored.
 template <typename T, typename TF = void, typename TB = void>
-TfLiteStatus ValidateDepthwiseConvGoldens(
+void ValidateDepthwiseConvGoldens(
     const T* expected_output_data, int output_length,
     TfLiteDepthwiseConvParams* conv_params, float tolerance, int tensors_size,
     TfLiteTensor* tensors
@@ -150,10 +150,7 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   const char* init_data = reinterpret_cast<const char*>(conv_params);
 
   // TODO(b/154240825): Use a test macro here which fails and returns.
-  TfLiteStatus status = runner.InitAndPrepare(init_data);
-  if (status != kTfLiteOk) {
-    return status;
-  }
+  ASSERT_EQ(runner.InitAndPrepare(init_data), kTfLiteOk);
   EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   const T* output_data = tflite::GetTensorData<T>(&tensors[kOutputTensorIndex]);
@@ -161,7 +158,6 @@ TfLiteStatus ValidateDepthwiseConvGoldens(
   for (int i = 0; i < output_length; ++i) {
     EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);
   }
-  return kTfLiteOk;
 }
 
 template <typename T, typename BiasT>
@@ -227,9 +223,9 @@ void TestDepthwiseConvQuantizedPerChannel(
   Quantize(expected_output_data, expected_output_data_quantized,
            output_dims_count, output_scale, output_zero_point);
 
-  EXPECT_EQ(kTfLiteOk, ValidateDepthwiseConvGoldens(
-                           expected_output_data_quantized, output_dims_count,
-                           conv_params, 1.0, tensors_size, tensors));
+  ValidateDepthwiseConvGoldens(expected_output_data_quantized,
+                               output_dims_count, conv_params, 1.0,
+                               tensors_size, tensors);
 }
 
 void TestDepthwiseConvQuantizedPerChannel(
@@ -271,7 +267,7 @@ void TestDepthwiseConvQuantizedPerChannel(
 #ifdef USE_TFLM_COMPRESSION
 
 template <typename TIO, typename TBIAS>
-TfLiteStatus TestDepthwiseConvQuantizedCompressed(
+void TestDepthwiseConvQuantizedCompressed(
     int* input_dims_data, const float* input_data, TIO* input_quantized,
     float input_scale, int input_zero_point, int* output_dims_data,
     const float* expected_output_data, TIO* expected_output_quantized,
@@ -331,12 +327,35 @@ TfLiteStatus TestDepthwiseConvQuantizedCompressed(
   const int output_dims_count = ElementCount(*output_dims);
   Quantize(expected_output_data, expected_output_quantized, output_dims_count,
            output_scale, output_zero_point);
-  return ValidateDepthwiseConvGoldens(
-      expected_output_quantized, output_dims_count, conv_params, tolerance,
-      tensors_size, tensors, filter_comp_info, bias_comp_info);
+  ValidateDepthwiseConvGoldens(expected_output_quantized, output_dims_count,
+                               conv_params, tolerance, tensors_size, tensors,
+                               filter_comp_info, bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION
+
+void ValidateDepthwiseConvFails(int tensors_size, TfLiteTensor* tensors,
+                                TfLiteDepthwiseConvParams* conv_params) {
+  int inputs_array_data[] = {3, 0, 1, 2};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 3};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_DEPTHWISE_CONV_2D();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array,
+                             reinterpret_cast<void*>(conv_params));
+
+  int input_depth = tensors[0].dims->data[3];
+  int output_depth = tensors[1].dims->data[3];
+  int depth_mul = output_depth / input_depth;
+
+  conv_params->padding = kTfLitePaddingValid;
+  conv_params->depth_multiplier = depth_mul;
+
+  const char* init_data = reinterpret_cast<const char*>(conv_params);
+  EXPECT_NE(runner.InitAndPrepare(init_data), kTfLiteOk);
+}
 
 // TODO(ddavis-2015): is this still valid?
 // Xtensa kernels do not support float activations., and the corresponding tests
@@ -769,9 +788,9 @@ TEST(DepthwiseConvTest, PerChannelBroadcastQuantizationParams) {
   conv_params.stride_height = 1;
   conv_params.stride_width = 1;
 
-  EXPECT_EQ(kTfLiteOk, tflite::testing::ValidateDepthwiseConvGoldens(
-                           golden_quantized, output_dims_count, &conv_params,
-                           1e-5, tensors_size, tensors));
+  tflite::testing::ValidateDepthwiseConvGoldens(golden_quantized,
+                                                output_dims_count, &conv_params,
+                                                1e-5, tensors_size, tensors);
 }
 
 #endif  // !defined(XTENSA)
@@ -792,7 +811,6 @@ TEST(DepthwiseConvTest, FilterDimsNotMatchingAffineQuantization) {
   int8_t input_quantized[input_size];
   int8_t filter_quantized[filter_size];
   int32_t bias_quantized[bias_size];
-  int8_t golden_quantized[output_size] = {};
   int zero_points[bias_size + 1];
   float scales[bias_size + 1];
   int8_t output_data[output_size];
@@ -852,16 +870,14 @@ TEST(DepthwiseConvTest, FilterDimsNotMatchingAffineQuantization) {
   TfLiteAffineQuantization* quant = reinterpret_cast<TfLiteAffineQuantization*>(
       filter_tensor.quantization.params);
   quant->scale->size = 2;
-  EXPECT_EQ(kTfLiteError, tflite::testing::ValidateDepthwiseConvGoldens(
-                              golden_quantized, output_size, &conv_params, 1e-5,
-                              tensors_size, tensors));
+  tflite::testing::ValidateDepthwiseConvFails(tensors_size, tensors,
+                                              &conv_params);
 
   // Set scale back to correct dimension, and make zero point array too short.
   quant->scale->size = filter_shape[0];
   quant->zero_point->size = 2;
-  EXPECT_EQ(kTfLiteError, tflite::testing::ValidateDepthwiseConvGoldens(
-                              golden_quantized, output_size, &conv_params, 1e-5,
-                              tensors_size, tensors));
+  tflite::testing::ValidateDepthwiseConvFails(tensors_size, tensors,
+                                              &conv_params);
 }
 
 TEST(DepthwiseConvTest, Int8Input32x4Filter32x4ShouldMatchGolden) {
@@ -1139,9 +1155,9 @@ TEST(DepthwiseConvTest, Int8Input32x1Filter32x1ShouldMatchGolden) {
   conv_params.dilation_height_factor = 1;
   conv_params.stride_height = 2;
   conv_params.stride_width = 2;
-  EXPECT_EQ(kTfLiteOk, tflite::testing::ValidateDepthwiseConvGoldens(
-                           golden_quantized, output_elements, &conv_params,
-                           kQuantizationTolerance, kTensorsSize, tensors));
+  tflite::testing::ValidateDepthwiseConvGoldens(
+      golden_quantized, output_elements, &conv_params, kQuantizationTolerance,
+      kTensorsSize, tensors);
 }
 
 // TODO(b/268384678): xtensa vision p6 kernels break
@@ -1341,14 +1357,12 @@ TEST(DepthwiseConvTest, SimpleTestQuantizedPerChannelInt8Compressed) {
 
   // tolerance of 3 is approx. 2.0f
   // TODO(ddavis-2015): why does the tolerance differ from TfLite test???
-  EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestDepthwiseConvQuantizedCompressed(
-          tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
-          input_quantized, input_scale, input_zero_point,
-          tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
-          golden_quantized, output_quantized, output_scale, output_zero_point,
-          &conv_params, 3, &filter_comp_info, &bias_comp_info));
+  tflite::testing::TestDepthwiseConvQuantizedCompressed(
+      tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
+      golden_quantized, output_quantized, output_scale, output_zero_point,
+      &conv_params, 3, &filter_comp_info, &bias_comp_info);
 }
 
 TEST(DepthwiseConvTest, SimpleTestQuantizedPerChannelInt16Compressed) {
@@ -1409,14 +1423,12 @@ TEST(DepthwiseConvTest, SimpleTestQuantizedPerChannelInt16Compressed) {
   conv_params.stride_width = 1;
 
   // tolerance of 512 is approx. 1.0f
-  EXPECT_EQ(
-      kTfLiteOk,
-      tflite::testing::TestDepthwiseConvQuantizedCompressed(
-          tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
-          input_quantized, input_scale, input_zero_point,
-          tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
-          golden_quantized, output_quantized, output_scale, output_zero_point,
-          &conv_params, 512, &filter_comp_info, &bias_comp_info));
+  tflite::testing::TestDepthwiseConvQuantizedCompressed(
+      tflite::testing::kInputShapeQ1, tflite::testing::kInputDataQ1,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
+      golden_quantized, output_quantized, output_scale, output_zero_point,
+      &conv_params, 512, &filter_comp_info, &bias_comp_info);
 }
 
 #endif  // USE_TFLM_COMPRESSION
