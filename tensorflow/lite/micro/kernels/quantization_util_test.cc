@@ -23,11 +23,11 @@ namespace {
 template <class FloatIn, class IntOut>
 void RunSafeCastTests() {
   const IntOut imax = std::numeric_limits<IntOut>::max();
-  EXPECT_GT(imax, 0);
+  EXPECT_GT(imax, static_cast<IntOut>(0));
   const IntOut imin = std::numeric_limits<IntOut>::min();
   const bool s = std::numeric_limits<IntOut>::is_signed;
   if (s) {
-    EXPECT_LT(static_cast<IntOut>(imin), 0);
+    EXPECT_LT(static_cast<IntOut>(imin), static_cast<IntOut>(0));
   } else {
     EXPECT_EQ(static_cast<IntOut>(0), imin);
   }
