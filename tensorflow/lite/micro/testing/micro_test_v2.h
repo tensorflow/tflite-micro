@@ -470,7 +470,7 @@ inline TfLiteStatus RunAllTests() { return internal::TestRunner::Get().Run(); }
   }
 
 // -----------------------------------------------------------------------------
-// Global accessors for test failures (gtest compatibility)
+// Global accessors for test failures (googletest compatibility)
 // -----------------------------------------------------------------------------
 
 namespace testing {
