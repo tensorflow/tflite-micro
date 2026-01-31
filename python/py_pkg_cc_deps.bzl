@@ -23,50 +23,6 @@ available, it might help to examine the directory tree in the external
 repository created for the package by rules_python. The external repository is
 created in the bazel cache; in the example below, in a subdirectory
 `external/tflm_pip_deps_numpy`.
-
-For example, to use the headers from NumPy:
-
-1. Add Python dependencies (numpy is named in python_requirements.txt), via the
-usual method, to an external repository named `tflm_pip_deps` via @rules_python
-in the WORKSPACE:
-```
-    load("@rules_python//python:pip.bzl", "pip_parse")
-    pip_parse(
-       name = "tflm_pip_deps",
-       requirements_lock = "@//third_party:python_requirements.txt",
-    )
-    load("@tflm_pip_deps//:requirements.bzl", "install_deps")
-    install_deps()
-```
-
-2. Use the repository rule `py_pkg_cc_deps` in the WORKSPACE to create an
-external repository with a target `@numpy_cc_deps//:cc_headers`, passing the
-`:pkg` target from @tflm_pip_deps, obtained via requirement(), and an
-`includes` path based on an examination of the package and the desired #include
-paths in the C code:
-```
-    load("@tflm_pip_deps//:requirements.bzl", "requirement")
-    load("@//python:py_pkg_cc_deps.bzl", "py_pkg_cc_deps")
-    py_pkg_cc_deps(
-        name = "numpy_cc_deps",
-        pkg = requirement("numpy"),
-        includes = ["numpy/core/include"],
-    )
-```
-
-3. Use the cc_library target `@numpy_cc_deps//:cc_headers` in a BUILD file as
-a dependency to a rule that needs the headers, e.g., the cc_library()-based
-pybind_library():
-```
-    pybind_library(
-        name = "your_extension_lib",
-        srcs = [...],
-        deps = ["@numpy_cc_deps//:cc_headers", ...],
-    )
-```
-
-See the test target //python/tests:cc_dep_link_test elsewhere for an example
-which links against a library shipped in a Python package.
 """
 
 # This extends the standard rules_python rules to expose C-language dependences
@@ -102,14 +58,13 @@ def _join_paths(a, b):
     return result
 
 def _make_build_file(basedir, include_paths, libs):
-    template = """\
-package(
+    template = """\npackage(
     default_visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "cc_headers",
-    hdrs = glob(%s, allow_empty=False, exclude_directories=1),
+    hdrs = glob(%s, allow_empty=True, exclude_directories=1),
     includes = %s,
 )
 
@@ -162,6 +117,109 @@ py_pkg_cc_deps = repository_rule(
         "libs": attr.string_list(
             doc = "list of libraries against which to link",
             mandatory = False,
+        ),
+    },
+)
+
+def _cc_deps_impl(ctx):
+    # Dictionary to store group of configs by name
+    # { name: [config, ...] }
+    groups = {}
+    for mod in ctx.modules:
+        for config in mod.tags.config:
+            if config.name not in groups:
+                groups[config.name] = []
+            groups[config.name].append(config)
+
+    for name, configs in groups.items():
+        # Create a hub repository that selects between versions
+        name_version_map = {}
+
+        for config in configs:
+            for version in config.versions:
+                vname = "%s_%s" % (name, version.replace(".", ""))
+
+                # Construct package label from template
+                # e.g. @tflm_pip_deps_310_numpy//:pkg
+                pip_repo = config.pip_repo_template.format(
+                    version = version.replace(".", ""),
+                    pkg = config.pkg_name,
+                )
+                pkg_label = Label("@%s//:pkg" % pip_repo)
+
+                py_pkg_cc_deps(
+                    name = vname,
+                    pkg = pkg_label,
+                    includes = config.includes,
+                    libs = config.libs,
+                )
+                name_version_map[version] = vname
+
+        _py_pkg_cc_deps_hub(
+            name = name,
+            name_version_map = name_version_map,
+        )
+
+def _py_pkg_cc_deps_hub_impl(ctx):
+    # Map from python version string to repo name
+    # e.g. {"3.10": "numpy_cc_deps_310"}
+
+    content = """
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "cc_headers",
+    deps = select({
+%s
+    }),
+)
+
+cc_library(
+    name = "cc_library",
+    deps = select({
+%s
+    }),
+)
+"""
+    headers_lines = []
+    library_lines = []
+
+    # Sort versions to ensure deterministic output
+    sorted_versions = sorted(ctx.attr.name_version_map.keys())
+
+    for version in sorted_versions:
+        repo = ctx.attr.name_version_map[version]
+        condition = "@rules_python//python/config_settings:is_python_%s" % version
+        headers_lines.append('        "%s": ["@%s//:cc_headers"],' % (condition, repo))
+        library_lines.append('        "%s": ["@%s//:cc_library"],' % (condition, repo))
+
+    # Add a default condition using the first sorted version
+    if sorted_versions:
+        first_repo = ctx.attr.name_version_map[sorted_versions[0]]
+        headers_lines.append('        "//conditions:default": ["@%s//:cc_headers"],' % first_repo)
+        library_lines.append('        "//conditions:default": ["@%s//:cc_library"],' % first_repo)
+
+    ctx.file("BUILD", content % ("\n".join(headers_lines), "\n".join(library_lines)))
+
+_py_pkg_cc_deps_hub = repository_rule(
+    implementation = _py_pkg_cc_deps_hub_impl,
+    attrs = {
+        "name_version_map": attr.string_dict(mandatory = True),
+    },
+)
+
+cc_deps = module_extension(
+    implementation = _cc_deps_impl,
+    tag_classes = {
+        "config": tag_class(
+            attrs = {
+                "name": attr.string(mandatory = True),
+                "includes": attr.string_list(mandatory = True),
+                "libs": attr.string_list(),
+                "versions": attr.string_list(mandatory = True),
+                "pkg_name": attr.string(mandatory = True),
+                "pip_repo_template": attr.string(mandatory = True),
+            },
         ),
     },
 )
