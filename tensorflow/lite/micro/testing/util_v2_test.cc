@@ -110,6 +110,22 @@ TEST(FrameworkTest, FatalAssertionsPass) {
   ASSERT_NEAR(10.0, 10.1, 0.2);
 }
 
+TEST(FrameworkTest, FailureAccessors) {
+  EXPECT_FALSE(HasFailure());
+  EXPECT_FALSE(HasFatalFailure());
+  EXPECT_FALSE(HasNonfatalFailure());
+
+  EXPECT_EQ(1, 1);
+  EXPECT_FALSE(HasFailure());
+}
+
+TEST(FrameworkTest, NoFatalFailure) {
+  ASSERT_NO_FATAL_FAILURE(EXPECT_TRUE(true));
+  EXPECT_NO_FATAL_FAILURE(EXPECT_TRUE(true));
+  ASSERT_NO_FATAL_FAILURE(ASSERT_TRUE(true));
+  EXPECT_NO_FATAL_FAILURE(ASSERT_TRUE(true));
+}
+
 namespace {
 
 class LifecycleTest : public testing::Test {
@@ -129,6 +145,8 @@ int LifecycleTest::teardown_count_ = 0;
 TEST_F(LifecycleTest, TestInstance1) {
   EXPECT_GT(setup_count_, 0);
   EXPECT_EQ(teardown_count_, setup_count_ - 1);
+  EXPECT_FALSE(HasFailure());
+  EXPECT_FALSE(testing::Test::HasFailure());
 }
 
 TEST_F(LifecycleTest, TestInstance2) {
