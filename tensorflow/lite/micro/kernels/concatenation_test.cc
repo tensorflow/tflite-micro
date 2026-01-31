@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -52,8 +52,8 @@ void TestConcatenateOneInput(int* input1_dims_data, const T* input1_data,
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -82,10 +82,8 @@ void TestConcatenateTwoInputs(
   const CompressedTensorList* comp_list_p = nullptr;
 
   if (comp_info != nullptr) {
-    TF_LITE_MICRO_EXPECT_EQ(tcl.AddInput((*comp_info)[0], tensors[0], 0),
-                            kTfLiteOk);
-    TF_LITE_MICRO_EXPECT_EQ(tcl.AddInput((*comp_info)[1], tensors[1], 1),
-                            kTfLiteOk);
+    EXPECT_EQ(tcl.AddInput((*comp_info)[0], tensors[0], 0), kTfLiteOk);
+    EXPECT_EQ(tcl.AddInput((*comp_info)[1], tensors[1], 1), kTfLiteOk);
     comp_list_p = tcl.GetCompressedTensorList();
   }
 
@@ -111,8 +109,8 @@ void TestConcatenateTwoInputs(
 #endif  // USE_TFLM_COMPRESSION
   );
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 void TestConcatenateTwoFloatInputs(
@@ -135,7 +133,7 @@ void TestConcatenateTwoFloatInputs(
   TfLiteIntArray* dims = tflite::testing::IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*dims);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -175,12 +173,12 @@ void TestConcatenateQuantizedTwoInputs(
                              outputs_array,
                              reinterpret_cast<void*>(&builtin_data));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   const int output_dims_count = ElementCount(*output_dims);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -214,8 +212,8 @@ void TestConcatenateQuantizedTwoInputsCompressed(
   TestCompressedList<tensors_size> tcl;
   const CompressedTensorList* comp_list_p = nullptr;
 
-  TF_LITE_MICRO_EXPECT_EQ(tcl.AddInput(comp_info[0], tensors[0], 0), kTfLiteOk);
-  TF_LITE_MICRO_EXPECT_EQ(tcl.AddInput(comp_info[1], tensors[1], 1), kTfLiteOk);
+  EXPECT_EQ(tcl.AddInput(comp_info[0], tensors[0], 0), kTfLiteOk);
+  EXPECT_EQ(tcl.AddInput(comp_info[1], tensors[1], 1), kTfLiteOk);
   comp_list_p = tcl.GetCompressedTensorList();
 
 #endif  // USE_TFLM_COMPRESSION
@@ -235,12 +233,12 @@ void TestConcatenateQuantizedTwoInputsCompressed(
       registration, tensors, tensors_size, inputs_array, outputs_array,
       reinterpret_cast<void*>(&builtin_data), nullptr, comp_list_p);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   const int output_dims_count = ElementCount(*output_dims);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output_data[i], output_data[i]);
+    EXPECT_EQ(expected_output_data[i], output_data[i]);
   }
 }
 
@@ -250,9 +248,7 @@ void TestConcatenateQuantizedTwoInputsCompressed(
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(BoolTypeOneInput) {
+TEST(ConcatenationTest, BoolTypeOneInput) {
   int input_shape[] = {3, 2, 1, 2};
   int output_shape[] = {3, 2, 1, 2};
   const bool input_value[] = {true, false, false, true};
@@ -265,11 +261,11 @@ TF_LITE_MICRO_TEST(BoolTypeOneInput) {
   TfLiteIntArray* dims = tflite::testing::IntArrayFromInts(output_shape);
   const int output_dims_count = tflite::ElementCount(*dims);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(input_value[i], output_data[i]);
+    EXPECT_EQ(input_value[i], output_data[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(BoolTypeTwoInputs) {
+TEST(ConcatenationTest, BoolTypeTwoInputs) {
   int input1_shape[] = {3, 2, 1, 2};
   const bool input1_value[] = {false, false, false, false};
   int input2_shape[] = {3, 2, 3, 2};
@@ -291,11 +287,11 @@ TF_LITE_MICRO_TEST(BoolTypeTwoInputs) {
   TfLiteIntArray* dims = tflite::testing::IntArrayFromInts(output_shape);
   const int output_dims_count = tflite::ElementCount(*dims);
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_EQ(expected_output[i], output_data[i]);
+    EXPECT_EQ(expected_output[i], output_data[i]);
   }
 }
 
-TF_LITE_MICRO_TEST(TwoInputsAllAxesCombinations) {
+TEST(ConcatenationTest, TwoInputsAllAxesCombinations) {
   // Concatenate the same two input tensors along all possible axes.
 
   int input_shape[] = {2, 2, 3};
@@ -337,7 +333,7 @@ TF_LITE_MICRO_TEST(TwoInputsAllAxesCombinations) {
 
 #ifdef USE_TFLM_COMPRESSION
 
-TF_LITE_MICRO_TEST(TwoInputsFloatCompressed) {
+TEST(ConcatenationTest, TwoInputsFloatCompressed) {
   int input_shape[] = {2, 2, 3};
   const float input1_value[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
   const float input2_value[] = {7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f};
@@ -372,7 +368,7 @@ TF_LITE_MICRO_TEST(TwoInputsFloatCompressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
-TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8) {
+TEST(ConcatenationTest, TwoInputsQuantizedInt8) {
   const int axis = 2;
   int input_shape[] = {3, 2, 1, 2};
   int output_shape[] = {3, 2, 1, 4};
@@ -397,7 +393,7 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8) {
 
 #ifdef USE_TFLM_COMPRESSION
 
-TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8Compressed) {
+TEST(ConcatenationTest, TwoInputsQuantizedInt8Compressed) {
   const int axis = 2;
   int input_shape[] = {3, 2, 1, 2};
   int output_shape[] = {3, 2, 1, 4};
@@ -434,7 +430,7 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
-TF_LITE_MICRO_TEST(TwoInputsQuantizedInt16) {
+TEST(ConcatenationTest, TwoInputsQuantizedInt16) {
   const int axis = 2;
   int input_shape[] = {3, 2, 1, 2};
   int output_shape[] = {3, 2, 1, 4};
@@ -459,7 +455,7 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt16) {
 
 #ifdef USE_TFLM_COMPRESSION
 
-TF_LITE_MICRO_TEST(TwoInputsQuantizedInt16Compressed) {
+TEST(ConcatenationTest, TwoInputsQuantizedInt16Compressed) {
   const int axis = 2;
   int input_shape[] = {3, 2, 1, 2};
   int output_shape[] = {3, 2, 1, 4};
@@ -496,7 +492,7 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt16Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
-TF_LITE_MICRO_TEST(ThreeDimensionalTwoInputsDifferentShapes) {
+TEST(ConcatenationTest, ThreeDimensionalTwoInputsDifferentShapes) {
   const int axis = 1;
 
   int input1_shape[] = {3, 2, 1, 2};
@@ -516,7 +512,7 @@ TF_LITE_MICRO_TEST(ThreeDimensionalTwoInputsDifferentShapes) {
       output_shape, output_values, output_data);
 }
 
-TF_LITE_MICRO_TEST(TwoInputsFiveDimensionsAllAxesCombinations) {
+TEST(ConcatenationTest, TwoInputsFiveDimensionsAllAxesCombinations) {
   // Concatenate the same two input tensors along all possible axes.
   int input_shape[] = {5, 2, 1, 2, 1, 3};
   const int kInputSize = 12;
@@ -558,7 +554,7 @@ TF_LITE_MICRO_TEST(TwoInputsFiveDimensionsAllAxesCombinations) {
       output_shape_axis_minus2, output_value_axis_minus2, output_data);
 }
 
-TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8FiveDimensions) {
+TEST(ConcatenationTest, TwoInputsQuantizedInt8FiveDimensions) {
   const int axis = 2;
   int input_shape[] = {5, 2, 1, 2, 1, 3};
   const int kInputSize = 12;
@@ -582,4 +578,4 @@ TF_LITE_MICRO_TEST(TwoInputsQuantizedInt8FiveDimensions) {
       output_zero_point, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

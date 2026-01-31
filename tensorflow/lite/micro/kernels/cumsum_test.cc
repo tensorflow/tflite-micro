@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -47,8 +47,8 @@ void ExecuteCumSumTest(CumSumTestParams& test_params, TfLiteTensor* tensors,
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, static_cast<void*>(&params));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -73,7 +73,7 @@ void TestCumSum(CumSumTestParams& test_params, int* input_dims_data,
 
   constexpr float kTolerance = 1e-5;
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -126,7 +126,7 @@ void TestCumSumQuantized(CumSumTestParams& test_params,
   Dequantize(params->output_data, kOutputSize, scale, zero_point, output_data);
   const float kTolerance = GetTolerance<T>(params->data_min, params->data_max);
   for (int i = 0; i < kOutputSize; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
+    EXPECT_NEAR(expected_data[i], output_data[i], kTolerance);
   }
 }
 
@@ -134,9 +134,7 @@ void TestCumSumQuantized(CumSumTestParams& test_params,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleTest) {
+TEST(CumsumTest, CumSumOpTestSimpleTest) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {1, 3, 6, 10, 5, 11, 18, 26};
@@ -151,7 +149,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleTest) {
                               output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleAxis0Test) {
+TEST(CumsumTest, CumSumOpTestSimpleAxis0Test) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {1, 2, 3, 4, 6, 8, 10, 12};
@@ -166,7 +164,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleAxis0Test) {
                               output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimple1DTest) {
+TEST(CumsumTest, CumSumOpTestSimple1DTest) {
   int kDims[] = {1, 8};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {1, 3, 6, 10, 15, 21, 28, 36};
@@ -181,7 +179,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimple1DTest) {
                               output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseTest) {
+TEST(CumsumTest, CumSumOpTestSimpleReverseTest) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {10, 9, 7, 4, 26, 21, 15, 8};
@@ -197,7 +195,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseTest) {
                               output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleExclusiveTest) {
+TEST(CumsumTest, CumSumOpTestSimpleExclusiveTest) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {0, 1, 3, 6, 0, 5, 11, 18};
@@ -213,7 +211,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleExclusiveTest) {
                               output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseExclusiveTest) {
+TEST(CumsumTest, CumSumOpTestSimpleReverseExclusiveTest) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {9, 7, 4, 0, 21, 15, 8, 0};
@@ -230,7 +228,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseExclusiveTest) {
                               output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleTestInt8) {
+TEST(CumsumTest, CumSumOpTestSimpleTestInt8) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {1, 3, 6, 10, 5, 11, 18, 26};
@@ -249,7 +247,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleTestInt8) {
       test_params, &params, kDims, kInput, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleAxis0TestInt8) {
+TEST(CumsumTest, CumSumOpTestSimpleAxis0TestInt8) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {1, 2, 3, 4, 6, 8, 10, 12};
@@ -268,7 +266,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleAxis0TestInt8) {
       test_params, &params, kDims, kInput, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimple1DTestInt8) {
+TEST(CumsumTest, CumSumOpTestSimple1DTestInt8) {
   int kDims[] = {1, 8};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {1, 3, 6, 10, 15, 21, 28, 36};
@@ -287,7 +285,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimple1DTestInt8) {
       test_params, &params, kDims, kInput, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseTestInt8) {
+TEST(CumsumTest, CumSumOpTestSimpleReverseTestInt8) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {10, 9, 7, 4, 26, 21, 15, 8};
@@ -307,7 +305,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseTestInt8) {
       test_params, &params, kDims, kInput, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleExclusiveTestInt8) {
+TEST(CumsumTest, CumSumOpTestSimpleExclusiveTestInt8) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {0, 1, 3, 6, 0, 5, 11, 18};
@@ -327,7 +325,7 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleExclusiveTestInt8) {
       test_params, &params, kDims, kInput, kDims, kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseExclusiveTestInt8) {
+TEST(CumsumTest, CumSumOpTestSimpleReverseExclusiveTestInt8) {
   int kDims[] = {2, 2, 4};
   constexpr float kInput[] = {1, 2, 3, 4, 5, 6, 7, 8};
   constexpr float kExpect[] = {9, 7, 4, 0, 21, 15, 8, 0};
@@ -347,4 +345,4 @@ TF_LITE_MICRO_TEST(CumSumOpTestSimpleReverseExclusiveTestInt8) {
   tflite::testing::TestCumSumQuantized<int8_t, kOutputCount>(
       test_params, &params, kDims, kInput, kDims, kExpect, output_data);
 }
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
