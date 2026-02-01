@@ -31,7 +31,7 @@ You can also read more about Renode from a [publicly available slide deck](https
 # Installation
 
 Renode can be installed and used in a variety of ways, as documented in the
-[Renode README](https://github.com/renode/renode/blob/master/README.rst#installation/). For the purpose of Tensorflow
+[Renode README](https://github.com/renode/renode/blob/master/README.md)#installation/). For the purpose of Tensorflow
 Lite Micro, we make use of the portable version for Linux.
 
 Portable renode will be automatically installed when using the TfLite Micro
