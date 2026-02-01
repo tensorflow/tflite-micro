@@ -203,7 +203,7 @@ def assemble_quantized_tensor(float_data,
 
 
 def create_gate_params(gate_parameters, model_config, modulation=False):
-  """Create a QuantizedGateParams using the gate paramater information and the model configuration"""
+  """Create a QuantizedGateParams using the gate parameter information and the model configuration"""
   shape_info = model_config['shape_info']
   quantization_settings = model_config['quantization_settings']
 
