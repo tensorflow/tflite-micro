@@ -33,7 +33,7 @@ class PersistentArenaBufferAllocator : public IPersistentBufferAllocator {
   virtual ~PersistentArenaBufferAllocator();
 
   // Allocates persistent memory. The persistent buffer is never freed.
-  // Returns nullptr if errors occured.
+  // Returns nullptr if errors occurred.
   uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment) override;
 
   // Returns the size of all persistent allocations in bytes.
