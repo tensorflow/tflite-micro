@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 // See: tensorflow/lite/micro/kernels/detection_postprocess_test/README.md
 #include "tensorflow/lite/micro/kernels/detection_postprocess_flexbuffers_generated_data.h"
@@ -107,10 +107,10 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
   tensors[6] = CreateTensor(output_data4, output_dims4);
 
   MicroMutableOpResolver<1> resolver;
-  TF_LITE_MICRO_EXPECT_EQ(resolver.AddDetectionPostprocess(), kTfLiteOk);
+  EXPECT_EQ(resolver.AddDetectionPostprocess(), kTfLiteOk);
   const TFLMRegistration* registration =
       resolver.FindOp("TFLite_Detection_PostProcess");
-  TF_LITE_MICRO_EXPECT(registration != nullptr);
+  EXPECT_NE(registration, nullptr);
 
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
@@ -135,11 +135,11 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
   // char*. This small discrepancy results in compiler warnings unless we
   // reinterpret_cast right before passing in the flexbuffer bytes to the
   // KernelRunner.
-  TF_LITE_MICRO_EXPECT_EQ(
-      kTfLiteOk, runner.InitAndPrepare(reinterpret_cast<const char*>(init_data),
-                                       data_size));
+  EXPECT_EQ(kTfLiteOk,
+            runner.InitAndPrepare(reinterpret_cast<const char*>(init_data),
+                                  data_size));
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   int output_elements_count1 = ElementCount(*tensors[3].dims);
   int output_elements_count2 = ElementCount(*tensors[4].dims);
@@ -147,25 +147,23 @@ void TestDetectionPostprocess(int* input_dims_data1, const float* input_data1,
   int output_elements_count4 = ElementCount(*tensors[6].dims);
 
   for (int i = 0; i < output_elements_count1; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden1[i], output_data1[i], tolerance);
+    EXPECT_NEAR(golden1[i], output_data1[i], tolerance);
   }
   for (int i = 0; i < output_elements_count2; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden2[i], output_data2[i], tolerance);
+    EXPECT_NEAR(golden2[i], output_data2[i], tolerance);
   }
   for (int i = 0; i < output_elements_count3; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden3[i], output_data3[i], tolerance);
+    EXPECT_NEAR(golden3[i], output_data3[i], tolerance);
   }
   for (int i = 0; i < output_elements_count4; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(golden4[i], output_data4[i], tolerance);
+    EXPECT_NEAR(golden4[i], output_data4[i], tolerance);
   }
 }
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(DetectionPostprocessFloatFastNMS) {
+TEST(DetectionPostprocessTest, DetectionPostprocessFloatFastNMS) {
   float output_data1[12];
   float output_data2[3];
   float output_data3[3];
@@ -184,7 +182,7 @@ TF_LITE_MICRO_TEST(DetectionPostprocessFloatFastNMS) {
       /* tolerance */ 0, /* Use regular NMS: */ false);
 }
 
-TF_LITE_MICRO_TEST(DetectionPostprocessFloatRegularNMS) {
+TEST(DetectionPostprocessTest, DetectionPostprocessFloatRegularNMS) {
   float output_data1[12];
   float output_data2[3];
   float output_data3[3];
@@ -206,8 +204,8 @@ TF_LITE_MICRO_TEST(DetectionPostprocessFloatRegularNMS) {
       /* tolerance */ 1e-1, /* Use regular NMS: */ true);
 }
 
-TF_LITE_MICRO_TEST(
-    DetectionPostprocessFloatFastNMSwithNoBackgroundClassAndKeypoints) {
+TEST(DetectionPostprocessTest,
+     DetectionPostprocessFloatFastNMSwithNoBackgroundClassAndKeypoints) {
   int kInputShape1[] = {3, 1, 6, 5};
   int kInputShape2[] = {3, 1, 6, 2};
 
@@ -242,8 +240,8 @@ TF_LITE_MICRO_TEST(
       /* tolerance */ 0, /* Use regular NMS: */ false);
 }
 
-TF_LITE_MICRO_TEST(
-    DetectionPostprocessFloatRegularNMSwithNoBackgroundClassAndKeypoints) {
+TEST(DetectionPostprocessTest,
+     DetectionPostprocessFloatRegularNMSwithNoBackgroundClassAndKeypoints) {
   int kInputShape2[] = {3, 1, 6, 2};
 
   // class scores - two classes without background
@@ -271,8 +269,8 @@ TF_LITE_MICRO_TEST(
       /* tolerance */ 1e-1, /* Use regular NMS: */ true);
 }
 
-TF_LITE_MICRO_TEST(
-    DetectionPostprocessFloatFastNMSWithBackgroundClassAndKeypoints) {
+TEST(DetectionPostprocessTest,
+     DetectionPostprocessFloatFastNMSWithBackgroundClassAndKeypoints) {
   int kInputShape1[] = {3, 1, 6, 5};
 
   // six boxes in center-size encoding
@@ -302,7 +300,8 @@ TF_LITE_MICRO_TEST(
       /* tolerance */ 0, /* Use regular NMS: */ false);
 }
 
-TF_LITE_MICRO_TEST(
+TEST(
+    DetectionPostprocessTest,
     DetectionPostprocessFloatFNMSSwithNoBackgroundClassAndKeypointsStableSort) {
   int kInputShape1[] = {3, 1, 6, 5};
   int kInputShape2[] = {3, 1, 6, 2};
@@ -340,4 +339,4 @@ TF_LITE_MICRO_TEST(
       /* tolerance */ 3e-1, /* Use regular NMS: */ false);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
