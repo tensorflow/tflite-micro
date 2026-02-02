@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -46,11 +46,11 @@ void TestCeil(int* input_dims_data, const float* input_data,
                              outputs_array,
                              /*builtin_data=*/nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -58,9 +58,7 @@ void TestCeil(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SingleDim) {
+TEST(CeilTest, SingleDim) {
   float output_data[2];
   int input_dims[] = {1, 2};
   const float input_values[] = {8.5, 0.0};
@@ -68,7 +66,7 @@ TF_LITE_MICRO_TEST(SingleDim) {
   tflite::testing::TestCeil(input_dims, input_values, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(MultiDims) {
+TEST(CeilTest, MultiDims) {
   float output_data[10];
   int input_dims[] = {4, 2, 1, 1, 5};
   const float input_values[] = {
@@ -79,4 +77,4 @@ TF_LITE_MICRO_TEST(MultiDims) {
   tflite::testing::TestCeil(input_dims, input_values, golden, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/mock_micro_graph.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -39,24 +39,22 @@ void TestCallOnce(const int subgraph0_invoke_count_golden,
   micro::KernelRunner runner(registration, nullptr, 0, inputs_array,
                              outputs_array, &params);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
   for (int i = 0; i < subgraph0_invoke_count_golden; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+    EXPECT_EQ(kTfLiteOk, runner.Invoke());
   }
 
-  TF_LITE_MICRO_EXPECT_EQ(subgraph1_invoke_count_golden,
-                          runner.GetMockGraph()->get_invoke_count(1));
+  EXPECT_EQ(subgraph1_invoke_count_golden,
+            runner.GetMockGraph()->get_invoke_count(1));
 }
 
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(CallOnceShouldOnlyInvokeSubgraphOnce) {
+TEST(CallOnceTest, CallOnceShouldOnlyInvokeSubgraphOnce) {
   tflite::testing::TestCallOnce(1, 1);
   tflite::testing::TestCallOnce(10, 1);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
