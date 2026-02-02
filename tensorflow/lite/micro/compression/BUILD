@@ -240,6 +240,16 @@ py_test(
     ],
 )
 
+py_library(
+    name = "compressor",
+    srcs = ["compressor.py"],
+    deps = [
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
 py_binary(
     name = "view",
     srcs = [
