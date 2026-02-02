@@ -204,28 +204,6 @@ py_test(
 )
 
 py_library(
-    name = "test_models",
-    srcs = ["test_models.py"],
-    deps = [
-        "//tensorflow/lite/python:schema_py",
-        requirement("flatbuffers"),
-        requirement("numpy"),
-    ],
-)
-
-py_test(
-    name = "test_models_test",
-    size = "small",
-    srcs = ["test_models_test.py"],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        ":test_models",
-        "//tensorflow/lite/python:schema_py",
-        requirement("tensorflow"),
-    ],
-)
-
-py_library(
     name = "model_editor",
     srcs = ["model_editor.py"],
     deps = [
