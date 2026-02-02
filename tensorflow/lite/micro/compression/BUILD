@@ -166,27 +166,6 @@ py_test(
 )
 
 py_library(
-    name = "model_facade",
-    srcs = ["model_facade.py"],
-    deps = [
-        "//tensorflow/lite/python:schema_py",
-        requirement("flatbuffers"),
-    ],
-)
-
-py_test(
-    name = "model_facade_test",
-    size = "small",
-    srcs = ["model_facade_test.py"],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        ":model_facade",
-        ":test_models",
-        requirement("tensorflow"),
-    ],
-)
-
-py_library(
     name = "spec",
     srcs = ["spec.py"],
     deps = [
