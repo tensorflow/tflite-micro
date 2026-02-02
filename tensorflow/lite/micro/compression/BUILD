@@ -191,6 +191,31 @@ py_test(
     ],
 )
 
+py_test(
+    name = "proprietary_integration_test",
+    size = "small",
+    srcs = ["proprietary_integration_test.py"],
+    tags = [
+        "manual",
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = select({
+        "//:with_compression_enabled": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        ":compress_lib",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
 py_library(
     name = "spec",
     srcs = ["spec.py"],
