@@ -19,7 +19,7 @@ import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
-from tflite_micro.tensorflow.lite.micro.compression import model_facade
+from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.micro.compression import test_models
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
@@ -368,12 +368,12 @@ class TestsCompression(tf.test.TestCase):
   def setUpClass(cls):
     super().setUpClass()
     cls.flatbuffer = test_models.build(TEST_MODEL)
-    cls.uncompressed = model_facade.read(cls.flatbuffer)
+    cls.uncompressed = model_editor.read(cls.flatbuffer)
 
   def test_compression_metadata(self):
     """The compressed model has compression metadata."""
     compressed = compress.compress(self.flatbuffer, TEST_COMPRESSION_SPEC)
-    model = model_facade.read(compressed)
+    model = model_editor.read(compressed)
     self.assertIn("metadata0", self.uncompressed.metadata)
     self.assertIn(compress.TFLITE_METADATA_KEY, model.metadata)
 
@@ -461,16 +461,17 @@ class TestCompressedModel(tf.test.TestCase):
     super().setUpClass()
     # Create a model
     uncompressed_fb = test_models.build(TEST_MODEL)
-    cls.uncompressed = model_facade.read(uncompressed_fb)
+    cls.uncompressed = model_editor.read(uncompressed_fb)
 
     # Compress the model
     compressed_fb = compress.compress(uncompressed_fb, TEST_COMPRESSION_SPEC)
-    cls.compressed = model_facade.read(compressed_fb)
+    cls.compressed = model_editor.read(compressed_fb)
 
     # Extract the compression metadata
-    metadata_flatbuffer = cls.compressed.metadata[compress.TFLITE_METADATA_KEY]
-    cls.metadata = schema.MetadataT.InitFromPackedBuf(metadata_flatbuffer.data,
-                                                      0)
+    metadata_flatbuffer_bytes = cls.compressed.metadata[
+        compress.TFLITE_METADATA_KEY]
+    cls.metadata = schema.MetadataT.InitFromPackedBuf(
+        metadata_flatbuffer_bytes, 0)
 
   def test_uncompressed_tensors(self):
     """Tensors not in compression spec are not compressed.
@@ -515,7 +516,7 @@ class TestCompressedModel(tf.test.TestCase):
     indices = indices[:n_indices * bitwidth]  # trim possible padding
 
     value_buffer = self.compressed.buffers[lut_tensor.valueBuffer]
-    values = np.frombuffer(value_buffer.data, dtype=tensor_obj.dtype)
+    values = np.frombuffer(value_buffer.data, dtype=tensor_obj.numpy_dtype)
 
     return bitwidth, indices, values
 
