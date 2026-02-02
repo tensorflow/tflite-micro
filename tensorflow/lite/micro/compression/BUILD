@@ -165,6 +165,32 @@ py_test(
     ],
 )
 
+py_test(
+    name = "compression_integration_test",
+    size = "small",
+    srcs = ["compression_integration_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    # Only run when compression IS enabled
+    target_compatible_with = select({
+        "//:with_compression_enabled": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        ":compress_lib",
+        ":decode_insert",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
 py_library(
     name = "spec",
     srcs = ["spec.py"],
