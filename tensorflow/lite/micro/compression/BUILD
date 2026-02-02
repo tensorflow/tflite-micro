@@ -284,6 +284,28 @@ py_test(
     ],
 )
 
+py_library(
+    name = "huffman",
+    srcs = ["huffman.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
+py_library(
+    name = "pruning",
+    srcs = ["pruning.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
 py_binary(
     name = "view",
     srcs = [
