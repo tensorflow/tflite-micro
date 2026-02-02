@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -42,8 +42,8 @@ void ExecuteReverseTest(TfLiteTensor* tensors, int tensors_count) {
   micro::KernelRunner runner(registration, tensors, tensors_count, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
 template <typename T>
@@ -65,14 +65,12 @@ void TestReverse(int* input_dims_data[kNumInputs], const T* input_data_0,
 
   // check output data against expected
   for (int i = 0; i < output_count; i++) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_data[i], output_data[i], 0);
+    EXPECT_NEAR(expected_data[i], output_data[i], 0);
   }
 
-  TF_LITE_MICRO_EXPECT_EQ(output_dims->size,
-                          tensors[kOutputTensorIndex].dims->size);
+  EXPECT_EQ(output_dims->size, tensors[kOutputTensorIndex].dims->size);
   for (int i = 0; i < output_dims->size; i++) {
-    TF_LITE_MICRO_EXPECT_EQ(output_dims->data[i],
-                            tensors[kOutputTensorIndex].dims->data[i]);
+    EXPECT_EQ(output_dims->data[i], tensors[kOutputTensorIndex].dims->data[i]);
   }
 }
 
@@ -80,10 +78,8 @@ void TestReverse(int* input_dims_data[kNumInputs], const T* input_data_0,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
 // float32 tests.
-TF_LITE_MICRO_TEST(ReverseOpTestFloatOneDimension) {
+TEST(ReverseTest, ReverseOpTestFloatOneDimension) {
   int kInputDims_0[] = {1, 4};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -99,7 +95,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestFloatOneDimension) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestFloatMultiDimensions) {
+TEST(ReverseTest, ReverseOpTestFloatMultiDimensions) {
   int kInputDims_0[] = {3, 4, 3, 2};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -118,7 +114,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestFloatMultiDimensions) {
 }
 
 // int32 tests
-TF_LITE_MICRO_TEST(ReverseOpTestInt32OneDimension) {
+TEST(ReverseTest, ReverseOpTestInt32OneDimension) {
   int kInputDims_0[] = {1, 4};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -134,7 +130,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32OneDimension) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensions) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensions) {
   int kInputDims_0[] = {3, 4, 3, 2};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -152,7 +148,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensions) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsFirst) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsFirst) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -172,7 +168,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsFirst) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecond) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsSecond) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -192,7 +188,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecond) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsThird) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsThird) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -212,7 +208,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsThird) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsFirstSecond) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsFirstSecond) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 2};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -234,7 +230,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsFirstSecond) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecondThird) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsSecondThird) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 2};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -255,7 +251,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecondThird) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecondFirst) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsSecondFirst) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 2};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -277,7 +273,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsSecondFirst) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsAll) {
+TEST(ReverseTest, ReverseOpTestInt32MultiDimensionsAll) {
   int kInputDims_0[] = {3, 3, 3, 3};
   int kInputDims_1[] = {1, 3};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -298,7 +294,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt32MultiDimensionsAll) {
 }
 
 // uint8 tests
-TF_LITE_MICRO_TEST(ReverseOpTestUint8OneDimension) {
+TEST(ReverseTest, ReverseOpTestUint8OneDimension) {
   int kInputDims_0[] = {1, 4};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -315,7 +311,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestUint8OneDimension) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestUint8MultiDimensions) {
+TEST(ReverseTest, ReverseOpTestUint8MultiDimensions) {
   int kInputDims_0[] = {3, 4, 3, 2};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -334,7 +330,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestUint8MultiDimensions) {
 }
 
 // int8 tests
-TF_LITE_MICRO_TEST(ReverseOpTestInt8OneDimension) {
+TEST(ReverseTest, ReverseOpTestInt8OneDimension) {
   int kInputDims_0[] = {1, 4};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -350,7 +346,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt8OneDimension) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt8MultiDimensions) {
+TEST(ReverseTest, ReverseOpTestInt8MultiDimensions) {
   int kInputDims_0[] = {3, 4, 3, 2};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -370,7 +366,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt8MultiDimensions) {
 }
 
 // int16 tests
-TF_LITE_MICRO_TEST(ReverseOpTestInt16OneDimension) {
+TEST(ReverseTest, ReverseOpTestInt16OneDimension) {
   int kInputDims_0[] = {1, 4};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -386,7 +382,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt16OneDimension) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt16MultiDimensions) {
+TEST(ReverseTest, ReverseOpTestInt16MultiDimensions) {
   int kInputDims_0[] = {3, 4, 3, 2};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -405,7 +401,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt16MultiDimensions) {
 }
 
 // int64 tests
-TF_LITE_MICRO_TEST(ReverseOpTestInt64OneDimension) {
+TEST(ReverseTest, ReverseOpTestInt64OneDimension) {
   int kInputDims_0[] = {1, 4};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -421,7 +417,7 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt64OneDimension) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TEST(ReverseOpTestInt64MultiDimensions) {
+TEST(ReverseTest, ReverseOpTestInt64MultiDimensions) {
   int kInputDims_0[] = {3, 4, 3, 2};
   int kInputDims_1[] = {1, 1};
   int* kInputDims[tflite::testing::kNumInputs] = {kInputDims_0, kInputDims_1};
@@ -439,4 +435,4 @@ TF_LITE_MICRO_TEST(ReverseOpTestInt64MultiDimensions) {
                                kExpect, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

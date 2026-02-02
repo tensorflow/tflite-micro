@@ -17,7 +17,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
 namespace testing {
@@ -45,11 +45,11 @@ void TestRound(int* input_dims_data, const float* input_data,
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, nullptr);
 
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   for (int i = 0; i < output_dims_count; ++i) {
-    TF_LITE_MICRO_EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
+    EXPECT_NEAR(expected_output_data[i], output_data[i], 1e-5f);
   }
 }
 
@@ -57,9 +57,7 @@ void TestRound(int* input_dims_data, const float* input_data,
 }  // namespace testing
 }  // namespace tflite
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(SingleDim) {
+TEST(RoundTest, SingleDim) {
   int input_dims[] = {1, 6};
   const float input_data[] = {8.5, 0.0, 3.5, 4.2, -3.5, -4.5};
   const float golden[] = {8, 0, 4, 4, -4, -4};
@@ -67,7 +65,7 @@ TF_LITE_MICRO_TEST(SingleDim) {
   tflite::testing::TestRound(input_dims, input_data, golden, output_data);
 }
 
-TF_LITE_MICRO_TEST(MultiDims) {
+TEST(RoundTest, MultiDims) {
   int input_dims[] = {4, 2, 1, 1, 6};
   const float input_data[] = {0.0001,  8.0001,  0.9999,  9.9999, 0.5,  -0.0001,
                               -8.0001, -0.9999, -9.9999, -0.5,   -2.5, 1.5};
@@ -76,4 +74,4 @@ TF_LITE_MICRO_TEST(MultiDims) {
   tflite::testing::TestRound(input_dims, input_data, golden, output_data);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
