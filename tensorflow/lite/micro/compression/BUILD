@@ -118,14 +118,15 @@ py_library(
         "compress.py",
     ],
     deps = [
-        ":metadata_py",
+        ":compressor",
+        ":decode_insert",
+        ":huffman",
+        ":lut",
         ":model_editor",
+        ":pruning",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
         requirement("absl_py"),
-        "@flatbuffers//:runtime_py",
-        requirement("bitarray"),
-        requirement("numpy"),
     ],
 )
 
@@ -154,11 +155,11 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress",
-        ":metadata_py",
+        ":compressor",
+        ":decode_insert",
         ":model_editor",
         ":spec",
         "//tensorflow/lite/python:schema_py",
-        requirement("bitarray"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],
