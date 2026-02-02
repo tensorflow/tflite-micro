@@ -225,6 +225,21 @@ py_test(
     ],
 )
 
+py_library(
+    name = "decode",
+    srcs = ["decode.py"],
+)
+
+py_test(
+    name = "decode_test",
+    size = "small",
+    srcs = ["decode_test.py"],
+    deps = [
+        ":decode",
+        requirement("tensorflow"),
+    ],
+)
+
 py_binary(
     name = "view",
     srcs = [
