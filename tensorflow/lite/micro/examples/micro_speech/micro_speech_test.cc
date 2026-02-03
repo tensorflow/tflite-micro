@@ -146,8 +146,7 @@ TfLiteStatus LoadMicroSpeechModelAndPerformInference(
       std::distance(std::begin(category_predictions),
                     std::max_element(std::begin(category_predictions),
                                      std::end(category_predictions)));
-  if (!micro_test::internal::AreStringsEqual(
-          expected_label, kCategoryLabels[prediction_index])) {
+  if (strcmp(expected_label, kCategoryLabels[prediction_index]) != 0) {
     MicroPrintf("Expected label mismatch!");
     return kTfLiteError;
   }
