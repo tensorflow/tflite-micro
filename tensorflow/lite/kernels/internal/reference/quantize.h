@@ -43,7 +43,7 @@ inline void AffineQuantize(const tflite::QuantizationParams& op_params,
   for (int i = 0; i < flat_size; i++) {
     const InputT val = input_data[i];
     int32_t unclamped =
-        static_cast<int32_t>(TfLiteRound(val / static_cast<float>(scale))) +
+        static_cast<int32_t>((val / static_cast<float>(scale)) + 0.5) +
         zero_point;
     int32_t clamped = std::min(std::max(unclamped, min_val), max_val);
     output_data[i] = clamped;
