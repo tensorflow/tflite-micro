@@ -19,15 +19,13 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestImageProvider) {
+TEST(ImageProviderTest, TestImageProvider) {
   int8_t image_data[kMaxImageSize];
   TfLiteStatus get_status =
       GetImage(kNumCols, kNumRows, kNumChannels, image_data);
-  TF_LITE_MICRO_EXPECT_EQ(kTfLiteOk, get_status);
+  EXPECT_EQ(kTfLiteOk, get_status);
 
   // Make sure we can read all of the returned memory locations.
   uint32_t total = 0;
@@ -37,4 +35,4 @@ TF_LITE_MICRO_TEST(TestImageProvider) {
   (void)total;
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN

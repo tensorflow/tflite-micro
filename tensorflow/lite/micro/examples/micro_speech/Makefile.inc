@@ -4,7 +4,8 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_speech_test.
 
 MICRO_SPEECH_TEST_HDRS := \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/examples/micro_speech/micro_model_settings.h \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/micro_test.h
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/micro_test.h \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/micro_test_v2.h
 
 MICRO_SPEECH_SRCS := $(MICRO_SPEECH_TEST_SRCS)
 

@@ -15,11 +15,9 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/examples/person_detection/detection_responder.h"
 
-#include "tensorflow/lite/micro/testing/micro_test.h"
+#include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
-TF_LITE_MICRO_TESTS_BEGIN
-
-TF_LITE_MICRO_TEST(TestCallability) {
+TEST(DetectionResponderTest, TestCallability) {
   // This will have external side-effects (like printing to the debug console
   // or lighting an LED) that are hard to observe, so the most we can do is
   // make sure the call doesn't crash.
@@ -27,4 +25,4 @@ TF_LITE_MICRO_TEST(TestCallability) {
   RespondToDetection(100, 50);
 }
 
-TF_LITE_MICRO_TESTS_END
+TF_LITE_MICRO_TESTS_MAIN
