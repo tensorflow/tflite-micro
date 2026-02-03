@@ -1567,7 +1567,6 @@ tflm_cc_test(
         "transpose_conv_test.cc",
     ],
     deps = [
-        ":conv_test_common",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_utils",
