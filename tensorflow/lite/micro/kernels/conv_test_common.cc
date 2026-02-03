@@ -18,9 +18,10 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
-void ValidateConvFails(TfLiteTensor* tensors, int tensors_size,
-                       const TfLiteConvParams* conv_params,
-                       TFLMRegistration registration, void* output_data) {
+void ValidateConvFailsDuringPrepare(TfLiteTensor* tensors, int tensors_size,
+                                    const TfLiteConvParams* conv_params,
+                                    TFLMRegistration registration,
+                                    void* output_data) {
   // TODO(b/358165875): support optional bias tensor
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);

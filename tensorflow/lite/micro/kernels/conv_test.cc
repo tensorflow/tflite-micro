@@ -1178,16 +1178,16 @@ TEST(ConvTest, FilterDimsNotMatchingAffineQuantization) {
   // Choose arbitrary incorrect scale and zero point sizes which are neither 1
   // (for broadcast case) nor the quantized dimension size.
   quant->scale->size = 2;
-  tflite::testing::ValidateConvFails(tensors, tensors_size,
-                                     &tflite::testing::common_conv_params,
-                                     tflite::Register_CONV_2D(), output_data);
+  tflite::testing::ValidateConvFailsDuringPrepare(
+      tensors, tensors_size, &tflite::testing::common_conv_params,
+      tflite::Register_CONV_2D(), output_data);
 
   // Set scale back to correct dimension, and make zero point array too short.
   quant->scale->size = tflite::testing::kFilterShape[0];
   quant->zero_point->size = 2;
-  tflite::testing::ValidateConvFails(tensors, tensors_size,
-                                     &tflite::testing::common_conv_params,
-                                     tflite::Register_CONV_2D(), output_data);
+  tflite::testing::ValidateConvFailsDuringPrepare(
+      tensors, tensors_size, &tflite::testing::common_conv_params,
+      tflite::Register_CONV_2D(), output_data);
 }
 
 TEST(ConvTest, Int8Input32x1Filter32x32ShouldMatchGolden) {

@@ -334,8 +334,9 @@ void TestDepthwiseConvQuantizedCompressed(
 
 #endif  // USE_TFLM_COMPRESSION
 
-void ValidateDepthwiseConvFails(int tensors_size, TfLiteTensor* tensors,
-                                TfLiteDepthwiseConvParams* conv_params) {
+void ValidateDepthwiseConvFailsDuringPrepare(
+    int tensors_size, TfLiteTensor* tensors,
+    TfLiteDepthwiseConvParams* conv_params) {
   int inputs_array_data[] = {3, 0, 1, 2};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 3};
@@ -870,14 +871,14 @@ TEST(DepthwiseConvTest, FilterDimsNotMatchingAffineQuantization) {
   TfLiteAffineQuantization* quant = reinterpret_cast<TfLiteAffineQuantization*>(
       filter_tensor.quantization.params);
   quant->scale->size = 2;
-  tflite::testing::ValidateDepthwiseConvFails(tensors_size, tensors,
-                                              &conv_params);
+  tflite::testing::ValidateDepthwiseConvFailsDuringPrepare(
+      tensors_size, tensors, &conv_params);
 
   // Set scale back to correct dimension, and make zero point array too short.
   quant->scale->size = filter_shape[0];
   quant->zero_point->size = 2;
-  tflite::testing::ValidateDepthwiseConvFails(tensors_size, tensors,
-                                              &conv_params);
+  tflite::testing::ValidateDepthwiseConvFailsDuringPrepare(
+      tensors_size, tensors, &conv_params);
 }
 
 TEST(DepthwiseConvTest, Int8Input32x4Filter32x4ShouldMatchGolden) {

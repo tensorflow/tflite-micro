@@ -98,9 +98,10 @@ void ValidateConvGoldens(
   }
 }
 
-void ValidateConvFails(TfLiteTensor* tensors, int tensors_size,
-                       const TfLiteConvParams* conv_params,
-                       TFLMRegistration registration, void* output_data);
+void ValidateConvFailsDuringPrepare(TfLiteTensor* tensors, int tensors_size,
+                                    const TfLiteConvParams* conv_params,
+                                    TFLMRegistration registration,
+                                    void* output_data);
 
 void TestConvFloat(
     int* input_dims_data, const float* input_data, int* filter_dims_data,
