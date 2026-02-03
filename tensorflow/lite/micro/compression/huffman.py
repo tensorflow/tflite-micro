@@ -25,7 +25,7 @@ from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
 
 
-class HuffmanCompressor:
+class HuffmanCompressor(compressor.Compressor):
   """Huffman compression plugin (stub).
 
   This stub exists to validate the plugin architecture. The actual Huffman
