@@ -16,7 +16,7 @@ jobs:
       image: us-docker.pkg.dev/ml-oss-artifacts-published/ml-public-container/ml-build:latest
     steps:
       - name: Check Runner
-        run: echo "🎉 Linux Job: Running inside the container!"
+        run: echo "Linux Job Running inside the container!"
       - name: Verify OS
         run: cat /etc/os-release
 
@@ -24,7 +24,7 @@ jobs:
     runs-on: windows-x86-n2-16
     steps:
       - name: Check Runner
-        run: echo "🎉 Windows Job: Running directly on the VM!"
+        run: echo "Windows Job Running directly on the VM!"
       - name: Verify OS
         run: |
           Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version
