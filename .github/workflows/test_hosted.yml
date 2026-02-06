@@ -7,7 +7,6 @@ on:
         description: 'SHA to test (optional)'
         required: false
         type: string
-        default: 'HEAD'
   
 jobs:
   explore-linux:
@@ -15,26 +14,17 @@ jobs:
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.5
     steps:
-      - name: Check Runner
-        run: echo "Linux Job Running inside the container!"
-      - name: Verify OS
-        run: cat /etc/os-release
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.trigger-sha || github.sha }}
+          ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Build
         run: bazel build //...
 
   explore-windows:
     runs-on: windows-x86-n2-16
     steps:
-      - name: Check Runner
-        run: echo "Windows Job Running directly on the VM!"
-      - name: Verify OS
-        run: |
-          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.trigger-sha || github.sha }}
+          ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Build
         run: bazel build //...
