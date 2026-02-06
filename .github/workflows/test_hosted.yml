@@ -13,12 +13,17 @@ jobs:
   explore-linux:
     runs-on: linux-x86-n2-16
     container:
-      image: us-docker.pkg.dev/ml-oss-artifacts-published/ml-public-container/ml-build:latest
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.5
     steps:
       - name: Check Runner
         run: echo "Linux Job Running inside the container!"
       - name: Verify OS
         run: cat /etc/os-release
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha || github.sha }}
+      - name: Build
+        run: bazel build //...
 
   explore-windows:
     runs-on: windows-x86-n2-16
@@ -28,3 +33,8 @@ jobs:
       - name: Verify OS
         run: |
           Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha || github.sha }}
+      - name: Build
+        run: bazel build //...
