@@ -18,7 +18,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Build
-        run: bazel build //...
+        run: bazel build -k //...
 
   explore-windows:
     runs-on: windows-x86-n2-16
@@ -27,4 +27,4 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Build
-        run: bazel build //...
+        run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build -k //...
