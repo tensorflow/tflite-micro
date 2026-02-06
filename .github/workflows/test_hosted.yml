@@ -1,31 +1,30 @@
 name: Test - Hosted
 
-# Entry point for Core tests. Triggered by schedule or workflow_dispatch.
-
 on:
-  # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
-
+  workflow_dispatch:
+    inputs:
+      trigger-sha:
+        description: 'SHA to test (optional)'
+        required: false
+        type: string
+        default: 'HEAD'
+  
 jobs:
-  call-suite-core:
-    uses: ./.github/workflows/suite_core.yml
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
-    with:
-      trigger-sha: ${{ github.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
+  explore-linux:
+    runs-on: linux-x86-n2-16
+    container:
+      image: us-docker.pkg.dev/ml-oss-artifacts-published/ml-public-container/ml-build:latest
+    steps:
+      - name: Check Runner
+        run: echo "🎉 Linux Job: Running inside the container!"
+      - name: Verify OS
+        run: cat /etc/os-release
 
-  issue-on-error:
-    needs: [call-suite-core]
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
-    uses: ./.github/workflows/issue_on_error.yml
-    with:
-      repo: ${{ github.repository }}
-      workflow: ${{ github.workflow }}
-      run_id: ${{ github.run_id }}
-      run_number: ${{ github.run_number }}
-      flag_label: ci:bot_issue
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+  explore-windows:
+    runs-on: windows-x86-n2-16
+    steps:
+      - name: Check Runner
+        run: echo "🎉 Windows Job: Running directly on the VM!"
+      - name: Verify OS
+        run: |
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version
