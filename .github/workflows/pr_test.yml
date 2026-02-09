@@ -18,25 +18,55 @@ jobs:
     steps:
       - name: check-scope
         id: check-scope
-        run: |
-          SCOPE="none"
-          LABELS="${{ toJSON(github.event.pull_request.labels.*.name) }}"
-          
-          if [[ "$LABELS" == *"ci:full"* ]]; then
-            SCOPE="all"
-          elif [[ "$LABELS" == *"ci:ready"* ]]; then
-            SCOPE="basic"
-          fi
-          
-          # Handle label removal or other events where we shouldn't run if no labels match
-          if [[ "${{ github.event.action }}" == "labeled" ]]; then
-             if [[ "${{ github.event.label.name }}" != "ci:ready" && "${{ github.event.label.name }}" != "ci:full" ]]; then
-                # Triggered by unrelated label
-                SCOPE="none"
-             fi
-          fi
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
+          script: |
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.pull_request.user.login
+            });
+            const trustedRoles = ['admin', 'maintain', 'write', 'triage'];
+            const isTrusted = trustedRoles.includes(permission.permission);
 
-          echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+            let labels = context.payload.pull_request.labels.map(l => l.name);
+
+            if (context.payload.action === 'synchronize' && !isTrusted) {
+              const labelsToRemove = ['ci:ready', 'ci:full'].filter(name => labels.includes(name));
+              for (const label of labelsToRemove) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: context.issue.number,
+                    name: label
+                  });
+                } catch (e) {
+                  core.warning(`Failed to remove label ${label}: ${e.message}`);
+                }
+              }
+              if (labelsToRemove.length > 0) {
+                core.info(`Removed labels [${labelsToRemove}] because push was from untrusted author.`);
+                labels = labels.filter(l => !labelsToRemove.includes(l));
+              }
+            }
+
+            let scope = "none";
+            if (labels.includes('ci:full')) {
+              scope = "all";
+            } else if (labels.includes('ci:ready')) {
+              scope = "basic";
+            }
+
+            if (context.payload.action === 'labeled') {
+              const labelName = context.payload.label.name;
+              if (labelName !== 'ci:ready' && labelName !== 'ci:full') {
+                scope = "none";
+              }
+            }
+
+            core.setOutput('scope', scope);
 
   call-check-tflite-files:
     needs: gatekeeper
