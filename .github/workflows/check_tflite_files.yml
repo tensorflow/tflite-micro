@@ -12,9 +12,6 @@ on:
       pr-body:
         required: true
         type: string
-    secrets:
-      tflm-bot-token:
-        required: true
 
 jobs:
   check_tflite_files:
@@ -24,11 +21,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+          fetch-depth: 0
 
       - name: Check Files
         if: ${{ !contains(inputs.pr-body, 'NO_CHECK_TFLITE_FILES=') }}
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr-number }}
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
         run: tensorflow/lite/micro/tools/ci_build/check_tflite_files.sh
