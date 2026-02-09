@@ -9,7 +9,7 @@ name: Issue On Error
 # If the optional pr_number and link are provided the title and link will be for
 # the PR.
 #
-# Either type of issue will be tagged (by default with ci:bot_issue).
+# Either type of issue will be tagged (by default with bot:issue).
 # If an issue already exists, a comment will be added with a timestamp of the
 # new failure and a link.
 
@@ -30,7 +30,7 @@ on:
         required: true
       flag_label:
         type: string
-        default: 'ci:bot_issue'
+        default: 'bot:issue'
       pr_number:
         type: string
       pr_link:
@@ -43,19 +43,63 @@ on:
 jobs:
   error-trap:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     name: Error Trap
     steps:
-      - uses: actions/checkout@v6
-      - name: Run Reporting Script
+      - name: Report Error
+        uses: actions/github-script@v7
         env:
-          REPO: ${{ inputs.repo }}
           WORKFLOW: ${{ inputs.workflow }}
+          LABEL: ${{ inputs.flag_label }}
           RUN_ID: ${{ inputs.run_id }}
           RUN_NUMBER: ${{ inputs.run_number }}
-          GITHUB_TOKEN: ${{ secrets.token }}
-          FLAG_LABEL: ${{ inputs.flag_label }}
           PR_NUMBER: ${{ inputs.pr_number }}
           PR_LINK: ${{ inputs.pr_link }}
-        run: |
-          python3 ci/issue_on_error.py
+        with:
+          github-token: ${{ secrets.token }}
+          script: |
+            const { WORKFLOW, LABEL, RUN_ID, RUN_NUMBER, PR_NUMBER, PR_LINK } = process.env;
+            const repo = context.repo;
+            const isPR = PR_NUMBER && PR_NUMBER.trim() !== "";
+
+            const titlePrefix = isPR ? `PR #${PR_NUMBER} CI Failure:` : `CI Failure:`;
+            const issueTitle = `${titlePrefix} ${WORKFLOW}`;
+            const runUrl = `https://github.com/${repo.owner}/${repo.repo}/actions/runs/${RUN_ID}`;
+
+            // 1. Search for an existing open issue with this label and title
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...repo,
+              state: 'open',
+              labels: [LABEL],
+              per_page: 100
+            });
+
+            const existingIssue = issues.find(i => i.title === issueTitle);
+
+            if (existingIssue) {
+              // 2. Add a comment if it already exists (The "Heartbeat")
+              await github.rest.issues.createComment({
+                ...repo,
+                issue_number: existingIssue.number,
+                body: `**Error reoccurred** at ${new Date().toUTCString()}\n[Run #${RUN_NUMBER}](${runUrl})`
+              });
+              console.log(`Updated issue #${existingIssue.number}`);
+            } else {
+              // 3. Create a new issue if it doesn't
+              const body = [
+                `### ❌ ${WORKFLOW} CI Failure`,
+                isPR ? `**Source:** Pull Request #${PR_NUMBER} ([Link](${PR_LINK}))` : `**Source:** Main Branch (HEAD)`,
+                `**Latest Failure:** [Run #${RUN_NUMBER}](${runUrl})`,
+                `_Automatically generated for notification purposes._`
+              ].join('\n\n');
+
+              const { data: newIssue } = await github.rest.issues.create({
+                ...repo,
+                title: issueTitle,
+                body: body,
+                labels: [LABEL]
+              });
+              console.log(`Created new issue #${newIssue.number}`);
+            }
 
