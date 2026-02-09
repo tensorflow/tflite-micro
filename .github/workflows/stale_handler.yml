@@ -8,22 +8,32 @@ on:
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/stale@v10
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: >
-            "This issue is being marked as stale due to inactivity. Remove label or 
-            comment to prevent closure in 5 days."
+            This issue is being marked as stale due to inactivity. Remove the stale label
+            or comment to prevent closure in 5 days.
           stale-pr-message: >
-            "This PR is being marked as stale due to inactivity. Remove label or 
-            comment to prevent closure in 5 days."
+            This PR is being marked as stale due to inactivity. Remove the stale label
+            or comment to prevent closure in 5 days.
           close-issue-message: >
-            "This issue is being closed because it has been marked as
-             stale for 5 days with no further activity."
+            This issue is being closed because it has been marked as stale for 5 days
+            with no further activity.
           close-pr-message: >
-            "This PR is being closed because it has been marked as
-             stale for 5 days with no further activity."
+            This PR is being closed because it has been marked as stale for 5 days
+            with no further activity.
           days-before-issue-stale: 25
           days-before-issue-close: 5
           days-before-pr-stale: 40
           days-before-pr-close: 5
+          operations-per-run: 100
+          exempt-all-assignees: true
+          exempt-all-milestones: true
+          exempt-draft-pr: true
+          exempt-issue-labels: 'pinned,security'
+          exempt-pr-labels: 'pinned,security'
