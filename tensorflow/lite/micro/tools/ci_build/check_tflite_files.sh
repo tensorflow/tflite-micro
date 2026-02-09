@@ -25,12 +25,8 @@
 set -e
 set -u
 
-# Ensure we have the base branch to compare against.
-git fetch origin main --depth=1
-
-# Get the list of modified files using git.
-# We compare the current HEAD against the merge-base with origin/main.
-PR_FILES=$(git diff --name-only origin/main...HEAD)
+URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files"
+PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" "${URL}" | jq -r '.[] | .filename')
 
 # Create a temp file for PR files
 TMP_PR_FILES=$(mktemp)
