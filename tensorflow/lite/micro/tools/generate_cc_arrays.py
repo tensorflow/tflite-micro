@@ -82,7 +82,10 @@ def generate_array(input_fname):
   elif input_fname.endswith(".csv"):
     with open(input_fname, "r") as input_file:
       # Assume one array per csv file.
-      elements = input_file.readline()
+      line = input_file.readline()
+      elements = line.strip()
+      if not elements:
+        return [0, ""]
       return [len(elements.split(",")), elements]
   elif input_fname.endswith(".npy"):
     data = np.float32(np.load(input_fname, allow_pickle=False))
