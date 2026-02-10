@@ -42,27 +42,10 @@ jobs:
           large-packages: false
           tool-cache: false
           swap-storage: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
-      - uses: bazel-contrib/setup-bazel@0.18.0
-        with:
-          bazelisk-cache: true
-          disk-cache: true
-          repository-cache: true
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
-      - name: Fix kernel mmap rnd bits
-        if: ${{ matrix.needs-mmap-rnd }}
-        # Asan in llvm 14 provided in ubuntu 22.04 is incompatible with
-        # high-entropy ASLR in much newer kernels that GitHub runners are
-        # using leading to random crashes: https://reviews.llvm.org/D148280
-        run: sudo sysctl vm.mmap_rnd_bits=28
       - name: Test
-        run: |
-          tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
+        with:
+          args: /bin/sh -c "git config --global --add safe.directory /github/workspace && tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}"
