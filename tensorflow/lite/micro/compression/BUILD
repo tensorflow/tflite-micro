@@ -174,11 +174,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    # Only run when compression IS enabled
-    target_compatible_with = select({
-        "//:with_compression_enabled": [],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress_lib",
         ":decode_insert",
@@ -201,10 +197,7 @@ py_test(
         "nomsan",
         "noubsan",
     ],
-    target_compatible_with = select({
-        "//:with_compression_enabled": [],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress_lib",
         ":model_editor",
