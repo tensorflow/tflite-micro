@@ -22,6 +22,6 @@ jobs:
       with:
         ref: ${{ inputs.trigger-sha }}
     - name: Test
-      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.6
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.7
       with:
         args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh
