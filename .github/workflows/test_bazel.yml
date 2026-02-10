@@ -9,7 +9,9 @@ on:
 
 jobs:
   bazel_tests:
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n2-16
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     strategy:
       fail-fast: false
       matrix:
@@ -26,22 +28,10 @@ jobs:
             script: test_bazel_asan.sh
           - name: Bazel with Compression [asan]
             script: test_bazel_with_compression_asan.sh
-
     name: ${{ matrix.name }}
     steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: false
-          large-packages: false
-          tool-cache: false
-          swap-storage: false
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.trigger-sha }}
+          ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Test
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.7
-        with:
-          args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}"
+        run: tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}

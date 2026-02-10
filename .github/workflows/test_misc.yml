@@ -22,26 +22,16 @@ jobs:
         run: tensorflow/lite/micro/tools/ci_build/test_code_style.sh
 
   cpp_build_warnings:
-    runs-on: ubuntu-latest
-
+    runs-on: linux-x86-n2-16
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     name: C++ Build Warnings
     steps:
-      - uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: false
-          large-packages: false
-          tool-cache: false
-          swap-storage: false    
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.trigger-sha }}
+          ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Build with Warnings as Errors
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.7
-        with:
-          args: bazel build --copt="-Werror" //...
+        run: bazel build --copt="-Werror" //...
 
   project_generation:
     runs-on: ubuntu-latest
