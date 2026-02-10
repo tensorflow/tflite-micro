@@ -13,6 +13,7 @@
 # limitations under the License.
 """Unit tests for DECODE operator insertion."""
 
+import unittest
 import warnings
 
 import numpy as np
@@ -21,6 +22,7 @@ import tensorflow as tf
 from tflite_micro.tensorflow.lite.micro.compression import compressor
 from tflite_micro.tensorflow.lite.micro.compression import decode
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
+from tflite_micro.tensorflow.lite.micro.compression import lut
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
@@ -115,14 +117,22 @@ def _build_shared_weights_model():
   return model
 
 
-def _make_dummy_ancillary_data() -> bytes:
+def _make_dummy_ancillary_data(bitwidth=4) -> bytes:
   """Create dummy ancillary data for testing."""
+  n_entries = 1 << bitwidth
+  value_tables = bytes(range(1, n_entries + 1))
+  value_tables += b'\x00' * ((-len(value_tables)) % 16)
+
+  lut_data = lut.LutAncillaryData(
+      bitwidth=bitwidth,
+      value_table_stride=n_entries,
+      value_tables=value_tables,
+  )
   dcm = decode.DecodeCommonMetadata(
       decode_type=decode.DecodeType.LUT,
-      user_data=b'\x01\x04\x10' + b'\x00' * 9,  # lut_version, bitwidth, stride
+      user_data=lut_data.to_user_data(),
   )
-  value_tables = bytes([1, 2, 3, 4] + [0] * 12)  # 16-byte padded table
-  return dcm.to_bytes() + value_tables
+  return dcm.to_bytes() + lut_data.to_bytes()
 
 
 class TestDecodeInsertion(tf.test.TestCase):
@@ -375,6 +385,140 @@ class TestDecodeInsertion(tf.test.TestCase):
 
     self.assertEqual(ancillary.name, "weights_ancillary")
     self.assertEqual(output.name, "weights_decoded")
+
+  @unittest.expectedFailure
+  def test_multiple_compressed_inputs_batched(self):
+    """CONCATENATION with two compressed inputs gets one batched DECODE."""
+    weights_a = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="weights_a",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    weights_b = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="weights_b",
+        quantization=model_editor.Quantization(scales=0.25, zero_points=0),
+    )
+    output_t = model_editor.Tensor(
+        shape=(4, 8),
+        dtype=tflite.TensorType.INT8,
+        name="output",
+    )
+
+    concat_op = model_editor.Operator(
+        opcode=tflite.BuiltinOperator.CONCATENATION,
+        inputs=[weights_a, weights_b],
+        outputs=[output_t],
+    )
+
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(
+            tensors=[weights_a, weights_b],
+            operators=[concat_op],
+        )
+    ])
+
+    ancillary_a = _make_dummy_ancillary_data(bitwidth=2)
+    ancillary_b = _make_dummy_ancillary_data(bitwidth=4)
+    compression_results = {
+        (0, 0):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x01',
+            ancillary_data=ancillary_a,
+        ),
+        (0, 1):
+        compressor.CompressionResult(
+            encoded_data=b'\x02\x03',
+            ancillary_data=ancillary_b,
+        ),
+    }
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    sg = model.subgraphs[0]
+
+    # One DECODE + one CONCATENATION
+    self.assertEqual(len(sg.operators), 2)
+    decode_op = sg.operators[0]
+    self.assertEqual(decode_op.opcode, tflite.BuiltinOperator.CUSTOM)
+    self.assertEqual(decode_op.custom_code,
+                     decode_insert.DECODE_CUSTOM_OP_NAME)
+
+    # DECODE has 4 inputs (enc_a, anc_a, enc_b, anc_b) and 2 outputs
+    self.assertEqual(len(decode_op.inputs), 4)
+    self.assertEqual(len(decode_op.outputs), 2)
+
+    # Each ancillary tensor carries its own distinct data
+    self.assertNotEqual(ancillary_a, ancillary_b)
+    self.assertEqual(bytes(decode_op.inputs[1].array), ancillary_a)
+    self.assertEqual(bytes(decode_op.inputs[3].array), ancillary_b)
+
+    # CONCATENATION rewired to DECODE outputs
+    self.assertIs(sg.operators[1].inputs[0], decode_op.outputs[0])
+    self.assertIs(sg.operators[1].inputs[1], decode_op.outputs[1])
+
+  def test_mixed_compressed_and_uncompressed_inputs(self):
+    """CONCATENATION with one compressed and one plain input."""
+    weights = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="weights",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    plain = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.zeros((4, 4), dtype=np.int8),
+        name="plain",
+    )
+    output_t = model_editor.Tensor(
+        shape=(4, 8),
+        dtype=tflite.TensorType.INT8,
+        name="output",
+    )
+
+    concat_op = model_editor.Operator(
+        opcode=tflite.BuiltinOperator.CONCATENATION,
+        inputs=[weights, plain],
+        outputs=[output_t],
+    )
+
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(
+            tensors=[weights, plain],
+            operators=[concat_op],
+        )
+    ])
+
+    # Only compress weights, not plain
+    compression_results = {
+        (0, 0):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x01',
+            ancillary_data=_make_dummy_ancillary_data(),
+        ),
+    }
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    sg = model.subgraphs[0]
+
+    # One DECODE + one CONCATENATION
+    self.assertEqual(len(sg.operators), 2)
+    decode_op = sg.operators[0]
+
+    # DECODE has 2 inputs and 1 output (only the compressed tensor)
+    self.assertEqual(len(decode_op.inputs), 2)
+    self.assertEqual(len(decode_op.outputs), 1)
+
+    # CONCATENATION: first input rewired to DECODE output, second unchanged
+    self.assertIs(sg.operators[1].inputs[0], decode_op.outputs[0])
+    self.assertIs(sg.operators[1].inputs[1], plain)
 
   def test_encoded_tensor_rewritten(self):
     """Compressed tensor is rewritten with encoded data, UINT8 type, no quant."""
