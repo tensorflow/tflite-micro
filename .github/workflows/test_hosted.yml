@@ -27,4 +27,57 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Build
-        run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build -k //...
+        run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build -k "//tensorflow/lite/micro/..."
+
+  bazel-windows:
+    runs-on: windows-x86-n2-16
+    name: Windows Bazel
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install Pillow numpy
+      - name: Test
+        shell: bash
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_bazel.sh windows_ci "//tensorflow/lite/micro/..."
+
+  makefile-windows:
+    runs-on: windows-x86-n2-16
+    name: Windows Makefile
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            make
+            patch
+            mingw-w64-x86_64-gcc
+            git
+            python3
+            mingw-w64-x86_64-python-pip
+            mingw-w64-x86_64-python-pillow
+            mingw-w64-x86_64-python-numpy
+            mingw-w64-x86_64-python-absl-py
+            openssl
+            tar
+            unzip
+            curl
+      - name: Test
+        shell: msys2 {0}
+        run: |
+          tensorflow/lite/micro/tools/ci_build/test_x86_default.sh ./
