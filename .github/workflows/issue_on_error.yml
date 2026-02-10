@@ -48,7 +48,7 @@ jobs:
     name: Error Trap
     steps:
       - name: Report Error
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           WORKFLOW: ${{ inputs.workflow }}
           LABEL: ${{ inputs.flag_label }}
