@@ -5,10 +5,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-
-  # Maintain Python tools used for testing and conversion
-  - package-ecosystem: "pip"
-    directory: "/third_party"
-    schedule:
-      interval: "weekly"
-    versioning-strategy: increase-if-necessary
