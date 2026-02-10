@@ -87,7 +87,7 @@ Each compressed tensor has its buffer data replaced by a packed bitstring.  The
 bitstring consists of fixed bit width groups (indices), each group representing an offset
 into the `value table`.  The bitstring is in big-endian byte order with the most
 significant bit first.  A bitstring is padded on the end, to the next byte
-boundry, with zero bits.
+boundary, with zero bits.
 
 Example (bit width 3):
 ```

@@ -1,5 +1,5 @@
 <!--
-emi-automated TOC generation with instructions from
+Semi-automated TOC generation with instructions from
 https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 -->
 
@@ -173,24 +173,24 @@ Below are some tips that might be useful and improve the development experience.
   ([e.g.](ci/install_buildifier.sh)) to format Bazel BUILD and .bzl files.
 
 * Install the latest clang and clang-format. For example, [here](ci/Dockerfile.micro)
-  is the what we do for the TFLM continuous integration Docker container.
+  is what we do for the TFLM continuous integration Docker container.
 
 * Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
   or install it:
 
-* Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
-  the TFLM continuous integration Docker container.
-
   ```
   pip install cpplint
   ```
+
+* Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
+  the TFLM continuous integration Docker container.
 
 * [yapf](https://github.com/google/yapf/) should be used for formatting Python
   code. For example:
 
   ```
   pip install yapf
-  yapf log_parser.py -i'
+  yapf log_parser.py -i
   ```
 
 * Add a git hook to check for code style etc. prior to creating a pull request:
@@ -278,7 +278,7 @@ Below are some tips that might be useful and improve the development experience.
 
 ## Reviewer notes
 
-*   [GIthub CLI](https://cli.github.com) can be useful to quickly checkout a PR
+*   [GitHub CLI](https://cli.github.com) can be useful to quickly checkout a PR
     to test locally.
 
     `gh pr checkout <PR number>`
@@ -301,7 +301,7 @@ Below are some tips that might be useful and improve the development experience.
 
     # make changes and commit to local branch
 
-    # push changes to remove branch
+    # push changes to remote branch
 
     git push <remote_name> <PR branch name>
 
