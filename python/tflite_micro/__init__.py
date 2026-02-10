@@ -26,4 +26,3 @@ from tflite_micro.python.tflite_micro._version import __version__
 
 # Provide a convenient alias for the compression module
 from tflite_micro.tensorflow.lite.micro import compression
-

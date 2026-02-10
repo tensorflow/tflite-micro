@@ -23,9 +23,9 @@ from tflite_micro import compression
 
 import numpy as np
 try:
-    from importlib import resources
+  from importlib import resources
 except ImportError:
-    import importlib_resources as resources
+  import importlib_resources as resources
 import sys
 import tempfile
 import os
