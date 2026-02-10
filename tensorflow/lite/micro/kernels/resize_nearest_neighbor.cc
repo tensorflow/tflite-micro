@@ -78,7 +78,7 @@ TfLiteStatus ResizeNearestNeighborEval(TfLiteContext* context,
 
   tflite::ResizeNearestNeighborParams op_params;
   op_params.align_corners = params->align_corners;
-  op_params.half_pixel_centers = false;
+  op_params.half_pixel_centers = params->half_pixel_centers;
 
   if (output->type == kTfLiteFloat32) {
     reference_ops::ResizeNearestNeighbor(
