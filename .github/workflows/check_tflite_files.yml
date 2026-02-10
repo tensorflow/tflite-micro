@@ -14,7 +14,7 @@ on:
         type: string
     secrets:
       tflm-bot-token:
-        required: true
+        required: false
 
 jobs:
   check_tflite_files:
@@ -30,5 +30,5 @@ jobs:
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr-number }}
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
+          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token || github.token }}
         run: tensorflow/lite/micro/tools/ci_build/check_tflite_files.sh
