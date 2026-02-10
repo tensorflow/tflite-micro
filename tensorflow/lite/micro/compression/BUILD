@@ -118,14 +118,15 @@ py_library(
         "compress.py",
     ],
     deps = [
-        ":metadata_py",
-        ":model_facade",
+        ":compressor",
+        ":decode_insert",
+        ":huffman",
+        ":lut",
+        ":model_editor",
+        ":pruning",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
         requirement("absl_py"),
-        "@flatbuffers//:runtime_py",
-        requirement("bitarray"),
-        requirement("numpy"),
     ],
 )
 
@@ -154,34 +155,56 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress",
-        ":metadata_py",
-        ":model_facade",
+        ":compressor",
+        ":decode_insert",
+        ":model_editor",
         ":spec",
-        ":test_models",
         "//tensorflow/lite/python:schema_py",
-        requirement("bitarray"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],
 )
 
-py_library(
-    name = "model_facade",
-    srcs = ["model_facade.py"],
+py_test(
+    name = "compression_integration_test",
+    size = "small",
+    srcs = ["compression_integration_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
+        ":compress_lib",
+        ":decode_insert",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
         "//tensorflow/lite/python:schema_py",
-        requirement("flatbuffers"),
+        requirement("numpy"),
+        requirement("tensorflow"),
     ],
 )
 
 py_test(
-    name = "model_facade_test",
+    name = "proprietary_integration_test",
     size = "small",
-    srcs = ["model_facade_test.py"],
+    srcs = ["proprietary_integration_test.py"],
+    tags = [
+        "manual",
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        ":model_facade",
-        ":test_models",
+        ":compress_lib",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
         requirement("tensorflow"),
     ],
 )
@@ -226,8 +249,8 @@ py_test(
 )
 
 py_library(
-    name = "test_models",
-    srcs = ["test_models.py"],
+    name = "model_editor",
+    srcs = ["model_editor.py"],
     deps = [
         "//tensorflow/lite/python:schema_py",
         requirement("flatbuffers"),
@@ -236,13 +259,125 @@ py_library(
 )
 
 py_test(
-    name = "test_models_test",
+    name = "model_editor_test",
     size = "small",
-    srcs = ["test_models_test.py"],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    srcs = ["model_editor_test.py"],
     deps = [
-        ":test_models",
+        ":model_editor",
         "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
+    name = "decode",
+    srcs = ["decode.py"],
+)
+
+py_test(
+    name = "decode_test",
+    size = "small",
+    srcs = ["decode_test.py"],
+    deps = [
+        ":decode",
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
+    name = "compressor",
+    srcs = ["compressor.py"],
+    deps = [
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
+py_library(
+    name = "lut",
+    srcs = ["lut.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+        requirement("bitarray"),
+        requirement("numpy"),
+    ],
+)
+
+py_test(
+    name = "lut_test",
+    size = "small",
+    srcs = ["lut_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":lut",
+        ":model_editor",
+        ":spec",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
+py_library(
+    name = "huffman",
+    srcs = ["huffman.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
+py_library(
+    name = "pruning",
+    srcs = ["pruning.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
+py_library(
+    name = "decode_insert",
+    srcs = ["decode_insert.py"],
+    deps = [
+        ":compressor",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+py_test(
+    name = "decode_insert_test",
+    size = "small",
+    srcs = ["decode_insert_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":decode_insert",
+        ":lut",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
         requirement("tensorflow"),
     ],
 )

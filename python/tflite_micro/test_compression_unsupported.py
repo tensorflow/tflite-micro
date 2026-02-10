@@ -12,84 +12,84 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Test compression metadata detection when compression is disabled."""
+"""Test legacy compression metadata detection when compression is disabled."""
 
 import os
 import numpy as np
 import tensorflow as tf
 from tflite_micro.python.tflite_micro import runtime
-from tflite_micro.tensorflow.lite.micro import compression
+from tflite_micro.tensorflow.lite.micro.compression import model_editor
 
 
-class CompressionDetectionTest(tf.test.TestCase):
-  """Test compression metadata detection when compression is disabled."""
+def _create_test_model():
+  """Create a simple quantized model for testing."""
+  model = tf.keras.Sequential([
+      tf.keras.layers.Dense(10, input_shape=(5,), activation='relu'),
+      tf.keras.layers.Dense(5, activation='softmax')
+  ])
+  model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
 
-  def _create_test_model(self):
-    """Create a simple quantized model for testing."""
-    model = tf.keras.Sequential([
-        tf.keras.layers.Dense(10, input_shape=(5, ), activation='relu'),
-        tf.keras.layers.Dense(5, activation='softmax')
-    ])
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
+  converter = tf.lite.TFLiteConverter.from_keras_model(model)
+  converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
-    # Convert to quantized TFLite
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+  def representative_dataset():
+    for _ in range(10):
+      yield [np.random.randn(1, 5).astype(np.float32)]
 
-    def representative_dataset():
-      for _ in range(10):
-        yield [np.random.randn(1, 5).astype(np.float32)]
+  converter.representative_dataset = representative_dataset
+  converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+  converter.inference_input_type = tf.uint8
+  converter.inference_output_type = tf.uint8
 
-    converter.representative_dataset = representative_dataset
-    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-    converter.inference_input_type = tf.uint8
-    converter.inference_output_type = tf.uint8
+  tflite_model = converter.convert()
+  return bytes(tflite_model) if isinstance(tflite_model,
+                                           bytearray) else tflite_model
 
-    tflite_model = converter.convert()
-    return bytes(tflite_model) if isinstance(tflite_model,
-                                             bytearray) else tflite_model
+
+def _inject_compression_metadata(model_data):
+  """Inject raw COMPRESSION_METADATA into a model's flatbuffer metadata.
+
+  This simulates a legacy-compressed model (one that uses the
+  COMPRESSION_METADATA metadata entry and kernel-level decompression) without
+  going through compress(), which now produces DECODE-based output.
+  """
+  model = model_editor.read(model_data)
+  model.metadata["COMPRESSION_METADATA"] = b"\x00"
+  return bytes(model.build())
+
+
+class LegacyCompressionDetectionTest(tf.test.TestCase):
+  """Test that legacy COMPRESSION_METADATA is rejected without the flag."""
 
   def test_regular_model_loads_successfully(self):
     """Non-compressed models should load without issues."""
-    model_data = self._create_test_model()
+    model_data = _create_test_model()
     interpreter = runtime.Interpreter.from_bytes(model_data)
     self.assertIsNotNone(interpreter)
 
-  def test_compressed_model_raises_runtime_error(self):
-    """Compressed models should raise RuntimeError when compression is disabled."""
-    # Create and compress a model
-    model_data = self._create_test_model()
-
-    spec = (compression.SpecBuilder().add_tensor(
-        subgraph=0, tensor=1).with_lut(index_bitwidth=4).build())
-
-    compressed_model = compression.compress(model_data, spec)
-    if isinstance(compressed_model, bytearray):
-      compressed_model = bytes(compressed_model)
-
-    # Should raise RuntimeError
-    with self.assertRaises(RuntimeError):
-      runtime.Interpreter.from_bytes(compressed_model)
-
-  def test_can_load_regular_after_compressed_failure(self):
-    """Verify we can still load regular models after compressed model fails."""
-    model_data = self._create_test_model()
-
-    # First try compressed model (should fail)
-    spec = (compression.SpecBuilder().add_tensor(
-        subgraph=0, tensor=1).with_lut(index_bitwidth=4).build())
-    compressed_model = compression.compress(model_data, spec)
+  def test_legacy_compressed_model_raises_runtime_error(self):
+    """Models with COMPRESSION_METADATA should raise RuntimeError."""
+    model_data = _create_test_model()
+    legacy_model = _inject_compression_metadata(model_data)
 
     with self.assertRaises(RuntimeError):
-      runtime.Interpreter.from_bytes(bytes(compressed_model))
+      runtime.Interpreter.from_bytes(legacy_model)
 
-    # Then load regular model (should succeed)
+  def test_can_load_regular_after_legacy_failure(self):
+    """Verify regular models still load after a legacy-compressed failure."""
+    model_data = _create_test_model()
+    legacy_model = _inject_compression_metadata(model_data)
+
+    with self.assertRaises(RuntimeError):
+      runtime.Interpreter.from_bytes(legacy_model)
+
     interpreter = runtime.Interpreter.from_bytes(model_data)
     self.assertIsNotNone(interpreter)
 
 
 if __name__ == '__main__':
-  # Set TF environment variables to suppress warnings
+  # Suppress TF C++ info/debug logs (0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR)
   os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+  # Disable oneDNN to avoid non-deterministic floating point results
   os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
   tf.test.main()
