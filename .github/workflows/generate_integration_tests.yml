@@ -14,6 +14,10 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   generate_integration_tests:
     runs-on: ubuntu-latest
