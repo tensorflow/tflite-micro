@@ -182,7 +182,6 @@ ifneq ($(TOOLCHAIN), gcc)
 endif
 
 COMMON_FLAGS := \
-  -Werror \
   -fno-unwind-tables \
   -fno-asynchronous-unwind-tables \
   -ffunction-sections \
