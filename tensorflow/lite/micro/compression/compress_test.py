@@ -313,6 +313,11 @@ class TestCompression(tf.test.TestCase):
     self.assertEqual(dcm_bytes[5] & 0x07, 4)  # bitwidth = 4
     self.assertEqual(dcm_bytes[6], 4)  # stride = num unique values
 
+  def test_empty_spec_raises(self):
+    """Empty compression spec is an error, not a silent no-op."""
+    self.assertRaisesRegex(compressor.CompressionError, "empty",
+                           lambda: compress.compress(self.flatbuffer, []))
+
   def test_smaller_bitwidth_raises(self):
     """Specifying LUT compression with too small a bitwidth fails."""
     specs = [
