@@ -21,8 +21,8 @@ The CI system behaves differently depending on your role. This "Tiered" approach
 
 | Label | Description |
 | :--- | :--- |
-| `ci:ready` | **Request Review**: For external contributors, adding this label signals to maintainers that the PR is ready for review. It acts as a "noise filter" so maintainers aren't notified about draft PRs. |
-| `ci:full` | **Extended Scope**: By default, CI runs a `basic` set of tests. Adding this label expands the scope to include all hardware targets (e.g., RISC-V, Hexagon). This scope change applies to both maintainers and external contributors. |
+| `ci:ready` | **Trigger CI**: Applied by a maintainer when an external PR is ready for testing. This label wakes up the CI workflow and generates an approval request for the privileged test suite. |
+| `ci:full` | **Extended Scope**: Applied by a maintainer to expand the test scope. By default, CI runs a `basic` set of tests. Adding this label includes all hardware targets (e.g., RISC-V, Hexagon). |
 
 ## GitHub Merge Queue
 
