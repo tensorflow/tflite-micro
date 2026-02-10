@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.trigger-sha }}
+          ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
