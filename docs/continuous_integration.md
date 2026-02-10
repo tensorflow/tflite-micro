@@ -11,8 +11,8 @@ The CI system behaves differently depending on your role. This "Tiered" approach
 *   **No Approval Needed**: The system recognizes your permissions and bypasses the environment gate.
 
 ### 2. External Contributors
-*   **Basic Tests**: Low-risk checks (Linting, Windows builds, File checks) run automatically on every push.
-*   **Privileged Tests**: Hardware-in-the-loop tests (Cortex-M, Xtensa, Hexagon, RISC-V) require manual approval.
+*   **Basic Tests**: Low-risk checks (Linting, File checks) run automatically on every push.
+*   **Privileged Tests**: Hardware-in-the-loop tests (Cortex-M, Xtensa, Hexagon, RISC-V) and Windows builds require manual approval.
     *   **Status**: Your PR will show a "Pending" status for the `approval-gate` job.
     *   **Action**: A maintainer must review the code and click **"Review Deployment"** -> **"Approve"** on the PR page.
     *   **New Pushes**: Pushing new code resets the approval, requiring a maintainer to re-approve the specific commit.
