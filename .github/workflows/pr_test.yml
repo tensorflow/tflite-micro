@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       scope: ${{ steps.check-scope.outputs.scope }}
+      is_trusted: ${{ steps.check-scope.outputs.is_trusted }}
     steps:
       - name: check-scope
         id: check-scope
@@ -29,33 +30,17 @@ jobs:
             });
             const trustedRoles = ['admin', 'maintain', 'write', 'triage'];
             const isTrusted = trustedRoles.includes(permission.permission);
+            core.setOutput('is_trusted', isTrusted);
 
-            let labels = context.payload.pull_request.labels.map(l => l.name);
-
-            if (context.payload.action === 'synchronize' && !isTrusted) {
-              const labelsToRemove = ['ci:ready', 'ci:full'].filter(name => labels.includes(name));
-              for (const label of labelsToRemove) {
-                try {
-                  await github.rest.issues.removeLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: context.issue.number,
-                    name: label
-                  });
-                } catch (e) {
-                  core.warning(`Failed to remove label ${label}: ${e.message}`);
-                }
-              }
-              if (labelsToRemove.length > 0) {
-                core.info(`Removed labels [${labelsToRemove}] because push was from untrusted author.`);
-                labels = labels.filter(l => !labelsToRemove.includes(l));
-              }
-            }
+            const labels = context.payload.pull_request.labels.map(l => l.name);
 
             let scope = "none";
             if (labels.includes('ci:full')) {
               scope = "all";
             } else if (labels.includes('ci:ready')) {
+              scope = "basic";
+            } else if (isTrusted) {
+              // Maintainers and bots have 'basic' scope by default on every push
               scope = "basic";
             }
 
@@ -68,6 +53,16 @@ jobs:
 
             core.setOutput('scope', scope);
 
+  approval-gate:
+    needs: gatekeeper
+    if: needs.gatekeeper.outputs.scope != 'none'
+    runs-on: ubuntu-latest
+    # The environment gate is only applied to untrusted authors
+    environment: ${{ needs.gatekeeper.outputs.is_trusted == 'true' && '' || 'integration-test' }}
+    steps:
+      - name: Authorize
+        run: echo "CI Authorized."
+
   call-check-tflite-files:
     uses: ./.github/workflows/check_tflite_files.yml
     with:
@@ -76,7 +71,7 @@ jobs:
       pr-body: ${{ github.event.pull_request.body }}
 
   call-core:
-    needs: gatekeeper
+    needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_core.yml
     with:
@@ -85,14 +80,14 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-windows:
-    needs: gatekeeper
+    needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/test_windows.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
 
   call-cortex-m:
-    needs: gatekeeper
+    needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_cortex_m.yml
     with:
@@ -102,7 +97,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa:
-    needs: gatekeeper
+    needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_xtensa.yml
     with:
@@ -112,7 +107,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-hexagon:
-    needs: gatekeeper
+    needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_hexagon.yml
     with:
@@ -121,7 +116,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-riscv:
-    needs: gatekeeper
+    needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope == 'all'
     uses: ./.github/workflows/suite_riscv.yml
     with:
@@ -130,7 +125,7 @@ jobs:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   tests-passed:
-    needs: [gatekeeper, call-check-tflite-files, call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon, call-riscv]
+    needs: [gatekeeper, approval-gate, call-check-tflite-files, call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon, call-riscv]
     if: always()
     runs-on: ubuntu-latest
     steps:
