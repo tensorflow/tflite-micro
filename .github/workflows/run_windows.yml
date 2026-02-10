@@ -10,6 +10,10 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   call-test-windows:
     uses: ./.github/workflows/test_windows.yml

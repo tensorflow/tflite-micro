@@ -10,6 +10,10 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   call-suite-cortex-m:
     uses: ./.github/workflows/suite_cortex_m.yml
