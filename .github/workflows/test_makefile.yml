@@ -36,4 +36,4 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ..
-          workspace/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} workspace/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
