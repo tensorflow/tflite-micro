@@ -38,7 +38,7 @@ jobs:
           android: true
           dotnet: true
           haskell: true
-          docker-images: true
+          docker-images: false
           large-packages: false
           tool-cache: false
           swap-storage: false
@@ -48,4 +48,4 @@ jobs:
       - name: Test
         uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
         with:
-          args: /bin/sh -c "git config --global --add safe.directory /github/workspace && tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}"
+          args: /bin/sh -c "tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}"
