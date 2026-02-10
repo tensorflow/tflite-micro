@@ -69,7 +69,6 @@ PYTHON_VERSIONS = [
     "3.13",
 ]
 
-
 pip.whl_mods(
     additive_build_content = """\
 load("@@//python:tensorflow_cc_targets.bzl", "extra_tensorflow_targets")
