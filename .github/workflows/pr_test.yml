@@ -30,7 +30,7 @@ jobs:
             });
             const trustedRoles = ['admin', 'maintain', 'write', 'triage'];
             const isTrusted = trustedRoles.includes(permission.permission);
-            core.setOutput('is_trusted', isTrusted);
+            core.setOutput('is_trusted', isTrusted ? 'true' : 'false');
 
             const labels = context.payload.pull_request.labels.map(l => l.name);
 
@@ -57,8 +57,8 @@ jobs:
     needs: gatekeeper
     if: needs.gatekeeper.outputs.scope != 'none'
     runs-on: ubuntu-latest
-    # The environment gate is only applied to untrusted authors
-    environment: ${{ needs.gatekeeper.outputs.is_trusted == 'true' && '' || 'integration-test' }}
+    # If untrusted, use integration-test. Otherwise, use empty string (no gate).
+    environment: ${{ needs.gatekeeper.outputs.is_trusted == 'false' && 'integration-test' || '' }}
     steps:
       - name: Authorize
         run: echo "CI Authorized."
