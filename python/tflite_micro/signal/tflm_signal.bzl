@@ -56,7 +56,7 @@ def py_tflm_signal_library(
                 cc_op_kernels +
                 select({
                     "@platforms//os:windows": [],
-                    "//conditions:default": ["@tensorflow_cc_deps//:cc_library"],
+                    "//conditions:default": ["@tflm_pip_deps//tensorflow:cc_library"],
                 }),
         )
         cc_binary(
@@ -71,7 +71,7 @@ def py_tflm_signal_library(
                 ":" + library_name,
             ] + select({
                 "@platforms//os:windows": [],
-                "//conditions:default": ["@tensorflow_cc_deps//:cc_library"],
+                "//conditions:default": ["@tflm_pip_deps//tensorflow:cc_library"],
             }),
         )
 

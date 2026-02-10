@@ -67,7 +67,7 @@ pybind_extension(
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
-        "@numpy_cc_deps//:cc_headers",
+        "@tflm_pip_deps//numpy:cc_headers",
     ],
 )
 
