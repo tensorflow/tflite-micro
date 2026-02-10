@@ -385,7 +385,7 @@ const tflite::micro::compression::Metadata* GetCompressionMetadata(
     }
     const char* s = metadata->name()->c_str();
     if ((metadata->name()->size() == metadata_string_length) &&
-        (std::strncmp(s, kCompressionMetadataString, metadata_string_length) ==
+        (std::memcmp(s, kCompressionMetadataString, metadata_string_length) ==
          0)) {
       auto buffer_index = metadata->buffer();
       if (buffer_index == 0 || buffer_index >= buffers->size()) {

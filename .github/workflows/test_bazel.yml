@@ -20,16 +20,12 @@ jobs:
             script: test_bazel_with_compression.sh
           - name: Bazel msan
             script: test_bazel_msan.sh
-            needs-mmap-rnd: true
           - name: Bazel with Compression [msan]
             script: test_bazel_with_compression_msan.sh
-            needs-mmap-rnd: true
           - name: Bazel asan
             script: test_bazel_asan.sh
-            needs-mmap-rnd: true
           - name: Bazel with Compression [asan]
             script: test_bazel_with_compression_asan.sh
-            needs-mmap-rnd: true
 
     name: ${{ matrix.name }}
     steps:
