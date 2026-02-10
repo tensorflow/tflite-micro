@@ -24,7 +24,4 @@ cd "${ROOT_DIR}"
 BAZEL_CONFIG=${1:-ci}
 TARGETS=${2:-//...}
 
-# TODO(veblush): Enable this
-bazel test --config=${BAZEL_CONFIG} -- ${TARGETS} \
-  -//python/tflite_micro:runtime_test \
-  -//python/tflite_micro:test_compression_unsupported
+bazel test --config=${BAZEL_CONFIG} -- ${TARGETS}
