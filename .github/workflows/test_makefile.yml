@@ -9,7 +9,9 @@ on:
 
 jobs:
   x86_makefile_tests:
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n2-16
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     strategy:
       fail-fast: false
       matrix:
@@ -24,10 +26,7 @@ jobs:
             script: test_x86_out_of_tree.sh
           - name: Makefile x86 No TFLite Static Memory
             script: test_x86_no_tflite_static_memory.sh
-
     name: ${{ matrix.name }}
-    container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     steps:
       - uses: actions/checkout@v6
         with:
