@@ -20,7 +20,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
       - name: Check
         run: tensorflow/lite/micro/tools/ci_build/test_code_style.sh
-
+0.6.6
   cpp_build_warnings:
     runs-on: ubuntu-latest
 
@@ -42,7 +42,7 @@ jobs:
         uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
         with:
           args: bazel build --copt="-Werror" //...
-
+0.6.6
   project_generation:
     runs-on: ubuntu-latest
 
