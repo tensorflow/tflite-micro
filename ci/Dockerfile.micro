@@ -83,4 +83,4 @@ RUN /install/install_bazelisk.sh && \
     rm -rf /install
 
 # Configure git safe directories
-RUN git config --global --add safe.directory '*'
+RUN git config --system --add safe.directory '*'
