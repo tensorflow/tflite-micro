@@ -89,7 +89,6 @@ tflm_cc_library(
 py_library(
     name = "generate_test_models_lib",
     srcs = ["generate_test_models.py"],
-    legacy_create_init = False,
     visibility = [
         ":tflite_micro",
     ],
@@ -102,7 +101,6 @@ py_library(
 py_binary(
     name = "generate_test_models",
     srcs = ["generate_test_models.py"],
-    legacy_create_init = False,
     tags = [
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
