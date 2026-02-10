@@ -76,6 +76,7 @@ py_library(
     srcs = [
         "runtime.py",
     ],
+    legacy_create_init = False,
     data = [":_runtime.so"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
@@ -89,6 +90,7 @@ py_library(
 py_test(
     name = "runtime_test",
     srcs = ["runtime_test.py"],
+    legacy_create_init = False,
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols in _runtime.so
@@ -107,6 +109,7 @@ py_test(
 py_test(
     name = "test_compression_unsupported",
     srcs = ["test_compression_unsupported.py"],
+    legacy_create_init = False,
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols in _runtime.so
@@ -131,6 +134,7 @@ py_library(
     srcs = [
         "postinstall_check.py",
     ],
+    legacy_create_init = False,
     data = [
         "sine_float.tflite",
     ],

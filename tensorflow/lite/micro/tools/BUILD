@@ -25,6 +25,7 @@ package_group(
 )
 
 py_library(
+    legacy_create_init = False,
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
     deps = [
@@ -34,6 +35,7 @@ py_library(
 )
 
 py_library(
+    legacy_create_init = False,
     name = "generate_test_for_model",
     srcs = ["generate_test_for_model.py"],
     visibility = ["//:__subpackages__"],
@@ -43,6 +45,7 @@ py_library(
 )
 
 py_binary(
+    legacy_create_init = False,
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],
     deps = [
@@ -52,6 +55,7 @@ py_binary(
 )
 
 py_binary(
+    legacy_create_init = False,
     name = "requantize_flatbuffer",
     srcs = [
         "requantize_flatbuffer.py",
@@ -65,6 +69,7 @@ py_binary(
 )
 
 py_test(
+    legacy_create_init = False,
     name = "requantize_flatbuffer_test",
     srcs = ["requantize_flatbuffer_test.py"],
     main = "requantize_flatbuffer_test.py",
@@ -95,6 +100,7 @@ pybind_extension(
 )
 
 py_binary(
+    legacy_create_init = False,
     name = "tflite_flatbuffer_align",
     srcs = [
         "tflite_flatbuffer_align.py",
@@ -109,6 +115,7 @@ py_binary(
 )
 
 py_library(
+    legacy_create_init = False,
     name = "model_transforms_utils",
     srcs = ["model_transforms_utils.py"],
     data = [
@@ -126,6 +133,7 @@ py_library(
 )
 
 py_library(
+    legacy_create_init = False,
     name = "tflm_model_transforms_lib",
     srcs = ["tflm_model_transforms_lib.py"],
     data = [
@@ -171,6 +179,7 @@ cc_binary(
 )
 
 py_binary(
+    legacy_create_init = False,
     name = "tflm_model_transforms",
     srcs = ["tflm_model_transforms.py"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
@@ -181,6 +190,7 @@ py_binary(
 )
 
 py_test(
+    legacy_create_init = False,
     name = "tflm_model_transforms_test",
     srcs = ["tflm_model_transforms_test.py"],
     data = [
@@ -202,6 +212,7 @@ py_test(
 )
 
 py_binary(
+    legacy_create_init = False,
     name = "layer_by_layer_debugger",
     srcs = ["layer_by_layer_debugger.py"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
