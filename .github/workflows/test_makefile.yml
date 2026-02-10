@@ -27,7 +27,7 @@ jobs:
 
     name: ${{ matrix.name }}
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.6
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     steps:
       - uses: actions/checkout@v6
         with:

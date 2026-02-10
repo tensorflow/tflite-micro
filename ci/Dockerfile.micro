@@ -15,7 +15,7 @@
 #
 # --- Build and upload to GHCR.IO ---
 # (Run from the root of the TFLM repository)
-#   export TFLM_CI_VERSION=0.6.6
+#   export TFLM_CI_VERSION=0.6.7
 #   docker build --no-cache -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
 #

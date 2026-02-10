@@ -13,7 +13,7 @@ jobs:
 
     name: Code Style
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.6
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     steps:
       - uses: actions/checkout@v6
         with:
@@ -39,7 +39,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Build with Warnings as Errors
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.6
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.7
         with:
           args: bazel build --copt="-Werror" //...
 
@@ -48,7 +48,7 @@ jobs:
 
     name: Project Generation
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.6
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     steps:
       - uses: actions/checkout@v6
         with:
