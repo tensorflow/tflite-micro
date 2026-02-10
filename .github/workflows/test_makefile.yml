@@ -26,19 +26,14 @@ jobs:
             script: test_x86_no_tflite_static_memory.sh
 
     name: ${{ matrix.name }}
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.5
     steps:
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
-      - name: Install dependencies
-        run: |
-          pip3 install Pillow
-          pip3 install numpy
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_makefile.sh
-          cd ../
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
+          cd ..
+          workspace/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} workspace/
