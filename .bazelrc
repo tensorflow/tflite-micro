@@ -82,6 +82,10 @@ build:ubsan --copt=-fsanitize=undefined
 build:ubsan --linkopt=-fsanitize=undefined
 build:ubsan --linkopt=-lubsan
 
+# Suppress warnings from external repositories
+build --output_filter=^//
+test --output_filter=^//
+
 # Hooks for defining local configuration
 try-import ../bazelrc.local
 try-import bazelrc.local
