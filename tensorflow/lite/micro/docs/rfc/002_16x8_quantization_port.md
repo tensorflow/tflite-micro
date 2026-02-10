@@ -52,7 +52,7 @@ Users would benefit in the following ways:
 
 - Improved accuracy for quantized models without increasing model size (in exchange for additional
   runtime memory usage)
-- Improved performance under certain conditions (for example, 16x8 CMSIS-NN kernels will run faster)
+- Improved performance under certain conditions (for example, 16x8 CMSIS-NN kernels will run faster
   than 8 bit kernels since less unpacking is required)
 
 ## Design Proposal
@@ -151,6 +151,6 @@ For each kernel:
 - PR2: Add 16x8 support and make sure that the benchmark binary and arena sizes are unchanged.
 
 Note that @njeffrie from the TF Lite Micro team also plans to prepare PR(s) for the kernels that are of interest internally
-(without using the kernel variant registation API for binary size). This will provide some quick examples of porting the kernels.
+(without using the kernel variant registration API for binary size). This will provide some quick examples of porting the kernels.
 
 ## Questions and Discussion Topics
