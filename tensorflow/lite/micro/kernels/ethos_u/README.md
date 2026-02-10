@@ -17,7 +17,7 @@ command. Use ETHOSU_ARCH to specify the architecture. See examples below.
 The TFLM runtime will dispatch workloads to Ethos-U when it encounters an
 Ethos-U custom op in the tflite file. See an ASCII art example below.
 The Ethos-U custom op is added by a tool called Ethos-U Vela and contains
-information the Ethos-U hardware need to execute the workload. More info in the
+information the Ethos-U hardware needs to execute the workload. More info in the
 [Vela repository](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-vela).
 
 ```
@@ -43,7 +43,7 @@ information the Ethos-U hardware need to execute the workload. More info in the
      v
 ```
 
-Note that the `ethousu_init()` API of the Ethos-U driver need to be called at
+Note that the `ethousu_init()` API of the Ethos-U driver needs to be called at
 startup, before calling the TFLM API. More info in the [Ethos-U driver repo](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver).
 
 For even more info regarding Vela and Ethos-U, checkout [Ethos-U landing page](https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u/-/tree/main).

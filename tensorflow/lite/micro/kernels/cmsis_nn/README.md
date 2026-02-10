@@ -11,7 +11,7 @@ For more information about the optimizations, check out
 # Specifying path to CMSIS-NN
 
 By default CMSIS-NN is built by code that is downloaded to the TFLM tree.
-It also possible to build CMSIS-NN code from an external path by specifying
+It is also possible to build CMSIS-NN code from an external path by specifying
 CMSIS_PATH=<../path> and CMSIS_NN_PATH=<../path>. Note that both CMSIS_PATH and CMSIS_NN_PATH is needed
 since CMSIS-NN has a dependency to CMSIS-Core. As a third option CMSIS-NN can be provided manually as an external library.
 The examples below will illustrate this.
@@ -53,14 +53,14 @@ It is possible to build for speed or size. The size option may be required for a
 ## Example - building a static library with CMSIS-NN optimized kernels
 More info on the target used in this example: https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/cortex_m_generic/README.md
 
-Bulding for speed (default):
+Building for speed (default):
 Note that speed is default so if leaving out OPTIMIZE_KERNELS_FOR completely that will be the default.
 ```
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_generic TARGET_ARCH=cortex-m55 OPTIMIZED_KERNEL_DIR=cmsis_nn OPTIMIZE_KERNELS_FOR=KERNELS_OPTIMIZED_FOR_SPEED microlite
 
 ```
 
-Bulding for size:
+Building for size:
 ```
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=cortex_m_generic TARGET_ARCH=cortex-m55 OPTIMIZED_KERNEL_DIR=cmsis_nn OPTIMIZE_KERNELS_FOR=KERNELS_OPTIMIZED_FOR_SIZE microlite
 

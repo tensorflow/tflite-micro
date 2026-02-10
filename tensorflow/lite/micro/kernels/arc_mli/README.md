@@ -47,7 +47,7 @@ To build TFLM using the embARC MLI Library 2.0, add the following tag to the com
 ```
 ARC_TAGS=mli20_experimental
 ```
-In this case, generated projectes will be in <tcf_file_basename>_mli20_arc_default folder.
+In this case, generated projects will be in <tcf_file_basename>_mli20_arc_default folder.
 
 Some of configurations may require a custom run-time library specified using the BUILD_LIB_DIR option. Please, check MLI Library 2.0 [documentation](https://github.com/foss-for-synopsys-dwc-arc-processors/embarc_mli/tree/Release_2.0_EA#build-configuration-options) for more details. The following option can be added:
 ```

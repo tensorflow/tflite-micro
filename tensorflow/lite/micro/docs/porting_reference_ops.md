@@ -191,9 +191,8 @@ A good example is [PR #45311][].
     This bulk-delete action is in its own commit for reasons similar to
     those given in the step above: to produce a more readable, reviewable diff in this
     step and in the next. Because the files are not yet added to the build, they
-    need not (and obviously won't) compiler or function. What to delete now as
-    opposed to deleting in the next commit is somewhat subjective, but make
-    deletes in order to:
+    need not (and obviously won't) compile or function. What to delete now as
+    opposed to deleting in the next commit is somewhat subjective, but make    deletes in order to:
 
     -   Flatten the namespace down to `tflite`.
     -   Stop resizing output tensors.

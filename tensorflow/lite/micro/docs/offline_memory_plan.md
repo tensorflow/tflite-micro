@@ -10,8 +10,8 @@
 
 # Offline Memory Plan Via NonpersistentMemoryPlannerShim
 
-This doc outline how to use the NonPersistentMemoryPlannerShim class to work
-with a external tooling that can plan the offset of each non persistent buffer
+This doc outlines how to use the NonPersistentMemoryPlannerShim class to work
+with an external tooling that can plan the offset of each non persistent buffer
 for the Model within the TFLM arena.
 
 This is an experimental feature right now and subjected to change. Comments are
@@ -22,7 +22,7 @@ welcome!
 The
 [(memory management page)](memory_management.md#offline-planned-tensor-allocations)
 describes a way to specify the offset of each non persistent buffer in a
-flatbuffer model file. This document describe an alternative that allows the
+flatbuffer model file. This document describes an alternative that allows the
 offset of each non persistent buffer for the Model within the TFLM arena to be
 specified by a C++ struct. The approach in this document is an early stage
 exploration of what the next version of offline memory planning in TFLM might
@@ -37,8 +37,8 @@ have a more efficient utilization compared to the GreedyMemoryPlanner.
 
 ## Usage
 
-The more effecient memory plan above can be represented by the following C++
-struct
+The more efficient memory plan above can be represented by the following C++
+struct.
 
 ```cc
 const struct BufferPlan kOfflineNonPersistentBufferPlan = {

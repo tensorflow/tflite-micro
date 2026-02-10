@@ -23,7 +23,7 @@ optional in order to prevent binary bloat on resource constrained systems.
 ## API
 
 The MicroResourceVariables factory method takes a MicroAllocator and an int
-indicating the number of resource varibles to support. This allows the
+indicating the number of resource variables to support. This allows the
 application to choose the correct number of variables based on the model.
 
 ## Lifecycle

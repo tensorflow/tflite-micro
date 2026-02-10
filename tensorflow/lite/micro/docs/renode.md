@@ -19,8 +19,8 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 
 # Software Emulation with Renode
 
-TensorFlow Lite Micro makes use of [Renode](https://github.com/renode/renode) to
-for software emulation.
+TensorFlow Lite Micro makes use of [Renode](https://github.com/renode/renode) for
+software emulation.
 
 Here, we document how Renode is used as part of the TFLM project. For more
 general use of Renode, please refer to the [Renode
@@ -73,7 +73,7 @@ failing.
 # Running a non-test Binary with Renode
 
 Renode can also be used to run and debug binaries interactively. For example,
-to debug `kernel_addr_test` on Bluepill platform, run Renode:
+to debug `kernel_add_test` on Bluepill platform, run Renode:
 
 ```
 tensorflow/lite/micro/tools/make/downloads/renode/renode
@@ -106,7 +106,7 @@ To do that, start the GDB server in Renode before issuing the `start` command:
 ```
 machine StartGdbServer 3333
 ```
-Than you can connect from GDB with:
+Then you can connect from GDB with:
 ```
 target remote localhost:3333
 ```
