@@ -53,7 +53,9 @@ pip show --files tflite-micro
 
 # Run the package's post-installation checks.
 python3 << HEREDOC
-import sys, tflite_micro
+import sys
+import tflite_micro
+from tflite_micro.python.tflite_micro import postinstall_check
 print(tflite_micro.__version__)
-sys.exit(0 if tflite_micro.postinstall_check.passed() else 1)
+sys.exit(0 if postinstall_check.passed() else 1)
 HEREDOC
