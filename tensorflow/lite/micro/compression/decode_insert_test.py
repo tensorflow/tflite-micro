@@ -13,7 +13,6 @@
 # limitations under the License.
 """Unit tests for DECODE operator insertion."""
 
-import unittest
 import warnings
 
 import numpy as np
@@ -386,7 +385,6 @@ class TestDecodeInsertion(tf.test.TestCase):
     self.assertEqual(ancillary.name, "weights_ancillary")
     self.assertEqual(output.name, "weights_decoded")
 
-  @unittest.expectedFailure
   def test_multiple_compressed_inputs_batched(self):
     """CONCATENATION with two compressed inputs gets one batched DECODE."""
     weights_a = model_editor.Tensor(
