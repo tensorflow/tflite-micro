@@ -13,14 +13,14 @@ jobs:
 
     name: Code Style
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.5
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.6
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Check
         run: tensorflow/lite/micro/tools/ci_build/test_code_style.sh
-0.6.6
+
   cpp_build_warnings:
     runs-on: ubuntu-latest
 
@@ -39,16 +39,16 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
       - name: Build with Warnings as Errors
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.5
+        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.6
         with:
           args: bazel build --copt="-Werror" //...
-0.6.6
+
   project_generation:
     runs-on: ubuntu-latest
 
     name: Project Generation
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.5
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.6
     steps:
       - uses: actions/checkout@v6
         with:
