@@ -56,4 +56,4 @@ jobs:
       - name: Test
         run: |
           cd ..
-          workspace/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh workspace/
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh tflite-micro/

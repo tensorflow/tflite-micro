@@ -8,6 +8,7 @@ py_binary(
     srcs = [
         "generate_per_layer_tests.py",
     ],
+    legacy_create_init = False,
     data = [
         "templates/BUILD.mako",
         "templates/integration_tests_cc.mako",
