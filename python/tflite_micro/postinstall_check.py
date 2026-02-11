@@ -22,7 +22,10 @@ from tflite_micro import runtime
 from tflite_micro import compression
 
 import numpy as np
-import pkg_resources
+try:
+  from importlib import resources
+except ImportError:
+  import importlib_resources as resources
 import sys
 import tempfile
 import os
@@ -31,26 +34,27 @@ import os
 def runtime_test():
   """Test the runtime interpreter functionality."""
   # Create an interpreter with a sine model
-  model = pkg_resources.resource_filename(__name__, "sine_float.tflite")
-  interpreter = runtime.Interpreter.from_file(model)
-  OUTPUT_INDEX = 0
-  INPUT_INDEX = 0
-  input_shape = interpreter.get_input_details(INPUT_INDEX).get("shape")
+  with resources.as_file(
+      resources.files(__name__).joinpath("sine_float.tflite")) as model_path:
+    interpreter = runtime.Interpreter.from_file(str(model_path))
+    OUTPUT_INDEX = 0
+    INPUT_INDEX = 0
+    input_shape = interpreter.get_input_details(INPUT_INDEX).get("shape")
 
-  # The interpreter infers sin(x)
-  def infer(x):
-    tensor = np.array(x, np.float32).reshape(input_shape)
-    interpreter.set_input(tensor, INPUT_INDEX)
-    interpreter.invoke()
-    return interpreter.get_output(OUTPUT_INDEX).squeeze()
+    # The interpreter infers sin(x)
+    def infer(x):
+      tensor = np.array(x, np.float32).reshape(input_shape)
+      interpreter.set_input(tensor, INPUT_INDEX)
+      interpreter.invoke()
+      return interpreter.get_output(OUTPUT_INDEX).squeeze()
 
-  # Check a few inferred values against a numerical computation
-  PI = 3.14
-  inputs = (0.0, PI / 2, PI, 3 * PI / 2, 2 * PI)
-  outputs = [infer(x) for x in inputs]
-  goldens = np.sin(inputs)
+    # Check a few inferred values against a numerical computation
+    PI = 3.14
+    inputs = (0.0, PI / 2, PI, 3 * PI / 2, 2 * PI)
+    outputs = [infer(x) for x in inputs]
+    goldens = np.sin(inputs)
 
-  return np.allclose(outputs, goldens, atol=0.05)
+    return np.allclose(outputs, goldens, atol=0.05)
 
 
 def compression_test():

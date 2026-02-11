@@ -20,22 +20,25 @@
 set -e
 
 WHL="${1}"
+PYTHON_BIN="${2:-python3}"
 
-# Rename wheel if it has unstamped variables in the filename. The py_wheel rule
-# creates two outputs: the base :whl target with literal stamp variables in the
-# filename (for Bazel caching), and :whl.dist with expanded variables. This test
-# uses :whl as its data dependency because :whl.dist isn't a proper Bazel target
-# that can be referenced in deps. Pip 25.x in Python 3.12+ strictly validates
-# wheel filenames and rejects literal stamp variables like _BUILD_EMBED_LABEL_.
-# Replace with a valid placeholder version for testing purposes.
-if echo "${WHL}" | grep -q '_BUILD_EMBED_LABEL_'; then
-    RENAMED_WHL=$(echo "${WHL}" | sed 's/_BUILD_EMBED_LABEL_\.dev_STABLE_GIT_COMMIT_TIME_/0.0.0/')
-    cp "${WHL}" "${RENAMED_WHL}"
-    WHL="${RENAMED_WHL}"
-fi
+# The py_wheel rule creates two outputs: the base :whl target with literal stamp
+# variables in the filename (for Bazel caching), and :whl.dist with expanded
+# variables. This test uses :whl as its data dependency because :whl.dist isn't
+# a proper Bazel target that can be referenced in deps.
+#
+# Pip 25.x in Python 3.12+ strictly validates wheel filenames and rejects
+# literal stamp variables like _BUILD_EMBED_LABEL_. To make this robust against
+# any version string format (which might contain various placeholders), we
+# simply rename the input wheel to a fixed, safe filename before installing.
+# We don't care about the version string in the filename for this test, as pip
+# installs the content anyway.
+
+SAFE_WHL="tflite_micro-0.0.0-py3-none-any.whl"
+cp "${WHL}" "${SAFE_WHL}"
 
 # Create venv for this test.
-python3 -m venv pyenv
+"${PYTHON_BIN}" -m venv pyenv
 . pyenv/bin/activate
 
 # Disable pip's cache for two reasons: 1) the default location in
@@ -45,12 +48,14 @@ python3 -m venv pyenv
 export PIP_NO_CACHE_DIR=true
 
 # Test package installation.
-pip install "${WHL}"
+pip install "${SAFE_WHL}"
 pip show --files tflite-micro
 
 # Run the package's post-installation checks.
 python3 << HEREDOC
-import sys, tflite_micro
+import sys
+import tflite_micro
+from tflite_micro.python.tflite_micro import postinstall_check
 print(tflite_micro.__version__)
-sys.exit(0 if tflite_micro.postinstall_check.passed() else 1)
+sys.exit(0 if postinstall_check.passed() else 1)
 HEREDOC

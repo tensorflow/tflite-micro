@@ -6,7 +6,8 @@ py_library(
     srcs = ["flatbuffer_utils.py"],
     visibility = ["//:__subpackages__"],
     deps = [
-        "@flatbuffers//:runtime_py",
+        "//:tflite_micro_shim",
+        requirement("flatbuffers"),
         requirement("tensorflow"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
@@ -17,7 +18,8 @@ py_library(
     name = "test_utils",
     srcs = ["test_utils.py"],
     deps = [
-        "@flatbuffers//:runtime_py",
+        "//:tflite_micro_shim",
+        requirement("flatbuffers"),
         requirement("tensorflow"),
         "//tensorflow/lite/python:schema_py",
     ],

@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import sys
-import view
+import tflite_micro
+from tflite_micro.tensorflow.lite.micro.compression import view
 
 # The test simply makes sure the viewer runs without returning an error.
 

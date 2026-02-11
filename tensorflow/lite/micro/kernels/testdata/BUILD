@@ -46,6 +46,7 @@ py_binary(
         "lstm_test_data_utils.py",
     ],
     deps = [
+        "//:tflite_micro_shim",
         requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),

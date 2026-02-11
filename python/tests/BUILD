@@ -10,6 +10,6 @@ cc_test(
         "nomsan",  # avoid, because tensorflow library fails msan
     ],
     deps = [
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )

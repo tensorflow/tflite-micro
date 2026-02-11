@@ -10,7 +10,7 @@ tflm_signal_kernel_library(
     srcs = ["delay_kernel.cc"],
     deps = [
         "//signal/src:circular_buffer",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -20,7 +20,7 @@ tflm_signal_kernel_library(
     deps = [
         "//signal/src:complex",
         "//signal/src:energy",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -31,7 +31,7 @@ tflm_signal_kernel_library(
         "//signal/src:fft_auto_scale",
         "//signal/src:irfft",
         "//signal/src:rfft",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -43,7 +43,7 @@ tflm_signal_kernel_library(
         "//signal/src:filter_bank_log",
         "//signal/src:filter_bank_spectral_subtraction",
         "//signal/src:filter_bank_square_root",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -52,7 +52,7 @@ tflm_signal_kernel_library(
     srcs = ["framer_kernel.cc"],
     deps = [
         "//signal/src:circular_buffer",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -61,7 +61,7 @@ tflm_signal_kernel_library(
     srcs = ["overlap_add_kernel.cc"],
     deps = [
         "//signal/src:overlap_add",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -70,7 +70,7 @@ tflm_signal_kernel_library(
     srcs = ["pcan_kernel.cc"],
     deps = [
         "//signal/src:pcan_argc_fixed",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -79,7 +79,7 @@ tflm_signal_kernel_library(
     srcs = ["stacker_kernel.cc"],
     deps = [
         "//signal/src:circular_buffer",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )
 
@@ -88,6 +88,6 @@ tflm_signal_kernel_library(
     srcs = ["window_kernel.cc"],
     deps = [
         "//signal/src:window",
-        "@tensorflow_cc_deps//:cc_library",
+        "@tflm_pip_deps//tensorflow:cc_library",
     ],
 )

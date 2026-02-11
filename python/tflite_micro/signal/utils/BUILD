@@ -24,6 +24,9 @@ py_test(
         "noubsan",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        "//:tflite_micro_shim",
+    ],
 )
 
 py_library(
@@ -32,6 +35,9 @@ py_library(
         ":freq_to_mel_wrapper.so",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        "//:tflite_micro_shim",
+    ],
 )
 
 pybind_extension(
@@ -67,6 +73,9 @@ py_library(
         ":wide_dynamic_func_lut_wrapper.so",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        "//:tflite_micro_shim",
+    ],
 )
 
 py_test(
@@ -82,4 +91,7 @@ py_test(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
+    deps = [
+        "//:tflite_micro_shim",
+    ],
 )

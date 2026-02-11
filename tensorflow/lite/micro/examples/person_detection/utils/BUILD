@@ -25,7 +25,10 @@ py_library(
 py_test(
     name = "raw_to_bitmap_test",
     srcs = ["raw_to_bitmap_test.py"],
-    data = glob(["testdata/**"]),
+    data = glob(
+        ["testdata/**"],
+        allow_empty = True,
+    ),
     tags = [
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "notap",  # TODO(b/186679612)
@@ -33,6 +36,7 @@ py_test(
     ],
     deps = [
         ":raw_to_bitmap_lib",
+        "//:tflite_micro_shim",
         requirement("tensorflow"),
         requirement("numpy"),
     ],

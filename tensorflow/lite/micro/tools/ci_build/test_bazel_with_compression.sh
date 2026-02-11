@@ -21,5 +21,4 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
-# TODO(veblush): Enable this
-bazel test --config=ci --//:with_compression -- //... -//python/tflite_micro:runtime_test
+bazel test --config=ci --//:with_compression -- //...
