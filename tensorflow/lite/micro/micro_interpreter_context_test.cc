@@ -207,7 +207,7 @@ TEST(MicroInterpreterContextTest, TestSetDecompressionMemory) {
   // method should only be allowed during the kInit state, and can only be
   // set once.  This is because alternate decompression memory is allocated
   // during the application initiated kPrepare state, and all memory has already
-  // been statically allocted during the kInvoke state.
+  // been statically allocated during the kInvoke state.
 
   // fail during Prepare state
   micro_context.SetInterpreterState(

@@ -211,7 +211,7 @@ inline void permute_weights(const mli_tensor* weights_src,
   mli_tensor buffer = {};
   buffer.el_params = weights_dst->el_params;
   buffer.data = *buffer_data;
-  // Compare weights tensor size and avaliable buffer capacity.
+  // Compare weights tensor size and available buffer capacity.
   int buffer_size = buffer_data->capacity;
   int weights_size = mli_hlp_count_elem_num(weights_src, 0) *
                      mli_hlp_tensor_element_size(weights_src);
@@ -241,14 +241,14 @@ inline void permute_weights(const mli_tensor* weights_src,
     mli_sub_tensor_cfg sub_tensor_cfg = {};
     sub_tensor_cfg.sub_tensor_rank = weights_src->rank;
 
-    // Calculate dimensions for slice accroding to buffer capacity.
+    // Calculate dimensions for slice according to buffer capacity.
     // Now, after calling change_shape() function, dst weights buffer has the
     // MLI layout (HWCN). This means, the innermost dimension (N) of dst weights
     // tensor is equal to the innermost dimension of output tensor (N).
     sub_tensor_cfg.size[weights_dst->rank - 1] =
         src_sizes[weights_dst->rank - 1] = weights_src->shape[KRNL_C_DIM_NHWC];
     // Now need to calculate other shapes for weights slice. Total slice size is
-    // H*W*C*N, so to calculate sizes for each axis, avaliable slice size is
+    // H*W*C*N, so to calculate sizes for each axis, available slice size is
     // divided by shape for each axis.
     uint32_t slice_size_left = slice_size;
     for (uint32_t i = 0; i < weights_dst->rank - 1; i++) {

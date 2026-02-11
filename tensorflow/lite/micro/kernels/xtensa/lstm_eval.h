@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-// Functions to perform integer evaulation for standard LSTM (e.g., defined in
+// Functions to perform integer evaluation for standard LSTM (e.g., defined in
 // the keras lstm layer, no peephole etc.). Currently used by the 16 bits
 // activation case only
 
@@ -44,7 +44,7 @@ class LstmTensors {
   ~LstmTensors();
 
   // Verify the LSTM internal tensor properties (e.g., type checks)
-  // Input/output/states/fc weights tensors are required for kernel evaulation.
+  // Input/output/states/fc weights tensors are required for kernel evaluation.
   // The state tensors should be variables. Variants of the standard LSTM
   // are not supported here, therefore their corresponding tensors should be
   // invalid
@@ -290,7 +290,7 @@ class LstmStepManager {
   int hidden_state_offset_ = 0;
   int cell_state_offset_ = 0;
   // Sizeinfo is from LstmOpData, which reside in the memory arena
-  // (guarante to outlast LSTMStepManager, which reside in stack)
+  // (guarantee to outlast LSTMStepManager, which reside in stack)
   const LstmSizeInfo& size_info_;
 };
 
@@ -790,7 +790,7 @@ void LstmStep(const LstmStepManager& step_info, const OpDataLSTM& op_data,
 
 }  // namespace lstm_internal
 
-// Evaulate the LSTM kernel with (potential) multi-steps and multi-batch input
+// Evaluate the LSTM kernel with (potential) multi-steps and multi-batch input
 // Since
 template <typename ActivationType, typename WeightType, typename CellType,
           typename BiasType>
@@ -799,7 +799,7 @@ TfLiteStatus EvalLstm(const OpDataLSTM& op_data,
                       const LSTMBuffers<CellType>& buffers) {
   lstm_internal::LstmStepManager step_info(&op_data.size_info);
   const auto& size_info = op_data.size_info;
-  // time is the first dimention, enable batch computation
+  // time is the first dimension, enable batch computation
   if (size_info.time_major) {
     for (int t = 0; t < size_info.time_steps; t++) {
       lstm_internal::LstmStep<ActivationType, WeightType, CellType, BiasType>(

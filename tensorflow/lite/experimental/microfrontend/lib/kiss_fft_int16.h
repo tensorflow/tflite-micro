@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/experimental/microfrontend/lib/kiss_fft_common.h"
 
 // Wrap 16-bit kiss fft in its own namespace. Enables us to link an application
-// with different kiss fft resultions (16/32 bit interger, float, double)
+// with different kiss fft resolutions (16/32 bit integer, float, double)
 // without getting a linker error.
 #define FIXED_POINT 16
 namespace kissfft_fixed16 {

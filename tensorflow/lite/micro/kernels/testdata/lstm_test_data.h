@@ -297,7 +297,7 @@ class LstmNodeContent {
 
  private:
   void InitializeTensors() {
-    // Invalid all the input tensors untill we set it
+    // Invalid all the input tensors until we set it
     input_tensor_indices_[0] = 24;  // tot elements
     for (size_t i = 1; i < 25; i++) {
       input_tensor_indices_[i] = kTfLiteOptionalTensor;
@@ -391,7 +391,7 @@ class LstmNodeContent {
 
   // see lstm_shared.h for tensor names, the last tensor is the output tensor
   TfLiteTensor tensors_[24 + 1] = {};
-  // Use for internel kernel testing
+  // Use for internal kernel testing
   TfLiteEvalTensor eval_tensors_[24 + 1] = {};
   // indices for the tensors inside the node (required by kernel runner)
   int input_tensor_indices_[1 + 24] = {};

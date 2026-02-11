@@ -431,7 +431,7 @@ class AudioPreprocessor:
   @property
   def params(self) -> FeatureParams:
     """
-    Feature Paramters being used by the AudioPreprocessor object
+    Feature Parameters being used by the AudioPreprocessor object
 
     Returns:
       FeatureParams object which is immutable

@@ -223,7 +223,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const RuntimeShape extended_rhs_shape =
       RuntimeShape::ExtendedShape(output_rank, GetTensorShape(rhs_input));
 
-  // Ensure any batch dimensions obey broacasting rules.
+  // Ensure any batch dimensions obey broadcasting rules.
   for (int i = 0; i < output_rank - 2; ++i) {
     const int lhs_dim = extended_lhs_shape.Dims(i);
     const int rhs_dim = extended_rhs_shape.Dims(i);

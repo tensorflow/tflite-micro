@@ -710,7 +710,7 @@ TfLiteStatus MicroAllocator::RequestScratchBufferInArena(size_t bytes,
 
   // First, ensure that the per-kernel request has not exceeded the limit:
   if (current_node_request_count >= kMaxScratchBuffersPerOp) {
-    MicroPrintf("Scratch buffer request exeeds limit per operator (%d)",
+    MicroPrintf("Scratch buffer request exceeds limit per operator (%d)",
                 kMaxScratchBuffersPerOp);
     return kTfLiteError;
   }
@@ -1139,7 +1139,7 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
       builder.GetOfflinePlannedOffsets(&offline_planner_offsets));
 
   // We allocate buffers for variable tensors here since the offline planner
-  // offsets are conviently available here.
+  // offsets are conveniently available here.
   for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
        subgraph_idx++) {
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);

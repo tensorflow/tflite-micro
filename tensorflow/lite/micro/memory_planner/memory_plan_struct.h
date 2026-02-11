@@ -55,7 +55,7 @@ struct BufferPlan {
   // are implementing the flexible array member with an array of
   // length 1 as the last member of the struct. When the size of a BufferPlan
   // is needed, use the provided SizeOfBufferPlan(buffer_count) that
-  // accounts for this implemenatation caveat.
+  // accounts for this implementation caveat.
   BufferDescriptor buffer_plan_entries[1];
 };
 

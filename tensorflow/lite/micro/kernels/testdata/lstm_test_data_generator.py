@@ -24,7 +24,7 @@ Every invocation gives three types information:
 
 Note:
 1. Change quantization settings in _KERNEL_CONFIG to see the outcomes from various quantization schema (e.g., 8x8 Vs. 16x8)
-2. Only single batch inference is supporte here. Change _GATE_TEST_DATA or _MULTISTEP_TEST_DATA to see kernel outputs on different input data
+2. Only single batch inference is supported here. Change _GATE_TEST_DATA or _MULTISTEP_TEST_DATA to see kernel outputs on different input data
 3. The quantization computation here is not the exact as the c++ implementation. The integer calculation is emulated here using floating point.
 No fixed point math is implemented here. The purpose is to illustrate the computation procedure and possible quantization error accumulation, not for bit exactness.
 """
@@ -33,7 +33,7 @@ import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.kernels.testdata import lstm_test_data_utils
 
-# Basic kernel information (defaul a 2x2 model with int8 quantization)
+# Basic kernel information (default a 2x2 model with int8 quantization)
 # change activation_bits to 16 for 16x8 case
 _KERNEL_CONFIG = {
     'quantization_settings': {
@@ -171,7 +171,7 @@ def main(_):
       _GATE_TEST_DATA['init_cell_state_vals'],
       _GATE_TEST_DATA['cell_state_range'],
   )
-  print("========== Quantization Settings for the Test Kernal ========== ")
+  print("========== Quantization Settings for the Test Kernel ========== ")
   print_quantization_settings(one_step_lstm_debugger)
   print("========== Single Step Invocation Intermediates  ========== ")
   print_one_step(one_step_lstm_debugger)

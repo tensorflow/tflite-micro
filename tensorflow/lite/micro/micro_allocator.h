@@ -212,7 +212,7 @@ class MicroAllocator {
   // ResetTempAllocations(). Subgraph_allocations contains the array of
   // TfLiteEvalTensors. If the newly allocated temp at the specified subgraph
   // and tensor index is already present int the TfLiteEvalTensor array, its
-  // data buffer will be re-used.
+  // data buffer will be reused.
   virtual TfLiteTensor* AllocateTempTfLiteTensor(
       const Model* model, const SubgraphAllocations* subgraph_allocations,
       int tensor_index, int subgraph_index);

@@ -58,10 +58,11 @@ class MicroResourceVariables {
   int FindId(const char* container, const char* shared_name);
 
   // Micro resource contains the mapping between resource container/name strings
-  // and resouce IDs. Each resource ID corresponds to a resource buffer pointer.
-  // The resouce ID is created during the VAR_HANDLE operator preparation stage.
-  // The resource buffer pointer is created during ASSIGN_VARIABLE preparation
-  // stage based on the size of the TFLiteTensor being assigned.
+  // and resource IDs. Each resource ID corresponds to a resource buffer
+  // pointer. The resource ID is created during the VAR_HANDLE operator
+  // preparation stage. The resource buffer pointer is created during
+  // ASSIGN_VARIABLE preparation stage based on the size of the TFLiteTensor
+  // being assigned.
   struct MicroResourceVariable {
     const char* container;
     const char* shared_name;

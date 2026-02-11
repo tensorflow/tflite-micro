@@ -1239,13 +1239,13 @@ TEST(ConvTest, Int8Input32x1Filter32x32ShouldMatchGolden) {
 
   // Quantization Parameters.  All scales except output are 1.0, and all zero
   // points are 0. This direct-maps the values to floating point and makes it
-  // easy to reson about them.
+  // easy to reason about them.
   int input_zero_point = 0;
   float input_scale = 1.0f;
   int filter_zero_point = 0;
   float filter_scale = 1.0f;
   int output_zero_point = 0;
-  // Output scale of 50 is needed to accomodate a float range of [-6400, 6350]
+  // Output scale of 50 is needed to accommodate a float range of [-6400, 6350]
   float output_scale = 50.0f;
 
   // Create per-tensor quantized int8_t input tensor.

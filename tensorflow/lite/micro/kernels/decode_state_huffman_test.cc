@@ -29,7 +29,7 @@ namespace {
 //
 // Huffman test data
 //
-// Test data is based on an intial table size of 8 elements with the following
+// Test data is based on an initial table size of 8 elements with the following
 // codeword map:
 //   'm' : '000',
 //   'a' : '001',

@@ -45,7 +45,7 @@ namespace {
 #define DW_UART_USR_TFNF (0x02)
 #define DW_UART_LSR_TXD_EMPTY (0x20)
 
-// EMSDP UART registers map (only necessairy fields)
+// EMSDP UART registers map (only necessary fields)
 typedef volatile struct dw_uart_reg {
   uint32_t DATA; /* data in/out and DLL */
   uint32_t RES1[4];
@@ -78,7 +78,7 @@ void DbgUartSendStr(const char* s) {
 }
 
 // Simple dump of symbols to a pre-allocated memory region.
-// When total log exceeds memory region size, cursor is moved to its begining.
+// When total log exceeds memory region size, cursor is moved to its beginning.
 // The memory region can be viewed afterward with debugger.
 // It can be viewed/read with debugger afterward.
 void LogToMem(const char* s) {

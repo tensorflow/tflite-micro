@@ -242,7 +242,7 @@ def _pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytearray:
 
   Pack the value tables of a LutCompressedArray into a bytes object in the
   format writable to a value_table buffer in the .tflite flatbuffer. The
-  tables are concatinated.
+  tables are concatenated.
   """
   buffer = bytearray()
   for t in tables:

@@ -108,7 +108,7 @@ def _relocate_deps(ctx):
     return outfiles
 
 def _py_namespace(ctx):
-    # Copy all input files underneath the namesapce directory and return a
+    # Copy all input files underneath the namespace directory and return a
     # Provider with the new file locations.
     outfiles = []
 

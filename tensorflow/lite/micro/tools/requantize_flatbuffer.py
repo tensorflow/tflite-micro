@@ -204,7 +204,7 @@ class Requantizer:
       )
 
   def save_model(self, output_path):
-    """Save the requantized model to a specificed location."""
+    """Save the requantized model to a specified location."""
     flatbuffer_utils.write_model(self.model, output_path)
 
   def model_bytearray(self):

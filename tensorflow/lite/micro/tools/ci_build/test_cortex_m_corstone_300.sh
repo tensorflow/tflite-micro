@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Tests Arm Cortex-M55 microprocessor code with CMSIS-NN optimizied kernels using FVP based on Arm Corstone-300 software.
+# Tests Arm Cortex-M55 microprocessor code with CMSIS-NN optimized kernels using FVP based on Arm Corstone-300 software.
 
 set -ex
 

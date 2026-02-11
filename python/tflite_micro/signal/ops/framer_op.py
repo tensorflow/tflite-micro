@@ -35,8 +35,8 @@ def _framer_wrapper(framer_fn, default_name):
       dim_list = input_tensor.shape.as_list()
       if dim_list[-1] % frame_step != 0:
         raise ValueError(
-            "Innermost input dimenion size must be a multiple of %d elements" %
-            frame_step)
+            "Innermost input dimension size must be a multiple of %d elements"
+            % frame_step)
       return framer_fn(input_tensor,
                        frame_size=frame_size,
                        frame_step=frame_step,

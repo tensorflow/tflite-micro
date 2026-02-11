@@ -25,7 +25,7 @@ _MAX_FFT_LENGTH = 2048
 
 
 def get_pow2_fft_length(input_length):
-  """Returns the smallest suuported power of 2 FFT length larger than or equal
+  """Returns the smallest supported power of 2 FFT length larger than or equal
 
   to the input_length.
 

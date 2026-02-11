@@ -222,10 +222,10 @@ def _zero_resource_buffers(model):
 
 
 def clear_resource_variable_buffers(model):
-  """Clear resource variable buffers, removes assocaited CALL_ONCE op, and the resource buffer initialization subgraph."""
+  """Clear resource variable buffers, removes associated CALL_ONCE op, and the resource buffer initialization subgraph."""
   multi_subgraph_resource_buffers = _zero_resource_buffers(model)
 
-  # * We are assuming the resource variable initializaiton subgraph index is 1.
+  # * We are assuming the resource variable initialization subgraph index is 1.
   if len(model.subgraphs) == 1:
     return
   found_non_resource_var_op = False

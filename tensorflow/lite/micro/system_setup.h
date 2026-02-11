@@ -18,7 +18,7 @@ limitations under the License.
 namespace tflite {
 
 // This should called during initialization of TFLM binaries and tests. It can
-// be specialized if there is a need for custom target-specific intialization.
+// be specialized if there is a need for custom target-specific initialization.
 // For more information, see tensorflow/lite/micro/system_setup.cc.
 void InitializeTarget();
 

@@ -50,7 +50,7 @@ REGISTER_OP("SignalOverlapAdd")
     .Output("output: T")
     .SetShapeFn([](InferenceContext* c) { return OverlapAddShape(c); })
     .Doc(R"doc(
-Transform a an input signal made of overlaping frames of size frame_size into
+Transform a an input signal made of overlapping frames of size frame_size into
 an output signal made of frames of size frame_step.
 The overalpping input frames are spaced frame_step apart in time.
 The The op adds the overlapping frames into the output frame.

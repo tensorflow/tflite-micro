@@ -21,7 +21,7 @@ from tflite_micro.python.tflite_micro import runtime
 
 # TODO(b/286889497): find better name and place for this function.
 def get_tflm_interpreter(concrete_function, trackable_obj):
-  """Initialize a TFLite interpreter with a concerte function.
+  """Initialize a TFLite interpreter with a concrete function.
 
   Args:
     concrete_function: A concrete function

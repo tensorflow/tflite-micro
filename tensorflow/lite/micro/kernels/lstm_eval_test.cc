@@ -244,7 +244,7 @@ TEST(LstmEvalTest, CheckGateOutputInt16) {
       tolerance);
 
   // Output gate
-  // Quantization scale (theoritical lowest range) is at range 1e-5
+  // Quantization scale (theoretical lowest range) is at range 1e-5
   tolerance = 1e-4f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
@@ -348,7 +348,7 @@ TEST(LstmEvalTest, CheckHiddenStateUpdateInt8) {
           gate_output_data.input_data, gate_output_data.hidden_state,
           gate_output_data.expected_updated_cell);
 
-  // Theoritical error floor = quantization scale = 0.004705882165580988
+  // Theoretical error floor = quantization scale = 0.004705882165580988
   const float tolerance = 1e-2;
   tflite::testing::TestUpdateLstmHiddenInteger(gate_output_data,
                                                int8_node_contents, tolerance);

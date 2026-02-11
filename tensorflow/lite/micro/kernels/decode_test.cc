@@ -56,7 +56,7 @@ constexpr uint8_t kDcmLUT1[tflite::DecodeState::kDcmSizeInBytes] = {
 // The encoded bitstring consists of fixed bit width groups (indices), each
 // group representing an offset into the <value_table> (kAncillaryDataLUTx). The
 // bitstring is in big-endian byte order with the most significant bit first.  A
-// bitstring is padded on the end, to the next byte boundry, with zero bits.
+// bitstring is padded on the end, to the next byte boundary, with zero bits.
 alignas(16) const uint8_t kEncodedLUT[] = {0x1B, 0xE4};
 
 // Tensor shapes as TfLiteIntArray
