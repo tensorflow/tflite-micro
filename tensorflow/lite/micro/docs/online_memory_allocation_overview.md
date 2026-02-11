@@ -37,7 +37,7 @@ flatbuffer.
 
 ## Model Init Phase
 
-Either through the first call of `MicroInterpreter::Invoke()` or an explicit
+Either through the first call to `MicroInterpreter::Invoke()` or an explicit
 call to `MicroInterpreter::AllocateTensors()` the online model allocation will
 begin. The `MicroInterpreter` instance will invoke
 `MicroAllocator::StartModelAllocation()`. This function will begin pulling data
@@ -66,7 +66,7 @@ store in the `user_data` field of a `TfLiteNode` struct.
 ## Model Prepare Phase
 
 After the interpreter has initialized all operator kernels, another pass through
-the subgraph is done. This time, each operator implementations that provides a
+the subgraph is done. This time, each operator implementation that provides a
 `TfLiteRegistration::prepare()` function is called. This phase in TFLM is used
 for kernels to verify capabilities from model information, validate shapes,
 allocate any scratch buffers requested (through
@@ -77,7 +77,7 @@ At this time, operator implementation will request tensor data through the
 that operators will need during this phase of initialization. Internally, TFLM
 will allocate these instances per request in the temp section. The temp section
 is the space between the head and the tail in the arena. During the prepare
-phase, nothing is yet been placed in the head section. This extra space between
+phase, nothing has yet been placed in the head section. This extra space between
 the head and tail is used to allocate buffers that are available until
 `MicroAllocator::ResetTempAllocations()` is called. Additional information
 [available here](memory_management.md#temporary-section).
@@ -116,7 +116,7 @@ tasks
     *   Allocates pointers in the tail that provide pointers into shared space
         and offsets in the head.
     *   Sets the size of the head based on the result of
-        `GreedyMemoryPlanner::GetMaxiumMemorySize()`.
+        `GreedyMemoryPlanner::GetMaximumMemorySize()`.
 *   Allocates variable tensor buffers in the tail section.
 
 Once TFLM has finalized online model allocation, all buffers are prepared and

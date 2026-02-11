@@ -17,7 +17,7 @@ subject to change.
 # Using Bazel
 
 We use Bazel as our default build system for Python and the continuous
-integration infrastrucutre only runs the Python unit tests via Bazel.
+integration infrastructure only runs the Python unit tests via Bazel.
 
 When using Bazel with Python, all the environment setup is handled as part of the
 build.

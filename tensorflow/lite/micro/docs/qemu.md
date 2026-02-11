@@ -8,7 +8,7 @@
 
 <!--te-->
 
-# Installlation
+# Installation
 
 There are two primary ways to set up the testing environment.
 

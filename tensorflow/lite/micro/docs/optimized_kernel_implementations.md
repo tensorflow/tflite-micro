@@ -130,7 +130,7 @@ code is suitably shared between the reference and optimized kernels. There is
 currently no fixed recipe for this refactor and we will evaluate on a
 case-by-case basis during the PR review.
 
-For example, to add an optimized implementation for `fully_conntected` for the
+For example, to add an optimized implementation for `fully_connected` for the
 Xtensa Fusion F1 the steps were: 
 * [PR 1](https://github.com/tensorflow/tensorflow/pull/45464): refactor for
 reference fallbacks and a baseline latency. 

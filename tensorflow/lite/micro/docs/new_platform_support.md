@@ -22,7 +22,7 @@ https://github.com/ekalinin/github-markdown-toc#auto-insert-and-update-toc
 At its core, TFLM is a portable library that can be used on a variety of target
 hardware to run inference on TfLite models.
 
-Prior to integrating TFLM with a specific hardware involves tasks that is
+Prior to integrating TFLM with a specific hardware involves tasks that are
 outside the scope of the TFLM project, including:
 
  * Toolchain setup - TFLM requires support for C++17
@@ -33,7 +33,7 @@ outside the scope of the TFLM project, including:
 
 In this guide we outline our recommended approach for integrating TFLM with a
 new target hardware assuming that you have already set up a development and
-debugging environment for you board independent of TLFLM.
+debugging environment for your board independent of TFLM.
 
 
 ## Step 1: Build TFLM Static Library with Reference Kernels
@@ -58,7 +58,7 @@ All the code in the `tensorflow` and `third_party` folders can be compiled into
 a single static library (for example `libtflm.a`) using your platform-specific
 build system.
 
-TFLM's third party dependencies are spearated out in case there is a need to
+TFLM's third party dependencies are separated out in case there is a need to
 have shared libraries for the third party code to avoid symbol collisions.
 
 Note that for IDEs, it might be sufficient to simply include the
