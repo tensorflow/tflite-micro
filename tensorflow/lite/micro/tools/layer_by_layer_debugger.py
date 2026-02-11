@@ -39,7 +39,7 @@ np.set_printoptions(threshold=sys.maxsize)
 #   `bazel run tensorflow/lite/micro/tools:layer_by_layer_debugger -- \
 #     --input_tflite_file=</path/to/my_model.tflite>`
 
-# This Python Tool/Script can also be used to comapre TFLM vs Expected
+# This Python Tool/Script can also be used to compare TFLM vs Expected
 # Output/Flatbuffer provided by the C++ Tool/binary.
 
 # TFLM vs Expected Command:
@@ -55,7 +55,7 @@ np.set_printoptions(threshold=sys.maxsize)
 #   --rng
 #           integer flag that only works in TfLite vs TFLM comparison(when only
 #           a TfLite Model is Provided).It can be used to set the rng seed to a
-#           differen value then it's default value of 42.
+#           different value then it's default value of 42.
 
 _INPUT_TFLITE_FILE = flags.DEFINE_string(
     "input_tflite_file",

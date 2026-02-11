@@ -40,12 +40,12 @@ struct FilterbankConfig {
   const int16_t* channel_widths;
 
   // The weights array holds the triangular filter weights of all the filters
-  // in the bank. The output of each filter in the bank is caluclated by
+  // in the bank. The output of each filter in the bank is calculated by
   // multiplying the elements in the input spectrum that are in its band
   // (see above: channel_frequency_starts, channel_widths) by the filter weights
   // then accumulating. Each element in the unweights array holds the 1 minus
   // corresponding elements in the weights array and is used to make this
-  // operation more efficient. For more details, see documnetation in
+  // operation more efficient. For more details, see documentation in
   // FilterbankAccumulateChannels()
   const int16_t* weights;
   const int16_t* unweights;

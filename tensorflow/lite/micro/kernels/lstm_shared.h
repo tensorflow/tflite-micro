@@ -66,13 +66,13 @@ constexpr int kLstmOutputLayerNormCoefficientsTensor = 23;  // Optional
 // Output tensors.
 constexpr int kLstmOutputTensor = 0;
 
-// Parameters for the two fully conncted computation inside each gate
+// Parameters for the two fully connected computation inside each gate
 struct GateParameters {
   FullyConnectedParams input_fc_params;
   FullyConnectedParams recurrent_fc_params;
 };
 
-// Paramaters for the element wise multiplications between gate outputs
+// Parameters for the element wise multiplications between gate outputs
 struct InterGateParameters {
   ArithmeticParams forget_cell_mul_params;
   ArithmeticParams input_mul_params;

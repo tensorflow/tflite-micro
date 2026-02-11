@@ -72,7 +72,7 @@ GateOutputCheckData<4, 4> Get2X2GateOutputCheckData() {
   std::memcpy(gate_data.expected_input_gate_output, expected_input_gate_output,
               4 * sizeof(float));
 
-  // Use the output gate parameters to test normnal gate outputs
+  // Use the output gate parameters to test normal gate outputs
   // output = sigmoid(W_i*i+W_h*h+b) = sigmoid([[1,1],[1,1]][0.2, 0.3]
   // +[[1,1],[1,1]][-0.1, 0.2]+[0,0]) = sigmoid([0.6,0.6]) =
   // [0.6456563062257954, 0.6456563062257954]

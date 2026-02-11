@@ -19,7 +19,7 @@ limitations under the License.
 
 // TFLMRegistration defines the API that TFLM kernels need to implement.
 // This will be replacing the current TfLiteRegistration_V1 struct with
-// something more compatible Embedded enviroment TFLM is used in.
+// something more compatible Embedded environment TFLM is used in.
 struct TFLMRegistration {
   void* (*init)(TfLiteContext* context, const char* buffer, size_t length);
   void (*free)(TfLiteContext* context, void* buffer);

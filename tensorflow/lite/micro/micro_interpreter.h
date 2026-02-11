@@ -144,7 +144,7 @@ class MicroInterpreter {
   // Returns the actual used arena in bytes. This method gives the optimal arena
   // size. It's only available after `AllocateTensors` has been called.
   // Note that normally `tensor_arena` requires 16 bytes alignment to fully
-  // utilize the space. If it's not the case, the optimial arena size would be
+  // utilize the space. If it's not the case, the optimal arena size would be
   // arena_used_bytes() + 16.
   size_t arena_used_bytes() const { return allocator_.used_bytes(); }
 

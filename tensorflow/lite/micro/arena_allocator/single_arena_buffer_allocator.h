@@ -81,7 +81,7 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
 
   // Signals that a temporary buffer is no longer needed. This is currently for
   // book-keeping purpose and the memory region are not immediately available
-  // for re-use. The deallocated memory region are only reclaimed after
+  // for reuse. The deallocated memory region are only reclaimed after
   // ResetTempAllocations is called as it is right now.
   virtual void DeallocateTemp(uint8_t* buf) override;
 

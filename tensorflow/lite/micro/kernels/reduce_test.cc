@@ -138,7 +138,7 @@ void TestReduceOpQuantized(int* input_dims_data, const float* input_data,
                            const TFLMRegistration& registration,
                            TfLiteReducerParams* params,
                            float tolerance = 0.01) {
-  // Convert dimesion arguments to TfLiteArrays
+  // Convert dimension arguments to TfLiteArrays
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* axis_dims = IntArrayFromInts(axis_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);

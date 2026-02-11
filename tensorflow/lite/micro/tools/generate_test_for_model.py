@@ -179,7 +179,7 @@ class TestDataGenerator:
       self._write_golden(generated_inputs, model_path, output_tensor)
 
   def _write_golden(self, generated_inputs, model_path, output_tensor):
-    """ Generates input and ouputs in CSV format for given model. """
+    """ Generates input and outputs in CSV format for given model. """
 
     # Write input to CSV file.
     for input_idx, input_tensor_data in enumerate(generated_inputs):
@@ -209,7 +209,7 @@ class TestDataGenerator:
                         test_file='integration_tests.cc',
                         src_prefix=None):
     """ Generates a makefile which takes the the given input model(s) as input and also the
-        corresponding generated input(s) and ouput(s) in csv format. It also take the name of a test file as input.
+        corresponding generated input(s) and output(s) in csv format. It also take the name of a test file as input.
         For example usage see: tensorflow/lite/micro/integration_tests/generate_per_layer_tests.py. """
 
     makefile = open(self.output_dir + '/Makefile.inc', 'w')

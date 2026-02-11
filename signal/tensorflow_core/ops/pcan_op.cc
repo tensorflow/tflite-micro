@@ -53,7 +53,7 @@ input: A 1-D array of mel-spectrum subband filter bank outputs.
 noise_estimate: A 1-D array of mel-spectrun subbabd noise estimates.
 gain_lut: A 1-D lookup table for gain calculation.
 output: A 1-D array of processed subband filter bank.
-snr_shift: Amount of right shift when calculcating the SNR.
+snr_shift: Amount of right shift when calculating the SNR.
 )doc");
 
 }  // namespace signal

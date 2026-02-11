@@ -32,7 +32,7 @@ limitations under the License.
 /*
  * Person Detection benchmark.  Evaluates runtime performance of the visual
  * wakewords person detection model.  This is the same model found in
- * exmaples/person_detection.
+ * examples/person_detection.
  */
 
 namespace tflite {

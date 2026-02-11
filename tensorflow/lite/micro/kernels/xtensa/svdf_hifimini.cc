@@ -35,7 +35,7 @@ namespace tflite {
 
 /**
  * This version of SVDF is specific to TFLite Micro. It contains only a full
- * integer receipe with optimizations for the Xtensa HiFiMini platform.
+ * integer recipe with optimizations for the Xtensa HiFiMini platform.
  *
  * Note: passing OpDataSvdf by value might seem like an oversight but it helps
  * reduce the latency. See b/155656675 for more details.

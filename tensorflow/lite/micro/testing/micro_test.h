@@ -73,7 +73,7 @@ namespace tflite {
 // is the target that implements InitializeTarget().
 //
 // The underlying issue here is that the use of the macros results in
-// dependencies that can be containted within the micro/testing:micro_test
+// dependencies that can be contained within the micro/testing:micro_test
 // target bleeding on to all the tests.
 inline void InitializeTest() { InitializeTarget(); }
 }  // namespace tflite

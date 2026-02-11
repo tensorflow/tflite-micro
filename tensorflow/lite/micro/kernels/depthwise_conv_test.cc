@@ -937,7 +937,7 @@ TEST(DepthwiseConvTest, Int8Input32x4Filter32x4ShouldMatchGolden) {
 
   // Quantization Parameters.  All scales except output are 1.0, and all zero
   // points are 0. This direct-maps the values to floating point and makes it
-  // easy to reson about them.
+  // easy to reason about them.
   const float input_scale = 0.058824;
   const float filter_scale = 0.003301;
   const float output_scale = 0.092596;
@@ -1065,7 +1065,7 @@ TEST(DepthwiseConvTest, Int8Input32x1Filter32x1ShouldMatchGolden) {
 
   // Quantization Parameters.  All scales except output are 1.0, and all zero
   // points are 0. This direct-maps the values to floating point and makes it
-  // easy to reson about them.
+  // easy to reason about them.
   const float input_scale = 0.058824;
   const float filter_scale = 0.003301;
   const float output_scale = 0.092596;

@@ -213,7 +213,7 @@ class TestRunner {
       }
       return kTfLiteError;
     } else {
-      // This is for the CI tests expecting this meesage.
+      // This is for the CI tests expecting this message.
       printer::Printf("~~~ALL TESTS PASSED~~~\n");
       return kTfLiteOk;
     }

@@ -29,7 +29,7 @@ void align_tflite_model(const char* input_file_name,
   // Parse the string into a C++ class.  Model is the root object of a tflite
   // flatbuffer file.
   const tflite::Model* model = tflite::GetModel(model_file.c_str());
-  // A packed model is basically the file format mmaped into memory.
+  // A packed model is basically the file format mapped into memory.
   // Unpacking it and then packing it with the C++ API should yield
   // a file with the force_align attributes respected.
   // ModelT is just the unpacked version of the model file.

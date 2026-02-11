@@ -124,7 +124,7 @@ TfLiteStatus CreateGateParams(
   tflite::OpDataFullyConnected fc_data_temp;
   // TODO(b/265853320): due to the lack of precision for the float scale,
   // scale_diff / output_scale <= 0.02 (potentially requires 1e-8 precision) can
-  // not be satisified for the bias. Here we rely on the correctiveness of the
+  // not be satisfied for the bias. Here we rely on the correctiveness of the
   // conversion process (set input_bias=nullptr to avoid checking) for
   // tensor scales
   TF_LITE_ENSURE_STATUS(CalculateOpDataFullyConnected(

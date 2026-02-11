@@ -49,7 +49,7 @@ LstmTensors::~LstmTensors() {
 }
 
 // Verify the LSTM internal tensor properties (e.g., type checks)
-// Input/output/states/fc weights tensors are required for kernel evaulation.
+// Input/output/states/fc weights tensors are required for kernel evaluation.
 // The state tensors should be variables. Variants of the standard LSTM
 // are not supported here, therefore their corresponding tensors should be
 // invalid

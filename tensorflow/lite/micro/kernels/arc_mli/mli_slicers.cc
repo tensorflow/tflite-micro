@@ -34,7 +34,7 @@ TensorSlicer::TensorSlicer(const mli_tensor* full_tensor, int slice_dim,
       overlap_(overlap) {
   /* In the interleave mode, the slicing happens from the deepest dimension up
   to the slice_dim for example in an HWC layout this can mode can be used to
-  slice in the C dimenstion. in this mode the data is not contiguous in memory
+  slice in the C dimension. in this mode the data is not contiguous in memory
   anymore */
   if (interleave_mode) {
     for (int i = 0; i < static_cast<int>(full_tensor->rank); i++) {

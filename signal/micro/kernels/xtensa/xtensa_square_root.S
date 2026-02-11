@@ -117,7 +117,7 @@ nsau scratch1, num_high
 // ** max_bit_number |= 1;
 or scratch1, scratch2, scratch1
 
-// The ammount we shift by is 31 - what's in scratch1 for the max bit number.
+// The amount we shift by is 31 - what's in scratch1 for the max bit number.
 // This is because we've got the two words, so we can't do a 64 bit shift.
 movi.n scratch3, 31
 sub scratch1, scratch3, scratch1
@@ -289,7 +289,7 @@ nsau max_bit_number, num
 // ** max_bit_number |= one;
 or max_bit_number, max_bit_number, one
 
-// The ammount we shift by is 31 - what we stored in max_bit_number.
+// The amount we shift by is 31 - what we stored in max_bit_number.
 movi.n a15, 31
 sub max_bit_number, a15, max_bit_number
 

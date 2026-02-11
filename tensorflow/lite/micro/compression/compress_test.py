@@ -491,7 +491,7 @@ class TestCompressedModel(tf.test.TestCase):
           match = lambda t: t.tensor == tensor.index
           metadata = next((t for t in lut_tensors if match(t)), None)
 
-          # The tensor should not appear in compresion metadata
+          # The tensor should not appear in compression metadata
           self.assertIsNone(metadata)
 
   def _get_compressed(

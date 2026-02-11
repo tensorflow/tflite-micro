@@ -61,7 +61,7 @@ generates a stacked frame that contains:
 consecutive unstacked frames. The stacked frame which becomes the input to the
 neural network. The stacker then moves forward in a step of one or more input
 frames.
-For example, assuming a squence of 10 input frames, where each input frame
+For example, assuming a sequence of 10 input frames, where each input frame
 is itself a vector of size num_channels:
 [1 2 3 4 5 6 7 8 9 0], and the current frame is 9, the following configuration:
 stacker_left_context=0

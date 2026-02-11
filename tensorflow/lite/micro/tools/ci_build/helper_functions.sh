@@ -46,7 +46,7 @@ function readable_run {
 }
 
 # Check if the regex ${1} is to be found in the pathspec ${2}.
-# An optional error messsage can be passed with ${3}
+# An optional error message can be passed with ${3}
 function check_contents() {
   GREP_OUTPUT=$(git grep -E -rn ${1} -- ${2})
 

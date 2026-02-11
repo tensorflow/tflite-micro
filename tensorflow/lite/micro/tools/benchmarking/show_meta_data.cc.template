@@ -43,7 +43,7 @@ const char* model_analysis_strings[] = {
 const char* model_sha1_strings[] = {
     // %%%_model_sha1_strings_%%%
 };
-#endif  // defind(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+#endif  // defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
 const char* compilation_date_strings[] = {
     // %%%_compilation_date_strings_%%%
@@ -176,7 +176,7 @@ void GenericBenchmarkShowMetaData() {
               std::extent<decltype(model_sha1_strings)>::value);
   ShowStrings("\nModel analysis:\n\n", model_analysis_strings,
               std::extent<decltype(model_analysis_strings)>::value);
-#endif  // defind(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
+#endif  // defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 
   ShowSeparator();
 }

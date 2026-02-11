@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
   // Do NOT allocate any OP so that the binary does not include any kernels.
 
-  // Use placement new as this is the standar way to create a new object in
+  // Use placement new as this is the standard way to create a new object in
   // the TFLM code base. This is to avoid unnecessary dynamic memory allocation
   // code in the binary.
   // We pass an arbitrary model to the benchmark runner to ensure that the TFLM

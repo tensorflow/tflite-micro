@@ -72,7 +72,7 @@ FILES="$(python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generatio
 
 readable_run ls ${FILES} >/dev/null
 
-# Next, make sure that the output tree has all the files needed buld the
+# Next, make sure that the output tree has all the files needed build the
 # examples.
 readable_run cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR}"
 pushd "${TEST_OUTPUT_DIR}" >/dev/null
