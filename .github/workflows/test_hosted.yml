@@ -41,10 +41,9 @@ jobs:
           disk-cache: true
           repository-cache: true
           bazelrc: |
-            startup --output_user_root=C:/tmp
             startup --windows_enable_symlinks
       - name: Build
-        run: bazel build --announce_rc --workspace_status_command="cmd /c exit 0" -k "//tensorflow/lite/micro/..."
+        run: bazel build --config=windows_ci --announce_rc -k "//tensorflow/lite/micro/..."
 
   bazel-windows:
     runs-on: windows-x86-n2-16
@@ -62,7 +61,6 @@ jobs:
           disk-cache: true
           repository-cache: true
           bazelrc: |
-            startup --output_user_root=C:/tmp
             startup --windows_enable_symlinks
       - uses: actions/setup-python@v6
         with:
@@ -73,7 +71,7 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel.sh windows_ci "//tensorflow/lite/micro/..."
+          bazel test --config=windows_ci --build_tests_only "//tensorflow/lite/micro/..."
 
   makefile-windows:
     runs-on: windows-x86-n2-16

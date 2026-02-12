@@ -31,8 +31,9 @@ common --enable_platform_specific_config
 build:linux --cxxopt=-std=c++17
 build:macos --cxxopt=-std=c++17
 build:windows --cxxopt=/std:c++17
-build:windows --experimental_strict_action_env
+build:windows --incompatible_strict_action_env
 build:windows --features=compiler_param_file
+build:windows --enable_runfiles
 
 # Common options for CI
 build:_ci_base --curses=no
@@ -52,6 +53,9 @@ build:ci --action_env=CXX=clang++
 # Windows CI options
 build:windows_ci --config=_ci_base
 build:windows_ci --config=windows
+build:windows_ci --jobs=10
+build:windows_ci --show_progress_rate_limit=60
+build:windows_ci --workspace_status_command="cmd /c exit 0"
 
 # Common options for sanitizers
 build:_sanitizer_base --action_env=CC=clang
