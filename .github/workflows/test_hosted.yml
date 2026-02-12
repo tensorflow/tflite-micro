@@ -68,10 +68,14 @@ jobs:
       - name: Install dependencies
         run: |
           pip install Pillow numpy
+      - name: Select C++ Tests
+        shell: bash
+        run: |
+          bazel query --keep_going 'kind(cc_test, //...) except rdeps(//..., kind(py_binary, //...))' > cc_targets.txt
       - name: Test
         shell: bash
         run: |
-          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci "//tensorflow/lite/micro/..."
+          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci --target_pattern_file=cc_targets.txt
 
   makefile-windows:
     runs-on: windows-x86-n2-16

@@ -16,21 +16,29 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha }}
+      - name: Enable symlinks
+        run: git config core.symlinks true
       - uses: bazel-contrib/setup-bazel@0.18.0
         with:
           bazelisk-cache: true
           disk-cache: true
           repository-cache: true
+          bazelrc: |
+            startup --windows_enable_symlinks
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Install dependencies
         run: |
           pip install Pillow numpy
+      - name: Select C++ Tests
+        shell: bash
+        run: |
+          bazel query --keep_going 'kind(cc_test, //...) except rdeps(//..., kind(py_binary, //...))' > cc_targets.txt
       - name: Test
         shell: bash
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_bazel.sh windows_ci "//tensorflow/lite/micro/..."
+          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci --target_pattern_file=cc_targets.txt
 
   makefile:
     runs-on: windows-latest
