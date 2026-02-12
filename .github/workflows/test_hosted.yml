@@ -11,6 +11,7 @@ on:
 jobs:
   explore-linux:
     runs-on: linux-x86-n2-16
+    timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.7
     steps:
@@ -22,6 +23,7 @@ jobs:
 
   explore-windows:
     runs-on: windows-x86-n2-16
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
         with:
@@ -31,6 +33,7 @@ jobs:
 
   bazel-windows:
     runs-on: windows-x86-n2-16
+    timeout-minutes: 60
     name: Windows Bazel
     steps:
       - uses: actions/checkout@v6
@@ -54,6 +57,7 @@ jobs:
 
   makefile-windows:
     runs-on: windows-x86-n2-16
+    timeout-minutes: 60
     name: Windows Makefile
     steps:
       - uses: actions/checkout@v6
