@@ -27,14 +27,15 @@ jobs:
             startup --windows_enable_symlinks
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          pip install Pillow numpy
+          python-version: '3.13'
       - name: Select C++ Tests
         shell: bash
         run: |
-          bazel query --keep_going 'kind(cc_test, //...) except rdeps(//..., kind(py_binary, //...))' > cc_targets.txt || true
+          bazel query --keep_going '
+            let scope = //tensorflow/lite/micro/... in
+            let candidates = kind(cc_test, $scope) in
+            $candidates except rdeps($candidates, kind(py_binary, deps($candidates)))
+          ' > cc_targets.txt || true
       - name: Test
         shell: bash
         run: |
