@@ -31,8 +31,9 @@ jobs:
       - name: Select C++ Tests
         shell: bash
         run: |
-          # Base: Include everything.
+          # Base: Include everything except //python/...
           echo "//..." > test_patterns.txt
+          echo "-//python/..." >> test_patterns.txt
           # Exclude the C++ tests that depend on Python. (Running python targets is really slow)
           bazel query -k --noimplicit_deps '
             let scope = //... in
