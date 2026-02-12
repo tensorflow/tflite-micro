@@ -31,10 +31,21 @@ jobs:
       - name: Select C++ Tests
         shell: bash
         run: |
+          # 1. Base: Include everything. 
+          # We KEEP the wildcard because it prevents the "Incompatible Target" crash.
           echo "//tensorflow/lite/micro/..." > test_patterns.txt
+
+          # 2. Exclude non-C++ tests (e.g. py_test, sh_test).
+          # Logic: "Find all tests, subtract the cc_tests, and exclude the remainder."
           bazel query -k '
             let scope = //tensorflow/lite/micro/... in
-            kind(cc_test, rdeps($scope, kind(py_binary, deps($scope))))
+            tests($scope) except kind(cc_test, $scope)
+          ' 2>/dev/null | sed 's/^/-/' >> test_patterns.txt || true
+
+          # 3. Exclude C++ tests that depend on Python (binary, or lib).
+          bazel query -k '
+            let scope = //tensorflow/lite/micro/... in
+            kind(cc_test, rdeps($scope, kind("py_(binary|library)", deps($scope))))
           ' 2>/dev/null | sed 's/^/-/' >> test_patterns.txt || true
       - name: Test
         shell: bash
