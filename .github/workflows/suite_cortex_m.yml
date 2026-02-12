@@ -21,6 +21,7 @@ jobs:
   cortex_m_bluepill:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -52,6 +53,7 @@ jobs:
   cortex_m_qemu:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     name: Cortex-M QEMU Unit Tests
     steps:
@@ -73,6 +75,7 @@ jobs:
   generic_gcc:
     if: inputs.scope == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     name: Cortex-M Generic (GCC)
     steps:
       - uses: actions/setup-python@v6
@@ -92,6 +95,7 @@ jobs:
   corstone_300_gcc:
     if: inputs.scope == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     name: Cortex-M Corstone 300 (GCC)
     steps:
       - uses: actions/setup-python@v6
@@ -113,6 +117,7 @@ jobs:
   generic_armclang:
     if: inputs.scope == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     name: Cortex-M Generic (Arm Clang)
     steps:
       - uses: actions/checkout@v6
@@ -141,6 +146,7 @@ jobs:
   corstone_300_armclang:
     if: inputs.scope == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     name: Cortex-M Corstone 300 (Arm Clang)
     steps:
       - uses: actions/checkout@v6

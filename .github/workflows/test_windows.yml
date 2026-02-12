@@ -10,6 +10,7 @@ on:
 jobs:
   bazel:
     runs-on: windows-latest
+    timeout-minutes: 60
     name: Windows Bazel
     steps:
       - uses: actions/checkout@v6
@@ -33,6 +34,7 @@ jobs:
 
   makefile:
     runs-on: windows-latest
+    timeout-minutes: 60
     name: Windows Makefile
     steps:
       - uses: actions/checkout@v6
