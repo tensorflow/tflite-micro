@@ -33,6 +33,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Enable symlinks
         run: git config core.symlinks true
       - uses: bazel-contrib/setup-bazel@0.18.0
@@ -53,6 +56,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
       - name: Enable symlinks
         run: git config core.symlinks true
       - uses: bazel-contrib/setup-bazel@0.18.0
@@ -62,32 +68,22 @@ jobs:
           repository-cache: true
           bazelrc: |
             startup --windows_enable_symlinks
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
       - name: Select C++ Tests
         shell: bash
         run: |
-          # 1. Base: Include everything. 
-          # We KEEP the wildcard because it prevents the "Incompatible Target" crash.
-          echo "//tensorflow/lite/micro/..." > test_patterns.txt
-
-          # 2. Exclude non-C++ tests (e.g. py_test, sh_test).
-          # Logic: "Find all tests, subtract the cc_tests, and exclude the remainder."
-          bazel query -k '
-            let scope = //tensorflow/lite/micro/... in
-            tests($scope) except kind(cc_test, $scope)
-          ' 2>/dev/null | sed 's/^/-/' >> test_patterns.txt || true
-
-          # 3. Exclude C++ tests that depend on Python (binary, or lib).
-          bazel query -k '
-            let scope = //tensorflow/lite/micro/... in
+          # Base: Include everything.
+          echo "//..." > test_patterns.txt
+          # Exclude the C++ tests that depend on Python. (Running python targets is really slow)
+          bazel query -k --noimplicit_deps '
+            let scope = //... in
             kind(cc_test, rdeps($scope, kind("py_(binary|library)", deps($scope))))
           ' 2>/dev/null | sed 's/^/-/' >> test_patterns.txt || true
       - name: Test
         shell: bash
         run: |
-          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci --target_pattern_file=test_patterns.txt
+          # Test C++ tests only
+          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test \
+            --config=windows_ci --test_lang_filters=cc --target_pattern_file=test_patterns.txt
 
   makefile-windows:
     runs-on: windows-x86-n2-16
