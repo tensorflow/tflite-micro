@@ -61,6 +61,7 @@ build:windows_ci --show_progress_rate_limit=60
 build:windows_ci --workspace_status_command="cmd /c exit 0"
 build:windows_ci --announce_rc
 build:windows_ci --build_tests_only
+build:windows_ci --build_python_zip=false
 
 # Common options for sanitizers
 build:_sanitizer_base --action_env=CC=clang
