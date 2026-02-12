@@ -85,7 +85,7 @@ class TestModelGenerator:
       if buffer.data is not None and len(tensor.shape) > 2:
         for i in range(len(buffer.data)):
           buffer.data[i] = buffer.data[i] * np.random.uniform(
-              low=0.5, high=1.0, size=1)
+              low=0.5, high=1.0)
 
         all_equal = True
         for i, elem in enumerate(buffer.data):
