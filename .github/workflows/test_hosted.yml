@@ -43,7 +43,7 @@ jobs:
           bazelrc: |
             startup --windows_enable_symlinks
       - name: Build
-        run: bazel build --config=windows_ci --announce_rc -k "//tensorflow/lite/micro/..."
+        run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build --config=windows_ci --announce_rc -k "//tensorflow/lite/micro/..."
 
   bazel-windows:
     runs-on: windows-x86-n2-16
@@ -71,7 +71,7 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          bazel test --config=windows_ci --build_tests_only "//tensorflow/lite/micro/..."
+          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci --build_tests_only "//tensorflow/lite/micro/..."
 
   makefile-windows:
     runs-on: windows-x86-n2-16
