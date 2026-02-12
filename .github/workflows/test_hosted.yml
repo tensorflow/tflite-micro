@@ -30,6 +30,8 @@ jobs:
     runs-on: windows-x86-n2-16
     timeout-minutes: 60
     steps:
+      - name: Enable symlinks
+        run: git config --global core.symlinks true
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
@@ -39,13 +41,15 @@ jobs:
           disk-cache: true
           repository-cache: true
       - name: Build
-        run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build -k "//tensorflow/lite/micro/..."
+        run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build --announce_rc --workspace_status_command="cmd /c exit 0" -k "//tensorflow/lite/micro/..."
 
   bazel-windows:
     runs-on: windows-x86-n2-16
     timeout-minutes: 60
     name: Windows Bazel
     steps:
+      - name: Enable symlinks
+        run: git config --global core.symlinks true
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
