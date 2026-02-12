@@ -30,11 +30,11 @@ jobs:
     runs-on: windows-x86-n2-16
     timeout-minutes: 60
     steps:
-      - name: Enable symlinks
-        run: git config --global core.symlinks true
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - name: Enable symlinks
+        run: git config core.symlinks true
       - uses: bazel-contrib/setup-bazel@0.18.0
         with:
           bazelisk-cache: true
@@ -48,11 +48,11 @@ jobs:
     timeout-minutes: 60
     name: Windows Bazel
     steps:
-      - name: Enable symlinks
-        run: git config --global core.symlinks true
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - name: Enable symlinks
+        run: git config core.symlinks true
       - uses: bazel-contrib/setup-bazel@0.18.0
         with:
           bazelisk-cache: true
