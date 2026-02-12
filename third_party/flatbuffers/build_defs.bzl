@@ -3,7 +3,6 @@
 load(
     "@flatbuffers//:build_defs.bzl",
     _upstream_flatbuffer_cc_library = "flatbuffer_cc_library",
-    _upstream_flatbuffer_library_public = "flatbuffer_library_public",
 )
 load("@rules_python//python:defs.bzl", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
