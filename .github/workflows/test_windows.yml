@@ -35,7 +35,7 @@ jobs:
           bazel query -k '
             let scope = //tensorflow/lite/micro/... in
             kind(cc_test, rdeps($scope, kind(py_binary, deps($scope))))
-          ' | sed 's/^/-/' >> test_patterns.txt
+          ' 2>/dev/null | sed 's/^/-/' >> test_patterns.txt || true
       - name: Test
         shell: bash
         run: |
