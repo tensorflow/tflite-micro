@@ -34,5 +34,11 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
+          repository-cache: true
       - name: Test
         run: tensorflow/lite/micro/tools/ci_build/${{ matrix.script }}
