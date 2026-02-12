@@ -2,7 +2,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
-load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")  # @unused
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
 load(
