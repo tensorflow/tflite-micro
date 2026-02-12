@@ -71,7 +71,7 @@ jobs:
       - name: Select C++ Tests
         shell: bash
         run: |
-          bazel query --keep_going 'kind(cc_test, //...) except rdeps(//..., kind(py_binary, //...))' > cc_targets.txt
+          bazel query --keep_going 'kind(cc_test, //...) except rdeps(//..., kind(py_binary, //...))' > cc_targets.txt || true
       - name: Test
         shell: bash
         run: |
