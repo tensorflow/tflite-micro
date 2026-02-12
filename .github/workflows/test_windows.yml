@@ -31,11 +31,11 @@ jobs:
       - name: Select C++ Tests
         shell: bash
         run: |
-          bazel query --keep_going '
+          bazel cquery --config=windows_ci --keep_going '
             let scope = //tensorflow/lite/micro/... in
             let candidates = kind(cc_test, $scope) in
             $candidates except rdeps($candidates, kind(py_binary, deps($candidates)))
-          ' > cc_targets.txt || true
+          ' --output=starlark --starlark:expr='str(target.label)' > cc_targets.txt || true
       - name: Test
         shell: bash
         run: |
