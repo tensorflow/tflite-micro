@@ -68,15 +68,15 @@ jobs:
       - name: Select C++ Tests
         shell: bash
         run: |
-          bazel cquery --config=windows_ci --keep_going '
+          echo "//tensorflow/lite/micro/..." > test_patterns.txt
+          bazel query -k '
             let scope = //tensorflow/lite/micro/... in
-            let candidates = kind(cc_test, $scope) in
-            $candidates except rdeps($candidates, kind(py_binary, deps($candidates)))
-          ' --output=starlark --starlark:expr='str(target.label)' > cc_targets.txt || true
+            kind(cc_test, rdeps($scope, kind(py_binary, deps($scope))))
+          ' | sed 's/^/-/' >> test_patterns.txt
       - name: Test
         shell: bash
         run: |
-          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci --target_pattern_file=cc_targets.txt
+          bazel --output_user_root="C:/tmp" --windows_enable_symlinks test --config=windows_ci --target_pattern_file=test_patterns.txt
 
   makefile-windows:
     runs-on: windows-x86-n2-16
