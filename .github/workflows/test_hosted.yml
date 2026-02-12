@@ -18,6 +18,11 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
       - name: Build
         run: bazel build -k //...
 
@@ -28,6 +33,11 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
+      - uses: bazel-contrib/setup-bazel@0.18.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          repository-cache: true
       - name: Build
         run: bazel --output_user_root="C:/tmp" --windows_enable_symlinks build -k "//tensorflow/lite/micro/..."
 
