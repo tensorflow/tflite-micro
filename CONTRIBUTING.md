@@ -162,7 +162,7 @@ automatically download and run the correct Bazel version as specified in
 
 Below are some tips that might be useful and improve the development experience.
 
-* Add the [Refined GitHub](https://github.com/sindresorhus/refined-github)
+* Add the [Refined GitHub](https://github.com/refined-github/refined-github)
   plugin to make the github experience even better.
 
 * Code search the [TfLite Micro codebase](https://sourcegraph.com/github.com/tensorflow/tflite-micro@main)
