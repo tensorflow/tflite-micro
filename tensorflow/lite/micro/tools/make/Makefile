@@ -563,6 +563,36 @@ $(BINDIR)%_test : $(CORE_OBJDIR)%_test.o $(MICROLITE_LIB_PATH)
 	-o $@ $< \
 	$(MICROLITE_LIB_PATH) $(LDFLAGS) $(MICROLITE_LIBS)
 
+# Build rules and object setup for the RISC-V 32-bit bare-metal target,
+# including startup code and system call stubs (e.g., write, sbrk) needed for C/C++ runtime support.      
+
+ifeq ($(TARGET),riscv32_baremetal)
+
+STARTUP_SRC    := tensorflow/lite/micro/riscv32_baremetal/start.s
+STUBS_SRC      := tensorflow/lite/micro/riscv32_baremetal/stubs.cc
+
+STARTUP_OBJ    := $(CORE_OBJDIR)tensorflow/lite/micro/riscv32_baremetal/start.o
+STUBS_OBJ      := $(CORE_OBJDIR)tensorflow/lite/micro/riscv32_baremetal/stubs.o
+
+.SECONDARY: $(STARTUP_OBJ) $(STUBS_OBJ) 
+
+$(STARTUP_OBJ): $(STARTUP_SRC)
+	@mkdir -p $(dir $@)
+	$(CC) $(ASFLAGS) -c $< -o $@
+
+$(STUBS_OBJ): $(STUBS_SRC)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+$(MICROLITE_LIB_PATH): $(STARTUP_OBJ) $(STUBS_OBJ)
+
+OBJS += $(STARTUP_OBJ) $(STUBS_OBJ) 
+LDFLAGS += $(STARTUP_OBJ)
+# Force stubs.o and enum_stubs.o to stay linked
+LDFLAGS += -Wl,--whole-archive $(STUBS_OBJ) -Wl,--no-whole-archive
+
+endif
+
 $(BINDIR)%.test_target: $(BINDIR)%_test
 	@test -f $(TEST_SCRIPT) || (echo 'Unable to find the test script. Is the software emulation available in $(TARGET)?'; exit 1)
 	$(TEST_SCRIPT) $< $(TEST_PASS_STRING)
