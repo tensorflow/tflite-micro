@@ -251,6 +251,28 @@ py_test(
     ],
 )
 
+py_library(
+    name = "model_editor",
+    srcs = ["model_editor.py"],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        requirement("flatbuffers"),
+        requirement("numpy"),
+    ],
+)
+
+py_test(
+    name = "model_editor_test",
+    size = "small",
+    srcs = ["model_editor_test.py"],
+    deps = [
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("tensorflow"),
+    ],
+)
+
 py_binary(
     name = "view",
     srcs = [
