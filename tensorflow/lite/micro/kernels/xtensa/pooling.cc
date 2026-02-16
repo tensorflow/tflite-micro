@@ -66,8 +66,12 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
+#if defined(HIFI5)
+      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
+#else
       AveragePoolingEvalQuantized<int16_t>(context, node, params,
-                                           reference_op_data, input, output);
+                                        reference_op_data, input, output);
+#endif
       break;
     }
     default: {
@@ -117,8 +121,12 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
+#if defined(HIFI5)
+      MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
+#else
       MaxPoolingEvalQuantized<int16_t>(context, node, params, reference_op_data,
                                        input, output);
+#endif
       break;
     }
     default: {
@@ -155,11 +163,5 @@ TFLMRegistration Register_MAX_POOL_2D() {
   return tflite::micro::RegisterOp(XtensaPoolingInit, PoolingPrepare, MaxEval);
 #endif
 }
-
-TFLMRegistration Register_AVERAGE_POOL_2D_INT16() {
-  return Register_AVERAGE_POOL_2D();
-}
-
-TFLMRegistration Register_MAX_POOL_2D_INT16() { return Register_MAX_POOL_2D(); }
 
 }  // namespace tflite
