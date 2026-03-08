@@ -52,6 +52,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
+  #ifndef HIFI5
+  // Int16 input is only supported by HIFI5 for now.
+  // So there is no need to prepare the Hifi/Vision kernel for other targets.
+  if (input->type == kTfLiteInt16) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    return kTfLiteOk;
+  }
+  #endif
   micro_context->DeallocateTempTfLiteTensor(input);
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
@@ -144,7 +152,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt16: {
       switch (filter->type) {
         case kTfLiteInt8: {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI5)
           DepthwiseConvEvalHifiInt16(context, node, params, op_data, input,
                                 filter, bias, output);
 #else
@@ -170,7 +178,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int16_t>(output));
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI5)
           break;
         }
         default:
