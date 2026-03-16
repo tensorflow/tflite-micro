@@ -43,20 +43,21 @@ struct XtensaDepthwiseConvOpData {
 TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus DepthwiseConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
-                                   const TfLiteDepthwiseConvParams& params,
-                                   const XtensaDepthwiseConvOpData& data,
-                                   const TfLiteEvalTensor* input,
-                                   const TfLiteEvalTensor* filter,
-                                   const TfLiteEvalTensor* bias,
-                                   TfLiteEvalTensor* output);
+                                       const TfLiteDepthwiseConvParams& params,
+                                       const XtensaDepthwiseConvOpData& data,
+                                       const TfLiteEvalTensor* input,
+                                       const TfLiteEvalTensor* filter,
+                                       const TfLiteEvalTensor* bias,
+                                       TfLiteEvalTensor* output);
 
-TfLiteStatus DepthwiseConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
-                                   const TfLiteDepthwiseConvParams& params,
-                                   const XtensaDepthwiseConvOpData& data,
-                                   const TfLiteEvalTensor* input,
-                                   const TfLiteEvalTensor* filter,
-                                   const TfLiteEvalTensor* bias,
-                                   TfLiteEvalTensor* output);
+TfLiteStatus DepthwiseConvEvalHifiInt16(TfLiteContext* context,
+                                        TfLiteNode* node,
+                                        const TfLiteDepthwiseConvParams& params,
+                                        const XtensaDepthwiseConvOpData& data,
+                                        const TfLiteEvalTensor* input,
+                                        const TfLiteEvalTensor* filter,
+                                        const TfLiteEvalTensor* bias,
+                                        TfLiteEvalTensor* output);
 
 TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
                                             TfLiteNode* node);

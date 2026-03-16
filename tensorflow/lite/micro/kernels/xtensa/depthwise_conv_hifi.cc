@@ -49,7 +49,7 @@ TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
   TfLiteTensor* filter =
       micro_context->AllocateTempInputTensor(node, kConvWeightsTensor);
   TF_LITE_ENSURE(context, filter != nullptr);
-  
+
   const RuntimeShape& input_shape = GetTensorShape(input);
   const RuntimeShape& filter_shape = GetTensorShape(filter);
   const RuntimeShape& output_shape = GetTensorShape(output);
@@ -89,12 +89,12 @@ TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context,
 }
 
 TfLiteStatus DepthwiseConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
-                                   const TfLiteDepthwiseConvParams& params,
-                                   const XtensaDepthwiseConvOpData& data,
-                                   const TfLiteEvalTensor* input,
-                                   const TfLiteEvalTensor* filter,
-                                   const TfLiteEvalTensor* bias,
-                                   TfLiteEvalTensor* output) {
+                                       const TfLiteDepthwiseConvParams& params,
+                                       const XtensaDepthwiseConvOpData& data,
+                                       const TfLiteEvalTensor* input,
+                                       const TfLiteEvalTensor* filter,
+                                       const TfLiteEvalTensor* bias,
+                                       TfLiteEvalTensor* output) {
 #ifdef USE_TFLM_COMPRESSION
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -216,13 +216,14 @@ TfLiteStatus DepthwiseConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus DepthwiseConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
-                                   const TfLiteDepthwiseConvParams& params,
-                                   const XtensaDepthwiseConvOpData& data,
-                                   const TfLiteEvalTensor* input,
-                                   const TfLiteEvalTensor* filter,
-                                   const TfLiteEvalTensor* bias,
-                                   TfLiteEvalTensor* output) {
+TfLiteStatus DepthwiseConvEvalHifiInt16(TfLiteContext* context,
+                                        TfLiteNode* node,
+                                        const TfLiteDepthwiseConvParams& params,
+                                        const XtensaDepthwiseConvOpData& data,
+                                        const TfLiteEvalTensor* input,
+                                        const TfLiteEvalTensor* filter,
+                                        const TfLiteEvalTensor* bias,
+                                        TfLiteEvalTensor* output) {
 #ifdef USE_TFLM_COMPRESSION
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -291,22 +292,21 @@ TfLiteStatus DepthwiseConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node
         context->GetScratchBuffer(context, data.scratch_tensor_index));
 
     for (int i = 0; i < batches; i++) {
-
-        TF_LITE_ENSURE_EQ(
+      TF_LITE_ENSURE_EQ(
           context,
           xa_nn_conv2d_depthwise_per_chan_sym8sxsym16s(
-            &output_data[i * output_height * output_width * output_depth],
-            filter_data,
-            &input_data[i * input_height * input_width * input_depth],
-            bias_data, input_height, input_width, input_depth, filter_height,
-            filter_width, depth_multiplier, stride_width, stride_height,
-            pad_width, pad_height, output_height, output_width,
-            -data.reference_op_data.input_zero_point,
-            data.reference_op_data.per_channel_output_multiplier,
-            data.reference_op_data.per_channel_output_shift,
-            data.reference_op_data.output_zero_point, input_data_format,
-            output_data_format, p_scratch),
-        0);
+              &output_data[i * output_height * output_width * output_depth],
+              filter_data,
+              &input_data[i * input_height * input_width * input_depth],
+              bias_data, input_height, input_width, input_depth, filter_height,
+              filter_width, depth_multiplier, stride_width, stride_height,
+              pad_width, pad_height, output_height, output_width,
+              -data.reference_op_data.input_zero_point,
+              data.reference_op_data.per_channel_output_multiplier,
+              data.reference_op_data.per_channel_output_shift,
+              data.reference_op_data.output_zero_point, input_data_format,
+              output_data_format, p_scratch),
+          0);
     }
 
     int out_length = batches * output_height * output_width * output_depth;

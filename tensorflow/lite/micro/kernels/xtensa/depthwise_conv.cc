@@ -52,14 +52,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kConvInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  #ifndef HIFI5
+#ifndef HIFI5
   // Int16 input is only supported by HIFI5 for now.
   // So there is no need to prepare the Hifi/Vision kernel for other targets.
   if (input->type == kTfLiteInt16) {
     micro_context->DeallocateTempTfLiteTensor(input);
     return kTfLiteOk;
   }
-  #endif
+#endif
   micro_context->DeallocateTempTfLiteTensor(input);
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
@@ -112,7 +112,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt8: {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
           DepthwiseConvEvalHifiInt8(context, node, params, op_data, input,
-                                &filter_int8, bias, output);
+                                    &filter_int8, bias, output);
 #elif defined(VISION_P6)
           DepthwiseConvEvalVision(context, node, params, op_data, input,
                                   &filter_int8, bias, output);
@@ -154,7 +154,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt8: {
 #if defined(HIFI5)
           DepthwiseConvEvalHifiInt16(context, node, params, op_data, input,
-                                filter, bias, output);
+                                     filter, bias, output);
 #else
           reference_integer_ops::DepthwiseConvPerChannel(
               DepthwiseConvParamsQuantized(params, op_data.reference_op_data),
