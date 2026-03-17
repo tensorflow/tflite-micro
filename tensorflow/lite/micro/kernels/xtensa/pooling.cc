@@ -70,7 +70,7 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
 #else
       AveragePoolingEvalQuantized<int16_t>(context, node, params,
-                                        reference_op_data, input, output);
+                                           reference_op_data, input, output);
 #endif
       break;
     }
