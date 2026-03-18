@@ -181,7 +181,7 @@ TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
     const RuntimeShape& input_shape = GetTensorShape(input);
     TfLiteTensor* output =
-        micro_context->AllocateTempInputTensor(node, kPoolingOutputTensor);
+        micro_context->AllocateTempOutputTensor(node, kPoolingOutputTensor);
     const RuntimeShape& output_shape = GetTensorShape(output);
     micro_context->DeallocateTempTfLiteTensor(output);
 
