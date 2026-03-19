@@ -189,7 +189,6 @@ TfLiteStatus AveragePrepareHifi(TfLiteContext* context, TfLiteNode* node) {
 
     auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
     auto* data = static_cast<XtensaOpDataPooling*>(node->user_data);
-    int required_scratch = 0;
 
     int required_scratch = xa_nn_avgpool_getsize(
         depth, PREC_8, PREC_8, input_height, input_width, params->filter_height,
