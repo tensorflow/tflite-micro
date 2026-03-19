@@ -66,12 +66,8 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
-#if defined(HIFI5)
-      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
-#else
       AveragePoolingEvalQuantized<int16_t>(context, node, params,
                                            reference_op_data, input, output);
-#endif
       break;
     }
     default: {
