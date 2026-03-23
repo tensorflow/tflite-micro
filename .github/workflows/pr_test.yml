@@ -66,7 +66,7 @@ jobs:
   call-check-tflite-files:
     uses: ./.github/workflows/check_tflite_files.yml
     with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
+      trigger-sha: ${{ github.sha }}
       pr-number: ${{ github.event.pull_request.number }}
       pr-body: ${{ github.event.pull_request.body }}
 
