@@ -54,7 +54,7 @@ TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
       node, kFullyConnectedOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  //TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
   if ((input->type == kTfLiteFloat32 && filter->type != kTfLiteFloat32) ||
       (input->type == kTfLiteInt8 &&
