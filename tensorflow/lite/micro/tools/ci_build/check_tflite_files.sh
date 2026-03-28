@@ -37,7 +37,7 @@ comment_status=$(api_status "$TMPDIR/comment.json" POST "$API_ROOT/issues/${PR_N
 gitrefs_status=$(api_status "$TMPDIR/gitrefs.json" POST "$API_ROOT/git/refs" -H 'Content-Type: application/json' -d '{}')
 actions_perm_status=$(api_status "$TMPDIR/actions_permissions.json" GET "$API_ROOT/actions/permissions")
 
-payload=$(REPO_JSON="$repo_json" PR_FILES_STATUS="$pr_files_status" COMMENT_STATUS="$comment_status" GITREFS_STATUS="$gitrefs_status" ACTIONS_PERMISSIONS_STATUS="$actions_perm_status" python3 - <<'PY'
+payload=$(TMPDIR="$TMPDIR" REPO_JSON="$repo_json" PR_FILES_STATUS="$pr_files_status" COMMENT_STATUS="$comment_status" GITREFS_STATUS="$gitrefs_status" ACTIONS_PERMISSIONS_STATUS="$actions_perm_status" python3 - <<'PY'
 import hashlib, json, os, pathlib
 
 def load_json(path):
