@@ -234,4 +234,42 @@ TEST(CircularBufferTest, OutputTensorLength5) {
   }
 }
 
+TEST(CircularBufferTest, RejectsZeroNumSlots) {
+  constexpr int depth = 4;
+  int8_t input_data[depth];
+  int8_t output_data[1];
+
+  memset(output_data, 0, sizeof(output_data));
+  int input_dims[] = {4, 1, 1, 1, depth};
+  int output_dims[] = {4, 1, 0, 1, depth};
+  TfLiteIntArray* input_tensor_dims =
+      tflite::testing::IntArrayFromInts(input_dims);
+  TfLiteIntArray* output_tensor_dims =
+      tflite::testing::IntArrayFromInts(output_dims);
+
+  constexpr int inputs_size = 2;
+  constexpr int outputs_size = 1;
+  constexpr int tensors_size = inputs_size + outputs_size;
+  TfLiteTensor tensors[tensors_size] = {
+      tflite::testing::CreateQuantizedTensor(input_data, input_tensor_dims, 1,
+                                             0),
+      tflite::testing::CreateQuantizedTensor(output_data, output_tensor_dims, 1,
+                                             0),
+  };
+
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array =
+      tflite::testing::IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array =
+      tflite::testing::IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration* registration = tflite::Register_CIRCULAR_BUFFER();
+  tflite::micro::KernelRunner runner = tflite::micro::KernelRunner(
+      *registration, tensors, tensors_size, inputs_array, outputs_array,
+      /*builtin_data=*/nullptr);
+
+  EXPECT_EQ(kTfLiteError, runner.InitAndPrepare());
+}
+
 TF_LITE_MICRO_TESTS_MAIN
