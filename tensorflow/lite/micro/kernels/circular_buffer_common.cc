@@ -53,6 +53,7 @@ TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, 1, input->dims->data[1]);
   TF_LITE_ENSURE_EQ(context, input->dims->data[2], output->dims->data[2]);
   TF_LITE_ENSURE_EQ(context, output->dims->data[3], input->dims->data[3]);
+  TF_LITE_ENSURE(context, output->dims->data[1] > 0);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
