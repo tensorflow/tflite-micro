@@ -58,6 +58,7 @@ TfLiteStatus ExpEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
   int flat_size = MatchingFlatSize(tflite::micro::GetTensorShape(input),
                                    tflite::micro::GetTensorShape(output));
+  TF_LITE_ENSURE(context, flat_size >= 0);
 
   if (input->type == kTfLiteFloat32) {
     reference_ops::Exp(tflite::micro::GetTensorData<float>(input),
