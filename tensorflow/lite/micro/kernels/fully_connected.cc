@@ -238,7 +238,10 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt16: {
       switch (filter->type) {
         case kTfLiteInt8: {
-          if (bias == nullptr || bias->type == kTfLiteInt32) {
+          const bool requires_int32_accum =
+              (bias != nullptr && bias->type == kTfLiteInt32) ||
+              (bias == nullptr && params->quantized_bias_type != kTfLiteInt64);
+          if (requires_int32_accum) {
             data.is_per_channel
                 ? tflite::reference_integer_ops::FullyConnectedPerChannel(
                       FullyConnectedParamsQuantized(data),
@@ -283,7 +286,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
                       tflite::micro::GetTensorShape(output),
                       tflite::micro::GetTensorData<int16_t>(output));
-          } else if (bias->type == kTfLiteInt64) {
+          } else {
             data.is_per_channel
                 ? tflite::reference_integer_ops::FullyConnectedPerChannel(
                       FullyConnectedParamsQuantized(data),
