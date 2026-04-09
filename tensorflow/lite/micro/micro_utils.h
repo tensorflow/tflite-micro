@@ -27,7 +27,7 @@ namespace tflite {
 
 // Returns number of elements in the shape array.
 
-int ElementCount(const TfLiteIntArray& dims);
+size_t ElementCount(const TfLiteIntArray& dims);
 
 size_t EvalTensorBytes(const TfLiteEvalTensor* tensor);
 
