@@ -89,7 +89,7 @@ inline TfLiteStatus PopulateEvalData(
   // Compress ops where rhs shape is [..., 1, X, Y] and lhs shape is
   // [..., Q, R, S] which is equivalent to rhs: [..., X, Y] and
   // lhs: [..., Q * R, S].
-  if (rhs_dims_count > 2 && lhs_dims_count > 2) {
+  if (!params->adj_x && rhs_dims_count > 2 && lhs_dims_count > 2) {
     int rhs_one = rhs_shape->DimsData()[rhs_dims_count - 3];
     if (rhs_one == 1) {
       int32_t* lhs_dims = lhs_shape->DimsData();
