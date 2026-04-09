@@ -27,10 +27,10 @@ limitations under the License.
 
 namespace tflite {
 
-int ElementCount(const TfLiteIntArray& dims) {
-  int result = 1;
+size_t ElementCount(const TfLiteIntArray& dims) {
+  size_t result = 1;
   for (int i = 0; i < dims.size; ++i) {
-    result *= dims.data[i];
+    result *= static_cast<size_t>(dims.data[i]);
   }
   return result;
 }
