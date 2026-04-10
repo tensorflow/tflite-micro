@@ -71,4 +71,32 @@ TEST(ExpTest, SingleDim) {
   tflite::testing::TestExp(input_dims, input_values, golden, output_data);
 }
 
+TEST(ExpTest, NegativeDimensionShallFail) {
+  int dims_data[] = {1, -1};
+  TfLiteIntArray* dims = tflite::testing::IntArrayFromInts(dims_data);
+  float input_data[1] = {0.0f};
+  float output_data[1] = {0.0f};
+
+  TfLiteTensor tensors[2] = {
+      tflite::testing::CreateTensor(input_data, dims),
+      tflite::testing::CreateTensor(output_data, dims),
+  };
+
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array =
+      tflite::testing::IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array =
+      tflite::testing::IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = tflite::Register_EXP();
+  tflite::micro::KernelRunner runner(registration, tensors,
+                                     /*tensors_size=*/2, inputs_array,
+                                     outputs_array,
+                                     /*builtin_data=*/nullptr);
+
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteError, runner.Invoke());
+}
+
 TF_LITE_MICRO_TESTS_MAIN
