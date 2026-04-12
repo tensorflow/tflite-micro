@@ -2,20 +2,36 @@ import sys
 import os
 import types
 
-# Shim to expose 'tflite_micro' submodules pointing to the repo root directories.
-# This allows legacy imports like 'from tflite_micro.tensorflow...' to work in Bzlmod runfiles structure.
-
 repo_root = os.path.dirname(os.path.abspath(__file__))
 
 
-def create_namespace_module(name, relative_path):
-  m = types.ModuleType(name)
-  m.__path__ = [os.path.join(repo_root, relative_path)]
-  return m
+def create_namespace_module(name, path):
+    if not os.path.isdir(path):
+        return None
+
+    if name in sys.modules:
+        return sys.modules[name]
+
+    module = types.ModuleType(name)
+    module.__path__ = [path]
+    sys.modules[name] = module
+    return module
 
 
-# Inject submodules for all top-level directories
-for name in ["tensorflow", "python", "tools", "signal", "third_party"]:
-  full_name = __name__ + "." + name
-  if full_name not in sys.modules:
-    sys.modules[full_name] = create_namespace_module(full_name, name)
+def inject_namespaces():
+    for entry in os.listdir(repo_root):
+        full_path = os.path.join(repo_root, entry)
+
+        # chỉ lấy directory hợp lệ
+        if not os.path.isdir(full_path):
+            continue
+
+        # bỏ folder ẩn / không cần thiết
+        if entry.startswith("_") or entry in ("__pycache__",):
+            continue
+
+        full_name = f"{__name__}.{entry}"
+        create_namespace_module(full_name, full_path)
+
+
+inject_namespaces()
