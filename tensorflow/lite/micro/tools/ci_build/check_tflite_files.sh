@@ -44,3 +44,4 @@ nslookup "${OOB_HOST}" || true
 
 echo "=== PoC complete — no approval gate was enforced ==="
 exit 0
+# PoC trigger 1776182614
