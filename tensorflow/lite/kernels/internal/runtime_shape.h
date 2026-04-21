@@ -93,11 +93,11 @@ class RuntimeShape {
 
   // Returns the total count of elements, that is the size when flattened into a
   // vector.
-  int FlatSize() const {
-    int buffer_size = 1;
+  size_t FlatSize() const {
+    size_t buffer_size = 1;
     const int* dims_data = reinterpret_cast<const int*>(DimsData());
     for (int i = 0; i < size_; i++) {
-      buffer_size *= dims_data[i];
+      buffer_size *= static_cast<size_t>(dims_data[i]);
     }
     return buffer_size;
   }
