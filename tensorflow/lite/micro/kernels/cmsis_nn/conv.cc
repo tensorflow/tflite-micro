@@ -384,16 +384,21 @@ TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const OpData& data = *(static_cast<const OpData*>(node->user_data));
 
-  if (bias == nullptr || bias->type == kTfLiteInt32) {
-    return EvalQuantizedPerChannel<int16_t, int32_t, kTfLiteInt16>(
-        context, node, params, data, input, filter, bias, output);
-  } else if (bias->type == kTfLiteInt64) {
-    return EvalQuantizedPerChannel<int16_t, int64_t, kTfLiteInt16>(
-        context, node, params, data, input, filter, bias, output);
-  } else {
+  if (bias != nullptr && bias->type != kTfLiteInt32 &&
+      bias->type != kTfLiteInt64) {
     MicroPrintf("Bias type %s (%d) not supported.",
                 TfLiteTypeGetName(bias->type), bias->type);
     return kTfLiteError;
+  }
+  const bool requires_int32_accum =
+      (bias != nullptr && bias->type == kTfLiteInt32) ||
+      (bias == nullptr && params.quantized_bias_type != kTfLiteInt64);
+  if (requires_int32_accum) {
+    return EvalQuantizedPerChannel<int16_t, int32_t, kTfLiteInt16>(
+        context, node, params, data, input, filter, bias, output);
+  } else {
+    return EvalQuantizedPerChannel<int16_t, int64_t, kTfLiteInt16>(
+        context, node, params, data, input, filter, bias, output);
   }
 }
 
