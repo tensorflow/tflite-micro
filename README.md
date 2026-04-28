@@ -78,6 +78,7 @@ The following resources may also be useful:
  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
  * [Profiling](tensorflow/lite/micro/docs/profiling.md)
  * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
+ * [Error Handling](tensorflow/lite/micro/docs/error_handling_guide.md)
  * [Logging](tensorflow/lite/micro/docs/logging.md)
  * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
