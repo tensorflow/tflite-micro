@@ -153,6 +153,7 @@ py_library(
 cc_binary(
     name = "layer_by_layer_output_tool",
     srcs = ["layer_by_layer.cc"],
+    exec_properties = {"cpp_link.mem": "16g"},
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":layer_by_layer_schema",
@@ -176,6 +177,7 @@ cc_binary(
 py_binary(
     name = "tflm_model_transforms",
     srcs = ["tflm_model_transforms.py"],
+    exec_properties = {"cpp_link.mem": "16g"},
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
@@ -208,6 +210,7 @@ py_test(
 py_binary(
     name = "layer_by_layer_debugger",
     srcs = ["layer_by_layer_debugger.py"],
+    exec_properties = {"cpp_link.mem": "16g"},
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":layer_by_layer_schema_py",
