@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
+import unittest
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 from tflite_micro.tensorflow.lite.micro.compression import model_facade
 from tflite_micro.tensorflow.lite.micro.compression import test_models
@@ -96,7 +96,7 @@ TEST_MODEL = {
 }
 
 
-class TestModelFacade(tf.test.TestCase):
+class TestModelFacade(unittest.TestCase):
 
   def setUp(self):
     self.flatbuffer = test_models.build(TEST_MODEL)
@@ -116,7 +116,7 @@ class TestModelFacade(tf.test.TestCase):
     self.assertNotIn("metadata2", self.facade.metadata)
 
 
-class TestTensors(tf.test.TestCase):
+class TestTensors(unittest.TestCase):
 
   def setUp(self):
     flatbuffer = test_models.build(TEST_MODEL)
@@ -135,10 +135,10 @@ class TestTensors(tf.test.TestCase):
   def testTensors(self):
     for id, attrs in self.test_tensors:
       tensor = self.facade.subgraphs[0].tensors[id]
-      self.assertAllEqual(tensor.shape, attrs["shape"])
+      np.testing.assert_array_equal(tensor.shape, attrs["shape"])
       data = TEST_MODEL["buffers"][attrs["buffer"]]
-      self.assertAllEqual(tensor.array, data.reshape(tensor.shape))
+      np.testing.assert_array_equal(tensor.array, data.reshape(tensor.shape))
 
 
 if __name__ == "__main__":
-  tf.test.main()
+  unittest.main()

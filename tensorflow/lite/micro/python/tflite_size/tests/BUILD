@@ -28,7 +28,6 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         "//:tflite_micro_shim",
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/python/tflite_size/src:flatbuffer_size",
     ],
 )

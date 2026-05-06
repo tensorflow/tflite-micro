@@ -40,6 +40,7 @@ py_library(
     deps = [
         "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
+        requirement("ai-edge-litert"),
     ],
 )
 
@@ -144,7 +145,6 @@ py_library(
         ":model_transforms_utils",
         requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],

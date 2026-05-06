@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import unittest
 from tflite_micro.tensorflow.lite.micro.compression import test_models
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
-class TestBuild(tf.test.TestCase):
+class TestBuild(unittest.TestCase):
 
   def setUp(self):
     self.flatbuffer = test_models.build(test_models.EXAMPLE_MODEL)
@@ -29,4 +29,4 @@ class TestBuild(tf.test.TestCase):
 
 
 if __name__ == "__main__":
-  tf.test.main()
+  unittest.main()

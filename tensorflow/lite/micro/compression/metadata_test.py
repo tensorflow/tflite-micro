@@ -18,7 +18,7 @@ flatbuffer machinery with Python.
 
 from dataclasses import dataclass
 import flatbuffers
-import tensorflow as tf
+import unittest
 
 # `.*_generated` is the name of the module created by the Bazel rule
 # `flatbuffer_py_library' based on the schema.
@@ -48,7 +48,7 @@ _EXPECTED_1 = _LutTensor(
 _EXPECTED_SCHEMA_VERSION = 1
 
 
-class TestReadEqualsWrite(tf.test.TestCase):
+class TestReadEqualsWrite(unittest.TestCase):
 
   def setUp(self):
     """Sets up the test by creating a flatbuffer using the metadata schema.
@@ -108,4 +108,4 @@ class TestReadEqualsWrite(tf.test.TestCase):
 
 
 if __name__ == "__main__":
-  tf.test.main()
+  unittest.main()

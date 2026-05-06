@@ -16,9 +16,24 @@
 import csv
 
 import numpy as np
-import tensorflow as tf
-
+from absl import logging
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+
+OpResolverType = None
+try:
+  import ai_edge_litert.interpreter as tflite_interp
+  from ai_edge_litert.interpreter import OpResolverType
+except ImportError:
+  try:
+    import tflite_runtime.interpreter as tflite_interp
+    from tflite_runtime.interpreter import OpResolverType
+  except ImportError:
+    try:
+      import tensorflow.lite as tflite_interp
+      from tensorflow.lite.experimental import OpResolverType
+    except ImportError:
+      raise ImportError(
+          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
 
 
 class TestDataGenerator:
@@ -103,9 +118,14 @@ class TestDataGenerator:
     if (len(self.model_paths) != 1):
       raise RuntimeError(f'Single model expected')
     model_path = self.model_paths[0]
-    interpreter = tf.lite.Interpreter(model_path=model_path,
-                                      experimental_op_resolver_type=\
-                                      tf.lite.experimental.OpResolverType.BUILTIN_REF)
+    kwargs = {"model_path": model_path}
+    if OpResolverType is not None:
+      kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
+    else:
+      logging.warning(
+          "Could not find OpResolverType. Reference kernels might not be used."
+      )
+    interpreter = tflite_interp.Interpreter(**kwargs)
 
     interpreter.allocate_tensors()
 
@@ -140,10 +160,14 @@ class TestDataGenerator:
 
     for model_path in self.model_paths:
       # Load model and run a single inference with random inputs.
-      interpreter = tf.lite.Interpreter(
-          model_path=model_path,
-          experimental_op_resolver_type=\
-          tf.lite.experimental.OpResolverType.BUILTIN_REF)
+      kwargs = {"model_path": model_path}
+      if OpResolverType is not None:
+        kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
+      else:
+        logging.warning(
+            "Could not find OpResolverType. Reference kernels might not be used."
+        )
+      interpreter = tflite_interp.Interpreter(**kwargs)
       interpreter.allocate_tensors()
       input_tensor = interpreter.tensor(
           interpreter.get_input_details()[0]['index'])

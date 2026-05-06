@@ -109,7 +109,6 @@ py_test(
         "metadata_py",
         "//:tflite_micro_shim",
         requirement("flatbuffers"),
-        requirement("tensorflow"),
     ],
 )
 
@@ -162,7 +161,6 @@ py_test(
         "//tensorflow/lite/python:schema_py",
         requirement("bitarray"),
         requirement("numpy"),
-        requirement("tensorflow"),
     ],
 )
 
@@ -184,7 +182,6 @@ py_test(
     deps = [
         ":model_facade",
         ":test_models",
-        requirement("tensorflow"),
     ],
 )
 
@@ -204,7 +201,6 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":spec",
-        requirement("tensorflow"),
     ],
 )
 
@@ -224,7 +220,6 @@ py_test(
     deps = [
         ":spec",
         ":spec_builder",
-        requirement("tensorflow"),
     ],
 )
 
@@ -247,7 +242,6 @@ py_test(
     deps = [
         ":test_models",
         "//tensorflow/lite/python:schema_py",
-        requirement("tensorflow"),
     ],
 )
 

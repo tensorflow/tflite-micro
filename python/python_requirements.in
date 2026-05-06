@@ -30,6 +30,7 @@ absl_py
 ai-edge-litert
 bitarray
 mako
+matplotlib
 numpy
 pillow
 prettyprinter

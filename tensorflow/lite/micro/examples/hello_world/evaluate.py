@@ -13,13 +13,28 @@
 # limitations under the License.
 
 import os
-import tensorflow as tf
 from absl import app
 from absl import flags
+from absl import logging
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow.python.platform import resource_loader
 from tflite_micro.python.tflite_micro import runtime
+
+OpResolverType = None
+try:
+  import ai_edge_litert.interpreter as tflite_interp
+  from ai_edge_litert.interpreter import OpResolverType
+except ImportError:
+  try:
+    import tflite_runtime.interpreter as tflite_interp
+    from tflite_runtime.interpreter import OpResolverType
+  except ImportError:
+    try:
+      import tensorflow.lite as tflite_interp
+      from tensorflow.lite.experimental import OpResolverType
+    except ImportError:
+      raise ImportError(
+          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
 
 _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'use_tflite',
@@ -27,7 +42,7 @@ _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'Inference with the TF Lite interpreter instead of the TFLM interpreter',
 )
 
-_PREFIX_PATH = resource_loader.get_path_to_datafile('')
+_PREFIX_PATH = os.path.dirname(__file__)
 
 
 def invoke_tflm_interpreter(input_shape, interpreter, x_value, input_index,
@@ -92,11 +107,14 @@ def get_tflm_prediction(model_path, x_values):
 # returns the prediction of the interpreter.
 def get_tflite_prediction(model_path, x_values):
   # TFLite interpreter
-  tflite_interpreter = tf.lite.Interpreter(
-      model_path=model_path,
-      experimental_op_resolver_type=tf.lite.experimental.OpResolverType.
-      BUILTIN_REF,
-  )
+  kwargs = {"model_path": model_path}
+  if OpResolverType is not None:
+    kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
+  else:
+    logging.warning(
+        "Could not find OpResolverType. Reference kernels might not be used.")
+
+  tflite_interpreter = tflite_interp.Interpreter(**kwargs)
   tflite_interpreter.allocate_tensors()
 
   input_details = tflite_interpreter.get_input_details()[0]

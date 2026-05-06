@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import unittest
 
 from tflite_micro.tensorflow.lite.micro.compression import spec
 
@@ -27,7 +27,7 @@ EXPECTED_PYTHON_SPEC = [
 ]
 
 
-class TestLoadYaml(tf.test.TestCase):
+class TestLoadYaml(unittest.TestCase):
 
   def testExampleSpec(self):
     result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC)
@@ -51,4 +51,4 @@ class TestLoadYaml(tf.test.TestCase):
 
 
 if __name__ == "__main__":
-  tf.test.main()
+  unittest.main()

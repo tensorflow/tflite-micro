@@ -50,7 +50,8 @@ py_binary(
     deps = [
         requirement("absl_py"),
         requirement("numpy"),
-        requirement("tensorflow"),
+        requirement("ai-edge-litert"),
+        requirement("matplotlib"),
         "//python/tflite_micro:runtime",
     ],
 )

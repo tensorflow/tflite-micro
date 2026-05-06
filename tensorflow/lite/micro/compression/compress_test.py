@@ -15,7 +15,7 @@
 import bitarray
 import bitarray.util
 import numpy as np
-import tensorflow as tf
+import unittest
 
 from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
@@ -25,7 +25,7 @@ from tflite_micro.tensorflow.lite.micro.compression import test_models
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
-class TestPackIndices(tf.test.TestCase):
+class TestPackIndices(unittest.TestCase):
 
   def test_basic_case(self):
     indices = np.array([1, 2, 3])
@@ -112,7 +112,7 @@ class TestPackIndices(tf.test.TestCase):
     self.assertEqual(result, expected_bytes)
 
 
-class TestPackLookupTables(tf.test.TestCase):
+class TestPackLookupTables(unittest.TestCase):
 
   def test_int16_positive(self):
     tables = [np.array([0x1234, 0x5678], dtype='<i2')]
@@ -361,7 +361,7 @@ TEST_COMPRESSION_SPEC = [
 # yapf: enable
 
 
-class TestsCompression(tf.test.TestCase):
+class TestsCompression(unittest.TestCase):
   """Tests with the uncompressed model."""
 
   @classmethod
@@ -435,7 +435,7 @@ class TestsCompression(tf.test.TestCase):
                       lambda: compress.compress(self.flatbuffer, specs))
 
 
-class TestLutCompressedArray(tf.test.TestCase):
+class TestLutCompressedArray(unittest.TestCase):
 
   def test_bitwidth(self):
     """Bitwidth is determined from index values."""
@@ -453,7 +453,7 @@ class TestLutCompressedArray(tf.test.TestCase):
     self.assertEqual(a.index_bitwidth, 1)
 
 
-class TestCompressedModel(tf.test.TestCase):
+class TestCompressedModel(unittest.TestCase):
   """Test the compressed model."""
 
   @classmethod
@@ -538,7 +538,7 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(16), dtype="<u1")
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
   def test_compressed_int8(self):
     bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=1)
@@ -555,7 +555,7 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(-16, 0), dtype="<i1")
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
   def test_compressed_int16(self):
     bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=2)
@@ -572,7 +572,7 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(-1616, -1600), dtype="<i2")
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
   def test_compressed_int32(self):
     bitwidth, indices, values = self._get_compressed(subgraph=0, tensor=3)
@@ -589,7 +589,7 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(-160_016, -160_000), dtype="<i4")
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
   def test_axis_1(self):
     """Compression along quanitzation_dimension == 1."""
@@ -607,7 +607,7 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(1, 21), dtype=np.dtype("<i2"))
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
   def test_axis_0(self):
     """Compression along quanitzation_dimension == 0."""
@@ -626,7 +626,7 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(1, 21), dtype=np.dtype("<i2"))
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
   def test_per_tensor(self):
     """Compression with one value table per tensor."""
@@ -645,8 +645,8 @@ class TestCompressedModel(tf.test.TestCase):
     self.assertEqual(indices, expected_indices)
 
     expected_values = np.array(range(1, 5), dtype=np.dtype("<i2"))
-    self.assertAllEqual(values, expected_values)
+    np.testing.assert_array_equal(values, expected_values)
 
 
 if __name__ == "__main__":
-  tf.test.main()
+  unittest.main()
