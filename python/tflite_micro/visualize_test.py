@@ -16,13 +16,13 @@
 import os
 import re
 
-from tflite_micro.tensorflow.lite.tools import test_utils
+from tflite_micro.python.tflite_micro import test_utils
 from tflite_micro.tensorflow.lite.tools import visualize
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+import unittest
+import tempfile
 
 
-class VisualizeTest(test_util.TensorFlowTestCase):
+class VisualizeTest(unittest.TestCase):
 
   def testTensorTypeToName(self):
     self.assertEqual('FLOAT32', visualize.TensorTypeToName(0))
@@ -42,7 +42,7 @@ class VisualizeTest(test_util.TensorFlowTestCase):
 
   def testVisualize(self):
     model = test_utils.build_mock_flatbuffer_model()
-    tmp_dir = self.get_temp_dir()
+    tmp_dir = tempfile.mkdtemp()
     model_filename = os.path.join(tmp_dir, 'model.tflite')
     with open(model_filename, 'wb') as model_file:
       model_file.write(model)
@@ -61,4 +61,4 @@ class VisualizeTest(test_util.TensorFlowTestCase):
 
 
 if __name__ == '__main__':
-  test.main()
+  unittest.main()

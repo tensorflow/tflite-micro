@@ -19,22 +19,22 @@ import subprocess
 import sys
 
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema  # pylint:disable=g-direct-tensorflow-import
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-from tflite_micro.tensorflow.lite.tools import test_utils
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+from tflite_micro.python.tflite_micro import flatbuffer_utils
+from tflite_micro.python.tflite_micro import test_utils
+import unittest
+import tempfile
 
 _SKIPPED_BUFFER_INDEX = 1
 
 
-class WriteReadModelTest(test_util.TensorFlowTestCase):
+class WriteReadModelTest(unittest.TestCase):
 
   def testWriteReadModel(self):
     # 1. SETUP
     # Define the initial model
     initial_model = test_utils.build_mock_model()
     # Define temporary files
-    tmp_dir = self.get_temp_dir()
+    tmp_dir = tempfile.mkdtemp()
     model_filename = os.path.join(tmp_dir, 'model.tflite')
 
     # 2. INVOKE
@@ -72,7 +72,7 @@ class WriteReadModelTest(test_util.TensorFlowTestCase):
       self.assertEqual(initial_buffer.data[i], final_buffer.data[i])
 
 
-class StripStringsTest(test_util.TensorFlowTestCase):
+class StripStringsTest(unittest.TestCase):
 
   def testStripStrings(self):
     # 1. SETUP
@@ -120,7 +120,7 @@ class StripStringsTest(test_util.TensorFlowTestCase):
       self.assertEqual(initial_buffer.data[i], final_buffer.data[i])
 
 
-class RandomizeWeightsTest(test_util.TensorFlowTestCase):
+class RandomizeWeightsTest(unittest.TestCase):
 
   def testRandomizeWeights(self):
     # 1. SETUP
@@ -204,7 +204,7 @@ class RandomizeWeightsTest(test_util.TensorFlowTestCase):
       self.assertEqual(initial_buffer.data[j], final_buffer.data[j])
 
 
-class XxdOutputToBytesTest(test_util.TensorFlowTestCase):
+class XxdOutputToBytesTest(unittest.TestCase):
 
   def testXxdOutputToBytes(self):
     # 1. SETUP
@@ -213,7 +213,7 @@ class XxdOutputToBytesTest(test_util.TensorFlowTestCase):
     initial_bytes = flatbuffer_utils.convert_object_to_bytearray(initial_model)
 
     # Define temporary files
-    tmp_dir = self.get_temp_dir()
+    tmp_dir = tempfile.mkdtemp()
     model_filename = os.path.join(tmp_dir, 'model.tflite')
 
     # 2. Write model to temporary file (will be used as input for xxd)
@@ -236,7 +236,7 @@ class XxdOutputToBytesTest(test_util.TensorFlowTestCase):
     self.assertEqual(initial_bytes, final_bytes)
 
 
-class CountResourceVariablesTest(test_util.TensorFlowTestCase):
+class CountResourceVariablesTest(unittest.TestCase):
 
   def testCountResourceVariables(self):
     # 1. SETUP
@@ -250,7 +250,7 @@ class CountResourceVariablesTest(test_util.TensorFlowTestCase):
         flatbuffer_utils.count_resource_variables(initial_model), 1)
 
 
-class GetOptionsTest(test_util.TensorFlowTestCase):
+class GetOptionsTest(unittest.TestCase):
 
   op: schema.Operator
   op_t: schema.OperatorT
@@ -290,4 +290,4 @@ class GetOptionsTest(test_util.TensorFlowTestCase):
 
 
 if __name__ == '__main__':
-  test.main()
+  unittest.main()

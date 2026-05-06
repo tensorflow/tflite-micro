@@ -8,6 +8,7 @@ py_library(
     deps = [
         "//:tflite_micro_shim",
         requirement("flatbuffers"),
+        requirement("tensorflow"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
     ],
@@ -19,6 +20,7 @@ py_library(
     deps = [
         "//:tflite_micro_shim",
         requirement("flatbuffers"),
+        requirement("tensorflow"),
         "//tensorflow/lite/python:schema_py",
     ],
 )
@@ -48,6 +50,7 @@ py_test(
     deps = [
         ":flatbuffer_utils",
         ":test_utils",
+        requirement("tensorflow"),
     ],
 )
 
@@ -57,5 +60,6 @@ py_test(
     deps = [
         ":test_utils",
         ":visualize",
+        requirement("tensorflow"),
     ],
 )
