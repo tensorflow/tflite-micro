@@ -115,7 +115,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       // Note that int32 bias is not widely supported and might be risky (e.g.
       // http://b/262003750). As such, while we have a fallback to the reference
       // implementation, production use-cases should only have int64 bias.
-      if (bias->type == kTfLiteInt32) {
+      const bool requires_int32_accum =
+          (bias != nullptr && bias->type == kTfLiteInt32) ||
+          (bias == nullptr && params.quantized_bias_type != kTfLiteInt64);
+      if (requires_int32_accum) {
         return ConvReferenceEvalInt16(context, node);
       } else {
         return ConvEvalHifiInt16(context, node, params, op_data, input, filter,
