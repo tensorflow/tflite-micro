@@ -14,7 +14,6 @@ py_library(
     ],
 )
 
-
 py_binary(
     name = "strip_strings",
     srcs = ["strip_strings.py"],

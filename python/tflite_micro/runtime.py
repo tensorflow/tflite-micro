@@ -43,8 +43,7 @@ def count_resource_variables(model):
       continue
     for op in subgraph.operators:
       builtin_code = get_builtin_code_from_operator_code(
-          model.operatorCodes[op.opcodeIndex]
-      )
+          model.operatorCodes[op.opcodeIndex])
       if builtin_code == schema_fb.BuiltinOperator.VAR_HANDLE:
         unique_shared_names.add(op.builtinOptions.sharedName)
   return len(unique_shared_names)

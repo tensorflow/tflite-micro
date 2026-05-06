@@ -21,6 +21,7 @@ from absl import app
 from absl import flags
 from absl import logging
 import numpy as np
+
 OpResolverType = None
 try:
   import ai_edge_litert.interpreter as tflite_interp
@@ -41,8 +42,7 @@ except ImportError:
       OpResolverType = tflite_interp.experimental.OpResolverType
     except ImportError:
       raise ImportError(
-          "Could not import ai_edge_litert, tflite_runtime, or tensorflow."
-      )
+          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.python.tflite_micro import runtime
@@ -222,8 +222,7 @@ def main(_) -> None:
     kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
   else:
     logging.warning(
-        "Could not find OpResolverType. Reference kernels might not be used."
-    )
+        "Could not find OpResolverType. Reference kernels might not be used.")
 
   tflite_interpreter = tflite_interp.Interpreter(**kwargs)
 
