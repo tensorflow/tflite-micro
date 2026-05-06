@@ -72,45 +72,6 @@ pybind_extension(
 )
 
 py_library(
-    name = "flatbuffer_utils",
-    srcs = ["flatbuffer_utils.py"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//:tflite_micro_shim",
-        requirement("flatbuffers"),
-        "//tensorflow/lite/python:schema_py",
-    ],
-)
-
-py_library(
-    name = "test_utils",
-    srcs = ["test_utils.py"],
-    deps = [
-        "//:tflite_micro_shim",
-        requirement("flatbuffers"),
-        "//tensorflow/lite/python:schema_py",
-    ],
-)
-
-py_test(
-    name = "flatbuffer_utils_test",
-    srcs = ["flatbuffer_utils_test.py"],
-    deps = [
-        ":flatbuffer_utils",
-        ":test_utils",
-    ],
-)
-
-py_test(
-    name = "visualize_test",
-    srcs = ["visualize_test.py"],
-    deps = [
-        ":test_utils",
-        "//tensorflow/lite/tools:visualize",
-    ],
-)
-
-py_library(
     name = "runtime",
     srcs = [
         "runtime.py",
@@ -124,7 +85,7 @@ py_library(
         "//:tflite_micro_shim",
         requirement("numpy"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
-        ":flatbuffer_utils",
+        "//tensorflow/lite/python:schema_py",
     ],
 )
 
