@@ -16,8 +16,37 @@
 
 import enum
 import os
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.python.tflite_micro import _runtime
+from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+
+
+def convert_bytearray_to_object(model_bytearray):
+  """Converts a tflite model from a bytearray to an object for parsing."""
+  model_object = schema_fb.Model.GetRootAsModel(model_bytearray, 0)
+  return schema_fb.ModelT.InitFromObj(model_object)
+
+
+def get_builtin_code_from_operator_code(opcode):
+  """Return the builtin code of the given operator code."""
+  if hasattr(opcode, 'BuiltinCode') and callable(opcode.BuiltinCode):
+    return max(opcode.BuiltinCode(), opcode.DeprecatedBuiltinCode())
+  return max(opcode.builtinCode, opcode.deprecatedBuiltinCode)
+
+
+def count_resource_variables(model):
+  """Calculates the number of unique resource variables in a model."""
+  if not isinstance(model, schema_fb.ModelT):
+    model = convert_bytearray_to_object(model)
+  unique_shared_names = set()
+  for subgraph in model.subgraphs:
+    if subgraph.operators is None:
+      continue
+    for op in subgraph.operators:
+      builtin_code = get_builtin_code_from_operator_code(
+          model.operatorCodes[op.opcodeIndex])
+      if builtin_code == schema_fb.BuiltinOperator.VAR_HANDLE:
+        unique_shared_names.add(op.builtinOptions.sharedName)
+  return len(unique_shared_names)
 
 
 class InterpreterConfig(enum.Enum):
@@ -83,8 +112,7 @@ class Interpreter(object):
     if arena_size is None:
       arena_size = len(model_data) * 10
     # Some models make use of resource variables ops, get the count here
-    num_resource_variables = flatbuffer_utils.count_resource_variables(
-        model_data)
+    num_resource_variables = count_resource_variables(model_data)
     print("Number of resource variables the model uses = ",
           num_resource_variables)
 

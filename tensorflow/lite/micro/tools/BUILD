@@ -213,7 +213,7 @@ py_binary(
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",
         requirement("absl_py"),
-        requirement("tensorflow"),
+        requirement("ai-edge-litert"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
     ],

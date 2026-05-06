@@ -85,7 +85,7 @@ py_library(
         "//:tflite_micro_shim",
         requirement("numpy"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
-        "//tensorflow/lite/tools:flatbuffer_utils",
+        "//tensorflow/lite/python:schema_py",
     ],
 )
 
@@ -165,7 +165,6 @@ py_package(
         "tensorflow.lite.micro.tools",
         "tensorflow.lite.micro.tools.generate_test_for_model",
         "tensorflow.lite.python",
-        "tensorflow.lite.tools.flatbuffer_utils",
     ],
     deps = [
         ":postinstall_check",
