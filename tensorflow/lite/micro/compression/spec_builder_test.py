@@ -14,13 +14,13 @@
 #
 """Tests for the compression spec builder."""
 
-import tensorflow as tf
+import unittest
 
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.micro.compression import spec_builder
 
 
-class SpecBuilderTest(tf.test.TestCase):
+class SpecBuilderTest(unittest.TestCase):
 
   def test_basic_builder_pattern(self):
     """Test basic fluent builder usage."""
@@ -109,4 +109,4 @@ class SpecBuilderTest(tf.test.TestCase):
 
 
 if __name__ == "__main__":
-  tf.test.main()
+  unittest.main()

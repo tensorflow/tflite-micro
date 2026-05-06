@@ -21,11 +21,9 @@ import csv
 from absl import app
 from absl import flags
 import numpy as np
-import tensorflow as tf
 import random as rand
 from mako import template
 
-from tensorflow.python.platform import gfile
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 from tflite_micro.tensorflow.lite.python import schema_util
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils

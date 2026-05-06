@@ -24,7 +24,7 @@ import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.examples.person_detection.utils.raw_to_bitmap import parse_file
 from tflite_micro.tensorflow.lite.micro.examples.person_detection.utils.raw_to_bitmap import reshape_bitmaps
-from tensorflow.python.platform import googletest
+import unittest
 
 _RGB_RAW = u"""
 +++ frame +++
@@ -91,7 +91,7 @@ _GRAYSCALE_RESHAPED_MULTI = [
 ]
 
 
-class RawToBitmapTest(googletest.TestCase):
+class RawToBitmapTest(unittest.TestCase):
 
   def test_parse_rgb(self):
     frame_list = parse_file(io.StringIO(_RGB_RAW), 4, 4, 3)
@@ -117,4 +117,4 @@ class RawToBitmapTest(googletest.TestCase):
 
 
 if __name__ == '__main__':
-  googletest.main()
+  unittest.main()

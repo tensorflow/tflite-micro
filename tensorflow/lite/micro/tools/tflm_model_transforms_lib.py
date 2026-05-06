@@ -25,7 +25,6 @@ import os
 import tempfile
 from absl import logging
 import numpy as np
-from tensorflow.python.platform import gfile
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
@@ -38,8 +37,8 @@ def _save_and_align_flatbuffer(model, model_path):
 
 
 def log_size_difference(input_path, transformed_model_path):
-  initial_binary_size = gfile.Stat(input_path).length
-  final_binary_size = gfile.Stat(transformed_model_path).length
+  initial_binary_size = os.path.getsize(input_path)
+  final_binary_size = os.path.getsize(transformed_model_path)
   logging.info("Initial file size: %d %s", initial_binary_size, "bytes.")
   logging.info("Final file size: %d %s", final_binary_size, "bytes.")
   logging.info("Savings = %d %s", initial_binary_size - final_binary_size,
@@ -73,13 +72,13 @@ def check_models_equivalent(initial_model_path: str = None,
   Raises:
     AssertionError if outputs of TFLM invocations are not equal
   """
-  with gfile.Open(initial_model_path, "rb") as input_model_file:
+  with open(initial_model_path, "rb") as input_model_file:
     initial_model_interpreter = runtime.Interpreter.from_bytes(
         input_model_file.read(),
         custom_op_registerers=custom_op_registerers,
     )
 
-  with gfile.Open(secondary_model_path, "rb") as secondary_model_file:
+  with open(secondary_model_path, "rb") as secondary_model_file:
     secondary_model_interpreter = runtime.Interpreter.from_bytes(
         secondary_model_file.read(),
         custom_op_registerers=custom_op_registerers,
@@ -210,7 +209,7 @@ def run_all_transformations(
       )
       pre_transform_model_path = output_path
 
-  gfile.MakeDirs(os.path.dirname(transformed_model_path))
+  os.makedirs(os.path.dirname(transformed_model_path), exist_ok=True)
   _save_and_align_flatbuffer(model, transformed_model_path)
   logging.info("Transformed model located at: %s", transformed_model_path)
 

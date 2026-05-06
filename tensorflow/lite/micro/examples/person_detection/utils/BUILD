@@ -37,7 +37,6 @@ py_test(
     deps = [
         ":raw_to_bitmap_lib",
         "//:tflite_micro_shim",
-        requirement("tensorflow"),
         requirement("numpy"),
     ],
 )
