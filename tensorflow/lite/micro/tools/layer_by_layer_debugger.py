@@ -21,10 +21,30 @@ from absl import app
 from absl import flags
 from absl import logging
 import numpy as np
-import tensorflow as tf
+OpResolverType = None
+try:
+  import ai_edge_litert.interpreter as tflite_interp
+  try:
+    from ai_edge_litert.interpreter import OpResolverType
+  except ImportError:
+    pass
+except ImportError:
+  try:
+    import tflite_runtime.interpreter as tflite_interp
+    try:
+      from tflite_runtime.interpreter import OpResolverType
+    except ImportError:
+      pass
+  except ImportError:
+    try:
+      import tensorflow.lite as tflite_interp
+      OpResolverType = tflite_interp.experimental.OpResolverType
+    except ImportError:
+      raise ImportError(
+          "Could not import ai_edge_litert, tflite_runtime, or tensorflow."
+      )
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-from tensorflow.python.platform import gfile
 from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.tools import layer_by_layer_schema_py_generated as layer_schema_fb
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
@@ -160,7 +180,7 @@ def GenerateRandomInputTfLiteComparison(tflm_interpreter, tflite_interpreter,
 
 
 def ReadDebugFile():
-  with gfile.GFile(_DEBUG_FILE.value, "rb") as debug_file_handle:
+  with open(_DEBUG_FILE.value, "rb") as debug_file_handle:
     debug_bytearray = bytearray(debug_file_handle.read())
   flatbuffer_root_object = layer_schema_fb.ModelTestData.GetRootAs(
       debug_bytearray, 0)
@@ -194,10 +214,18 @@ def main(_) -> None:
       intrepreter_config=runtime.InterpreterConfig.kPreserveAllTensors,
   )
 
-  tflite_interpreter = tf.lite.Interpreter(
-      model_path=_INPUT_TFLITE_FILE.value,
-      experimental_preserve_all_tensors=True,
-  )
+  kwargs = {
+      "model_path": _INPUT_TFLITE_FILE.value,
+      "experimental_preserve_all_tensors": True,
+  }
+  if OpResolverType is not None:
+    kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
+  else:
+    logging.warning(
+        "Could not find OpResolverType. Reference kernels might not be used."
+    )
+
+  tflite_interpreter = tflite_interp.Interpreter(**kwargs)
 
   tflite_interpreter.allocate_tensors()
 
