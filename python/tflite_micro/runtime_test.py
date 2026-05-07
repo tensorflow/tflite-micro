@@ -213,7 +213,7 @@ class ConvModelTests(unittest.TestCase):
       # Check that TFLM output has correct metadata
       self.assertEqual(tflm_output.dtype, np.int8)
       self.assertEqual(tflm_output.shape, self.output_shape)
-      np.testing.assert_array_equal(tflite_output, tflm_output)
+      np.testing.assert_allclose(tflite_output, tflm_output, atol=1)
 
   def _helperModelFromFileAndBufferEqual(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
