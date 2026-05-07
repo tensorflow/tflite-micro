@@ -22,19 +22,20 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/audio_preprocessor_test
 
 from pathlib import Path
 import filecmp
+import numpy as np
 
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import resource_loader
-from tensorflow.python.platform import test
+import unittest
+import os
 
 import tensorflow as tf
 from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
 
 
-class AudioPreprocessorTest(test_util.TensorFlowTestCase):
+class AudioPreprocessorTest(unittest.TestCase):
 
   def setUp(self):
-    self.sample_prefix_path = resource_loader.get_path_to_datafile('testdata')
+    self.sample_prefix_path = os.path.join(os.path.dirname(__file__),
+                                           'testdata')
 
   def testFeatureGeneration(self):
     feature_params = audio_preprocessor.FeatureParams()
@@ -51,25 +52,27 @@ class AudioPreprocessorTest(test_util.TensorFlowTestCase):
     # test signal ops internal state retained and features do not match
     feature_eager1 = audio_pp.generate_feature(data)
     feature_eager2 = audio_pp.generate_feature(data)
-    self.assertNotAllEqual(feature_eager1, feature_eager2)
+    self.assertFalse(
+        np.array_equal(feature_eager1.numpy(), feature_eager2.numpy()))
 
     # test eager vs graph execution feature match
     _ = audio_pp.generate_feature_using_graph(data)
     feature_graph = audio_pp.generate_feature_using_graph(data)
-    self.assertAllEqual(feature_graph, feature_eager2)
+    np.testing.assert_array_equal(feature_graph.numpy(),
+                                  feature_eager2.numpy())
 
     # test eager vs MicroInterpreter execution feature match
     feature_tflm = audio_pp.generate_feature_using_tflm(data)
-    self.assertAllEqual(feature_tflm, feature_eager1)
+    np.testing.assert_array_equal(feature_tflm.numpy(), feature_eager1.numpy())
 
     # test signal ops internal state reset
     audio_pp.reset_tflm()
     feature_tflm = audio_pp.generate_feature_using_tflm(data)
-    self.assertAllEqual(feature_tflm, feature_eager1)
+    np.testing.assert_array_equal(feature_tflm.numpy(), feature_eager1.numpy())
 
     # test signal ops internal state retained
     feature_tflm = audio_pp.generate_feature_using_tflm(data)
-    self.assertAllEqual(feature_tflm, feature_eager2)
+    np.testing.assert_array_equal(feature_tflm.numpy(), feature_eager2.numpy())
 
   def testFeatureOutputYes(self):
     feature_params = audio_preprocessor.FeatureParams()
@@ -98,5 +101,9 @@ class AudioPreprocessorTest(test_util.TensorFlowTestCase):
     self.assertSequenceEqual(feature_list, expected)
 
 
+import sys
+from absl import flags
+
 if __name__ == '__main__':
-  test.main()
+  flags.FLAGS(sys.argv)
+  unittest.main()

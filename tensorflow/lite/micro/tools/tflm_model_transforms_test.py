@@ -20,25 +20,23 @@ check_models_equivalent() to assert results.
 import os
 
 from absl.testing import parameterized
-from tensorflow.python.platform import resource_loader
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+import tempfile
+import unittest
 
 from tflite_micro.tensorflow.lite.micro.tools import tflm_model_transforms_lib
 from tflite_micro.tensorflow.lite.micro.examples.recipes import resource_variables_lib
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
-class TflmModelTransformsTest(test_util.TensorFlowTestCase,
-                              parameterized.TestCase):
+class TflmModelTransformsTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
       ("person_detect", "person_detect.tflite"),
       ("keyword_scrambled", "keyword_scrambled.tflite"),
   )
   def test_model_transforms(self, input_file_name):
-    test_tmpdir = self.get_temp_dir()
-    prefix_path = resource_loader.get_path_to_datafile("../models")
+    test_tmpdir = tempfile.gettempdir()
+    prefix_path = os.path.join(os.path.dirname(__file__), "../models")
     input_file_name = os.path.join(prefix_path, input_file_name)
     transformed_model_path = test_tmpdir + "/transformed.tflite"
 
@@ -58,7 +56,7 @@ class TflmModelTransformsTest(test_util.TensorFlowTestCase,
   # TODO(b/274635545): refactor functions to take in flatbuffer objects instead
   # of writing to files here
   def test_resource_model(self):
-    test_tmpdir = self.get_temp_dir()
+    test_tmpdir = tempfile.gettempdir()
     resource_model = resource_variables_lib.get_model_from_keras()
     input_file_name = test_tmpdir + "/resource.tflite"
     flatbuffer_utils.write_model(
@@ -81,4 +79,4 @@ class TflmModelTransformsTest(test_util.TensorFlowTestCase,
 
 
 if __name__ == "__main__":
-  test.main()
+  unittest.main()
