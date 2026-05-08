@@ -5,7 +5,13 @@ load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 py_binary(
     name = "train",
     srcs = ["train.py"],
+    tags = [
+        "noasan",  # Not useful for Python-only targets.
+        "nomsan",
+        "noubsan",
+    ],
     deps = [
+        requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],
@@ -17,6 +23,7 @@ py_binary(
     deps = [
         "//python/tflite_micro:runtime",
         requirement("absl_py"),
+        requirement("numpy"),
         requirement("pillow"),
     ],
 )
