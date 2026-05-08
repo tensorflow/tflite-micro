@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
@@ -106,12 +107,25 @@ TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size) {
 
 TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
                                     size_t* bytes, size_t* type_size) {
-  int element_count = 1;
+  // Use size_t for the running product so the byte computation is performed
+  // in the same unsigned domain as the result. Each multiplication is guarded
+  // against overflow because shape dimensions and the element type size all
+  // come from the (untrusted) flatbuffer model.
+  size_t element_count = 1;
   // If flatbuffer_tensor.shape == nullptr, then flatbuffer_tensor is a scalar
   // so has 1 element.
   if (flatbuffer_tensor.shape() != nullptr) {
     for (size_t n = 0; n < flatbuffer_tensor.shape()->size(); ++n) {
-      element_count *= flatbuffer_tensor.shape()->Get(n);
+      const int32_t dim = flatbuffer_tensor.shape()->Get(n);
+      if (dim < 0) {
+        return kTfLiteError;
+      }
+      const size_t udim = static_cast<size_t>(dim);
+      if (udim != 0 &&
+          element_count > std::numeric_limits<size_t>::max() / udim) {
+        return kTfLiteError;
+      }
+      element_count *= udim;
     }
   }
 
@@ -119,6 +133,10 @@ TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
   TF_LITE_ENSURE_STATUS(
       ConvertTensorType(flatbuffer_tensor.type(), &tf_lite_type));
   TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(tf_lite_type, type_size));
+  if (*type_size != 0 &&
+      element_count > std::numeric_limits<size_t>::max() / *type_size) {
+    return kTfLiteError;
+  }
   *bytes = element_count * (*type_size);
   return kTfLiteOk;
 }
@@ -127,15 +145,28 @@ TfLiteStatus TfLiteEvalTensorByteLength(const TfLiteEvalTensor* eval_tensor,
                                         size_t* out_bytes) {
   TFLITE_DCHECK(out_bytes != nullptr);
 
-  int element_count = 1;
+  size_t element_count = 1;
   // If eval_tensor->dims == nullptr, then tensor is a scalar so has 1 element.
   if (eval_tensor->dims != nullptr) {
     for (int n = 0; n < eval_tensor->dims->size; ++n) {
-      element_count *= eval_tensor->dims->data[n];
+      const int dim = eval_tensor->dims->data[n];
+      if (dim < 0) {
+        return kTfLiteError;
+      }
+      const size_t udim = static_cast<size_t>(dim);
+      if (udim != 0 &&
+          element_count > std::numeric_limits<size_t>::max() / udim) {
+        return kTfLiteError;
+      }
+      element_count *= udim;
     }
   }
   size_t type_size;
   TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(eval_tensor->type, &type_size));
+  if (type_size != 0 &&
+      element_count > std::numeric_limits<size_t>::max() / type_size) {
+    return kTfLiteError;
+  }
   *out_bytes = element_count * type_size;
   return kTfLiteOk;
 }
@@ -152,10 +183,16 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
   input = input1->dims->size > input2->dims->size ? input1 : input2;
   TF_LITE_ENSURE(context, output->type == input->type);
   size_t size = 0;
-  TfLiteTypeSizeOf(input->type, &size);
+  TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(input->type, &size));
   const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < dimensions_count; i++) {
-    size *= input->dims->data[i];
+    const int dim = input->dims->data[i];
+    TF_LITE_ENSURE(context, dim >= 0);
+    const size_t udim = static_cast<size_t>(dim);
+    TF_LITE_ENSURE(context,
+                   udim == 0 ||
+                       size <= std::numeric_limits<size_t>::max() / udim);
+    size *= udim;
   }
   output->bytes = size;
 
