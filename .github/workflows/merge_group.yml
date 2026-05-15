@@ -5,6 +5,9 @@ name: Merge Queue
 on:
   merge_group:
 
+permissions:
+  contents: read
+
 jobs:
   call-core:
     uses: ./.github/workflows/suite_core.yml
