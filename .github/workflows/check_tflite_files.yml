@@ -20,15 +20,17 @@ jobs:
   check_tflite_files:
     runs-on: ubuntu-latest
     name: Check PR Modifies TfLite Files
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.trigger-sha }}
+        # Do NOT specify ref -> checks out target base branch (main) securely
 
       - name: Check Files
-        if: ${{ !contains(inputs.pr-body, 'NO_CHECK_TFLITE_FILES=') }}
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr-number }}
+          PR_SHA: ${{ inputs.trigger-sha }}
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token || github.token }}
         run: tensorflow/lite/micro/tools/ci_build/check_tflite_files.sh

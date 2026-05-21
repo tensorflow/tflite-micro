@@ -64,6 +64,8 @@ jobs:
         run: echo "CI Authorized."
 
   call-check-tflite-files:
+    needs: [gatekeeper, approval-gate]
+    if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/check_tflite_files.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
