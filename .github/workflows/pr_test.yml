@@ -66,6 +66,9 @@ jobs:
   call-check-tflite-files:
     needs: [gatekeeper, approval-gate]
     if: needs.gatekeeper.outputs.scope != 'none'
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/check_tflite_files.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
