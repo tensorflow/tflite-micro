@@ -49,13 +49,21 @@ TfLiteStatus PadEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   int8_t* output_ptr = tflite::micro::GetTensorData<int8_t>(output);
 
   const RuntimeShape d = tflite::micro::GetTensorShape(input);
-  const cmsis_nn_dims input_size = {d.Dims(0), d.Dims(1), d.Dims(2), d.Dims(3)};
+  const int rank = d.DimensionsCount();
+
+  cmsis_nn_dims input_size = {
+      rank >= 4 ? d.Dims(rank - 4) : 1, rank >= 3 ? d.Dims(rank - 3) : 1,
+      rank >= 2 ? d.Dims(rank - 2) : 1, rank >= 1 ? d.Dims(rank - 1) : 1};
 
   const PadParams p = data->params;
-  const cmsis_nn_dims pre_pad = {p.left_padding[0], p.left_padding[1],
-                                 p.left_padding[2], p.left_padding[3]};
-  const cmsis_nn_dims post_pad = {p.right_padding[0], p.right_padding[1],
-                                  p.right_padding[2], p.right_padding[3]};
+  cmsis_nn_dims pre_pad = {rank >= 4 ? p.left_padding[rank - 4] : 0,
+                           rank >= 3 ? p.left_padding[rank - 3] : 0,
+                           rank >= 2 ? p.left_padding[rank - 2] : 0,
+                           rank >= 1 ? p.left_padding[rank - 1] : 0};
+  cmsis_nn_dims post_pad = {rank >= 4 ? p.right_padding[rank - 4] : 0,
+                            rank >= 3 ? p.right_padding[rank - 3] : 0,
+                            rank >= 2 ? p.right_padding[rank - 2] : 0,
+                            rank >= 1 ? p.right_padding[rank - 1] : 0};
 
   arm_pad_s8(input_ptr, output_ptr, pad_value, &input_size, &pre_pad,
              &post_pad);
