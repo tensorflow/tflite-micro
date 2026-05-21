@@ -20,27 +20,46 @@
 # Inputs:
 #   GITHUB_REPOSITORY
 #   PR_NUMBER
+#   PR_SHA (optional, to download tracking list from PR commit)
 #   TFLM_BOT_TOKEN
 
 set -e
 set -u
 
-URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files"
-PR_FILES=$(curl -s -X GET -H "Authorization: Bearer ${TFLM_BOT_TOKEN}" "${URL}" | jq -r '.[] | .filename')
+export GH_TOKEN="${TFLM_BOT_TOKEN}"
 
-# Create a temp file for PR files
+echo "Fetching files modified in PR #${PR_NUMBER}..."
+# Use GitHub CLI auto-pagination to safely pull all file changes (up to 3,000)
+PR_FILES=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename')
+
+# Create temp files for PR files list and PR's tflite_files database
 TMP_PR_FILES=$(mktemp)
-trap 'rm -f "${TMP_PR_FILES}"' EXIT
+TMP_TFLITE_FILES=$(mktemp)
+trap 'rm -f "${TMP_PR_FILES}" "${TMP_TFLITE_FILES}"' EXIT
 
 echo "${PR_FILES}" > "${TMP_PR_FILES}"
 
-if [ ! -f ci/tflite_files.txt ]; then
-  echo "Error: ci/tflite_files.txt not found!"
+TFLITE_FILES_FILE="ci/tflite_files.txt"
+
+if [ -n "${PR_SHA:-}" ]; then
+  echo "Downloading ci/tflite_files.txt from PR commit ${PR_SHA}..."
+  # Fetch via API (raw content accept header) to support secure reading of untrusted data
+  URL_TXT="repos/${GITHUB_REPOSITORY}/contents/ci/tflite_files.txt?ref=${PR_SHA}"
+  if gh api -H "Accept: application/vnd.github.v3.raw" "${URL_TXT}" > "${TMP_TFLITE_FILES}" 2>/dev/null; then
+    TFLITE_FILES_FILE="${TMP_TFLITE_FILES}"
+    echo "Successfully downloaded and using PR's version of tflite_files.txt."
+  else
+    echo "Warning: Could not download from PR commit. Falling back to base branch version."
+  fi
+fi
+
+if [ ! -f "${TFLITE_FILES_FILE}" ]; then
+  echo "Error: ${TFLITE_FILES_FILE} not found!"
   exit 1
 fi
 
 # Check for intersection between PR files and TFLite files
-CONFLICTS=$(grep -F -x -f ci/tflite_files.txt "${TMP_PR_FILES}" || true)
+CONFLICTS=$(grep -F -x -f "${TFLITE_FILES_FILE}" "${TMP_PR_FILES}" || true)
 
 if [ -n "${CONFLICTS}" ]; then
   echo "The following files should be modified in the upstream Tensorflow repo:"
