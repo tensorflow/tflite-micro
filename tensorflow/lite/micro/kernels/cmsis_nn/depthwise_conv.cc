@@ -147,7 +147,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
     const int batch_size = MatchingDim(input_shape, 0, output_shape, 0);
     const int output_depth = MatchingDim(output_shape, 3, filter_shape, 3);
-    TFLITE_DCHECK_EQ(batch_size, 1); /* Only batch = 1 is supported */
 
     cmsis_nn_dims input_dims;
     input_dims.n = batch_size;
