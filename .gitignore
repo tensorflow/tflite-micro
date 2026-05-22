@@ -13,3 +13,5 @@ gen
 
 # Ignore the `external` symlink added by `bazel-compile-commands-extractor`
 /external
+tflite-micro
+.DS_Store
