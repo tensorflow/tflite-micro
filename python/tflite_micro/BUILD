@@ -125,7 +125,7 @@ py_test(
         ":runtime",
         requirement("numpy"),
         requirement("tensorflow"),
-        "//tensorflow/lite/micro/compression",
+        "//tensorflow/lite/micro/compression:model_editor",
     ],
 )
 
