@@ -385,7 +385,6 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(ancillary.name, "weights_ancillary")
     self.assertEqual(output.name, "weights_decoded")
 
-  @unittest.expectedFailure
   def test_multiple_compressed_inputs_batched(self):
     """CONCATENATION with two compressed inputs gets one batched DECODE."""
     weights_a = model_editor.Tensor(

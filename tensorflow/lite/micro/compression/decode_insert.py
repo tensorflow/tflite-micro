@@ -210,15 +210,20 @@ def insert_decode_operators(
   for sg_idx, tensor_infos in by_subgraph.items():
     subgraph = model.subgraphs[sg_idx]
 
-    # Collect all (consumer, tensor_info) pairs and sort by consumer position
-    # in reverse order so insertions don't invalidate positions
-    consumer_pairs = []
+    # Group tensor infos by consumer so multiple compressed inputs to the
+    # same operator get batched into a single DECODE.
+    consumer_to_infos: dict[model_editor.Operator, list[_CompressedTensorInfo]]
+    consumer_to_infos = defaultdict(list)
     for info in tensor_infos:
       for consumer in info.consumers:
-        consumer_pairs.append((consumer, info))
+        if info not in consumer_to_infos[consumer]:
+          consumer_to_infos[consumer].append(info)
 
-    consumer_pairs.sort(
-        key=lambda pair: subgraph.operators.index(pair[0]),
+    # Sort consumers by position in reverse so insertions don't invalidate
+    # earlier positions.
+    sorted_consumers = sorted(
+        consumer_to_infos.keys(),
+        key=lambda op: subgraph.operators.index(op),
         reverse=True,
     )
 
@@ -231,37 +236,44 @@ def insert_decode_operators(
     # _create_output_tensor reads the original tensor's shape/dtype/quantization.
     tensors_to_rewrite: dict[model_editor.Tensor, bytes] = {}
 
-    for consumer, info in consumer_pairs:
-      # Reuse or create ancillary data tensor
-      if info.tensor not in ancillary_cache:
-        ancillary_tensor = _create_ancillary_tensor(
-            info.ancillary_data,
-            info.tensor,
-        )
-        subgraph.tensors.append(ancillary_tensor)
-        ancillary_cache[info.tensor] = ancillary_tensor
-        tensors_to_rewrite[info.tensor] = info.encoded_data
-      else:
-        ancillary_tensor = ancillary_cache[info.tensor]
+    for consumer in sorted_consumers:
+      decode_inputs = []
+      decode_outputs = []
 
-      # Create output tensor (one per DECODE)
-      output_tensor = _create_output_tensor(info.tensor)
-      subgraph.tensors.append(output_tensor)
+      for info in consumer_to_infos[consumer]:
+        # Reuse or create ancillary data tensor
+        if info.tensor not in ancillary_cache:
+          ancillary_tensor = _create_ancillary_tensor(
+              info.ancillary_data,
+              info.tensor,
+          )
+          subgraph.tensors.append(ancillary_tensor)
+          ancillary_cache[info.tensor] = ancillary_tensor
+          tensors_to_rewrite[info.tensor] = info.encoded_data
+        else:
+          ancillary_tensor = ancillary_cache[info.tensor]
 
-      # Create DECODE operator
+        # Create output tensor (one per compressed input)
+        output_tensor = _create_output_tensor(info.tensor)
+        subgraph.tensors.append(output_tensor)
+
+        decode_inputs.extend([info.tensor, ancillary_tensor])
+        decode_outputs.append(output_tensor)
+
+        # Rewire this consumer to use the decoded output
+        _rewire_consumers([consumer], info.tensor, output_tensor)
+
+      # Create single DECODE operator for all compressed inputs
       decode_op = model_editor.Operator(
           opcode=tflite.BuiltinOperator.CUSTOM,
           custom_code=DECODE_CUSTOM_OP_NAME,
-          inputs=[info.tensor, ancillary_tensor],
-          outputs=[output_tensor],
+          inputs=decode_inputs,
+          outputs=decode_outputs,
       )
 
       # Insert DECODE immediately before this consumer
       insert_pos = subgraph.operators.index(consumer)
       subgraph.operators.insert(insert_pos, decode_op)
-
-      # Rewire only this consumer to use the decoded output
-      _rewire_consumers([consumer], info.tensor, output_tensor)
 
     # Rewrite encoded tensors after all output tensors are created
     for tensor, encoded_data in tensors_to_rewrite.items():
