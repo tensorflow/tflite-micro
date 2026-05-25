@@ -132,6 +132,11 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
   Returns:
     A compressed flatbuffer with DECODE operators inserted.
   """
+  specs = list(specs)
+  if not specs:
+    raise compressor.CompressionError(
+        "Compression spec is empty; no tensors to compress")
+
   model = model_editor.read(model_in)
   compression_results: dict[tuple[int, int], compressor.CompressionResult] = {}
 
