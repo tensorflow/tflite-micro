@@ -326,6 +326,35 @@ tflm_py_library(
     ],
 )
 
+tflm_py_library(
+    name = "decode_insert",
+    srcs = ["decode_insert.py"],
+    deps = [
+        ":compressor",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+tflm_py_test(
+    name = "decode_insert_test",
+    size = "small",
+    srcs = ["decode_insert_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":decode_insert",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
