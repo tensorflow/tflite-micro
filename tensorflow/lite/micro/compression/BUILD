@@ -247,6 +247,20 @@ tflm_py_test(
     ],
 )
 
+tflm_py_library(
+    name = "decode",
+    srcs = ["decode.py"],
+)
+
+tflm_py_test(
+    name = "decode_test",
+    size = "small",
+    srcs = ["decode_test.py"],
+    deps = [
+        ":decode",
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
