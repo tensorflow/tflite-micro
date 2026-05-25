@@ -2,6 +2,12 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
+    "//python:py_rules.bzl",
+    "tflm_py_binary",
+    "tflm_py_library",
+    "tflm_py_test",
+)
+load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
@@ -99,7 +105,7 @@ flatbuffer_py_library(
     srcs = ["metadata.fbs"],
 )
 
-py_test(
+tflm_py_test(
     name = "metadata_test_py",
     size = "small",
     srcs = ["metadata_test.py"],
@@ -107,7 +113,6 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         "metadata_py",
-        "//:tflite_micro_shim",
         requirement("flatbuffers"),
     ],
 )
@@ -164,11 +169,10 @@ py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "model_facade",
     srcs = ["model_facade.py"],
     deps = [
-        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("flatbuffers"),
     ],
@@ -185,11 +189,10 @@ py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "spec",
     srcs = ["spec.py"],
     deps = [
-        "//:tflite_micro_shim",
         requirement("pyyaml"),
     ],
 )
@@ -223,11 +226,10 @@ py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "test_models",
     srcs = ["test_models.py"],
     deps = [
-        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("flatbuffers"),
         requirement("numpy"),
@@ -245,7 +247,7 @@ py_test(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "view",
     srcs = [
         "view.py",
@@ -253,7 +255,6 @@ py_binary(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":metadata_py",
-        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("absl_py"),
         requirement("bitarray"),

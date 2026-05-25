@@ -3,6 +3,7 @@ load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 # Signal python utilities.
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
@@ -12,7 +13,7 @@ package(
     licenses = ["notice"],
 )
 
-py_test(
+tflm_py_test(
     name = "freq_to_mel_test",
     srcs = ["freq_to_mel_test.py"],
     data = [
@@ -24,20 +25,14 @@ py_test(
         "noubsan",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        "//:tflite_micro_shim",
-    ],
 )
 
-py_library(
+tflm_py_library(
     name = "freq_to_mel",
     data = [
         ":freq_to_mel_wrapper.so",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        "//:tflite_micro_shim",
-    ],
 )
 
 pybind_extension(
@@ -67,18 +62,15 @@ pybind_extension(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
-py_library(
+tflm_py_library(
     name = "wide_dynamic_func_lut",
     data = [
         ":wide_dynamic_func_lut_wrapper.so",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        "//:tflite_micro_shim",
-    ],
 )
 
-py_test(
+tflm_py_test(
     name = "wide_dynamic_func_lut_test",
     srcs = ["wide_dynamic_func_lut_test.py"],
     data = [
@@ -91,7 +83,4 @@ py_test(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
-    deps = [
-        "//:tflite_micro_shim",
-    ],
 )

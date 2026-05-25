@@ -5,6 +5,7 @@ load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")  # @unused
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
+load("//python:py_rules.bzl", "tflm_py_library")
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_python_op_resolver_friends",
@@ -71,7 +72,7 @@ pybind_extension(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "runtime",
     srcs = [
         "runtime.py",
@@ -82,7 +83,6 @@ py_library(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
     deps = [
-        "//:tflite_micro_shim",
         requirement("numpy"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
         "//tensorflow/lite/python:schema_py",

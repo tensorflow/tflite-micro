@@ -1,12 +1,12 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library")
 
-py_library(
+tflm_py_library(
     name = "flatbuffer_utils",
     srcs = ["flatbuffer_utils.py"],
     visibility = ["//:__subpackages__"],
     deps = [
-        "//:tflite_micro_shim",
         requirement("flatbuffers"),
         requirement("tensorflow"),
         "//tensorflow/lite/python:schema_py",
