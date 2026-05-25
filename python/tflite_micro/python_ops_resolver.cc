@@ -40,7 +40,9 @@ PythonOpsResolver::PythonOpsResolver() {
   AddConv2D();
   AddCos();
   AddCumSum();
+#ifdef USE_TFLM_COMPRESSION
   AddDecode();
+#endif
   AddDelay();
   AddDepthToSpace();
   AddDepthwiseConv2D();
