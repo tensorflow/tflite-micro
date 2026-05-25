@@ -392,6 +392,7 @@ tflm_py_test(
         ":compressor",
         ":decode",
         ":decode_insert",
+        ":lut",
         ":model_editor",
         "//tensorflow/lite/python:schema_py",
         requirement("numpy"),
