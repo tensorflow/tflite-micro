@@ -267,6 +267,28 @@ tflm_py_test(
     ],
 )
 
+tflm_py_library(
+    name = "model_editor",
+    srcs = ["model_editor.py"],
+    deps = [
+        ":tensor_type",
+        "//tensorflow/lite/python:schema_py",
+        requirement("flatbuffers"),
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "model_editor_test",
+    size = "small",
+    srcs = ["model_editor_test.py"],
+    deps = [
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
