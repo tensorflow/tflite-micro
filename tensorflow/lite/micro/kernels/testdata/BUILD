@@ -1,5 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_binary")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
@@ -39,14 +40,13 @@ tflm_cc_library(
 ####################################
 # Python
 ####################################
-py_binary(
+tflm_py_binary(
     name = "lstm_test_data_generator",
     srcs = [
         "lstm_test_data_generator.py",
         "lstm_test_data_utils.py",
     ],
     deps = [
-        "//:tflite_micro_shim",
         requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),

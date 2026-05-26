@@ -21,6 +21,11 @@ config_setting(
     },
 )
 
+# Synthesizes the "tflite_micro" top-level package namespace at import time, so
+# that `from tflite_micro...` imports resolve (see tflite_micro.py). Necessary
+# because Bzlmod fixes the main repo's runfiles root to "_main" rather than the
+# module name. Targets should generally not depend on this directly: use the
+# tflm_py_* wrappers in //python:py_rules.bzl, which add it automatically.
 py_library(
     name = "tflite_micro_shim",
     srcs = ["tflite_micro.py"],

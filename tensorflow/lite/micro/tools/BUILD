@@ -2,11 +2,14 @@ load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
 load(
-    "//tensorflow/lite/micro:build_def.bzl",
-    "INCOMPATIBLE_WITH_WINDOWS",
+    "//python:py_rules.bzl",
+    "tflm_py_binary",
+    "tflm_py_library",
+    "tflm_py_test",
 )
+load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
+load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
 
 package(
@@ -33,12 +36,11 @@ py_library(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "generate_test_for_model",
     srcs = ["generate_test_for_model.py"],
     visibility = ["//:__subpackages__"],
     deps = [
-        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         requirement("ai-edge-litert"),
     ],
@@ -53,14 +55,13 @@ py_binary(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "requantize_flatbuffer",
     srcs = [
         "requantize_flatbuffer.py",
         "requantize_flatbuffer_utils.py",
     ],
     deps = [
-        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
         requirement("absl_py"),
@@ -111,7 +112,7 @@ py_binary(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "model_transforms_utils",
     srcs = ["model_transforms_utils.py"],
     data = [
@@ -123,7 +124,6 @@ py_library(
         ":tflm_tools",
     ],
     deps = [
-        "//:tflite_micro_shim",
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
     ],
@@ -183,7 +183,7 @@ py_binary(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "tflm_model_transforms_test",
     srcs = ["tflm_model_transforms_test.py"],
     data = [
@@ -198,7 +198,6 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
-        "//:tflite_micro_shim",
         requirement("absl_py"),
         requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
