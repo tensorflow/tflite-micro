@@ -39,6 +39,7 @@ import textwrap
 import absl.app
 
 from tensorflow.lite.micro.compression import metadata_py_generated as compression_schema
+from tensorflow.lite.micro.compression import tensor_type
 from tensorflow.lite.python import schema_py_generated as tflite_schema
 
 # Detect if running under Bazel by checking for BAZEL environment variables
@@ -157,20 +158,6 @@ class CompressionMethod(Enum):
   LUT = "LUT"
 
 
-_NP_DTYPES = {
-    tflite_schema.TensorType.FLOAT16: np.dtype("<f2"),
-    tflite_schema.TensorType.FLOAT32: np.dtype("<f4"),
-    tflite_schema.TensorType.FLOAT64: np.dtype("<f8"),
-    tflite_schema.TensorType.INT8: np.dtype("<i1"),
-    tflite_schema.TensorType.INT16: np.dtype("<i2"),
-    tflite_schema.TensorType.INT32: np.dtype("<i4"),
-    tflite_schema.TensorType.INT64: np.dtype("<i8"),
-    tflite_schema.TensorType.UINT8: np.dtype("<u1"),
-    tflite_schema.TensorType.UINT16: np.dtype("<u2"),
-    tflite_schema.TensorType.UINT32: np.dtype("<u4"),
-    tflite_schema.TensorType.UINT64: np.dtype("<u8"),
-}
-
 OPERATOR_NAMES = {
     code: name
     for name, code in tflite_schema.BuiltinOperator.__dict__.items()
@@ -208,7 +195,7 @@ class Codec:
     model_tensor = model_subgraph.tensors[coordinates.tensor_index]
     value_buffer = self.model.buffers[metadata.valueBuffer]
     values = np.frombuffer(bytes(value_buffer.data),
-                           dtype=_NP_DTYPES[model_tensor.type])
+                           dtype=tensor_type.to_numpy(model_tensor.type))
     values_per_table = 2**metadata.indexBitwidth
     tables = len(values) // values_per_table
     values = values.reshape((tables, values_per_table))
