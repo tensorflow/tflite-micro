@@ -20,18 +20,24 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 def tflm_py_library(deps = [], **kwargs):
     py_library(
-        deps = deps + ["//:tflite_micro_shim"],
+        deps = deps + [
+            "//:tflite_micro_shim",
+        ],
         **kwargs
     )
 
 def tflm_py_binary(deps = [], **kwargs):
     py_binary(
-        deps = deps + ["//:tflite_micro_shim"],
+        deps = deps + [
+            "//:tflite_micro_shim",
+        ],
         **kwargs
     )
 
 def tflm_py_test(deps = [], **kwargs):
     py_test(
-        deps = deps + ["//:tflite_micro_shim"],
+        deps = deps + [
+            "//:tflite_micro_shim",
+        ],
         **kwargs
     )
