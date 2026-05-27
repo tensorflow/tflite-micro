@@ -30,16 +30,10 @@ namespace tflite {
 
 namespace {
 
-cmsis_nn_dims FillVariableShape(int32_t rank, int32_t* tensor_dims) {
-  if (rank == 4) {
-    return {tensor_dims[0], tensor_dims[1], tensor_dims[2], tensor_dims[3]};
-  } else if (rank == 3) {
-    return {1, tensor_dims[0], tensor_dims[1], tensor_dims[2]};
-  } else if (rank == 2) {
-    return {1, 1, tensor_dims[0], tensor_dims[1]};
-  } else {
-    return {1, 1, 1, 1};
-  }
+cmsis_nn_dims FillVariableShape(const RuntimeShape& shape) {
+  RuntimeShape extended_shape = RuntimeShape::ExtendedShape(4, shape);
+  return {extended_shape.Dims(0), extended_shape.Dims(1),
+          extended_shape.Dims(2), extended_shape.Dims(3)};
 }
 
 TfLiteStatus EvalMaximum(TfLiteContext* context, TfLiteNode* node) {
@@ -55,12 +49,9 @@ TfLiteStatus EvalMaximum(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
   RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
 
-  cmsis_nn_dims input_1_dims = FillVariableShape(
-      input_1_shape.DimensionsCount(), input_1_shape.DimsData());
-  cmsis_nn_dims input_2_dims = FillVariableShape(
-      input_2_shape.DimensionsCount(), input_2_shape.DimsData());
-  cmsis_nn_dims output_dims = FillVariableShape(output_shape.DimensionsCount(),
-                                                output_shape.DimsData());
+  cmsis_nn_dims input_1_dims = FillVariableShape(input_1_shape);
+  cmsis_nn_dims input_2_dims = FillVariableShape(input_2_shape);
+  cmsis_nn_dims output_dims = FillVariableShape(output_shape);
 
   switch (op_context.output->type) {
     case kTfLiteInt8:
@@ -107,12 +98,9 @@ TfLiteStatus EvalMaximumInt8(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
   RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
 
-  cmsis_nn_dims input_1_dims = FillVariableShape(
-      input_1_shape.DimensionsCount(), input_1_shape.DimsData());
-  cmsis_nn_dims input_2_dims = FillVariableShape(
-      input_2_shape.DimensionsCount(), input_2_shape.DimsData());
-  cmsis_nn_dims output_dims = FillVariableShape(output_shape.DimensionsCount(),
-                                                output_shape.DimsData());
+  cmsis_nn_dims input_1_dims = FillVariableShape(input_1_shape);
+  cmsis_nn_dims input_2_dims = FillVariableShape(input_2_shape);
+  cmsis_nn_dims output_dims = FillVariableShape(output_shape);
 
   switch (op_context.output->type) {
     case kTfLiteInt8:
@@ -147,12 +135,9 @@ TfLiteStatus EvalMinimum(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
   RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
 
-  cmsis_nn_dims input_1_dims = FillVariableShape(
-      input_1_shape.DimensionsCount(), input_1_shape.DimsData());
-  cmsis_nn_dims input_2_dims = FillVariableShape(
-      input_2_shape.DimensionsCount(), input_2_shape.DimsData());
-  cmsis_nn_dims output_dims = FillVariableShape(output_shape.DimensionsCount(),
-                                                output_shape.DimsData());
+  cmsis_nn_dims input_1_dims = FillVariableShape(input_1_shape);
+  cmsis_nn_dims input_2_dims = FillVariableShape(input_2_shape);
+  cmsis_nn_dims output_dims = FillVariableShape(output_shape);
 
   switch (op_context.output->type) {
     case kTfLiteInt8:
@@ -199,12 +184,9 @@ TfLiteStatus EvalMinimumInt8(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
   RuntimeShape output_shape = tflite::micro::GetTensorShape(output);
 
-  cmsis_nn_dims input_1_dims = FillVariableShape(
-      input_1_shape.DimensionsCount(), input_1_shape.DimsData());
-  cmsis_nn_dims input_2_dims = FillVariableShape(
-      input_2_shape.DimensionsCount(), input_2_shape.DimsData());
-  cmsis_nn_dims output_dims = FillVariableShape(output_shape.DimensionsCount(),
-                                                output_shape.DimsData());
+  cmsis_nn_dims input_1_dims = FillVariableShape(input_1_shape);
+  cmsis_nn_dims input_2_dims = FillVariableShape(input_2_shape);
+  cmsis_nn_dims output_dims = FillVariableShape(output_shape);
 
   switch (op_context.output->type) {
     case kTfLiteInt8:
