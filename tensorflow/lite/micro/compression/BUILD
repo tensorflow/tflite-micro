@@ -247,6 +247,26 @@ py_test(
     ],
 )
 
+tflm_py_library(
+    name = "tensor_type",
+    srcs = ["tensor_type.py"],
+    deps = [
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "tensor_type_test",
+    size = "small",
+    srcs = ["tensor_type_test.py"],
+    deps = [
+        ":tensor_type",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
@@ -255,6 +275,7 @@ tflm_py_binary(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":metadata_py",
+        ":tensor_type",
         "//tensorflow/lite/python:schema_py",
         requirement("absl_py"),
         requirement("bitarray"),
