@@ -40,14 +40,15 @@ void PopulateCommonParams(
     cmsis_nn_context* const ctx, cmsis_nn_dims* const filter_dims,
     const OpData& data, const RuntimeShape& input_shape,
     const RuntimeShape& output_shape, const TfLitePoolParams* params) {
+  const int batches = MatchingDim(input_shape, 0, output_shape, 0);
   const int depth = MatchingDim(input_shape, 3, output_shape, 3);
 
-  input_dims->n = 1;
+  input_dims->n = batches;
   input_dims->h = input_shape.Dims(1);
   input_dims->w = input_shape.Dims(2);
   input_dims->c = depth;
 
-  output_dims->n = 1;
+  output_dims->n = batches;
   output_dims->h = output_shape.Dims(1);
   output_dims->w = output_shape.Dims(2);
   output_dims->c = depth;
