@@ -17,6 +17,7 @@ limitations under the License.
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
@@ -111,7 +112,15 @@ TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
   // so has 1 element.
   if (flatbuffer_tensor.shape() != nullptr) {
     for (size_t n = 0; n < flatbuffer_tensor.shape()->size(); ++n) {
-      element_count *= flatbuffer_tensor.shape()->Get(n);
+      int32_t dim = flatbuffer_tensor.shape()->Get(n);
+      if (dim < 0) {
+        return kTfLiteError;
+      }
+      if (element_count > 0 &&
+          dim > std::numeric_limits<int>::max() / element_count) {
+        return kTfLiteError;
+      }
+      element_count *= dim;
     }
   }
 
