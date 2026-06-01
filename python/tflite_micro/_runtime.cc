@@ -33,10 +33,11 @@ PYBIND11_MODULE(_runtime, m) {
       .def(py::init([](const py::bytes& data,
                        const std::vector<std::string>& registerers_by_name,
                        size_t arena_size, int num_resource_variables,
-                       tflite::InterpreterConfig config) {
-        return std::unique_ptr<InterpreterWrapper>(
-            new InterpreterWrapper(data.ptr(), registerers_by_name, arena_size,
-                                   num_resource_variables, config));
+                       tflite::InterpreterConfig config,
+                       size_t alt_decompression_memory_size) {
+        return std::unique_ptr<InterpreterWrapper>(new InterpreterWrapper(
+            data.ptr(), registerers_by_name, arena_size, num_resource_variables,
+            config, alt_decompression_memory_size));
       }))
       .def("PrintAllocations", &InterpreterWrapper::PrintAllocations)
       .def("Invoke", &InterpreterWrapper::Invoke)

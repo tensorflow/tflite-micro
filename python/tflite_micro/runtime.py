@@ -100,6 +100,7 @@ class Interpreter(object):
       custom_op_registerers,
       arena_size,
       intrepreter_config=InterpreterConfig.kAllocationRecording,
+      alt_decompression_memory_size=0,
   ):
     if model_data is None:
       raise ValueError("Model must not be None")
@@ -122,6 +123,7 @@ class Interpreter(object):
         arena_size,
         num_resource_variables,
         _ENUM_TRANSLATOR[intrepreter_config],
+        alt_decompression_memory_size,
     )
 
   @classmethod
@@ -131,6 +133,7 @@ class Interpreter(object):
       custom_op_registerers=[],
       arena_size=None,
       intrepreter_config=InterpreterConfig.kAllocationRecording,
+      alt_decompression_memory_size=0,
   ):
     """Instantiates a TFLM interpreter from a model .tflite filepath.
 
@@ -140,6 +143,9 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
+      alt_decompression_memory_size: Size in bytes of alternate decompression
+        memory. If non-zero, DECODE operators will use this memory instead of
+        the main arena for decompressed tensor outputs.
 
     Returns:
       An Interpreter instance
@@ -155,6 +161,7 @@ class Interpreter(object):
         custom_op_registerers,
         arena_size,
         intrepreter_config,
+        alt_decompression_memory_size,
     )
 
   @classmethod
@@ -164,6 +171,7 @@ class Interpreter(object):
       custom_op_registerers=[],
       arena_size=None,
       intrepreter_config=InterpreterConfig.kAllocationRecording,
+      alt_decompression_memory_size=0,
   ):
     """Instantiates a TFLM interpreter from a model in byte array.
 
@@ -173,6 +181,9 @@ class Interpreter(object):
         custom OP registerer
       arena_size: Tensor arena size in bytes. If unused, tensor arena size will
         default to 10 times the model size.
+      alt_decompression_memory_size: Size in bytes of alternate decompression
+        memory. If non-zero, DECODE operators will use this memory instead of
+        the main arena for decompressed tensor outputs.
 
     Returns:
       An Interpreter instance
@@ -183,6 +194,7 @@ class Interpreter(object):
         custom_op_registerers,
         arena_size,
         intrepreter_config,
+        alt_decompression_memory_size,
     )
 
   def print_allocations(self):

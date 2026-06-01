@@ -238,7 +238,14 @@ InterpreterWrapper::~InterpreterWrapper() {
 
 InterpreterWrapper::InterpreterWrapper(
     PyObject* model_data, const std::vector<std::string>& registerers_by_name,
-    size_t arena_size, int num_resource_variables, InterpreterConfig config) {
+    size_t arena_size, int num_resource_variables, InterpreterConfig config,
+    size_t alt_decompression_memory_size)
+    : memory_arena_(new uint8_t[arena_size]),
+      alt_decompression_memory_(alt_decompression_memory_size > 0
+                                    ? new uint8_t[alt_decompression_memory_size]
+                                    : nullptr),
+      alt_decompression_region_{alt_decompression_memory_.get(),
+                                alt_decompression_memory_size} {
   interpreter_ = nullptr;
 
   // `model_data` is used as a raw pointer beyond the scope of this
@@ -266,7 +273,6 @@ InterpreterWrapper::InterpreterWrapper(
         "--//:with_compression=true to enable compression support.");
   }
 
-  memory_arena_ = std::unique_ptr<uint8_t[]>(new uint8_t[arena_size]);
   for (const std::string& registerer : registerers_by_name) {
     if (!AddCustomOpRegistererByName(registerer.c_str(),
                                      &python_ops_resolver_)) {
@@ -295,6 +301,14 @@ InterpreterWrapper::InterpreterWrapper(
 
   interpreter_ = new MicroInterpreter(model, python_ops_resolver_, allocator_,
                                       resource_variables_);
+
+  if (alt_decompression_memory_size > 0) {
+    TfLiteStatus status =
+        interpreter_->SetDecompressionMemory(&alt_decompression_region_, 1);
+    if (status != kTfLiteOk) {
+      ThrowRuntimeError("TFLM failed to set decompression memory");
+    }
+  }
 
   TfLiteStatus status = interpreter_->AllocateTensors();
   if (status != kTfLiteOk) {
