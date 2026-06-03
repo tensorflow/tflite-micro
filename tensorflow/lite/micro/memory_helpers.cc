@@ -106,12 +106,23 @@ TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size) {
 
 TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
                                     size_t* bytes, size_t* type_size) {
-  int element_count = 1;
+  // Use size_t to avoid signed integer overflow. Validate each multiplication
+  // to reject malformed models with dimensions that would wrap around.
+  size_t element_count = 1;
   // If flatbuffer_tensor.shape == nullptr, then flatbuffer_tensor is a scalar
   // so has 1 element.
   if (flatbuffer_tensor.shape() != nullptr) {
     for (size_t n = 0; n < flatbuffer_tensor.shape()->size(); ++n) {
-      element_count *= flatbuffer_tensor.shape()->Get(n);
+      int32_t dim = flatbuffer_tensor.shape()->Get(n);
+      if (dim <= 0) {
+        return kTfLiteError;
+      }
+      size_t dim_u = static_cast<size_t>(dim);
+      // Check for multiplication overflow before multiplying.
+      if (element_count != 0 && dim_u > SIZE_MAX / element_count) {
+        return kTfLiteError;
+      }
+      element_count *= dim_u;
     }
   }
 
@@ -119,6 +130,10 @@ TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
   TF_LITE_ENSURE_STATUS(
       ConvertTensorType(flatbuffer_tensor.type(), &tf_lite_type));
   TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(tf_lite_type, type_size));
+  // Check for overflow in final multiplication: element_count * type_size.
+  if (element_count != 0 && *type_size > SIZE_MAX / element_count) {
+    return kTfLiteError;
+  }
   *bytes = element_count * (*type_size);
   return kTfLiteOk;
 }
@@ -127,15 +142,27 @@ TfLiteStatus TfLiteEvalTensorByteLength(const TfLiteEvalTensor* eval_tensor,
                                         size_t* out_bytes) {
   TFLITE_DCHECK(out_bytes != nullptr);
 
-  int element_count = 1;
+  // Use size_t to avoid signed integer overflow on untrusted dimension data.
+  size_t element_count = 1;
   // If eval_tensor->dims == nullptr, then tensor is a scalar so has 1 element.
   if (eval_tensor->dims != nullptr) {
     for (int n = 0; n < eval_tensor->dims->size; ++n) {
-      element_count *= eval_tensor->dims->data[n];
+      int32_t dim = eval_tensor->dims->data[n];
+      if (dim <= 0) {
+        return kTfLiteError;
+      }
+      size_t dim_u = static_cast<size_t>(dim);
+      if (element_count != 0 && dim_u > SIZE_MAX / element_count) {
+        return kTfLiteError;
+      }
+      element_count *= dim_u;
     }
   }
   size_t type_size;
   TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(eval_tensor->type, &type_size));
+  if (element_count != 0 && type_size > SIZE_MAX / element_count) {
+    return kTfLiteError;
+  }
   *out_bytes = element_count * type_size;
   return kTfLiteOk;
 }
@@ -155,7 +182,16 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
   TfLiteTypeSizeOf(input->type, &size);
   const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < dimensions_count; i++) {
-    size *= input->dims->data[i];
+    int32_t dim = input->dims->data[i];
+    if (dim <= 0) {
+      return kTfLiteError;
+    }
+    size_t dim_u = static_cast<size_t>(dim);
+    // Check for overflow before multiplying.
+    if (size != 0 && dim_u > SIZE_MAX / size) {
+      return kTfLiteError;
+    }
+    size *= dim_u;
   }
   output->bytes = size;
 
@@ -170,3 +206,4 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
 }
 
 }  // namespace tflite
+
