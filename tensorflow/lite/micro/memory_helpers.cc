@@ -106,12 +106,12 @@ TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size) {
 
 TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
                                     size_t* bytes, size_t* type_size) {
-  int element_count = 1;
+  size_t element_count = 1;
   // If flatbuffer_tensor.shape == nullptr, then flatbuffer_tensor is a scalar
   // so has 1 element.
   if (flatbuffer_tensor.shape() != nullptr) {
     for (size_t n = 0; n < flatbuffer_tensor.shape()->size(); ++n) {
-      element_count *= flatbuffer_tensor.shape()->Get(n);
+      element_count *= static_cast<size_t>(flatbuffer_tensor.shape()->Get(n));
     }
   }
 
@@ -127,11 +127,11 @@ TfLiteStatus TfLiteEvalTensorByteLength(const TfLiteEvalTensor* eval_tensor,
                                         size_t* out_bytes) {
   TFLITE_DCHECK(out_bytes != nullptr);
 
-  int element_count = 1;
+  size_t element_count = 1;
   // If eval_tensor->dims == nullptr, then tensor is a scalar so has 1 element.
   if (eval_tensor->dims != nullptr) {
     for (int n = 0; n < eval_tensor->dims->size; ++n) {
-      element_count *= eval_tensor->dims->data[n];
+      element_count *= static_cast<size_t>(eval_tensor->dims->data[n]);
     }
   }
   size_t type_size;
