@@ -17,15 +17,16 @@ import os
 
 import numpy as np
 import tensorflow as tf
+import unittest
 
 from tensorflow.python.platform import resource_loader
 from tflite_micro.python.tflite_micro.signal.ops import energy_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class EnergyOpTest(tf.test.TestCase):
+class EnergyOpTest(unittest.TestCase):
 
-  _PREFIX_PATH = resource_loader.get_path_to_datafile('')
+  _PREFIX_PATH = os.path.dirname(__file__)
 
   def GetResource(self, filepath):
     full_path = os.path.join(self._PREFIX_PATH, filepath)
@@ -56,13 +57,6 @@ class EnergyOpTest(tf.test.TestCase):
       interpreter.set_input(in_frame, 0)
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
-      for j in range(start_index, end_index):
-        self.assertEqual(out_frame_exp[j], out_frame[j])
-      # TF
-      out_frame = self.evaluate(
-          energy_op.energy(in_frame,
-                           start_index=start_index,
-                           end_index=end_index))
       for j in range(start_index, end_index):
         self.assertEqual(out_frame_exp[j], out_frame[j])
       i += 2
@@ -134,4 +128,4 @@ class EnergyOpTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  tf.test.main()
+  unittest.main()

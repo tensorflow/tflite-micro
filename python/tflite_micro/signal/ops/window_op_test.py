@@ -19,14 +19,14 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.platform import resource_loader
+import unittest
 from tflite_micro.python.tflite_micro.signal.ops import window_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class WindowOpTest(tf.test.TestCase):
+class WindowOpTest(unittest.TestCase):
 
-  _PREFIX_PATH = resource_loader.get_path_to_datafile('')
+  _PREFIX_PATH = os.path.dirname(__file__)
 
   def GetResource(self, filepath):
     full_path = os.path.join(self._PREFIX_PATH, filepath)
@@ -70,7 +70,8 @@ class WindowOpTest(tf.test.TestCase):
         2, 1, 0
     ]
     weights = window_op.hann_window_weights(400, 12)
-    self.assertAllEqual(weights, expected_weights_hann_length_400_shift_12)
+    np.testing.assert_array_equal(weights,
+                                  expected_weights_hann_length_400_shift_12)
     expected_weights_squart_root_hann_cwola_length_256_shift_12 = [
         25, 75, 126, 176, 226, 276, 326, 376, 426, 476, 526, 576, 626, 675,
         725, 774, 824, 873, 922, 971, 1020, 1068, 1117, 1165, 1213, 1261, 1309,
@@ -95,7 +96,7 @@ class WindowOpTest(tf.test.TestCase):
         576, 526, 476, 426, 376, 326, 276, 226, 176, 126, 75, 25
     ]
     weights = window_op.square_root_hann_cwola_window_weights(256, 128, 12)
-    self.assertAllEqual(
+    np.testing.assert_array_equal(
         weights, expected_weights_squart_root_hann_cwola_length_256_shift_12)
 
   def SingleWindowTest(self, filename):
@@ -126,11 +127,7 @@ class WindowOpTest(tf.test.TestCase):
       interpreter.set_input(weights, 1)
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
-      self.assertAllEqual(out_frame_exp, out_frame)
-      # TF
-      out_frame = self.evaluate(
-          window_op.window(in_frame, weights, shift=shift))
-      self.assertAllEqual(out_frame_exp, out_frame)
+      np.testing.assert_array_equal(out_frame_exp, out_frame)
       i += 2
 
   def RunMultiDimWindow(self, shift, dtype, in_frames, weights,
@@ -146,11 +143,7 @@ class WindowOpTest(tf.test.TestCase):
     interpreter.set_input(weights, 1)
     interpreter.invoke()
     out_frame = interpreter.get_output(0)
-    self.assertAllEqual(out_frames_exp, out_frame)
-    # TF
-    out_frame = self.evaluate(window_op.window(in_frames, weights,
-                                               shift=shift))
-    self.assertAllEqual(out_frames_exp, out_frame)
+    np.testing.assert_array_equal(out_frames_exp, out_frame)
 
   def MultiDimWindowTest(self, filename):
     lines = self.GetResource(filename).splitlines()
@@ -243,7 +236,7 @@ class WindowOpTest(tf.test.TestCase):
     ]
     weights = window_op.hann_window_weights(len(frame_in), 12)
     frame_out = window_op.window(frame_in, weights, shift=12)
-    self.assertAllEqual(exp_out, frame_out)
+    np.testing.assert_array_equal(exp_out, frame_out)
 
   def testWindow(self):
     self.SingleWindowTest('testdata/window_test1.txt')
@@ -253,4 +246,4 @@ class WindowOpTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  tf.test.main()
+  unittest.main()

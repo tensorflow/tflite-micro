@@ -23,19 +23,19 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/evaluate_test
 import numpy as np
 from pathlib import Path
 
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import resource_loader
-from tensorflow.python.platform import test
+import unittest
+import os
 from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
 from tflite_micro.tensorflow.lite.micro.examples.micro_speech import evaluate
 
 
-class MicroSpeechTest(test_util.TensorFlowTestCase):
+class MicroSpeechTest(unittest.TestCase):
 
   def setUp(self):
-    model_prefix_path = resource_loader.get_path_to_datafile('models')
-    self.sample_prefix_path = resource_loader.get_path_to_datafile('testdata')
+    model_prefix_path = os.path.join(os.path.dirname(__file__), 'models')
+    self.sample_prefix_path = os.path.join(os.path.dirname(__file__),
+                                           'testdata')
     model_path = Path(model_prefix_path, 'micro_speech_quantized.tflite')
     self.tflm_interpreter = runtime.Interpreter.from_file(model_path)
     self.test_data = [
@@ -92,5 +92,9 @@ class MicroSpeechTest(test_util.TensorFlowTestCase):
       self.assertEqual(category_names[predicted_category], label)
 
 
+import sys
+from absl import flags
+
 if __name__ == '__main__':
-  test.main()
+  flags.FLAGS(sys.argv)
+  unittest.main()
