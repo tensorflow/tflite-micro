@@ -187,6 +187,58 @@ TEST(MemoryHelpersTest, TestBytesRequiredForTensor) {
   EXPECT_EQ(static_cast<size_t>(4), type_size);
 }
 
+TEST(MemoryHelpersTest,
+     TfLiteEvalTensorByteLengthDoesNotTruncateAcrossInt32Boundary) {
+  // Shape [65536, 65536] with float32: 65536 * 65536 * 4 = 17179869184 bytes.
+  // The original implementation used a signed 32-bit running product, so the
+  // element count wrapped to 0 and *out_bytes was reported as 0 even though
+  // any subsequent allocation would address ~17 GiB. The hardened
+  // implementation performs the arithmetic in size_t and must report the
+  // mathematically correct value (where size_t is wide enough), or refuse the
+  // request via kTfLiteError when it would otherwise overflow size_t.
+  int dims[] = {2, 65536, 65536};
+  TfLiteEvalTensor eval_tensor = {};
+  eval_tensor.dims = tflite::testing::IntArrayFromInts(dims);
+  eval_tensor.type = kTfLiteFloat32;
+
+  size_t out_bytes = 0;
+  const TfLiteStatus status =
+      tflite::TfLiteEvalTensorByteLength(&eval_tensor, &out_bytes);
+
+  if (sizeof(size_t) >= 8) {
+    EXPECT_EQ(kTfLiteOk, status);
+    EXPECT_EQ(static_cast<size_t>(17179869184ULL), out_bytes);
+  } else {
+    // 32-bit size_t cannot represent the result; the hardened code must
+    // refuse rather than silently truncate.
+    EXPECT_EQ(kTfLiteError, status);
+  }
+}
+
+TEST(MemoryHelpersTest, TfLiteEvalTensorByteLengthRejectsSizeTOverflow) {
+  // A shape whose product overflows size_t even on 64-bit platforms must be
+  // rejected. INT32_MAX^4 * 4 vastly exceeds 2^64.
+  int dims[] = {4, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
+  TfLiteEvalTensor eval_tensor = {};
+  eval_tensor.dims = tflite::testing::IntArrayFromInts(dims);
+  eval_tensor.type = kTfLiteFloat32;
+
+  size_t out_bytes = 0;
+  EXPECT_EQ(kTfLiteError,
+            tflite::TfLiteEvalTensorByteLength(&eval_tensor, &out_bytes));
+}
+
+TEST(MemoryHelpersTest, TfLiteEvalTensorByteLengthRejectsNegativeDimension) {
+  int dims[] = {2, -1, 4};
+  TfLiteEvalTensor eval_tensor = {};
+  eval_tensor.dims = tflite::testing::IntArrayFromInts(dims);
+  eval_tensor.type = kTfLiteFloat32;
+
+  size_t out_bytes = 0;
+  EXPECT_EQ(kTfLiteError,
+            tflite::TfLiteEvalTensorByteLength(&eval_tensor, &out_bytes));
+}
+
 TEST(MemoryHelpersTest, TestAllocateOutputDimensionsFromInput) {
   constexpr int kDimsLen = 4;
   int input1_dims[] = {1, 1};
