@@ -17,6 +17,8 @@ limitations under the License.
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
+#include <new>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
@@ -287,6 +289,13 @@ TfLiteStatus InitializeTfLiteTensorFromFlatbuffer(
 
     // Populate per-channel quantization params.
     int channels = src_quantization->scale()->size();
+    if (channels <= 0 ||
+        static_cast<size_t>(channels) >
+            (std::numeric_limits<size_t>::max() - sizeof(TfLiteIntArray)) /
+                sizeof(int)) {
+      MicroPrintf("Invalid number of quantization channels: %d\n", channels);
+      return kTfLiteError;
+    }
     TfLiteAffineQuantization* quantization =
         allocate_temp
             ? reinterpret_cast<TfLiteAffineQuantization*>(

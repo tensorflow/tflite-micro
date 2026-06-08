@@ -1357,4 +1357,133 @@ TEST(MicroAllocatorTest, TestMultiSubgraphNumScratchAllocations) {
             used_bytes + sizeof(tflite::ScratchBufferHandle) * 2);
 }
 
+const tflite::Tensor* CreateOverflowFlatbufferTensor(
+    flatbuffers::FlatBufferBuilder* builder, int dim1, int dim2) {
+  using flatbuffers::Offset;
+  const int32_t tensor_shape[] = {dim1, dim2};
+  const Offset<tflite::Tensor> static_tensor_offset =
+      tflite::CreateTensor(*builder, builder->CreateVector(tensor_shape, 2),
+                           tflite::TensorType_INT32, 0,
+                           builder->CreateString("test_tensor"), 0, false);
+  builder->Finish(static_tensor_offset);
+  void* tensor_pointer = builder->GetBufferPointer();
+  const tflite::Tensor* tensor =
+      flatbuffers::GetRoot<tflite::Tensor>(tensor_pointer);
+  return tensor;
+}
+
+TEST(MicroAllocatorTest, TestTensorShapeIntegerOverflow) {
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::SingleArenaBufferAllocator* simple_allocator =
+      tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
+
+  flatbuffers::DefaultAllocator default_allocator;
+  flatbuffers::FlatBufferBuilder builder(1024, &default_allocator);
+
+  const tflite::Tensor* tensor =
+      CreateOverflowFlatbufferTensor(&builder, 65536, 65536);
+  const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
+      tflite::testing::CreateFlatbufferBuffers();
+
+  TfLiteTensor allocated_tensor;
+  EXPECT_EQ(kTfLiteError,
+            tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
+                simple_allocator, simple_allocator, /*allocate_temp=*/false,
+                *tensor, buffers, &allocated_tensor));
+
+  simple_allocator->~SingleArenaBufferAllocator();
+}
+
+const tflite::Tensor* CreateMalformedQuantizedTensor(
+    flatbuffers::FlatBufferBuilder* builder, int size, uint32_t fake_channels) {
+  using flatbuffers::Offset;
+
+  constexpr size_t quant_params_size = 1;
+  const float min_array[quant_params_size] = {0.1f};
+  const float max_array[quant_params_size] = {0.2f};
+  const float scale_array[quant_params_size] = {0.3f};
+  const int64_t zero_point_array[quant_params_size] = {100ll};
+
+  const Offset<tflite::QuantizationParameters> quant_params =
+      tflite::CreateQuantizationParameters(
+          *builder,
+          /*min=*/builder->CreateVector<float>(min_array, quant_params_size),
+          /*max=*/builder->CreateVector<float>(max_array, quant_params_size),
+          /*scale=*/
+          builder->CreateVector<float>(scale_array, quant_params_size),
+          /*zero_point=*/
+          builder->CreateVector<int64_t>(zero_point_array, quant_params_size));
+
+  constexpr size_t tensor_shape_size = 1;
+  const int32_t tensor_shape[tensor_shape_size] = {size};
+  const Offset<tflite::Tensor> tensor_offset = tflite::CreateTensor(
+      *builder, builder->CreateVector(tensor_shape, tensor_shape_size),
+      tflite::TensorType_INT32, 0, builder->CreateString("test_tensor"),
+      quant_params, false);
+  builder->Finish(tensor_offset);
+
+  uint8_t* tensor_pointer = builder->GetBufferPointer();
+  size_t buffer_size = builder->GetSize();
+
+  // Mutate scale vector size
+  for (size_t i = 0; i < buffer_size - 8; i++) {
+    if (tensor_pointer[i] == 0x01 && tensor_pointer[i + 1] == 0x00 &&
+        tensor_pointer[i + 2] == 0x00 && tensor_pointer[i + 3] == 0x00 &&
+        tensor_pointer[i + 4] == 0x9a && tensor_pointer[i + 5] == 0x99 &&
+        tensor_pointer[i + 6] == 0x99 && tensor_pointer[i + 7] == 0x3e) {
+      uint32_t* size_ptr = reinterpret_cast<uint32_t*>(&tensor_pointer[i]);
+      *size_ptr = fake_channels;
+      break;
+    }
+  }
+
+  // Mutate zero_point vector size
+  for (size_t i = 0; i < buffer_size - 16; i++) {
+    if (tensor_pointer[i] == 0x01 && tensor_pointer[i + 1] == 0x00 &&
+        tensor_pointer[i + 2] == 0x00 && tensor_pointer[i + 3] == 0x00 &&
+        tensor_pointer[i + 8] == 0x64 && tensor_pointer[i + 9] == 0x00 &&
+        tensor_pointer[i + 10] == 0x00 && tensor_pointer[i + 11] == 0x00 &&
+        tensor_pointer[i + 12] == 0x00 && tensor_pointer[i + 13] == 0x00 &&
+        tensor_pointer[i + 14] == 0x00 && tensor_pointer[i + 15] == 0x00) {
+      uint32_t* size_ptr = reinterpret_cast<uint32_t*>(&tensor_pointer[i]);
+      *size_ptr = fake_channels;
+      break;
+    }
+  }
+
+  const tflite::Tensor* tensor =
+      flatbuffers::GetRoot<tflite::Tensor>(tensor_pointer);
+  return tensor;
+}
+
+TEST(MicroAllocatorTest, TestQuantizationChannelsIntegerOverflow) {
+  // On a 32-bit target (sizeof(size_t) == 4), fake_channels = 0x3fffffff
+  // triggers an integer overflow in TfLiteIntArrayGetSizeInBytes (allocates 0
+  // bytes), followed by a heap out-of-bounds write of zero points. We include
+  // this test to document the vulnerability.
+  if (sizeof(size_t) == 4) {
+    constexpr size_t arena_size = 1024;
+    uint8_t arena[arena_size];
+    tflite::SingleArenaBufferAllocator* simple_allocator =
+        tflite::SingleArenaBufferAllocator::Create(arena, arena_size);
+
+    flatbuffers::DefaultAllocator default_allocator;
+    flatbuffers::FlatBufferBuilder builder(1024, &default_allocator);
+
+    const tflite::Tensor* tensor =
+        CreateMalformedQuantizedTensor(&builder, 100, 0x3fffffff);
+    const flatbuffers::Vector<flatbuffers::Offset<tflite::Buffer>>* buffers =
+        tflite::testing::CreateFlatbufferBuffers();
+
+    TfLiteTensor allocated_tensor;
+    EXPECT_EQ(kTfLiteError,
+              tflite::internal::InitializeTfLiteTensorFromFlatbuffer(
+                  simple_allocator, simple_allocator, /*allocate_temp=*/false,
+                  *tensor, buffers, &allocated_tensor));
+
+    simple_allocator->~SingleArenaBufferAllocator();
+  }
+}
+
 TF_LITE_MICRO_TESTS_MAIN
