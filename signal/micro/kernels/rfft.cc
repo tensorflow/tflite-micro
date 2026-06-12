@@ -97,6 +97,11 @@ TfLiteStatus RfftPrepare(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape output_shape = GetTensorShape(output);
   params->input_length = input_shape.Dims(input_shape.DimensionsCount() - 1);
   params->input_size = input_shape.FlatSize();
+  // Validate that the input fits within the FFT scratch buffer to prevent
+  // heap-buffer-overflow in the Eval zero-padding memcpy/memset.
+  TF_LITE_ENSURE(context, params->fft_length > 0);
+  TF_LITE_ENSURE(context, params->input_length > 0);
+  TF_LITE_ENSURE(context, params->input_length <= params->fft_length);
   // Divide by 2 because output is complex.
   params->output_length =
       output_shape.Dims(output_shape.DimensionsCount() - 1) / 2;

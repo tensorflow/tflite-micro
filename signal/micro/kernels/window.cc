@@ -81,6 +81,15 @@ TfLiteStatus WindowPrepare(TfLiteContext* context, TfLiteNode* node) {
   RuntimeShape input_shape = GetTensorShape(input);
   params->input_size = input_shape.FlatSize();
 
+  // Validate that input size is a multiple of the window (weights) size
+  // and that all buffers match, preventing OOB in ApplyWindow.
+  const int weight_size = weights->dims->data[0];
+  TF_LITE_ENSURE(context, weight_size > 0);
+  TF_LITE_ENSURE(context, params->input_size > 0);
+  TF_LITE_ENSURE_EQ(context, params->input_size % weight_size, 0);
+  TF_LITE_ENSURE_EQ(context, params->input_size,
+                    GetTensorShape(output).FlatSize());
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(weights);
   micro_context->DeallocateTempTfLiteTensor(output);
