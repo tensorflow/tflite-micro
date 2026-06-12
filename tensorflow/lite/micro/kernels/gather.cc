@@ -199,6 +199,28 @@ TfLiteStatus GatherEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
   if (coords->type == kTfLiteInt32) {
+    // The reference Gather() below indexes `input` with the values in `coords`
+    // and only guards them with TFLITE_DCHECK, which is compiled out in release
+    // (-DNDEBUG) builds. Validate the index values at runtime so that an
+    // out-of-range index supplied as a model's runtime input fails closed with
+    // kTfLiteError instead of reading out of bounds. This mirrors the runtime
+    // index validation performed by the full TFLite GATHER kernel.
+    const TfLiteIntArray* input_dims = input->dims;
+    int axis = params->axis;
+    if (axis < 0) {
+      axis += input_dims->size;
+    }
+    TF_LITE_ENSURE(context, axis >= 0 && axis < input_dims->size);
+    const int32_t axis_size = input_dims->data[axis];
+    const int32_t* coords_data = tflite::micro::GetTensorData<int32_t>(coords);
+    int num_coords = 1;
+    for (int i = 0; i < coords->dims->size; ++i) {
+      num_coords *= coords->dims->data[i];
+    }
+    for (int i = 0; i < num_coords; ++i) {
+      TF_LITE_ENSURE(context, coords_data[i] >= 0 && coords_data[i] < axis_size);
+    }
+
     switch (input->type) {
       case kTfLiteFloat32:
         return Gather<float, int32_t>(params, input, coords, output);

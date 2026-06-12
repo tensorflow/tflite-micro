@@ -68,6 +68,40 @@ void TestGather(int* input_dims, const InType* input_data, int* positions_dims,
   }
 }
 
+// Builds a GATHER op with the given (out-of-range) index value and checks that
+// Invoke() fails closed with kTfLiteError instead of reading the input tensor
+// out of bounds. The reference kernel only guards index values with
+// TFLITE_DCHECK, which is a no-op in release (-DNDEBUG) builds.
+template <typename InType, typename PosType>
+void TestGatherFailsForOutOfRangeIndex(
+    int* input_dims, const InType* input_data, int* positions_dims,
+    const PosType* positions_data, int* output_dims, InType* output_data,
+    const int axis = 0, const int batch_dims = 0) {
+  TfLiteIntArray* in_dims = IntArrayFromInts(input_dims);
+  TfLiteIntArray* pos_dims = IntArrayFromInts(positions_dims);
+  TfLiteIntArray* out_dims = IntArrayFromInts(output_dims);
+  TfLiteGatherParams params = {axis, batch_dims};
+
+  constexpr int tensors_size = 3;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input_data, in_dims),
+      CreateTensor(positions_data, pos_dims),
+      CreateTensor(output_data, out_dims, true),
+  };
+  int inputs_array_data[] = {2, 0, 1};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_GATHER();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, &params);
+  // Prepare does not inspect index values, so it still succeeds.
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  // Invoke must reject the out-of-range index rather than read out of bounds.
+  EXPECT_EQ(kTfLiteError, runner.Invoke());
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -456,6 +490,34 @@ TEST(GatherTest, GatherOp_BatchDimsEqualIndexDims) {
   tflite::testing::TestGather<int8_t, int32_t>(
       input_dims, input_data, positions_dims, positions_data, output_dims,
       output_data, golden_dims, golden_data, axis, batch_dims);
+}
+
+TEST(GatherTest, GatherOp_IndexGreaterThanAxisSizeFailsClosed) {
+  // axis 0 has size 3, so index 3 is out of range and must be rejected at
+  // runtime rather than reading past the end of the input tensor.
+  int input_dims[] = {2, 3, 4};
+  const float input_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  int positions_dims[] = {1, 1};
+  const int32_t positions_data[] = {3};
+  float output_data[4];
+  int output_dims[] = {2, 0, 0};
+  tflite::testing::TestGatherFailsForOutOfRangeIndex<float, int32_t>(
+      input_dims, input_data, positions_dims, positions_data, output_dims,
+      output_data);
+}
+
+TEST(GatherTest, GatherOp_NegativeIndexFailsClosed) {
+  // A negative index must be rejected at runtime rather than reading before the
+  // start of the input tensor.
+  int input_dims[] = {2, 3, 4};
+  const float input_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  int positions_dims[] = {1, 1};
+  const int32_t positions_data[] = {-1};
+  float output_data[4];
+  int output_dims[] = {2, 0, 0};
+  tflite::testing::TestGatherFailsForOutOfRangeIndex<float, int32_t>(
+      input_dims, input_data, positions_dims, positions_data, output_dims,
+      output_data);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
