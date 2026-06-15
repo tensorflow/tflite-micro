@@ -240,7 +240,7 @@ TfLiteStatus FullyConnectedEval(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt8: {
           const bool requires_int32_accum =
               (bias != nullptr && bias->type == kTfLiteInt32) ||
-              (bias == nullptr && params->quantized_bias_type != kTfLiteInt64);
+              (bias == nullptr && params->quantized_bias_type == kTfLiteInt32);
           if (requires_int32_accum) {
             data.is_per_channel
                 ? tflite::reference_integer_ops::FullyConnectedPerChannel(

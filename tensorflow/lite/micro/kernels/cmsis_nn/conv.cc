@@ -392,7 +392,7 @@ TfLiteStatus EvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
   }
   const bool requires_int32_accum =
       (bias != nullptr && bias->type == kTfLiteInt32) ||
-      (bias == nullptr && params.quantized_bias_type != kTfLiteInt64);
+      (bias == nullptr && params.quantized_bias_type == kTfLiteInt32);
   if (requires_int32_accum) {
     return EvalQuantizedPerChannel<int16_t, int32_t, kTfLiteInt16>(
         context, node, params, data, input, filter, bias, output);
