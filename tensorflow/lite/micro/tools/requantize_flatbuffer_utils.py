@@ -264,6 +264,8 @@ def requantize_fully_connected(tensors, buffers, op):
     bias_tensor = tensors[op.inputs[2]]
     set_bias_type_int64(buffers, input_tensor, weight_tensor, bias_tensor)
 
+  op.builtinOptions.quantizedBiasType = TENSOR_TYPE_CODE[np.int64]
+
 
 def requantize_unidirectional_sequence_lstm(tensors, buffers, op):
   """Requantize the unidirectonal sequance lstm op from int8 to int16 """
@@ -323,3 +325,5 @@ def requantize_transpose_conv(tensors, buffers, op):
     if op.inputs[3] != -1:
       bias_tensor = tensors[op.inputs[3]]
       set_bias_type_int64(buffers, input_tensor, weight_tensor, bias_tensor)
+
+  op.builtinOptions.quantizedBiasType = TENSOR_TYPE_CODE[np.int64]
