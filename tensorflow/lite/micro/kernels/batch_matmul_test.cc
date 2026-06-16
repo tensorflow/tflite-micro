@@ -260,9 +260,8 @@ TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_FlattenLHSAdjoint) {
   float rhs_input[kRhsInputSize];
   std::iota(std::begin(rhs_input), std::end(rhs_input), 1);
 
-  constexpr float kExpect[] = {118, 134, 150, 140, 160, 180,
-                               294, 342, 390, 316, 368, 420,
-                               470, 550, 630, 492, 576, 660};
+  constexpr float kExpect[] = {118, 134, 150, 140, 160, 180, 294, 342, 390,
+                               316, 368, 420, 470, 550, 630, 492, 576, 660};
   constexpr int kOutputDims[] = {3, 3, 2, 3};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
