@@ -207,7 +207,7 @@ if (from_pos < 0 || from_pos > params_flat_size - slice_size) {
 ```
 
 ```
-If it's just an invariant guaranteed by `Prepare`, ask to hoist the check or
+If it's just an invariant guaranteed by `Prepare`, ask to discard the check or
 use `TFLITE_DCHECK`.
 ```
 
