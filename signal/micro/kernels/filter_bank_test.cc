@@ -256,4 +256,73 @@ TEST(FilterBankTest, FilterBankTest16Channel) {
           g_gen_data_size_filter_bank_16_channel, output));
 }
 
+// PoC: 17-element (16-channel) side tensors but a flexbuffer declaring
+// num_channels = 32. FilterBankPrepare never validates num_channels against
+// the tensor element counts, so FilterbankAccumulateChannels loops
+// num_channels + 1 = 33 times and reads channel_weight_starts[i] /
+// channel_widths[i] past the end of the 17-element buffers (heap OOB read).
+TEST(FilterBankTest, FilterBankNumChannelsOverflowPoc) {
+  int input1_shape[] = {1, 129};
+  int input2_shape[] = {1, 59};
+  int input3_shape[] = {1, 59};
+  int input4_shape[] = {1, 17};
+  int input5_shape[] = {1, 17};
+  int input6_shape[] = {1, 17};
+  int output_shape[] = {1, 16};
+
+  uint64_t output[16];
+
+  const uint32_t input1[] = {
+      645050, 4644,  3653,  24262, 56660, 43260, 50584, 57902, 31702, 5401,
+      45555,  34852, 8518,  43556, 13358, 19350, 40221, 18017, 27284, 64491,
+      60099,  17863, 11001, 29076, 32666, 65268, 50947, 28694, 32377, 30014,
+      25607,  22547, 45086, 10654, 46797, 8622,  47348, 43085, 5747,  51544,
+      50364,  6208,  20696, 59782, 14429, 60125, 37079, 32673, 63457, 60142,
+      34042,  11280, 1874,  33734, 62118, 13766, 54398, 47818, 50976, 46930,
+      25906,  59441, 25958, 59136, 1756,  18652, 29213, 13379, 51845, 1207,
+      55626,  27108, 43771, 35236, 3374,  40959, 47707, 41540, 34282, 27094,
+      36329,  13593, 65257, 47006, 46857, 1114,  37106, 18738, 25969, 15461,
+      2842,   36470, 32489, 61622, 23613, 29624, 32820, 30438, 9543,  6767,
+      23037,  52896, 12059, 32264, 11575, 42400, 43344, 27511, 16712, 6877,
+      4910,   50047, 61569, 57237, 48558, 2310,  22192, 7874,  46141, 64056,
+      61997,  7298,  31372, 25316, 683,   58940, 18755, 17898, 19196};
+
+  const int16_t input2[] = {
+      -2210, 1711, 3237, 1247, 2507, 61,   1019, 899,  206,  146,  2849, 2756,
+      1260,  1280, 1951, 213,  617,  2047, 211,  347,  2821, 3747, 150,  1924,
+      3962,  942,  1430, 2678, 993,  308,  3364, 2491, 954,  1308, 879,  3950,
+      1,     3556, 3628, 2104, 78,   1298, 1080, 342,  1337, 1639, 2352, 829,
+      1358,  2498, 1647, 2507, 3816, 3767, 3735, 1155, 2221, 2196, 1160};
+
+  const int16_t input3[] = {
+      408,  3574, 1880, 2561, 2011, 3394, 1019, 445,  3901, 343,  1874, 3846,
+      3566, 1830, 327,  111,  623,  1037, 2803, 1947, 1518, 661,  3239, 2351,
+      1257, 269,  1574, 3431, 3972, 2487, 2181, 1458, 552,  717,  679,  1031,
+      1738, 1782, 128,  2242, 353,  1460, 3305, 1424, 3813, 2895, 164,  272,
+      3886, 3135, 141,  747,  3233, 1478, 2612, 3837, 3271, 73,   1746};
+
+  const int16_t input4[] = {5,  6,  7,  9,  11, 12, 14, 16, 18,
+                            20, 22, 25, 27, 30, 32, 35, 33};
+
+  const int16_t input5[] = {0,  1,  2,  4,  6,  7,  9,  11, 13,
+                            15, 17, 20, 22, 25, 27, 30, 33};
+
+  const int16_t input6[] = {1, 1, 2, 2, 1, 2, 2, 2, 2, 2, 3, 2, 3, 2, 3, 3, 3};
+
+  const uint64_t golden[] = {104199304, 407748384, 206363744, 200989269,
+                             52144406,  230780884, 174394190, 379684049,
+                             94840835,  57788823,  531528204, 318265707,
+                             263149795, 188110467, 501443259, 200747781};
+
+  // With the fix in FilterBankPrepare, the num_channels/tensor-size mismatch is
+  // rejected before Eval, so no out-of-bounds access occurs.
+  EXPECT_EQ(
+      kTfLiteError,
+      tflite::testing::TestFilterBank(
+          input1_shape, input1, input2_shape, input2, input3_shape, input3,
+          input4_shape, input4, input5_shape, input5, input6_shape, input6,
+          output_shape, golden, g_gen_data_filter_bank_32_channel,
+          g_gen_data_size_filter_bank_32_channel, output));
+}
+
 TF_LITE_MICRO_TESTS_MAIN
