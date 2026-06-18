@@ -17,9 +17,11 @@ limitations under the License.
 
 #include <stdint.h>
 
+#include <cstddef>
 #include <limits>
 #ifndef TF_LITE_STATIC_MEMORY
 #include <string>
+#include "absl/types/span.h"
 #endif  // TF_LITE_STATIC_MEMORY
 
 #include "tensorflow/lite/core/c/builtin_op_data.h"
@@ -341,6 +343,31 @@ bool IsMobilePlatform();
 // Returns whether there is unspecified dimension in the tensor's dim signature.
 bool HasUnspecifiedDimension(const TfLiteTensor* tensor);
 
+#ifndef TF_LITE_STATIC_MEMORY
+/**
+ * Calculates the product of the given dimensions. Returns an error if any of
+ * the dimensions is negative or if the product overflows.
+ * @param context The context to use for error reporting.
+ * @param dims The dimensions to multiply.
+ * @param error_message The error message to use if an error is encountered.
+ * @param product The output parameter to store the product.
+ */
+TfLiteStatus CheckedShapeProduct(TfLiteContext* context,
+                                 absl::Span<const int> dims,
+                                 const char* error_message, size_t& product);
+
+/**
+ * Calculates the product of the given dimensions. Returns an error if any of
+ * the dimensions is negative or if the product overflows.
+ * @param context The context to use for error reporting.
+ * @param dims The dimensions to multiply.
+ * @param error_message The error message to use if an error is encountered.
+ * @param product The output parameter to store the product.
+ */
+TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
+                                      absl::Span<const int> dims,
+                                      const char* error_message, int& product);
+#endif
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
