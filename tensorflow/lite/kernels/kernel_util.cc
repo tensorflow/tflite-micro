@@ -25,7 +25,6 @@ limitations under the License.
 #ifndef TF_LITE_STATIC_MEMORY
 #include <string>
 
-#include "absl/types/span.h"
 #include "tensorflow/lite/array.h"
 #endif  // TF_LITE_STATIC_MEMORY
 
@@ -35,9 +34,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/cppmath.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 
-#ifndef TF_LITE_STATIC_MEMORY
-#include "tensorflow/lite/util.h"
-#endif
+
 
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
@@ -598,27 +595,43 @@ bool HasUnspecifiedDimension(const TfLiteTensor* tensor) {
   return false;
 }
 
-#ifndef TF_LITE_STATIC_MEMORY
 TfLiteStatus CheckedShapeProduct(TfLiteContext* context,
-                                 absl::Span<const int> dims,
+                                 std::initializer_list<int> dims,
                                  const char* error_message, size_t& product) {
-  // The CheckedNumElements function already checks for negative dimensions, so
-  // we don't do it here.
-  TF_LITE_ENSURE_MSG(context, CheckedNumElements(dims, product) == kTfLiteOk,
-                     "%s", error_message);
+  size_t checked_count = 1;
+  for (const int d : dims) {
+    if (d < 0) {
+      TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+    }
+    if (checked_count > 0 &&
+        static_cast<size_t>(d) > std::numeric_limits<size_t>::max() / checked_count) {
+      TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+    }
+    checked_count *= d;
+  }
+  product = checked_count;
   return kTfLiteOk;
 }
 
 TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
-                                      absl::Span<const int> dims,
+                                      std::initializer_list<int> dims,
                                       const char* error_message, int& product) {
-  for (const int dim : dims) {
-    TF_LITE_ENSURE_MSG(context, dim >= 0, "Encountered a negative dimension.");
+  size_t checked_count = 1;
+  for (const int d : dims) {
+    if (d < 0) {
+      TF_LITE_ENSURE_MSG(context, false, "Encountered a negative dimension.");
+    }
+    if (checked_count > 0 &&
+        static_cast<size_t>(d) > std::numeric_limits<size_t>::max() / checked_count) {
+      TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+    }
+    checked_count *= d;
   }
-  TF_LITE_ENSURE_MSG(context, CheckedNumElements(dims, product) == kTfLiteOk,
-                     "%s", error_message);
+  if (checked_count > std::numeric_limits<int>::max()) {
+    TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+  }
+  product = static_cast<int>(checked_count);
   return kTfLiteOk;
 }
-#endif
 
 }  // namespace tflite
