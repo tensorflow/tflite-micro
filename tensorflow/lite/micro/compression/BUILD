@@ -261,6 +261,16 @@ tflm_py_test(
     ],
 )
 
+tflm_py_library(
+    name = "compressor",
+    srcs = ["compressor.py"],
+    deps = [
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
