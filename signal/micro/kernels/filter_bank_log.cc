@@ -78,6 +78,12 @@ TfLiteStatus FilterBankLogPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteUInt32);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt16);
 
+  // FilterbankLog writes ElementCount(input) (num_channels, taken from the
+  // input tensor) elements to the output, so the output must be at least as
+  // large or it is written out of bounds.
+  TF_LITE_ENSURE(context,
+                 ElementCount(*output->dims) >= ElementCount(*input->dims));
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
