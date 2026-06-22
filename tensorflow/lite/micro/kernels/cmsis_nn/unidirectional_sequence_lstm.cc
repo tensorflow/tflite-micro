@@ -1,4 +1,4 @@
-/* Copyright 2024 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2026 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -284,13 +284,15 @@ TfLiteStatus CMSIS_NN_EvalInteger8x8_16Lstm(
       tflite::micro::GetTensorData<int8_t>(kernel_content.output_tensor);
 
   // Create lstm buffer struct
-  cmsis_nn_lstm_context cmsis_buffers;
+  cmsis_nn_lstm_context cmsis_buffers = {};
   cmsis_buffers.temp1 = reinterpret_cast<int16_t*>(buffers.buffer0);
   cmsis_buffers.temp2 = reinterpret_cast<int16_t*>(buffers.buffer1);
   cmsis_buffers.cell_state = reinterpret_cast<int16_t*>(buffers.buffer2);
 
-  arm_lstm_unidirectional_s8(input, output, &op_data.params_cmsis_nn,
-                             &cmsis_buffers);
+  if (arm_lstm_unidirectional_s8(input, output, &op_data.params_cmsis_nn,
+                                 &cmsis_buffers) != ARM_CMSIS_NN_SUCCESS) {
+    return kTfLiteError;
+  }
 
   return kTfLiteOk;
 }
@@ -310,13 +312,15 @@ TfLiteStatus CMSIS_NN_EvalInteger16x8_16Lstm(
       tflite::micro::GetTensorData<int16_t>(kernel_content.output_tensor);
 
   // Create lstm buffer struct
-  cmsis_nn_lstm_context cmsis_buffers;
+  cmsis_nn_lstm_context cmsis_buffers = {};
   cmsis_buffers.temp1 = reinterpret_cast<int16_t*>(buffers.buffer0);
   cmsis_buffers.temp2 = reinterpret_cast<int16_t*>(buffers.buffer1);
   cmsis_buffers.cell_state = reinterpret_cast<int16_t*>(buffers.buffer2);
 
-  arm_lstm_unidirectional_s16(input, output, &op_data.params_cmsis_nn,
-                              &cmsis_buffers);
+  if (arm_lstm_unidirectional_s16(input, output, &op_data.params_cmsis_nn,
+                                  &cmsis_buffers) != ARM_CMSIS_NN_SUCCESS) {
+    return kTfLiteError;
+  }
 
   return kTfLiteOk;
 }
