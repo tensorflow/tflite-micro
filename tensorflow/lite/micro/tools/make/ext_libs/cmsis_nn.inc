@@ -31,8 +31,36 @@ ifeq ($(CMSIS_NN_PATH), $(CMSIS_NN_DEFAULT_DOWNLOAD_PATH))
   endif
 endif
 
+# TODO: Support float
+ARM_NN_ENABLE_F16 ?= 0
+ARM_NN_ENABLE_F32 ?= 0
+
+ifeq (,$(filter $(ARM_NN_ENABLE_F16),0 1))
+  $(error ARM_NN_ENABLE_F16 must be 0 or 1)
+endif
+ifeq (,$(filter $(ARM_NN_ENABLE_F32),0 1))
+  $(error ARM_NN_ENABLE_F32 must be 0 or 1)
+endif
+
+CXXFLAGS += \
+  -DARM_NN_ENABLE_F16=$(ARM_NN_ENABLE_F16) \
+  -DARM_NN_ENABLE_F32=$(ARM_NN_ENABLE_F32)
+CCFLAGS += \
+  -DARM_NN_ENABLE_F16=$(ARM_NN_ENABLE_F16) \
+  -DARM_NN_ENABLE_F32=$(ARM_NN_ENABLE_F32)
+
 ifeq (,$(CMSIS_NN_LIBS))
-  THIRD_PARTY_KERNEL_CC_SRCS += $(shell find $(CMSIS_NN_PATH)/Source -name "*.c")
+  CMSIS_NN_CC_SRCS := $(shell find $(CMSIS_NN_PATH)/Source -name "*.c")
+  ifeq ($(ARM_NN_ENABLE_F16),0)
+    CMSIS_NN_CC_SRCS := $(filter-out %_f16.c,$(CMSIS_NN_CC_SRCS))
+  endif
+  ifeq ($(ARM_NN_ENABLE_F32),0)
+    CMSIS_NN_CC_SRCS := $(filter-out %_f32.c,$(CMSIS_NN_CC_SRCS))
+  endif
+  ifeq ($(ARM_NN_ENABLE_F16)$(ARM_NN_ENABLE_F32),00)
+    CMSIS_NN_CC_SRCS := $(filter-out %/arm_nntables_flt.c,$(CMSIS_NN_CC_SRCS))
+  endif
+  THIRD_PARTY_KERNEL_CC_SRCS += $(CMSIS_NN_CC_SRCS)
 else
   MICROLITE_LIBS += $(CMSIS_NN_LIBS)
 endif
