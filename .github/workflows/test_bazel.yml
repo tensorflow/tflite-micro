@@ -31,7 +31,7 @@ jobs:
             script: test_bazel_with_compression_asan.sh
     name: ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
       - uses: bazel-contrib/setup-bazel@0.18.0

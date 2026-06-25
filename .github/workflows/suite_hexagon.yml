@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 60
     name: Hexagon Build Test
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.trigger-sha }}
       - run: rm -rf .git
