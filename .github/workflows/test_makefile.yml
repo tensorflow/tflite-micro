@@ -29,7 +29,7 @@ jobs:
             script: test_x86_no_tflite_static_memory.sh
     name: ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
       - name: Test
