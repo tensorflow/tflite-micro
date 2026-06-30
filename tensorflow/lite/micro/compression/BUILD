@@ -304,6 +304,28 @@ tflm_py_test(
     ],
 )
 
+tflm_py_library(
+    name = "huffman",
+    srcs = ["huffman.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
+tflm_py_library(
+    name = "pruning",
+    srcs = ["pruning.py"],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":model_editor",
+        ":spec",
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
