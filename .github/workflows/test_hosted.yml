@@ -7,7 +7,10 @@ on:
         description: 'SHA to test (optional)'
         required: false
         type: string
-  
+
+permissions:
+  contents: read
+
 jobs:
   explore-linux:
     runs-on: linux-x86-n2-16
