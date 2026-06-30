@@ -24,7 +24,7 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # Do NOT specify ref -> checks out target base branch (main) securely
 
       - name: Check Files
