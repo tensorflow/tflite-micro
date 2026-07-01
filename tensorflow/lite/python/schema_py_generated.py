@@ -28,12 +28,15 @@ class TensorType(object):
     BFLOAT16 = 18
     INT2 = 19
     UINT4 = 20
+    FLOAT8_E4M3FN = 21
+    FLOAT8_E5M2 = 22
 
 
 class QuantizationDetails(object):
     NONE = 0
     CustomQuantization = 1
     BlockwiseQuantization = 2
+    MultiAxisQuantization = 3
 
 def QuantizationDetailsCreator(unionType, table):
     from flatbuffers.table import Table
@@ -43,6 +46,8 @@ def QuantizationDetailsCreator(unionType, table):
         return CustomQuantizationT.InitFromBuf(table.Bytes, table.Pos)
     if unionType == QuantizationDetails.BlockwiseQuantization:
         return BlockwiseQuantizationT.InitFromBuf(table.Bytes, table.Pos)
+    if unionType == QuantizationDetails.MultiAxisQuantization:
+        return MultiAxisQuantizationT.InitFromBuf(table.Bytes, table.Pos)
     return None
 
 
@@ -1064,6 +1069,170 @@ class BlockwiseQuantizationT(object):
         return blockwiseQuantization
 
 
+class MultiAxisQuantization(object):
+    __slots__ = ['_tab']
+
+    @classmethod
+    def GetRootAs(cls, buf, offset=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, offset)
+        x = MultiAxisQuantization()
+        x.Init(buf, n + offset)
+        return x
+
+    @classmethod
+    def GetRootAsMultiAxisQuantization(cls, buf, offset=0):
+        """This method is deprecated. Please switch to GetRootAs."""
+        return cls.GetRootAs(buf, offset)
+    @classmethod
+    def MultiAxisQuantizationBufferHasIdentifier(cls, buf, offset, size_prefixed=False):
+        return flatbuffers.util.BufferHasIdentifier(buf, offset, b"\x54\x46\x4C\x33", size_prefixed=size_prefixed)
+
+    # MultiAxisQuantization
+    def Init(self, buf, pos):
+        self._tab = flatbuffers.table.Table(buf, pos)
+
+    # MultiAxisQuantization
+    def Scales(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(4))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # MultiAxisQuantization
+    def ZeroPoints(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # MultiAxisQuantization
+    def BlockSize(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
+        return 0
+
+    # MultiAxisQuantization
+    def QuantizedDimensions(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return 0
+
+    # MultiAxisQuantization
+    def QuantizedDimensionsAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int32Flags, o)
+        return 0
+
+    # MultiAxisQuantization
+    def QuantizedDimensionsLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # MultiAxisQuantization
+    def QuantizedDimensionsIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
+def MultiAxisQuantizationStart(builder):
+    builder.StartObject(4)
+
+def MultiAxisQuantizationAddScales(builder, scales):
+    builder.PrependInt32Slot(0, scales, 0)
+
+def MultiAxisQuantizationAddZeroPoints(builder, zeroPoints):
+    builder.PrependInt32Slot(1, zeroPoints, 0)
+
+def MultiAxisQuantizationAddBlockSize(builder, blockSize):
+    builder.PrependInt32Slot(2, blockSize, 0)
+
+def MultiAxisQuantizationAddQuantizedDimensions(builder, quantizedDimensions):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(quantizedDimensions), 0)
+
+def MultiAxisQuantizationStartQuantizedDimensionsVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
+def MultiAxisQuantizationEnd(builder):
+    return builder.EndObject()
+
+
+try:
+    from typing import List
+except:
+    pass
+
+class MultiAxisQuantizationT(object):
+
+    # MultiAxisQuantizationT
+    def __init__(
+        self,
+        scales = 0,
+        zeroPoints = 0,
+        blockSize = 0,
+        quantizedDimensions = None,
+    ):
+        self.scales = scales  # type: int
+        self.zeroPoints = zeroPoints  # type: int
+        self.blockSize = blockSize  # type: int
+        self.quantizedDimensions = quantizedDimensions  # type: Optional[List[int]]
+
+    @classmethod
+    def InitFromBuf(cls, buf, pos):
+        multiAxisQuantization = MultiAxisQuantization()
+        multiAxisQuantization.Init(buf, pos)
+        return cls.InitFromObj(multiAxisQuantization)
+
+    @classmethod
+    def InitFromPackedBuf(cls, buf, pos=0):
+        n = flatbuffers.encode.Get(flatbuffers.packer.uoffset, buf, pos)
+        return cls.InitFromBuf(buf, pos+n)
+
+    @classmethod
+    def InitFromObj(cls, multiAxisQuantization):
+        x = MultiAxisQuantizationT()
+        x._UnPack(multiAxisQuantization)
+        return x
+
+    # MultiAxisQuantizationT
+    def _UnPack(self, multiAxisQuantization):
+        if multiAxisQuantization is None:
+            return
+        self.scales = multiAxisQuantization.Scales()
+        self.zeroPoints = multiAxisQuantization.ZeroPoints()
+        self.blockSize = multiAxisQuantization.BlockSize()
+        if not multiAxisQuantization.QuantizedDimensionsIsNone():
+            if np is None:
+                self.quantizedDimensions = []
+                for i in range(multiAxisQuantization.QuantizedDimensionsLength()):
+                    self.quantizedDimensions.append(multiAxisQuantization.QuantizedDimensions(i))
+            else:
+                self.quantizedDimensions = multiAxisQuantization.QuantizedDimensionsAsNumpy()
+
+    # MultiAxisQuantizationT
+    def Pack(self, builder):
+        if self.quantizedDimensions is not None:
+            if np is not None and type(self.quantizedDimensions) is np.ndarray:
+                quantizedDimensions = builder.CreateNumpyVector(self.quantizedDimensions)
+            else:
+                MultiAxisQuantizationStartQuantizedDimensionsVector(builder, len(self.quantizedDimensions))
+                for i in reversed(range(len(self.quantizedDimensions))):
+                    builder.PrependInt32(self.quantizedDimensions[i])
+                quantizedDimensions = builder.EndVector()
+        MultiAxisQuantizationStart(builder)
+        MultiAxisQuantizationAddScales(builder, self.scales)
+        MultiAxisQuantizationAddZeroPoints(builder, self.zeroPoints)
+        MultiAxisQuantizationAddBlockSize(builder, self.blockSize)
+        if self.quantizedDimensions is not None:
+            MultiAxisQuantizationAddQuantizedDimensions(builder, quantizedDimensions)
+        multiAxisQuantization = MultiAxisQuantizationEnd(builder)
+        return multiAxisQuantization
+
+
 class QuantizationParameters(object):
     __slots__ = ['_tab']
 
@@ -1281,7 +1450,7 @@ class QuantizationParametersT(object):
         self.scale = scale  # type: Optional[List[float]]
         self.zeroPoint = zeroPoint  # type: Optional[List[int]]
         self.detailsType = detailsType  # type: int
-        self.details = details  # type: Union[None, 'CustomQuantizationT', 'BlockwiseQuantizationT']
+        self.details = details  # type: Union[None, 'CustomQuantizationT', 'BlockwiseQuantizationT', 'MultiAxisQuantizationT']
         self.quantizedDimension = quantizedDimension  # type: int
 
     @classmethod
