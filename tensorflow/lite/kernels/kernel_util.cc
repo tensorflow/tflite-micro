@@ -34,6 +34,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/cppmath.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
 
+
+
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
 #endif
@@ -101,9 +103,8 @@ inline TfLiteStatus GetMutableInputSafe(const TfLiteContext* context,
                                         const TfLiteNode* node, int index,
                                         const TfLiteTensor** tensor) {
   int tensor_index;
-  TF_LITE_ENSURE_OK(
-      context, ValidateTensorIndexingSafe(context, index, node->inputs->size,
-                                          node->inputs->data, &tensor_index));
+  TF_LITE_ENSURE_STATUS(ValidateTensorIndexingSafe(
+      context, index, node->inputs->size, node->inputs->data, &tensor_index));
   *tensor = GetTensorAtIndex(context, tensor_index);
   return kTfLiteOk;
 }
@@ -140,9 +141,8 @@ TfLiteTensor* GetOutput(TfLiteContext* context, const TfLiteNode* node,
 TfLiteStatus GetOutputSafe(const TfLiteContext* context, const TfLiteNode* node,
                            int index, TfLiteTensor** tensor) {
   int tensor_index;
-  TF_LITE_ENSURE_OK(
-      context, ValidateTensorIndexingSafe(context, index, node->outputs->size,
-                                          node->outputs->data, &tensor_index));
+  TF_LITE_ENSURE_STATUS(ValidateTensorIndexingSafe(
+      context, index, node->outputs->size, node->outputs->data, &tensor_index));
   *tensor = GetTensorAtIndex(context, tensor_index);
   return kTfLiteOk;
 }
@@ -167,8 +167,8 @@ TfLiteStatus GetTemporarySafe(const TfLiteContext* context,
                               const TfLiteNode* node, int index,
                               TfLiteTensor** tensor) {
   int tensor_index;
-  TF_LITE_ENSURE_OK(context, ValidateTensorIndexingSafe(
-                                 context, index, node->temporaries->size,
+  TF_LITE_ENSURE_STATUS(
+      ValidateTensorIndexingSafe(context, index, node->temporaries->size,
                                  node->temporaries->data, &tensor_index));
   *tensor = GetTensorAtIndex(context, tensor_index);
   return kTfLiteOk;
@@ -188,8 +188,8 @@ TfLiteStatus GetIntermediatesSafe(const TfLiteContext* context,
                                   const TfLiteNode* node, int index,
                                   TfLiteTensor** tensor) {
   int tensor_index;
-  TF_LITE_ENSURE_OK(context, ValidateTensorIndexingSafe(
-                                 context, index, node->intermediates->size,
+  TF_LITE_ENSURE_STATUS(
+      ValidateTensorIndexingSafe(context, index, node->intermediates->size,
                                  node->intermediates->data, &tensor_index));
   *tensor = GetTensorAtIndex(context, tensor_index);
   return kTfLiteOk;
@@ -593,6 +593,45 @@ bool HasUnspecifiedDimension(const TfLiteTensor* tensor) {
   }
 #endif  // TF_LITE_STATIC_MEMORY
   return false;
+}
+
+TfLiteStatus CheckedShapeProduct(TfLiteContext* context,
+                                 std::initializer_list<int> dims,
+                                 const char* error_message, size_t& product) {
+  size_t checked_count = 1;
+  for (const int d : dims) {
+    if (d < 0) {
+      TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+    }
+    if (checked_count > 0 &&
+        static_cast<size_t>(d) > std::numeric_limits<size_t>::max() / checked_count) {
+      TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+    }
+    checked_count *= d;
+  }
+  product = checked_count;
+  return kTfLiteOk;
+}
+
+TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
+                                      std::initializer_list<int> dims,
+                                      const char* error_message, int& product) {
+  size_t checked_count = 1;
+  for (const int d : dims) {
+    if (d < 0) {
+      TF_LITE_ENSURE_MSG(context, false, "Encountered a negative dimension.");
+    }
+    if (checked_count > 0 &&
+        static_cast<size_t>(d) > std::numeric_limits<size_t>::max() / checked_count) {
+      TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+    }
+    checked_count *= d;
+  }
+  if (checked_count > std::numeric_limits<int>::max()) {
+    TF_LITE_ENSURE_MSG(context, false, "%s", error_message);
+  }
+  product = static_cast<int>(checked_count);
+  return kTfLiteOk;
 }
 
 }  // namespace tflite

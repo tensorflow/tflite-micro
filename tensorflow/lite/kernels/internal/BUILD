@@ -146,6 +146,7 @@ cc_library(
     copts = tflite_copts(),
     deps = [
         ":compatibility",
+        "//tensorflow/lite/types:half",
     ],
 )
 
