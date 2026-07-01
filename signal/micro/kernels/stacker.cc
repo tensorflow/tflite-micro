@@ -119,11 +119,11 @@ TfLiteStatus StackerPrepare(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(output_valid);
 
-  // Validate the init-flexbuffer parameters before they are used to size the
-  // circular buffer and to copy data. Without this, negative or overflowing
-  // values produce a zero/undersized buffer that StackerEval then writes and
-  // reads out of bounds (CircularBufferWrite copies num_channels values per
-  // frame and the output receives buffer_size values).
+  // Validate the init-flexbuffer parameters in Prepare before they are used to
+  // size the circular buffer and to copy data, so inconsistent or overflowing
+  // values are rejected here rather than producing a zero/undersized buffer that
+  // is inconsistent with what StackerEval processes (CircularBufferWrite copies
+  // num_channels values per frame and the output receives buffer_size values).
   auto* params = reinterpret_cast<TFLMSignalStackerParams*>(node->user_data);
   TF_LITE_ENSURE(context, params != nullptr);
   TF_LITE_ENSURE(context, params->num_channels > 0);

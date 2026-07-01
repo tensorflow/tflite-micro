@@ -239,10 +239,10 @@ TEST(StackerTest, StackerTestReset10ChannelStep2_2ndTest) {
 }
 
 
-// Regression test: a crafted init flexbuffer with stacker_right_context = -1 makes
-// buffer_size = num_channels * (left + right + 1) = 0. Before the fix this produced a
-// zero-capacity circular buffer that StackerEval wrote/read out of bounds; now
-// StackerPrepare rejects the invalid parameters.
+// Regression test: an init flexbuffer with stacker_right_context = -1 makes
+// buffer_size = num_channels * (left + right + 1) = 0, an invalid configuration.
+// StackerPrepare must reject the inconsistent parameters with kTfLiteError so
+// Eval is never reached with a zero-capacity circular buffer.
 TEST(StackerTest, StackerInvalidParamsRejected) {
   int input_shape[] = {1, 8};
   int output_shape[] = {1, 8};
