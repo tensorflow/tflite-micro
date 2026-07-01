@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Hexagon Build Test
         env:
