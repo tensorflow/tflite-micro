@@ -110,10 +110,10 @@ TEST(FilterBankLogTest, FilterBankLogTest16Channel) {
 }
 
 
-// PoC: input declares 32 channels but the output tensor is sized 1. FilterBankLogPrepare
-// does not check the output element count against the input, and FilterbankLog writes
-// num_channels (= input size = 32) elements to the 1-element output buffer => OOB write.
-TEST(FilterBankLogTest, FilterBankLogOutputTooSmallOob) {
+// A model whose output tensor (1 element) is smaller than the input channel
+// count (32) is an inconsistent topology. FilterBankLogPrepare must reject it with
+// kTfLiteError during preparation rather than proceeding to Eval.
+TEST(FilterBankLogTest, FilterBankLogRejectsUndersizedOutput) {
   int input_shape[] = {1, 32};
   int output_shape[] = {1, 1};
   const uint32_t input[] = {29, 21, 29, 40, 19, 11, 13, 23, 13, 11, 25,
@@ -121,7 +121,7 @@ TEST(FilterBankLogTest, FilterBankLogOutputTooSmallOob) {
                             15, 11, 17, 12, 15, 16, 19, 18, 6,  2};
   const int16_t golden[] = {0};
   int16_t output[1];
-  // With the fix, Prepare rejects the mismatch (kTfLiteError) and no OOB occurs.
+  // Prepare rejects the inconsistent output shape with kTfLiteError.
   EXPECT_EQ(kTfLiteError,
             tflite::testing::TestFilterBankLog(
                 input_shape, input, output_shape, golden,
