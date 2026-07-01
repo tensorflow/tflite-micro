@@ -61,10 +61,10 @@ void* FilterBankInit(TfLiteContext* context, const char* buffer,
                                 length);
   params->config.num_channels = fbw.ElementAsInt32(kNumChannelsIndex);
 
-  // Reject a num_channels that is non-positive or large enough to overflow the
-  // work-area size computation below. Without this, a crafted model can wrap
-  // the multiplication (notably where size_t is 32 bits) into a tiny
-  // allocation, which FilterbankAccumulateChannels then writes past.
+  // Guard the work-area size computation below against a non-positive
+  // num_channels or one large enough to overflow the multiplication (notably
+  // where size_t is 32 bits), which would size the work area inconsistently
+  // with the number of channels the kernel then processes.
   if (params->config.num_channels <= 0 ||
       static_cast<size_t>(params->config.num_channels) >
           SIZE_MAX / sizeof(uint64_t) - 1) {
@@ -134,10 +134,11 @@ TfLiteStatus FilterBankPrepare(TfLiteContext* context, TfLiteNode* node) {
   const int output_size = ElementCount(*output->dims);
   micro_context->DeallocateTempTfLiteTensor(output);
 
-  // Validate that num_channels (from the init flexbuffer) is consistent with
-  // the per-channel metadata tensors and the output, to prevent out-of-bounds
-  // access in FilterbankAccumulateChannels. That loop reads indices
-  // [0, num_channels] (num_channels + 1 elements) of channel_frequency_starts,
+  // Validate in Prepare that num_channels (from the init flexbuffer) is
+  // consistent with the per-channel metadata tensors and the output tensor, so
+  // an inconsistent topology is rejected here rather than during Eval.
+  // FilterbankAccumulateChannels reads indices [0, num_channels]
+  // (num_channels + 1 elements) of channel_frequency_starts,
   // channel_weight_starts and channel_widths, and writes num_channels output
   // elements (work_area[1 .. num_channels]).
   auto* params = reinterpret_cast<TFLMSignalFilterBankParams*>(node->user_data);

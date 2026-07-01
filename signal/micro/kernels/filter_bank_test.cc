@@ -256,12 +256,12 @@ TEST(FilterBankTest, FilterBankTest16Channel) {
           g_gen_data_size_filter_bank_16_channel, output));
 }
 
-// PoC: 17-element (16-channel) side tensors but a flexbuffer declaring
-// num_channels = 32. FilterBankPrepare never validates num_channels against
-// the tensor element counts, so FilterbankAccumulateChannels loops
-// num_channels + 1 = 33 times and reads channel_weight_starts[i] /
-// channel_widths[i] past the end of the 17-element buffers (heap OOB read).
-TEST(FilterBankTest, FilterBankNumChannelsOverflowPoc) {
+// A model whose init flexbuffer declares num_channels = 32 but provides only
+// 17-element (16-channel) side tensors is an inconsistent topology: without the
+// Prepare check FilterbankAccumulateChannels would loop num_channels + 1 = 33
+// times over the 17-element channel_weight_starts / channel_widths buffers.
+// FilterBankPrepare must reject the mismatch with kTfLiteError.
+TEST(FilterBankTest, FilterBankRejectsInconsistentNumChannels) {
   int input1_shape[] = {1, 129};
   int input2_shape[] = {1, 59};
   int input3_shape[] = {1, 59};
