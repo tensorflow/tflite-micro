@@ -366,6 +366,7 @@ TfLiteStatus CheckedShapeProduct(TfLiteContext* context,
 TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
                                       std::initializer_list<int> dims,
                                       const char* error_message, int& product);
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
