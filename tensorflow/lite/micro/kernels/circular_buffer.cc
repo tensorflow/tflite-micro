@@ -107,9 +107,19 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+// Restores period counter (cycles_until_run) on reset. Buffer memory cleanup
+// is not needed here: because the output tensor is a variable tensor.
+// ResetVariableTensors() automatically zero-points its memory upon reset.
+void CircularBufferReset(TfLiteContext* context, void* buffer) {
+  TFLITE_DCHECK(buffer != nullptr);
+  OpDataCircularBuffer* data = static_cast<OpDataCircularBuffer*>(buffer);
+  data->cycles_until_run = data->cycles_max;
+}
+
 TFLMRegistration* Register_CIRCULAR_BUFFER() {
   static TFLMRegistration r = tflite::micro::RegisterOp(
-      CircularBufferInit, CircularBufferPrepare, CircularBufferEval);
+      CircularBufferInit, CircularBufferPrepare, CircularBufferEval,
+      /*free=*/nullptr, CircularBufferReset);
   return &r;
 }
 
