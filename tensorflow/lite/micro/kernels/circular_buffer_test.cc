@@ -238,8 +238,10 @@ TEST(CircularBufferTest, Reset) {
   int8_t in = 0, out[2] = {0};
   int in_dims[] = {4, 1, 1, 1, 1}, out_dims[] = {4, 1, 2, 1, 1};
   TfLiteTensor tensors[] = {
-      tflite::testing::CreateQuantizedTensor(&in, tflite::testing::IntArrayFromInts(in_dims), 1, 0),
-      tflite::testing::CreateQuantizedTensor(out, tflite::testing::IntArrayFromInts(out_dims), 1, 0),
+      tflite::testing::CreateQuantizedTensor(
+          &in, tflite::testing::IntArrayFromInts(in_dims), 1, 0),
+      tflite::testing::CreateQuantizedTensor(
+          out, tflite::testing::IntArrayFromInts(out_dims), 1, 0),
   };
   int ins[] = {1, 0}, outs[] = {1, 1};
   tflite::micro::KernelRunner runner(
@@ -255,4 +257,3 @@ TEST(CircularBufferTest, Reset) {
 }
 
 TF_LITE_MICRO_TESTS_MAIN
-
