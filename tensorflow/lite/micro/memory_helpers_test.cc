@@ -34,6 +34,15 @@ void* FakeAllocatePersistentBuffer(TfLiteContext* context, size_t bytes) {
   return reinterpret_cast<void*>(global_persistent_buffer);
 }
 
+// Records the size argument of the most recent AllocatePersistentBuffer call so
+// a test can assert that output->dims is sized from the dimension count rather
+// than from the (much larger) tensor byte count.
+size_t g_last_requested_bytes = 0;
+void* RecordingAllocatePersistentBuffer(TfLiteContext* context, size_t bytes) {
+  g_last_requested_bytes = bytes;
+  return reinterpret_cast<void*>(global_persistent_buffer);
+}
+
 }  // namespace
 
 TEST(MemoryHelpersTest, TestAlignPointerUp) {
@@ -274,5 +283,35 @@ TEST(MemoryHelpersTest, TestAllocateOutputDimensionsFromInput) {
     EXPECT_EQ(input_tensor2.dims->data[i], output_tensor.dims->data[i]);
   }
   EXPECT_EQ(output_tensor.bytes, input_tensor2.bytes);
+}
+
+TEST(MemoryHelpersTest, AllocateOutputDimensionsSizesDimsByDimensionCount) {
+  // Regression test for the coupling between the byte count and the dimension
+  // count: output->dims must be allocated from the number of dimension entries,
+  // not from the tensor byte count. int32 [5, 5, 5, 5] is 2500 bytes but only 4
+  // dimensions, so a correct implementation requests
+  // TfLiteIntArrayGetSizeInBytes(4), never TfLiteIntArrayGetSizeInBytes(2500).
+  constexpr int kDimsLen = 4;
+  int input1_dims[] = {1, 1};
+  int input2_dims[] = {kDimsLen, 5, 5, 5, 5};
+  int output_dims[] = {0, 0, 0, 0, 0};
+  TfLiteTensor input_tensor1 = tflite::testing::CreateTensor<int32_t>(
+      nullptr, tflite::testing::IntArrayFromInts(input1_dims));
+  TfLiteTensor input_tensor2 = tflite::testing::CreateTensor<int32_t>(
+      nullptr, tflite::testing::IntArrayFromInts(input2_dims));
+  TfLiteTensor output_tensor = tflite::testing::CreateTensor<int32_t>(
+      nullptr, tflite::testing::IntArrayFromInts(output_dims));
+  TfLiteContext context;
+  context.AllocatePersistentBuffer = RecordingAllocatePersistentBuffer;
+
+  g_last_requested_bytes = 0;
+  EXPECT_EQ(kTfLiteOk,
+            tflite::AllocateOutputDimensionsFromInput(
+                &context, &input_tensor1, &input_tensor2, &output_tensor));
+
+  EXPECT_EQ(static_cast<size_t>(TfLiteIntArrayGetSizeInBytes(kDimsLen)),
+            g_last_requested_bytes);
+  EXPECT_EQ(kDimsLen, output_tensor.dims->size);
+  EXPECT_EQ(input_tensor2.bytes, output_tensor.bytes);
 }
 TF_LITE_MICRO_TESTS_MAIN

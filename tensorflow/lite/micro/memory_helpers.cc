@@ -191,8 +191,12 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
 
   input = input1->dims->size > input2->dims->size ? input1 : input2;
   TF_LITE_ENSURE(context, output->type == input->type);
-  size_t size = 0;
-  TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(input->type, &size));
+  // `bytes` is the tensor storage size (element size * shape product) that is
+  // stored in output->bytes. Keep it distinct from `dimensions_count`: the
+  // output->dims array is sized from the number of dimension entries, not from
+  // the byte count.
+  size_t bytes = 0;
+  TF_LITE_ENSURE_STATUS(TfLiteTypeSizeOf(input->type, &bytes));
   const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < dimensions_count; i++) {
     const int dim = input->dims->data[i];
@@ -208,14 +212,14 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
     TF_LITE_ENSURE(
         context,
         dim >= 0 &&
-            (udim == 0 || size <= std::numeric_limits<size_t>::max() / udim));
-    size *= udim;
+            (udim == 0 || bytes <= std::numeric_limits<size_t>::max() / udim));
+    bytes *= udim;
   }
-  output->bytes = size;
+  output->bytes = bytes;
 
   output->dims =
       reinterpret_cast<TfLiteIntArray*>(context->AllocatePersistentBuffer(
-          context, TfLiteIntArrayGetSizeInBytes(size)));
+          context, TfLiteIntArrayGetSizeInBytes(dimensions_count)));
   output->dims->size = input->dims->size;
   for (int i = 0; i < dimensions_count; i++) {
     output->dims->data[i] = input->dims->data[i];
