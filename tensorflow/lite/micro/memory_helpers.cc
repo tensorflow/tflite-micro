@@ -107,10 +107,14 @@ TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size) {
 
 TfLiteStatus BytesRequiredForTensor(const tflite::Tensor& flatbuffer_tensor,
                                     size_t* bytes, size_t* type_size) {
-  // Use size_t for the running product so the byte computation is performed
-  // in the same unsigned domain as the result. Each multiplication is guarded
-  // against overflow because shape dimensions and the element type size all
-  // come from the (untrusted) flatbuffer model.
+  // Shape dimensions and the element type size come from the partially-trusted
+  // flatbuffer model, so an oversized shape (e.g. [65536, 65536]) is an invalid
+  // model topology that -- per the Error Handling & Defensive Programming Guide
+  // -- must be rejected during the Setup phase (this runs under MicroAllocator).
+  // The running product is done in size_t (matching the result type) and every
+  // multiplication is guarded against wrap-around. This helper is not given a
+  // TfLiteContext, so the guide's low-cost `return kTfLiteError;` branch is used
+  // rather than TF_LITE_ENSURE.
   size_t element_count = 1;
   // If flatbuffer_tensor.shape == nullptr, then flatbuffer_tensor is a scalar
   // so has 1 element.
@@ -145,6 +149,11 @@ TfLiteStatus TfLiteEvalTensorByteLength(const TfLiteEvalTensor* eval_tensor,
                                         size_t* out_bytes) {
   TFLITE_DCHECK(out_bytes != nullptr);
 
+  // Called from both the Setup planning path and from Eval helpers (e.g.
+  // squeeze, kernel_util). The running product is computed in size_t and each
+  // multiplication is guarded against wrap-around. Because there is no
+  // TfLiteContext here and the guard protects against runtime memory
+  // corruption, the guide's low-cost `return kTfLiteError;` branch is used.
   size_t element_count = 1;
   // If eval_tensor->dims == nullptr, then tensor is a scalar so has 1 element.
   if (eval_tensor->dims != nullptr) {
@@ -187,11 +196,19 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
   const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < dimensions_count; i++) {
     const int dim = input->dims->data[i];
-    TF_LITE_ENSURE(context, dim >= 0);
     const size_t udim = static_cast<size_t>(dim);
-    TF_LITE_ENSURE(context,
-                   udim == 0 ||
-                       size <= std::numeric_limits<size_t>::max() / udim);
+    // This helper runs in the Setup/Prepare phase, so per the Error Handling &
+    // Defensive Programming Guide a bad (partially-trusted model) shape is
+    // rejected with TF_LITE_ENSURE. The two preconditions -- a non-negative
+    // dimension and a running product that does not overflow size_t -- are
+    // combined into a single TF_LITE_ENSURE so only one error string is emitted
+    // into .rodata per call site (see "The Hidden Cost of TF_LITE_ENSURE").
+    // The `dim >= 0` term is evaluated first, so the division guard is never
+    // reached with a wrapped-around `udim`.
+    TF_LITE_ENSURE(
+        context,
+        dim >= 0 &&
+            (udim == 0 || size <= std::numeric_limits<size_t>::max() / udim));
     size *= udim;
   }
   output->bytes = size;
