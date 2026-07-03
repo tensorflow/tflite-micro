@@ -148,9 +148,9 @@ class MicroInterpreter {
   // arena_used_bytes() + 16.
   size_t arena_used_bytes() const { return allocator_.used_bytes(); }
 
-  // Returns True if all Tensors are being preserves
+  // Returns True if all Tensors are being preserved
   // TODO(b/297106074) : revisit making C++ example or test for
-  // preserve_all_tesnors
+  // preserve_all_tensors
   bool preserve_all_tensors() const {
     return allocator_.preserves_all_tensor();
   }
