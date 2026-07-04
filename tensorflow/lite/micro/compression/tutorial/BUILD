@@ -65,3 +65,26 @@ sh_test(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
+
+py_binary(
+    # Opens the tutorial's markdown source in JupyterLab for interactive
+    # editing and execution, in a self-managed Python environment that
+    # mirrors Google Colab; see notebook_tool.py.
+    name = "lab",
+    srcs = ["notebook_tool.py"],
+    args = ["lab"],
+    main = "notebook_tool.py",
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+)
+
+py_binary(
+    # Executes the tutorial notebook end to end in the same environment as
+    # :lab and writes the executed notebook, with outputs, to the invocation
+    # directory; see notebook_tool.py.
+    name = "run",
+    srcs = ["notebook_tool.py"],
+    args = ["execute"],
+    data = ["notebook_execute.py"],
+    main = "notebook_tool.py",
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+)
