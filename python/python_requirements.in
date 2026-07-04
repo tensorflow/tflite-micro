@@ -28,6 +28,7 @@
 
 ai-edge-litert
 flatbuffers
+jupytext
 mako
 numpy
 pillow
