@@ -162,7 +162,7 @@ print(tflm_interpreter.get_output_details(0))
 ### Tutorials
 
 For a complete end-to-end example using the Python interpreter for model compression:
-* [MNIST Compression Tutorial](../../tensorflow/lite/micro/compression/mnist_compression_tutorial.ipynb)
+* [MNIST Compression Tutorial](../../tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.ipynb)
 
 ### Technical Details
 
