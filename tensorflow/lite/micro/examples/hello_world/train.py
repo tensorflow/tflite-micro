@@ -120,8 +120,11 @@ def train_model(epochs, x_values, y_values):
             verbose=2)
 
   if FLAGS.save_tf_model:
-    model.save(FLAGS.save_dir, save_format="tf")
-    logging.info("TF model saved to %s", FLAGS.save_dir)
+    save_path = os.path.join(FLAGS.save_dir, "model.keras")
+    if not os.path.exists(FLAGS.save_dir):
+      os.makedirs(FLAGS.save_dir)
+    model.save(save_path)
+    logging.info("TF model saved to %s", save_path)
 
   return model
 
