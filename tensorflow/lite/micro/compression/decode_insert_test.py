@@ -377,8 +377,79 @@ class TestDecodeInsertion(unittest.TestCase):
     # Both DECODEs share the ancillary tensor
     self.assertIs(consumer_decode.inputs[1], output_decode.inputs[1])
 
-  def test_multiple_output_tensors_get_decodes(self):
-    """Each compressed subgraph output gets a DECODE appended at the end."""
+  def test_multiple_input_tensors_share_one_decode(self):
+    """All compressed tensors of one consumer are decoded by one DECODE."""
+    weights1 = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="weights1",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    weights2 = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((1, 4), dtype=np.int8),
+        name="weights2",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    input_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name="input",
+    )
+    output_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name="output",
+    )
+
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(
+            tensors=[weights1, weights2],
+            operators=[
+                model_editor.Operator(
+                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                    inputs=[input_t, weights1, weights2],
+                    outputs=[output_t],
+                )
+            ],
+        )
+    ])
+    sg = model.subgraphs[0]
+
+    compression_results = {
+        (0, 0):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x00',
+            ancillary_data=_make_dummy_ancillary_data(),
+        ),
+        (0, 1):
+        compressor.CompressionResult(
+            encoded_data=b'\x01\x01',
+            ancillary_data=_make_dummy_ancillary_data(),
+        ),
+    }
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    # One DECODE with two encoded/ancillary pairs, inserted before the FC
+    self.assertEqual(len(sg.operators), 2)
+    decode_op = sg.operators[0]
+    fc_op = sg.operators[1]
+    self.assertEqual(decode_op.opcode, tflite.BuiltinOperator.CUSTOM)
+    self.assertEqual(fc_op.opcode, tflite.BuiltinOperator.FULLY_CONNECTED)
+    self.assertEqual(len(decode_op.inputs), 4)
+    self.assertEqual(len(decode_op.outputs), 2)
+    self.assertIs(decode_op.inputs[0], weights1)
+    self.assertIs(decode_op.inputs[2], weights2)
+
+    # The consumer reads each decoded tensor from its original position
+    self.assertIs(fc_op.inputs[1], decode_op.outputs[0])
+    self.assertIs(fc_op.inputs[2], decode_op.outputs[1])
+
+  def test_multiple_output_tensors_share_one_decode(self):
+    """All compressed subgraph outputs are decoded by a single DECODE."""
     table1 = model_editor.Tensor(
         shape=(4, 4),
         dtype=tflite.TensorType.INT8,
@@ -423,17 +494,18 @@ class TestDecodeInsertion(unittest.TestCase):
 
     decode_insert.insert_decode_operators(model, compression_results)
 
-    # One DECODE per compressed output tensor
-    self.assertEqual(len(sg.operators), 2)
-    decode_op1 = sg.operators[0]
-    decode_op2 = sg.operators[1]
-    self.assertIs(decode_op1.inputs[0], table1)
-    self.assertIs(decode_op2.inputs[0], table2)
+    # One DECODE with two encoded/ancillary pairs and two outputs
+    self.assertEqual(len(sg.operators), 1)
+    decode_op = sg.operators[0]
+    self.assertEqual(len(decode_op.inputs), 4)
+    self.assertEqual(len(decode_op.outputs), 2)
+    self.assertIs(decode_op.inputs[0], table1)
+    self.assertIs(decode_op.inputs[2], table2)
 
     # Output list rewired in place; uncompressed entry untouched
-    self.assertIs(sg.outputs[0], decode_op1.outputs[0])
+    self.assertIs(sg.outputs[0], decode_op.outputs[0])
     self.assertIs(sg.outputs[1], output_t)
-    self.assertIs(sg.outputs[2], decode_op2.outputs[0])
+    self.assertIs(sg.outputs[2], decode_op.outputs[1])
 
   def test_ancillary_tensor_contains_dcm(self):
     """Ancillary tensor data contains valid DCM header."""

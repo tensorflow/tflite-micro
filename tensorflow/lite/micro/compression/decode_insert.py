@@ -159,19 +159,26 @@ def insert_decode_operators(
   intervening DECODE overwrites the shared output, corrupting data for the
   second consumer.
 
-  For each consumer of a compressed tensor:
-  1. Create an ancillary data tensor containing DCM + type-specific data
-  2. Create an output tensor with the same shape/dtype as the decoded tensor
-  3. Insert a DECODE operator immediately before the consumer
-  4. Rewire the consumer to use the DECODE output
+  Conversely, all compressed tensors read by one consumer are decoded by a
+  single DECODE. Values a consumer needs simultaneously must coexist, and
+  only the outputs of a single DECODE do: the allocation reset happens
+  between DECODE operators, not between the outputs of one.
+
+  For each consumer of compressed tensors:
+  1. Create an ancillary data tensor (DCM + type-specific data) for each
+     compressed tensor the consumer reads
+  2. Create an output tensor with the same shape/dtype as each decoded
+     tensor
+  3. Insert one DECODE operator immediately before the consumer
+  4. Rewire the consumer to use the DECODE outputs
 
   A subgraph's output list is treated as one more consumer, one which reads
   its tensors only after the last operator runs: a calling operator (IF,
   WHILE) copies subgraph outputs when the subgraph returns, and the client
-  reads model outputs after invocation. A DECODE for each compressed tensor
-  in the output list is therefore appended after the last operator, and the
-  output list entry is rewired to the decoded value, which no consumer's
-  DECODE runs late enough to overwrite.
+  reads model outputs after invocation. Compressed tensors in the output
+  list are therefore decoded by a single DECODE appended after the last
+  operator, and their output list entries are rewired to the decoded
+  values, which no other DECODE runs late enough to overwrite.
 
   Args:
     model: The model to modify in-place.
@@ -232,59 +239,61 @@ def insert_decode_operators(
         tensors_to_rewrite[info.tensor] = info.encoded_data
       return ancillary
 
-    # Collect all (consumer, tensor_info) pairs and sort by consumer position
-    # in reverse order so insertions don't invalidate positions
-    consumer_pairs = []
-    for info in tensor_infos:
-      for consumer in info.consumers:
-        consumer_pairs.append((consumer, info))
+    def build_decode(
+        infos: list[_CompressedTensorInfo]
+    ) -> tuple[model_editor.Operator, list[model_editor.Tensor]]:
+      """Build one DECODE operator decoding all of infos' tensors.
 
-    consumer_pairs.sort(
-        key=lambda pair: subgraph.operators.index(pair[0]),
-        reverse=True,
-    )
-
-    for consumer, info in consumer_pairs:
-      ancillary_tensor = ancillary_for(info)
-
-      # Create output tensor (one per DECODE)
-      output_tensor = _create_output_tensor(info.tensor)
-      subgraph.tensors.append(output_tensor)
-
-      # Create DECODE operator
-      decode_op = model_editor.Operator(
+      Returns the operator and its decoded output tensors, parallel to
+      infos.
+      """
+      inputs = []
+      outputs = []
+      for info in infos:
+        ancillary_tensor = ancillary_for(info)
+        decoded = _create_output_tensor(info.tensor)
+        subgraph.tensors.append(decoded)
+        inputs.extend([info.tensor, ancillary_tensor])
+        outputs.append(decoded)
+      op = model_editor.Operator(
           opcode=tflite.BuiltinOperator.CUSTOM,
           custom_code=DECODE_CUSTOM_OP_NAME,
-          inputs=[info.tensor, ancillary_tensor],
-          outputs=[output_tensor],
+          inputs=inputs,
+          outputs=outputs,
       )
+      return op, outputs
+
+    # Group compressed tensors by consumer, then handle consumers in
+    # reverse position order so insertions don't invalidate positions
+    by_consumer: dict[model_editor.Operator, list[_CompressedTensorInfo]] = {}
+    for info in tensor_infos:
+      for consumer in info.consumers:
+        by_consumer.setdefault(consumer, []).append(info)
+
+    for consumer in sorted(by_consumer,
+                           key=subgraph.operators.index,
+                           reverse=True):
+      infos = by_consumer[consumer]
+      decode_op, decoded_tensors = build_decode(infos)
 
       # Insert DECODE immediately before this consumer
       insert_pos = subgraph.operators.index(consumer)
       subgraph.operators.insert(insert_pos, decode_op)
 
-      # Rewire only this consumer to use the decoded output
-      _rewire_consumers([consumer], info.tensor, output_tensor)
+      # Rewire only this consumer to use the decoded outputs
+      for info, decoded in zip(infos, decoded_tensors):
+        _rewire_consumers([consumer], info.tensor, decoded)
 
-    # Decode compressed tensors read from the subgraph's output list. The
-    # output list reads its tensors only after the last operator runs, so
-    # its DECODEs are appended at the end (see docstring).
-    for info in tensor_infos:
-      if not info.is_output:
-        continue
-      ancillary_tensor = ancillary_for(info)
-      output_tensor = _create_output_tensor(info.tensor)
-      subgraph.tensors.append(output_tensor)
-      subgraph.operators.append(
-          model_editor.Operator(
-              opcode=tflite.BuiltinOperator.CUSTOM,
-              custom_code=DECODE_CUSTOM_OP_NAME,
-              inputs=[info.tensor, ancillary_tensor],
-              outputs=[output_tensor],
-          ))
-      subgraph.outputs = [
-          output_tensor if t is info.tensor else t for t in subgraph.outputs
-      ]
+    # Decode compressed tensors read from the subgraph's output list, all
+    # with one DECODE appended after the last operator (see docstring).
+    output_infos = [info for info in tensor_infos if info.is_output]
+    if output_infos:
+      decode_op, decoded_tensors = build_decode(output_infos)
+      subgraph.operators.append(decode_op)
+      for info, decoded in zip(output_infos, decoded_tensors):
+        subgraph.outputs = [
+            decoded if t is info.tensor else t for t in subgraph.outputs
+        ]
 
     # Rewrite encoded tensors after all output tensors are created
     for tensor, encoded_data in tensors_to_rewrite.items():
