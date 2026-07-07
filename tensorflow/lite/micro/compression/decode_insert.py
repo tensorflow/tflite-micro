@@ -263,22 +263,27 @@ def insert_decode_operators(
       )
       return op, outputs
 
+    # Positions of the original operators, computed once so the sort and
+    # insertions below avoid a linear scan per lookup.
+    op_position = {op: i for i, op in enumerate(subgraph.operators)}
+
     # Group compressed tensors by consumer, then handle consumers in
-    # reverse position order so insertions don't invalidate positions
+    # reverse position order so insertions don't invalidate positions:
+    # each insertion falls after every consumer still to be processed,
+    # leaving the recorded positions valid.
     by_consumer: dict[model_editor.Operator, list[_CompressedTensorInfo]] = {}
     for info in tensor_infos:
       for consumer in info.consumers:
         by_consumer.setdefault(consumer, []).append(info)
 
     for consumer in sorted(by_consumer,
-                           key=subgraph.operators.index,
+                           key=lambda op: op_position[op],
                            reverse=True):
       infos = by_consumer[consumer]
       decode_op, decoded_tensors = build_decode(infos)
 
       # Insert DECODE immediately before this consumer
-      insert_pos = subgraph.operators.index(consumer)
-      subgraph.operators.insert(insert_pos, decode_op)
+      subgraph.operators.insert(op_position[consumer], decode_op)
 
       # Rewire only this consumer to use the decoded outputs
       for info, decoded in zip(infos, decoded_tensors):
