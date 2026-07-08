@@ -340,37 +340,36 @@ TfLiteStatus EvalInt16(TfLiteContext* context, const OpDataBatchMatmul& data,
   return kTfLiteOk;
 }
 
-void ReshapeToFlattenBatchDimsIfPossible(bool adj_x, RuntimeShape* lhs_shape,
+void ReshapeToFlattenBatchDimsIfPossible(RuntimeShape* lhs_shape,
                                          RuntimeShape* rhs_shape) {
   // Compress BatchMatMul when third from last RHS dimension is one.
   int32_t rhs_dims_count = rhs_shape->DimensionsCount();
   int32_t lhs_dims_count = lhs_shape->DimensionsCount();
 
   // Compress ops where rhs shape is [..., 1, X, Y] and lhs shape is
-  // [..., Q, R, S] which is equivalent to rhs: [..., X, Y] and
-  // lhs: [..., Q * R, S].
+  // [..., Q, R, S].
+  // After shape assignment, rhs shape represents
+  // [..., 1, lhs_rows, accum_depth] and lhs shape represents
+  // [..., batch, accum_depth, rhs_cols].
   //
-  // We can only flatten the dimensions if the physical layout in memory
-  // allows us to treat [Batch, Row, Col] as [Batch * Row, Col].
-  // This requires the 'Row' dimension to be contiguous with the 'Batch'
-  // dimension.
+  // When rhs has a batch dimension of 1, we can collapse the batch dimension
+  // of lhs into rhs_cols, treating [..., batch, accum_depth, rhs_cols] as
+  // [..., accum_depth, batch * rhs_cols].
   //
-  // If adj_x is true, the logical operation is on transposed matrices.
-  // The physical layout is [Batch, Row, Col] but logically we access [Batch,
-  // Col, Row]. Flattening Batch and Row dimensions (physically) results in
-  // [Batch*Row, Col]. This does not match the logical expectation of [Batch,
-  // Col, Row] because the columns of the second batch are not contiguous with
-  // the columns of the first batch in the logical transposed view. Therefore,
-  // we disable this optimization when adj_x is true.
-  if (!adj_x && rhs_dims_count > 2 && lhs_dims_count > 2) {
+  // This works because whether adj_x is false (where orig_lhs is
+  // [batch, rhs_cols, accum_depth]) or adj_x is true (where orig_lhs is
+  // [batch, accum_depth, rhs_cols] but transposed in memory), the underlying
+  // buffer in memory has batch and rhs_cols as contiguous outer dimensions,
+  // which can be physically collapsed into batch * rhs_cols.
+  if (rhs_dims_count > 2 && lhs_dims_count > 2) {
     int rhs_one = rhs_shape->DimsData()[rhs_dims_count - 3];
     if (rhs_one == 1) {
       int32_t* lhs_dims = lhs_shape->DimsData();
       int32_t* rhs_dims = rhs_shape->DimsData();
       RuntimeShape tmp_l(lhs_dims_count - 1, lhs_dims);
-      tmp_l.SetDim(lhs_dims_count - 3,
-                   lhs_dims[lhs_dims_count - 3] * lhs_dims[lhs_dims_count - 2]);
-      tmp_l.SetDim(lhs_dims_count - 2, lhs_dims[lhs_dims_count - 1]);
+      tmp_l.SetDim(lhs_dims_count - 3, lhs_dims[lhs_dims_count - 2]);
+      tmp_l.SetDim(lhs_dims_count - 2,
+                   lhs_dims[lhs_dims_count - 3] * lhs_dims[lhs_dims_count - 1]);
       lhs_shape->ReplaceWith(tmp_l.DimensionsCount(), tmp_l.DimsData());
       RuntimeShape tmp_r(rhs_dims_count - 1, rhs_shape->DimsData());
       tmp_r.SetDim(rhs_dims_count - 3, rhs_dims[rhs_dims_count - 2]);
@@ -403,8 +402,6 @@ TfLiteStatus BatchMatMulEval(TfLiteContext* context, TfLiteNode* node) {
   bool adj_y = op_context.params->adj_y;
   bool adj_x = op_context.params->adj_x;
 
-  ReshapeToFlattenBatchDimsIfPossible(adj_x, &orig_lhs_shape, &orig_rhs_shape);
-
   TfLiteEvalTensor* rhs_tensor = adj_y ? const_cast<TfLiteEvalTensor*>(rhs)
                                        : op_data->rhs_transposed_tensor;
   TfLiteEvalTensor* lhs_tensor = adj_x ? op_data->lhs_transposed_tensor
@@ -426,6 +423,8 @@ TfLiteStatus BatchMatMulEval(TfLiteContext* context, TfLiteNode* node) {
       adj_y ? orig_rhs_shape : SwapRowColumnDims(orig_rhs_shape);
   RuntimeShape lhs_shape =
       adj_x ? orig_lhs_shape : SwapRowColumnDims(orig_lhs_shape);
+
+  ReshapeToFlattenBatchDimsIfPossible(&lhs_shape, &rhs_shape);
 
   switch (lhs->type) {
     case kTfLiteFloat32:

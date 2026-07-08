@@ -246,6 +246,37 @@ TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Flatten) {
                                         output_data);
 }
 
+TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_FlattenLHSAdjoint) {
+  constexpr int kLhsInputDims[] = {3, 3, 4, 2};
+  constexpr int kRhsInputDims[] = {3, 1, 4, 3};
+  const int* kInputDims[tflite::testing::kNumInputs] = {kLhsInputDims,
+                                                        kRhsInputDims};
+
+  constexpr size_t kLhsInputSize = 24;
+  float lhs_input[kLhsInputSize];
+  std::iota(std::begin(lhs_input), std::end(lhs_input), 1);
+
+  constexpr size_t kRhsInputSize = 12;
+  float rhs_input[kRhsInputSize];
+  std::iota(std::begin(rhs_input), std::end(rhs_input), 1);
+
+  constexpr float kExpect[] = {118, 134, 150, 140, 160, 180, 294, 342, 390,
+                               316, 368, 420, 470, 550, 630, 492, 576, 660};
+  constexpr int kOutputDims[] = {3, 3, 2, 3};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  float output_data[kOutputCount];
+
+  constexpr TfLiteBatchMatMulParams params = {
+      true,   // adj_x
+      false,  // adj_y
+      false   // asymmetric_quantize_inputs
+  };
+
+  tflite::testing::TestBatchMatMulFloat(params, kInputDims, lhs_input,
+                                        rhs_input, kOutputDims, kExpect,
+                                        output_data);
+}
+
 TEST(BatchMatmulTest, BatchMatMulOpTestFloat32Test_Simple) {
   constexpr int kLhsInputDims[] = {3, 1, 2, 3};
   constexpr int kRhsInputDims[] = {3, 1, 3, 4};
