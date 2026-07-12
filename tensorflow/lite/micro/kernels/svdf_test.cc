@@ -825,6 +825,116 @@ void SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden() {
       sizeof(tflite::testing::golden_output_relu_16x1x1) / sizeof(float));
 }
 
+// Regression test for a bug where the int8 activation-state path in
+// svdf_common.cc added the (potentially non-zero) activation_state
+// zero-point AFTER clamping the requantized dot product to the int8 range,
+// instead of before. This let the zero-point-shifted sum silently wrap
+// around the int8 range when narrowed into the persistent activation_state
+// buffer, instead of saturating like every other quantized op does.
+// See https://github.com/tensorflow/tflite-micro/issues/2721.
+//
+// Note: this deliberately builds its own tensors (rather than reusing
+// TestIntegerSVDF() above) because that helper always constructs the
+// activation_state tensor with a hardcoded zero-point of 0, regardless of
+// the activation_state_zero_point argument passed to it, and so never
+// actually exercises the non-zero zero-point code path this bug lives in.
+//
+// All quantization scales below are exactly 1.0 so that
+// MultiplyByQuantizedMultiplier() is an exact identity transform for the
+// in-range integer values used here. This keeps the expected values exact
+// and isolates the zero-point-add-vs-clamp ordering bug from any
+// requantization rounding behavior.
+void SvdfInt8ActivationStateZeroPointOverflowRegressionTest() {
+  constexpr int batch_size = 1;
+  constexpr int num_units = 1;
+  constexpr int input_size = 1;
+  constexpr int memory_size = 1;
+  constexpr int rank = 1;
+  constexpr int num_filters = num_units * rank;
+
+  const float input_scale = 1.0f;
+  const int input_zero_point = 0;
+  const float feature_weights_scale = 1.0f;
+  const float time_weights_scale = 1.0f;
+  const float activation_state_scale = 1.0f;
+  const int activation_state_zero_point = 30;  // Ordinary nonzero zero-point.
+  const float output_scale = 1.0f;
+  const int output_zero_point = 0;
+
+  // Raw feature-matmul dot product = feature_weight * input = 120 * 1 = 120,
+  // unchanged by requantization (identity scale). Correct (saturating)
+  // result stored into activation_state:
+  //   clamp(zero_point + dot_prod, -128, 127) = clamp(30 + 120, ...) = 127.
+  // Buggy (add-after-clamp) result: clamp(dot_prod, ...) = 120 (no-op,
+  // already in range), then int8_t(30 + 120) = int8_t(150) wraps to -106.
+  const float input_data[input_size * batch_size] = {1.0f};
+  const float feature_weights_data[num_filters * input_size] = {120.0f};
+  const float time_weights_data[num_filters * memory_size] = {1.0f};
+  const float bias_data[num_units] = {0.0f};
+  const float initial_activation_state_data[batch_size * memory_size *
+                                            num_filters] = {0.0f};
+  // Correct expected output, derived by hand from the corrected math above:
+  //   activation_state (after fix) = 127
+  //   time-step scratch = time_weight * (127 - zero_point) = 1 * 97 = 97
+  //   reduce (no bias) = 97; rescale (identity, scale=1.0) = 97;
+  //   + output_zero_point(0), clamped to int8 range = 97.
+  const float golden_output[batch_size * num_units] = {97.0f};
+
+  int8_t input_quantized[input_size * batch_size];
+  int8_t feature_weights_quantized[num_filters * input_size];
+  int8_t time_weights_quantized[num_filters * memory_size];
+  int32_t bias_quantized[num_units];
+  int8_t activation_state_quantized[batch_size * memory_size * num_filters];
+  int8_t output_data[batch_size * num_units];
+  int8_t golden_output_quantized[batch_size * num_units];
+  int8_t input_sequences_quantized[input_size * batch_size];
+
+  int input_dims_arg[] = {2, batch_size, input_size};
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_arg);
+  int feature_weights_dims_args[] = {2, num_filters, input_size};
+  TfLiteIntArray* feature_weights_dims =
+      IntArrayFromInts(feature_weights_dims_args);
+  int time_weights_dims_args[] = {2, num_filters, memory_size};
+  TfLiteIntArray* time_weights_dims = IntArrayFromInts(time_weights_dims_args);
+  int bias_dims_data[] = {1, num_units};
+  TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
+  int activation_state_dims_args[] = {2, batch_size, memory_size * num_filters};
+  TfLiteIntArray* activation_state_dims =
+      IntArrayFromInts(activation_state_dims_args);
+  int output_dims_args[] = {2, batch_size, num_units};
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_args);
+
+  const int tensor_count = 6;  // 5 inputs, 1 output.
+  TfLiteTensor tensors[] = {
+      CreateQuantizedTensor(input_data, input_quantized, input_dims,
+                            input_scale, input_zero_point),
+      CreateQuantizedTensor(feature_weights_data, feature_weights_quantized,
+                            feature_weights_dims, feature_weights_scale, 0),
+      CreateQuantizedTensor(time_weights_data, time_weights_quantized,
+                            time_weights_dims, time_weights_scale, 0),
+      CreateQuantizedBiasTensor(bias_data, bias_quantized, bias_dims,
+                                time_weights_scale, activation_state_scale),
+      // Unlike TestIntegerSVDF() above, wire the *actual* (non-zero)
+      // activation-state zero-point into the tensor here -- this is the
+      // code path that exercises the bug.
+      CreateQuantizedTensor(initial_activation_state_data,
+                            activation_state_quantized, activation_state_dims,
+                            activation_state_scale, activation_state_zero_point,
+                            /*is_variable=*/true),
+      CreateQuantizedTensor(output_data, output_dims, output_scale,
+                            output_zero_point)};
+
+  tflite::Quantize(golden_output, golden_output_quantized,
+                   batch_size * num_units, output_scale, output_zero_point);
+  tflite::Quantize(input_data, input_sequences_quantized,
+                   input_size * batch_size, input_scale, input_zero_point);
+
+  ValidateSVDFGoldens(batch_size, num_units, input_size, rank, tensors,
+                      tensor_count, kTfLiteActNone, input_sequences_quantized,
+                      input_size * batch_size, output_data,
+                      golden_output_quantized, /*tolerance=*/1);
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -960,5 +1070,12 @@ TEST(SvdfTest, SvdfQuantized1x16Input64x1OutputReluShouldMatchGoldenInt16) {
   tflite::testing::SvdfQuantized1x16Input64x1OutputReluShouldMatchGolden<
       int16_t>();
 }
+
+// Only reference kernels support full int8 svdf currently.
+#if !defined(HEXAGON)
+TEST(SvdfTest, SvdfInt8ActivationStateZeroPointOverflowRegressionTest) {
+  tflite::testing::SvdfInt8ActivationStateZeroPointOverflowRegressionTest();
+}
+#endif
 
 TF_LITE_MICRO_TESTS_MAIN
