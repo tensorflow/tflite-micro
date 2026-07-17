@@ -85,19 +85,19 @@ TfLiteStatus WhileEval(TfLiteContext* context, TfLiteNode* node) {
                         context, node, graph_info, op_data->cond_subgraph_index,
                         /*first_tensor_idx=*/0));
 
+  // Preserve the op inputs by copying to op outputs, prior to invoking
+  // a subgraph which could invalidate the memory of one or more op inputs.
+  // This is possible when using the output of the DECODE operator as input to
+  // the WHILE op, in the presence of alternate decompression memory.
+  TF_LITE_ENSURE_OK(context,
+                    tflite::micro::CopyOpInputsToOpOutputs(context, node));
+
   TF_LITE_ENSURE_OK(context,
                     graph_info->InvokeSubgraph(op_data->cond_subgraph_index));
 
   TfLiteEvalTensor* cond_subgraph_output = graph_info->GetSubgraphOutput(
       op_data->cond_subgraph_index, /*tensor_idx=*/0);
   bool cond_value = cond_subgraph_output->data.b[0];
-
-  TF_LITE_ENSURE_OK(context,
-                    tflite::micro::CopyOpInputsToSubgraphInputs(
-                        context, node, graph_info, op_data->body_subgraph_index,
-                        /*first_tensor_idx=*/0));
-  TF_LITE_ENSURE_OK(context,
-                    tflite::micro::CopyOpInputsToOpOutputs(context, node));
 
   while (cond_value == true) {
     // Copy output of this iteration back to the body input.
