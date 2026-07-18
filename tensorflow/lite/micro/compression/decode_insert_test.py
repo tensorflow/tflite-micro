@@ -434,6 +434,63 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(len(decodes), 2)
     self.assertIs(decodes[0].inputs[1], decodes[1].inputs[1])
 
+  def test_divergent_aliases_dissolve_sharing(self):
+    """Aliases whose compression results differ get separate buffers."""
+    model = _build_shared_buffer_model(subgraph_count=2)
+
+    compression_results = {
+        (0, 0):
+        _make_dummy_compression_result(bitwidth=1, value_table=b'\x01'),
+        (1, 0):
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04'),
+    }
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    decode0 = model.subgraphs[0].operators[0]
+    decode1 = model.subgraphs[1].operators[0]
+    encoded0, ancillary0 = decode0.inputs[0], decode0.inputs[1]
+    encoded1, ancillary1 = decode1.inputs[0], decode1.inputs[1]
+
+    # Each alias carries its own results; nothing is shared
+    self.assertIsNot(encoded0.buffer, encoded1.buffer)
+    self.assertIsNot(ancillary0.buffer, ancillary1.buffer)
+    self.assertEqual(encoded0.buffer.data,
+                     compression_results[(0, 0)].encoded_data)
+    self.assertEqual(encoded1.buffer.data,
+                     compression_results[(1, 0)].encoded_data)
+    self.assertEqual(ancillary0.buffer.data,
+                     compression_results[(0, 0)].ancillary_data)
+    self.assertEqual(ancillary1.buffer.data,
+                     compression_results[(1, 0)].ancillary_data)
+
+  def test_partially_covered_buffer_not_compressed(self):
+    """A tensor sharing its buffer with an uncompressed tensor is
+    skipped."""
+    model = _build_shared_buffer_model(subgraph_count=2)
+    weights0 = model.subgraphs[0].tensor_by_name("weights0")
+    original_buffer = weights0.buffer
+    original_data = original_buffer.data
+
+    # Compress only one of the two tensors sharing the buffer
+    compression_results = {(0, 0): _make_dummy_compression_result()}
+
+    with warnings.catch_warnings(record=True) as caught:
+      warnings.simplefilter("always")
+      decode_insert.insert_decode_operators(model, compression_results)
+
+      self.assertEqual(len(caught), 1)
+      self.assertIn("weights0", str(caught[0].message))
+      self.assertIn("weights1", str(caught[0].message))
+
+    # No DECODE inserted anywhere; the tensor is untouched
+    for subgraph in model.subgraphs:
+      self.assertEqual(len(subgraph.operators), 1)
+    self.assertIs(weights0.buffer, original_buffer)
+    self.assertEqual(weights0.buffer.data, original_data)
+    self.assertEqual(weights0.dtype, tflite.TensorType.INT8)
+
   def test_output_constant_gets_decode(self):
     """Compressed tensor in subgraph outputs gets DECODE appended last."""
     model = _build_output_constant_model()
