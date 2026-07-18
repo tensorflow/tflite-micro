@@ -60,6 +60,8 @@ def _build_simple_fc_model():
                   outputs=[output_t],
               )
           ],
+          inputs=[input_t],
+          outputs=[output_t],
       )
   ])
   return model
@@ -110,6 +112,8 @@ def _build_shared_weights_model():
                   outputs=[output2],
               ),
           ],
+          inputs=[input1, input2],
+          outputs=[output1, output2],
       )
   ])
   return model
@@ -152,6 +156,7 @@ def _build_output_constant_model():
                   outputs=[output_t],
               )
           ],
+          inputs=[input_t],
           outputs=[output_t, table],
       )
   ])
