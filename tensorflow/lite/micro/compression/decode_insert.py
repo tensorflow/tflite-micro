@@ -195,34 +195,26 @@ def insert_decode_operators(
   before any operator that uses a compressed tensor as input, and appending
   a DECODE for compressed tensors listed as subgraph outputs.
 
-  A separate DECODE is inserted before each consumer, rather than sharing one
-  DECODE output among all consumers. This is required because the interpreter's
-  alternate decompression memory resets its allocation offset for each DECODE's
-  Prepare, causing all DECODE outputs to be allocated at the same address. If
-  two consumers share one DECODE and another DECODE runs between them, the
-  intervening DECODE overwrites the shared output, corrupting data for the
-  second consumer.
-
-  Conversely, all compressed tensors read by one consumer are decoded by a
-  single DECODE. Values a consumer needs simultaneously must coexist, and
-  only the outputs of a single DECODE do: the allocation reset happens
-  between DECODE operators, not between the outputs of one.
+  A separate DECODE is inserted before each consumer, and one DECODE
+  decodes all the compressed tensors its consumer reads. DECODE outputs
+  are tensors with a lifetime limited to the very next operator in the
+  subgraph, so sharing one DECODE among multiple consumers would
+  violate the lifetime rule. The DECODE operator trades increased
+  latency for decreased memory usage.
 
   For each consumer of compressed tensors:
   1. Create an ancillary data tensor (DCM + type-specific data) for each
      compressed tensor the consumer reads
-  2. Create an output tensor with the same shape/dtype as each decoded
-     tensor
+  2. Create an output tensor as a copy of each original tensor
   3. Insert one DECODE operator immediately before the consumer
   4. Rewire the consumer to use the DECODE outputs
 
-  A subgraph's output list is treated as one more consumer, one which reads
-  its tensors only after the last operator runs: a calling operator (IF,
-  WHILE) copies subgraph outputs when the subgraph returns, and the client
-  reads model outputs after invocation. Compressed tensors in the output
-  list are therefore decoded by a single DECODE appended after the last
-  operator, and their output list entries are rewired to the decoded
-  values, which no other DECODE runs late enough to overwrite.
+  A subgraph's output list is treated as one more consumer, one which
+  reads its tensors only after the last operator runs: a calling
+  operator (IF, WHILE) copies subgraph outputs when the subgraph
+  returns. Compressed tensors in the output list are therefore decoded
+  by a single DECODE appended after the last operator, and their output
+  list entries are rewired to the decoded values.
 
   Distinct tensors can share one buffer, in the same or different
   subgraphs, where the converter deduplicated identical constants.
