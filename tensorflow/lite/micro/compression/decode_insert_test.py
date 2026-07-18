@@ -670,8 +670,8 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(bytes(ancillary_tensor.array), ancillary_data)
 
     # Verify DCM header
-    dcm_bytes = ancillary_tensor.array[:16]
-    self.assertEqual(dcm_bytes[0], 0)  # decode_type = LUT
+    dcm_bytes = bytes(ancillary_tensor.array[:16])
+    self.assertEqual(dcm_bytes[0], decode.DecodeType.LUT)
     self.assertEqual(dcm_bytes[1], 1)  # DCM version
 
   def test_no_consumers_no_decode(self):
