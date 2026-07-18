@@ -222,7 +222,6 @@ class TestDecodeInsertion(unittest.TestCase):
   def test_insert_single_decode_operator(self):
     """DECODE operator inserted before FC that uses compressed weights."""
     model = _build_simple_fc_model()
-    weights_tensor = model.subgraphs[0].tensor_by_name("weights")
 
     # Create compression result
     compression_results = {
@@ -328,7 +327,6 @@ class TestDecodeInsertion(unittest.TestCase):
   def test_shared_tensor_decode_per_consumer(self):
     """Tensor used by multiple ops gets separate DECODE for each consumer."""
     model = _build_shared_weights_model()
-    weights_tensor = model.subgraphs[0].tensor_by_name("shared_weights")
 
     compression_results = {
         (0, 0):
