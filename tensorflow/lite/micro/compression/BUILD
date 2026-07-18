@@ -355,6 +355,26 @@ tflm_py_test(
     ],
 )
 
+tflm_py_test(
+    name = "decode_insert_runtime_test",
+    size = "small",
+    srcs = ["decode_insert_runtime_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":decode_insert",
+        ":lut",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
