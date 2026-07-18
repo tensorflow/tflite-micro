@@ -16,6 +16,7 @@
 Provides a clean API for creating, reading, and modifying TFLite models.
 """
 
+import copy
 from dataclasses import dataclass, field
 from typing import Optional, Union, List
 import numpy as np
@@ -86,6 +87,25 @@ class Quantization:
       q.quantizedDimension = self.axis
 
     return q
+
+
+def _fields_equal(a, b) -> bool:
+  """Compare two values recursively, including flatbuffer objects.
+
+  Sequences compare elementwise. Objects with fields, such as the
+  schema's flatbuffer classes, compare field by field, so fields
+  unknown to this module still participate.
+  """
+  if isinstance(a, (list, tuple, np.ndarray)) and isinstance(
+      b, (list, tuple, np.ndarray)):
+    return np.array_equal(a, b)
+  if hasattr(a, '__dict__') and hasattr(b, '__dict__'):
+    if type(a) is not type(b):
+      return False
+    keys = vars(a).keys() | vars(b).keys()
+    return all(
+        _fields_equal(getattr(a, k, None), getattr(b, k, None)) for k in keys)
+  return a == b
 
 
 class Tensor:
@@ -214,6 +234,62 @@ class Tensor:
       self.buffer = Buffer(data=buf_data)
     else:
       self.buffer.data = buf_data
+
+  def copy(self, name: Optional[str] = None) -> 'Tensor':
+    """Return a copy of this tensor, sharing this tensor's buffer.
+
+    The copy duplicates every field, including those of the backing
+    TensorT, except that it references the same Buffer object as the
+    original and has no index until added to a subgraph. Assign None
+    to the copy's buffer for a tensor with no data.
+
+    Args:
+        name: Optional name for the copy. If None, the copy keeps this
+              tensor's name.
+
+    Returns:
+        A new Tensor duplicating this one.
+    """
+    # Seed the memo so the deepcopy preserves buffer identity: sharing
+    # is by Buffer object, and a duplicate would compile to a duplicate
+    # buffer table entry.
+    memo = {id(self.buffer): self.buffer}
+    duplicate = copy.deepcopy(self, memo)
+    duplicate._index = None
+    if name is not None:
+      duplicate.name = name
+    return duplicate
+
+  def equal(self, other: 'Tensor') -> bool:
+    """Return True if this tensor equals other, field by field.
+
+    Compare the backing TensorTs recursively, so fields this module
+    does not manage still participate, plus quantization and buffer.
+    Buffers compare by identity, mirroring how the model expresses
+    sharing: tensors referencing distinct but byte-identical Buffers
+    compile to distinct buffer table entries and are not equal. The
+    tensors' positions in any subgraph do not participate.
+
+    Args:
+        other: The tensor to compare against.
+
+    Returns:
+        True if the tensors are equal.
+    """
+    if self.buffer is not other.buffer:
+      return False
+    if self.quantization != other.quantization:
+      return False
+    # Exclude the TensorT fields mirrored by the wrapper attributes
+    # compared above: buffer, an index assigned at build time, and
+    # quantization, which build() syncs from the wrapper attribute.
+    # Comparing the raw fields too would misreport tensors of mixed
+    # provenance, read versus constructed.
+    excluded = ('buffer', 'quantization')
+    keys = vars(self._fb).keys() | vars(other._fb).keys()
+    return all(
+        _fields_equal(getattr(self._fb, k, None), getattr(other._fb, k, None))
+        for k in keys if k not in excluded)
 
   @property
   def index(self) -> Optional[int]:

@@ -828,6 +828,103 @@ class TestSubgraphInputsOutputs(unittest.TestCase):
       model.subgraphs[0].tensor_by_name("nonexistent")
 
 
+class TestTensorCopy(unittest.TestCase):
+  """Tests for Tensor.copy()."""
+
+  def _original(self):
+    return Tensor(
+        shape=(2, 2),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2], [3, 4]], dtype=np.int8),
+        name="original",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+
+  def test_copy_shares_buffer(self):
+    """The copy references the same Buffer object as the original."""
+    original = self._original()
+    duplicate = original.copy()
+
+    self.assertIsNot(duplicate, original)
+    self.assertIs(duplicate.buffer, original.buffer)
+
+  def test_copy_is_independent(self):
+    """Mutating the copy leaves the original untouched."""
+    original = self._original()
+    duplicate = original.copy(name="duplicate")
+    self.assertEqual(duplicate.quantization, original.quantization)
+
+    duplicate.shape = (4, )
+    duplicate.dtype = tflite.TensorType.UINT8
+    duplicate.quantization.scales = 2.0
+
+    self.assertEqual(duplicate.name, "duplicate")
+    self.assertEqual(original.name, "original")
+    self.assertEqual(original.shape, (2, 2))
+    self.assertEqual(original.dtype, tflite.TensorType.INT8)
+    self.assertEqual(original.quantization.scales, 0.5)
+
+
+class TestTensorEqual(unittest.TestCase):
+  """Tests for Tensor.equal()."""
+
+  def _original(self):
+    return Tensor(
+        shape=(2, 2),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2], [3, 4]], dtype=np.int8),
+        name="original",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+
+  def test_copy_equals_original(self):
+    """A copy sharing the original's buffer compares equal."""
+    original = self._original()
+    self.assertTrue(original.copy().equal(original))
+
+  def test_any_field_differing_is_unequal(self):
+    """A difference in any field, wrapper-managed or not, is unequal."""
+    original = self._original()
+
+    renamed = original.copy(name="renamed")
+    self.assertFalse(renamed.equal(original))
+
+    requantized = original.copy()
+    requantized.quantization.scales = 2.0
+    self.assertFalse(requantized.equal(original))
+
+    dataless = original.copy()
+    dataless.buffer = None
+    self.assertFalse(dataless.equal(original))
+
+    # Buffers compare by identity: equal bytes in a distinct Buffer
+    # still make a structurally different model
+    rebuffered = original.copy()
+    rebuffered.buffer = model_editor.Buffer(data=original.buffer.data)
+    self.assertFalse(rebuffered.equal(original))
+
+    variable = original.copy()
+    variable._fb.isVariable = True
+    self.assertFalse(variable.equal(original))
+
+  def test_backing_quantization_details_excluded(self):
+    """Quantization held only by the backing TensorT does not
+    participate.
+
+    equal() compares quantization at the wrapper level, where scale,
+    zero point, and axis live; min, max, and details carried only by
+    the backing TensorT are excluded by design.
+    """
+    scratch = Model(subgraphs=[Subgraph(tensors=[self._original()])])
+    fb = bytes(scratch.build())
+    t1 = model_editor.read(fb).subgraphs[0].tensor_by_name("original")
+
+    t2 = t1.copy()
+    t2._fb.quantization.min = [-1.0]
+
+    self.assertTrue(t1.equal(t2))
+
+
 class TestReadEdgeCases(unittest.TestCase):
   """Test model_editor.read() with edge cases from real-world models.
 
@@ -1110,6 +1207,25 @@ class TestFieldPreservation(unittest.TestCase):
     # Verify field preserved
     model_t2 = tflite.ModelT.InitFromPackedBuf(fb2, 0)
     self.assertTrue(model_t2.subgraphs[0].tensors[0].isVariable)
+
+  def test_tensor_copy_preserves_fields(self):
+    """Verify Tensor.copy() preserves fields model_editor doesn't manage."""
+    model_t = self._create_base_model()
+    model_t.subgraphs[0].tensors[0].isVariable = True
+
+    fb = self._build_model_with_schema(model_t)
+
+    model = model_editor.read(fb)
+    sg = model.subgraphs[0]
+    duplicate = sg.tensors[0].copy(name="copy")
+    sg.tensors.append(duplicate)
+    fb2 = model.build()
+
+    model_t2 = tflite.ModelT.InitFromPackedBuf(fb2, 0)
+    tensors = model_t2.subgraphs[0].tensors
+    self.assertEqual(tensors[-1].name, b"copy")
+    self.assertTrue(tensors[-1].isVariable)
+    self.assertEqual(tensors[-1].buffer, tensors[0].buffer)
 
   def test_tensor_shape_signature_preserved(self):
     """Verify Tensor.shapeSignature is preserved through read-modify-write."""
