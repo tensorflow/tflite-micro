@@ -597,6 +597,53 @@ class Model:
     return compiler.compile()
 
 
+def iter_tensors(model: Model):
+  """Yield every tensor in the model exactly once.
+
+  Walk the same sources the compiler collects from: each subgraph's
+  tensor list, inputs, outputs, and the tensors inline on operators.
+
+  Args:
+      model: The model whose tensors to yield.
+
+  Yields:
+      Each distinct Tensor in the model.
+  """
+  seen = set()
+  for sg in model.subgraphs:
+    sources = [sg.tensors, sg.inputs, sg.outputs]
+    sources.extend(op.inputs for op in sg.operators)
+    sources.extend(op.outputs for op in sg.operators)
+    for source in sources:
+      for tensor in source:
+        if id(tensor) not in seen:
+          seen.add(id(tensor))
+          yield tensor
+
+
+def dedupe_buffers(model: Model) -> None:
+  """Merge byte-identical buffers into one shared Buffer.
+
+  Repoint tensors whose buffers hold equal contents at a single
+  canonical Buffer object, the first encountered, mirroring the TfLite
+  converter's deduplication of identical constants. Leave tensors
+  marked is_variable alone: mutable data must not alias. Merged-away
+  buffers linger in model.buffers until pruned.
+
+  Args:
+      model: The model to modify in place.
+  """
+  canonical: dict[bytes, Buffer] = {}
+  for tensor in iter_tensors(model):
+    if tensor.buffer is None or tensor._fb.isVariable:
+      continue
+    existing = canonical.get(tensor.buffer.data)
+    if existing is None:
+      canonical[tensor.buffer.data] = tensor.buffer
+    else:
+      tensor.buffer = existing
+
+
 def read(buffer: bytes) -> Model:
   """Read a TFLite flatbuffer and return a Model object."""
   fb_model = tflite.ModelT.InitFromPackedBuf(buffer, 0)

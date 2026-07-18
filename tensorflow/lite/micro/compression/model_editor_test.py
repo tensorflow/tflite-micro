@@ -925,6 +925,74 @@ class TestTensorEqual(unittest.TestCase):
     self.assertTrue(t1.equal(t2))
 
 
+class TestDedupeBuffers(unittest.TestCase):
+  """Tests for dedupe_buffers()."""
+
+  @staticmethod
+  def _constant(name, values):
+    return Tensor(
+        shape=(4, ),
+        dtype=tflite.TensorType.INT8,
+        data=np.array(values, dtype=np.int8),
+        name=name,
+    )
+
+  def test_merges_identical_buffers_across_subgraphs(self):
+    """Byte-identical buffers converge on one canonical Buffer."""
+    c1 = self._constant("c1", [1, 2, 3, 4])
+    c2 = self._constant("c2", [1, 2, 3, 4])
+    model = Model(subgraphs=[
+        Subgraph(tensors=[c1]),
+        Subgraph(tensors=[c2]),
+    ])
+    self.assertIsNot(c1.buffer, c2.buffer)
+
+    model_editor.dedupe_buffers(model)
+
+    self.assertIs(c2.buffer, c1.buffer)
+
+    # The compiled model carries one buffer for both tensors, plus the
+    # conventional empty buffer 0
+    fb_model = tflite.ModelT.InitFromPackedBuf(bytes(model.build()), 0)
+    self.assertEqual(len(fb_model.buffers), 2)
+
+  def test_leaves_distinct_and_variable_buffers(self):
+    """Differing contents never merge; variable tensors never alias."""
+    c1 = self._constant("c1", [1, 2, 3, 4])
+    c2 = self._constant("c2", [5, 6, 7, 8])
+    variable = self._constant("v", [1, 2, 3, 4])
+    variable._fb.isVariable = True
+    model = Model(subgraphs=[Subgraph(tensors=[c1, c2, variable])])
+
+    model_editor.dedupe_buffers(model)
+
+    self.assertIsNot(c2.buffer, c1.buffer)
+    self.assertIsNot(variable.buffer, c1.buffer)
+
+  def test_reaches_inline_tensors(self):
+    """Tensors on operators, absent from the tensor list, participate."""
+    listed = self._constant("listed", [1, 2, 3, 4])
+    inline = self._constant("inline", [1, 2, 3, 4])
+    output_t = Tensor(shape=(4, ), dtype=tflite.TensorType.INT8, name="out")
+    model = Model(subgraphs=[
+        Subgraph(
+            tensors=[listed],
+            operators=[
+                Operator(
+                    opcode=tflite.BuiltinOperator.ADD,
+                    inputs=[listed, inline],
+                    outputs=[output_t],
+                )
+            ],
+            outputs=[output_t],
+        )
+    ])
+
+    model_editor.dedupe_buffers(model)
+
+    self.assertIs(inline.buffer, listed.buffer)
+
+
 class TestReadEdgeCases(unittest.TestCase):
   """Test model_editor.read() with edge cases from real-world models.
 
