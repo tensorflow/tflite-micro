@@ -528,19 +528,14 @@ class TestDecodeInsertion(unittest.TestCase):
         quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     weights2 = model_editor.Tensor(
-        shape=(1, 4),
+        shape=(2, 4),
         dtype=tflite.TensorType.INT8,
-        data=np.ones((1, 4), dtype=np.int8),
+        data=np.ones((2, 4), dtype=np.int8),
         name="weights2",
         quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
-    input_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name="input",
-    )
     output_t = model_editor.Tensor(
-        shape=(1, 4),
+        shape=(6, 4),
         dtype=tflite.TensorType.INT8,
         name="output",
     )
@@ -550,11 +545,12 @@ class TestDecodeInsertion(unittest.TestCase):
             tensors=[weights1, weights2],
             operators=[
                 model_editor.Operator(
-                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                    inputs=[input_t, weights1, weights2],
+                    opcode=tflite.BuiltinOperator.CONCATENATION,
+                    inputs=[weights1, weights2],
                     outputs=[output_t],
                 )
             ],
+            outputs=[output_t],
         )
     ])
     sg = model.subgraphs[0]
@@ -574,20 +570,21 @@ class TestDecodeInsertion(unittest.TestCase):
 
     decode_insert.insert_decode_operators(model, compression_results)
 
-    # One DECODE with two encoded/ancillary pairs, inserted before the FC
+    # One DECODE with two encoded/ancillary pairs, inserted before the
+    # CONCATENATION
     self.assertEqual(len(sg.operators), 2)
     decode_op = sg.operators[0]
-    fc_op = sg.operators[1]
+    concat_op = sg.operators[1]
     self.assertEqual(decode_op.opcode, tflite.BuiltinOperator.CUSTOM)
-    self.assertEqual(fc_op.opcode, tflite.BuiltinOperator.FULLY_CONNECTED)
+    self.assertEqual(concat_op.opcode, tflite.BuiltinOperator.CONCATENATION)
     self.assertEqual(len(decode_op.inputs), 4)
     self.assertEqual(len(decode_op.outputs), 2)
     self.assertIs(decode_op.inputs[0], weights1)
     self.assertIs(decode_op.inputs[2], weights2)
 
     # The consumer reads each decoded tensor from its original position
-    self.assertIs(fc_op.inputs[1], decode_op.outputs[0])
-    self.assertIs(fc_op.inputs[2], decode_op.outputs[1])
+    self.assertIs(concat_op.inputs[0], decode_op.outputs[0])
+    self.assertIs(concat_op.inputs[1], decode_op.outputs[1])
 
   def test_multiple_output_tensors_share_one_decode(self):
     """All compressed subgraph outputs are decoded by a single DECODE."""
