@@ -11,7 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for DECODE operator insertion."""
+"""Unit tests for DECODE operator insertion.
+
+The models these tests build are structural fixtures for exercising
+insertion, not fully valid, runnable models. Likewise the compression
+payloads are dummies: sized and structured plausibly, but not data
+that decodes to the models' tensor contents. Insertion treats both as
+opaque structure, so the tests do not depend on their validity.
+"""
 
 import warnings
 
@@ -206,14 +213,29 @@ def _build_shared_buffer_model(subgraph_count):
   return model_editor.Model(subgraphs=subgraphs)
 
 
-def _make_dummy_ancillary_data() -> bytes:
-  """Create dummy ancillary data for testing."""
+def _make_dummy_compression_result(
+    element_count=16,
+    bitwidth=1,
+    value_table=b'\x01',
+) -> compressor.CompressionResult:
+  """Create a CompressionResult with plausible dummy payloads.
+
+  The ancillary data carries a LUT DCM describing the given index
+  bitwidth and value table, and the encoded data is sized for
+  element_count indices at that bitwidth. Tests pass values consistent
+  with the tensor they compress, but the payloads remain dummies (all
+  indices zero) that do not decode to the tensor's contents.
+  """
   dcm = decode.DecodeCommonMetadata(
       decode_type=decode.DecodeType.LUT,
-      user_data=b'\x01\x04\x10' + b'\x00' * 9,  # lut_version, bitwidth, stride
+      # lut_version, index bitwidth, value table stride in elements
+      user_data=bytes([1, bitwidth, len(value_table)]) + b'\x00' * 9,
   )
-  value_tables = bytes([1, 2, 3, 4] + [0] * 12)  # 16-byte padded table
-  return dcm.to_bytes() + value_tables
+  encoded_data = bytes((element_count * bitwidth + 7) // 8)
+  return compressor.CompressionResult(
+      encoded_data=encoded_data,
+      ancillary_data=dcm.to_bytes() + value_table,
+  )
 
 
 class TestDecodeInsertion(unittest.TestCase):
@@ -226,10 +248,8 @@ class TestDecodeInsertion(unittest.TestCase):
     # Create compression result
     compression_results = {
         (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04')
     }
 
     # Insert DECODE operators
@@ -252,10 +272,8 @@ class TestDecodeInsertion(unittest.TestCase):
 
     compression_results = {
         (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04')
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -282,10 +300,8 @@ class TestDecodeInsertion(unittest.TestCase):
 
     compression_results = {
         (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04')
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -308,10 +324,8 @@ class TestDecodeInsertion(unittest.TestCase):
 
     compression_results = {
         (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04')
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -328,13 +342,7 @@ class TestDecodeInsertion(unittest.TestCase):
     """Tensor used by multiple ops gets separate DECODE for each consumer."""
     model = _build_shared_weights_model()
 
-    compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
-    }
+    compression_results = {(0, 0): _make_dummy_compression_result()}
 
     decode_insert.insert_decode_operators(model, compression_results)
 
@@ -368,19 +376,8 @@ class TestDecodeInsertion(unittest.TestCase):
     """Tensors sharing a Buffer get ancillary tensors sharing a Buffer."""
     model = _build_shared_buffer_model(subgraph_count=2)
 
-    ancillary_data = _make_dummy_ancillary_data()
-    compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=ancillary_data,
-        ),
-        (1, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=ancillary_data,
-        ),
-    }
+    result = _make_dummy_compression_result()
+    compression_results = {(0, 0): result, (1, 0): result}
 
     decode_insert.insert_decode_operators(model, compression_results)
 
@@ -424,19 +421,8 @@ class TestDecodeInsertion(unittest.TestCase):
             outputs=[output_t],
         ))
 
-    ancillary_data = _make_dummy_ancillary_data()
-    compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=ancillary_data,
-        ),
-        (0, 1):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=ancillary_data,
-        ),
-    }
+    result = _make_dummy_compression_result()
+    compression_results = {(0, 0): result, (0, 1): result}
 
     decode_insert.insert_decode_operators(model, compression_results)
 
@@ -455,13 +441,7 @@ class TestDecodeInsertion(unittest.TestCase):
     table = sg.tensor_by_name("table")
     original_first_output = sg.outputs[0]
 
-    compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
-    }
+    compression_results = {(0, 0): _make_dummy_compression_result()}
 
     decode_insert.insert_decode_operators(model, compression_results)
 
@@ -490,10 +470,8 @@ class TestDecodeInsertion(unittest.TestCase):
 
     compression_results = {
         (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04')
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -556,16 +534,8 @@ class TestDecodeInsertion(unittest.TestCase):
     sg = model.subgraphs[0]
 
     compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        ),
-        (0, 1):
-        compressor.CompressionResult(
-            encoded_data=b'\x01\x01',
-            ancillary_data=_make_dummy_ancillary_data(),
-        ),
+        (0, 0): _make_dummy_compression_result(element_count=16),
+        (0, 1): _make_dummy_compression_result(element_count=8),
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -618,16 +588,8 @@ class TestDecodeInsertion(unittest.TestCase):
     sg = model.subgraphs[0]
 
     compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        ),
-        (0, 1):
-        compressor.CompressionResult(
-            encoded_data=b'\x01\x01',
-            ancillary_data=_make_dummy_ancillary_data(),
-        ),
+        (0, 0): _make_dummy_compression_result(element_count=16),
+        (0, 1): _make_dummy_compression_result(element_count=4),
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -649,14 +611,9 @@ class TestDecodeInsertion(unittest.TestCase):
     """Ancillary tensor data contains valid DCM header."""
     model = _build_simple_fc_model()
 
-    ancillary_data = _make_dummy_ancillary_data()
-    compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=ancillary_data,
-        )
-    }
+    result = _make_dummy_compression_result(bitwidth=2,
+                                            value_table=b'\x01\x02\x03\x04')
+    compression_results = {(0, 0): result}
 
     decode_insert.insert_decode_operators(model, compression_results)
 
@@ -664,7 +621,7 @@ class TestDecodeInsertion(unittest.TestCase):
     ancillary_tensor = decode_op.inputs[1]
 
     # Ancillary tensor data should match what we provided
-    self.assertEqual(bytes(ancillary_tensor.array), ancillary_data)
+    self.assertEqual(bytes(ancillary_tensor.array), result.ancillary_data)
 
     # Verify DCM header
     dcm_bytes = bytes(ancillary_tensor.array[:16])
@@ -713,13 +670,7 @@ class TestDecodeInsertion(unittest.TestCase):
     ])
 
     # Compress the unused tensor
-    compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
-    }
+    compression_results = {(0, 0): _make_dummy_compression_result()}
 
     with warnings.catch_warnings(record=True) as w:
       warnings.simplefilter("always")
@@ -739,10 +690,8 @@ class TestDecodeInsertion(unittest.TestCase):
 
     compression_results = {
         (0, 0):
-        compressor.CompressionResult(
-            encoded_data=b'\x00\x00',
-            ancillary_data=_make_dummy_ancillary_data(),
-        )
+        _make_dummy_compression_result(bitwidth=2,
+                                       value_table=b'\x01\x02\x03\x04')
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -764,7 +713,7 @@ class TestDecodeInsertion(unittest.TestCase):
         (0, 0):
         compressor.CompressionResult(
             encoded_data=encoded_data,
-            ancillary_data=_make_dummy_ancillary_data(),
+            ancillary_data=_make_dummy_compression_result().ancillary_data,
         )
     }
 
