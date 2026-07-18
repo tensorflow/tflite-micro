@@ -644,6 +644,32 @@ def dedupe_buffers(model: Model) -> None:
       tensor.buffer = existing
 
 
+def prune_buffers(model: Model) -> None:
+  """Drop buffers that no tensor references from model.buffers.
+
+  Rebuild the buffer list with only the conventional empty buffer 0
+  and the buffers some tensor references, renumbering indices. A model
+  built from scratch keeps an empty buffer list and the compiler emits
+  only referenced buffers, so pruning matters for models from read(),
+  whose buffer list the compiler preserves wholesale.
+
+  Args:
+      model: The model to modify in place.
+  """
+  if not model.buffers:
+    return
+  referenced = {
+      id(tensor.buffer)
+      for tensor in iter_tensors(model) if tensor.buffer is not None
+  }
+  survivors = _BufferList()
+  survivors.append(model.buffers[0])
+  for buffer in model.buffers[1:]:
+    if id(buffer) in referenced:
+      survivors.append(buffer)
+  model.buffers = survivors
+
+
 def read(buffer: bytes) -> Model:
   """Read a TFLite flatbuffer and return a Model object."""
   fb_model = tflite.ModelT.InitFromPackedBuf(buffer, 0)

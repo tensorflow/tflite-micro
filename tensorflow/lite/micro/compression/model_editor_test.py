@@ -993,6 +993,79 @@ class TestDedupeBuffers(unittest.TestCase):
     self.assertIs(inline.buffer, listed.buffer)
 
 
+class TestPruneBuffers(unittest.TestCase):
+  """Tests for prune_buffers()."""
+
+  @staticmethod
+  def _read_model_with_two_constants(metadata=None):
+    c1 = Tensor(
+        shape=(4, ),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([1, 2, 3, 4], dtype=np.int8),
+        name="c1",
+    )
+    c2 = Tensor(
+        shape=(4, ),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([5, 6, 7, 8], dtype=np.int8),
+        name="c2",
+    )
+    scratch = Model(subgraphs=[Subgraph(tensors=[c1, c2])], metadata=metadata)
+    return model_editor.read(bytes(scratch.build()))
+
+  def test_drops_unreferenced_buffers(self):
+    """Orphaned buffers vanish; surviving data and indices stay right."""
+    model = self._read_model_with_two_constants()
+    self.assertEqual(len(model.buffers), 3)
+    sg = model.subgraphs[0]
+
+    # Orphan c1's buffer by repointing the tensor at c2's. The
+    # surviving buffer then changes position, exercising renumbering.
+    sg.tensor_by_name("c1").buffer = sg.tensor_by_name("c2").buffer
+
+    model_editor.prune_buffers(model)
+
+    self.assertEqual(len(model.buffers), 2)
+    roundtrip = model_editor.read(bytes(model.build()))
+    rt_sg = roundtrip.subgraphs[0]
+    np.testing.assert_array_equal(
+        rt_sg.tensor_by_name("c1").array, [5, 6, 7, 8])
+    np.testing.assert_array_equal(
+        rt_sg.tensor_by_name("c2").array, [5, 6, 7, 8])
+
+  def test_keeps_referenced_buffers(self):
+    """With every buffer referenced, pruning removes nothing."""
+    model = self._read_model_with_two_constants()
+    count_before = len(model.buffers)
+
+    model_editor.prune_buffers(model)
+
+    self.assertEqual(len(model.buffers), count_before)
+
+  def test_metadata_survives_pruning(self):
+    """Metadata, carried outside tensor buffers, is unaffected."""
+    model = self._read_model_with_two_constants(metadata={"m": b"payload"})
+
+    model_editor.prune_buffers(model)
+
+    roundtrip = model_editor.read(bytes(model.build()))
+    self.assertEqual(roundtrip.metadata["m"], b"payload")
+
+  def test_noop_on_scratch_model(self):
+    """A from-scratch model has no buffer list to prune."""
+    c1 = Tensor(shape=(4, ),
+                dtype=tflite.TensorType.INT8,
+                data=np.array([1, 2, 3, 4], dtype=np.int8),
+                name="c1")
+    model = Model(subgraphs=[Subgraph(tensors=[c1])])
+
+    model_editor.prune_buffers(model)
+
+    roundtrip = model_editor.read(bytes(model.build()))
+    np.testing.assert_array_equal(
+        roundtrip.subgraphs[0].tensor_by_name("c1").array, [1, 2, 3, 4])
+
+
 class TestReadEdgeCases(unittest.TestCase):
   """Test model_editor.read() with edge cases from real-world models.
 
