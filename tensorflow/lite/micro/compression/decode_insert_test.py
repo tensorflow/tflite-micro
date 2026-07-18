@@ -359,6 +359,8 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertIs(fc_op2.inputs[1], decode_op2.outputs[0])
     # The two DECODEs should have different outputs
     self.assertIsNot(decode_op1.outputs[0], decode_op2.outputs[0])
+    # The two DECODEs should share the same encoded tensor
+    self.assertIs(decode_op1.inputs[0], decode_op2.inputs[0])
     # The two DECODEs should share the same ancillary tensor
     self.assertIs(decode_op1.inputs[1], decode_op2.inputs[1])
 
@@ -509,6 +511,9 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertIs(fc_op.inputs[1], consumer_decode.outputs[0])
     self.assertIs(sg.outputs[1], output_decode.outputs[0])
     self.assertIsNot(consumer_decode.outputs[0], output_decode.outputs[0])
+
+    # Both DECODEs share the encoded tensor
+    self.assertIs(consumer_decode.inputs[0], output_decode.inputs[0])
 
     # Both DECODEs share the ancillary tensor
     self.assertIs(consumer_decode.inputs[1], output_decode.inputs[1])
