@@ -223,13 +223,15 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(decode_op.inputs[1].dtype, tflite.TensorType.UINT8)
 
   def test_decode_output_structure(self):
-    """DECODE operator output has correct shape and dtype."""
+    """DECODE operator output is a data-less copy of the original."""
     model = _build_simple_fc_model()
     weights_tensor = model.subgraphs[0].tensor_by_name("weights")
 
-    # Save original properties before rewrite
-    original_shape = weights_tensor.shape
-    original_dtype = weights_tensor.dtype
+    # Snapshot what the output must look like before insertion rewrites
+    # the original into the encoded tensor: a copy of the original,
+    # renamed, with no data.
+    expected = weights_tensor.copy(name="weights_decoded")
+    expected.buffer = None
 
     compression_results = {
         (0, 0):
@@ -241,12 +243,16 @@ class TestDecodeInsertion(unittest.TestCase):
 
     decode_insert.insert_decode_operators(model, compression_results)
 
-    decode_op = model.subgraphs[0].operators[0]
-    output = decode_op.outputs[0]
+    output = model.subgraphs[0].operators[0].outputs[0]
 
-    # Output matches original (pre-rewrite) tensor shape and dtype
-    self.assertEqual(output.shape, original_shape)
-    self.assertEqual(output.dtype, original_dtype)
+    # Output has no data; DECODE produces the values at runtime
+    self.assertIsNone(output.buffer)
+    self.assertIsNone(output.array)
+
+    # Output matches the expected copy in every field, present or
+    # future; the new name and cleared buffer are part of the
+    # expectation, not exclusions
+    self.assertTrue(output.equal(expected))
 
   def test_consumer_rewired_to_decode_output(self):
     """FC operator input rewired to use DECODE output."""

@@ -87,9 +87,9 @@ def _create_output_tensor(
     original_tensor: model_editor.Tensor, ) -> model_editor.Tensor:
   """Create the output tensor for a DECODE operator.
 
-  The output tensor has the same shape, dtype, and quantization as the
-  original tensor would have when decoded. It has no data---the DECODE
-  operator produces its values at runtime.
+  The output tensor is a copy of the original tensor, differing only in
+  name and in having no data: the DECODE operator produces the values
+  at runtime.
 
   Args:
     original_tensor: The original tensor being decoded.
@@ -101,12 +101,9 @@ def _create_output_tensor(
   if original_tensor.name:
     name = f"{original_tensor.name}_decoded"
 
-  return model_editor.Tensor(
-      shape=original_tensor.shape,
-      dtype=original_tensor.dtype,
-      quantization=original_tensor.quantization,
-      name=name,
-  )
+  tensor = original_tensor.copy(name=name)
+  tensor.buffer = None
+  return tensor
 
 
 def _rewire_consumers(
