@@ -524,6 +524,17 @@ class Subgraph:
         return t
     raise KeyError(f"No tensor named {name!r}")
 
+  def consumers_of(self, tensor: Tensor) -> List[Operator]:
+    """Find the operators in this subgraph that read a tensor.
+
+    Args:
+      tensor: The tensor whose consumers to find.
+
+    Returns:
+      The operators, in subgraph order, with tensor among their inputs.
+    """
+    return [op for op in self.operators if tensor in op.inputs]
+
   @property
   def index(self) -> Optional[int]:
     """Subgraph index in the model's subgraph list.

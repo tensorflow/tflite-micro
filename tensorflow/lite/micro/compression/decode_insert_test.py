@@ -772,19 +772,5 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(weights_tensor.buffer.data, encoded_data)
 
 
-class TestHelperFunctions(unittest.TestCase):
-  """Tests for internal helper functions."""
-
-  def test_find_tensor_consumers(self):
-    """_find_tensor_consumers finds all ops using a tensor."""
-    model = _build_shared_weights_model()
-    sg = model.subgraphs[0]
-    weights = sg.tensor_by_name("shared_weights")
-
-    consumers = decode_insert._find_tensor_consumers(sg, weights)
-
-    self.assertEqual(len(consumers), 2)
-
-
 if __name__ == "__main__":
   unittest.main()

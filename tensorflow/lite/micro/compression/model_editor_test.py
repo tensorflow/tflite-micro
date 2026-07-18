@@ -827,6 +827,46 @@ class TestSubgraphInputsOutputs(unittest.TestCase):
     with self.assertRaises(KeyError):
       model.subgraphs[0].tensor_by_name("nonexistent")
 
+  def test_consumers_of(self):
+    """consumers_of finds the operators reading a tensor, in order."""
+    shared = Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="shared",
+    )
+    input1 = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input1")
+    input2 = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input2")
+    output1 = Tensor(shape=(1, 4),
+                     dtype=tflite.TensorType.INT8,
+                     name="output1")
+    output2 = Tensor(shape=(1, 4),
+                     dtype=tflite.TensorType.INT8,
+                     name="output2")
+
+    fc1 = Operator(
+        opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+        inputs=[input1, shared],
+        outputs=[output1],
+    )
+    only_produces = Operator(
+        opcode=tflite.BuiltinOperator.RESHAPE,
+        inputs=[output1],
+        outputs=[output2],
+    )
+    fc2 = Operator(
+        opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+        inputs=[output2, shared],
+        outputs=[Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8)],
+    )
+    sg = Subgraph(tensors=[shared],
+                  operators=[fc1, only_produces, fc2],
+                  inputs=[input1, input2])
+
+    self.assertEqual(sg.consumers_of(shared), [fc1, fc2])
+    self.assertEqual(sg.consumers_of(input1), [fc1])
+    self.assertEqual(sg.consumers_of(input2), [])
+
 
 class TestTensorCopy(unittest.TestCase):
   """Tests for Tensor.copy()."""

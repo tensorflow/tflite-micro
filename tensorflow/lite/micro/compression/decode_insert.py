@@ -46,18 +46,6 @@ class _CompressedTensorInfo:
   is_output: bool
 
 
-def _find_tensor_consumers(
-    subgraph: model_editor.Subgraph,
-    tensor: model_editor.Tensor,
-) -> list[model_editor.Operator]:
-  """Find all operators in subgraph that use tensor as an input."""
-  consumers = []
-  for op in subgraph.operators:
-    if tensor in op.inputs:
-      consumers.append(op)
-  return consumers
-
-
 def _create_ancillary_tensor(
     ancillary_data: bytes,
     original_tensor: model_editor.Tensor,
@@ -240,7 +228,7 @@ def insert_decode_operators(
   for (sg_idx, tensor_idx), result in compression_results.items():
     subgraph = model.subgraphs[sg_idx]
     tensor = subgraph.tensors[tensor_idx]
-    consumers = _find_tensor_consumers(subgraph, tensor)
+    consumers = subgraph.consumers_of(tensor)
     is_output = tensor in subgraph.outputs
 
     if not consumers and not is_output:
