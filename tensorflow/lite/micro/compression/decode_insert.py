@@ -126,7 +126,9 @@ def _rewrite_encoded_tensor(
 
   The original tensor contained uncompressed values with quantization. After
   compression, it holds packed indices (or other encoded form) as raw bytes.
-  This function updates the tensor in place to reflect its new role.
+  The tensor receives a fresh Buffer, leaving the original buffer and any
+  tensors aliasing it untouched; identical encodings converge again in the
+  final deduplication pass.
 
   Args:
     tensor: The tensor to rewrite.
@@ -135,7 +137,52 @@ def _rewrite_encoded_tensor(
   tensor.shape = (len(encoded_data), )
   tensor.dtype = tflite.TensorType.UINT8
   tensor.quantization = None
-  tensor.buffer.data = encoded_data
+  tensor.buffer = model_editor.Buffer(data=encoded_data)
+
+
+def _drop_partially_covered_buffers(
+    model: model_editor.Model,
+    compression_results: dict[tuple[int, int], compressor.CompressionResult],
+) -> dict[tuple[int, int], compressor.CompressionResult]:
+  """Drop compressed tensors whose buffer an uncompressed tensor shares.
+
+  The uncompressed tensor keeps the original data in the model, so
+  compressing any alias of its buffer adds encoded data, ancillary
+  data, and DECODE latency without reducing model size. Warn and
+  return the results without the dropped entries.
+
+  Args:
+    model: The model the results apply to.
+    compression_results: Map from (subgraph_idx, tensor_idx) to
+                         CompressionResult.
+
+  Returns:
+    compression_results, minus entries for partially covered buffers.
+  """
+  coordinates = {
+      id(model.subgraphs[s].tensors[t]): (s, t)
+      for (s, t) in compression_results
+  }
+  by_buffer: dict[int, list[model_editor.Tensor]] = defaultdict(list)
+  for tensor in model_editor.iter_tensors(model):
+    if tensor.buffer is not None:
+      by_buffer[id(tensor.buffer)].append(tensor)
+
+  results = dict(compression_results)
+  for aliases in by_buffer.values():
+    covered = [t for t in aliases if id(t) in coordinates]
+    if covered and len(covered) < len(aliases):
+      uncovered = [t for t in aliases if id(t) not in coordinates]
+      warnings.warn(
+          f"Not compressing tensor(s) "
+          f"{[t.name for t in covered]}: sharing a buffer with "
+          f"uncompressed tensor(s) {[t.name for t in uncovered]}, whose "
+          "data stays in the model, so compression cannot reduce model "
+          "size.",
+          stacklevel=3)
+      for tensor in covered:
+        del results[coordinates[id(tensor)]]
+  return results
 
 
 def insert_decode_operators(
@@ -177,11 +224,24 @@ def insert_decode_operators(
   operator, and their output list entries are rewired to the decoded
   values, which no other DECODE runs late enough to overwrite.
 
+  Distinct tensors can share one buffer, in the same or different
+  subgraphs, where the converter deduplicated identical constants.
+  Compressed tensors sharing a buffer with uncompressed tensors are
+  skipped with a warning: the uncompressed data must stay in the model,
+  so compressing an alias cannot reduce model size. Otherwise each
+  rewritten tensor and ancillary tensor receives its own buffer, and a
+  final deduplication pass merges byte-identical buffers and prunes
+  unreferenced ones, preserving the converter's sharing wherever
+  compression results allow and dissolving it where they diverge.
+
   Args:
     model: The model to modify in-place.
     compression_results: Map from (subgraph_idx, tensor_idx) to the
                          CompressionResult containing ancillary_data.
   """
+  compression_results = _drop_partially_covered_buffers(
+      model, compression_results)
+
   # Group compressed tensors by subgraph
   by_subgraph: dict[int, list[_CompressedTensorInfo]] = defaultdict(list)
 
@@ -214,26 +274,22 @@ def insert_decode_operators(
   for sg_idx, tensor_infos in by_subgraph.items():
     subgraph = model.subgraphs[sg_idx]
 
-    # Cache ancillary tensors by original tensor to avoid duplicates. Each
-    # DECODE needs its own output tensor, but ancillary data is identical for
-    # all DECODEs of the same compressed tensor.
-    ancillary_cache: dict[model_editor.Tensor, model_editor.Tensor] = {}
+    # Cache ancillary tensors by content to avoid duplicates within
+    # this subgraph. Each DECODE needs its own output tensor, but
+    # DECODEs whose ancillary data coincides can read one tensor.
+    ancillary_cache: dict[bytes, model_editor.Tensor] = {}
 
     # Track tensors to rewrite after all output tensors are created, since
     # _create_output_tensor reads the original tensor's shape/dtype/quantization.
     tensors_to_rewrite: dict[model_editor.Tensor, bytes] = {}
 
     def ancillary_for(info: _CompressedTensorInfo) -> model_editor.Tensor:
-      """Reuse or create the ancillary tensor for info's tensor.
-
-      First use also schedules the original tensor's rewrite to encoded data.
-      """
-      ancillary = ancillary_cache.get(info.tensor)
+      """Reuse or create the ancillary tensor for info's ancillary data."""
+      ancillary = ancillary_cache.get(info.ancillary_data)
       if ancillary is None:
         ancillary = _create_ancillary_tensor(info.ancillary_data, info.tensor)
         subgraph.tensors.append(ancillary)
-        ancillary_cache[info.tensor] = ancillary
-        tensors_to_rewrite[info.tensor] = info.encoded_data
+        ancillary_cache[info.ancillary_data] = ancillary
       return ancillary
 
     def build_decode(
@@ -248,6 +304,7 @@ def insert_decode_operators(
       outputs = []
       for info in infos:
         ancillary_tensor = ancillary_for(info)
+        tensors_to_rewrite[info.tensor] = info.encoded_data
         decoded = _create_output_tensor(info.tensor)
         subgraph.tensors.append(decoded)
         inputs.extend([info.tensor, ancillary_tensor])
@@ -300,3 +357,9 @@ def insert_decode_operators(
     # Rewrite encoded tensors after all output tensors are created
     for tensor, encoded_data in tensors_to_rewrite.items():
       _rewrite_encoded_tensor(tensor, encoded_data)
+
+  # Every rewrite and ancillary tensor made a fresh buffer; converge
+  # byte-identical ones and drop those left unreferenced, preserving
+  # the sharing the converter created wherever results allow.
+  model_editor.dedupe_buffers(model)
+  model_editor.prune_buffers(model)

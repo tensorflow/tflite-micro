@@ -158,6 +158,49 @@ def _build_output_constant_model():
   return model
 
 
+def _build_shared_buffer_model(subgraph_count):
+  """Build subgraphs whose weights tensors all share one Buffer.
+
+  Models the TfLite converter's deduplication of identical constants:
+  distinct tensors, in the same or different subgraphs, backed by a
+  single Buffer.
+  """
+  shared = model_editor.Buffer(data=np.ones((4, 4), dtype=np.int8).tobytes())
+  subgraphs = []
+  for i in range(subgraph_count):
+    weights = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        buffer=shared,
+        name=f"weights{i}",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    input_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name=f"input{i}",
+    )
+    output_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name=f"output{i}",
+    )
+    subgraphs.append(
+        model_editor.Subgraph(
+            tensors=[weights],
+            operators=[
+                model_editor.Operator(
+                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                    inputs=[input_t, weights],
+                    outputs=[output_t],
+                )
+            ],
+            inputs=[input_t],
+            outputs=[output_t],
+        ))
+  return model_editor.Model(subgraphs=subgraphs)
+
+
 def _make_dummy_ancillary_data() -> bytes:
   """Create dummy ancillary data for testing."""
   dcm = decode.DecodeCommonMetadata(
@@ -315,6 +358,90 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertIsNot(decode_op1.outputs[0], decode_op2.outputs[0])
     # The two DECODEs should share the same ancillary tensor
     self.assertIs(decode_op1.inputs[1], decode_op2.inputs[1])
+
+  def test_ancillary_buffer_shared_across_subgraphs(self):
+    """Tensors sharing a Buffer get ancillary tensors sharing a Buffer."""
+    model = _build_shared_buffer_model(subgraph_count=2)
+
+    ancillary_data = _make_dummy_ancillary_data()
+    compression_results = {
+        (0, 0):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x00',
+            ancillary_data=ancillary_data,
+        ),
+        (1, 0):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x00',
+            ancillary_data=ancillary_data,
+        ),
+    }
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    decode0 = model.subgraphs[0].operators[0]
+    decode1 = model.subgraphs[1].operators[0]
+    encoded0, ancillary0 = decode0.inputs[0], decode0.inputs[1]
+    encoded1, ancillary1 = decode1.inputs[0], decode1.inputs[1]
+
+    # Tensors are per-subgraph; buffers are shared across subgraphs
+    self.assertIsNot(ancillary0, ancillary1)
+    self.assertIs(ancillary0.buffer, ancillary1.buffer)
+
+    # The encoded tensors keep sharing their original Buffer
+    self.assertIsNot(encoded0, encoded1)
+    self.assertIs(encoded0.buffer, encoded1.buffer)
+
+  def test_ancillary_tensor_shared_within_subgraph(self):
+    """Aliased tensors in one subgraph share one ancillary tensor."""
+    model = _build_shared_buffer_model(subgraph_count=1)
+    sg = model.subgraphs[0]
+
+    # Add a second tensor aliasing the weights buffer, with its own
+    # consumer; copy() shares the buffer, as converter dedup does
+    weights = sg.tensor_by_name("weights0")
+    alias = weights.copy(name="alias")
+    sg.tensors.append(alias)
+    input_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name="input_alias",
+    )
+    output_t = model_editor.Tensor(
+        shape=(1, 4),
+        dtype=tflite.TensorType.INT8,
+        name="output_alias",
+    )
+    sg.operators.append(
+        model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, alias],
+            outputs=[output_t],
+        ))
+
+    ancillary_data = _make_dummy_ancillary_data()
+    compression_results = {
+        (0, 0):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x00',
+            ancillary_data=ancillary_data,
+        ),
+        (0, 1):
+        compressor.CompressionResult(
+            encoded_data=b'\x00\x00',
+            ancillary_data=ancillary_data,
+        ),
+    }
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    # One DECODE before each consumer, sharing one ancillary tensor
+    decodes = [
+        op for op in sg.operators
+        if op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
+    ]
+    self.assertEqual(len(decodes), 2)
+    self.assertIs(decodes[0].inputs[1], decodes[1].inputs[1])
 
   def test_output_constant_gets_decode(self):
     """Compressed tensor in subgraph outputs gets DECODE appended last."""
