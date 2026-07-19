@@ -434,6 +434,37 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(len(decodes), 2)
     self.assertIs(decodes[0].inputs[1], decodes[1].inputs[1])
 
+  def test_insertion_on_read_model(self):
+    """Insertion works on a model read from a flatbuffer.
+
+    Unlike the from-scratch fixtures elsewhere in this file, a read
+    model carries a populated buffer list, so this exercises the
+    pruning of the buffer orphaned when compression rewrites the
+    weights tensor.
+    """
+    scratch = _build_simple_fc_model()
+    model = model_editor.read(bytes(scratch.build()))
+    weights_bytes = model.subgraphs[0].tensor_by_name("weights").buffer.data
+
+    result = _make_dummy_compression_result(bitwidth=2,
+                                            value_table=b'\x01\x02\x03\x04')
+    decode_insert.insert_decode_operators(model, {(0, 0): result})
+
+    final = model_editor.read(bytes(model.build()))
+    sg = final.subgraphs[0]
+    decode_op = sg.operators[0]
+    self.assertEqual(decode_op.custom_code,
+                     decode_insert.DECODE_CUSTOM_OP_NAME)
+    self.assertEqual(decode_op.inputs[0].buffer.data, result.encoded_data)
+    self.assertEqual(decode_op.inputs[1].buffer.data, result.ancillary_data)
+
+    # The original weights buffer, orphaned by the rewrite, is pruned:
+    # only the conventional empty buffer, the encoded data, and the
+    # ancillary data remain
+    self.assertEqual(len(final.buffers), 3)
+    for buffer in final.buffers:
+      self.assertNotEqual(buffer.data, weights_bytes)
+
   def test_divergent_aliases_dissolve_sharing(self):
     """Aliases whose compression results differ get separate buffers."""
     model = _build_shared_buffer_model(subgraph_count=2)
