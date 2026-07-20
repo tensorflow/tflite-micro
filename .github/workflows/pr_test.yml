@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: check-scope
         id: check-scope
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
