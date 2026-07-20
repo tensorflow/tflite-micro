@@ -166,7 +166,10 @@ TfLiteStatus CopyOpInputsToOpOutputs(TfLiteContext* context, TfLiteNode* node) {
     TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, i);
     int bytes = ValidateAndGetTensorSizes(input, output);
     TF_LITE_ENSURE(context, bytes >= 0);
-    memcpy(output->data.raw, input->data.raw, bytes);
+    // Don't copy if the tensors share memory
+    if (output->data.data != input->data.data) {
+      memcpy(output->data.data, input->data.data, bytes);
+    }
   }
   return kTfLiteOk;
 }
@@ -226,7 +229,10 @@ TfLiteStatus CopyOpInputsToSubgraphInputs(TfLiteContext* context,
         graph_info->GetSubgraphInput(subgraph_idx, i);
     int bytes = ValidateAndGetTensorSizes(input, subgraph_input);
     TF_LITE_ENSURE(context, bytes >= 0);
-    memcpy(subgraph_input->data.raw, input->data.raw, bytes);
+    // Don't copy if the tensors share memory
+    if (subgraph_input->data.data != input->data.data) {
+      memcpy(subgraph_input->data.data, input->data.data, bytes);
+    }
   }
   return kTfLiteOk;
 }
@@ -243,7 +249,10 @@ TfLiteStatus CopyOpOutputsToSubgraphInputs(TfLiteContext* context,
         graph_info->GetSubgraphInput(subgraph_idx, i);
     int bytes = ValidateAndGetTensorSizes(output, subgraph_input);
     TF_LITE_ENSURE(context, bytes >= 0);
-    memcpy(subgraph_input->data.raw, output->data.raw, bytes);
+    // Don't copy if the tensors share memory
+    if (subgraph_input->data.data != output->data.data) {
+      memcpy(subgraph_input->data.data, output->data.data, bytes);
+    }
   }
   return kTfLiteOk;
 }
@@ -261,7 +270,10 @@ TfLiteStatus CopySubgraphOutputsToOpOutputs(TfLiteContext* context,
         graph_info->GetSubgraphOutput(subgraph_idx, i);
     int bytes = ValidateAndGetTensorSizes(output, subgraph_output);
     TF_LITE_ENSURE(context, bytes >= 0);
-    memcpy(output->data.raw, subgraph_output->data.raw, bytes);
+    // Don't copy if the tensors share memory
+    if (output->data.data != subgraph_output->data.data) {
+      memcpy(output->data.data, subgraph_output->data.data, bytes);
+    }
   }
   return kTfLiteOk;
 }
