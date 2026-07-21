@@ -102,6 +102,11 @@ TfLiteStatus OverlapAddPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   params->frame_size = input_shape.Dims(input_shape.DimensionsCount() - 1);
   params->n_frames = input_shape.Dims(input_shape.DimensionsCount() - 2);
+  // Validate dimension values and op param to prevent OOB/divide-by-zero.
+  TF_LITE_ENSURE(context, params->frame_size > 0);
+  TF_LITE_ENSURE(context, params->n_frames > 0);
+  TF_LITE_ENSURE(context, params->frame_step > 0);
+  TF_LITE_ENSURE(context, params->frame_step <= params->frame_size);
   params->outer_dims =
       input_shape.FlatSize() / (params->frame_size * params->n_frames);
   params->state_buffers = static_cast<T**>(context->AllocatePersistentBuffer(

@@ -125,6 +125,17 @@ TfLiteStatus FilterBankSpectralSubtractionPrepare(TfLiteContext* context,
 
   auto* params =
       reinterpret_cast<TFLMSignalSpectralSubtractionParams*>(node->user_data);
+
+  // Validate that num_channels (from flexbuffer) matches all tensor sizes
+  // to prevent out-of-bounds access in FilterbankSpectralSubtraction.
+  const int input_elems = ElementCount(*input->dims);
+  const int output_elems = ElementCount(*output->dims);
+  const int noise_elems = ElementCount(*noise_estimate->dims);
+  TF_LITE_ENSURE(context, params->config.num_channels > 0);
+  TF_LITE_ENSURE_EQ(context, params->config.num_channels, input_elems);
+  TF_LITE_ENSURE_EQ(context, params->config.num_channels, output_elems);
+  TF_LITE_ENSURE_EQ(context, params->config.num_channels, noise_elems);
+
   TfLiteTypeSizeOf(output->type, &params->noise_estimate_size);
   params->noise_estimate_size *= ElementCount(*noise_estimate->dims);
 

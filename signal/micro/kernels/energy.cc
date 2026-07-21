@@ -78,6 +78,15 @@ TfLiteStatus EnergyPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteInt16);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteUInt32);
 
+  // Validate start_index/end_index against the input tensor size to prevent
+  // out-of-bounds access in SpectrumToEnergy (energy.cc uses Complex<int16_t>,
+  // so the element count in complex pairs is dims[0] / 2).
+  auto* params = reinterpret_cast<TFLMSignalEnergyParams*>(node->user_data);
+  const int input_elems = input->dims->data[0] / 2;  // complex pairs
+  TF_LITE_ENSURE(context, params->start_index >= 0);
+  TF_LITE_ENSURE(context, params->end_index > params->start_index);
+  TF_LITE_ENSURE(context, params->end_index <= input_elems);
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;

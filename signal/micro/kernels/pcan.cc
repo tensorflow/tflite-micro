@@ -81,6 +81,15 @@ TfLiteStatus PcanPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, gain_lut->type, kTfLiteInt16);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteUInt32);
 
+  // Validate that input/noise_estimate/output dimensions match to prevent
+  // out-of-bounds access in ApplyPcanAutoGainControlFixed.
+  const int input_elems = ElementCount(*input->dims);
+  const int noise_elems = ElementCount(*noise_estimate->dims);
+  const int output_elems = ElementCount(*output->dims);
+  TF_LITE_ENSURE(context, input_elems > 0);
+  TF_LITE_ENSURE_EQ(context, input_elems, noise_elems);
+  TF_LITE_ENSURE_EQ(context, input_elems, output_elems);
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(noise_estimate);
