@@ -123,14 +123,15 @@ py_library(
         "compress.py",
     ],
     deps = [
-        ":metadata_py",
+        ":compressor",
+        ":decode_insert",
+        ":huffman",
+        ":lut",
         ":model_editor",
+        ":pruning",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
         requirement("absl_py"),
-        requirement("flatbuffers"),
-        requirement("bitarray"),
-        requirement("numpy"),
     ],
 )
 
@@ -159,11 +160,53 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress",
-        ":metadata_py",
+        ":compressor",
+        ":decode_insert",
         ":model_editor",
         ":spec",
         "//tensorflow/lite/python:schema_py",
-        requirement("bitarray"),
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "compression_integration_test",
+    size = "small",
+    srcs = ["compression_integration_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":compress_lib",
+        ":decode_insert",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "proprietary_integration_test",
+    size = "small",
+    srcs = ["proprietary_integration_test.py"],
+    tags = [
+        "manual",
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":compress_lib",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -323,6 +366,55 @@ tflm_py_library(
         ":decode",
         ":model_editor",
         ":spec",
+    ],
+)
+
+tflm_py_library(
+    name = "decode_insert",
+    srcs = ["decode_insert.py"],
+    deps = [
+        ":compressor",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+tflm_py_test(
+    name = "decode_insert_test",
+    size = "small",
+    srcs = ["decode_insert_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":compressor",
+        ":decode",
+        ":decode_insert",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "decode_insert_runtime_test",
+    size = "small",
+    srcs = ["decode_insert_runtime_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":decode_insert",
+        ":lut",
+        ":model_editor",
+        ":spec",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
     ],
 )
 
