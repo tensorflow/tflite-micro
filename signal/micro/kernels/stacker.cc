@@ -112,9 +112,36 @@ TfLiteStatus StackerPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt16);
   TF_LITE_ENSURE_TYPES_EQ(context, output_valid->type, kTfLiteBool);
 
+  const int input_size = ElementCount(*input->dims);
+  const int output_size = ElementCount(*output->dims);
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   micro_context->DeallocateTempTfLiteTensor(output_valid);
+
+  // Validate the init-flexbuffer parameters in Prepare before they are used to
+  // size the circular buffer and to copy data, so inconsistent or overflowing
+  // values are rejected here rather than producing a zero/undersized buffer that
+  // is inconsistent with what StackerEval processes (CircularBufferWrite copies
+  // num_channels values per frame and the output receives buffer_size values).
+  auto* params = reinterpret_cast<TFLMSignalStackerParams*>(node->user_data);
+  TF_LITE_ENSURE(context, params != nullptr);
+  TF_LITE_ENSURE(context, params->num_channels > 0);
+  TF_LITE_ENSURE(context, params->stacker_left_context >= 0);
+  TF_LITE_ENSURE(context, params->stacker_right_context >= 0);
+  TF_LITE_ENSURE(context, params->stacker_step > 0);
+  TF_LITE_ENSURE(context, params->num_channels <= input_size);
+
+  // Recompute buffer_size in 64-bit to confirm the products did not overflow,
+  // then require the output to be large enough to receive it.
+  const int64_t frames = static_cast<int64_t>(params->stacker_left_context) +
+                         params->stacker_right_context + 1;
+  const int64_t buffer_size =
+      static_cast<int64_t>(params->num_channels) * frames;
+  TF_LITE_ENSURE(context,
+                 buffer_size == static_cast<int64_t>(params->buffer_size));
+  TF_LITE_ENSURE(context, buffer_size <= output_size);
+
   return kTfLiteOk;
 }
 

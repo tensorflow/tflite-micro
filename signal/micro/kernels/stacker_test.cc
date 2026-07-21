@@ -238,4 +238,25 @@ TEST(StackerTest, StackerTestReset10ChannelStep2_2ndTest) {
                            g_gen_data_size_stacker_10_channels_step_2);
 }
 
+
+// Regression test: an init flexbuffer with stacker_right_context = -1 makes
+// buffer_size = num_channels * (left + right + 1) = 0, an invalid configuration.
+// StackerPrepare must reject the inconsistent parameters with kTfLiteError so
+// Eval is never reached with a zero-capacity circular buffer.
+TEST(StackerTest, StackerInvalidParamsRejected) {
+  int input_shape[] = {1, 8};
+  int output_shape[] = {1, 8};
+  int output_ready_shape[] = {0};
+  const int16_t input[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+  int16_t output[8];
+  bool output_ready = false;
+  const unsigned char evil_flex[] = {110,117,109,95,99,104,97,110,110,101,108,115,0,115,116,97,99,107,101,114,95,108,101,102,116,95,99,111,110,116,101,120,116,0,115,116,97,99,107,101,114,95,114,105,103,104,116,95,99,111,110,116,101,120,116,0,115,116,97,99,107,101,114,95,115,116,101,112,0,4,70,58,38,17,4,1,4,8,0,255,1,4,4,4,4,8,36,1};
+  tflite::StackerKernelRunner stacker_runner(input_shape, input, output_shape,
+                                             output, output_ready_shape,
+                                             &output_ready);
+  EXPECT_EQ(kTfLiteError,
+            stacker_runner.kernel_runner()->InitAndPrepare(
+                reinterpret_cast<const char*>(evil_flex), sizeof(evil_flex)));
+}
+
 TF_LITE_MICRO_TESTS_MAIN
