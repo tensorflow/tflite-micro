@@ -16,6 +16,7 @@
 Provides a clean API for creating, reading, and modifying TFLite models.
 """
 
+import copy
 from dataclasses import dataclass, field
 from typing import Optional, Union, List
 import numpy as np
@@ -86,6 +87,25 @@ class Quantization:
       q.quantizedDimension = self.axis
 
     return q
+
+
+def _fields_equal(a, b) -> bool:
+  """Compare two values recursively, including flatbuffer objects.
+
+  Sequences compare elementwise. Objects with fields, such as the
+  schema's flatbuffer classes, compare field by field, so fields
+  unknown to this module still participate.
+  """
+  if isinstance(a, (list, tuple, np.ndarray)) and isinstance(
+      b, (list, tuple, np.ndarray)):
+    return np.array_equal(a, b)
+  if hasattr(a, '__dict__') and hasattr(b, '__dict__'):
+    if type(a) is not type(b):
+      return False
+    keys = vars(a).keys() | vars(b).keys()
+    return all(
+        _fields_equal(getattr(a, k, None), getattr(b, k, None)) for k in keys)
+  return a == b
 
 
 class Tensor:
@@ -214,6 +234,62 @@ class Tensor:
       self.buffer = Buffer(data=buf_data)
     else:
       self.buffer.data = buf_data
+
+  def copy(self, name: Optional[str] = None) -> 'Tensor':
+    """Return a copy of this tensor, sharing this tensor's buffer.
+
+    The copy duplicates every field, including those of the backing
+    TensorT, except that it references the same Buffer object as the
+    original and has no index until added to a subgraph. Assign None
+    to the copy's buffer for a tensor with no data.
+
+    Args:
+        name: Optional name for the copy. If None, the copy keeps this
+              tensor's name.
+
+    Returns:
+        A new Tensor duplicating this one.
+    """
+    # Seed the memo so the deepcopy preserves buffer identity: sharing
+    # is by Buffer object, and a duplicate would compile to a duplicate
+    # buffer table entry.
+    memo = {id(self.buffer): self.buffer}
+    duplicate = copy.deepcopy(self, memo)
+    duplicate._index = None
+    if name is not None:
+      duplicate.name = name
+    return duplicate
+
+  def equal(self, other: 'Tensor') -> bool:
+    """Return True if this tensor equals other, field by field.
+
+    Compare the backing TensorTs recursively, so fields this module
+    does not manage still participate, plus quantization and buffer.
+    Buffers compare by identity, mirroring how the model expresses
+    sharing: tensors referencing distinct but byte-identical Buffers
+    compile to distinct buffer table entries and are not equal. The
+    tensors' positions in any subgraph do not participate.
+
+    Args:
+        other: The tensor to compare against.
+
+    Returns:
+        True if the tensors are equal.
+    """
+    if self.buffer is not other.buffer:
+      return False
+    if self.quantization != other.quantization:
+      return False
+    # Exclude the TensorT fields mirrored by the wrapper attributes
+    # compared above: buffer, an index assigned at build time, and
+    # quantization, which build() syncs from the wrapper attribute.
+    # Comparing the raw fields too would misreport tensors of mixed
+    # provenance, read versus constructed.
+    excluded = ('buffer', 'quantization')
+    keys = vars(self._fb).keys() | vars(other._fb).keys()
+    return all(
+        _fields_equal(getattr(self._fb, k, None), getattr(other._fb, k, None))
+        for k in keys if k not in excluded)
 
   @property
   def index(self) -> Optional[int]:
@@ -448,6 +524,17 @@ class Subgraph:
         return t
     raise KeyError(f"No tensor named {name!r}")
 
+  def consumers_of(self, tensor: Tensor) -> List[Operator]:
+    """Find the operators in this subgraph that read a tensor.
+
+    Args:
+      tensor: The tensor whose consumers to find.
+
+    Returns:
+      The operators, in subgraph order, with tensor among their inputs.
+    """
+    return [op for op in self.operators if tensor in op.inputs]
+
   @property
   def index(self) -> Optional[int]:
     """Subgraph index in the model's subgraph list.
@@ -519,6 +606,79 @@ class Model:
     """Compile to flatbuffer with automatic bookkeeping."""
     compiler = _ModelCompiler(self)
     return compiler.compile()
+
+
+def iter_tensors(model: Model):
+  """Yield every tensor in the model exactly once.
+
+  Walk the same sources the compiler collects from: each subgraph's
+  tensor list, inputs, outputs, and the tensors inline on operators.
+
+  Args:
+      model: The model whose tensors to yield.
+
+  Yields:
+      Each distinct Tensor in the model.
+  """
+  seen = set()
+  for sg in model.subgraphs:
+    sources = [sg.tensors, sg.inputs, sg.outputs]
+    sources.extend(op.inputs for op in sg.operators)
+    sources.extend(op.outputs for op in sg.operators)
+    for source in sources:
+      for tensor in source:
+        if id(tensor) not in seen:
+          seen.add(id(tensor))
+          yield tensor
+
+
+def dedupe_buffers(model: Model) -> None:
+  """Merge byte-identical buffers into one shared Buffer.
+
+  Repoint tensors whose buffers hold equal contents at a single
+  canonical Buffer object, the first encountered, mirroring the TfLite
+  converter's deduplication of identical constants. Leave tensors
+  marked is_variable alone: mutable data must not alias. Merged-away
+  buffers linger in model.buffers until pruned.
+
+  Args:
+      model: The model to modify in place.
+  """
+  canonical: dict[bytes, Buffer] = {}
+  for tensor in iter_tensors(model):
+    if tensor.buffer is None or tensor._fb.isVariable:
+      continue
+    existing = canonical.get(tensor.buffer.data)
+    if existing is None:
+      canonical[tensor.buffer.data] = tensor.buffer
+    else:
+      tensor.buffer = existing
+
+
+def prune_buffers(model: Model) -> None:
+  """Drop buffers that no tensor references from model.buffers.
+
+  Rebuild the buffer list with only the conventional empty buffer 0
+  and the buffers some tensor references, renumbering indices. A model
+  built from scratch keeps an empty buffer list and the compiler emits
+  only referenced buffers, so pruning matters for models from read(),
+  whose buffer list the compiler preserves wholesale.
+
+  Args:
+      model: The model to modify in place.
+  """
+  if not model.buffers:
+    return
+  referenced = {
+      id(tensor.buffer)
+      for tensor in iter_tensors(model) if tensor.buffer is not None
+  }
+  survivors = _BufferList()
+  survivors.append(model.buffers[0])
+  for buffer in model.buffers[1:]:
+    if id(buffer) in referenced:
+      survivors.append(buffer)
+  model.buffers = survivors
 
 
 def read(buffer: bytes) -> Model:
