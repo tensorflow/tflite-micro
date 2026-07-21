@@ -127,13 +127,9 @@ int64_t IntegerFrExp(double input, int* shift) {
   TFLITE_CHECK_EQ(8, sizeof(double));
 
   // We want to access the bits of the input double value directly, which is
-  // tricky to do safely, so use a union to handle the casting.
-  union {
-    double double_value;
-    uint64_t double_as_uint;
-  } cast_union;
-  cast_union.double_value = input;
-  const uint64_t u = cast_union.double_as_uint;
+  // tricky to do safely, so use memcpy to handle the casting.
+  uint64_t u;
+  std::memcpy(&u, &input, sizeof(u));
 
   // If the bitfield is all zeros apart from the sign bit, this is a normalized
   // zero value, so return standard values for this special case.
@@ -189,11 +185,6 @@ int64_t IntegerFrExp(double input, int* shift) {
 }
 
 double DoubleFromFractionAndShift(int64_t fraction, int shift) {
-  union {
-    double double_value;
-    uint64_t double_as_uint;
-  } result;
-
   // Detect NaNs and infinities.
   if (shift == std::numeric_limits<int>::max()) {
     if (fraction == 0) {
@@ -207,8 +198,7 @@ double DoubleFromFractionAndShift(int64_t fraction, int shift) {
 
   // Return a normalized zero for a zero fraction.
   if (fraction == 0) {
-    result.double_as_uint = 0;
-    return result.double_value;
+    return 0.0;
   }
 
   bool is_negative = (fraction < 0);
@@ -230,9 +220,11 @@ double DoubleFromFractionAndShift(int64_t fraction, int shift) {
   }
   encoded_shift += kExponentBias;
   uint64_t encoded_sign = is_negative ? kSignMask : 0;
-  result.double_as_uint = encoded_sign | (encoded_shift << kExponentShift) |
-                          (encoded_fraction << kFractionShift);
-  return result.double_value;
+  uint64_t result_as_uint = encoded_sign | (encoded_shift << kExponentShift) |
+                            (encoded_fraction << kFractionShift);
+  double result;
+  std::memcpy(&result, &result_as_uint, sizeof(result));
+  return result;
 }
 
 double IntegerDoubleMultiply(double a, double b) {
