@@ -243,10 +243,19 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
       &allocation_info[info_.subgraph_offsets[subgraph_idx]];
 
   uint32_t operators_size = NumSubgraphOperators(subgraph);
+  const int tensors_size =
+      static_cast<int>(subgraph->tensors() ? subgraph->tensors()->size() : 0);
   // Mark all inputs as created at the start of the subgraph invocation.
   for (size_t i = 0;
        subgraph->inputs() != nullptr && i < subgraph->inputs()->size(); ++i) {
     const int tensor_index = subgraph->inputs()->Get(i);
+         if (tensor_index < 0 || tensor_index >= tensors_size) {
+      MicroPrintf(
+          "Subgraph input tensor index %d is out of bounds "
+          "(subgraph has %d tensors).",
+          tensor_index, tensors_size);
+      return kTfLiteError;
+    }
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
     UpdateFirstCreated(current, allocation_scope_count_);
     // This will ensure that the tensors that are inputs to the subgraphs
@@ -262,6 +271,11 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
          ++n) {
       const int tensor_index = op->outputs()->Get(n);
+           if (tensor_index < 0 || tensor_index >= tensors_size) {
+        MicroPrintf("Op#%u output tensor index %d is out of bounds "
+                    "(subgraph has %d tensors).", i, tensor_index, tensors_size);
+        return kTfLiteError;
+      }
       AllocationInfo* current = &subgraph_allocation_info[tensor_index];
       UpdateFirstCreated(current, allocation_scope_count_);
     }
@@ -281,6 +295,11 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
       const int tensor_index = op->inputs()->Get(n);
       // Optional bias tensors can have an index of -1 when they are omitted.
       if (tensor_index >= 0) {
+        if (tensor_index >= tensors_size) {
+          MicroPrintf("Op#%u input tensor index %d is out of bounds "
+                      "(subgraph has %d tensors).", i, tensor_index, tensors_size);
+          return kTfLiteError;
+        }
         AllocationInfo* current = &subgraph_allocation_info[tensor_index];
         // No need to update creation since it is either marked by the subgraph
         // or producer op, or it is not part of the memory plan (weight, bias
@@ -291,6 +310,11 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
     for (size_t n = 0; op->outputs() != nullptr && n < op->outputs()->size();
          ++n) {
       const int tensor_index = op->outputs()->Get(n);
+           if (tensor_index < 0 || tensor_index >= tensors_size) {
+        MicroPrintf("Op#%u output tensor index %d is out of bounds "
+                    "(subgraph has %d tensors).", i, tensor_index, tensors_size);
+        return kTfLiteError;
+      }
       AllocationInfo* current = &subgraph_allocation_info[tensor_index];
       UpdateLastUsed(current, allocation_scope_count_);
     }
@@ -322,6 +346,13 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
   for (size_t i = 0;
        subgraph->outputs() != nullptr && i < subgraph->outputs()->size(); ++i) {
     const int tensor_index = subgraph->outputs()->Get(i);
+         if (tensor_index < 0 || tensor_index >= tensors_size) {
+      MicroPrintf(
+          "Subgraph output tensor index %d is out of bounds "
+          "(subgraph has %d tensors).",
+          tensor_index, tensors_size);
+      return kTfLiteError;
+    }
     AllocationInfo* current = &subgraph_allocation_info[tensor_index];
     // Make sure to assign the First created value of the subgraph output
     // This will handle the case where the subgraph is empty. This helps
