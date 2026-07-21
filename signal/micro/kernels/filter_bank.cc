@@ -61,6 +61,16 @@ void* FilterBankInit(TfLiteContext* context, const char* buffer,
                                 length);
   params->config.num_channels = fbw.ElementAsInt32(kNumChannelsIndex);
 
+  // Guard the work-area size computation below against a non-positive
+  // num_channels or one large enough to overflow the multiplication (notably
+  // where size_t is 32 bits), which would size the work area inconsistently
+  // with the number of channels the kernel then processes.
+  if (params->config.num_channels <= 0 ||
+      static_cast<size_t>(params->config.num_channels) >
+          SIZE_MAX / sizeof(uint64_t) - 1) {
+    return nullptr;
+  }
+
   params->work_area = static_cast<uint64_t*>(context->AllocatePersistentBuffer(
       context, (params->config.num_channels + 1) * sizeof(uint64_t)));
 
@@ -99,18 +109,21 @@ TfLiteStatus FilterBankPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, input != nullptr);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input), 1);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteInt16);
+  const int channel_frequency_starts_size = ElementCount(*input->dims);
   micro_context->DeallocateTempTfLiteTensor(input);
 
   input = micro_context->AllocateTempInputTensor(node, kChWeightStartsTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input), 1);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteInt16);
+  const int channel_weight_starts_size = ElementCount(*input->dims);
   micro_context->DeallocateTempTfLiteTensor(input);
 
   input = micro_context->AllocateTempInputTensor(node, kChannelWidthsTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TF_LITE_ENSURE_EQ(context, NumDimensions(input), 1);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteInt16);
+  const int channel_widths_size = ElementCount(*input->dims);
   micro_context->DeallocateTempTfLiteTensor(input);
 
   TfLiteTensor* output =
@@ -118,7 +131,24 @@ TfLiteStatus FilterBankPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_EQ(context, NumDimensions(output), 1);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteUInt64);
+  const int output_size = ElementCount(*output->dims);
   micro_context->DeallocateTempTfLiteTensor(output);
+
+  // Validate in Prepare that num_channels (from the init flexbuffer) is
+  // consistent with the per-channel metadata tensors and the output tensor, so
+  // an inconsistent topology is rejected here rather than during Eval.
+  // FilterbankAccumulateChannels reads indices [0, num_channels]
+  // (num_channels + 1 elements) of channel_frequency_starts,
+  // channel_weight_starts and channel_widths, and writes num_channels output
+  // elements (work_area[1 .. num_channels]).
+  auto* params = reinterpret_cast<TFLMSignalFilterBankParams*>(node->user_data);
+  TF_LITE_ENSURE(context, params != nullptr);
+  const int num_channels = params->config.num_channels;
+  TF_LITE_ENSURE(context, num_channels > 0);
+  TF_LITE_ENSURE_EQ(context, channel_frequency_starts_size, num_channels + 1);
+  TF_LITE_ENSURE_EQ(context, channel_weight_starts_size, num_channels + 1);
+  TF_LITE_ENSURE_EQ(context, channel_widths_size, num_channels + 1);
+  TF_LITE_ENSURE_EQ(context, output_size, num_channels);
 
   return kTfLiteOk;
 }
