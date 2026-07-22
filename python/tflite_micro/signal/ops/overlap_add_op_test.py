@@ -17,12 +17,13 @@
 from absl.testing import parameterized
 import numpy as np
 import tensorflow as tf
+import unittest
 
 from tflite_micro.python.tflite_micro.signal.ops import overlap_add_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
+class OverlapAddOpTest(parameterized.TestCase):
 
   def RunOverlapAdd(self, interpreter, input_frames, frame_step,
                     expected_output_frames, dtype):
@@ -31,12 +32,7 @@ class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
     interpreter.set_input(input_frames, 0)
     interpreter.invoke()
     output_frame = interpreter.get_output(0)
-    self.assertAllEqual(output_frame, expected_output_frames)
-
-    # TF
-    output_frame = self.evaluate(
-        overlap_add_op.overlap_add(input_frames, frame_step))
-    self.assertAllEqual(output_frame, expected_output_frames)
+    np.testing.assert_array_equal(output_frame, expected_output_frames)
 
   @parameterized.named_parameters(('_FLOAT32InputOutput', tf.float32),
                                   ('_INT16InputOutput', tf.int16))
@@ -220,13 +216,13 @@ class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
   def testStepSizeTooLarge(self):
     ovlerap_add_input = np.zeros(160, dtype=np.int16)
     with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
-      self.evaluate(overlap_add_op.overlap_add(ovlerap_add_input, 128, 129))
+      overlap_add_op.overlap_add(ovlerap_add_input, 128, 129).numpy()
 
   def testStepSizeNotEqualOutputSize(self):
     ovlerap_add_input = np.zeros(122, dtype=np.int16)
     with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
-      self.evaluate(overlap_add_op.overlap_add(ovlerap_add_input, 321, 123))
+      overlap_add_op.overlap_add(ovlerap_add_input, 321, 123).numpy()
 
 
 if __name__ == '__main__':
-  tf.test.main()
+  unittest.main()

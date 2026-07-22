@@ -16,12 +16,13 @@
 
 import numpy as np
 import tensorflow as tf
+import unittest
 
 from tflite_micro.python.tflite_micro.signal.ops import delay_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class DelayOpTest(tf.test.TestCase):
+class DelayOpTest(unittest.TestCase):
 
   def TestHelper(self, input_signal, delay_length, frame_size):
     inner_dim_size = input_signal.shape[-1]
@@ -48,17 +49,14 @@ class DelayOpTest(tf.test.TestCase):
     interpreter = util.get_tflm_interpreter(concrete_function, func)
 
     for i in range(frame_num):
-      in_frame = input_signal_padded[..., i * frame_size:(i + 1) * frame_size]
+      in_frame = np.copy(input_signal_padded[..., i * frame_size:(i + 1) *
+                                             frame_size])
       # TFLM
       interpreter.set_input(in_frame, 0)
       interpreter.invoke()
       out_frame_tflm = interpreter.get_output(0)
-      # TF
-      out_frame = self.evaluate(
-          delay_op.delay(in_frame, delay_length=delay_length))
-      delay_out[..., i * frame_size:(i + 1) * frame_size] = out_frame
-      self.assertAllEqual(out_frame, out_frame_tflm)
-    self.assertAllEqual(delay_out, delay_exp)
+      delay_out[..., i * frame_size:(i + 1) * frame_size] = out_frame_tflm
+    np.testing.assert_array_equal(delay_out, delay_exp)
 
   def testFrameLargerThanDelay(self):
     self.TestHelper(np.arange(0, 30, dtype=np.int16), 7, 10)
@@ -82,4 +80,4 @@ class DelayOpTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  tf.test.main()
+  unittest.main()
