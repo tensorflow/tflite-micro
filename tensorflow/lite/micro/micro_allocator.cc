@@ -203,6 +203,7 @@ void* GetFlatbufferTensorBuffer(
   // First see if there's any buffer information in the serialized tensor.
   // TODO(b/170379532): Add better unit tests to validate flatbuffer values.
   void* out_buffer = nullptr;
+  TFLITE_DCHECK(flatbuffer_tensor.buffer() < buffers->size());
   if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
     // If we've found a buffer, does it have any data?
     if (auto* array = buffer->data()) {
