@@ -14,12 +14,20 @@
 """Tests for model_editor module.
 """
 
+import flatbuffers
 import numpy as np
 import unittest
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression.model_editor import (
     Buffer, Model, Operator, OperatorCode, Quantization, Subgraph, Tensor)
+
+
+def _pack_model(model_t: tflite.ModelT) -> bytes:
+  """Pack a ModelT into a flatbuffer."""
+  builder = flatbuffers.Builder(1024)
+  builder.Finish(model_t.Pack(builder))
+  return bytes(builder.Output())
 
 
 class TestBasicModel(unittest.TestCase):
@@ -1114,13 +1122,6 @@ class TestReadEdgeCases(unittest.TestCase):
   appear in models from other sources (e.g., TFLite converter).
   """
 
-  def _build_model_with_schema(self, model_t):
-    """Build a flatbuffer from a ModelT using the low-level schema."""
-    import flatbuffers
-    builder = flatbuffers.Builder(1024)
-    builder.Finish(model_t.Pack(builder))
-    return bytes(builder.Output())
-
   def test_read_scalar_tensor(self):
     """Verify read() handles tensors with None shape (scalars).
 
@@ -1170,7 +1171,7 @@ class TestReadEdgeCases(unittest.TestCase):
     model_t.subgraphs = [sg]
 
     # Build and read
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     # Verify scalar tensor was read with empty shape tuple
@@ -1222,7 +1223,7 @@ class TestReadEdgeCases(unittest.TestCase):
     model_t.subgraphs = [sg]
 
     # Build and read
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     # Verify operator was read with empty inputs list
@@ -1268,7 +1269,7 @@ class TestReadEdgeCases(unittest.TestCase):
     sg.operators = [op]
     model_t.subgraphs = [sg]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     self.assertEqual(len(model.subgraphs[0].operators), 1)
@@ -1306,7 +1307,7 @@ class TestReadEdgeCases(unittest.TestCase):
     sg.operators = []
     model_t.subgraphs = [sg]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     t = model.subgraphs[0].tensors[0]
@@ -1322,13 +1323,6 @@ class TestFieldPreservation(unittest.TestCase):
   it back. This catches regressions where adding wrapper classes might
   accidentally drop fields.
   """
-
-  def _build_model_with_schema(self, model_t):
-    """Build a flatbuffer from a ModelT using the low-level schema."""
-    import flatbuffers
-    builder = flatbuffers.Builder(1024)
-    builder.Finish(model_t.Pack(builder))
-    return bytes(builder.Output())
 
   def _create_base_model(self):
     """Create a minimal valid model for testing."""
@@ -1378,7 +1372,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].isVariable = True
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     # Read, modify, write
     model = model_editor.read(fb)
@@ -1394,7 +1388,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].isVariable = True
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     sg = model.subgraphs[0]
@@ -1413,7 +1407,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].shapeSignature = [-1, 4]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1434,7 +1428,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t.subgraphs[0].operators[
         0].builtinOptionsType = tflite.BuiltinOptions.AddOptions
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1451,7 +1445,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].operators[0].customOptions = [0xDE, 0xAD, 0xBE, 0xEF]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1466,7 +1460,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].operators[0].intermediates = [0, 1]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1481,7 +1475,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].operators[0].debugMetadataIndex = 7
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1496,7 +1490,7 @@ class TestFieldPreservation(unittest.TestCase):
     # Set deprecated code to a value different from the new builtin code
     model_t.operatorCodes[0].deprecatedBuiltinCode = 42
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1510,7 +1504,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].debugMetadataIndex = 5
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1524,7 +1518,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.version = 42
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1542,7 +1536,7 @@ class TestFieldPreservation(unittest.TestCase):
     sig_def.subgraphIndex = 0
     model_t.signatureDefs = [sig_def]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1565,7 +1559,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.max = [1.0]
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1586,7 +1580,7 @@ class TestFieldPreservation(unittest.TestCase):
     sparsity.blockMap = [0]
     model_t.subgraphs[0].tensors[0].sparsity = sparsity
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1603,7 +1597,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].hasRank = True
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1622,7 +1616,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t.subgraphs[0].operators[0].builtinOptions2Type = (
         tflite.BuiltinOptions2.StablehloConcatenateOptions)
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1643,7 +1637,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.quantizedDimension = 1
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1663,7 +1657,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.zeroPoint = [128]
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1688,7 +1682,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.quantizedDimension = 0
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
