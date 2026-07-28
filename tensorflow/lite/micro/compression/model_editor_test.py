@@ -1091,10 +1091,17 @@ class TestPruneBuffers(unittest.TestCase):
     self.assertEqual(len(model.buffers), count_before)
 
   def test_metadata_survives_pruning(self):
-    """Metadata, carried outside tensor buffers, is unaffected."""
+    """Pruning leaves the metadata intact."""
     model = self._read_model_with_two_constants(metadata={"m": b"payload"})
+    sg = model.subgraphs[0]
+    before = len(model.buffers)
+
+    # Orphan c1's buffer by repointing the tensor at c2's, so pruning
+    # drops a tensor buffer and renumbers the buffers that survive.
+    sg.tensor_by_name("c1").buffer = sg.tensor_by_name("c2").buffer
 
     model_editor.prune_buffers(model)
+    self.assertLess(len(model.buffers), before)
 
     roundtrip = model_editor.read(bytes(model.build()))
     self.assertEqual(roundtrip.metadata["m"], b"payload")
