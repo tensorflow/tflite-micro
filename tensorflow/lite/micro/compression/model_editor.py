@@ -754,8 +754,7 @@ def read(buffer: bytes) -> Model:
           raise ValueError(f"invalid operator input index {i}.")
         else:
           inputs.append(sg.tensors[i])
-      outputs = [sg.tensors[i]
-                 for i in fb_op.outputs] if fb_op.outputs is not None else []
+      outputs = _resolve_tensors(sg.tensors, fb_op.outputs)
 
       # Create Operator wrapping the OperatorT; all fields preserved in _fb
       op = Operator(
@@ -769,10 +768,8 @@ def read(buffer: bytes) -> Model:
       sg.operators.append(op)
 
     # Read subgraph inputs/outputs
-    if fb_sg.inputs is not None and len(fb_sg.inputs) > 0:
-      sg.inputs = [sg.tensors[i] for i in fb_sg.inputs]
-    if fb_sg.outputs is not None and len(fb_sg.outputs) > 0:
-      sg.outputs = [sg.tensors[i] for i in fb_sg.outputs]
+    sg.inputs = _resolve_tensors(sg.tensors, fb_sg.inputs)
+    sg.outputs = _resolve_tensors(sg.tensors, fb_sg.outputs)
 
     model.subgraphs.append(sg)
 
@@ -791,6 +788,27 @@ def read(buffer: bytes) -> Model:
       model.metadata[name] = value
 
   return model
+
+
+def _resolve_tensors(tensors: List[Tensor], indices) -> List[Tensor]:
+  """Resolve tensor indices, rejecting negative ones.
+
+  Args:
+      tensors: The subgraph's tensors.
+      indices: The indices to resolve, or None for none at all.
+
+  Returns:
+      The tensors the indices name.
+
+  Raises:
+      ValueError: If an index is negative.
+  """
+  resolved = []
+  for i in indices if indices is not None else []:
+    if i < 0:
+      raise ValueError(f"invalid tensor index {i}.")
+    resolved.append(tensors[i])
+  return resolved
 
 
 class _ModelCompiler:

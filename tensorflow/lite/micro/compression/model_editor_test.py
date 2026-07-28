@@ -1438,6 +1438,34 @@ class TestOptionalInputs(unittest.TestCase):
                      [0, 1, -1])
 
 
+class TestMalformedIndices(unittest.TestCase):
+  """Test read() on negative indices which the schema does not define.
+
+  Only an operator's inputs can be -1.
+  """
+
+  def test_read_rejects_negative_operator_output(self):
+    """Verify read() rejects a negative operator output index."""
+    model_t = _fully_connected_model_t([0, 1, -1])
+    model_t.subgraphs[0].operators[0].outputs = [-1]
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(model_t))
+
+  def test_read_rejects_negative_subgraph_input(self):
+    """Verify read() rejects a negative subgraph input index."""
+    model_t = _fully_connected_model_t([0, 1, -1])
+    model_t.subgraphs[0].inputs = [-1]
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(model_t))
+
+  def test_read_rejects_negative_subgraph_output(self):
+    """Verify read() rejects a negative subgraph output index."""
+    model_t = _fully_connected_model_t([0, 1, -1])
+    model_t.subgraphs[0].outputs = [-1]
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(model_t))
+
+
 class TestFieldPreservation(unittest.TestCase):
   """Test that schema fields are preserved during read-modify-write.
 
