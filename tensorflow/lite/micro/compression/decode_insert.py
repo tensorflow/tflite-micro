@@ -180,8 +180,9 @@ def insert_decode_operators(
   """Insert DECODE operators for all compressed tensors.
 
   This function modifies the model in-place, inserting a DECODE operator
-  before any operator that uses a compressed tensor as input, and appending
-  a DECODE for compressed tensors listed as subgraph outputs.
+  before any operator that uses a compressed tensor as input. For
+  compressed tensors listed as subgraph outputs, it appends a DECODE to
+  the end of the subgraph.
 
   A separate DECODE is inserted before each consumer, and one DECODE
   decodes all the compressed tensors its consumer reads. DECODE outputs
