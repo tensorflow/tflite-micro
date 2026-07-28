@@ -382,7 +382,7 @@ class Operator:
 
   def __init__(self,
                opcode: Union[tflite.BuiltinOperator, int] = None,
-               inputs: List[Tensor] = None,
+               inputs: List[Optional[Tensor]] = None,
                outputs: List[Tensor] = None,
                custom_code: Optional[str] = None,
                opcode_index: Optional[int] = None,
@@ -391,7 +391,7 @@ class Operator:
 
     Args:
         opcode: BuiltinOperator enum value or CUSTOM
-        inputs: List of input Tensor objects
+        inputs: List of input Tensor objects, None for an absent input
         outputs: List of output Tensor objects
         custom_code: Custom operator name (for CUSTOM opcode)
         opcode_index: Index into operator_codes (set during read)
@@ -613,6 +613,8 @@ def iter_tensors(model: Model):
 
   Walk the same sources the compiler collects from: each subgraph's
   tensor list, inputs, outputs, and the tensors inline on operators.
+  Skip the None marking an absent optional operator input, so callers
+  can dereference every yielded value as a tensor.
 
   Args:
       model: The model whose tensors to yield.
@@ -627,6 +629,8 @@ def iter_tensors(model: Model):
     sources.extend(op.outputs for op in sg.operators)
     for source in sources:
       for tensor in source:
+        if tensor is None:
+          continue
         if id(tensor) not in seen:
           seen.add(id(tensor))
           yield tensor
@@ -741,8 +745,15 @@ def read(buffer: bytes) -> Model:
       opcode_obj = model.operator_codes[fb_op.opcodeIndex]
 
       # Resolve tensor indices to Tensor objects
-      inputs = [sg.tensors[i]
-                for i in fb_op.inputs] if fb_op.inputs is not None else []
+      inputs = []
+      for i in fb_op.inputs if fb_op.inputs is not None else []:
+        if i == -1:
+          # The schema marks an absent optional input with an index of -1.
+          inputs.append(None)
+        elif i < 0:
+          raise ValueError(f"invalid operator input index {i}.")
+        else:
+          inputs.append(sg.tensors[i])
       outputs = [sg.tensors[i]
                  for i in fb_op.outputs] if fb_op.outputs is not None else []
 
@@ -874,6 +885,8 @@ class _ModelCompiler:
     inline_sources.append(sg.outputs)
     for source in inline_sources:
       for tensor in source:
+        if tensor is None:
+          continue
         if id(tensor) not in tensor_to_index:
           tensor._index = len(all_tensors)
           tensor_to_index[id(tensor)] = tensor._index
@@ -908,7 +921,9 @@ class _ModelCompiler:
     op_t.opcodeIndex = opcode_index
 
     # Resolve tensor references to indices
-    op_t.inputs = [tensor_to_index[id(inp)] for inp in op.inputs]
+    op_t.inputs = [
+        -1 if inp is None else tensor_to_index[id(inp)] for inp in op.inputs
+    ]
     op_t.outputs = [tensor_to_index[id(outp)] for outp in op.outputs]
 
     return op_t

@@ -854,7 +854,6 @@ class TestDecodeInsertion(unittest.TestCase):
 class TestOptionalInputs(unittest.TestCase):
   """Tests for insertion into an operator with an absent optional input."""
 
-  @unittest.expectedFailure
   def test_rewiring_keeps_absent_input(self):
     """Rewiring a consumer replaces the weights and leaves the bias absent."""
     model = _build_fc_model_without_bias()

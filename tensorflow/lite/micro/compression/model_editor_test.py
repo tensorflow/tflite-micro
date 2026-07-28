@@ -1381,13 +1381,31 @@ class TestOptionalInputs(unittest.TestCase):
     """Read a fully-connected model whose bias input is absent."""
     return model_editor.read(_pack_model(_fully_connected_model_t([0, 1, -1])))
 
-  @unittest.expectedFailure
+  def _build_model_without_bias(self) -> Model:
+    """Build a fully-connected model whose bias input is absent."""
+    input_t = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input")
+    weights = Tensor(shape=(4, 4),
+                     dtype=tflite.TensorType.INT8,
+                     data=np.ones((4, 4), dtype=np.int8),
+                     name="weights")
+    output = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="output")
+    return Model(subgraphs=[
+        Subgraph(
+            operators=[
+                Operator(opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                         inputs=[input_t, weights, None],
+                         outputs=[output])
+            ],
+            inputs=[input_t],
+            outputs=[output],
+        )
+    ])
+
   def test_read_marks_absent_input(self):
     """Verify read() maps an operator input index of -1 to None."""
     model = self._read_model_without_bias()
     self.assertIsNone(model.subgraphs[0].operators[0].inputs[2])
 
-  @unittest.expectedFailure
   def test_build_preserves_absent_input(self):
     """Verify reading and building a model keeps the input absent."""
     model = self._read_model_without_bias()
@@ -1395,13 +1413,21 @@ class TestOptionalInputs(unittest.TestCase):
     self.assertEqual(list(rebuilt_t.subgraphs[0].operators[0].inputs),
                      [0, 1, -1])
 
-  @unittest.expectedFailure
   def test_read_rejects_input_index_below_minus_one(self):
     """Verify read() rejects input indices less than -1."""
     with self.assertRaises(ValueError):
       model_editor.read(_pack_model(_fully_connected_model_t([0, 1, -2])))
 
-  @unittest.expectedFailure
+  def test_consumers_of_skips_absent_input(self):
+    """Verify an absent input does not make its operator a consumer."""
+    subgraph = self._read_model_without_bias().subgraphs[0]
+    self.assertEqual(subgraph.consumers_of(subgraph.tensors[-1]), [])
+
+  def test_iter_tensors_skips_absent_input(self):
+    """Verify iter_tensors yields nothing for an absent input."""
+    model = self._build_model_without_bias()
+    self.assertNotIn(None, list(model_editor.iter_tensors(model)))
+
   def test_dedupe_and_prune_keep_absent_input(self):
     """Verify deduplicating and pruning buffers leave an input absent."""
     model = self._read_model_without_bias()
