@@ -246,6 +246,27 @@ class TestBasicModel(unittest.TestCase):
                      tflite.BuiltinOperator.FULLY_CONNECTED)
 
 
+class TestFileFormat(unittest.TestCase):
+  """Test the .tflite file-level framing of built flatbuffers."""
+
+  def test_build_writes_file_identifier(self):
+    """A built flatbuffer carries the TFL3 identifier at bytes 4-7."""
+    fb = Model(subgraphs=[Subgraph()]).build()
+    self.assertEqual(bytes(fb[4:8]), b"TFL3")
+
+  def test_build_declares_schema_version(self):
+    """A model built from scratch declares schema version 3."""
+    fb = Model(subgraphs=[Subgraph()]).build()
+    self.assertEqual(tflite.ModelT.InitFromPackedBuf(fb, 0).version, 3)
+
+  def test_build_keeps_declared_version(self):
+    """build() preserves the version a model already declares."""
+    model = model_editor.read(bytes(Model(subgraphs=[Subgraph()]).build()))
+    model._fb.version = 4
+    fb = model.build()
+    self.assertEqual(tflite.ModelT.InitFromPackedBuf(fb, 0).version, 4)
+
+
 class TestAdvancedModel(unittest.TestCase):
   """Test multiple operators, custom ops, shared tensors, and mixed references."""
 
