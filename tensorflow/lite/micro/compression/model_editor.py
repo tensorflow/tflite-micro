@@ -419,12 +419,44 @@ _BUILTIN_OPERATOR_NAMES = {
 }
 
 
+def _options_union(options) -> tuple:
+  """Map an options object's class to its union field and tag.
+
+  The schema splits operator options across two unions, builtin_options
+  and builtin_options_2. Which union holds a given options table
+  follows from the generated class name: the union member name plus a
+  "T" suffix.
+
+  Args:
+      options: An options object generated from the schema, e.g.
+               tflite.Conv2DOptionsT.
+
+  Returns:
+      A tuple of the OperatorT attribute name for the union value and
+      the tag identifying the member.
+
+  Raises:
+      ValueError: If options belongs to neither union.
+  """
+  member = type(options).__name__.removesuffix("T")
+  tag = getattr(tflite.BuiltinOptions, member, None)
+  if tag is not None:
+    return "builtinOptions", tag
+  tag = getattr(tflite.BuiltinOptions2, member, None)
+  if tag is not None:
+    return "builtinOptions2", tag
+  raise ValueError(
+    f"{type(options).__name__} is not a member of either builtin options union"
+  )
+
+
 class Operator:
   """Operator specification wrapping an OperatorT flatbuffer object.
 
-  Provides clean APIs for common fields (opcode, inputs, outputs, custom_code)
-  while preserving all other OperatorT fields (builtin_options, custom_options,
-  intermediates, mutating_variable_inputs, etc.) during read-modify-write.
+  Provides clean APIs for common fields (opcode, inputs, outputs,
+  custom_code, options) while preserving all other OperatorT fields
+  (custom_options, intermediates, mutating_variable_inputs, etc.)
+  during read-modify-write.
   """
 
   def __init__(
@@ -432,6 +464,7 @@ class Operator:
     opcode: Union[tflite.BuiltinOperator, int] = None,
     inputs: List[Optional[Tensor]] = None,
     outputs: List[Tensor] = None,
+    options=None,
     custom_code: Optional[str] = None,
     opcode_index: Optional[int] = None,
     _fb: tflite.OperatorT = None,
@@ -442,6 +475,9 @@ class Operator:
         opcode: BuiltinOperator enum value or CUSTOM
         inputs: List of input Tensor objects, None for an absent input
         outputs: List of output Tensor objects
+        options: Optional builtin options object generated from the
+            schema, e.g. tflite.Conv2DOptionsT. The matching union tag
+            is set automatically.
         custom_code: Custom operator name (for CUSTOM opcode)
         opcode_index: Index into operator_codes (set during read)
         _fb: Optional OperatorT for wrapping existing flatbuffer object
@@ -458,6 +494,10 @@ class Operator:
     self._opcode = opcode
     self._custom_code = custom_code
     self._opcode_index = opcode_index
+
+    # Set options if provided (overrides any value in _fb)
+    if options is not None:
+      self.options = options
 
   @property
   def opcode(self) -> Union[tflite.BuiltinOperator, int]:
@@ -487,6 +527,36 @@ class Operator:
     if self._custom_code is not None:
       return self._custom_code
     return _BUILTIN_OPERATOR_NAMES.get(self._opcode, f"opcode {self._opcode}")
+
+  @property
+  def options(self):
+    """Builtin options object, from either options union, or None.
+
+    Returns the live backing object, so mutating its fields mutates
+    the operator.
+    """
+    if self._fb.builtinOptions is not None:
+      return self._fb.builtinOptions
+    return self._fb.builtinOptions2
+
+  @options.setter
+  def options(self, value):
+    """Set builtin options, deriving the union tag from value's class.
+
+    Assigning clears both unions first, so an operator holds one
+    options object at a time. Assign None to clear options entirely.
+
+    Raises:
+        ValueError: If value belongs to neither options union.
+    """
+    self._fb.builtinOptions = None
+    self._fb.builtinOptionsType = 0
+    self._fb.builtinOptions2 = None
+    self._fb.builtinOptions2Type = 0
+    if value is not None:
+      field, tag = _options_union(value)
+      setattr(self._fb, field, value)
+      setattr(self._fb, field + "Type", tag)
 
   @property
   def opcode_index(self) -> Optional[int]:

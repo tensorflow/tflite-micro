@@ -50,22 +50,15 @@ _ALT_MEMORY_SIZE = 1024
 
 
 def _while_operator(cond_subgraph_idx, body_subgraph_idx, inputs, outputs):
-  """Create a WHILE operator with its subgraph indices.
-
-  model_editor has no public API for builtin options, so set them on the
-  backing OperatorT directly.
-  """
-  op = model_editor.Operator(
+  """Create a WHILE operator with its subgraph indices."""
+  return model_editor.Operator(
     opcode=tflite.BuiltinOperator.WHILE,
     inputs=inputs,
     outputs=outputs,
+    options=tflite.WhileOptionsT(
+      condSubgraphIndex=cond_subgraph_idx, bodySubgraphIndex=body_subgraph_idx
+    ),
   )
-  options = tflite.WhileOptionsT()
-  options.condSubgraphIndex = cond_subgraph_idx
-  options.bodySubgraphIndex = body_subgraph_idx
-  op._fb.builtinOptionsType = tflite.BuiltinOptions.WhileOptions
-  op._fb.builtinOptions = options
-  return op
 
 
 def _float_tensor(name, data=None):

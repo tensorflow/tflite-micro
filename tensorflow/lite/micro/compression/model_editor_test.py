@@ -1600,6 +1600,98 @@ class TestOptionalInputs(unittest.TestCase):
     )
 
 
+class TestOperatorOptions(unittest.TestCase):
+  """Test the Operator.options API."""
+
+  def _one_op_model(self, opcode, options) -> Model:
+    """Return a model with a single operator carrying options."""
+    return Model(
+      subgraphs=[Subgraph(operators=[Operator(opcode=opcode, options=options)])]
+    )
+
+  def _packed_op(self, model: Model) -> tflite.OperatorT:
+    """Build model and return its operator, unpacked from the raw bytes."""
+    fb = model.build()
+    return tflite.ModelT.InitFromPackedBuf(fb, 0).subgraphs[0].operators[0]
+
+  def test_constructor_sets_options(self):
+    """Constructing with options packs the value and its union tag."""
+    op_t = self._packed_op(
+      self._one_op_model(
+        tflite.BuiltinOperator.CONV_2D,
+        tflite.Conv2DOptionsT(padding=tflite.Padding.SAME, strideW=2),
+      )
+    )
+    self.assertEqual(
+      op_t.builtinOptionsType, tflite.BuiltinOptions.Conv2DOptions
+    )
+    self.assertEqual(op_t.builtinOptions.strideW, 2)
+    self.assertEqual(op_t.builtinOptions2Type, 0)
+    self.assertIsNone(op_t.builtinOptions2)
+
+  def test_constructor_sets_options_in_union_2(self):
+    """An options class from the second union packs there, with its tag."""
+    op_t = self._packed_op(
+      self._one_op_model(
+        tflite.BuiltinOperator.STABLEHLO_CONCATENATE,
+        tflite.StablehloConcatenateOptionsT(dimension=3),
+      )
+    )
+    self.assertEqual(
+      op_t.builtinOptions2Type,
+      tflite.BuiltinOptions2.StablehloConcatenateOptions,
+    )
+    self.assertEqual(op_t.builtinOptions2.dimension, 3)
+    self.assertEqual(op_t.builtinOptionsType, 0)
+    self.assertIsNone(op_t.builtinOptions)
+
+  def test_read_returns_live_options(self):
+    """read() exposes options, and mutations write through to build()."""
+    model = self._one_op_model(
+      tflite.BuiltinOperator.CONV_2D, tflite.Conv2DOptionsT(strideW=1)
+    )
+    loopback = model_editor.read(bytes(model.build()))
+    op = loopback.subgraphs[0].operators[0]
+    self.assertIsInstance(op.options, tflite.Conv2DOptionsT)
+    self.assertEqual(op.options.strideW, 1)
+
+    op.options.strideW = 5
+    op_t = self._packed_op(loopback)
+    self.assertEqual(op_t.builtinOptions.strideW, 5)
+
+  def test_assigning_none_clears_options(self):
+    """Assigning None removes the options value and resets the tag."""
+    model = self._one_op_model(
+      tflite.BuiltinOperator.CONV_2D, tflite.Conv2DOptionsT()
+    )
+    model.subgraphs[0].operators[0].options = None
+    op_t = self._packed_op(model)
+    self.assertEqual(op_t.builtinOptionsType, 0)
+    self.assertIsNone(op_t.builtinOptions)
+
+  def test_reassignment_switches_unions(self):
+    """Assigning options from the other union clears the first."""
+    model = self._one_op_model(
+      tflite.BuiltinOperator.CONV_2D, tflite.Conv2DOptionsT()
+    )
+    op = model.subgraphs[0].operators[0]
+    op.options = tflite.StablehloConcatenateOptionsT(dimension=1)
+    op_t = self._packed_op(model)
+    self.assertEqual(op_t.builtinOptionsType, 0)
+    self.assertIsNone(op_t.builtinOptions)
+    self.assertEqual(
+      op_t.builtinOptions2Type,
+      tflite.BuiltinOptions2.StablehloConcatenateOptions,
+    )
+    self.assertEqual(op_t.builtinOptions2.dimension, 1)
+
+  def test_rejects_object_outside_unions(self):
+    """Assigning an object from neither union raises ValueError."""
+    op = Operator(opcode=tflite.BuiltinOperator.CONV_2D)
+    with self.assertRaises(ValueError):
+      op.options = tflite.TensorT()
+
+
 class TestMalformedIndices(unittest.TestCase):
   """Test read() on negative indices which the schema does not define.
 
