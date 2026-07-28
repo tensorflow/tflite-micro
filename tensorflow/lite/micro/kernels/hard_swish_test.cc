@@ -264,7 +264,7 @@ TEST(HardSwishTest, SimpleHardSwishTestInt8) {
   constexpr int pairs = 4, one_pair = 2;
   constexpr int size = 101;
   constexpr float minmax_pairs[pairs][one_pair] = {
-      {0.f, 1.f}, {-2.f, 1.f}, {-5.f, 10.f}, {-40.f, 60.f}};
+      {-0.375f, 1.f}, {-2.f, 1.f}, {-5.f, 10.f}, {-40.f, 60.f}};
   int8_t output_data[size] = {0};
   int8_t input_data_quantized[size] = {0};
   float dequantized_output[size] = {0.f};
