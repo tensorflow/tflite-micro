@@ -1315,6 +1315,103 @@ class TestReadEdgeCases(unittest.TestCase):
     np.testing.assert_array_equal(t.array, int64_data)
 
 
+def _fully_connected_model_t(op_inputs: list[int]) -> tflite.ModelT:
+  """Build a fully-connected model whose operator reads op_inputs.
+
+  Subgraph tensors, by index:
+      0: input
+      1: weights
+      2: output
+
+  Args:
+      op_inputs: Indices written verbatim to the operator's input
+          vector, negative values included.
+
+  Returns:
+      An unpacked model, for _pack_model to serialize.
+  """
+  model_t = tflite.ModelT()
+  model_t.version = 3
+
+  empty = tflite.BufferT()
+  empty.data = []
+  weights_buffer = tflite.BufferT()
+  weights_buffer.data = list(np.ones((4, 4), dtype=np.int8).tobytes())
+  model_t.buffers = [empty, weights_buffer]
+
+  opcode = tflite.OperatorCodeT()
+  opcode.builtinCode = tflite.BuiltinOperator.FULLY_CONNECTED
+  model_t.operatorCodes = [opcode]
+
+  def tensor(name, shape, buffer):
+    t = tflite.TensorT()
+    t.name = name.encode()
+    t.type = tflite.TensorType.INT8
+    t.shape = shape
+    t.buffer = buffer
+    return t
+
+  sg = tflite.SubGraphT()
+  sg.tensors = [
+      tensor("input", [1, 4], 0),
+      tensor("weights", [4, 4], 1),
+      tensor("output", [1, 4], 0),
+  ]
+  sg.inputs = [0]
+  sg.outputs = [2]
+
+  op = tflite.OperatorT()
+  op.opcodeIndex = 0
+  op.inputs = op_inputs
+  op.outputs = [2]
+  sg.operators = [op]
+
+  model_t.subgraphs = [sg]
+  return model_t
+
+
+class TestOptionalInputs(unittest.TestCase):
+  """Test operators with an absent optional input.
+
+  The schema marks an absent optional input with an index of -1. A
+  fully-connected operator uses that index when it has no bias.
+  """
+
+  def _read_model_without_bias(self) -> Model:
+    """Read a fully-connected model whose bias input is absent."""
+    return model_editor.read(_pack_model(_fully_connected_model_t([0, 1, -1])))
+
+  @unittest.expectedFailure
+  def test_read_marks_absent_input(self):
+    """Verify read() maps an operator input index of -1 to None."""
+    model = self._read_model_without_bias()
+    self.assertIsNone(model.subgraphs[0].operators[0].inputs[2])
+
+  @unittest.expectedFailure
+  def test_build_preserves_absent_input(self):
+    """Verify reading and building a model keeps the input absent."""
+    model = self._read_model_without_bias()
+    rebuilt_t = tflite.ModelT.InitFromPackedBuf(model.build(), 0)
+    self.assertEqual(list(rebuilt_t.subgraphs[0].operators[0].inputs),
+                     [0, 1, -1])
+
+  @unittest.expectedFailure
+  def test_read_rejects_input_index_below_minus_one(self):
+    """Verify read() rejects input indices less than -1."""
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(_fully_connected_model_t([0, 1, -2])))
+
+  @unittest.expectedFailure
+  def test_dedupe_and_prune_keep_absent_input(self):
+    """Verify deduplicating and pruning buffers leave an input absent."""
+    model = self._read_model_without_bias()
+    model_editor.dedupe_buffers(model)
+    model_editor.prune_buffers(model)
+    rebuilt_t = tflite.ModelT.InitFromPackedBuf(model.build(), 0)
+    self.assertEqual(list(rebuilt_t.subgraphs[0].operators[0].inputs),
+                     [0, 1, -1])
+
+
 class TestFieldPreservation(unittest.TestCase):
   """Test that schema fields are preserved during read-modify-write.
 

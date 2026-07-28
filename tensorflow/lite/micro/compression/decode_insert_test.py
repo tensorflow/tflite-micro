@@ -74,6 +74,43 @@ def _build_simple_fc_model():
   return model
 
 
+def _build_fc_model_without_bias():
+  """Build a model whose FC operator has no bias input."""
+  weights = model_editor.Tensor(
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((4, 4), dtype=np.int8),
+      name="weights",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+  )
+  input_t = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="input",
+  )
+  output_t = model_editor.Tensor(
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output",
+  )
+
+  model = model_editor.Model(subgraphs=[
+      model_editor.Subgraph(
+          tensors=[weights],
+          operators=[
+              model_editor.Operator(
+                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                  inputs=[input_t, weights, None],
+                  outputs=[output_t],
+              )
+          ],
+          inputs=[input_t],
+          outputs=[output_t],
+      )
+  ])
+  return model
+
+
 def _build_shared_weights_model():
   """Build model where one tensor is used by multiple operators."""
   weights = model_editor.Tensor(
@@ -812,6 +849,24 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(weights_tensor.dtype, tflite.TensorType.UINT8)
     self.assertIsNone(weights_tensor.quantization)
     self.assertEqual(weights_tensor.buffer.data, encoded_data)
+
+
+class TestOptionalInputs(unittest.TestCase):
+  """Tests for insertion into an operator with an absent optional input."""
+
+  @unittest.expectedFailure
+  def test_rewiring_keeps_absent_input(self):
+    """Rewiring a consumer replaces the weights and leaves the bias absent."""
+    model = _build_fc_model_without_bias()
+    compression_results = {(0, 0): _make_dummy_compression_result()}
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    sg = model.subgraphs[0]
+    decode_op = sg.operators[0]
+    consumer = sg.operators[1]
+    self.assertIs(consumer.inputs[1], decode_op.outputs[0])
+    self.assertIsNone(consumer.inputs[2])
 
 
 if __name__ == "__main__":
