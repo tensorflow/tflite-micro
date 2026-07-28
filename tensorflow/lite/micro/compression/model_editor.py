@@ -17,7 +17,7 @@ Provides a clean API for creating, reading, and modifying TFLite models.
 """
 
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Union, List
 import numpy as np
 import flatbuffers
