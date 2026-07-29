@@ -88,3 +88,23 @@ py_binary(
     main = "notebook_tool.py",
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
+
+py_binary(
+    # Builds a small model with model_editor, compresses one of its tensors
+    # with the compression tools, and writes both the original and the
+    # compressed model as .tflite files; see model_editor_example.py.
+    name = "model_editor_example",
+    srcs = ["model_editor_example.py"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        "//tensorflow/lite/micro/compression:compress_lib",
+        "//tensorflow/lite/micro/compression:decode_insert",
+        "//tensorflow/lite/micro/compression:lut",
+        "//tensorflow/lite/micro/compression:model_editor",
+        "//tensorflow/lite/micro/compression:spec",
+        "//tensorflow/lite/micro/compression:spec_builder",
+        "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
