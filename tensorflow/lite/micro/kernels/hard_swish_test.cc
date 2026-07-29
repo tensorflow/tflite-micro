@@ -280,9 +280,9 @@ TEST(HardSwishTest, SimpleHardSwishTestInt8) {
     float output_max = output_minmax[i][1];
 
     tflite::testing::TestHardSwishQuantized<int8_t>(
-        size, output_data, input_data_quantized, dequantized_output,
-        input_min, input_max, output_min, output_max, &random_engine,
-        input_values, output_values);
+        size, output_data, input_data_quantized, dequantized_output, input_min,
+        input_max, output_min, output_max, &random_engine, input_values,
+        output_values);
   }
 }
 
