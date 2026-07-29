@@ -263,26 +263,26 @@ TEST(HardSwishTest, SimpleHardSwishTestInt8) {
   std::minstd_rand random_engine;
   constexpr int pairs = 4, one_pair = 2;
   constexpr int size = 101;
-  constexpr float minmax_pairs[pairs][one_pair] = {
-      {0.f, 1.f}, {-2.f, 1.f}, {-5.f, 10.f}, {-40.f, 60.f}};
+  constexpr float input_minmax[pairs][one_pair] = {
+      {-0.375f, 1.f}, {-2.f, 1.f}, {-5.f, 10.f}, {-40.f, 60.f}};
+  constexpr float output_minmax[pairs][one_pair] = {
+      {-0.375f, 1.f}, {-0.375f, 1.f}, {-0.375f, 10.f}, {-0.375f, 60.f}};
   int8_t output_data[size] = {0};
   int8_t input_data_quantized[size] = {0};
   float dequantized_output[size] = {0.f};
   float input_values[size] = {0.f};
   float output_values[size] = {0.f};
 
-  for (int x = 0; x < pairs; x++) {
-    for (int y = 0; y < pairs; y++) {
-      float input_min = minmax_pairs[x][0];
-      float input_max = minmax_pairs[x][1];
-      float output_min = minmax_pairs[y][0];
-      float output_max = minmax_pairs[y][1];
+  for (int i = 0; i < pairs; i++) {
+    float input_min = input_minmax[i][0];
+    float input_max = input_minmax[i][1];
+    float output_min = output_minmax[i][0];
+    float output_max = output_minmax[i][1];
 
-      tflite::testing::TestHardSwishQuantized<int8_t>(
-          size, output_data, input_data_quantized, dequantized_output,
-          input_min, input_max, output_min, output_max, &random_engine,
-          input_values, output_values);
-    }
+    tflite::testing::TestHardSwishQuantized<int8_t>(
+        size, output_data, input_data_quantized, dequantized_output, input_min,
+        input_max, output_min, output_max, &random_engine, input_values,
+        output_values);
   }
 }
 

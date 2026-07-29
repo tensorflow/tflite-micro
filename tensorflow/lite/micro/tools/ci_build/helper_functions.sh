@@ -65,12 +65,12 @@ function check_contents() {
 # Otherwise, defaults to the number of processing units available.
 function get_parallel_jobs {
   if [[ -n "${MAKE_JOBS_NUM}" ]]; then
-    echo "-j${MAKE_JOBS_NUM}"
+    echo "-j${MAKE_JOBS_NUM} --output-sync=target"
   elif command -v nproc > /dev/null; then
-    echo "-j$(nproc)"
+    echo "-j$(nproc) --output-sync=target"
   elif [[ "$(uname)" == "Darwin" ]]; then
-    echo "-j$(sysctl -n hw.ncpu)"
+    echo "-j$(sysctl -n hw.ncpu) --output-sync=target"
   else
-    echo "-j1"
+    echo "-j1 --output-sync=target"
   fi
 }
