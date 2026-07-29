@@ -16,7 +16,8 @@
 Provides a clean API for creating, reading, and modifying TFLite models.
 """
 
-from dataclasses import dataclass, field
+import copy
+from dataclasses import dataclass
 from typing import Optional, Union, List
 import numpy as np
 import flatbuffers
@@ -86,6 +87,25 @@ class Quantization:
       q.quantizedDimension = self.axis
 
     return q
+
+
+def _fields_equal(a, b) -> bool:
+  """Compare two values recursively, including flatbuffer objects.
+
+  Sequences compare elementwise. Objects with fields, such as the
+  schema's flatbuffer classes, compare field by field, so fields
+  unknown to this module still participate.
+  """
+  if isinstance(a, (list, tuple, np.ndarray)) and isinstance(
+      b, (list, tuple, np.ndarray)):
+    return np.array_equal(a, b)
+  if hasattr(a, '__dict__') and hasattr(b, '__dict__'):
+    if type(a) is not type(b):
+      return False
+    keys = vars(a).keys() | vars(b).keys()
+    return all(
+        _fields_equal(getattr(a, k, None), getattr(b, k, None)) for k in keys)
+  return a == b
 
 
 class Tensor:
@@ -215,6 +235,62 @@ class Tensor:
     else:
       self.buffer.data = buf_data
 
+  def copy(self, name: Optional[str] = None) -> 'Tensor':
+    """Return a copy of this tensor, sharing this tensor's buffer.
+
+    The copy duplicates every field, including those of the backing
+    TensorT, except that it references the same Buffer object as the
+    original and has no index until added to a subgraph. Assign None
+    to the copy's buffer for a tensor with no data.
+
+    Args:
+        name: Optional name for the copy. If None, the copy keeps this
+              tensor's name.
+
+    Returns:
+        A new Tensor duplicating this one.
+    """
+    # Seed the memo so the deepcopy preserves buffer identity: sharing
+    # is by Buffer object, and a duplicate would compile to a duplicate
+    # buffer table entry.
+    memo = {id(self.buffer): self.buffer}
+    duplicate = copy.deepcopy(self, memo)
+    duplicate._index = None
+    if name is not None:
+      duplicate.name = name
+    return duplicate
+
+  def equal(self, other: 'Tensor') -> bool:
+    """Return True if this tensor equals other, field by field.
+
+    Compare the backing TensorTs recursively, so fields this module
+    does not manage still participate, plus quantization and buffer.
+    Buffers compare by identity, mirroring how the model expresses
+    sharing: tensors referencing distinct but byte-identical Buffers
+    compile to distinct buffer table entries and are not equal. The
+    tensors' positions in any subgraph do not participate.
+
+    Args:
+        other: The tensor to compare against.
+
+    Returns:
+        True if the tensors are equal.
+    """
+    if self.buffer is not other.buffer:
+      return False
+    if self.quantization != other.quantization:
+      return False
+    # Exclude the TensorT fields mirrored by the wrapper attributes
+    # compared above: buffer, an index assigned at build time, and
+    # quantization, which build() syncs from the wrapper attribute.
+    # Comparing the raw fields too would misreport tensors of mixed
+    # provenance, read versus constructed.
+    excluded = ('buffer', 'quantization')
+    keys = vars(self._fb).keys() | vars(other._fb).keys()
+    return all(
+        _fields_equal(getattr(self._fb, k, None), getattr(other._fb, k, None))
+        for k in keys if k not in excluded)
+
   @property
   def index(self) -> Optional[int]:
     """Tensor index in the subgraph's tensor list.
@@ -306,7 +382,7 @@ class Operator:
 
   def __init__(self,
                opcode: Union[tflite.BuiltinOperator, int] = None,
-               inputs: List[Tensor] = None,
+               inputs: List[Optional[Tensor]] = None,
                outputs: List[Tensor] = None,
                custom_code: Optional[str] = None,
                opcode_index: Optional[int] = None,
@@ -315,7 +391,7 @@ class Operator:
 
     Args:
         opcode: BuiltinOperator enum value or CUSTOM
-        inputs: List of input Tensor objects
+        inputs: List of input Tensor objects, None for an absent input
         outputs: List of output Tensor objects
         custom_code: Custom operator name (for CUSTOM opcode)
         opcode_index: Index into operator_codes (set during read)
@@ -448,6 +524,17 @@ class Subgraph:
         return t
     raise KeyError(f"No tensor named {name!r}")
 
+  def consumers_of(self, tensor: Tensor) -> List[Operator]:
+    """Find the operators in this subgraph that read a tensor.
+
+    Args:
+      tensor: The tensor whose consumers to find.
+
+    Returns:
+      The operators, in subgraph order, with tensor among their inputs.
+    """
+    return [op for op in self.operators if tensor in op.inputs]
+
   @property
   def index(self) -> Optional[int]:
     """Subgraph index in the model's subgraph list.
@@ -521,6 +608,83 @@ class Model:
     return compiler.compile()
 
 
+def iter_tensors(model: Model):
+  """Yield every tensor in the model exactly once.
+
+  Walk the same sources the compiler collects from: each subgraph's
+  tensor list, inputs, outputs, and the tensors inline on operators.
+  Skip the None marking an absent optional operator input, so callers
+  can dereference every yielded value as a tensor.
+
+  Args:
+      model: The model whose tensors to yield.
+
+  Yields:
+      Each distinct Tensor in the model.
+  """
+  seen = set()
+  for sg in model.subgraphs:
+    sources = [sg.tensors, sg.inputs, sg.outputs]
+    sources.extend(op.inputs for op in sg.operators)
+    sources.extend(op.outputs for op in sg.operators)
+    for source in sources:
+      for tensor in source:
+        if tensor is None:
+          continue
+        if id(tensor) not in seen:
+          seen.add(id(tensor))
+          yield tensor
+
+
+def dedupe_buffers(model: Model) -> None:
+  """Merge byte-identical buffers into one shared Buffer.
+
+  Repoint tensors whose buffers hold equal contents at a single
+  canonical Buffer object, the first encountered, mirroring the TfLite
+  converter's deduplication of identical constants. Leave tensors
+  marked is_variable alone: mutable data must not alias. Merged-away
+  buffers linger in model.buffers until pruned.
+
+  Args:
+      model: The model to modify in place.
+  """
+  canonical: dict[bytes, Buffer] = {}
+  for tensor in iter_tensors(model):
+    if tensor.buffer is None or tensor._fb.isVariable:
+      continue
+    existing = canonical.get(tensor.buffer.data)
+    if existing is None:
+      canonical[tensor.buffer.data] = tensor.buffer
+    else:
+      tensor.buffer = existing
+
+
+def prune_buffers(model: Model) -> None:
+  """Drop buffers that no tensor references from model.buffers.
+
+  Rebuild the buffer list with only the conventional empty buffer 0
+  and the buffers some tensor references, renumbering indices. A model
+  built from scratch keeps an empty buffer list and the compiler emits
+  only referenced buffers, so pruning matters for models from read(),
+  whose buffer list the compiler preserves wholesale.
+
+  Args:
+      model: The model to modify in place.
+  """
+  if not model.buffers:
+    return
+  referenced = {
+      id(tensor.buffer)
+      for tensor in iter_tensors(model) if tensor.buffer is not None
+  }
+  survivors = _BufferList()
+  survivors.append(model.buffers[0])
+  for buffer in model.buffers[1:]:
+    if id(buffer) in referenced:
+      survivors.append(buffer)
+  model.buffers = survivors
+
+
 def read(buffer: bytes) -> Model:
   """Read a TFLite flatbuffer and return a Model object."""
   fb_model = tflite.ModelT.InitFromPackedBuf(buffer, 0)
@@ -581,10 +745,16 @@ def read(buffer: bytes) -> Model:
       opcode_obj = model.operator_codes[fb_op.opcodeIndex]
 
       # Resolve tensor indices to Tensor objects
-      inputs = [sg.tensors[i]
-                for i in fb_op.inputs] if fb_op.inputs is not None else []
-      outputs = [sg.tensors[i]
-                 for i in fb_op.outputs] if fb_op.outputs is not None else []
+      inputs = []
+      for i in fb_op.inputs if fb_op.inputs is not None else []:
+        if i == -1:
+          # The schema marks an absent optional input with an index of -1.
+          inputs.append(None)
+        elif i < 0:
+          raise ValueError(f"invalid operator input index {i}.")
+        else:
+          inputs.append(sg.tensors[i])
+      outputs = _resolve_tensors(sg.tensors, fb_op.outputs)
 
       # Create Operator wrapping the OperatorT; all fields preserved in _fb
       op = Operator(
@@ -598,10 +768,8 @@ def read(buffer: bytes) -> Model:
       sg.operators.append(op)
 
     # Read subgraph inputs/outputs
-    if fb_sg.inputs is not None and len(fb_sg.inputs) > 0:
-      sg.inputs = [sg.tensors[i] for i in fb_sg.inputs]
-    if fb_sg.outputs is not None and len(fb_sg.outputs) > 0:
-      sg.outputs = [sg.tensors[i] for i in fb_sg.outputs]
+    sg.inputs = _resolve_tensors(sg.tensors, fb_sg.inputs)
+    sg.outputs = _resolve_tensors(sg.tensors, fb_sg.outputs)
 
     model.subgraphs.append(sg)
 
@@ -620,6 +788,27 @@ def read(buffer: bytes) -> Model:
       model.metadata[name] = value
 
   return model
+
+
+def _resolve_tensors(tensors: List[Tensor], indices) -> List[Tensor]:
+  """Resolve tensor indices, rejecting negative ones.
+
+  Args:
+      tensors: The subgraph's tensors.
+      indices: The indices to resolve, or None for none at all.
+
+  Returns:
+      The tensors the indices name.
+
+  Raises:
+      ValueError: If an index is negative.
+  """
+  resolved = []
+  for i in indices if indices is not None else []:
+    if i < 0:
+      raise ValueError(f"invalid tensor index {i}.")
+    resolved.append(tensors[i])
+  return resolved
 
 
 class _ModelCompiler:
@@ -714,6 +903,8 @@ class _ModelCompiler:
     inline_sources.append(sg.outputs)
     for source in inline_sources:
       for tensor in source:
+        if tensor is None:
+          continue
         if id(tensor) not in tensor_to_index:
           tensor._index = len(all_tensors)
           tensor_to_index[id(tensor)] = tensor._index
@@ -748,7 +939,9 @@ class _ModelCompiler:
     op_t.opcodeIndex = opcode_index
 
     # Resolve tensor references to indices
-    op_t.inputs = [tensor_to_index[id(inp)] for inp in op.inputs]
+    op_t.inputs = [
+        -1 if inp is None else tensor_to_index[id(inp)] for inp in op.inputs
+    ]
     op_t.outputs = [tensor_to_index[id(outp)] for outp in op.outputs]
 
     return op_t

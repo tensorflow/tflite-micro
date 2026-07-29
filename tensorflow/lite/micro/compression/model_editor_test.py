@@ -14,12 +14,20 @@
 """Tests for model_editor module.
 """
 
+import flatbuffers
 import numpy as np
 import unittest
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression.model_editor import (
     Buffer, Model, Operator, OperatorCode, Quantization, Subgraph, Tensor)
+
+
+def _pack_model(model_t: tflite.ModelT) -> bytes:
+  """Pack a ModelT into a flatbuffer."""
+  builder = flatbuffers.Builder(1024)
+  builder.Finish(model_t.Pack(builder))
+  return bytes(builder.Output())
 
 
 class TestBasicModel(unittest.TestCase):
@@ -827,6 +835,291 @@ class TestSubgraphInputsOutputs(unittest.TestCase):
     with self.assertRaises(KeyError):
       model.subgraphs[0].tensor_by_name("nonexistent")
 
+  def test_consumers_of(self):
+    """consumers_of finds the operators reading a tensor, in order."""
+    shared = Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="shared",
+    )
+    input1 = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input1")
+    input2 = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input2")
+    output1 = Tensor(shape=(1, 4),
+                     dtype=tflite.TensorType.INT8,
+                     name="output1")
+    output2 = Tensor(shape=(1, 4),
+                     dtype=tflite.TensorType.INT8,
+                     name="output2")
+
+    fc1 = Operator(
+        opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+        inputs=[input1, shared],
+        outputs=[output1],
+    )
+    only_produces = Operator(
+        opcode=tflite.BuiltinOperator.RESHAPE,
+        inputs=[output1],
+        outputs=[output2],
+    )
+    fc2 = Operator(
+        opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+        inputs=[output2, shared],
+        outputs=[Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8)],
+    )
+    sg = Subgraph(tensors=[shared],
+                  operators=[fc1, only_produces, fc2],
+                  inputs=[input1, input2])
+
+    self.assertEqual(sg.consumers_of(shared), [fc1, fc2])
+    self.assertEqual(sg.consumers_of(input1), [fc1])
+    self.assertEqual(sg.consumers_of(input2), [])
+
+
+class TestTensorCopy(unittest.TestCase):
+  """Tests for Tensor.copy()."""
+
+  def _original(self):
+    return Tensor(
+        shape=(2, 2),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2], [3, 4]], dtype=np.int8),
+        name="original",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+
+  def test_copy_shares_buffer(self):
+    """The copy references the same Buffer object as the original."""
+    original = self._original()
+    duplicate = original.copy()
+
+    self.assertIsNot(duplicate, original)
+    self.assertIs(duplicate.buffer, original.buffer)
+
+  def test_copy_is_independent(self):
+    """Mutating the copy leaves the original untouched."""
+    original = self._original()
+    duplicate = original.copy(name="duplicate")
+    self.assertEqual(duplicate.quantization, original.quantization)
+
+    duplicate.shape = (4, )
+    duplicate.dtype = tflite.TensorType.UINT8
+    duplicate.quantization.scales = 2.0
+
+    self.assertEqual(duplicate.name, "duplicate")
+    self.assertEqual(original.name, "original")
+    self.assertEqual(original.shape, (2, 2))
+    self.assertEqual(original.dtype, tflite.TensorType.INT8)
+    self.assertEqual(original.quantization.scales, 0.5)
+
+
+class TestTensorEqual(unittest.TestCase):
+  """Tests for Tensor.equal()."""
+
+  def _original(self):
+    return Tensor(
+        shape=(2, 2),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2], [3, 4]], dtype=np.int8),
+        name="original",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+
+  def test_copy_equals_original(self):
+    """A copy sharing the original's buffer compares equal."""
+    original = self._original()
+    self.assertTrue(original.copy().equal(original))
+
+  def test_any_field_differing_is_unequal(self):
+    """A difference in any field, wrapper-managed or not, is unequal."""
+    original = self._original()
+
+    renamed = original.copy(name="renamed")
+    self.assertFalse(renamed.equal(original))
+
+    requantized = original.copy()
+    requantized.quantization.scales = 2.0
+    self.assertFalse(requantized.equal(original))
+
+    dataless = original.copy()
+    dataless.buffer = None
+    self.assertFalse(dataless.equal(original))
+
+    # Buffers compare by identity: equal bytes in a distinct Buffer
+    # still make a structurally different model
+    rebuffered = original.copy()
+    rebuffered.buffer = model_editor.Buffer(data=original.buffer.data)
+    self.assertFalse(rebuffered.equal(original))
+
+    variable = original.copy()
+    variable._fb.isVariable = True
+    self.assertFalse(variable.equal(original))
+
+  def test_backing_quantization_details_excluded(self):
+    """Quantization held only by the backing TensorT does not
+    participate.
+
+    equal() compares quantization at the wrapper level, where scale,
+    zero point, and axis live; min, max, and details carried only by
+    the backing TensorT are excluded by design.
+    """
+    scratch = Model(subgraphs=[Subgraph(tensors=[self._original()])])
+    fb = bytes(scratch.build())
+    t1 = model_editor.read(fb).subgraphs[0].tensor_by_name("original")
+
+    t2 = t1.copy()
+    t2._fb.quantization.min = [-1.0]
+
+    self.assertTrue(t1.equal(t2))
+
+
+class TestDedupeBuffers(unittest.TestCase):
+  """Tests for dedupe_buffers()."""
+
+  @staticmethod
+  def _constant(name, values):
+    return Tensor(
+        shape=(4, ),
+        dtype=tflite.TensorType.INT8,
+        data=np.array(values, dtype=np.int8),
+        name=name,
+    )
+
+  def test_merges_identical_buffers_across_subgraphs(self):
+    """Byte-identical buffers converge on one canonical Buffer."""
+    c1 = self._constant("c1", [1, 2, 3, 4])
+    c2 = self._constant("c2", [1, 2, 3, 4])
+    model = Model(subgraphs=[
+        Subgraph(tensors=[c1]),
+        Subgraph(tensors=[c2]),
+    ])
+    self.assertIsNot(c1.buffer, c2.buffer)
+
+    model_editor.dedupe_buffers(model)
+
+    self.assertIs(c2.buffer, c1.buffer)
+
+    # The compiled model carries one buffer for both tensors, plus the
+    # conventional empty buffer 0
+    fb_model = tflite.ModelT.InitFromPackedBuf(bytes(model.build()), 0)
+    self.assertEqual(len(fb_model.buffers), 2)
+
+  def test_leaves_distinct_and_variable_buffers(self):
+    """Differing contents never merge; variable tensors never alias."""
+    c1 = self._constant("c1", [1, 2, 3, 4])
+    c2 = self._constant("c2", [5, 6, 7, 8])
+    variable = self._constant("v", [1, 2, 3, 4])
+    variable._fb.isVariable = True
+    model = Model(subgraphs=[Subgraph(tensors=[c1, c2, variable])])
+
+    model_editor.dedupe_buffers(model)
+
+    self.assertIsNot(c2.buffer, c1.buffer)
+    self.assertIsNot(variable.buffer, c1.buffer)
+
+  def test_reaches_inline_tensors(self):
+    """Tensors on operators, absent from the tensor list, participate."""
+    listed = self._constant("listed", [1, 2, 3, 4])
+    inline = self._constant("inline", [1, 2, 3, 4])
+    output_t = Tensor(shape=(4, ), dtype=tflite.TensorType.INT8, name="out")
+    model = Model(subgraphs=[
+        Subgraph(
+            tensors=[listed],
+            operators=[
+                Operator(
+                    opcode=tflite.BuiltinOperator.ADD,
+                    inputs=[listed, inline],
+                    outputs=[output_t],
+                )
+            ],
+            outputs=[output_t],
+        )
+    ])
+
+    model_editor.dedupe_buffers(model)
+
+    self.assertIs(inline.buffer, listed.buffer)
+
+
+class TestPruneBuffers(unittest.TestCase):
+  """Tests for prune_buffers()."""
+
+  @staticmethod
+  def _read_model_with_two_constants(metadata=None):
+    c1 = Tensor(
+        shape=(4, ),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([1, 2, 3, 4], dtype=np.int8),
+        name="c1",
+    )
+    c2 = Tensor(
+        shape=(4, ),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([5, 6, 7, 8], dtype=np.int8),
+        name="c2",
+    )
+    scratch = Model(subgraphs=[Subgraph(tensors=[c1, c2])], metadata=metadata)
+    return model_editor.read(bytes(scratch.build()))
+
+  def test_drops_unreferenced_buffers(self):
+    """Orphaned buffers vanish; surviving data and indices stay right."""
+    model = self._read_model_with_two_constants()
+    self.assertEqual(len(model.buffers), 3)
+    sg = model.subgraphs[0]
+
+    # Orphan c1's buffer by repointing the tensor at c2's. The
+    # surviving buffer then changes position, exercising renumbering.
+    sg.tensor_by_name("c1").buffer = sg.tensor_by_name("c2").buffer
+
+    model_editor.prune_buffers(model)
+
+    self.assertEqual(len(model.buffers), 2)
+    roundtrip = model_editor.read(bytes(model.build()))
+    rt_sg = roundtrip.subgraphs[0]
+    np.testing.assert_array_equal(
+        rt_sg.tensor_by_name("c1").array, [5, 6, 7, 8])
+    np.testing.assert_array_equal(
+        rt_sg.tensor_by_name("c2").array, [5, 6, 7, 8])
+
+  def test_keeps_referenced_buffers(self):
+    """With every buffer referenced, pruning removes nothing."""
+    model = self._read_model_with_two_constants()
+    count_before = len(model.buffers)
+
+    model_editor.prune_buffers(model)
+
+    self.assertEqual(len(model.buffers), count_before)
+
+  def test_metadata_survives_pruning(self):
+    """Pruning leaves the metadata intact."""
+    model = self._read_model_with_two_constants(metadata={"m": b"payload"})
+    sg = model.subgraphs[0]
+    before = len(model.buffers)
+
+    # Orphan c1's buffer by repointing the tensor at c2's, so pruning
+    # drops a tensor buffer and renumbers the buffers that survive.
+    sg.tensor_by_name("c1").buffer = sg.tensor_by_name("c2").buffer
+
+    model_editor.prune_buffers(model)
+    self.assertLess(len(model.buffers), before)
+
+    roundtrip = model_editor.read(bytes(model.build()))
+    self.assertEqual(roundtrip.metadata["m"], b"payload")
+
+  def test_noop_on_scratch_model(self):
+    """A from-scratch model has no buffer list to prune."""
+    c1 = Tensor(shape=(4, ),
+                dtype=tflite.TensorType.INT8,
+                data=np.array([1, 2, 3, 4], dtype=np.int8),
+                name="c1")
+    model = Model(subgraphs=[Subgraph(tensors=[c1])])
+
+    model_editor.prune_buffers(model)
+
+    roundtrip = model_editor.read(bytes(model.build()))
+    np.testing.assert_array_equal(
+        roundtrip.subgraphs[0].tensor_by_name("c1").array, [1, 2, 3, 4])
+
 
 class TestReadEdgeCases(unittest.TestCase):
   """Test model_editor.read() with edge cases from real-world models.
@@ -835,13 +1128,6 @@ class TestReadEdgeCases(unittest.TestCase):
   edge cases that may not be producible via model_editor.build(), but can
   appear in models from other sources (e.g., TFLite converter).
   """
-
-  def _build_model_with_schema(self, model_t):
-    """Build a flatbuffer from a ModelT using the low-level schema."""
-    import flatbuffers
-    builder = flatbuffers.Builder(1024)
-    builder.Finish(model_t.Pack(builder))
-    return bytes(builder.Output())
 
   def test_read_scalar_tensor(self):
     """Verify read() handles tensors with None shape (scalars).
@@ -892,7 +1178,7 @@ class TestReadEdgeCases(unittest.TestCase):
     model_t.subgraphs = [sg]
 
     # Build and read
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     # Verify scalar tensor was read with empty shape tuple
@@ -944,7 +1230,7 @@ class TestReadEdgeCases(unittest.TestCase):
     model_t.subgraphs = [sg]
 
     # Build and read
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     # Verify operator was read with empty inputs list
@@ -990,7 +1276,7 @@ class TestReadEdgeCases(unittest.TestCase):
     sg.operators = [op]
     model_t.subgraphs = [sg]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     self.assertEqual(len(model.subgraphs[0].operators), 1)
@@ -1028,12 +1314,163 @@ class TestReadEdgeCases(unittest.TestCase):
     sg.operators = []
     model_t.subgraphs = [sg]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
     model = model_editor.read(fb)
 
     t = model.subgraphs[0].tensors[0]
     self.assertEqual(t.dtype, tflite.TensorType.INT64)
     np.testing.assert_array_equal(t.array, int64_data)
+
+
+def _fully_connected_model_t(op_inputs: list[int]) -> tflite.ModelT:
+  """Build a fully-connected model whose operator reads op_inputs.
+
+  Subgraph tensors, by index:
+      0: input
+      1: weights
+      2: output
+
+  Args:
+      op_inputs: Indices written verbatim to the operator's input
+          vector, negative values included.
+
+  Returns:
+      An unpacked model, for _pack_model to serialize.
+  """
+  model_t = tflite.ModelT()
+  model_t.version = 3
+
+  empty = tflite.BufferT()
+  empty.data = []
+  weights_buffer = tflite.BufferT()
+  weights_buffer.data = list(np.ones((4, 4), dtype=np.int8).tobytes())
+  model_t.buffers = [empty, weights_buffer]
+
+  opcode = tflite.OperatorCodeT()
+  opcode.builtinCode = tflite.BuiltinOperator.FULLY_CONNECTED
+  model_t.operatorCodes = [opcode]
+
+  def tensor(name, shape, buffer):
+    t = tflite.TensorT()
+    t.name = name.encode()
+    t.type = tflite.TensorType.INT8
+    t.shape = shape
+    t.buffer = buffer
+    return t
+
+  sg = tflite.SubGraphT()
+  sg.tensors = [
+      tensor("input", [1, 4], 0),
+      tensor("weights", [4, 4], 1),
+      tensor("output", [1, 4], 0),
+  ]
+  sg.inputs = [0]
+  sg.outputs = [2]
+
+  op = tflite.OperatorT()
+  op.opcodeIndex = 0
+  op.inputs = op_inputs
+  op.outputs = [2]
+  sg.operators = [op]
+
+  model_t.subgraphs = [sg]
+  return model_t
+
+
+class TestOptionalInputs(unittest.TestCase):
+  """Test operators with an absent optional input.
+
+  The schema marks an absent optional input with an index of -1. A
+  fully-connected operator uses that index when it has no bias.
+  """
+
+  def _read_model_without_bias(self) -> Model:
+    """Read a fully-connected model whose bias input is absent."""
+    return model_editor.read(_pack_model(_fully_connected_model_t([0, 1, -1])))
+
+  def _build_model_without_bias(self) -> Model:
+    """Build a fully-connected model whose bias input is absent."""
+    input_t = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="input")
+    weights = Tensor(shape=(4, 4),
+                     dtype=tflite.TensorType.INT8,
+                     data=np.ones((4, 4), dtype=np.int8),
+                     name="weights")
+    output = Tensor(shape=(1, 4), dtype=tflite.TensorType.INT8, name="output")
+    return Model(subgraphs=[
+        Subgraph(
+            operators=[
+                Operator(opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+                         inputs=[input_t, weights, None],
+                         outputs=[output])
+            ],
+            inputs=[input_t],
+            outputs=[output],
+        )
+    ])
+
+  def test_read_marks_absent_input(self):
+    """Verify read() maps an operator input index of -1 to None."""
+    model = self._read_model_without_bias()
+    self.assertIsNone(model.subgraphs[0].operators[0].inputs[2])
+
+  def test_build_preserves_absent_input(self):
+    """Verify reading and building a model keeps the input absent."""
+    model = self._read_model_without_bias()
+    rebuilt_t = tflite.ModelT.InitFromPackedBuf(model.build(), 0)
+    self.assertEqual(list(rebuilt_t.subgraphs[0].operators[0].inputs),
+                     [0, 1, -1])
+
+  def test_read_rejects_input_index_below_minus_one(self):
+    """Verify read() rejects input indices less than -1."""
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(_fully_connected_model_t([0, 1, -2])))
+
+  def test_consumers_of_skips_absent_input(self):
+    """Verify an absent input does not make its operator a consumer."""
+    subgraph = self._read_model_without_bias().subgraphs[0]
+    self.assertEqual(subgraph.consumers_of(subgraph.tensors[-1]), [])
+
+  def test_iter_tensors_skips_absent_input(self):
+    """Verify iter_tensors yields nothing for an absent input."""
+    model = self._build_model_without_bias()
+    self.assertNotIn(None, list(model_editor.iter_tensors(model)))
+
+  def test_dedupe_and_prune_keep_absent_input(self):
+    """Verify deduplicating and pruning buffers leave an input absent."""
+    model = self._read_model_without_bias()
+    model_editor.dedupe_buffers(model)
+    model_editor.prune_buffers(model)
+    rebuilt_t = tflite.ModelT.InitFromPackedBuf(model.build(), 0)
+    self.assertEqual(list(rebuilt_t.subgraphs[0].operators[0].inputs),
+                     [0, 1, -1])
+
+
+class TestMalformedIndices(unittest.TestCase):
+  """Test read() on negative indices which the schema does not define.
+
+  Only an operator's inputs can be -1.
+  """
+
+  def test_read_rejects_negative_operator_output(self):
+    """Verify read() rejects a negative operator output index."""
+    model_t = _fully_connected_model_t([0, 1, -1])
+    model_t.subgraphs[0].operators[0].outputs = [-1]
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(model_t))
+
+  def test_read_rejects_negative_subgraph_input(self):
+    """Verify read() rejects a negative subgraph input index."""
+    model_t = _fully_connected_model_t([0, 1, -1])
+    model_t.subgraphs[0].inputs = [-1]
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(model_t))
+
+  def test_read_rejects_negative_subgraph_output(self):
+    """Verify read() rejects a negative subgraph output index."""
+    model_t = _fully_connected_model_t([0, 1, -1])
+    model_t.subgraphs[0].outputs = [-1]
+    with self.assertRaises(ValueError):
+      model_editor.read(_pack_model(model_t))
 
 
 class TestFieldPreservation(unittest.TestCase):
@@ -1044,13 +1481,6 @@ class TestFieldPreservation(unittest.TestCase):
   it back. This catches regressions where adding wrapper classes might
   accidentally drop fields.
   """
-
-  def _build_model_with_schema(self, model_t):
-    """Build a flatbuffer from a ModelT using the low-level schema."""
-    import flatbuffers
-    builder = flatbuffers.Builder(1024)
-    builder.Finish(model_t.Pack(builder))
-    return bytes(builder.Output())
 
   def _create_base_model(self):
     """Create a minimal valid model for testing."""
@@ -1100,7 +1530,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].isVariable = True
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     # Read, modify, write
     model = model_editor.read(fb)
@@ -1111,12 +1541,31 @@ class TestFieldPreservation(unittest.TestCase):
     model_t2 = tflite.ModelT.InitFromPackedBuf(fb2, 0)
     self.assertTrue(model_t2.subgraphs[0].tensors[0].isVariable)
 
+  def test_tensor_copy_preserves_fields(self):
+    """Verify Tensor.copy() preserves fields model_editor doesn't manage."""
+    model_t = self._create_base_model()
+    model_t.subgraphs[0].tensors[0].isVariable = True
+
+    fb = _pack_model(model_t)
+
+    model = model_editor.read(fb)
+    sg = model.subgraphs[0]
+    duplicate = sg.tensors[0].copy(name="copy")
+    sg.tensors.append(duplicate)
+    fb2 = model.build()
+
+    model_t2 = tflite.ModelT.InitFromPackedBuf(fb2, 0)
+    tensors = model_t2.subgraphs[0].tensors
+    self.assertEqual(tensors[-1].name, b"copy")
+    self.assertTrue(tensors[-1].isVariable)
+    self.assertEqual(tensors[-1].buffer, tensors[0].buffer)
+
   def test_tensor_shape_signature_preserved(self):
     """Verify Tensor.shapeSignature is preserved through read-modify-write."""
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].shapeSignature = [-1, 4]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1137,7 +1586,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t.subgraphs[0].operators[
         0].builtinOptionsType = tflite.BuiltinOptions.AddOptions
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1154,7 +1603,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].operators[0].customOptions = [0xDE, 0xAD, 0xBE, 0xEF]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1169,7 +1618,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].operators[0].intermediates = [0, 1]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1184,7 +1633,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].operators[0].debugMetadataIndex = 7
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1199,7 +1648,7 @@ class TestFieldPreservation(unittest.TestCase):
     # Set deprecated code to a value different from the new builtin code
     model_t.operatorCodes[0].deprecatedBuiltinCode = 42
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1213,7 +1662,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].debugMetadataIndex = 5
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1227,7 +1676,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.version = 42
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1245,7 +1694,7 @@ class TestFieldPreservation(unittest.TestCase):
     sig_def.subgraphIndex = 0
     model_t.signatureDefs = [sig_def]
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1268,7 +1717,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.max = [1.0]
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1289,7 +1738,7 @@ class TestFieldPreservation(unittest.TestCase):
     sparsity.blockMap = [0]
     model_t.subgraphs[0].tensors[0].sparsity = sparsity
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1306,7 +1755,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t = self._create_base_model()
     model_t.subgraphs[0].tensors[0].hasRank = True
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1325,7 +1774,7 @@ class TestFieldPreservation(unittest.TestCase):
     model_t.subgraphs[0].operators[0].builtinOptions2Type = (
         tflite.BuiltinOptions2.StablehloConcatenateOptions)
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1346,7 +1795,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.quantizedDimension = 1
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1366,7 +1815,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.zeroPoint = [128]
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
@@ -1391,7 +1840,7 @@ class TestFieldPreservation(unittest.TestCase):
     quant.quantizedDimension = 0
     model_t.subgraphs[0].tensors[0].quantization = quant
 
-    fb = self._build_model_with_schema(model_t)
+    fb = _pack_model(model_t)
 
     model = model_editor.read(fb)
     model.description = "modified"
