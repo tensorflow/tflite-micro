@@ -10,6 +10,7 @@
 
 TARGET_ARCH :=
 XTENSA_USE_LIBC :=
+XTENSA_INCLUDE_FLOAT_OPT := 1
 
 # Allow additional flags on the command line for debugging.
 XTENSA_EXTRA_CFLAGS :=
@@ -30,11 +31,28 @@ ifeq ($(TARGET_ARCH), )
   $(error TARGET_ARCH must be specified on the command line)
 endif
 
+ifeq ($(XTENSA_INCLUDE_FLOAT_OPT), 1)
+  CXXFLAGS += -DFLOAT_OPT_FLAG=1
+  CCFLAGS += -DFLOAT_OPT_FLAG=1
+endif
+
 # Create a cflag based on the specified TARGET_ARCH. For example:
 #   TARGET_ARCH=hifi4 --> -DHIFI4
-TARGET_ARCH_DEFINES := -D$(shell echo $(TARGET_ARCH) | tr [a-z] [A-Z])
+#  For TARGET_ARCH=hifi3/3z or fusion_f1, cflag should be -DHIFI4.
+ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi3z fusion_f1 hifi1))
+  TARGET_ARCH_DEFINES := -DHIFI4
+else
+  TARGET_ARCH_DEFINES := -D$(shell echo $(TARGET_ARCH) | tr [a-z] [A-Z])
+endif
+
+ifeq ($(BUILD_TYPE), debug)
+  THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL := -O0
+else
+  THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL := -O3 -LNO:simd
+endif
 
 PLATFORM_FLAGS = \
+  -stdlib=libc++ \
   -DTF_LITE_MCU_DEBUG_LOG \
   -DTF_LITE_USE_CTIME \
   --xtensa-core=$(XTENSA_CORE) \
@@ -46,11 +64,6 @@ export PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/bin:$(PA
 TARGET_TOOLCHAIN_PREFIX := xt-
 CXX_TOOL := clang++
 CC_TOOL := clang
-
-# Building with C++17 requires libc++
-ifneq ($(CC_VER11), true)
-  PLATFORM_FLAGS += -stdlib=libc++
-endif
 
 # Unused exception related symbols make their way into a binary that links
 # against TFLM as described in https://github.com/tensorflow/tensorflow/issues/47575.
@@ -91,40 +104,15 @@ EXCLUDED_EXAMPLE_TESTS := \
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/examples/ -name Makefile.inc)
 
+# Needed for LSTM support.
+MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
+$(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
+
 ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
-  # Explicitly add kernel sources specific to the Xtensa optimized
-  # implementations.
-  #
-  # Do not include overlays for reference kernel files.
-  MICROLITE_CC_KERNEL_SRCS += \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/add_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_common_xtensa.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_int16.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_common_xtensa.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_hifimini.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_int8.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/svdf_hifimini.cc
-
-  # Needed for LSTM support.
-  MICROLITE_CC_KERNEL_SRCS += \
-    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
-
+  MICROLITE_CC_KERNEL_SRCS := $(MICROLITE_CC_KERNEL_SRCS) \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/unidirectional_sequence_lstm.cc
   # Additional kernel sources for DECODE operator support
   ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5))
     MICROLITE_CC_KERNEL_SRCS += \
@@ -134,12 +122,12 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
   endif
 endif
 
-# override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
-# Xtensa intrinsics.
+  # override KERNEL_OPTIMIZATION_LEVEL to enable higher performance
+  # Xtensa intrinsics.
 $(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/decompress.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
-
+  
 $(KERNEL_OBJDIR)$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_huffman.o: $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_huffman.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O3 -LNO:simd $(INCLUDES) -c $< -o $@
