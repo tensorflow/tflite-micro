@@ -475,6 +475,46 @@ tflm_py_test(
     ],
 )
 
+tflm_py_library(
+    name = "propose_spec_lib",
+    srcs = ["propose_spec.py"],
+    deps = [
+        ":compressor",
+        ":lut",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("absl_py"),
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_binary(
+    name = "propose_spec",
+    srcs = ["propose_spec.py"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":propose_spec_lib",
+    ],
+)
+
+tflm_py_test(
+    name = "propose_spec_test",
+    size = "small",
+    srcs = ["propose_spec_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",  # Sanitizer symbols don't work with Python extension libs
+        "noubsan",
+    ],
+    deps = [
+        ":propose_spec_lib",
+        ":model_editor",
+        ":spec",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_binary(
     name = "view",
     srcs = [
