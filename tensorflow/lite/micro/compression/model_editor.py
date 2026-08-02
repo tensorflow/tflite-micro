@@ -444,7 +444,11 @@ class Operator:
 
   @property
   def index(self) -> Optional[int]:
-    """Operator index in the subgraph's operator list."""
+    """Operator index in the subgraph's operator list.
+
+    Returns index after read() or build(). May be None or stale after
+    modifications. Use with caution.
+    """
     return self._index
 
 
@@ -745,7 +749,7 @@ def read(buffer: bytes) -> Model:
       sg.tensors.append(tensor)
 
     # Read operators
-    for fb_op in fb_sg.operators:
+    for op_idx, fb_op in enumerate(fb_sg.operators):
       # Get operator code info
       opcode_obj = model.operator_codes[fb_op.opcodeIndex]
 
@@ -770,6 +774,7 @@ def read(buffer: bytes) -> Model:
           custom_code=opcode_obj.custom_code,
           opcode_index=fb_op.opcodeIndex,
       )
+      op._index = op_idx
       sg.operators.append(op)
 
     # Read subgraph inputs/outputs
@@ -928,7 +933,8 @@ class _ModelCompiler:
 
     # Compile operators
     sg_t.operators = []
-    for op in sg.operators:
+    for op_idx, op in enumerate(sg.operators):
+      op._index = op_idx
       sg_t.operators.append(self._compile_operator(op, tensor_to_index))
 
     # Set subgraph inputs/outputs
