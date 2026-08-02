@@ -267,6 +267,39 @@ class TestFileFormat(unittest.TestCase):
     self.assertEqual(tflite.ModelT.InitFromPackedBuf(fb, 0).version, 4)
 
 
+class TestOperatorIndex(unittest.TestCase):
+  """Test that read() and build() set Operator.index."""
+
+  def build_model(self) -> Model:
+    """Build a model with two chained operators, created inline so no
+    index is assigned at construction."""
+    act = Tensor(shape=(1, ), dtype=tflite.TensorType.INT8, name="act")
+    mid = Tensor(shape=(1, ), dtype=tflite.TensorType.INT8, name="mid")
+    out = Tensor(shape=(1, ), dtype=tflite.TensorType.INT8, name="out")
+    return Model(subgraphs=[
+        Subgraph(operators=[
+            Operator(opcode=tflite.BuiltinOperator.ABS,
+                     inputs=[act],
+                     outputs=[mid]),
+            Operator(opcode=tflite.BuiltinOperator.ABS,
+                     inputs=[mid],
+                     outputs=[out]),
+        ])
+    ])
+
+  def test_build_sets_index(self):
+    """Operators carry their subgraph position after build()."""
+    model = self.build_model()
+    self.assertIsNone(model.subgraphs[0].operators[1].index)
+    model.build()
+    self.assertEqual([op.index for op in model.subgraphs[0].operators], [0, 1])
+
+  def test_read_sets_index(self):
+    """Operators carry their subgraph position after read()."""
+    model = model_editor.read(bytes(self.build_model().build()))
+    self.assertEqual([op.index for op in model.subgraphs[0].operators], [0, 1])
+
+
 class TestAdvancedModel(unittest.TestCase):
   """Test multiple operators, custom ops, shared tensors, and mixed references."""
 
