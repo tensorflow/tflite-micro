@@ -351,13 +351,25 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
           const flatbuffers::Vector<flatbuffers::Offset<Buffer>>* buffers =
               model_->buffers();
           auto* buffer = (*buffers)[metadata->buffer()];
+          if (buffer == nullptr) {
+            MicroPrintf("OfflineMemoryAllocation: null buffer");
+            return kTfLiteError;
+          }
           auto* array = buffer->data();
+          if (array == nullptr) {
+            MicroPrintf("OfflineMemoryAllocation: empty buffer data");
+            return kTfLiteError;
+          }
+          const size_t nbytes = static_cast<size_t>(array->size());
+          if (nbytes < 3 * sizeof(uint32_t)) {
+            MicroPrintf(
+                "OfflineMemoryAllocation: buffer too small for header (%u)",
+                static_cast<unsigned>(nbytes));
+            return kTfLiteError;
+          }
           const uint32_t* metadata_buffer =
               reinterpret_cast<const uint32_t*>(array->data());
           const size_t nbr_tensors = static_cast<size_t>(metadata_buffer[2]);
-          *offline_planner_offsets =
-              reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
-
           if (info_.tensor_count != nbr_tensors) {
             MicroPrintf(
                 "Nbr of offline buffer offsets (%d) in metadata "
@@ -365,6 +377,15 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
                 nbr_tensors, info_.tensor_count);
             return kTfLiteError;
           }
+          if (nbytes < 3 * sizeof(uint32_t) +
+                           nbr_tensors * sizeof(int32_t)) {
+            MicroPrintf(
+                "OfflineMemoryAllocation: buffer too small for %u offsets",
+                static_cast<unsigned>(nbr_tensors));
+            return kTfLiteError;
+          }
+          *offline_planner_offsets =
+              reinterpret_cast<const int32_t*>(&metadata_buffer[3]);
         }
       }
     }
