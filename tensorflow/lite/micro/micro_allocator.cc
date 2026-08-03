@@ -203,7 +203,17 @@ void* GetFlatbufferTensorBuffer(
   // First see if there's any buffer information in the serialized tensor.
   // TODO(b/170379532): Add better unit tests to validate flatbuffer values.
   void* out_buffer = nullptr;
-  if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
+  // Reject out-of-range buffer indices. The compression-metadata path in this
+  // file already checks `buffer_index >= buffers->size()`; apply the same guard
+  // here so attacker-controlled tensor.buffer() cannot OOB-index the vector.
+  if (buffers == nullptr) {
+    return nullptr;
+  }
+  const uint32_t buffer_index = flatbuffer_tensor.buffer();
+  if (buffer_index >= buffers->size()) {
+    return nullptr;
+  }
+  if (auto* buffer = (*buffers)[buffer_index]) {
     // If we've found a buffer, does it have any data?
     if (auto* array = buffer->data()) {
       // If it has any data, is the data size larger than zero?
