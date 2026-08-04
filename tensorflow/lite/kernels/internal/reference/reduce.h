@@ -90,9 +90,9 @@ inline bool CheckedReducedElementCount(const int* dims, const int num_dims,
     if (dims[axis] < 0) {
       return false;
     }
-    size_t current = static_cast<size_t>(dims[axis]);
+    T current = static_cast<T>(dims[axis]);
     if (count > 0 &&
-        current > static_cast<size_t>(std::numeric_limits<T>::max() / count)) {
+        current > std::numeric_limits<T>::max() / count) {
       return false;
     }
     count *= current;
