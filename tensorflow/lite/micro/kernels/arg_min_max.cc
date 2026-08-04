@@ -42,11 +42,11 @@ inline void ArgMinMaxHelper(const RuntimeShape& input1_shape,
   if (is_arg_max) {
     reference_ops::ArgMinMax(input1_shape, input1_data, input2_data,
                              output_shape, output_data,
-                             reference_ops::GreaterFn<T1>);
+                             reference_ops::GreaterFn<T1>());
   } else {
     reference_ops::ArgMinMax(input1_shape, input1_data, input2_data,
                              output_shape, output_data,
-                             reference_ops::LessFn<T1>);
+                             reference_ops::LessFn<T1>());
   }
 }
 
