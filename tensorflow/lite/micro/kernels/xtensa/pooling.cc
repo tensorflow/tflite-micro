@@ -32,7 +32,7 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-#if defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
   const OpDataPooling* reference_op_data = &(op_data->reference_op_data);
 #else
@@ -53,8 +53,8 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8: {
-#if defined(HIFI5)
-      AverageEvalQuantizedHifi(context, node, params, op_data, input, output);
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+      AverageEvalQuantizedInt8Hifi(context, node, params, op_data, input, output);
 #elif defined(VISION_P6)
       const auto& op_data =
           *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
@@ -66,8 +66,12 @@ TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+      AverageEvalQuantizedInt16Hifi(context, node, params, op_data, input, output);
+#else      
       AveragePoolingEvalQuantized<int16_t>(context, node, params,
                                            reference_op_data, input, output);
+#endif                                           
       break;
     }
     default: {
@@ -84,18 +88,19 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLitePoolParams*>(node->builtin_data);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-#if defined(HIFI5)
-  auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
-  const OpDataPooling* reference_op_data = &(op_data->reference_op_data);
-#else
-  const OpDataPooling* reference_op_data =
-      static_cast<const OpDataPooling*>(node->user_data);
-#endif
-
   const TfLiteEvalTensor* input =
       micro::GetEvalInput(context, node, kPoolingInputTensor);
   TfLiteEvalTensor* output =
       micro::GetEvalOutput(context, node, kPoolingOutputTensor);
+      
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  const OpDataPooling* reference_op_data;
+  auto* op_data = static_cast<const XtensaOpDataPooling*>(node->user_data);
+  reference_op_data = &(op_data->reference_op_data);
+#else
+  const OpDataPooling* reference_op_data =
+      static_cast<const OpDataPooling*>(node->user_data);
+#endif
 
   switch (input->type) {
     case kTfLiteFloat32: {
@@ -104,8 +109,8 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt8: {
-#if defined(HIFI5)
-      MaxEvalQuantizedHifi(context, node, params, op_data, input, output);
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+      MaxEvalQuantizedInt8Hifi(context, node, params, op_data, input, output);
 #elif defined(VISION_P6)
       const auto& op_data =
           *(reinterpret_cast<XtensaOpDataPooling*>(node->user_data));
@@ -117,8 +122,12 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
       break;
     }
     case kTfLiteInt16: {
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+      MaxEvalQuantizedInt16Hifi(context, node, params, op_data, input, output);
+#else
       MaxPoolingEvalQuantized<int16_t>(context, node, params, reference_op_data,
                                        input, output);
+#endif                                       
       break;
     }
     default: {
@@ -133,7 +142,7 @@ TfLiteStatus MaxEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_AVERAGE_POOL_2D() {
-#if defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   return tflite::micro::RegisterOp(XtensaPoolingInit, AveragePrepareHifi,
                                    AverageEval);
 #elif defined(VISION_P6)
@@ -146,7 +155,7 @@ TFLMRegistration Register_AVERAGE_POOL_2D() {
 }
 
 TFLMRegistration Register_MAX_POOL_2D() {
-#if defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   return tflite::micro::RegisterOp(XtensaPoolingInit, MaxPrepareHifi, MaxEval);
 #elif defined(VISION_P6)
   return tflite::micro::RegisterOp(XtensaPoolingInit, MaxPoolingPrepareVision,
