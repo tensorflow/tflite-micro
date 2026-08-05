@@ -4,33 +4,36 @@
 MICROLITE_CC_KERNEL_SRCS += \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/add_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_common_xtensa.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_common_xtensa.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int16_reference.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_float32_reference.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_int16_float32.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_reference.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_int8_int16_float32.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_int8_reference.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_int16_reference.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_float32_reference.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_common_xtensa.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int16.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_float32.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pad_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_int8.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_int16.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_vision.cc \
-  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_hifi.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reshape_vision.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_int8_int16.cc \
   $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/softmax_vision.cc
+
+# Temporarily disabled: source files not yet added on this branch.
+# Re-enable each entry when its corresponding kernel PR lands.
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_common_xtensa.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_float32_reference.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/conv_int8_int16_float32.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_int8_int16_float32.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_int8_reference.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_int16_reference.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_float32_reference.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int16.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_float32.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/pooling_int16.cc
+#  $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/reduce_hifi.cc
 
 ifeq ($(TARGET_ARCH), hifimini)
   # hifimini optimizations are implemented in the TFLM repository itself.
