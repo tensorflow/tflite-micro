@@ -69,9 +69,14 @@ limitations under the License.
 // this where the overflow merely yields a wrong numeric result and poses no
 // safety risk. Expands to nothing on compilers without the attribute.
 #if TFLITE_HAS_ATTRIBUTE(no_sanitize)
+#if defined(__clang__)
 #define TFLITE_NO_SANITIZE_INTEGER_OVERFLOW \
   __attribute__((                           \
-      no_sanitize("signed-integer-overflow", "unsigned-integer-overflow")))
+      no_sanitize("signed-integer-overflow"), no_sanitize("unsigned-integer-overflow")))
+#else
+#define TFLITE_NO_SANITIZE_INTEGER_OVERFLOW \
+  __attribute__((no_sanitize("signed-integer-overflow")))
+#endif
 #else
 #define TFLITE_NO_SANITIZE_INTEGER_OVERFLOW
 #endif
