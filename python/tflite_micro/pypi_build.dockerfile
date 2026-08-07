@@ -6,7 +6,7 @@
 FROM quay.io/pypa/manylinux_2_28_x86_64
 
 # Install bazel (via bazelisk)
-ENV BAZELISK=https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64
+ENV BAZELISK=https://github.com/bazelbuild/bazelisk/releases/download/v1.29.0/bazelisk-linux-amd64
 ENV BAZEL=/usr/local/bin/bazel
 RUN curl --output $BAZEL --location $BAZELISK && chmod 755 $BAZEL
 

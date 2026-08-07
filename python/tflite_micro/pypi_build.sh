@@ -45,7 +45,7 @@ case "$1" in
 esac
 
 SRCDIR=$(realpath .)
-if ! test -f $SRCDIR/WORKSPACE; then
+if ! test -f $SRCDIR/MODULE.bazel; then
     echo "error: must run from the top of the source tree" >&2
     exit 1
 fi
