@@ -61,3 +61,18 @@ jobs:
         run: |
           python/tflite_micro/pypi_upload.sh \
           bazel-pypi-out/tflite_micro-*.whl
+
+  issue-on-error:
+    needs: [pypi-build]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    permissions:
+      issues: write
+    uses: ./.github/workflows/issue_on_error.yml
+    with:
+      repo: ${{ github.repository }}
+      workflow: ${{ github.workflow }}
+      run_id: ${{ github.run_id }}
+      run_number: ${{ github.run_number }}
+      flag_label: bot:issue
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
