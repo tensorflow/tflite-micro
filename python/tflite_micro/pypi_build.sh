@@ -106,11 +106,13 @@ docker run \
     # Build the wheel via bazel, using the Python compatibility tag matching the
     # build environment. Enable compression support for the official package.
     call_bazel build //python/tflite_micro:whl.dist \
+        --compilation_mode=opt \
         --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
         --//:with_compression=true
 
-    # Test, in the container environment.
+    # Test in the container environment. Use the same options as the build.
     call_bazel test //python/tflite_micro:whl_test \
+            --compilation_mode=opt \
             --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
             --//:with_compression=true
 EOF
