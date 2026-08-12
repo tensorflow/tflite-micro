@@ -15,7 +15,11 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_REDUCE_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_REFERENCE_REDUCE_H_
 
+#include <stddef.h>
+
 #include <algorithm>
+#include <functional>
+#include <limits>
 
 #include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -45,6 +49,59 @@ inline bool IsFirstReduction(const int* index, const int num_axis,
 }
 
 namespace tflite {
+
+namespace reduce_utils {
+
+inline bool CheckedElementCount(const int* dims, const int num_dims,
+                                size_t& out_count) {
+  if (num_dims < 0 || (dims == nullptr && num_dims != 0)) {
+    return false;
+  }
+  size_t count = 1;
+  for (int idx = 0; idx < num_dims; ++idx) {
+    if (dims[idx] < 0) {
+      return false;
+    }
+    size_t current = static_cast<size_t>(dims[idx]);
+    if (current > 0 &&
+        count > std::numeric_limits<size_t>::max() / current) {
+      return false;
+    }
+    count *= current;
+  }
+  out_count = count;
+  return true;
+}
+
+template <typename T>
+inline bool CheckedReducedElementCount(const int* dims, const int num_dims,
+                                       const int* axes, const int num_axes,
+                                       T& out_count) {
+  if (num_dims < 0 || (dims == nullptr && num_dims != 0) ||
+      (axes == nullptr && num_axes != 0)) {
+    return false;
+  }
+  T count = 1;
+  for (int idx = 0; idx < num_axes; ++idx) {
+    int axis = axes[idx];
+    if (axis < 0 || axis >= num_dims) {
+      return false;
+    }
+    if (dims[axis] < 0) {
+      return false;
+    }
+    T current = static_cast<T>(dims[axis]);
+    if (count > 0 &&
+        current > std::numeric_limits<T>::max() / count) {
+      return false;
+    }
+    count *= current;
+  }
+  out_count = count;
+  return true;
+}
+
+}  // namespace reduce_utils
 
 namespace reference_ops {
 
@@ -148,7 +205,7 @@ inline bool ReduceSumImpl(const In* input_data, const int* input_dims,
                           Out* output_data) {
   auto reducer = [](const Out current, const In in) -> Out {
     const Out actual_in = static_cast<Out>(in);
-    return current + actual_in;
+    return AddTensorValuesWithExpectedOverflow<Out>(current, actual_in);
   };
   return Reduce<In, Out>(input_data, input_dims, output_dims, input_num_dims,
                          output_num_dims, axis, num_axis, input_iter, reducer,
@@ -158,15 +215,12 @@ inline bool ReduceSumImpl(const In* input_data, const int* input_dims,
 template <typename T>
 inline bool InitTensorDataForReduce(const int* dims, const int num_dims,
                                     const T init_value, T* data) {
-  size_t num_elements = 1;
-  for (int idx = 0; idx < num_dims; ++idx) {
-    size_t current = static_cast<size_t>(dims[idx]);
-    // Overflow prevention.
-    if (current > 0 &&
-        num_elements > std::numeric_limits<size_t>::max() / current) {
-      return false;
-    }
-    num_elements *= current;
+  if (num_dims < 0 || (dims == nullptr && num_dims != 0)) {
+    return false;
+  }
+  size_t num_elements = 0;
+  if (!reduce_utils::CheckedElementCount(dims, num_dims, num_elements)) {
+    return false;
   }
   for (size_t idx = 0; idx < num_elements; ++idx) {
     data[idx] = init_value;
@@ -221,14 +275,13 @@ inline bool Mean(const T* input_data, const int* input_dims,
                  int* temp_index, int* resolved_axis, U* temp_sum) {
   ruy::profiler::ScopeLabel label("Mean");
   // Reset output data.
-  size_t num_outputs = 1;
-  for (int idx = 0; idx < output_num_dims; ++idx) {
-    size_t current = static_cast<size_t>(output_dims[idx]);
-    // Overflow prevention.
-    if (num_outputs > std::numeric_limits<size_t>::max() / current) {
-      return false;
-    }
-    num_outputs *= current;
+  if (output_num_dims < 0 || (output_dims == nullptr && output_num_dims != 0)) {
+    return false;
+  }
+  size_t num_outputs = 0;
+  if (!reduce_utils::CheckedElementCount(output_dims, output_num_dims,
+                                          num_outputs)) {
+    return false;
   }
   for (size_t idx = 0; idx < num_outputs; ++idx) {
     output_data[idx] = T();
@@ -249,14 +302,15 @@ inline bool Mean(const T* input_data, const int* input_dims,
   }
 
   // Calculate mean by dividing output_data by num of aggregated element.
-  size_t num_elements_in_axis = 1;
-  for (int idx = 0; idx < num_resolved_axis; ++idx) {
-    size_t current = static_cast<size_t>(input_dims[resolved_axis[idx]]);
-    // Overflow prevention.
-    if (current > (std::numeric_limits<size_t>::max() / num_elements_in_axis)) {
-      return false;
-    }
-    num_elements_in_axis *= current;
+  if (input_num_dims < 0 || (input_dims == nullptr && input_num_dims != 0) ||
+      (resolved_axis == nullptr && num_resolved_axis != 0)) {
+    return false;
+  }
+  size_t num_elements_in_axis = 0;
+  if (!reduce_utils::CheckedReducedElementCount(
+          input_dims, input_num_dims, resolved_axis, num_resolved_axis,
+          num_elements_in_axis)) {
+    return false;
   }
 
   if (num_elements_in_axis > 0) {
@@ -337,14 +391,13 @@ inline bool QuantizedMeanOrSum(const T* input_data, int32_t input_zero_point,
     ruy::profiler::ScopeLabel label(compute_sum ? "Sum/Int8" : "Mean/Int8");
   }
   // Reset output data.
-  size_t num_outputs = 1;
-  for (int idx = 0; idx < output_num_dims; ++idx) {
-    size_t current = static_cast<size_t>(output_dims[idx]);
-    // Overflow prevention.
-    if (num_outputs > std::numeric_limits<size_t>::max() / current) {
-      return false;
-    }
-    num_outputs *= current;
+  if (output_num_dims < 0 || (output_dims == nullptr && output_num_dims != 0)) {
+    return false;
+  }
+  size_t num_outputs = 0;
+  if (!reduce_utils::CheckedElementCount(output_dims, output_num_dims,
+                                          num_outputs)) {
+    return false;
   }
   for (size_t idx = 0; idx < num_outputs; ++idx) {
     output_data[idx] = T();
@@ -373,15 +426,15 @@ inline bool QuantizedMeanOrSum(const T* input_data, int32_t input_zero_point,
   }
 
   // Calculate mean by dividing output_data by num of aggregated element.
-  int64_t num_elements_in_axis = 1;
-  for (int idx = 0; idx < num_resolved_axis; ++idx) {
-    size_t current = static_cast<size_t>(input_dims[resolved_axis[idx]]);
-    // Overflow prevention.
-    if (current > static_cast<size_t>(std::numeric_limits<int64_t>::max() /
-                                      num_elements_in_axis)) {
-      return false;
-    }
-    num_elements_in_axis *= current;
+  if (input_num_dims < 0 || (input_dims == nullptr && input_num_dims != 0) ||
+      (resolved_axis == nullptr && num_resolved_axis != 0)) {
+    return false;
+  }
+  int64_t num_elements_in_axis = 0;
+  if (!reduce_utils::CheckedReducedElementCount(
+          input_dims, input_num_dims, resolved_axis, num_resolved_axis,
+          num_elements_in_axis)) {
+    return false;
   }
 
   if (num_elements_in_axis == 0) {

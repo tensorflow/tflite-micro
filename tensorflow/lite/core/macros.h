@@ -65,4 +65,20 @@ limitations under the License.
 #define TFLITE_HAS_ATTRIBUTE_WEAK 0
 #endif
 
+// Disables UBSan's integer-overflow checks for an annotated function. Only use
+// this where the overflow merely yields a wrong numeric result and poses no
+// safety risk. Expands to nothing on compilers without the attribute.
+#if TFLITE_HAS_ATTRIBUTE(no_sanitize)
+#if defined(__clang__)
+#define TFLITE_NO_SANITIZE_INTEGER_OVERFLOW \
+  __attribute__((                           \
+      no_sanitize("signed-integer-overflow"), no_sanitize("unsigned-integer-overflow")))
+#else
+#define TFLITE_NO_SANITIZE_INTEGER_OVERFLOW \
+  __attribute__((no_sanitize("signed-integer-overflow")))
+#endif
+#else
+#define TFLITE_NO_SANITIZE_INTEGER_OVERFLOW
+#endif
+
 #endif  // TENSORFLOW_LITE_CORE_MACROS_H_
