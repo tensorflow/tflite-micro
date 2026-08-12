@@ -27,9 +27,14 @@ limitations under the License.
 
 namespace tflite {
 
-int ElementCount(const TfLiteIntArray& dims) {
-  int result = 1;
+size_t ElementCount(const TfLiteIntArray& dims) {
+  size_t result = 1;
   for (int i = 0; i < dims.size; ++i) {
+    // Check for overflow before multiplication
+    if (dims.data[i] > 0 && result > SIZE_MAX / dims.data[i]) {
+      // Overflow would occur – return 0 to indicate error
+      return 0;
+    }
     result *= dims.data[i];
   }
   return result;
