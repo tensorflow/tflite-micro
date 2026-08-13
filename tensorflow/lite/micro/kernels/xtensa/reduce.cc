@@ -49,7 +49,7 @@ TfLiteStatus XtensaPrepareMax(TfLiteContext* context, TfLiteNode* node) {
 #if defined(HIFI_IQ) || defined(HIFI5) || defined(HIFI4)
   return PrepareMaxHifi(context, node, op_data);
 #else
-  TF_LITE_ENSURE_OK(context, PrepareMaxHelper(context, node, op_data));
+  TF_LITE_ENSURE_OK(context, PrepareMinMaxHelper(context, node, op_data));
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, ReducePrepareVision(context, node));
 #endif  // VISION_P6

@@ -189,34 +189,6 @@ TfLiteStatus EvalMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
-TfLiteStatus PrepareMaxHelper(TfLiteContext* context, TfLiteNode* node,
-                              OpDataReduce* op_data) {
-  TF_LITE_ENSURE_OK(context, PrepareSimple(context, node, &op_data->multiplier,
-                                           &op_data->shift));
-
-  MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
-  TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
-
-  op_data->input_zp = input->params.zero_point;
-  op_data->input_scale = input->params.scale;
-  op_data->output_zp = output->params.zero_point;
-  op_data->output_scale = output->params.scale;
-  op_data->num_output_elements = NumElements(output);
-
-  context->RequestScratchBufferInArena(context, sizeof(int) * input->dims->size,
-                                       &op_data->scratch_accumulator_idx);
-  context->RequestScratchBufferInArena(
-      context, sizeof(int) * static_cast<int>(ElementCount(*axis->dims)),
-      &op_data->scratch_resolved_axis_idx);
-
-  micro_context->DeallocateTempTfLiteTensor(input);
-  micro_context->DeallocateTempTfLiteTensor(output);
-  micro_context->DeallocateTempTfLiteTensor(axis);
-  return kTfLiteOk;
-}
-
 TfLiteStatus PrepareMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
                                  OpDataReduce* op_data) {
   TF_LITE_ENSURE_OK(context, PrepareSimple(context, node, &op_data->multiplier,
@@ -267,6 +239,10 @@ TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
     op_data->output_zp = output->params.zero_point;
     op_data->output_scale = output->params.scale;
   }
+  context->RequestScratchBufferInArena(context, sizeof(int) * input->dims->size,
+                                       &op_data->scratch_input_iter_idx);
+  context->RequestScratchBufferInArena(context, sizeof(int) * op_data->num_axis,
+                                       &op_data->scratch_resolved_axis_idx);
 
   TF_LITE_ENSURE_OK(
       context,

@@ -113,6 +113,10 @@ TfLiteStatus PrepareMeanOrSumHifi(TfLiteContext* context, TfLiteNode* node,
     op_data->output_zp = output->params.zero_point;
     op_data->output_scale = output->params.scale;
   }
+  context->RequestScratchBufferInArena(context, sizeof(int) * input->dims->size,
+                                       &op_data->scratch_input_iter_idx);
+  context->RequestScratchBufferInArena(context, sizeof(int) * op_data->num_axis,
+                                       &op_data->scratch_resolved_axis_idx);
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   XtensaReduceOpData* xt_data =
           reinterpret_cast<XtensaReduceOpData*>(node->user_data);
