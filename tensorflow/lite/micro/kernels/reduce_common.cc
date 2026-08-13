@@ -28,8 +28,6 @@ limitations under the License.
 
 namespace tflite {
 
-namespace {
-
 TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
                            int32_t* multiplier, int* shift) {
   MicroContext* micro_context = GetMicroContext(context);
@@ -190,8 +188,6 @@ TfLiteStatus EvalMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
   }
   return kTfLiteOk;
 }
-
-}  // namespace
 
 TfLiteStatus PrepareMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
                                  OpDataReduce* op_data) {
