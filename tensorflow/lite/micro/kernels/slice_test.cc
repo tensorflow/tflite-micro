@@ -62,6 +62,43 @@ void TestSlice(int* input_dims_data, const dataT* input_data,
   }
 }
 
+template <typename shapeT>
+void TestInvalidSlice(int* input_dims_data, const float* input_data,
+                      int* begin_dims_data, const shapeT* begin_data,
+                      int* size_dims_data, const shapeT* size_data,
+                      int* output_dims_data) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* begin_dims = IntArrayFromInts(begin_dims_data);
+  TfLiteIntArray* size_dims = IntArrayFromInts(size_dims_data);
+  TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
+
+  float output_data[8];
+  for (float& value : output_data) {
+    value = 123;
+  }
+  TfLiteTensor tensors[] = {
+      CreateTensor(input_data, input_dims),
+      CreateTensor(begin_data, begin_dims),
+      CreateTensor(size_data, size_dims),
+      CreateTensor(output_data, output_dims),
+  };
+
+  int inputs_array_data[] = {3, 0, 1, 2};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 3};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = tflite::Register_SLICE();
+  micro::KernelRunner runner(registration, tensors, 4, inputs_array,
+                             outputs_array, nullptr);
+
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteError, runner.Invoke());
+  for (float value : output_data) {
+    EXPECT_EQ(123, value);
+  }
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -160,6 +197,62 @@ TEST(SliceTest, IndexInt64) {
   tflite::testing::TestSlice(input_shape, input_values, begin_shape,
                              begin_values, size_shape, size_values,
                              output_shape, expected_output_data, output_data);
+}
+
+TEST(SliceTest, RejectsOutOfBoundsBegin) {
+  int input_shape[] = {1, 4};
+  float input_values[] = {1, 2, 3, 4};
+  int begin_shape[] = {1, 1};
+  int32_t begin_values[] = {4};
+  int size_shape[] = {1, 1};
+  int32_t size_values[] = {1};
+  int output_shape[] = {1, 1};
+
+  tflite::testing::TestInvalidSlice(input_shape, input_values, begin_shape,
+                                    begin_values, size_shape, size_values,
+                                    output_shape);
+}
+
+TEST(SliceTest, RejectsSizePastEndOfInput) {
+  int input_shape[] = {1, 4};
+  float input_values[] = {1, 2, 3, 4};
+  int begin_shape[] = {1, 1};
+  int32_t begin_values[] = {1};
+  int size_shape[] = {1, 1};
+  int32_t size_values[] = {4};
+  int output_shape[] = {1, 4};
+
+  tflite::testing::TestInvalidSlice(input_shape, input_values, begin_shape,
+                                    begin_values, size_shape, size_values,
+                                    output_shape);
+}
+
+TEST(SliceTest, RejectsOutputTooSmall) {
+  int input_shape[] = {1, 4};
+  float input_values[] = {1, 2, 3, 4};
+  int begin_shape[] = {1, 1};
+  int32_t begin_values[] = {0};
+  int size_shape[] = {1, 1};
+  int32_t size_values[] = {4};
+  int output_shape[] = {1, 1};
+
+  tflite::testing::TestInvalidSlice(input_shape, input_values, begin_shape,
+                                    begin_values, size_shape, size_values,
+                                    output_shape);
+}
+
+TEST(SliceTest, RejectsInt64IndexOutsideInt32Range) {
+  int input_shape[] = {1, 4};
+  float input_values[] = {1, 2, 3, 4};
+  int begin_shape[] = {1, 1};
+  int64_t begin_values[] = {0x100000000LL};
+  int size_shape[] = {1, 1};
+  int64_t size_values[] = {1};
+  int output_shape[] = {1, 1};
+
+  tflite::testing::TestInvalidSlice(input_shape, input_values, begin_shape,
+                                    begin_values, size_shape, size_values,
+                                    output_shape);
 }
 
 // See these test cases under:
