@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/kernels/internal/reference/slice.h"
 
+#include <limits>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
@@ -34,14 +36,49 @@ constexpr int kOutputTensor = 0;
 const int kMaxDim = 5;
 
 template <typename T>
-void GetBeginAndSizeVectors(int dimensions, const TfLiteEvalTensor* begin,
-                            const TfLiteEvalTensor* size, int32_t* begins,
-                            int32_t* sizes) {
+TfLiteStatus GetValidatedBeginAndSizeVectors(const TfLiteEvalTensor* input,
+                                             const TfLiteEvalTensor* begin,
+                                             const TfLiteEvalTensor* size,
+                                             const TfLiteEvalTensor* output,
+                                             int32_t* begins, int32_t* sizes) {
+  const int dimensions = input->dims->size;
   int offset = kMaxDim - dimensions;
+  int64_t sliced_elements = 1;
+  bool sliced_elements_overflow = false;
   for (int idx = 0; idx < dimensions; ++idx) {
-    begins[offset + idx] = tflite::micro::GetTensorData<T>(begin)[idx];
-    sizes[offset + idx] = tflite::micro::GetTensorData<T>(size)[idx];
+    const T begin_value = tflite::micro::GetTensorData<T>(begin)[idx];
+    const T size_value = tflite::micro::GetTensorData<T>(size)[idx];
+    const int input_size = input->dims->data[idx];
+
+    if (begin_value < 0 || begin_value > input_size) {
+      return kTfLiteError;
+    }
+
+    const T remaining_size = static_cast<T>(input_size) - begin_value;
+    const T resolved_size = size_value == -1 ? remaining_size : size_value;
+    if (resolved_size < 0 || resolved_size > remaining_size) {
+      return kTfLiteError;
+    }
+
+    if (resolved_size == 0) {
+      sliced_elements = 0;
+      sliced_elements_overflow = false;
+    } else if (!sliced_elements_overflow) {
+      if (sliced_elements >
+          std::numeric_limits<int64_t>::max() / resolved_size) {
+        sliced_elements_overflow = true;
+      } else {
+        sliced_elements *= static_cast<int64_t>(resolved_size);
+      }
+    }
+    begins[offset + idx] = static_cast<int32_t>(begin_value);
+    sizes[offset + idx] = static_cast<int32_t>(size_value);
   }
+  return !sliced_elements_overflow &&
+                 sliced_elements ==
+                     tflite::micro::GetTensorShape(output).FlatSize()
+             ? kTfLiteOk
+             : kTfLiteError;
 }
 
 TfLiteStatus SlicePrepare(TfLiteContext* context, TfLiteNode* node) {
@@ -64,14 +101,15 @@ TfLiteStatus SlicePrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(output != nullptr);
 
   // Ensure validity of input tensor and its dimension.
-  TFLITE_DCHECK(input->type == output->type);
-  TFLITE_DCHECK(begin->type == size->type);
-  TFLITE_DCHECK(begin->type == kTfLiteInt32 || begin->type == kTfLiteInt64);
-  TFLITE_DCHECK(size->type == kTfLiteInt32 || size->type == kTfLiteInt64);
-  TFLITE_DCHECK(NumDimensions(begin) == 1);
-  TFLITE_DCHECK(NumDimensions(size) == 1);
-  TFLITE_DCHECK(NumElements(begin) == NumElements(size));
-  TFLITE_DCHECK(NumDimensions(input) <= kMaxDim);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE_TYPES_EQ(context, begin->type, size->type);
+  TF_LITE_ENSURE(context,
+                 begin->type == kTfLiteInt32 || begin->type == kTfLiteInt64);
+  TF_LITE_ENSURE_EQ(context, NumDimensions(begin), 1);
+  TF_LITE_ENSURE_EQ(context, NumDimensions(size), 1);
+  TF_LITE_ENSURE_EQ(context, NumElements(begin), NumDimensions(input));
+  TF_LITE_ENSURE_EQ(context, NumElements(size), NumDimensions(input));
+  TF_LITE_ENSURE(context, NumDimensions(input) <= kMaxDim);
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(begin);
@@ -100,11 +138,11 @@ TfLiteStatus SliceEval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   if (begin->type == kTfLiteInt32) {
-    GetBeginAndSizeVectors<int32_t>(input->dims->size, begin, size,
-                                    op_params.begin, op_params.size);
+    TF_LITE_ENSURE_STATUS(GetValidatedBeginAndSizeVectors<int32_t>(
+        input, begin, size, output, op_params.begin, op_params.size));
   } else if (begin->type == kTfLiteInt64) {
-    GetBeginAndSizeVectors<int64_t>(input->dims->size, begin, size,
-                                    op_params.begin, op_params.size);
+    TF_LITE_ENSURE_STATUS(GetValidatedBeginAndSizeVectors<int64_t>(
+        input, begin, size, output, op_params.begin, op_params.size));
   } else {
     MicroPrintf("Begin tensor type %s (%d) not supported.",
                 TfLiteTypeGetName(input->type), input->type);
