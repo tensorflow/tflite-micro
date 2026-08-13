@@ -28,6 +28,8 @@ limitations under the License.
 
 namespace tflite {
 
+namespace {
+
 TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
                            int32_t* multiplier, int* shift) {
   MicroContext* micro_context = GetMicroContext(context);
@@ -189,6 +191,8 @@ TfLiteStatus EvalMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
+}  // namespace
+
 TfLiteStatus PrepareMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
                                  OpDataReduce* op_data) {
   TF_LITE_ENSURE_OK(context, PrepareSimple(context, node, &op_data->multiplier,
@@ -228,11 +232,12 @@ TfLiteStatus PrepareMeanOrSumHelper(TfLiteContext* context, TfLiteNode* node,
     QuantizeMultiplier(real_multiplier, &op_data->multiplier, &op_data->shift);
   }
 
-  int output_size = NumElements(output);
   op_data->num_axis = NumElements(axis);
+  op_data->num_output_elements = NumElements(output);
 
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
-    context->RequestScratchBufferInArena(context, output_size * sizeof(int32_t),
+    context->RequestScratchBufferInArena(
+        context, sizeof(int32_t) * op_data->num_output_elements,
                                          &op_data->scratch_accumulator_idx);
     op_data->input_zp = input->params.zero_point;
     op_data->input_scale = input->params.scale;
