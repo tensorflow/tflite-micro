@@ -172,10 +172,21 @@ int hifi::MaximumMinimumBroadcast( const RuntimeShape& unextended_input1_shape, 
 
   CopyDimsToDesc(extended_output_shape, &output_desc);
 
+  // The NdArrayDesc extents/strides are int64_t, but the nnlib kernels expect
+  // int. Copy them into int buffers before passing to the nnlib calls.
+  int output_extents[NDims];
+  int input1_strides[NDims];
+  int input2_strides[NDims];
+  for (int i = 0; i < NDims; ++i) {
+    output_extents[i] = static_cast<int>(output_desc.extents[i]);
+    input1_strides[i] = static_cast<int>(input1_desc.strides[i]);
+    input2_strides[i] = static_cast<int>(input2_desc.strides[i]);
+  }
+
   if ( !(extended_input1_shape == extended_output_shape) &&              // input 1 needs broadcast
        (extended_input2_shape == extended_output_shape)     ) {
 
-    err = xa_nn_broadcast_8_8(output_data, output_desc.extents,                       
+    err = xa_nn_broadcast_8_8(output_data, output_extents,                       
             input1_data, extended_input1_shape.DimsData(), NDims);      // broadcast input 1 into output_data buffer
 
     err |= hifi::ExecElemKernel(op, output_data,                        // exec element-wise op after bcast
@@ -185,7 +196,7 @@ int hifi::MaximumMinimumBroadcast( const RuntimeShape& unextended_input1_shape, 
   } else if( (extended_input1_shape == extended_output_shape) &&
              !(extended_input2_shape == extended_output_shape)     ) {   // input 2 needs broadcast
 
-    err = xa_nn_broadcast_8_8(output_data, output_desc.extents,                        
+    err = xa_nn_broadcast_8_8(output_data, output_extents,                        
             input2_data, extended_input2_shape.DimsData(), NDims);      // broadcast input 2 into output_data buffer
 
     err |= hifi::ExecElemKernel(op, output_data,                        // exec element-wise op after bcast
@@ -211,9 +222,9 @@ int hifi::MaximumMinimumBroadcast( const RuntimeShape& unextended_input1_shape, 
     }
 
     if(kernel!=NULL){
-      err = kernel(output_data, output_desc.extents,
-                   input1_data, input1_desc.strides,
-                   input2_data, input2_desc.strides );
+      err = kernel(output_data, output_extents,
+                   input1_data, input1_strides,
+                   input2_data, input2_strides );
     }
   }
 #endif
