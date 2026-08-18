@@ -19,6 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
+namespace micro {
 // Input/output tensor index.
 extern const int kLogicalInputTensor1;
 extern const int kLogicalInputTensor2;
@@ -30,6 +31,7 @@ TfLiteStatus LogicalImpl(TfLiteContext* context, TfLiteNode* node,
 bool LogicalOr(bool x, bool y);
 bool LogicalAnd(bool x, bool y);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_LOGICAL_H_

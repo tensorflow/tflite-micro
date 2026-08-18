@@ -13,24 +13,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
 
 #include "mli_api.h"  // NOLINT
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_slicers.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 struct OpData {
@@ -377,7 +377,7 @@ TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
                            const TfLiteEvalTensor* bias,
                            TfLiteEvalTensor* output) {
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
-  tflite::FullyConnectedParams op_params;
+  tflite::micro::FullyConnectedParams op_params;
   op_params.input_offset = -data.input_zero_point;
   op_params.weights_offset = -data.filter_zero_point;
   op_params.output_offset = data.output_zero_point;
@@ -411,10 +411,10 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
   float output_activation_min, output_activation_max;
   CalculateActivationRange(activation, &output_activation_min,
                            &output_activation_max);
-  tflite::FullyConnectedParams op_params;
+  tflite::micro::FullyConnectedParams op_params;
   op_params.float_activation_min = output_activation_min;
   op_params.float_activation_max = output_activation_max;
-  tflite::reference_ops::FullyConnected(
+  tflite::micro::reference_ops::FullyConnected(
       op_params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<float>(input),
       tflite::micro::GetTensorShape(filter),
@@ -473,4 +473,5 @@ TFLMRegistration Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

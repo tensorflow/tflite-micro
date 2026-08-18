@@ -19,10 +19,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 struct OpDataConv {
   TfLitePaddingValues padding;
@@ -128,6 +129,15 @@ inline TFLMRegistration Register_CONV_2D_INT8() { return Register_CONV_2D(); }
 
 inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
 #endif  // defined(CMSIS_NN) || defined(XTENSA)
+
+}  // namespace micro
+
+using micro::OpDataConv;
+using micro::Register_CONV_2D;
+using micro::Register_CONV_2D_INT16;
+using micro::Register_CONV_2D_INT4;
+using micro::Register_CONV_2D_INT8;
+using micro::Register_CONV_2D_INT8REF;
 
 }  // namespace tflite
 

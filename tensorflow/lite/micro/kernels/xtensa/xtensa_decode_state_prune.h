@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state_prune.h"
 
 namespace tflite {
-
+namespace micro {
 class XtensaDecodeStatePrune : public DecodeStatePrune {
  public:
   XtensaDecodeStatePrune() = delete;
@@ -47,6 +47,9 @@ class XtensaDecodeStatePrune : public DecodeStatePrune {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+}  // namespace micro
+
+using micro::XtensaDecodeStatePrune;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_XTENSA_DECODE_STATE_PRUNE_H_

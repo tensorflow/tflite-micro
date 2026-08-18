@@ -207,10 +207,10 @@ inline bool NextIndex(const int num_dims, const int* dims, int* current) {
 #include <cstring>
 #include <initializer_list>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 
 namespace tflite {
-
+namespace micro {
 enum class FusedActivationFunctionType : uint8_t { kNone, kRelu6, kRelu1, kRelu };
 enum class PaddingType : uint8_t { kNone, kSame, kValid };
 
@@ -485,9 +485,9 @@ class RuntimeShape {
   };
 };
 
-// Converts inference-style shape to legacy tflite::Dims<4>.
-inline tflite::Dims<4> ToRuntimeDims(const tflite::RuntimeShape& array_shape) {
-  tflite::Dims<4> result;
+// Converts inference-style shape to legacy tflite::micro::Dims<4>.
+inline tflite::micro::Dims<4> ToRuntimeDims(const tflite::micro::RuntimeShape& array_shape) {
+  tflite::micro::Dims<4> result;
   const int dimensions_count = array_shape.DimensionsCount();
   TFLITE_CHECK_LE(dimensions_count, 4);
   int cum_prod = 1;
@@ -502,7 +502,7 @@ inline tflite::Dims<4> ToRuntimeDims(const tflite::RuntimeShape& array_shape) {
 }
 
 // TODO(b/80418076): Move to legacy ops file, update invocations.
-inline RuntimeShape DimsToShape(const tflite::Dims<4>& dims) {
+inline RuntimeShape DimsToShape(const tflite::micro::Dims<4>& dims) {
   return RuntimeShape(
       {dims.sizes[3], dims.sizes[2], dims.sizes[1], dims.sizes[0]});
 }
@@ -1281,6 +1281,62 @@ inline void GetActivationParams(const P& params, float* min, float* max) {
   *max = params.float_activation_max;
 }
 
+
+}  // namespace micro
+
+using micro::ActivationParams;
+using micro::ArithmeticParams_ceva;
+using micro::BroadcastableOpCategory;
+using micro::ComparisonParams;
+using micro::ConcatenationParams;
+using micro::ConvParams;
+using micro::DepthToSpaceParams;
+using micro::DepthwiseParams;
+using micro::DequantizationParams;
+using micro::Dims;
+using micro::FakeQuantParams;
+using micro::FullyConnectedParams;
+using micro::FullyConnectedWeightsFormat;
+using micro::FusedActivationFunctionType;
+using micro::FusedActivationFunctionType_ceva;
+using micro::GatherParams;
+using micro::HardSwishParams;
+using micro::L2NormalizationParams;
+using micro::LeakyReluParams;
+using micro::LocalResponseNormalizationParams;
+using micro::LogisticParams;
+using micro::LstmCellParams;
+using micro::MeanParams;
+using micro::MinMax;
+using micro::PackParams;
+using micro::PadParams;
+using micro::PaddingType;
+using micro::PaddingType_ceva;
+using micro::PaddingValues;
+using micro::PaddingValues_ceva;
+using micro::PerChannelDequantizationParams;
+using micro::PoolParams;
+using micro::PoolParams_ceva;
+using micro::PreluParams;
+using micro::QuantizationParams;
+using micro::ReluParams;
+using micro::ReshapeParams;
+using micro::ResizeBilinearParams;
+using micro::ResizeNearestNeighborParams;
+using micro::ResizingCategory;
+using micro::RuntimeShape;
+using micro::SliceParams;
+using micro::SoftmaxParams;
+using micro::SoftmaxParams_ceva;
+using micro::SpaceToBatchParams;
+using micro::SpaceToDepthParams;
+using micro::SplitParams;
+using micro::SqueezeParams;
+using micro::StridedSliceParams;
+using micro::StridedSliceParams_ceva;
+using micro::TanhParams;
+using micro::TransposeParams;
+using micro::UnpackParams;
 }  // namespace tflite
 #endif
 #endif  // CEVA_TYPES_H_

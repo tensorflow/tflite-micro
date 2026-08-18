@@ -1,0 +1,171 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//tensorflow/lite:build_def.bzl", "tflite_copts")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_copts",
+)
+
+package(
+    default_visibility = [
+        "//visibility:public",
+    ],
+    licenses = ["notice"],
+)
+
+cc_library(
+    name = "common",
+    srcs = ["common.cc"],
+    hdrs = [
+        "common.h",
+        "optimized/neon_check.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":compatibility",
+        ":cppmath",
+        ":types",
+        "//tensorflow/lite/core:macros",
+        "@gemmlowp//:fixedpoint",
+    ],
+)
+
+cc_library(
+    name = "compatibility",
+    hdrs = ["compatibility.h"],
+    copts = tflite_copts(),
+    deps = [
+        "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/kernels:op_macros",
+    ],
+)
+
+cc_library(
+    name = "cppmath",
+    srcs = [],
+    hdrs = [
+        "cppmath.h",
+        "max.h",
+        "min.h",
+    ],
+    copts = tflite_copts(),
+)
+
+tflm_cc_library(
+    name = "quantization_util",
+    srcs = ["quantization_util.cc"],
+    hdrs = ["quantization_util.h"],
+    copts = tflm_copts() + tflite_copts(),
+    deps = [
+        ":compatibility",
+        ":cppmath",
+        ":types",
+    ],
+)
+
+cc_library(
+    name = "reference",
+    srcs = ["tensor_ctypes.cc"],
+    hdrs = [
+        "portable_tensor.h",
+        "tensor_ctypes.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":types",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
+    ],
+)
+
+cc_library(
+    name = "reference_base",
+    srcs = glob([
+        "reference/*.cc",
+    ]),
+    hdrs = glob([
+        "reference/*.h",
+        "reference/integer_ops/*.h",
+    ]),
+    copts = tflite_copts(),
+    features = ["-parse_headers"],
+    deps = [
+        ":common",
+        ":compatibility",
+        ":cppmath",
+        ":quantization_util",
+        ":strided_slice_logic",
+        ":tensor",
+        ":types",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/kernels:kernel_util",
+        "//tensorflow/lite/micro/kernels:op_macros",
+        "@gemmlowp//:fixedpoint",
+        "@ruy//ruy/profiler:instrumentation",
+    ],
+)
+
+cc_library(
+    name = "strided_slice_logic",
+    srcs = [],
+    hdrs = [
+        "strided_slice_logic.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":compatibility",
+        ":types",
+    ],
+)
+
+cc_library(
+    name = "tensor",
+    hdrs = [
+        "portable_tensor.h",
+        "tensor_ctypes.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":types",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
+    ],
+)
+
+cc_library(
+    name = "types",
+    hdrs = [
+        "runtime_shape.h",
+        "types.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":compatibility",
+        "//tensorflow/lite/micro/types:half",
+    ],
+)
+
+cc_library(
+    name = "tensor_utils_no_eigen",
+    srcs = [
+        "portable_tensor_utils.cc",
+        "reference/portable_tensor_utils.cc",
+        "tensor_utils.cc",
+    ],
+    hdrs = [
+        "portable_tensor_utils.h",
+        "reference/portable_tensor_utils.h",
+        "reference/portable_tensor_utils_impl.h",
+    ],
+    copts = tflite_copts(),
+    deps = [
+        ":common",
+        ":compatibility",
+        ":cppmath",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/kernels:op_macros",
+        "@gemmlowp",
+    ],
+)

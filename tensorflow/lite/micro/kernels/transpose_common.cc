@@ -13,16 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/transpose.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/transpose.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/transpose.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
@@ -51,4 +50,5 @@ TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

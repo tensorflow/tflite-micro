@@ -16,15 +16,14 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/prelu.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/prelu.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/prelu.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
                                   const TfLiteTensor* alpha,
                                   TfLiteTensor* output, PreluParams* params) {
@@ -107,4 +106,5 @@ TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

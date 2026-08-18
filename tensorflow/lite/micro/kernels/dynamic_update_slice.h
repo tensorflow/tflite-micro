@@ -16,11 +16,11 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_DYNAMIC_UPDATE_SLICE_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 constexpr int kDynamicUpdateSliceOperandTensor = 0;
 constexpr int kDynamicUpdateSliceUpdateTensor = 1;
 constexpr int kDynamicUpdateSliceStartIndicesTensor = 2;
@@ -31,6 +31,13 @@ TfLiteStatus PrepareDynamicUpdateSlice(TfLiteContext* context,
 
 TFLMRegistration Register_DYNAMIC_UPDATE_SLICE();
 
+}  // namespace micro
+
+using micro::kDynamicUpdateSliceOperandTensor;
+using micro::kDynamicUpdateSliceOutputTensor;
+using micro::kDynamicUpdateSliceStartIndicesTensor;
+using micro::kDynamicUpdateSliceUpdateTensor;
+using micro::Register_DYNAMIC_UPDATE_SLICE;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_DYNAMIC_UPDATE_SLICE_H_

@@ -17,14 +17,14 @@ limitations under the License.
 
 #include <cstddef>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus XtensaDecodeStateHuffman::Decode(const TfLiteEvalTensor& input,
                                               const TfLiteEvalTensor& ancillary,
                                               const TfLiteEvalTensor& output) {
@@ -118,4 +118,5 @@ template void XtensaDecodeStateHuffman::Decompress32BitTable_Xtensa<int8_t>(
 template void XtensaDecodeStateHuffman::Decompress32BitTable_Xtensa<int16_t>(
     int16_t*);
 
+}  // namespace micro
 }  // namespace tflite

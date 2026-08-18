@@ -30,13 +30,13 @@ limitations under the License.
 //
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor_0 = 0;
@@ -211,4 +211,5 @@ TFLMRegistration Register_EMBEDDING_LOOKUP() {
                                    EmbeddingLookUpEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

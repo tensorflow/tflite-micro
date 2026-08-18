@@ -12,37 +12,36 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/strided_slice.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/strided_slice.h"
 
 #include <cmath>
 #include <cstring>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/strided_slice.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
-                                 const RuntimeShape& unextended_input_shape,
-                                 const int16_t* input_data,
-                                 const RuntimeShape& unextended_output_shape,
-                                 int16_t* output_data) {
-  using ::tflite::strided_slice::StartForAxis;
-  using ::tflite::strided_slice::StopForAxis;
+void StridedSlice_int16_hifi4opt(
+    const tflite::micro::StridedSliceParams& op_params,
+    const RuntimeShape& unextended_input_shape, const int16_t* input_data,
+    const RuntimeShape& unextended_output_shape, int16_t* output_data) {
+  using ::tflite::micro::strided_slice::StartForAxis;
+  using ::tflite::micro::strided_slice::StopForAxis;
 
   ruy::profiler::ScopeLabel label("StridedSlice");
 
   // Note that the output_shape is not used herein.
-  tflite::StridedSliceParams params_copy = op_params;
+  tflite::micro::StridedSliceParams params_copy = op_params;
 
   TFLITE_DCHECK_LE(unextended_input_shape.DimensionsCount(), 5);
   TFLITE_DCHECK_LE(unextended_output_shape.DimensionsCount(), 5);
@@ -53,7 +52,7 @@ void StridedSlice_int16_hifi4opt(const tflite::StridedSliceParams& op_params,
 
   // Reverse and pad to 5 dimensions because that is what the runtime code
   // requires (ie. all shapes must be 5D and are given backwards).
-  ::tflite::strided_slice::StridedSlicePadIndices(&params_copy, 5);
+  ::tflite::micro::strided_slice::StridedSlicePadIndices(&params_copy, 5);
 
   const int start_0 = StartForAxis(params_copy, input_shape, 0);
   const int stop_0 = StopForAxis(params_copy, input_shape, 0, start_0);
@@ -145,4 +144,5 @@ TFLMRegistration Register_STRIDED_SLICE() {
   return tflite::micro::RegisterOp(StridedSliceInit, StridedSlicePrepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

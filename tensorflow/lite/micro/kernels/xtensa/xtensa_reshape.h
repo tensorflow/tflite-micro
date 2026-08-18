@@ -18,10 +18,10 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
-
+namespace micro {
 #if defined(VISION_P6)
 
 struct XtensaReshapeData {
@@ -37,6 +37,12 @@ TfLiteStatus ReshapePrepareVision(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus ReshapeEvalVision(const XtensaReshapeData& data,
                                const TfLiteEvalTensor* input,
                                TfLiteEvalTensor* output);
+#endif  // VISION_P6
+
+}  // namespace micro
+
+#if defined(VISION_P6)
+using micro::XtensaReshapeData;
 #endif  // VISION_P6
 
 }  // namespace tflite

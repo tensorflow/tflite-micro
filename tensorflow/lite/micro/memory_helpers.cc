@@ -20,7 +20,7 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
@@ -153,7 +153,8 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
   TF_LITE_ENSURE(context, output->type == input->type);
   size_t size = 0;
   TfLiteTypeSizeOf(input->type, &size);
-  const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
+  const int dimensions_count =
+      tflite::micro::GetTensorShape(input).DimensionsCount();
   for (int i = 0; i < dimensions_count; i++) {
     size *= input->dims->data[i];
   }

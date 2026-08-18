@@ -20,11 +20,11 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
-
+namespace micro {
 extern const int kDepthwiseConvInputTensor;
 extern const int kDepthwiseConvWeightsTensor;
 extern const int kDepthwiseConvBiasTensor;
@@ -85,6 +85,11 @@ inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT4() {
 
 #endif
 
+}  // namespace micro
+using micro::Register_DEPTHWISE_CONV_2D;
+using micro::Register_DEPTHWISE_CONV_2D_INT16;
+using micro::Register_DEPTHWISE_CONV_2D_INT4;
+using micro::Register_DEPTHWISE_CONV_2D_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_DEPTHWISE_CONV_H_

@@ -19,10 +19,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
 namespace tflite {
+namespace micro {
 #if defined(HIFIMINI)
 TfLiteStatus EvalIntegerSvdfHifimini(
     TfLiteContext* context, TfLiteNode* node,
@@ -34,6 +35,7 @@ TfLiteStatus EvalIntegerSvdfHifimini(
     OpDataSvdf data);
 #endif  // HIFIMINI
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SVDF_H_

@@ -18,10 +18,11 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus FilterBankSquareRootPrepare(TfLiteContext* context,
                                          TfLiteNode* node);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // SIGNAL_MICRO_KERNELS_FILTER_BANK_SQUARE_ROOT_H_

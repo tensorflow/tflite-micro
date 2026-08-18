@@ -79,6 +79,7 @@ function end_group() {
 # License Check
 ############################################################
 
+
 start_group "License Check"
 python3 tensorflow/lite/micro/tools/ci_build/check_license.py
 LICENSE_CHECK_RESULT=$?
@@ -209,6 +210,8 @@ start_group "Disallowed Patterns (<assert>)"
 ASSERT_PATHSPEC=\
 "${CHECK_CONTENTS_PATHSPEC}"\
 " :(exclude)micro/examples/micro_speech/esp/ringbuf.c"\
+" :(exclude)micro/experimental/*"\
+" :(exclude)micro/kernels/internal/*"\
 " :(exclude)*\.ipynb"\
 " :(exclude)*\.py"\
 

@@ -16,18 +16,17 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/mul.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/mul.h"
-#include "tensorflow/lite/kernels/internal/reference/mul.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/mul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus MulEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->builtin_data != nullptr);
   auto* params = reinterpret_cast<TfLiteMulParams*>(node->builtin_data);
@@ -65,4 +64,5 @@ TFLMRegistration Register_MUL() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, MulEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

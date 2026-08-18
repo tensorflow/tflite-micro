@@ -12,21 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/strided_slice.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/strided_slice.h"
 
 #include <cstdint>
 #include <cstring>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/strided_slice.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 TfLiteStatus StridedSliceEval(TfLiteContext* context, TfLiteNode* node) {
@@ -89,4 +88,5 @@ TFLMRegistration Register_STRIDED_SLICE() {
                                    StridedSliceEval);
 }
 
+}  // namespace micro
 }  // namespace tflite
