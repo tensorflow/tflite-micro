@@ -20,13 +20,13 @@ limitations under the License.
 #include <stdint.h>
 
 #include "signal/micro/kernels/rfft.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -235,5 +235,14 @@ TFLMRegistration* Register_RFFT_INT32() {
   return &r;
 }
 
+}  // namespace tflm_signal
+
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_RFFT;
+using micro::tflm_signal::Register_RFFT_FLOAT;
+using micro::tflm_signal::Register_RFFT_INT16;
+using micro::tflm_signal::Register_RFFT_INT32;
 }  // namespace tflm_signal
 }  // namespace tflite

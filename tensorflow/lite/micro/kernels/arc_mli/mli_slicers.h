@@ -51,6 +51,8 @@ class TensorSlicer {
 };
 
 }  // namespace micro
+
+using micro::TensorSlicer;
 }  // namespace ops
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SLICERS_H_

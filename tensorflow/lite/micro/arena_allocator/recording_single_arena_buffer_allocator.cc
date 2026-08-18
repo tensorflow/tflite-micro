@@ -17,7 +17,7 @@ limitations under the License.
 
 #include <new>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 
 namespace tflite {
 

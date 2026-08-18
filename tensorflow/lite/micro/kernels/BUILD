@@ -49,7 +49,7 @@ tflm_cc_library(
     hdrs = ["activation_utils.h"],
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:cppmath",
+        "//tensorflow/lite/micro/kernels/internal:cppmath",
     ],
 )
 
@@ -108,12 +108,12 @@ tflm_cc_library(
         ":tflite_micro",
     ],
     deps = [
-        "//tensorflow/lite:type_to_tflitetype",
-        "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro:compression",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
+        "//tensorflow/lite/micro:portable_type_to_tflitetype",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )
 
@@ -138,12 +138,12 @@ tflm_cc_library(
     ],
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro:fake_micro_context",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:mock_micro_graph",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )
 
@@ -151,19 +151,51 @@ tflm_cc_library(
     name = "kernel_util",
     srcs = [
         "kernel_util.cc",
+        "tflite_kernel_util.cc",
     ],
-    hdrs = ["kernel_util.h"],
+    hdrs = [
+        "kernel_util.h",
+        "tflite_kernel_util.h",
+    ],
     visibility = [
         ":kernel_friends",
         ":tflite_micro",
     ],
     deps = [
+        "//tensorflow/lite:kernel_api",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
-        "//tensorflow/lite/kernels/internal:types",
+        "//tensorflow/lite/micro:array",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_context",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/kernels/internal:cppmath",
+        "//tensorflow/lite/micro/kernels/internal:quantization_util",
+        "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
+        "//tensorflow/lite/micro/kernels/internal:types",
+    ],
+)
+
+tflm_cc_library(
+    name = "op_macros",
+    hdrs = [
+        "op_macros.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_log",
+    ],
+)
+
+tflm_cc_library(
+    name = "padding",
+    hdrs = [
+        "padding.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/kernels/internal:types",
     ],
 )
 
@@ -198,11 +230,11 @@ tflm_cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
-        "//tensorflow/lite/kernels:op_macros",
-        "//tensorflow/lite/kernels/internal:common",
-        "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/kernels/internal:cppmath",
-        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
+        "//tensorflow/lite/micro/kernels:op_macros",
+        "//tensorflow/lite/micro/kernels/internal:common",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/kernels/internal:cppmath",
+        "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
     ],
 )
 
@@ -412,22 +444,21 @@ tflm_kernel_cc_library(
         ":micro_tensor_utils",
         "//signal/micro/kernels:register_signal_ops",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels:kernel_util",
-        "//tensorflow/lite/kernels:op_macros",
-        "//tensorflow/lite/kernels:padding",
-        "//tensorflow/lite/kernels/internal:common",
-        "//tensorflow/lite/kernels/internal:compatibility",
-        "//tensorflow/lite/kernels/internal:cppmath",
-        "//tensorflow/lite/kernels/internal:quantization_util",
-        "//tensorflow/lite/kernels/internal:reference_base",
-        "//tensorflow/lite/kernels/internal:tensor",
-        "//tensorflow/lite/kernels/internal:tensor_utils_no_eigen",
-        "//tensorflow/lite/kernels/internal:types",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_graph",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro/kernels:op_macros",
+        "//tensorflow/lite/micro/kernels:padding",
+        "//tensorflow/lite/micro/kernels/internal:common",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/kernels/internal:cppmath",
+        "//tensorflow/lite/micro/kernels/internal:quantization_util",
+        "//tensorflow/lite/micro/kernels/internal:reference_base",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
+        "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
+        "//tensorflow/lite/micro/kernels/internal:types",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ] + select({
@@ -781,8 +812,8 @@ tflm_cc_test(
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -809,8 +840,8 @@ tflm_cc_test(
         ":detection_postprocess_flexbuffers_generated_data",
         ":kernel_runner",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/testing:micro_test",
         "@flatbuffers//:runtime_cc",
     ],
@@ -1260,7 +1291,7 @@ tflm_cc_test(
     ],
     deps = [
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:quantization_util",
+        "//tensorflow/lite/micro/kernels/internal:quantization_util",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -1300,9 +1331,9 @@ tflm_cc_test(
     deps = [
         ":kernel_runner",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

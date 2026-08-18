@@ -20,7 +20,7 @@ limitations under the License.
 #include <cstring>
 #include <iterator>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_time.h"
 

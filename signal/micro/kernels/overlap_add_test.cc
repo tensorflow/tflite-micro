@@ -21,7 +21,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
-
 constexpr int kFrameStepIndex = 1;
 constexpr int kInputsSize = 1;
 constexpr int kOutputsSize = 1;

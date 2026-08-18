@@ -15,18 +15,17 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/conv.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/conv.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -60,7 +59,7 @@ TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   if (filter->type == kTfLiteInt4) {
     int8_t* unpacked_filter_data = static_cast<int8_t*>(
         context->GetScratchBuffer(context, op_data.filter_buffer_index));
-    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+    tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
@@ -100,4 +99,5 @@ TFLMRegistration Register_CONV_2D_INT8REF() {
                                    ConvReferenceEvalInt8);
 }
 
+}  // namespace micro
 }  // namespace tflite

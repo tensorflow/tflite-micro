@@ -1,7 +1,5 @@
 # Source definitions for TFLM
 
-# The explicitly specified list of sources and headers that are shared between
-# TfLite and TFLM are in the ci/sync_from_upstream_tf.sh script.
 TFL_CC_SRCS := \
 $(shell find $(TENSORFLOW_ROOT)tensorflow -type d \( -path $(TENSORFLOW_ROOT)tensorflow/lite/experimental -o -path $(TENSORFLOW_ROOT)tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c")
 
@@ -19,23 +17,30 @@ ifneq ($(BUILD_TYPE), no_tf_lite_static_memory)
 endif
 
 MICROLITE_CC_BASE_SRCS := \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.cc) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
-$(TFL_CC_SRCS)
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.cc) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/*.cc) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/*.cc) \
+  $(TFL_CC_SRCS)
 
 MICROLITE_CC_HDRS := \
-$(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
-$(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.h) \
-$(TENSORFLOW_ROOT)LICENSE \
-$(TFL_CC_HDRS)
+  $(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/optimized/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/integer_ops/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/types/*.h) \
+  $(TENSORFLOW_ROOT)LICENSE \
+  $(TFL_CC_HDRS)
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
 # platform-specific headers.
@@ -202,6 +207,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/hard_swish_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/if.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/kernel_runner.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/kernel_util.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tflite_kernel_util.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/l2norm.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/l2_pool_2d.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/leaky_relu.cc \

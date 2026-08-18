@@ -13,26 +13,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/mul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/mul.h"
 
 #include "Include/arm_nnfunctions.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/mul.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/mul.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 void EvalQuantized(TfLiteContext* context, TfLiteNode* node,
                    const OpDataMul* data, const TfLiteEvalTensor* input1,
                    const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params = {};
+  tflite::micro::ArithmeticParams op_params = {};
 
   op_params.quantized_activation_min = data->output_activation_min;
   op_params.quantized_activation_max = data->output_activation_max;
@@ -181,4 +181,5 @@ TFLMRegistration Register_MUL_INT16() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, EvalInt16);
 }
 
+}  // namespace micro
 }  // namespace tflite

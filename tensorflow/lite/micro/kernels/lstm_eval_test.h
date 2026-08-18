@@ -35,7 +35,7 @@ namespace testing {
 // (put into stack memory) CalculateOpDataFullyConnected in
 // tensorflow/lite/micro/kernels/fully_connected_common.cc
 template <typename CellType>
-tflite::FullyConnectedParams CreateFCParams(
+tflite::micro::FullyConnectedParams CreateFCParams(
     const TensorQuantizationParameters& input_quant_params,
     const TensorQuantizationParameters& weight_quant_params,
     const float nonlinear_activation_input_scale) {
@@ -57,10 +57,10 @@ tflite::FullyConnectedParams CreateFCParams(
   data.output_activation_min = std::numeric_limits<CellType>::min();
   data.output_activation_max = std::numeric_limits<CellType>::max();
 
-  return tflite::FullyConnectedParamsQuantized(data);
+  return micro::FullyConnectedParamsQuantized(data);
 }
 
-inline tflite::FullyConnectedParams CreateFCParamsFloat() {
+inline tflite::micro::FullyConnectedParams CreateFCParamsFloat() {
   FullyConnectedParams op_params;
   CalculateActivationRange(kTfLiteActNone, &op_params.float_activation_min,
                            &op_params.float_activation_max);
@@ -69,12 +69,12 @@ inline tflite::FullyConnectedParams CreateFCParamsFloat() {
 
 // Wrapper function to create gate parameters for the four internal LSTM gates
 template <typename CellType>
-tflite::GateParameters CreateGateParams(
+micro::GateParameters CreateGateParams(
     const TensorQuantizationParameters& input_quant_params,
     const TensorQuantizationParameters& hidden_state_quant_params,
     const GateQuantizationParameters& gate_quantization_settings,
     const float nonlinear_activation_input_scale) {
-  tflite::GateParameters gate_params = {};
+  micro::GateParameters gate_params = {};
   gate_params.input_fc_params = CreateFCParams<CellType>(
       input_quant_params, gate_quantization_settings.activation_weight,
       nonlinear_activation_input_scale);
@@ -84,8 +84,8 @@ tflite::GateParameters CreateGateParams(
   return gate_params;
 }
 
-inline tflite::GateParameters CreateGateParamsFloat() {
-  tflite::GateParameters gate_params = {};
+inline micro::GateParameters CreateGateParamsFloat() {
+  micro::GateParameters gate_params = {};
   gate_params.input_fc_params = CreateFCParamsFloat();
   gate_params.recurrent_fc_params = CreateFCParamsFloat();
   return gate_params;
@@ -97,11 +97,10 @@ inline tflite::GateParameters CreateGateParamsFloat() {
 // output is the updated hidden state, which is asymmetrically quantized. Thus
 // output may require zero point
 template <typename OutputType>
-tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
-                                                  const float input2_scale,
-                                                  const float output_scale,
-                                                  const int output_zp = 0) {
-  tflite::ArithmeticParams op_params = {};
+tflite::micro::ArithmeticParams CreateInterGateMulParams(
+    const float input1_scale, const float input2_scale,
+    const float output_scale, const int output_zp = 0) {
+  tflite::micro::ArithmeticParams op_params = {};
   op_params.quantized_activation_min = std::numeric_limits<OutputType>::min();
   op_params.quantized_activation_max = std::numeric_limits<OutputType>::max();
   op_params.input1_offset = 0;
@@ -118,8 +117,8 @@ tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
   return op_params;
 }
 
-inline tflite::ArithmeticParams CreateInterGateMulParamsFloat() {
-  tflite::ArithmeticParams op_params = {};
+inline tflite::micro::ArithmeticParams CreateInterGateMulParamsFloat() {
+  tflite::micro::ArithmeticParams op_params = {};
   CalculateActivationRange(kTfLiteActNone, &op_params.float_activation_min,
                            &op_params.float_activation_max);
   return op_params;
@@ -133,7 +132,7 @@ CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
   CellStateInfo cell_state_info;
   // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
   int buffer;
-  tflite::CheckedLog2(cell_state_scale, &buffer);
+  tflite::micro::CheckedLog2(cell_state_scale, &buffer);
   cell_state_info.cell_state_scale_power = buffer;
   // Cell state specifics
   cell_state_info.cell_clip = cell_clip;
@@ -344,16 +343,16 @@ void TestCalculateLstmGateFloat(const TfLiteEvalTensor* input,
   float gate_output[batch_size * state_dimension] = {};
   float fc_output_buffer[batch_size * state_dimension] = {};
 
-  tflite::GateParameters gate_params = CreateGateParamsFloat();
+  micro::GateParameters gate_params = CreateGateParamsFloat();
 
   // Create step information: only one time step, no need to update
   auto size_info = tflite::testing::CreateLstmSizeInfo(
       /*time_major*/ false, input->dims, recurrent->dims);
   // revise time_major = true to enable batch inference
   size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+  lstm_internal::LstmStepManager step_info(&size_info);
 
-  tflite::lstm_internal::CalculateLstmGate<float, float, float, float>(
+  lstm_internal::CalculateLstmGate<float, float, float, float>(
       step_info, gate_params,
       // Input FC
       input, input_weight, input_bias,
@@ -385,7 +384,7 @@ void TestCalculateLstmGateInteger(
   CellType gate_output[batch_size * state_dimension] = {};
   CellType fc_output_buffer[batch_size * state_dimension] = {};
 
-  tflite::GateParameters gate_params = CreateGateParams<CellType>(
+  micro::GateParameters gate_params = CreateGateParams<CellType>(
       node_quantization_settings.input, node_quantization_settings.hidden_state,
       gate_quantization_settings,
       node_quantization_settings.nonlinear_activation_input_scale);
@@ -395,20 +394,20 @@ void TestCalculateLstmGateInteger(
       /*time_major*/ false, input->dims, recurrent->dims);
   // revise time_major = true to enable batch inference
   size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+  lstm_internal::LstmStepManager step_info(&size_info);
 
   // only int8 weight is supported now
-  tflite::lstm_internal::CalculateLstmGate<ActivationType, WeightType, CellType,
-                                           BiasType>(
-      step_info, gate_params,
-      // Input FC
-      input, input_weight, input_bias,
-      // Recurrent FC
-      recurrent, recurrent_weight, recurrent_bias,
-      // Output
-      gate_output,
-      // Scratch arrays
-      fc_output_buffer, nonlinear_type);
+  lstm_internal::CalculateLstmGate<ActivationType, WeightType, CellType,
+                                   BiasType>(step_info, gate_params,
+                                             // Input FC
+                                             input, input_weight, input_bias,
+                                             // Recurrent FC
+                                             recurrent, recurrent_weight,
+                                             recurrent_bias,
+                                             // Output
+                                             gate_output,
+                                             // Scratch arrays
+                                             fc_output_buffer, nonlinear_type);
 
   float gate_output_float[batch_size * state_dimension] = {};
   Dequantize(gate_output, batch_size * state_dimension,
@@ -435,12 +434,11 @@ void TestUpdateLstmCellFloat(
   auto cell_state = node_content.CellStateEvalTensor();
   // Create step information: only one time step, no need to update
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ false,
-      node_content.GetEvalTensor(tflite::kLstmInputTensor)->dims,
+      /*time_major*/ false, node_content.GetEvalTensor(kLstmInputTensor)->dims,
       node_content.HiddenStateEvalTensor()->dims);
   // revise time_major = true to enable batch inference
   size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+  lstm_internal::LstmStepManager step_info(&size_info);
 
   // copy the data since it will be updated
   float forget_gate[batch_size * state_dimension] = {};
@@ -450,7 +448,7 @@ void TestUpdateLstmCellFloat(
   CellStateInfo cell_state_info;
   cell_state_info.cell_clip = node_content.BuiltinData().cell_clip;
   // Call the function to be tested
-  tflite::lstm_internal::UpdateLstmCell<float>(
+  lstm_internal::UpdateLstmCell<float>(
       step_info, cell_state, forget_gate,
       gate_output_data.expected_input_gate_output,
       gate_output_data.expected_cell_gate_output, forget_cell_mul_params,
@@ -504,15 +502,14 @@ void TestUpdateLstmCellInteger(
   auto cell_state = node_content.CellStateEvalTensor();
   // Create step information: only one time step, no need to update
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ false,
-      node_content.GetEvalTensor(tflite::kLstmInputTensor)->dims,
+      /*time_major*/ false, node_content.GetEvalTensor(kLstmInputTensor)->dims,
       node_content.HiddenStateEvalTensor()->dims);
   // revise time_major = true to enable batch inference
   size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+  lstm_internal::LstmStepManager step_info(&size_info);
 
   // Call the function to be tested
-  tflite::lstm_internal::UpdateLstmCell<CellType>(
+  lstm_internal::UpdateLstmCell<CellType>(
       step_info, cell_state, quantized_forget_gate, quantized_input_gate,
       quantized_cell_gate, forget_cell_mul_params, input_mul_params,
       cell_state_info, buffer);
@@ -544,17 +541,16 @@ void TestUpdateLstmHiddenFloat(
 
   // Create step information: only one time step, no need to update
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ false,
-      node_content.GetEvalTensor(tflite::kLstmInputTensor)->dims,
+      /*time_major*/ false, node_content.GetEvalTensor(kLstmInputTensor)->dims,
       node_content.HiddenStateEvalTensor()->dims);
   // revise time_major = true to enable batch inference
   size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+  lstm_internal::LstmStepManager step_info(&size_info);
 
   auto cell_state = node_content.CellStateEvalTensor();
   auto hidden_state = node_content.HiddenStateEvalTensor();
 
-  tflite::lstm_internal::UpdateLstmHidden<float, float>(
+  lstm_internal::UpdateLstmHidden<float, float>(
       step_info, cell_state, hidden_state,
       gate_output_data.expected_output_gate_output, mul_params,
       cell_state_scale_power, buffer);
@@ -588,23 +584,22 @@ void TestUpdateLstmHiddenInteger(
       quantization_settings.hidden_state.zero_point);
 
   int cell_state_scale_power_buffer;
-  tflite::CheckedLog2(quantization_settings.cell_state.scale,
-                      &cell_state_scale_power_buffer);
+  tflite::micro::CheckedLog2(quantization_settings.cell_state.scale,
+                             &cell_state_scale_power_buffer);
   int32_t cell_state_scale_power = cell_state_scale_power_buffer;
 
   // Create step information: only one time step, no need to update
   auto size_info = tflite::testing::CreateLstmSizeInfo(
-      /*time_major*/ false,
-      node_content.GetEvalTensor(tflite::kLstmInputTensor)->dims,
+      /*time_major*/ false, node_content.GetEvalTensor(kLstmInputTensor)->dims,
       node_content.HiddenStateEvalTensor()->dims);
   // revise time_major = true to enable batch inference
   size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&size_info);
+  lstm_internal::LstmStepManager step_info(&size_info);
 
   auto cell_state = node_content.CellStateEvalTensor();
   auto hidden_state = node_content.HiddenStateEvalTensor();
 
-  tflite::lstm_internal::UpdateLstmHidden<CellType, ActivationType>(
+  lstm_internal::UpdateLstmHidden<CellType, ActivationType>(
       step_info, cell_state, hidden_state, quantized_output_gate, mul_params,
       cell_state_scale_power, buffer);
 
@@ -644,9 +639,9 @@ void TestLstmStepFloat(
   OpDataLSTM op_data = CreateLstmOpDataFloat(node_contents);
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&op_data.size_info);
-  tflite::lstm_internal::LstmStep<float, float, float, float>(
-      step_info, op_data, kernel_content, buffers);
+  lstm_internal::LstmStepManager step_info(&op_data.size_info);
+  lstm_internal::LstmStep<float, float, float, float>(step_info, op_data,
+                                                      kernel_content, buffers);
 
   ValidateResultGoldens(
       gate_output_data.expected_updated_hidden,
@@ -686,10 +681,9 @@ void TestLstmStepInteger(
   OpDataLSTM op_data = CreateLstmOpData(node_contents);
   // set time_major to true to test batch inference
   op_data.size_info.time_major = true;
-  tflite::lstm_internal::LstmStepManager step_info(&op_data.size_info);
-  tflite::lstm_internal::LstmStep<ActivationType, WeightType, CellType,
-                                  BiasType>(step_info, op_data, kernel_content,
-                                            buffers);
+  lstm_internal::LstmStepManager step_info(&op_data.size_info);
+  lstm_internal::LstmStep<ActivationType, WeightType, CellType, BiasType>(
+      step_info, op_data, kernel_content, buffers);
 
   const auto& quantization_settings = node_contents.QuantizationSettings();
   float dequantized_hidden_state[batch_size * state_dimension] = {};
@@ -737,8 +731,7 @@ void TestEvalLstmFloat(
 
   OpDataLSTM op_data = CreateLstmOpDataFloat(node_contents);
 
-  tflite::EvalLstm<float, float, float, float>(op_data, kernel_content,
-                                               buffers);
+  EvalLstm<float, float, float, float>(op_data, kernel_content, buffers);
 
   ValidateResultGoldens(eval_check_data.expected_hidden_state,
                         node_contents.GetHiddenStateData(),
@@ -779,7 +772,7 @@ void TestEvalLstmInteger(
 
   OpDataLSTM op_data = CreateLstmOpData(node_contents);
 
-  tflite::EvalLstm<ActivationType, WeightType, CellType, BiasType>(
+  EvalLstm<ActivationType, WeightType, CellType, BiasType>(
       op_data, kernel_content, buffers);
 
   const auto& quantization_settings = node_contents.QuantizationSettings();

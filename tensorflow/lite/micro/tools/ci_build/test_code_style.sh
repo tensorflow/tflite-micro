@@ -38,7 +38,7 @@ FIX_FORMAT_FLAG=${1}
 # License Check
 ############################################################
 tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py \
-  tensorflow/lite/kernels/internal/reference/ \
+  tensorflow/lite/micro/kernels/internal/reference/ \
   tensorflow/lite/micro/ \
   third_party/ \
   -p copyright_notice \
@@ -49,6 +49,7 @@ tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/
   -e tensorflow/lite/micro/compression/metadata_saved.h \
   -e tools/make/downloads \
   -e tools/make/targets/ecm3531 \
+  -e experimental \
   -e BUILD\
   -e leon_commands \
   -e "\.bmp" \
@@ -146,6 +147,8 @@ ERROR_REPORTER_RESULT=$?
 ASSERT_PATHSPEC=\
 "${CHECK_CONTENTS_PATHSPEC}"\
 " :(exclude)micro/examples/micro_speech/esp/ringbuf.c"\
+" :(exclude)micro/experimental/*"\
+" :(exclude)micro/kernels/internal/*"\
 " :(exclude)*\.ipynb"\
 " :(exclude)*\.py"\
 

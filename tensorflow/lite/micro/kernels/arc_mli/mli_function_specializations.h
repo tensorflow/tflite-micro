@@ -16,7 +16,7 @@ limitations under the License.
 #include "mli_api.h"  // NOLINT
 
 namespace tflite {
-
+namespace micro {
 // Convolution specialized function.
 typedef mli_status (*conv_func_ptr)(const mli_tensor* /*in*/,
                                     const mli_tensor* /*weights*/,
@@ -140,4 +140,6 @@ pooling_func_ptr
 }
 #endif
 
+
+}  // namespace micro
 }  // namespace tflite

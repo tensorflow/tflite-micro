@@ -18,17 +18,17 @@ limitations under the License.
 #include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/transpose_conv.h"
-#include "tensorflow/lite/kernels/internal/reference/transpose_conv.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/transpose_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/transpose_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 // For the TfLite transpose_conv implementation, input tensor 0 corresponds to
@@ -118,7 +118,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     TF_LITE_ENSURE(context, output != nullptr);
     int output_channels = filter->dims->data[kConvQuantizedDimension];
 
-    TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
+    TF_LITE_ENSURE_STATUS(PopulateConvolutionQuantizationParams(
         context, input, filter, bias, output, kTfLiteActNone,
         &data->params.output_multiplier, &data->params.output_shift,
         &data->params.quantized_activation_min,
@@ -425,8 +425,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(bias),
           tflite::micro::GetOptionalTensorData<float>(bias),
           tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output),
-          tflite::micro::GetTensorShape(nullptr), nullptr);
+          tflite::micro::GetTensorData<float>(output), RuntimeShape(), nullptr);
       break;
     }
     case kTfLiteInt8: {
@@ -455,8 +454,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int8_t>(filter),
             tflite::micro::GetTensorShape(bias), bias_converted_buffer,
             tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int16_t>(output),
-            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+            tflite::micro::GetTensorData<int16_t>(output), RuntimeShape(),
+            nullptr, scratch_buffer);
       } else {
         reference_integer_ops::TransposeConv(
             data.params, data.per_channel_output_multiplier,
@@ -467,8 +466,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorShape(bias),
             tflite::micro::GetOptionalTensorData<std::int64_t>(bias),
             tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int16_t>(output),
-            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+            tflite::micro::GetTensorData<int16_t>(output), RuntimeShape(),
+            nullptr, scratch_buffer);
       }
       break;
     }
@@ -512,4 +511,5 @@ TFLMRegistration Register_TRANSPOSE_CONV_INT8() {
   return tflite::micro::RegisterOp(Init, Prepare, EvalInt8);
 }
 
+}  // namespace micro
 }  // namespace tflite

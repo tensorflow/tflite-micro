@@ -20,10 +20,10 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
-
+namespace micro {
 // This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every
 // implementation (reference or optimized) must define this function.
@@ -51,6 +51,10 @@ inline TFLMRegistration Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT16() {
 }
 #endif
 
+}  // namespace micro
+using micro::Register_UNIDIRECTIONAL_SEQUENCE_LSTM;
+using micro::Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT16;
+using micro::Register_UNIDIRECTIONAL_SEQUENCE_LSTM_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_UNIDIRECTIONAL_SEQUENCE_LSTM_H_

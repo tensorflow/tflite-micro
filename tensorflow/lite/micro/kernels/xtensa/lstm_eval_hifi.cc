@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 
 namespace tflite {
-
+namespace micro {
 #if defined(HIFI5)
 #if TFLITE_SINGLE_ROUNDING
 #define MPY_BY_QUANT_MULT_X2_OUT32(out, inp, multiplier, left_shift,  \
@@ -1012,6 +1012,7 @@ void xa_nn_elm_mul_16x16_asym8s(int8_t* output, const int16_t* input_1,
 }
 #endif  // defined(HIFI5)
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)

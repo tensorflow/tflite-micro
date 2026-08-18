@@ -13,14 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/binary_function.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/binary_function.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logical.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 
 namespace tflite {
-
+namespace micro {
 // Input/output tensor index.
 const int kLogicalInputTensor1 = 0;
 const int kLogicalInputTensor2 = 1;
@@ -60,4 +60,5 @@ bool LogicalOr(bool x, bool y) { return x || y; }
 
 bool LogicalAnd(bool x, bool y) { return x && y; }
 
+}  // namespace micro
 }  // namespace tflite

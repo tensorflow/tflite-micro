@@ -122,8 +122,8 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
 
   # Needed for LSTM support.
   MICROLITE_CC_KERNEL_SRCS += \
-    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/portable_tensor_utils.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/kernel_util.cc
 
   # Additional kernel sources for DECODE operator support
   ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5))

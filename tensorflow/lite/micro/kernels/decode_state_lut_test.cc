@@ -19,8 +19,8 @@ limitations under the License.
 #include <initializer_list>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"

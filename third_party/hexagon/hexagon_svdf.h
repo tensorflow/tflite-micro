@@ -17,10 +17,11 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
 namespace tflite {
+namespace micro {
 
 struct HexagonOpDataSvdf {
   struct OpDataSvdf reference_op_data;
@@ -32,6 +33,7 @@ void* HexagonSvdfInit(TfLiteContext* context, const char* buffer,
 TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_HEXAGON_HEXAGON_SVDF_H_
