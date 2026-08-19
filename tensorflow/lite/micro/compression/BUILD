@@ -169,6 +169,34 @@ py_test(
     ],
 )
 
+tflm_py_library(
+    name = "verify",
+    srcs = ["verify.py"],
+    deps = [
+        ":model_editor",
+        ":tensor_type",
+        "//python/tflite_micro:runtime",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "verify_test",
+    size = "small",
+    srcs = ["verify_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    deps = [
+        ":model_editor",
+        ":verify",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_test(
     name = "compression_integration_test",
     size = "small",
@@ -188,9 +216,62 @@ tflm_py_test(
         ":decode_insert",
         ":model_editor",
         ":spec",
+        ":verify",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/python:schema_py",
         requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "proprietary_integration_test",
+    size = "small",
+    srcs = ["proprietary_integration_test.py"],
+    tags = [
+        "manual",
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = select({
+        "//:with_compression_enabled": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        ":compress_lib",
+        ":spec",
+        ":verify",
+        requirement("pyyaml"),
+    ],
+)
+
+tflm_py_test(
+    name = "proprietary_integration_smoke_test",
+    size = "small",
+    srcs = [
+        "compression_integration_test.py",
+        "proprietary_integration_smoke_test.py",
+        "proprietary_integration_test.py",
+    ],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = select({
+        "//:with_compression_enabled": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        ":compress_lib",
+        ":decode_insert",
+        ":model_editor",
+        ":spec",
+        ":verify",
+        "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+        requirement("pyyaml"),
     ],
 )
 
