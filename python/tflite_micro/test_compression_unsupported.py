@@ -88,6 +88,8 @@ class LegacyCompressionDetectionTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
+  # Suppress TF C++ info/debug logs (0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR)
   os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+  # Disable oneDNN to avoid non-deterministic floating point results
   os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
   tf.test.main()
