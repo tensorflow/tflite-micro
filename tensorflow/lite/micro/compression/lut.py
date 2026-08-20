@@ -241,7 +241,7 @@ def pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytes:
   return bytes(buffer)
 
 
-class LutCompressor:
+class LutCompressor(compressor.Compressor):
   """LUT compression plugin implementing the Compressor protocol."""
 
   @property
