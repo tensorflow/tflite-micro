@@ -20,10 +20,10 @@ that decodes to the models' tensor contents. Insertion treats both as
 opaque structure, so the tests do not depend on their validity.
 """
 
+import unittest
 import warnings
 
 import numpy as np
-import unittest
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
 from tflite_micro.tensorflow.lite.micro.compression import decode
@@ -827,6 +827,61 @@ class TestDecodeInsertion(unittest.TestCase):
 
     self.assertEqual(ancillary.name, "weights_ancillary")
     self.assertEqual(output.name, "weights_decoded")
+
+  def test_mixed_compressed_and_uncompressed_inputs(self):
+    """CONCATENATION with one compressed and one plain input."""
+    weights = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.ones((4, 4), dtype=np.int8),
+        name="weights",
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    plain = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        data=np.zeros((4, 4), dtype=np.int8),
+        name="plain",
+    )
+
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(
+            tensors=[weights],
+            operators=[
+                model_editor.Operator(
+                    opcode=tflite.BuiltinOperator.CONCATENATION,
+                    inputs=[weights, plain],
+                    outputs=[
+                        model_editor.Tensor(shape=(4, 8),
+                                            dtype=tflite.TensorType.INT8,
+                                            name="output"),
+                    ],
+                )
+            ],
+        )
+    ])
+
+    # insert_decode_operators() expects compressor output: a map from
+    # (subgraph index, tensor index) to a CompressionResult. List
+    # weights, tensor 0 of subgraph 0, and omit plain, which is what
+    # leaves a tensor uncompressed.
+    compression_results = {(0, 0): _make_dummy_compression_result()}
+
+    decode_insert.insert_decode_operators(model, compression_results)
+
+    sg = model.subgraphs[0]
+
+    # One DECODE + one CONCATENATION
+    self.assertEqual(len(sg.operators), 2)
+    decode_op = sg.operators[0]
+
+    # DECODE has 2 inputs and 1 output (only the compressed tensor)
+    self.assertEqual(len(decode_op.inputs), 2)
+    self.assertEqual(len(decode_op.outputs), 1)
+
+    # CONCATENATION: first input rewired to DECODE output, second unchanged
+    self.assertIs(sg.operators[1].inputs[0], decode_op.outputs[0])
+    self.assertIs(sg.operators[1].inputs[1], plain)
 
   def test_encoded_tensor_rewritten(self):
     """Compressed tensor is rewritten with encoded data, UINT8 type, no quant."""
