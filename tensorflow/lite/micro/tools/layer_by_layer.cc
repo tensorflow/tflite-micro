@@ -30,8 +30,8 @@ limitations under the License.
 #include "flatbuffers/util.h"
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -127,11 +127,7 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
       tensor_type = TensorTypes_INT2;
       return kTfLiteOk;
     case kTfLiteFloat8E4M3FN:
-      tensor_type = TensorTypes_FLOAT8_E4M3FN;
-      return kTfLiteOk;
     case kTfLiteFloat8E5M2:
-      tensor_type = TensorTypes_FLOAT8_E5M2;
-      return kTfLiteOk;
     case kTfLiteNoType:
       MicroPrintf("Unsupported data type %d in tensor\n", tensor_type);
       return kTfLiteError;
@@ -159,7 +155,7 @@ TfLiteStatus SetRandomInput(const uint32_t random_seed,
     }
 
     // Pre-populate input tensor with random values.
-    uint8_t* input_values = GetTensorData<uint8_t>(input);
+    uint8_t* input_values = micro::GetTensorData<uint8_t>(input);
     for (size_t j = 0; j < input->bytes; ++j) {
       input_values[j] = dist(eng);
       test_data->data.push_back(input_values[j]);

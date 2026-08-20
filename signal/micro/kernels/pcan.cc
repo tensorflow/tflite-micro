@@ -17,14 +17,14 @@ limitations under the License.
 #include <stdint.h>
 
 #include "signal/src/pcan_argc_fixed.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
+namespace micro {
 namespace tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 
@@ -131,5 +131,11 @@ TFLMRegistration* Register_PCAN() {
   return &r;
 }
 
+}  // namespace tflm_signal
+
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_PCAN;
 }  // namespace tflm_signal
 }  // namespace tflite

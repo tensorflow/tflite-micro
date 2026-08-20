@@ -18,15 +18,15 @@ limitations under the License.
 #include <cstddef>
 #include <type_traits>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 void XtensaDecodeStateLut::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
   (void)scoped_profiler;
@@ -613,4 +613,5 @@ TfLiteStatus XtensaDecodeStateLut::Decode(const TfLiteEvalTensor& input,
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

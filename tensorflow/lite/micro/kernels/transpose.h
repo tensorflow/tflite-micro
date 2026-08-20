@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-
+namespace micro {
 constexpr int kTransposeInputTensor = 0;
 constexpr int kTransposePermTensor = 1;
 constexpr int kTransposeOutputTensor = 0;
@@ -54,5 +54,14 @@ inline TFLMRegistration Register_TRANSPOSE_INT8() {
 }
 #endif
 
+}  // namespace micro
+
+using micro::kTransposeInputTensor;
+using micro::kTransposeOutputTensor;
+using micro::kTransposePermTensor;
+
+using micro::Register_TRANSPOSE;
+using micro::Register_TRANSPOSE_INT8;
+using micro::TransposeContext;
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_TRANSPOSE_H_

@@ -20,11 +20,11 @@ limitations under the License.
 #include <cstddef>
 #include <type_traits>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 template <typename T>
 T* DecompressionState::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
@@ -56,6 +56,7 @@ template int16_t* DecompressionState::DecompressToBuffer<int16_t>(void*);
 template int32_t* DecompressionState::DecompressToBuffer<int32_t>(void*);
 template int64_t* DecompressionState::DecompressToBuffer<int64_t>(void*);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // USE_TFLM_COMPRESSION

@@ -15,17 +15,17 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
-#include "tensorflow/lite/kernels/internal/reference/logistic.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/logistic.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logistic.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 
 namespace tflite {
+namespace micro {
 const int kLogisticInputTensor = 0;
 const int kLogisticOutputTensor = 0;
 
@@ -116,4 +116,5 @@ TfLiteStatus LogisticPrepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateArithmeticOpDataLogistic(context, node, data);
 }
 
+}  // namespace micro
 }  // namespace tflite

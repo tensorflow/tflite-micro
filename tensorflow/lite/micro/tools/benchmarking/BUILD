@@ -17,10 +17,10 @@ tflm_cc_library(
     srcs = ["metrics.cc"],
     hdrs = ["metrics.h"],
     deps = [
-        "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )
 

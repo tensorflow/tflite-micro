@@ -15,13 +15,12 @@ limitations under the License.
 #include <limits>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/pad.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pad.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pad.h"
 
 namespace tflite {
-
+namespace micro {
 void* PadInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
@@ -125,4 +124,5 @@ TfLiteStatus PadPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

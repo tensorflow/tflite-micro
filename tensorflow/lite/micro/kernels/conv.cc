@@ -17,14 +17,14 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "tensorflow/lite/kernels/internal/reference/conv.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/conv.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/conv.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
@@ -58,7 +58,7 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
-      tflite::reference_ops::Conv(
+      tflite::micro::reference_ops::Conv(
           ConvParamsFloat(params, data), tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
           tflite::micro::GetTensorShape(filter),
@@ -75,8 +75,7 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetOptionalTensorData<float>(bias),
 #endif  // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output),
-          tflite::micro::GetTensorShape(nullptr), nullptr);
+          tflite::micro::GetTensorData<float>(output), RuntimeShape(), nullptr);
       break;
     }
     case kTfLiteInt16: {
@@ -139,7 +138,7 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt4: {
           int8_t* unpacked_filter_data = static_cast<int8_t*>(
               context->GetScratchBuffer(context, data.filter_buffer_index));
-          tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+          tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
               tflite::micro::GetTensorData<int8_t>(filter),
               tflite::micro::GetTensorShape(filter).FlatSize(),
               unpacked_filter_data);
@@ -199,4 +198,5 @@ TFLMRegistration Register_CONV_2D() {
   return tflite::micro::RegisterOp(ConvInit, ConvPrepare, ConvEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -13,22 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/add.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/add.h"
 
 #include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/add.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/add.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 constexpr int kInputTensor1 = 0;
 constexpr int kInputTensor2 = 1;
@@ -105,7 +104,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteAddParams* params,
   return kTfLiteOk;
 }
 
-void UpdateOpParams(tflite::ArithmeticParams* const op_params,
+void UpdateOpParams(tflite::micro::ArithmeticParams* const op_params,
                     const OpData* data) {
   op_params->left_shift = data->left_shift;
   op_params->input1_offset = data->input1_offset;
@@ -126,7 +125,7 @@ TfLiteStatus EvalAddQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                   const TfLiteEvalTensor* input1,
                                   const TfLiteEvalTensor* input2,
                                   TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params;
+  tflite::micro::ArithmeticParams op_params;
   UpdateOpParams(&op_params, data);
 
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
@@ -165,7 +164,7 @@ TfLiteStatus EvalAddQuantizedInt16(TfLiteContext* context, TfLiteNode* node,
                                    const TfLiteEvalTensor* input1,
                                    const TfLiteEvalTensor* input2,
                                    TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params;
+  tflite::micro::ArithmeticParams op_params;
   UpdateOpParams(&op_params, data);
 
   bool need_broadcast = reference_ops::ProcessBroadcastShapes(
@@ -204,7 +203,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node,
                      const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
   switch (output->type) {
     case kTfLiteFloat32: {
-      tflite::ArithmeticParams op_params;
+      tflite::micro::ArithmeticParams op_params;
       SetActivationParams(data->output_activation_min_f32,
                           data->output_activation_max_f32, &op_params);
       if (data->requires_broadcast) {
@@ -225,7 +224,7 @@ TfLiteStatus EvalAdd(TfLiteContext* context, TfLiteNode* node,
       }
     } break;
     case kTfLiteInt32: {
-      tflite::ArithmeticParams op_params;
+      tflite::micro::ArithmeticParams op_params;
       SetActivationParams(std::numeric_limits<int32_t>::lowest(),
                           std::numeric_limits<int32_t>::max(), &op_params);
       if (data->requires_broadcast) {
@@ -417,4 +416,5 @@ TFLMRegistration Register_ADD_INT16() {
   return tflite::micro::RegisterOp(InitAdd, PrepareAdd, EvalAddInt16);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 namespace tflm_signal {
 
 TFLMRegistration* Register_IRFFT();
@@ -25,6 +26,15 @@ TFLMRegistration* Register_IRFFT_FLOAT();
 TFLMRegistration* Register_IRFFT_INT16();
 TFLMRegistration* Register_IRFFT_INT32();
 
+}  // namespace tflm_signal
+
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_IRFFT;
+using micro::tflm_signal::Register_IRFFT_FLOAT;
+using micro::tflm_signal::Register_IRFFT_INT16;
+using micro::tflm_signal::Register_IRFFT_INT32;
 }  // namespace tflm_signal
 }  // namespace tflite
 

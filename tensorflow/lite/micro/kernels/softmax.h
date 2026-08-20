@@ -16,11 +16,11 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_SOFTMAX_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 void* SoftmaxInit(TfLiteContext* context, const char* buffer, size_t length);
 
 // Common helper function to SoftmaxPrepare.
@@ -62,6 +62,11 @@ inline TFLMRegistration Register_SOFTMAX_INT8() { return Register_SOFTMAX(); }
 inline TFLMRegistration Register_SOFTMAX_INT16() { return Register_SOFTMAX(); }
 #endif
 
+}  // namespace micro
+using micro::Register_SOFTMAX;
+using micro::Register_SOFTMAX_INT16;
+using micro::Register_SOFTMAX_INT8;
+using micro::Register_SOFTMAX_INT8_INT16;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_SOFTMAX_H_

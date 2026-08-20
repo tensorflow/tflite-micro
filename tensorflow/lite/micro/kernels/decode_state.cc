@@ -21,7 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
-
+namespace micro {
 DecodeState* DecodeState::CreateDecodeStateLUT(
     const TfLiteContext* context, MicroProfilerInterface* profiler) {
   MicroContext* const micro_context = GetMicroContext(context);
@@ -61,4 +61,5 @@ DecodeState* DecodeState::CreateDecodeStateHuffman(
   return dsp;
 }
 
+}  // namespace micro
 }  // namespace tflite

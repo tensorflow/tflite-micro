@@ -151,6 +151,6 @@ cc_library(
     hdrs = ["pcan_argc_fixed.h"],
     deps = [
         ":msb_32",
-        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )

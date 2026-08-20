@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr uint8_t CO_TYPE_ETHOSU = 1;
@@ -170,4 +171,5 @@ TFLMRegistration* Register_ETHOSU() {
 
 const char* GetString_ETHOSU() { return "ethos-u"; }
 
+}  // namespace micro
 }  // namespace tflite

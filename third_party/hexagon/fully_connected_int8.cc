@@ -45,18 +45,18 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "hexagon_tflm_translation_fully_connected.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "third_party/hexagon/hexagon_fully_connected.h"
 #include "third_party/hexagon/hexagon_tflm_translation_fully_connected.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
@@ -65,7 +65,7 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* filter,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output) {
-  tflite::FullyConnectedParams op_params;
+  FullyConnectedParams op_params;
   op_params.input_offset = -data.reference_op_data.input_zero_point;
   op_params.weights_offset = -data.reference_op_data.filter_zero_point;
   op_params.output_offset = data.reference_op_data.output_zero_point;
@@ -78,16 +78,13 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
       data.reference_op_data.output_activation_max;
 
   const int32_t* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<int32_t>(bias) : nullptr;
+      nullptr != bias ? GetTensorData<int32_t>(bias) : nullptr;
 
   reference_integer_ops::FullyConnected(
-      op_params, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<int8_t>(input),
-      tflite::micro::GetTensorShape(filter),
-      tflite::micro::GetTensorData<int8_t>(filter),
-      tflite::micro::GetTensorShape(bias), bias_data,
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<int8_t>(output));
+      op_params, GetTensorShape(input), GetTensorData<int8_t>(input),
+      GetTensorShape(filter), GetTensorData<int8_t>(filter),
+      GetTensorShape(bias), bias_data, GetTensorShape(output),
+      GetTensorData<int8_t>(output));
 
   return kTfLiteOk;
 }
@@ -119,7 +116,7 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context,
 
   HexagonOpDataFullyConnected* data =
       static_cast<HexagonOpDataFullyConnected*>(node->user_data);
-  const auto params =
+  const auto* params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -166,16 +163,14 @@ TfLiteStatus HexagonFullyConnectedPrepare(TfLiteContext* context,
 
 TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context,
                                            TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedInputTensor);
+      GetEvalInput(context, node, kFullyConnectedInputTensor);
   const TfLiteEvalTensor* filter =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedWeightsTensor);
+      GetEvalInput(context, node, kFullyConnectedWeightsTensor);
   const TfLiteEvalTensor* bias =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
+      GetEvalInput(context, node, kFullyConnectedBiasTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
+      GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
   const HexagonOpDataFullyConnected& data =
@@ -199,9 +194,9 @@ TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context,
 }
 
 TFLMRegistration Register_FULLY_CONNECTED_INT8() {
-  return tflite::micro::RegisterOp(HexagonFullyConnectedInit,
-                                   HexagonFullyConnectedPrepare,
-                                   HexagonFullyConnectedEvalInt8);
+  return RegisterOp(HexagonFullyConnectedInit, HexagonFullyConnectedPrepare,
+                    HexagonFullyConnectedEvalInt8);
 }
 
+}  // namespace micro
 }  // namespace tflite

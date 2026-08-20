@@ -28,6 +28,12 @@ namespace tflite {
 namespace testing {
 namespace {
 
+using micro::kTransposeConvBiasTensor;
+using micro::kTransposeConvFilterTensor;
+using micro::kTransposeConvInputTensor;
+using micro::kTransposeConvOutputTensor;
+using micro::kTransposeConvQuantizedDimension;
+
 // Common inputs and outputs.
 constexpr int kInputElements = 32;
 static int kInputShape[] = {4, 1, 4, 4, 2};

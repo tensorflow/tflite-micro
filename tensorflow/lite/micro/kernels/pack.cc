@@ -15,12 +15,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kOutputTensor = 0;
@@ -113,4 +113,5 @@ TFLMRegistration Register_PACK() {
   return tflite::micro::RegisterOp(nullptr, nullptr, PackEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

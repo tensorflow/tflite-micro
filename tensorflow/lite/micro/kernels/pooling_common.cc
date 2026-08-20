@@ -14,16 +14,15 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/pooling.h"
-#include "tensorflow/lite/kernels/internal/reference/pooling.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 
 namespace tflite {
-
+namespace micro {
 const int kPoolingInputTensor = 0;
 const int kPoolingOutputTensor = 0;
 
@@ -119,7 +118,7 @@ void MaxPoolingEvalFloat(TfLiteContext* context, TfLiteNode* node,
                          TfLitePoolParams* params, const OpDataPooling* data,
                          const TfLiteEvalTensor* input,
                          TfLiteEvalTensor* output) {
-  tflite::PoolParams op_params;
+  tflite::micro::PoolParams op_params;
   op_params.stride_height = params->stride_height;
   op_params.stride_width = params->stride_width;
   op_params.filter_height = params->filter_height;
@@ -134,4 +133,5 @@ void MaxPoolingEvalFloat(TfLiteContext* context, TfLiteNode* node,
                          tflite::micro::GetTensorData<float>(output));
 }
 
+}  // namespace micro
 }  // namespace tflite

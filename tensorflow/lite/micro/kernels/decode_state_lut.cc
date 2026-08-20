@@ -18,14 +18,14 @@ limitations under the License.
 #include <cstddef>
 #include <type_traits>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus DecodeStateLut::Setup(const TfLiteTensor& input,
                                    const TfLiteTensor& ancillary,
                                    const TfLiteTensor& output) {
@@ -639,4 +639,5 @@ inline size_t DecodeStateLut::GetNextTableIndexWidth1(
   return (compressed_indices_[current_offset >> 3] >> shift) & 0b1;
 }
 
+}  // namespace micro
 }  // namespace tflite

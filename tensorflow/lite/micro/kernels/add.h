@@ -23,7 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 extern const int kAddInputTensor1;
 extern const int kAddInputTensor2;
 extern const int kAddOutputTensor;
@@ -73,6 +73,12 @@ inline TFLMRegistration Register_ADD_INT8() { return Register_ADD(); }
 
 inline TFLMRegistration Register_ADD_INT16() { return Register_ADD(); }
 #endif
+
+}  // namespace micro
+using micro::OpDataAdd;
+using micro::Register_ADD;
+using micro::Register_ADD_INT16;
+using micro::Register_ADD_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_ADD_H_

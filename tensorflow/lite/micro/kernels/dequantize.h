@@ -18,12 +18,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
-
+namespace micro {
 struct DequantizeOpData {
-  tflite::DequantizationParams quantization_params;
+  tflite::micro::DequantizationParams quantization_params;
   // The scaling factor from input to output (aka the 'real multiplier') can
   // be represented as a fixed point multiplier plus a left shift.
   int32_t output_multiplier;
@@ -33,6 +33,9 @@ struct DequantizeOpData {
 
 TfLiteStatus DequantizePrepare(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
+
+using micro::DequantizeOpData;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_DEQUANTIZE_H_

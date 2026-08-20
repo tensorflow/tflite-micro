@@ -16,21 +16,20 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/add.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/reference/sub.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/add.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/sub.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 void* SubInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataSub));
@@ -42,10 +41,10 @@ void EvalSub(TfLiteContext* context, TfLiteNode* node, TfLiteSubParams* params,
   float output_activation_min, output_activation_max;
   CalculateActivationRange(params->activation, &output_activation_min,
                            &output_activation_max);
-  tflite::ArithmeticParams op_params;
+  tflite::micro::ArithmeticParams op_params;
   SetActivationParams(output_activation_min, output_activation_max, &op_params);
   if (data->requires_broadcast) {
-    tflite::reference_ops::BroadcastSubSlow(
+    tflite::micro::reference_ops::BroadcastSubSlow(
         op_params, tflite::micro::GetTensorShape(input1),
         tflite::micro::GetTensorData<float>(input1),
         tflite::micro::GetTensorShape(input2),
@@ -53,7 +52,7 @@ void EvalSub(TfLiteContext* context, TfLiteNode* node, TfLiteSubParams* params,
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<float>(output));
   } else {
-    tflite::reference_ops::SubWithActivation(
+    tflite::micro::reference_ops::SubWithActivation(
         op_params, tflite::micro::GetTensorShape(input1),
         tflite::micro::GetTensorData<float>(input1),
         tflite::micro::GetTensorShape(input2),
@@ -68,7 +67,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteEvalTensor* input1,
                               const TfLiteEvalTensor* input2,
                               TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params;
+  tflite::micro::ArithmeticParams op_params;
   op_params.left_shift = data->left_shift;
   op_params.input1_offset = data->input1_offset;
   op_params.input1_multiplier = data->input1_multiplier;
@@ -130,7 +129,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       }
 #else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       if (need_broadcast) {
-        tflite::reference_ops::BroadcastQuantSubSlow(
+        tflite::micro::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int8_t>(input1),
             tflite::micro::GetTensorShape(input2),
@@ -138,7 +137,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int8_t>(output));
       } else {
-        tflite::reference_ops::Sub(
+        tflite::micro::reference_ops::Sub(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int8_t>(input1),
             tflite::micro::GetTensorShape(input2),
@@ -188,7 +187,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
       }
 #else   // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       if (need_broadcast) {
-        tflite::reference_ops::BroadcastQuantSubSlow(
+        tflite::micro::reference_ops::BroadcastQuantSubSlow(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int16_t>(input1),
             tflite::micro::GetTensorShape(input2),
@@ -196,7 +195,7 @@ TfLiteStatus EvalSubQuantized(TfLiteContext* context, TfLiteNode* node,
             tflite::micro::GetTensorShape(output),
             tflite::micro::GetTensorData<int16_t>(output));
       } else {
-        tflite::reference_ops::Sub(
+        tflite::micro::reference_ops::Sub(
             op_params, tflite::micro::GetTensorShape(input1),
             tflite::micro::GetTensorData<int16_t>(input1),
             tflite::micro::GetTensorShape(input2),
@@ -246,4 +245,5 @@ TFLMRegistration Register_SUB() {
   return tflite::micro::RegisterOp(SubInit, SubPrepare, SubEval);
 }
 
+}  // namespace micro
 }  // namespace tflite
