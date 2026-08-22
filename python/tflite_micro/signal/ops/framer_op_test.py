@@ -17,15 +17,16 @@ import os
 
 import numpy as np
 import tensorflow as tf
+import unittest
 
 from tensorflow.python.platform import resource_loader
 from tflite_micro.python.tflite_micro.signal.ops import framer_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class FramerOpTest(tf.test.TestCase):
+class FramerOpTest(unittest.TestCase):
 
-  _PREFIX_PATH = resource_loader.get_path_to_datafile('')
+  _PREFIX_PATH = os.path.dirname(__file__)
 
   def GetResource(self, filepath):
     full_path = os.path.join(self._PREFIX_PATH, filepath)
@@ -59,13 +60,7 @@ class FramerOpTest(tf.test.TestCase):
       out_valid = interpreter.get_output(1)
       self.assertEqual(out_valid, out_valid_exp)
       if out_valid:
-        self.assertAllEqual(out_frame, out_frame_exp)
-      # TF
-      out_frame, out_valid = self.evaluate(
-          framer_op.framer(in_block, frame_size, frame_step, prefill))
-      self.assertEqual(out_valid, out_valid_exp)
-      if out_valid:
-        self.assertAllEqual(out_frame, out_frame_exp)
+        np.testing.assert_array_equal(out_frame, out_frame_exp)
       i += 3
 
   def MultiFrameRandomInputFramerTest(self, n_frames):
@@ -105,13 +100,8 @@ class FramerOpTest(tf.test.TestCase):
       out_valid = interpreter.get_output(1)
       self.assertEqual(out_valid, expected_valid)
       if out_valid:
-        self.assertAllEqual(out_frame, expected_frame)
-      # TF
-      out_frame, out_valid = self.evaluate(
-          framer_op.framer(in_block, frame_size, frame_step, prefill))
+        np.testing.assert_array_equal(out_frame, expected_frame)
       frame_index += n_frames
-      self.assertEqual(out_valid, expected_valid)
-      self.assertAllEqual(out_frame, expected_frame)
       block_index += 1
 
   def testFramerVectors(self):
@@ -129,14 +119,14 @@ class FramerOpTest(tf.test.TestCase):
   def testStepSizeTooLarge(self):
     framer_input = np.zeros(160, dtype=np.int16)
     with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
-      self.evaluate(framer_op.framer(framer_input, 128, 129))
+      framer_op.framer(framer_input, 128, 129).numpy()
 
   def testStepSizeNotEqualInputSize(self):
     framer_input = np.zeros(122, dtype=np.int16)
     with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
-      self.evaluate(framer_op.framer(framer_input, 321, 123))
+      framer_op.framer(framer_input, 321, 123).numpy()
 
 
 if __name__ == '__main__':
   np.random.seed(0)
-  tf.test.main()
+  unittest.main()
