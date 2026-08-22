@@ -23,6 +23,7 @@ interpreter.
 """
 
 from dataclasses import dataclass
+from typing import Optional, Union
 import yaml
 
 EXAMPLE_YAML_SPEC = """
@@ -57,13 +58,31 @@ class Tensor:
 
 
 @dataclass
+class PerTensor:
+  """One value table for the whole tensor."""
+
+
+@dataclass
+class PerChannel:
+  """One value table per slice along an axis.
+
+  Attributes:
+    axis: The axis of the tensor's shape that gives the channel count.
+  """
+  axis: int
+
+
+@dataclass
 class LookUpTableCompression(CompressionMethod):
   """LUT compression using lookup tables.
 
   Attributes:
     index_bitwidth: Number of bits per index (1-7).
+    mode: PerTensor or PerChannel. None means the compressor infers the
+      mode from the tensor's quantization.
   """
   index_bitwidth: int
+  mode: Optional[Union[PerTensor, PerChannel]] = None
 
 
 @dataclass
