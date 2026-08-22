@@ -67,8 +67,6 @@ class LutAncillaryData:
     lut_version: LUT format version (currently 1).
     bitwidth: Number of bits per index (1-7).
     axis: Byte 5 bits 7-4: the channel axis (0-14), or PER_TENSOR_AXIS.
-      The legacy encoding left these bits zero; the inference path keeps
-      writing zero.
     value_table_stride: Number of elements per channel in value tables.
     value_tables: Packed value table data following the DCM.
   """
@@ -147,42 +145,6 @@ def compress_array(tensor: np.ndarray,
   return compressed
 
 
-def identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
-  """Determines the axis along which to compress.
-
-  The axis along which to compress is inferred from the tensor's quantization
-  parameters. Unquantized tensors use per-tensor compression.
-
-  Args:
-    tensor: The tensor to analyze.
-
-  Returns:
-    The axis along which to compress, or None to indicate one value table for
-    the entire tensor.
-
-  Raises:
-    CompressionError: If the axis cannot be determined from quantization.
-  """
-  q = tensor.quantization
-  if q is None:
-    return None
-
-  # model_editor wraps quantization, access scales/axis from wrapper
-  scales = q.scales if isinstance(q.scales, list) else [q.scales]
-  quantization_channels = len(scales)
-
-  if quantization_channels == 1:
-    return None
-
-  if q.axis is not None and q.axis < len(tensor.shape):
-    if quantization_channels == tensor.shape[q.axis]:
-      return q.axis
-
-  raise compressor.CompressionError(
-      "Invalid or no quantization parameters from which to "
-      "infer the axis along which tensor should be compressed.")
-
-
 def resolve_mode(
     mode: Optional[object],
     tensor: model_editor.Tensor,
@@ -190,23 +152,23 @@ def resolve_mode(
   """Maps the spec's compression mode to axes for packing and the DCM.
 
   Args:
-    mode: spec.PerTensor, spec.PerChannel, or None. None infers the mode
-      from the tensor's quantization.
+    mode: spec.PerTensor or spec.PerChannel.
     tensor: The tensor to be compressed.
 
   Returns:
     A tuple (compression_axis, dcm_axis). compression_axis is the axis
     for compress_array, or None for one table. dcm_axis is the value for
-    the DCM byte 5 axis field; the inference path returns the legacy
-    zero.
+    the DCM byte 5 axis field.
 
   Raises:
-    CompressionError: If the axis is out of range for the tensor, is an
-      axis the kernels do not support, or the mode is not recognized.
+    CompressionError: If the mode is absent or not recognized, or the
+      axis is out of range for the tensor or is an axis the kernels do
+      not support.
   """
   match mode:
     case None:
-      return identify_compression_axis(tensor), 0
+      raise compressor.CompressionError(
+          "compression mode required: give per_tensor or per_channel")
 
     case spec.PerTensor():
       return None, LutAncillaryData.PER_TENSOR_AXIS

@@ -86,7 +86,7 @@ class SpecBuilderTest(unittest.TestCase):
     self.assertEqual(result[1].compression[0].mode, spec.PerTensor())
 
   def test_mode_defaults_to_none(self):
-    """Omitting the mode leaves the choice to inference."""
+    """Omitting the mode leaves it None; the compressor rejects None."""
     result = (spec_builder.SpecBuilder().add_tensor(
         subgraph=0, tensor=1).with_lut(index_bitwidth=4).build())
 

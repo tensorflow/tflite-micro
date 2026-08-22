@@ -480,7 +480,6 @@ tflm_py_library(
     srcs = ["propose_spec.py"],
     deps = [
         ":compressor",
-        ":lut",
         ":model_editor",
         "//tensorflow/lite/python:schema_py",
         requirement("absl_py"),
