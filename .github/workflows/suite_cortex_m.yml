@@ -35,7 +35,7 @@ jobs:
 
     name: ${{ matrix.name }}
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - uses: actions/checkout@v7
@@ -58,7 +58,7 @@ jobs:
 
     name: Cortex-M QEMU Unit Tests
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - uses: actions/checkout@v7
@@ -80,7 +80,7 @@ jobs:
     timeout-minutes: 60
     name: Cortex-M Generic (GCC)
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - uses: actions/checkout@v7
@@ -101,7 +101,7 @@ jobs:
     timeout-minutes: 60
     name: Cortex-M Corstone 300 (GCC)
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - uses: actions/checkout@v7
@@ -128,7 +128,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - name: Install dependencies
@@ -158,7 +158,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - name: Install dependencies

@@ -24,7 +24,7 @@ jobs:
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
 
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.10'
       - uses: actions/checkout@v7
