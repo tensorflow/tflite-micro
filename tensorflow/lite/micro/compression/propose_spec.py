@@ -53,7 +53,8 @@ USAGE = textwrap.dedent(f"""\
 
     Propose a compression spec for a .tflite model. The proposal lists every
     constant tensor that LUT compression can encode, with the minimum
-    index_bitwidth, ready for a human to review and prune. By default,
+    index_bitwidth and the per-tensor or per-channel mode drawn from the
+    tensor's quantization, ready for a human to review and prune. By default,
     list only tensors that compression would shrink; --norequire_savings
     lists every LUT-encodable constant. Output goes to stdout unless
     --output is given.""") + _EPILOG
@@ -374,6 +375,11 @@ def _render(candidates: list[Candidate], rejects: list[Reject],
     lines.append("    compression:")
     lines.append("      - lut:")
     lines.append(f"          index_bitwidth: {c.bitwidth}")
+    if c.axis is None:
+      lines.append("          per_tensor:")
+    else:
+      lines.append("          per_channel:")
+      lines.append(f"            axis: {c.axis}")
 
   if not candidates:
     lines.append("  []")
