@@ -74,6 +74,24 @@ class SpecBuilderTest(unittest.TestCase):
     self.assertEqual(result[0].tensor, 42)
     self.assertEqual(result[0].compression[0].index_bitwidth, 16)
 
+  def test_mode_passes_through(self):
+    """The mode argument reaches the spec object unchanged."""
+    result = (spec_builder.SpecBuilder().add_tensor(
+        subgraph=0, tensor=1).with_lut(
+            index_bitwidth=4, mode=spec.PerChannel(axis=0)).add_tensor(
+                subgraph=0, tensor=2).with_lut(index_bitwidth=2,
+                                               mode=spec.PerTensor()).build())
+
+    self.assertEqual(result[0].compression[0].mode, spec.PerChannel(axis=0))
+    self.assertEqual(result[1].compression[0].mode, spec.PerTensor())
+
+  def test_mode_defaults_to_none(self):
+    """Omitting the mode leaves the choice to inference."""
+    result = (spec_builder.SpecBuilder().add_tensor(
+        subgraph=0, tensor=1).with_lut(index_bitwidth=4).build())
+
+    self.assertIsNone(result[0].compression[0].mode)
+
   def test_tensor_without_compression(self):
     """Test that tensors can be added without compression methods."""
     builder = spec_builder.SpecBuilder()
