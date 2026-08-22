@@ -85,6 +85,12 @@ class TestProposal(unittest.TestCase):
     text = propose_spec.propose(self.model)
     self.assertEqual(entries(text), {(0, 1): 2})
 
+  def test_emits_per_tensor_mode(self):
+    """A tensor without per-channel quantization proposes per_tensor."""
+    text = propose_spec.propose(self.model)
+    self.assertIn("per_tensor:", text)
+    self.assertNotIn("per_channel:", text)
+
   def test_norequire_savings_lists_all_encodable(self):
     """Without the savings filter, list every LUT-encodable constant."""
     text = propose_spec.propose(self.model, require_savings=False)
@@ -179,6 +185,12 @@ class TestPerChannel(unittest.TestCase):
     text = propose_spec.propose(self.build())
     self.assertEqual(entries(text), {(0, 0): 2})
     self.assertIn("2 tables along axis 0", text)
+
+  def test_emits_per_channel_mode(self):
+    """A per-channel quantized tensor proposes per_channel with its axis."""
+    text = propose_spec.propose(self.build())
+    self.assertIn("per_channel:", text)
+    self.assertIn("axis: 0", text)
 
 
 class TestSharedBuffer(unittest.TestCase):
