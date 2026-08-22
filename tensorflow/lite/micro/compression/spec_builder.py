@@ -28,7 +28,7 @@ Example usage:
         .build())
 """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 from . import spec
 
 
@@ -41,17 +41,23 @@ class TensorBuilder:
     self.compression_methods: List[spec.CompressionMethod] = []
     self._parent = parent_builder
 
-  def with_lut(self, index_bitwidth: int) -> 'SpecBuilder':
+  def with_lut(
+    self,
+    index_bitwidth: int,
+    mode: Optional[Union[spec.PerTensor, spec.PerChannel]] = None,
+  ) -> 'SpecBuilder':
     """Add LUT compression to this tensor.
 
     Args:
         index_bitwidth: Number of bits for the LUT index (e.g., 4 for 16 values)
+        mode: spec.PerTensor or spec.PerChannel. None leaves the
+            choice to inference from the tensor's quantization.
 
     Returns:
         The parent SpecBuilder for method chaining
     """
     self.compression_methods.append(
-      spec.LookUpTableCompression(index_bitwidth=index_bitwidth)
+      spec.LookUpTableCompression(index_bitwidth=index_bitwidth, mode=mode)
     )
     return self._parent
 
