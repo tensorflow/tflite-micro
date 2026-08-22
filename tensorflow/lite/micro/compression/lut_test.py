@@ -369,6 +369,23 @@ class TestCompressionMode(unittest.TestCase):
     self.assertEqual(result.ancillary_data[6], 1)
     self.assertEqual(len(result.ancillary_data), 16 + 3)
 
+  def test_per_channel_value_tables(self):
+    """Tables follow the DCM in channel order."""
+    result = self._compress(self._per_channel_quantized(),
+                            spec.PerChannel(axis=0))
+    self.assertEqual(result.ancillary_data[16:], bytes([1, 5, 9, 13]))
+
+  def test_per_channel_stride_pads_short_tables(self):
+    """The stride covers the longest table; short tables pad with zeros."""
+    tensor = model_editor.Tensor(
+        shape=(2, 2),
+        dtype=tflite.TensorType.INT8,
+        data=np.array([[1, 2], [5, 5]], dtype=np.int8),
+    )
+    result = self._compress(tensor, spec.PerChannel(axis=0), bitwidth=1)
+    self.assertEqual(result.ancillary_data[6], 2)
+    self.assertEqual(result.ancillary_data[16:], bytes([1, 2, 5, 0]))
+
   def test_per_channel_on_unquantized_tensor(self):
     """An explicit axis works without quantization."""
     tensor = model_editor.Tensor(
