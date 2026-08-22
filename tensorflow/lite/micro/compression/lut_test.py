@@ -191,75 +191,6 @@ class TestPackLookupTables(unittest.TestCase):
     self.assertEqual(result, bytes([1, 2, 3, 4]))
 
 
-class TestIdentifyCompressionAxis(unittest.TestCase):
-  """Tests for identify_compression_axis function."""
-
-  def test_per_tensor_quantization(self):
-    """Single scale means per-tensor compression."""
-    tensor = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
-    )
-    axis = lut.identify_compression_axis(tensor)
-    self.assertIsNone(axis)
-
-  def test_per_channel_axis0(self):
-    """Multiple scales on axis 0."""
-    tensor = model_editor.Tensor(
-        shape=(4, 8),
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(
-            scales=[0.1, 0.2, 0.3, 0.4],
-            zero_points=[0, 0, 0, 0],
-            axis=0,
-        ),
-    )
-    axis = lut.identify_compression_axis(tensor)
-    self.assertEqual(axis, 0)
-
-  def test_per_channel_axis1(self):
-    """Multiple scales on axis 1."""
-    tensor = model_editor.Tensor(
-        shape=(4, 8),
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(
-            scales=[0.1] * 8,
-            zero_points=[0] * 8,
-            axis=1,
-        ),
-    )
-    axis = lut.identify_compression_axis(tensor)
-    self.assertEqual(axis, 1)
-
-  def test_no_quantization_returns_none(self):
-    """Missing quantization returns None for per-tensor compression."""
-    tensor = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-    )
-    axis = lut.identify_compression_axis(tensor)
-    self.assertIsNone(axis)
-
-  def test_single_scale_with_axis_returns_none(self):
-    """Single scale with axis set still returns None (per-tensor compression).
-
-    This handles the edge case where quantized_dimension is set but shape[dim]=1,
-    resulting in only one scale. Use per-tensor compression with one value table.
-    """
-    tensor = model_editor.Tensor(
-        shape=(4, 4, 4, 1),  # shape[3] == 1
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(
-            scales=[0.5],  # Single scale
-            zero_points=[0],
-            axis=3,  # Axis is set
-        ),
-    )
-    axis = lut.identify_compression_axis(tensor)
-    self.assertIsNone(axis)
-
-
 class TestLutCompressor(unittest.TestCase):
   """Tests for the LutCompressor class."""
 
@@ -276,7 +207,8 @@ class TestLutCompressor(unittest.TestCase):
         data=np.array([1, 2, 1, 2], dtype=np.int8),
         quantization=model_editor.Quantization(scales=1.0, zero_points=0),
     )
-    method = spec.LookUpTableCompression(index_bitwidth=4)
+    method = spec.LookUpTableCompression(index_bitwidth=4,
+                                         mode=spec.PerTensor())
 
     compressor_instance = lut.LutCompressor()
     result = compressor_instance.compress(tensor, method)
@@ -296,7 +228,8 @@ class TestLutCompressor(unittest.TestCase):
         data=np.array([1, 2, 3, 4], dtype=np.int8),
         quantization=model_editor.Quantization(scales=1.0, zero_points=0),
     )
-    method = spec.LookUpTableCompression(index_bitwidth=4)
+    method = spec.LookUpTableCompression(index_bitwidth=4,
+                                         mode=spec.PerTensor())
 
     compressor_instance = lut.LutCompressor()
     result = compressor_instance.compress(tensor, method)
@@ -318,7 +251,8 @@ class TestLutCompressor(unittest.TestCase):
         data=np.array([1, 2, 3, 1, 2, 3], dtype=np.int8),
         quantization=model_editor.Quantization(scales=1.0, zero_points=0),
     )
-    method = spec.LookUpTableCompression(index_bitwidth=4)
+    method = spec.LookUpTableCompression(index_bitwidth=4,
+                                         mode=spec.PerTensor())
 
     compressor_instance = lut.LutCompressor()
     result = compressor_instance.compress(tensor, method)
@@ -335,7 +269,8 @@ class TestLutCompressor(unittest.TestCase):
         data=np.array(range(16), dtype=np.int8),
         quantization=model_editor.Quantization(scales=1.0, zero_points=0),
     )
-    method = spec.LookUpTableCompression(index_bitwidth=3)
+    method = spec.LookUpTableCompression(index_bitwidth=3,
+                                         mode=spec.PerTensor())
 
     compressor_instance = lut.LutCompressor()
     with self.assertRaises(compressor.CompressionError):
@@ -363,7 +298,8 @@ class TestLutCompressor(unittest.TestCase):
         dtype=tflite.TensorType.INT8,
         quantization=model_editor.Quantization(scales=1.0, zero_points=0),
     )
-    method = spec.LookUpTableCompression(index_bitwidth=4)
+    method = spec.LookUpTableCompression(index_bitwidth=4,
+                                         mode=spec.PerTensor())
 
     compressor_instance = lut.LutCompressor()
     with self.assertRaises(compressor.CompressionError):
@@ -399,10 +335,11 @@ class TestCompressionMode(unittest.TestCase):
         ),
     )
 
-  def test_no_mode_writes_zeros_in_axis_field(self):
-    """The inference path keeps the legacy zeros in byte 5 bits 7-4."""
-    result = self._compress(self._per_tensor_quantized(), mode=None)
-    self.assertEqual(result.ancillary_data[5], 0x04)
+  def test_no_mode_raises(self):
+    """A spec without a mode is rejected."""
+    with self.assertRaisesRegex(compressor.CompressionError,
+                                "per_tensor or per_channel"):
+      self._compress(self._per_tensor_quantized(), mode=None)
 
   def test_per_tensor_writes_axis_15(self):
     result = self._compress(self._per_tensor_quantized(), spec.PerTensor())

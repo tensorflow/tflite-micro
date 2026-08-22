@@ -119,39 +119,60 @@ TEST_COMPRESSION_SPEC = [
     spec.Tensor(  # spec 0
         subgraph=0,
         tensor=0,
-        compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=4,
+                                        mode=spec.PerTensor())
+        ],
     ),
     spec.Tensor(  # spec 1
         subgraph=0,
         tensor=1,
-        compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=4,
+                                        mode=spec.PerTensor())
+        ],
     ),
     spec.Tensor(  # spec 2
         subgraph=0,
         tensor=2,
-        compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=4,
+                                        mode=spec.PerTensor())
+        ],
     ),
     spec.Tensor(  # spec 3
         subgraph=0,
         tensor=3,
-        compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=4,
+                                        mode=spec.PerTensor())
+        ],
     ),
 
     # Tensor 4 intentionally left uncompressed
     spec.Tensor(  # spec 4
         subgraph=0,
         tensor=5,
-        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=2,
+                                        mode=spec.PerChannel(axis=1))
+        ],
     ),
     spec.Tensor(  # spec 5
         subgraph=0,
         tensor=6,
-        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=2,
+                                        mode=spec.PerChannel(axis=0))
+        ],
     ),
     spec.Tensor(  # spec 6
         subgraph=0,
         tensor=7,
-        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+        compression=[
+            spec.LookUpTableCompression(index_bitwidth=2,
+                                        mode=spec.PerTensor())
+        ],
     ),
 ]
 
@@ -230,10 +251,12 @@ class TestCompression(unittest.TestCase):
     fb = model.build()
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)])
+        spec.Tensor(subgraph=0,
+                    tensor=0,
+                    compression=[
+                        spec.LookUpTableCompression(index_bitwidth=4,
+                                                    mode=spec.PerTensor())
+                    ])
     ]
 
     compressed_fb = compress.compress(fb, specs)
@@ -291,10 +314,12 @@ class TestCompression(unittest.TestCase):
     fb = model.build()
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)])
+        spec.Tensor(subgraph=0,
+                    tensor=0,
+                    compression=[
+                        spec.LookUpTableCompression(index_bitwidth=4,
+                                                    mode=spec.PerTensor())
+                    ])
     ]
 
     compressed_fb = compress.compress(fb, specs)
@@ -324,7 +349,10 @@ class TestCompression(unittest.TestCase):
         spec.Tensor(
             subgraph=0,
             tensor=1,
-            compression=[spec.LookUpTableCompression(index_bitwidth=3)],
+            compression=[
+                spec.LookUpTableCompression(index_bitwidth=3,
+                                            mode=spec.PerTensor())
+            ],
         ),
     ]
     self.assertRaises(compressor.CompressionError,
@@ -336,7 +364,10 @@ class TestCompression(unittest.TestCase):
         spec.Tensor(
             subgraph=0,
             tensor=1,
-            compression=[spec.LookUpTableCompression(index_bitwidth=5)],
+            compression=[
+                spec.LookUpTableCompression(index_bitwidth=5,
+                                            mode=spec.PerTensor())
+            ],
         ),
     ]
     # Should not raise
@@ -348,7 +379,10 @@ class TestCompression(unittest.TestCase):
         spec.Tensor(
             subgraph=666,
             tensor=1,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+            compression=[
+                spec.LookUpTableCompression(index_bitwidth=4,
+                                            mode=spec.PerTensor())
+            ],
         ),
     ]
     self.assertRaises(compressor.CompressionError,
@@ -358,22 +392,27 @@ class TestCompression(unittest.TestCase):
         spec.Tensor(
             subgraph=0,
             tensor=666,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+            compression=[
+                spec.LookUpTableCompression(index_bitwidth=4,
+                                            mode=spec.PerTensor())
+            ],
         ),
     ]
     self.assertRaises(compressor.CompressionError,
                       lambda: compress.compress(self.flatbuffer, specs))
 
   def test_no_quantization_uses_per_tensor(self):
-    """Unquantized tensors compress with per-tensor compression (no error)."""
+    """An unquantized tensor compresses in per-tensor mode."""
     specs = [
         spec.Tensor(
             subgraph=0,
             tensor=8,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+            compression=[
+                spec.LookUpTableCompression(index_bitwidth=4,
+                                            mode=spec.PerTensor())
+            ],
         ),
     ]
-    # Should succeed - unquantized tensors use per-tensor compression
     _ = compress.compress(self.flatbuffer, specs)
 
   def test_huffman_compression_not_implemented(self):
@@ -434,7 +473,10 @@ class TestCompression(unittest.TestCase):
         spec.Tensor(
             subgraph=0,
             tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+            compression=[
+                spec.LookUpTableCompression(index_bitwidth=4,
+                                            mode=spec.PerTensor())
+            ],
         )
     ]
 
@@ -500,14 +542,18 @@ class TestSharedBufferCompression(unittest.TestCase):
     """Compressing every alias of a buffer reads each tensor's original
     data and decodes each alias to its own shape."""
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=1)]),
-        spec.Tensor(
-            subgraph=0,
-            tensor=1,
-            compression=[spec.LookUpTableCompression(index_bitwidth=1)]),
+        spec.Tensor(subgraph=0,
+                    tensor=0,
+                    compression=[
+                        spec.LookUpTableCompression(index_bitwidth=1,
+                                                    mode=spec.PerTensor())
+                    ]),
+        spec.Tensor(subgraph=0,
+                    tensor=1,
+                    compression=[
+                        spec.LookUpTableCompression(index_bitwidth=1,
+                                                    mode=spec.PerTensor())
+                    ]),
     ]
     compressed_fb = compress.compress(self._build(), specs)
     model = model_editor.read(compressed_fb)
@@ -520,10 +566,12 @@ class TestSharedBufferCompression(unittest.TestCase):
     """Compressing one alias of a shared buffer warns, inserts no
     DECODE, and leaves the original data in the model."""
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=1)]),
+        spec.Tensor(subgraph=0,
+                    tensor=0,
+                    compression=[
+                        spec.LookUpTableCompression(index_bitwidth=1,
+                                                    mode=spec.PerTensor())
+                    ]),
     ]
     with warnings.catch_warnings(record=True) as caught:
       warnings.simplefilter("always")
@@ -543,7 +591,8 @@ class TestPluginDispatch(unittest.TestCase):
 
   def test_get_compressor_lut(self):
     """LUT compression method dispatches to LutCompressor."""
-    method = spec.LookUpTableCompression(index_bitwidth=4)
+    method = spec.LookUpTableCompression(index_bitwidth=4,
+                                         mode=spec.PerTensor())
     compressor_instance = compress._get_compressor(method)
     from tflite_micro.tensorflow.lite.micro.compression import lut
     self.assertIsInstance(compressor_instance, lut.LutCompressor)

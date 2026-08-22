@@ -51,8 +51,8 @@ class TensorBuilder:
 
         Args:
             index_bitwidth: Number of bits for the LUT index (e.g., 4 for 16 values)
-            mode: spec.PerTensor or spec.PerChannel. None leaves the
-                choice to inference from the tensor's quantization.
+            mode: spec.PerTensor or spec.PerChannel. The compressor
+                rejects a spec without one.
 
         Returns:
             The parent SpecBuilder for method chaining

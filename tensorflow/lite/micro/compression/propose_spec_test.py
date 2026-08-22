@@ -75,6 +75,75 @@ def entries(text: str) -> dict:
   }
 
 
+class TestIdentifyCompressionAxis(unittest.TestCase):
+  """Tests for the quantization-based axis inference."""
+
+  def test_per_tensor_quantization(self):
+    """Single scale means per-tensor compression."""
+    tensor = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    )
+    axis = propose_spec._identify_compression_axis(tensor)
+    self.assertIsNone(axis)
+
+  def test_per_channel_axis0(self):
+    """Multiple scales on axis 0."""
+    tensor = model_editor.Tensor(
+        shape=(4, 8),
+        dtype=tflite.TensorType.INT8,
+        quantization=model_editor.Quantization(
+            scales=[0.1, 0.2, 0.3, 0.4],
+            zero_points=[0, 0, 0, 0],
+            axis=0,
+        ),
+    )
+    axis = propose_spec._identify_compression_axis(tensor)
+    self.assertEqual(axis, 0)
+
+  def test_per_channel_axis1(self):
+    """Multiple scales on axis 1."""
+    tensor = model_editor.Tensor(
+        shape=(4, 8),
+        dtype=tflite.TensorType.INT8,
+        quantization=model_editor.Quantization(
+            scales=[0.1] * 8,
+            zero_points=[0] * 8,
+            axis=1,
+        ),
+    )
+    axis = propose_spec._identify_compression_axis(tensor)
+    self.assertEqual(axis, 1)
+
+  def test_no_quantization_returns_none(self):
+    """Missing quantization returns None for per-tensor compression."""
+    tensor = model_editor.Tensor(
+        shape=(4, 4),
+        dtype=tflite.TensorType.INT8,
+    )
+    axis = propose_spec._identify_compression_axis(tensor)
+    self.assertIsNone(axis)
+
+  def test_single_scale_with_axis_returns_none(self):
+    """Single scale with axis set still returns None (per-tensor compression).
+
+    This handles the edge case where quantized_dimension is set but shape[dim]=1,
+    resulting in only one scale. Use per-tensor compression with one value table.
+    """
+    tensor = model_editor.Tensor(
+        shape=(4, 4, 4, 1),  # shape[3] == 1
+        dtype=tflite.TensorType.INT8,
+        quantization=model_editor.Quantization(
+            scales=[0.5],  # Single scale
+            zero_points=[0],
+            axis=3,  # Axis is set
+        ),
+    )
+    axis = propose_spec._identify_compression_axis(tensor)
+    self.assertIsNone(axis)
+
+
 class TestProposal(unittest.TestCase):
 
   def setUp(self):

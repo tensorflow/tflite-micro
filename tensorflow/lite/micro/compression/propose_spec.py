@@ -27,7 +27,6 @@ import absl.flags
 import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
-from tflite_micro.tensorflow.lite.micro.compression import lut
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
@@ -199,6 +198,43 @@ def survey(
   return candidates, rejects
 
 
+def _identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
+  """Determines the compression axis to propose.
+
+  The axis is drawn from the tensor's quantization parameters.
+  Unquantized and per-tensor-quantized tensors get per-tensor
+  compression.
+
+  Args:
+    tensor: The tensor to analyze.
+
+  Returns:
+    The axis along which to compress, or None to indicate one value table
+    for the entire tensor.
+
+  Raises:
+    CompressionError: If the axis cannot be determined from quantization.
+  """
+  q = tensor.quantization
+  if q is None:
+    return None
+
+  # model_editor wraps quantization, access scales/axis from wrapper
+  scales = q.scales if isinstance(q.scales, list) else [q.scales]
+  quantization_channels = len(scales)
+
+  if quantization_channels == 1:
+    return None
+
+  if q.axis is not None and q.axis < len(tensor.shape):
+    if quantization_channels == tensor.shape[q.axis]:
+      return q.axis
+
+  raise compressor.CompressionError(
+      "Invalid or no quantization parameters from which to "
+      "infer the axis along which tensor should be compressed.")
+
+
 def _analyze(
     subgraph: model_editor.Subgraph, tensor: model_editor.Tensor,
     buffer_users: dict[int, list[tuple[int, int]]]
@@ -244,7 +280,7 @@ def _analyze(
     return reject(str(e))
 
   try:
-    axis = lut.identify_compression_axis(tensor)
+    axis = _identify_compression_axis(tensor)
   except compressor.CompressionError as e:
     return reject(str(e))
 
