@@ -66,12 +66,6 @@ _MAX_BITWIDTH = 7
 # header followed by its value tables.
 _ANCILLARY_HEADER_BYTES = 16
 
-_OPERATOR_NAMES = {
-    code: name
-    for name, code in vars(tflite.BuiltinOperator).items()
-    if not name.startswith("_")
-}
-
 _TYPE_NAMES = {
     value: name
     for name, value in vars(tflite.TensorType).items()
@@ -306,13 +300,9 @@ def _describe_consumers(subgraph: model_editor.Subgraph,
   """
   groups = {}
   for op in subgraph.operators:
-    if op.custom_code is not None:
-      name = op.custom_code
-    else:
-      name = _OPERATOR_NAMES.get(op.opcode, f"opcode {op.opcode}")
     for position, t in enumerate(op.inputs):
       if t is tensor:
-        groups.setdefault((position, name), []).append(op.index)
+        groups.setdefault((position, op.opcode_name), []).append(op.index)
 
   descriptions = []
   for (position, name), op_indices in groups.items():
