@@ -1909,5 +1909,24 @@ class TestFieldPreservation(unittest.TestCase):
     self.assertEqual(quant2.zeroPoint[0], 128)
 
 
+class TestOperatorName(unittest.TestCase):
+  """Tests for naming an operator's kind as text."""
+
+  def test_builtin_named_by_its_enumerator(self):
+    op = model_editor.Operator(opcode=tflite.BuiltinOperator.PAD)
+    self.assertEqual(op.opcode_name, "PAD")
+
+  def test_custom_named_by_its_code(self):
+    """A custom operator goes by its code, not by CUSTOM."""
+    op = model_editor.Operator(opcode=tflite.BuiltinOperator.CUSTOM,
+                               custom_code="MyCustomOp")
+    self.assertEqual(op.opcode_name, "MyCustomOp")
+
+  def test_unrecognized_code_falls_back_to_its_number(self):
+    """A code from a newer schema still yields something printable."""
+    op = model_editor.Operator(opcode=31337)
+    self.assertIn("31337", op.opcode_name)
+
+
 if __name__ == "__main__":
   unittest.main()

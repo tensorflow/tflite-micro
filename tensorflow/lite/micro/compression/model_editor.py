@@ -377,6 +377,13 @@ class OperatorCode:
     self._fb.version = value
 
 
+_BUILTIN_OPERATOR_NAMES = {
+    code: name
+    for name, code in vars(tflite.BuiltinOperator).items()
+    if not name.startswith("_")
+}
+
+
 class Operator:
   """Operator specification wrapping an OperatorT flatbuffer object.
 
@@ -432,6 +439,17 @@ class Operator:
   @custom_code.setter
   def custom_code(self, value: Optional[str]):
     self._custom_code = value
+
+  @property
+  def opcode_name(self) -> str:
+    """The operator's kind as text, for display.
+
+    Custom operators go by their custom code, builtins by the name of
+    their enumerator, and an unrecognized code by its number.
+    """
+    if self._custom_code is not None:
+      return self._custom_code
+    return _BUILTIN_OPERATOR_NAMES.get(self._opcode, f"opcode {self._opcode}")
 
   @property
   def opcode_index(self) -> Optional[int]:
