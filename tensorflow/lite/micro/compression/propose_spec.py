@@ -26,6 +26,7 @@ import absl.app
 import absl.flags
 import numpy as np
 
+from tflite_micro.tensorflow.lite.micro.compression import constant_inputs
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
@@ -302,6 +303,13 @@ def _analyze(
       coords for coords in buffer_users[id(tensor.buffer)]
       if coords != (subgraph.index, tensor.index)
   ]
+
+  # A kernel that reads the values in Prepare cannot read them from a
+  # DECODE output, which holds nothing until Invoke.
+  uses = constant_inputs.find_uses(subgraph, tensor)
+  if uses:
+    return reject("must stay constant; " + "; ".join(use.describe()
+                                                     for use in uses))
 
   try:
     array = tensor.array
