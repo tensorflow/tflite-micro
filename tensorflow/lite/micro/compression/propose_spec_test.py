@@ -297,6 +297,94 @@ class TestSharedBuffer(unittest.TestCase):
     self.assertIn("shares a buffer with subgraph 0 tensor 0", text)
 
 
+class TestConstantInputs(unittest.TestCase):
+  """Tensors a kernel reads in Prepare cannot become DECODE outputs."""
+
+  @classmethod
+  def setUpClass(cls):
+    """Propose once for a model covering every outcome.
+
+    The paddings tensor holds two unique values in 32 bytes, so it
+    shrinks and a savings filter alone would keep it. Every PAD kernel
+    requires it constant, which must outrank that. The convolution
+    filter and the padded values sit where no kernel requires a
+    constant, the first under an operator absent from the list and the
+    second at an input position the list does not name.
+    """
+    super().setUpClass()
+    twos = np.array([0.0, 1.0], dtype=np.float32)
+    model = model_editor.Model()
+    sg = model.add_subgraph()
+    act = sg.add_tensor(shape=(1, 6, 6, 4),
+                        dtype=tflite.TensorType.FLOAT32,
+                        name="act")
+    paddings = sg.add_tensor(shape=(4, 2),
+                             dtype=tflite.TensorType.INT32,
+                             data=np.array([[0, 0], [1, 1], [1, 1], [0, 0]],
+                                           dtype=np.int32),
+                             name="paddings")
+    padded = sg.add_tensor(shape=(1, 8, 8, 4),
+                           dtype=tflite.TensorType.FLOAT32,
+                           name="padded")
+    sg.add_operator(opcode=tflite.BuiltinOperator.PAD,
+                    inputs=[act, paddings],
+                    outputs=[padded])
+    filt = sg.add_tensor(shape=(4, 3, 3, 4),
+                         dtype=tflite.TensorType.FLOAT32,
+                         data=np.tile(twos, 72).reshape(4, 3, 3, 4),
+                         name="filter")
+    out = sg.add_tensor(shape=(1, 6, 6, 4),
+                        dtype=tflite.TensorType.FLOAT32,
+                        name="out")
+    sg.add_operator(opcode=tflite.BuiltinOperator.CONV_2D,
+                    inputs=[padded, filt],
+                    outputs=[out])
+    values = sg.add_tensor(shape=(1, 6, 6, 4),
+                           dtype=tflite.TensorType.FLOAT32,
+                           data=np.tile(twos, 72).reshape(1, 6, 6, 4),
+                           name="values")
+    padded_values = sg.add_tensor(shape=(1, 8, 8, 4),
+                                  dtype=tflite.TensorType.FLOAT32,
+                                  name="padded_values")
+    sg.add_operator(opcode=tflite.BuiltinOperator.PAD,
+                    inputs=[values, paddings],
+                    outputs=[padded_values])
+    cls.text = propose_spec.propose(bytes(model.build()))
+    cls.entries = entries(cls.text)
+
+  def test_required_constant_excluded_by_its_kernel(self):
+    """The kernel's requirement outranks the size arithmetic.
+
+    The paddings tensor shrinks, so a proposal that weighed only size
+    would keep it.
+    """
+    self.assertNotIn((0, 1), self.entries)
+    reasons = [
+        line for line in self.text.splitlines()
+        if line.startswith("#  ") and '"paddings"' in line
+    ]
+    self.assertEqual(len(reasons), 1)
+    self.assertIn("must stay constant", reasons[0])
+    self.assertIn("PAD", reasons[0])
+    self.assertNotIn("no savings", reasons[0])
+
+  def test_unlisted_operator_still_proposed(self):
+    """A convolution filter stays compressible.
+
+    Only kernels built for particular targets read a filter in
+    Prepare, so the list leaves convolution weights alone.
+    """
+    self.assertIn((0, 3), self.entries)
+
+  def test_unlisted_input_position_still_proposed(self):
+    """The requirement binds one input position, not the operator.
+
+    PAD requires its paddings, at input 1. A constant reaching PAD at
+    another position is compressible.
+    """
+    self.assertIn((0, 5), self.entries)
+
+
 class TestEmptyProposal(unittest.TestCase):
 
   def test_model_without_constants_parses(self):

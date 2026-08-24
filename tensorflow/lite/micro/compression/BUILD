@@ -372,6 +372,15 @@ tflm_py_library(
 )
 
 tflm_py_library(
+    name = "constant_inputs",
+    srcs = ["constant_inputs.py"],
+    deps = [
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+tflm_py_library(
     name = "lut",
     srcs = ["lut.py"],
     deps = [
@@ -479,6 +488,7 @@ tflm_py_library(
     name = "propose_spec_lib",
     srcs = ["propose_spec.py"],
     deps = [
+        ":constant_inputs",
         ":model_editor",
         "//tensorflow/lite/python:schema_py",
         requirement("absl_py"),
