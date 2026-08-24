@@ -124,6 +124,7 @@ py_library(
     ],
     deps = [
         ":compressor",
+        ":constant_inputs",
         ":decode_insert",
         ":huffman",
         ":lut",

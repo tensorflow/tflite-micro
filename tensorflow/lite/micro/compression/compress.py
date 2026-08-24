@@ -26,6 +26,7 @@ import absl.app
 import absl.flags
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
+from tflite_micro.tensorflow.lite.micro.compression import constant_inputs
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
 from tflite_micro.tensorflow.lite.micro.compression import huffman
 from tflite_micro.tensorflow.lite.micro.compression import lut
@@ -142,8 +143,18 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
 
   for tensor_spec in specs:
     try:
-      tensor = model.subgraphs[tensor_spec.subgraph].tensors[
-          tensor_spec.tensor]
+      subgraph = model.subgraphs[tensor_spec.subgraph]
+      tensor = subgraph.tensors[tensor_spec.tensor]
+
+      # Compression replaces the tensor with a DECODE output, which
+      # holds no values until Invoke. A kernel that reads them in
+      # Prepare would get an unwritten arena buffer.
+      uses = constant_inputs.find_uses(subgraph, tensor)
+      if uses:
+        raise compressor.CompressionError(
+            f"tensor {tensor.name!r} (subgraph {tensor_spec.subgraph}, "
+            f"tensor {tensor_spec.tensor}) must stay constant; " +
+            "; ".join(use.describe() for use in uses))
 
       # Currently only one compression method per tensor
       if len(tensor_spec.compression) != 1:
