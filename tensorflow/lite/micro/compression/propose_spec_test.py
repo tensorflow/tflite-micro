@@ -27,7 +27,9 @@ def build_test_model() -> bytes:
   """Build a model exercising each proposal outcome.
 
   Tensor 0: activation, no data, never listed.
-  Tensor 1: weights with 4 unique values, a shrinkable candidate.
+  Tensor 1: weights with 4 unique values, a shrinkable candidate. The
+      four values recur in every row and every column, so no channel
+      axis encodes them smaller than one table does.
   Tensor 2: bias with 8 unique values in 8 elements, where the value
       table outweighs the shrunken indices, so listed only when savings
       are not required.
@@ -42,9 +44,12 @@ def build_test_model() -> bytes:
                          name="act_in")
   weights = sg.add_tensor(shape=(8, 4),
                           dtype=tflite.TensorType.FLOAT32,
-                          data=np.tile(
-                              np.array([-1.0, 0.0, 0.5, 1.0],
-                                       dtype=np.float32), 8),
+                          data=np.stack([
+                              np.roll(
+                                  np.array([-1.0, 0.0, 0.5, 1.0],
+                                           dtype=np.float32), i)
+                              for i in range(8)
+                          ]),
                           name="weights")
   bias = sg.add_tensor(shape=(8, ),
                        dtype=tflite.TensorType.FLOAT32,
@@ -75,75 +80,6 @@ def entries(text: str) -> dict:
   }
 
 
-class TestIdentifyCompressionAxis(unittest.TestCase):
-  """Tests for the quantization-based axis inference."""
-
-  def test_per_tensor_quantization(self):
-    """Single scale means per-tensor compression."""
-    tensor = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
-    )
-    axis = propose_spec._identify_compression_axis(tensor)
-    self.assertIsNone(axis)
-
-  def test_per_channel_axis0(self):
-    """Multiple scales on axis 0."""
-    tensor = model_editor.Tensor(
-        shape=(4, 8),
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(
-            scales=[0.1, 0.2, 0.3, 0.4],
-            zero_points=[0, 0, 0, 0],
-            axis=0,
-        ),
-    )
-    axis = propose_spec._identify_compression_axis(tensor)
-    self.assertEqual(axis, 0)
-
-  def test_per_channel_axis1(self):
-    """Multiple scales on axis 1."""
-    tensor = model_editor.Tensor(
-        shape=(4, 8),
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(
-            scales=[0.1] * 8,
-            zero_points=[0] * 8,
-            axis=1,
-        ),
-    )
-    axis = propose_spec._identify_compression_axis(tensor)
-    self.assertEqual(axis, 1)
-
-  def test_no_quantization_returns_none(self):
-    """Missing quantization returns None for per-tensor compression."""
-    tensor = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-    )
-    axis = propose_spec._identify_compression_axis(tensor)
-    self.assertIsNone(axis)
-
-  def test_single_scale_with_axis_returns_none(self):
-    """Single scale with axis set still returns None (per-tensor compression).
-
-    This handles the edge case where quantized_dimension is set but shape[dim]=1,
-    resulting in only one scale. Use per-tensor compression with one value table.
-    """
-    tensor = model_editor.Tensor(
-        shape=(4, 4, 4, 1),  # shape[3] == 1
-        dtype=tflite.TensorType.INT8,
-        quantization=model_editor.Quantization(
-            scales=[0.5],  # Single scale
-            zero_points=[0],
-            axis=3,  # Axis is set
-        ),
-    )
-    axis = propose_spec._identify_compression_axis(tensor)
-    self.assertIsNone(axis)
-
-
 class TestProposal(unittest.TestCase):
 
   def setUp(self):
@@ -155,7 +91,7 @@ class TestProposal(unittest.TestCase):
     self.assertEqual(entries(text), {(0, 1): 2})
 
   def test_emits_per_tensor_mode(self):
-    """A tensor without per-channel quantization proposes per_tensor."""
+    """A tensor no channel axis encodes smaller proposes per_tensor."""
     text = propose_spec.propose(self.model)
     self.assertIn("per_tensor:", text)
     self.assertNotIn("per_channel:", text)
@@ -232,7 +168,7 @@ class TestConsumerGrouping(unittest.TestCase):
 class TestPerChannel(unittest.TestCase):
 
   def build(self) -> bytes:
-    """Build a model with one per-channel quantized constant.
+    """Build a model with one constant binned per channel.
 
     Channel 0 holds 2 unique values, channel 1 holds 3, so the bitwidth
     must cover the worst channel with one value table per channel.
@@ -256,10 +192,82 @@ class TestPerChannel(unittest.TestCase):
     self.assertIn("2 tables along axis 0", text)
 
   def test_emits_per_channel_mode(self):
-    """A per-channel quantized tensor proposes per_channel with its axis."""
+    """A tensor binned per channel proposes per_channel with its axis."""
     text = propose_spec.propose(self.build())
     self.assertIn("per_channel:", text)
     self.assertIn("axis: 0", text)
+
+
+class TestModeFromValues(unittest.TestCase):
+  """The mode follows the values, not the quantization."""
+
+  def values(self, axis: int) -> np.ndarray:
+    """Returns weights binned per channel along the given axis.
+
+    Each of the 70 channels draws from its own pair of values, so the
+    whole tensor holds 140 distinct values, more than a 7-bit index can
+    enumerate, while any one channel holds two.
+    """
+    rows = np.stack([
+        np.tile(np.array([2 * i, 2 * i + 1], dtype=np.float32), 4)
+        for i in range(70)
+    ])
+    return rows if axis == 0 else rows.T
+
+  def build(self, axis: int = 0, quantization=None) -> bytes:
+    model = model_editor.Model()
+    sg = model.add_subgraph()
+    data = self.values(axis)
+    sg.add_tensor(shape=data.shape,
+                  dtype=tflite.TensorType.FLOAT32,
+                  data=data,
+                  quantization=quantization,
+                  name="weights")
+    return bytes(model.build())
+
+  def test_one_table_cannot_encode_the_tensor(self):
+    """Read as one table, the tensor overflows the LUT index."""
+    self.assertFalse(propose_spec._encode(self.values(axis=0), None).fits)
+
+  def test_unquantized_proposes_per_channel(self):
+    """Binning is found with no quantization to point at it."""
+    text = propose_spec.propose(self.build())
+    self.assertEqual(entries(text), {(0, 0): 1})
+    self.assertIn("per_channel:", text)
+    self.assertIn("axis: 0", text)
+    self.assertIn("70 tables along axis 0", text)
+
+  def test_single_scale_does_not_force_one_table(self):
+    """Per-tensor quantization no longer decides the mode."""
+    quantization = model_editor.Quantization(scales=0.5, zero_points=0)
+    text = propose_spec.propose(self.build(quantization=quantization))
+    self.assertIn("per_channel:", text)
+    self.assertIn("axis: 0", text)
+
+  def test_finds_binning_on_the_last_axis(self):
+    """The last axis is tested as well as axis 0."""
+    text = propose_spec.propose(self.build(axis=1))
+    self.assertEqual(entries(text), {(0, 0): 1})
+    self.assertIn("axis: 1", text)
+
+  def test_reject_names_the_closest_layout(self):
+    """A tensor no layout encodes reports the closest one tried.
+
+    Every row and every column holds 129 distinct values, one more than
+    a 7-bit index can enumerate, so neither channel axis rescues it.
+    """
+    model = model_editor.Model()
+    sg = model.add_subgraph()
+    grid = np.arange(129).reshape(129, 1) + np.arange(129).reshape(1, 129)
+    sg.add_tensor(shape=(129, 129),
+                  dtype=tflite.TensorType.INT8,
+                  data=(grid % 256 - 128).astype(np.int8),
+                  name="dense")
+    text = propose_spec.propose(bytes(model.build()))
+    footer = [line for line in text.splitlines() if line.startswith("#  ")]
+    dense = [line for line in footer if '"dense"' in line]
+    self.assertEqual(len(dense), 1)
+    self.assertIn("129 unique values per channel along axis 0", dense[0])
 
 
 class TestSharedBuffer(unittest.TestCase):
