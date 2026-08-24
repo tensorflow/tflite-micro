@@ -48,15 +48,15 @@ else:
 
 USAGE = textwrap.dedent(f"""\
     Usage: {_COMMAND} \\
-        [--norequire_savings] [--output <spec.yaml>] <MODEL_PATH>
+        [--min_savings <bytes>] [--output <spec.yaml>] <MODEL_PATH>
 
     Propose a compression spec for a .tflite model. The proposal lists every
     constant tensor that LUT compression can encode, with the mode and
     index_bitwidth that encode it smallest, found by testing a per-tensor
     and a per-channel layout against the tensor's values. Review the entries
-    and prune them. By default, list only tensors that compression would
-    shrink; --norequire_savings lists every LUT-encodable constant. Output
-    goes to stdout unless --output is given.""") + _EPILOG
+    and prune them. List only tensors whose compression saves at least
+    --min_savings bytes; 0 lists every LUT-encodable constant. Output goes
+    to stdout unless --output is given.""") + _EPILOG
 
 # LUT compression packs indices in 1 to 7 bits, so a value table may hold at
 # most 2**7 entries.
@@ -65,6 +65,14 @@ _MAX_BITWIDTH = 7
 # Each compressed tensor gains an ancillary buffer holding a 16-byte decode
 # header followed by its value tables.
 _ANCILLARY_HEADER_BYTES = 16
+
+# Default floor on the bytes an entry must save to be worth proposing.
+# Compression also adds a DECODE operator, an ancillary tensor, and a
+# decoded output tensor, none of which the byte estimate counts. Measured
+# on a real model, that structure runs 120 to 300 bytes per entry,
+# depending on the length of the tensor names. The floor sits above the
+# range so a proposed entry pays for itself.
+_DEFAULT_MIN_SAVINGS = 512
 
 _TYPE_NAMES = {
     value: name
@@ -141,29 +149,31 @@ class Reject:
 
 def propose(model_bytes: bytes,
             model_name: str = "model",
-            require_savings: bool = True) -> str:
+            min_savings: int = _DEFAULT_MIN_SAVINGS) -> str:
   """Returns a commented YAML compression spec proposed from the model.
 
   Args:
     model_bytes: A .tflite flatbuffer.
     model_name: A name for the model, used only in the header comment.
-    require_savings: If true, list only tensors that compression would
-        shrink. If false, list every LUT-encodable constant.
+    min_savings: Bytes an entry must save to be listed. Zero lists every
+        LUT-encodable constant.
   """
   model = model_editor.read(model_bytes)
-  candidates, rejects = survey(model, require_savings=require_savings)
+  candidates, rejects = survey(model, min_savings=min_savings)
   return _render(candidates, rejects, model_name, model_size=len(model_bytes))
 
 
 def survey(
     model: model_editor.Model,
-    require_savings: bool = True) -> tuple[list[Candidate], list[Reject]]:
+    min_savings: int = _DEFAULT_MIN_SAVINGS
+) -> tuple[list[Candidate], list[Reject]]:
   """Walks the model and splits its constants into candidates and rejects.
 
   Args:
     model: The model to survey.
-    require_savings: If true, move candidates whose estimated compressed
-        size does not beat the original into the rejects.
+    min_savings: Bytes an entry must save to stay a candidate. Candidates
+        saving less move to the rejects. Zero disables the check, keeping
+        every LUT-encodable constant, including those compression grows.
 
   Returns:
     A (candidates, rejects) tuple, each a list in model order.
@@ -182,15 +192,14 @@ def survey(
       result = _analyze(subgraph, tensor, buffer_users)
       if result is None:
         continue
-      if isinstance(result, Candidate) and require_savings \
-          and result.savings <= 0:
+      if isinstance(result, Candidate) and min_savings > 0 \
+          and result.savings < min_savings:
         result = Reject(subgraph=result.subgraph,
                         tensor=result.tensor,
                         name=result.name,
                         type_name=result.type_name,
                         shape=result.shape,
-                        reason=f"no savings ({result.original_bytes:,} -> "
-                        f"{result.estimated_bytes:,} bytes)")
+                        reason=_shortfall(result, min_savings))
       if isinstance(result, Candidate):
         candidates.append(result)
       else:
@@ -255,6 +264,15 @@ def _encode(array: np.ndarray, axis: Optional[int]) -> _Encoding:
                    max_unique=max_unique,
                    bitwidth=bitwidth,
                    estimated_bytes=indices_bytes + ancillary_bytes)
+
+
+def _shortfall(candidate: Candidate, min_savings: int) -> str:
+  """Explains that a candidate does not save enough to be worth listing."""
+  if candidate.savings <= 0:
+    return (f"no savings ({candidate.original_bytes:,} -> "
+            f"{candidate.estimated_bytes:,} bytes)")
+  return (f"saves {candidate.savings:,} bytes, under the "
+          f"{min_savings:,} byte floor")
 
 
 def _overflow_reason(encoding: _Encoding) -> str:
@@ -480,10 +498,12 @@ def _change(original: int, estimated: int) -> str:
 FLAGS = absl.flags.FLAGS
 absl.flags.DEFINE_string("output", None,
                          "write the spec here instead of stdout")
-absl.flags.DEFINE_bool(
-    "require_savings", True,
-    "list only tensors that compression would shrink; --norequire_savings "
-    "lists every LUT-encodable constant")
+absl.flags.DEFINE_integer(
+    "min_savings",
+    _DEFAULT_MIN_SAVINGS,
+    "list only tensors whose compression saves at least this many bytes; "
+    "0 lists every LUT-encodable constant",
+    lower_bound=0)
 
 
 def main(argv):
@@ -498,7 +518,7 @@ def main(argv):
 
   text = propose(model_bytes,
                  model_name=os.path.basename(model_path),
-                 require_savings=FLAGS.require_savings)
+                 min_savings=FLAGS.min_savings)
 
   if FLAGS.output:
     with open(FLAGS.output, "w") as file:

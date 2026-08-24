@@ -31,8 +31,8 @@ def build_test_model() -> bytes:
       four values recur in every row and every column, so no channel
       axis encodes them smaller than one table does.
   Tensor 2: bias with 8 unique values in 8 elements, where the value
-      table outweighs the shrunken indices, so listed only when savings
-      are not required.
+      table outweighs the shrunken indices, so listed only when no
+      savings floor applies.
   Tensor 3: 200 unique values, unencodable by a 7-bit LUT index.
   Tensor 4: activation, no data, never listed.
   """
@@ -80,35 +80,46 @@ def entries(text: str) -> dict:
   }
 
 
+def propose(model: bytes, **kwargs) -> str:
+  """Proposes a spec, admitting any entry that shrinks the tensor.
+
+  The fixtures here hold a few dozen bytes each, well under the default
+  savings floor, so a test reads better stating the floor it wants than
+  inflating its model. TestMinSavings covers the floor itself.
+  """
+  kwargs.setdefault("min_savings", 1)
+  return propose_spec.propose(model, **kwargs)
+
+
 class TestProposal(unittest.TestCase):
 
   def setUp(self):
     self.model = build_test_model()
 
   def test_lists_shrinkable_constants(self):
-    """By default, list only constants that compression shrinks."""
-    text = propose_spec.propose(self.model)
+    """List only constants that compression shrinks."""
+    text = propose(self.model)
     self.assertEqual(entries(text), {(0, 1): 2})
 
   def test_emits_per_tensor_mode(self):
     """A tensor no channel axis encodes smaller proposes per_tensor."""
-    text = propose_spec.propose(self.model)
+    text = propose(self.model)
     self.assertIn("per_tensor:", text)
     self.assertNotIn("per_channel:", text)
 
-  def test_norequire_savings_lists_all_encodable(self):
-    """Without the savings filter, list every LUT-encodable constant."""
-    text = propose_spec.propose(self.model, require_savings=False)
+  def test_zero_floor_lists_all_encodable(self):
+    """With no floor, list every LUT-encodable constant."""
+    text = propose(self.model, min_savings=0)
     self.assertEqual(entries(text), {(0, 1): 2, (0, 2): 3})
 
   def test_unencodable_never_listed(self):
     """A tensor with too many unique values is never an entry."""
-    text = propose_spec.propose(self.model, require_savings=False)
+    text = propose(self.model, min_savings=0)
     self.assertNotIn((0, 3), entries(text))
 
   def test_footer_explains_rejects(self):
     """Constants left out appear in the footer with a reason."""
-    text = propose_spec.propose(self.model)
+    text = propose(self.model)
     footer = [line for line in text.splitlines() if line.startswith("#  ")]
     lots = [line for line in footer if '"lots"' in line]
     self.assertEqual(len(lots), 1)
@@ -119,20 +130,61 @@ class TestProposal(unittest.TestCase):
 
   def test_header_estimates_whole_model(self):
     """The header projects the size change of the whole model file."""
-    text = propose_spec.propose(self.model)
+    text = propose(self.model)
     self.assertIn(f"# whole model, {len(self.model):,} ->", text)
 
   def test_comments_identify_tensors(self):
     """Entry comments name the tensor and its consumers."""
-    text = propose_spec.propose(self.model)
+    text = propose(self.model)
     self.assertIn('"weights"', text)
     self.assertIn("input 1 of FULLY_CONNECTED (operator 0)", text)
 
   def test_activations_not_mentioned(self):
     """Tensors without data appear nowhere in the proposal."""
-    text = propose_spec.propose(self.model, require_savings=False)
+    text = propose(self.model, min_savings=0)
     self.assertNotIn("act_in", text)
     self.assertNotIn("act_out", text)
+
+
+class TestMinSavings(unittest.TestCase):
+  """The floor drops entries too small to earn a DECODE operator."""
+
+  def setUp(self):
+    self.model = build_test_model()
+    candidates, _ = propose_spec.survey(model_editor.read(self.model),
+                                        min_savings=0)
+    self.weights = next(c for c in candidates if c.name == '"weights"')
+
+  def test_entry_meeting_the_floor_is_listed(self):
+    text = propose(self.model, min_savings=self.weights.savings)
+    self.assertIn((0, 1), entries(text))
+
+  def test_entry_under_the_floor_is_dropped(self):
+    text = propose(self.model, min_savings=self.weights.savings + 1)
+    self.assertNotIn((0, 1), entries(text))
+
+  def test_dropped_entry_reports_its_shortfall(self):
+    """The footer separates a shortfall from a tensor that never shrinks."""
+    floor = self.weights.savings + 1
+    text = propose(self.model, min_savings=floor)
+    reasons = [
+        line for line in text.splitlines()
+        if line.startswith("#  ") and '"weights"' in line
+    ]
+    self.assertEqual(len(reasons), 1)
+    self.assertIn(f"saves {self.weights.savings:,} bytes", reasons[0])
+    self.assertIn(f"under the {floor:,} byte floor", reasons[0])
+    self.assertNotIn("no savings", reasons[0])
+
+  def test_default_floor_outweighs_a_tiny_entry(self):
+    """The default is set high enough to reject a few dozen bytes saved.
+
+    Compression adds an operator and two tensors that the byte estimate
+    does not count, so an entry saving less than that structure costs
+    grows the model.
+    """
+    self.assertGreater(propose_spec._DEFAULT_MIN_SAVINGS, self.weights.savings)
+    self.assertEqual(entries(propose_spec.propose(self.model)), {})
 
 
 class TestConsumerGrouping(unittest.TestCase):
@@ -157,11 +209,11 @@ class TestConsumerGrouping(unittest.TestCase):
     return bytes(model.build())
 
   def test_few_consumers_listed_individually(self):
-    text = propose_spec.propose(self.build(consumers=2))
+    text = propose(self.build(consumers=2))
     self.assertIn("input 1 of ADD (operators 0, 1)", text)
 
   def test_many_consumers_summarized(self):
-    text = propose_spec.propose(self.build(consumers=5))
+    text = propose(self.build(consumers=5))
     self.assertIn("input 1 of ADD (5 operators)", text)
 
 
@@ -187,13 +239,13 @@ class TestPerChannel(unittest.TestCase):
     return bytes(model.build())
 
   def test_bitwidth_covers_worst_channel(self):
-    text = propose_spec.propose(self.build())
+    text = propose(self.build())
     self.assertEqual(entries(text), {(0, 0): 2})
     self.assertIn("2 tables along axis 0", text)
 
   def test_emits_per_channel_mode(self):
     """A tensor binned per channel proposes per_channel with its axis."""
-    text = propose_spec.propose(self.build())
+    text = propose(self.build())
     self.assertIn("per_channel:", text)
     self.assertIn("axis: 0", text)
 
@@ -231,7 +283,7 @@ class TestModeFromValues(unittest.TestCase):
 
   def test_unquantized_proposes_per_channel(self):
     """Binning is found with no quantization to point at it."""
-    text = propose_spec.propose(self.build())
+    text = propose(self.build())
     self.assertEqual(entries(text), {(0, 0): 1})
     self.assertIn("per_channel:", text)
     self.assertIn("axis: 0", text)
@@ -240,13 +292,13 @@ class TestModeFromValues(unittest.TestCase):
   def test_single_scale_does_not_force_one_table(self):
     """Per-tensor quantization no longer decides the mode."""
     quantization = model_editor.Quantization(scales=0.5, zero_points=0)
-    text = propose_spec.propose(self.build(quantization=quantization))
+    text = propose(self.build(quantization=quantization))
     self.assertIn("per_channel:", text)
     self.assertIn("axis: 0", text)
 
   def test_finds_binning_on_the_last_axis(self):
     """The last axis is tested as well as axis 0."""
-    text = propose_spec.propose(self.build(axis=1))
+    text = propose(self.build(axis=1))
     self.assertEqual(entries(text), {(0, 0): 1})
     self.assertIn("axis: 1", text)
 
@@ -263,7 +315,7 @@ class TestModeFromValues(unittest.TestCase):
                   dtype=tflite.TensorType.INT8,
                   data=(grid % 256 - 128).astype(np.int8),
                   name="dense")
-    text = propose_spec.propose(bytes(model.build()))
+    text = propose(bytes(model.build()))
     footer = [line for line in text.splitlines() if line.startswith("#  ")]
     dense = [line for line in footer if '"dense"' in line]
     self.assertEqual(len(dense), 1)
@@ -291,7 +343,7 @@ class TestSharedBuffer(unittest.TestCase):
   def test_shared_buffer_listed_with_note(self):
     """Tensors sharing a buffer are listed, and each entry names its
     aliases, because the compressor accepts aliases only all together."""
-    text = propose_spec.propose(self.build())
+    text = propose(self.build())
     self.assertEqual(entries(text), {(0, 0): 1, (0, 1): 1})
     self.assertIn("shares a buffer with subgraph 0 tensor 1", text)
     self.assertIn("shares a buffer with subgraph 0 tensor 0", text)
@@ -349,7 +401,7 @@ class TestConstantInputs(unittest.TestCase):
     sg.add_operator(opcode=tflite.BuiltinOperator.PAD,
                     inputs=[values, paddings],
                     outputs=[padded_values])
-    cls.text = propose_spec.propose(bytes(model.build()))
+    cls.text = propose(bytes(model.build()))
     cls.entries = entries(cls.text)
 
   def test_required_constant_excluded_by_its_kernel(self):
@@ -392,7 +444,7 @@ class TestEmptyProposal(unittest.TestCase):
     model = model_editor.Model()
     sg = model.add_subgraph()
     sg.add_tensor(shape=(1, ), dtype=tflite.TensorType.FLOAT32, name="act")
-    text = propose_spec.propose(bytes(model.build()))
+    text = propose(bytes(model.build()))
     self.assertEqual(spec.parse_yaml(text), [])
 
 
