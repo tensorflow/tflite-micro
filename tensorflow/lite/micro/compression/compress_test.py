@@ -622,5 +622,57 @@ class TestPluginDispatch(unittest.TestCase):
                       lambda: compress._get_compressor(method))
 
 
+class TestConstantInputs(unittest.TestCase):
+  """compress() refuses a tensor its consumer must read in Prepare."""
+
+  def _build(self, opcode) -> bytes:
+    """Build one operator reading a compressible constant at input 1."""
+    const = model_editor.Tensor(shape=(4, 2),
+                                dtype=tflite.TensorType.INT32,
+                                data=np.array([[0, 0], [1, 1], [1, 1], [0, 0]],
+                                              dtype=np.int32),
+                                name="const")
+    act = model_editor.Tensor(shape=(1, 6, 6, 4),
+                              dtype=tflite.TensorType.FLOAT32,
+                              name="act")
+    out = model_editor.Tensor(shape=(1, 8, 8, 4),
+                              dtype=tflite.TensorType.FLOAT32,
+                              name="out")
+    model = model_editor.Model(subgraphs=[
+        model_editor.Subgraph(tensors=[const],
+                              operators=[
+                                  model_editor.Operator(opcode=opcode,
+                                                        inputs=[act, const],
+                                                        outputs=[out])
+                              ])
+    ])
+    return bytes(model.build())
+
+  _SPECS = [
+      spec.Tensor(subgraph=0,
+                  tensor=0,
+                  compression=[
+                      spec.LookUpTableCompression(index_bitwidth=1,
+                                                  mode=spec.PerTensor())
+                  ])
+  ]
+
+  def test_refuses_a_tensor_the_kernel_needs_constant(self):
+    """PAD reads its paddings in Prepare, so compressing it must fail."""
+    with self.assertRaises(compressor.CompressionError) as caught:
+      compress.compress(self._build(tflite.BuiltinOperator.PAD), self._SPECS)
+    message = str(caught.exception)
+    self.assertIn("must stay constant", message)
+    self.assertIn("PAD", message)
+
+  def test_allows_a_convolution_filter(self):
+    """A filter at the same input position stays compressible.
+
+    Refusing on behalf of the targets whose kernels read a filter in
+    Prepare would rule out the main use of the tool.
+    """
+    compress.compress(self._build(tflite.BuiltinOperator.CONV_2D), self._SPECS)
+
+
 if __name__ == "__main__":
   unittest.main()
