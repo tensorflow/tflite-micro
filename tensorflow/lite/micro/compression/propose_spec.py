@@ -26,7 +26,6 @@ import absl.app
 import absl.flags
 import numpy as np
 
-from tflite_micro.tensorflow.lite.micro.compression import compressor
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
@@ -51,12 +50,12 @@ USAGE = textwrap.dedent(f"""\
         [--norequire_savings] [--output <spec.yaml>] <MODEL_PATH>
 
     Propose a compression spec for a .tflite model. The proposal lists every
-    constant tensor that LUT compression can encode, with the minimum
-    index_bitwidth and the per-tensor or per-channel mode drawn from the
-    tensor's quantization, ready for a human to review and prune. By default,
-    list only tensors that compression would shrink; --norequire_savings
-    lists every LUT-encodable constant. Output goes to stdout unless
-    --output is given.""") + _EPILOG
+    constant tensor that LUT compression can encode, with the mode and
+    index_bitwidth that encode it smallest, found by testing a per-tensor
+    and a per-channel layout against the tensor's values. Review the entries
+    and prune them. By default, list only tensors that compression would
+    shrink; --norequire_savings lists every LUT-encodable constant. Output
+    goes to stdout unless --output is given.""") + _EPILOG
 
 # LUT compression packs indices in 1 to 7 bits, so a value table may hold at
 # most 2**7 entries.
@@ -198,41 +197,71 @@ def survey(
   return candidates, rejects
 
 
-def _identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
-  """Determines the compression axis to propose.
+@dataclass
+class _Encoding:
+  """One way to LUT-encode a tensor, and what it would cost.
 
-  The axis is drawn from the tensor's quantization parameters.
-  Unquantized and per-tensor-quantized tensors get per-tensor
-  compression.
-
-  Args:
-    tensor: The tensor to analyze.
-
-  Returns:
-    The axis along which to compress, or None to indicate one value table
-    for the entire tensor.
-
-  Raises:
-    CompressionError: If the axis cannot be determined from quantization.
+  Attributes:
+    axis: Compression axis, or None for one table over the whole tensor.
+    tables: Number of value tables.
+    max_unique: Number of distinct values in the largest table.
+    bitwidth: Minimum index_bitwidth able to enumerate that table.
+    estimated_bytes: Packed indices, value tables, and decode header.
   """
-  q = tensor.quantization
-  if q is None:
-    return None
 
-  # model_editor wraps quantization, access scales/axis from wrapper
-  scales = q.scales if isinstance(q.scales, list) else [q.scales]
-  quantization_channels = len(scales)
+  axis: Optional[int]
+  tables: int
+  max_unique: int
+  bitwidth: int
+  estimated_bytes: int
 
-  if quantization_channels == 1:
-    return None
+  @property
+  def fits(self) -> bool:
+    """True when a LUT index can enumerate the largest table."""
+    return self.max_unique <= 2**_MAX_BITWIDTH
 
-  if q.axis is not None and q.axis < len(tensor.shape):
-    if quantization_channels == tensor.shape[q.axis]:
-      return q.axis
 
-  raise compressor.CompressionError(
-      "Invalid or no quantization parameters from which to "
-      "infer the axis along which tensor should be compressed.")
+def _candidate_axes(shape: tuple[int, ...]) -> list[Optional[int]]:
+  """Returns the layouts worth testing, per-tensor first.
+
+  None asks for one value table covering the whole tensor. The kernels
+  decode a channel axis at axis 0 or the last axis only, so no other
+  axis can be proposed. Skip an axis whose slices hold a single element,
+  where every element would land in a value table and the indices would
+  be pure overhead.
+  """
+  axes: list[Optional[int]] = [None]
+  rank = len(shape)
+  size = int(np.prod(shape)) if rank else 1
+  for axis in (0, rank - 1):
+    if not 0 <= axis < rank or axis in axes:
+      continue
+    if size // shape[axis] < 2:
+      continue
+    axes.append(axis)
+  return axes
+
+
+def _encode(array: np.ndarray, axis: Optional[int]) -> _Encoding:
+  """Sizes the array as LUT-compressed along the given axis."""
+  tables, max_unique = _count_unique(array, axis)
+  bitwidth = (max_unique - 1).bit_length() or 1
+  indices_bytes = (array.size * bitwidth + 7) // 8
+  ancillary_bytes = (_ANCILLARY_HEADER_BYTES +
+                     tables * max_unique * array.itemsize)
+  return _Encoding(axis=axis,
+                   tables=tables,
+                   max_unique=max_unique,
+                   bitwidth=bitwidth,
+                   estimated_bytes=indices_bytes + ancillary_bytes)
+
+
+def _overflow_reason(encoding: _Encoding) -> str:
+  """Explains that the closest layout still overflows a LUT index."""
+  where = "" if encoding.axis is None else \
+      f" per channel along axis {encoding.axis}"
+  return (f"{encoding.max_unique:,} unique values{where} exceed "
+          f"a {_MAX_BITWIDTH}-bit LUT index")
 
 
 def _analyze(
@@ -279,20 +308,20 @@ def _analyze(
   except ValueError as e:
     return reject(str(e))
 
-  try:
-    axis = _identify_compression_axis(tensor)
-  except compressor.CompressionError as e:
-    return reject(str(e))
+  # Test each layout against the values instead of reading the tensor's
+  # quantization, which says nothing about how the weights were binned
+  # and nothing at all on an unquantized tensor. Weights binned per
+  # channel carry few distinct values within a channel and many across
+  # the whole tensor, so reading them as one table overflows the LUT
+  # index while the channel axis encodes them in a few bits.
+  encodings = [_encode(array, axis) for axis in _candidate_axes(array.shape)]
+  usable = [e for e in encodings if e.fits]
+  if not usable:
+    return reject(_overflow_reason(min(encodings, key=lambda e: e.max_unique)))
 
-  tables, max_unique = _count_unique(array, axis)
-  if max_unique > 2**_MAX_BITWIDTH:
-    return reject(f"{max_unique:,} unique values exceed "
-                  f"a {_MAX_BITWIDTH}-bit LUT index")
-
-  bitwidth = (max_unique - 1).bit_length() or 1
-  indices_bytes = (array.size * bitwidth + 7) // 8
-  ancillary_bytes = (_ANCILLARY_HEADER_BYTES +
-                     tables * max_unique * array.itemsize)
+  # _candidate_axes lists the whole-tensor layout first, so a tie goes to
+  # the simpler proposal.
+  best = min(usable, key=lambda e: e.estimated_bytes)
 
   return Candidate(subgraph=subgraph.index,
                    tensor=tensor.index,
@@ -300,12 +329,12 @@ def _analyze(
                    type_name=_TYPE_NAMES.get(tensor.dtype, str(tensor.dtype)),
                    shape=shape,
                    elements=array.size,
-                   bitwidth=bitwidth,
-                   axis=axis,
-                   tables=tables,
-                   max_unique=max_unique,
+                   bitwidth=best.bitwidth,
+                   axis=best.axis,
+                   tables=best.tables,
+                   max_unique=best.max_unique,
                    original_bytes=len(tensor.buffer.data),
-                   estimated_bytes=indices_bytes + ancillary_bytes,
+                   estimated_bytes=best.estimated_bytes,
                    consumers=_describe_consumers(subgraph, tensor),
                    sharers=sharers)
 
