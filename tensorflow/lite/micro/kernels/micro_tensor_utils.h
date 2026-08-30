@@ -28,14 +28,14 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
 
 #if defined(_MSC_VER)
 #define __restrict__ __restrict
 #endif
 
 namespace tflite {
-
+namespace micro {
 // Not all backends support CpuBackendContext usage, so forward declare to avoid
 // pulling in its implementation.
 // TODO(b/230666277): consider removing this since micro does not utilize it
@@ -51,6 +51,7 @@ void PortableApplyActivationToVector(const float* vector, int v_size,
                                      TfLiteFusedActivation activation,
                                      float* result);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_MICRO_TENSOR_UTILS_H_

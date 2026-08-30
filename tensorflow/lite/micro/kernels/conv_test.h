@@ -27,6 +27,12 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 
+using micro::kConvBiasTensor;
+using micro::kConvInputTensor;
+using micro::kConvOutputTensor;
+using micro::kConvQuantizedDimension;
+using micro::kConvWeightsTensor;
+
 constexpr int kConvMaxTensors = 4;
 constexpr int kConvMaxInputTensors = 3;
 

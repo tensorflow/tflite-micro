@@ -25,11 +25,12 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
@@ -245,7 +246,7 @@ TfLiteTensor CreateTensor(const T* data, TfLiteIntArray* dims,
 
   if (type == kTfLiteInt4) {
     result.type = kTfLiteInt4;
-    PackInt4ValuesDenselyInPlace(tflite::GetTensorData<uint8_t>(&result),
+    PackInt4ValuesDenselyInPlace(tflite::micro::GetTensorData<uint8_t>(&result),
                                  ElementCount(*dims));
     result.bytes = ((ElementCount(*dims) + 1) / 2);
   } else {

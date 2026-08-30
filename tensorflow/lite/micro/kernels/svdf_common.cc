@@ -17,18 +17,17 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
+namespace micro {
 /**
  * This version of SVDF is specific to TFLite Micro. It contains the following
  * differences between the TFLite version:
@@ -513,5 +512,14 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(bias);
   return kTfLiteOk;
 }
+
+}  // namespace micro
+
+const int kSvdfInputTensor = 0;
+const int kSvdfWeightsFeatureTensor = 1;
+const int kSvdfWeightsTimeTensor = 2;
+const int kSvdfBiasTensor = 3;
+const int kSvdfInputActivationStateTensor = 4;
+const int kSvdfOutputTensor = 0;
 
 }  // namespace tflite

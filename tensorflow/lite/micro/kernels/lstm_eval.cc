@@ -16,18 +16,18 @@ limitations under the License.
 
 #include <limits>
 
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/logistic.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/mul.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/tanh.h"
-#include "tensorflow/lite/kernels/internal/reference/logistic.h"
-#include "tensorflow/lite/kernels/internal/reference/mul.h"
-#include "tensorflow/lite/kernels/internal/reference/tanh.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/tanh.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/logistic.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/mul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/tanh.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
-
+namespace micro {
 LstmTensors::LstmTensors(TfLiteContext* context, TfLiteNode* node) {
   micro_context_ = GetMicroContext(context);
   // 24 internal tensors. see lstm_shared.h for tensor names
@@ -192,7 +192,7 @@ void FullyConnected(const FullyConnectedParams& params,
                     const RuntimeShape& filter_shape, const int8_t* filter_data,
                     const RuntimeShape& bias_shape, const int32_t* bias_data,
                     const RuntimeShape& output_shape, int16_t* output_data) {
-  return tflite::reference_integer_ops::FullyConnected(
+  return tflite::micro::reference_integer_ops::FullyConnected(
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
@@ -202,7 +202,7 @@ void FullyConnected(const FullyConnectedParams& params,
                     const RuntimeShape& filter_shape, const int8_t* filter_data,
                     const RuntimeShape& bias_shape, const int64_t* bias_data,
                     const RuntimeShape& output_shape, int16_t* output_data) {
-  return tflite::reference_integer_ops::FullyConnected(
+  return tflite::micro::reference_integer_ops::FullyConnected(
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
@@ -212,7 +212,7 @@ void FullyConnected(const FullyConnectedParams& params,
                     const RuntimeShape& filter_shape, const float* filter_data,
                     const RuntimeShape& bias_shape, const float* bias_data,
                     const RuntimeShape& output_shape, float* output_data) {
-  return tflite::reference_ops::FullyConnected(
+  return tflite::micro::reference_ops::FullyConnected(
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
@@ -292,4 +292,5 @@ RuntimeShape LstmStepManager::StateShape() const {
 }
 
 }  // namespace lstm_internal
+}  // namespace micro
 }  // namespace tflite

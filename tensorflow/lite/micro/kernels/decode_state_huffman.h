@@ -23,7 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 
 namespace tflite {
-
+namespace micro {
 class DecodeStateHuffman : public DecodeState {
  public:
   DecodeStateHuffman() = delete;
@@ -150,6 +150,9 @@ class DecodeStateHuffman : public DecodeState {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+}  // namespace micro
+
+using micro::DecodeStateHuffman;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_

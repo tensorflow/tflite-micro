@@ -15,12 +15,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/logical.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/binary_function.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/binary_function.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 TfLiteStatus LogicalOrEval(TfLiteContext* context, TfLiteNode* node) {
@@ -41,4 +42,5 @@ TFLMRegistration Register_LOGICAL_AND() {
   return tflite::micro::RegisterOp(nullptr, nullptr, LogicalAndEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

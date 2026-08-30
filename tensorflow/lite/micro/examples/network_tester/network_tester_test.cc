@@ -73,7 +73,8 @@ inline void print_output_data(TfLiteTensor* output) {
 template <typename T>
 void check_output_elem(TfLiteTensor* output, const T* expected_output,
                        const int index) {
-  EXPECT_EQ(tflite::GetTensorData<T>(output)[index], expected_output[index]);
+  EXPECT_EQ(tflite::micro::GetTensorData<T>(output)[index],
+            expected_output[index]);
 }
 
 TEST(NetworkTesterTest, TestInvoke) {

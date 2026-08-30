@@ -12,24 +12,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
 
 #include "mli_api.h"  // NOLINT
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/pooling.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_function_specializations.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_slicers.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -295,7 +294,7 @@ void MaxEvalFloat(TfLiteContext* context, TfLiteNode* node,
                   TfLitePoolParams* params, const OpData& data,
                   const TfLiteEvalTensor* input, TfLiteEvalTensor* output) {
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
-  tflite::PoolParams op_params;
+  tflite::micro::PoolParams op_params;
   op_params.stride_height = params->stride_height;
   op_params.stride_width = params->stride_width;
   op_params.filter_height = params->filter_height;
@@ -321,7 +320,7 @@ void MaxEvalQuantized(TfLiteContext* context, TfLiteNode* node,
                       const TfLiteEvalTensor* input, TfLiteEvalTensor* output) {
 #if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
   TFLITE_DCHECK(input->type == kTfLiteInt8);
-  tflite::PoolParams op_params;
+  tflite::micro::PoolParams op_params;
   op_params.stride_height = params->stride_height;
   op_params.stride_width = params->stride_width;
   op_params.filter_height = params->filter_height;
@@ -416,4 +415,5 @@ TFLMRegistration Register_MAX_POOL_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, MaxEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

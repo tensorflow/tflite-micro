@@ -16,15 +16,14 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/pooling.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pooling.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 TfLiteStatus AverageEval(TfLiteContext* context, TfLiteNode* node) {
@@ -162,4 +161,5 @@ TFLMRegistration Register_AVERAGE_POOL_2D_INT16() {
 
 TFLMRegistration Register_MAX_POOL_2D_INT16() { return Register_MAX_POOL_2D(); }
 
+}  // namespace micro
 }  // namespace tflite

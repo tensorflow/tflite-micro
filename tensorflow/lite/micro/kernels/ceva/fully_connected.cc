@@ -17,13 +17,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -38,6 +37,7 @@ extern int32_t CEVA_TFLM_KERNELS_SCRATCH_SIZE_VAL;
 #endif  // CEVA platform
 
 namespace tflite {
+namespace micro {
 namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
@@ -77,7 +77,8 @@ __attribute__((optnone)) TfLiteStatus EvalQuantizedInt8CEVA(
     TfLiteContext* context, TfLiteNode* node, const OpDataFullyConnected& data,
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
     const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
-  tflite::FullyConnectedParams op_params = FullyConnectedParamsQuantized(data);
+  tflite::micro::FullyConnectedParams op_params =
+      FullyConnectedParamsQuantized(data);
 
   int input_shape_dimensions_count =
       tflite::micro::GetTensorShape(input).DimensionsCount();
@@ -139,7 +140,7 @@ TfLiteStatus EvalFloatCEVA(TfLiteContext* context, TfLiteNode* node,
                            const TfLiteEvalTensor* bias,
                            TfLiteEvalTensor* output) {
   // float output_activation_min, output_activation_max;
-  tflite::FullyConnectedParams op_params;
+  tflite::micro::FullyConnectedParams op_params;
   CalculateActivationRange(activation, &op_params.float_activation_min,
                            &op_params.float_activation_max);
 
@@ -247,4 +248,5 @@ TFLMRegistration Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

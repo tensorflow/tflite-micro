@@ -109,9 +109,9 @@ tflm_cc_library(
     ],
     deps = [
         ":simple_memory_allocator",
-        "//tensorflow/lite/kernels/internal:compatibility",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )
 

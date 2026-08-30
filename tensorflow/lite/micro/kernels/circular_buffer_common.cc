@@ -15,17 +15,17 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/circular_buffer.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-
+namespace micro {
 // The CircularBuffer op has one input and one output tensor.
 const int kCircularBufferInputTensor = 0;
 const int kCircularBufferOutputTensor = 0;
@@ -91,4 +91,5 @@ TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -49,16 +49,15 @@ tflm_cc_library(
         "//signal/src:pcan_argc_fixed",
         "//signal/src:rfft",
         "//signal/src:window",
-        "//tensorflow/lite:type_to_tflitetype",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels:kernel_util",
-        "//tensorflow/lite/kernels/internal:tensor",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:portable_type_to_tflitetype",
         "//tensorflow/lite/micro/kernels:kernel_util",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
     ],
 )
 

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/transpose.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/transpose.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
@@ -55,8 +55,8 @@ void RunTestPermutation(int num_dims, const int32_t* shape,
     params.perm[i] = perms[i];
   }
 
-  reference_ops::Transpose<T>(params, input_shape, input, output_shape,
-                              input_transposed);
+  micro::reference_ops::Transpose<T>(params, input_shape, input, output_shape,
+                                     input_transposed);
 }
 
 template <typename T>
@@ -84,7 +84,7 @@ template <typename T>
 TfLiteStatus ValidateTranspose(TfLiteTensor* tensors, int tensors_size,
                                const T* expected_output_data, T* output_data,
                                int output_length,
-                               tflite::TransposeParams* params,
+                               tflite::micro::TransposeParams* params,
                                float tolerance = 1e-5) {
   TfLiteStatus status = InvokeTranspose(tensors, tensors_size, output_data,
                                         output_length, params);
@@ -144,7 +144,7 @@ TEST(TransposeTest, 1D) {
   int8_t output_data[3];
   const int8_t expected_output_data[] = {0, 1, 2};
 
-  tflite::TransposeParams params = {1, {0}};
+  tflite::micro::TransposeParams params = {1, {0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -158,7 +158,7 @@ TEST(TransposeTest, 1DInt16) {
   int16_t output_data[3];
   const int16_t expected_output_data[] = {0, 1, 2};
 
-  tflite::TransposeParams params = {1, {0}};
+  tflite::micro::TransposeParams params = {1, {0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -172,7 +172,7 @@ TEST(TransposeTest, 2DPerm1) {
   int8_t output_data[6];
   const int8_t expected_output_data[] = {0, 2, 4, 1, 3, 5};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -186,7 +186,7 @@ TEST(TransposeTest, 2DPerm1Int16) {
   int16_t output_data[6];
   const int16_t expected_output_data[] = {0, 2, 4, 1, 3, 5};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -202,7 +202,7 @@ TEST(TransposeTest, 2D4x4KernelLeftOverRightSide) {
                                          2, 8,  14, 20, 3, 9,  15, 21,
                                          4, 10, 16, 22, 5, 11, 17, 23};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -218,7 +218,7 @@ TEST(TransposeTest, 2D4x4KernelLeftOverRightSideInt16) {
                                           2, 8,  14, 20, 3, 9,  15, 21,
                                           4, 10, 16, 22, 5, 11, 17, 23};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -234,7 +234,7 @@ TEST(TransposeTest, 2D4x4KernelLeftOverBottomSide) {
                                          9,  13, 17, 21, 2,  6,  10, 14,
                                          18, 22, 3,  7,  11, 15, 19, 23};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -250,7 +250,7 @@ TEST(TransposeTest, 2D4x4KernelLeftOverBottomSideInt16) {
                                           9,  13, 17, 21, 2,  6,  10, 14,
                                           18, 22, 3,  7,  11, 15, 19, 23};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -266,7 +266,7 @@ TEST(TransposeTest, 3D) {
                                          9,  13, 17, 21, 2,  6,  10, 14,
                                          18, 22, 3,  7,  11, 15, 19, 23};
 
-  tflite::TransposeParams params = {3, {2, 0, 1}};
+  tflite::micro::TransposeParams params = {3, {2, 0, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -282,7 +282,7 @@ TEST(TransposeTest, 3DInt16) {
                                           9,  13, 17, 21, 2,  6,  10, 14,
                                           18, 22, 3,  7,  11, 15, 19, 23};
 
-  tflite::TransposeParams params = {3, {2, 0, 1}};
+  tflite::micro::TransposeParams params = {3, {2, 0, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -296,7 +296,7 @@ TEST(TransposeTest, 1DNotShrinked) {
   float output_data[1];
   const float expected_output_data[] = {0};
 
-  tflite::TransposeParams params = {1, {0}};
+  tflite::micro::TransposeParams params = {1, {0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -310,7 +310,7 @@ TEST(TransposeTest, 2DShrinkedOneTime) {
   float output_data[2];
   const float expected_output_data[] = {0, 1};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -324,7 +324,7 @@ TEST(TransposeTest, 2DShrinkedTwoTimes) {
   float output_data[1];
   const float expected_output_data[] = {0};
 
-  tflite::TransposeParams params = {2, {1, 0}};
+  tflite::micro::TransposeParams params = {2, {1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -338,7 +338,7 @@ TEST(TransposeTest, 3DShrinkedOneTime) {
   float output_data[6];
   const float expected_output_data[] = {0, 1, 2, 3, 4, 5};
 
-  tflite::TransposeParams params = {3, {0, 2, 1}};
+  tflite::micro::TransposeParams params = {3, {0, 2, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -352,7 +352,7 @@ TEST(TransposeTest, 3DShrinkedTwoTimes) {
   float output_data[3];
   const float expected_output_data[] = {0, 1, 2};
 
-  tflite::TransposeParams params = {3, {1, 2, 0}};
+  tflite::micro::TransposeParams params = {3, {1, 2, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -366,7 +366,7 @@ TEST(TransposeTest, 3DShrinkedAll) {
   float output_data[1];
   const float expected_output_data[] = {0};
 
-  tflite::TransposeParams params = {3, {1, 2, 0}};
+  tflite::micro::TransposeParams params = {3, {1, 2, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -380,7 +380,7 @@ TEST(TransposeTest, 4DShrinkedOneTimes) {
   float output_data[12];
   const float expected_output_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
-  tflite::TransposeParams params = {4, {3, 0, 1, 2}};
+  tflite::micro::TransposeParams params = {4, {3, 0, 1, 2}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -394,7 +394,7 @@ TEST(TransposeTest, 4DShrinkedTwoTimes) {
   float output_data[6];
   const float expected_output_data[] = {0, 1, 2, 3, 4, 5};
 
-  tflite::TransposeParams params = {4, {0, 3, 1, 2}};
+  tflite::micro::TransposeParams params = {4, {0, 3, 1, 2}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -408,7 +408,7 @@ TEST(TransposeTest, 4DShrinkedThreeTimes) {
   float output_data[2];
   const float expected_output_data[] = {0, 1};
 
-  tflite::TransposeParams params = {4, {3, 2, 1, 0}};
+  tflite::micro::TransposeParams params = {4, {3, 2, 1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -422,7 +422,7 @@ TEST(TransposeTest, 4DShrinkedFourTimes) {
   float output_data[1];
   const float expected_output_data[] = {0};
 
-  tflite::TransposeParams params = {4, {2, 3, 1, 0}};
+  tflite::micro::TransposeParams params = {4, {2, 3, 1, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -436,7 +436,7 @@ TEST(TransposeTest, 3DFlatten) {
   float output_data[12];
   const float expected_output_data[] = {0, 3, 1, 4, 2, 5, 6, 9, 7, 10, 8, 11};
 
-  tflite::TransposeParams params = {3, {0, 2, 1}};
+  tflite::micro::TransposeParams params = {3, {0, 2, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -451,7 +451,7 @@ TEST(TransposeTest, 4DFlatten) {
   const float expected_output_data[] = {0, 2,  1, 3,  4,  6,  5,  7,
                                         8, 10, 9, 11, 12, 14, 13, 15};
 
-  tflite::TransposeParams params = {4, {0, 1, 3, 2}};
+  tflite::micro::TransposeParams params = {4, {0, 1, 3, 2}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -466,7 +466,7 @@ TEST(TransposeTest, 4DFlattenTwo) {
   const float expected_output_data[] = {0, 4,  1, 5,  2,  6,  3,  7,
                                         8, 12, 9, 13, 10, 14, 11, 15};
 
-  tflite::TransposeParams params = {4, {0, 2, 3, 1}};
+  tflite::micro::TransposeParams params = {4, {0, 2, 3, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -484,7 +484,7 @@ TEST(TransposeTest, 3DDividedIntoTwo2DsOne) {
 
   float output_data[24];
 
-  tflite::TransposeParams params = {3, {1, 2, 0}};
+  tflite::micro::TransposeParams params = {3, {1, 2, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -502,7 +502,7 @@ TEST(TransposeTest, 3DDividedIntoTwo2DsTwo) {
 
   float output_data[24];
 
-  tflite::TransposeParams params = {3, {2, 0, 1}};
+  tflite::micro::TransposeParams params = {3, {2, 0, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -520,7 +520,7 @@ TEST(TransposeTest, 4DDividedIntoTwo2DsOne) {
 
   float output_data[48];
 
-  tflite::TransposeParams params = {4, {1, 2, 3, 0}};
+  tflite::micro::TransposeParams params = {4, {1, 2, 3, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -537,7 +537,7 @@ TEST(TransposeTest, 4DDividedIntoTwo2DsTwo) {
 
   float output_data[48];
 
-  tflite::TransposeParams params = {4, {2, 3, 0, 1}};
+  tflite::micro::TransposeParams params = {4, {2, 3, 0, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -555,7 +555,7 @@ TEST(TransposeTest, 4DDividedIntoTwo2DsThree) {
 
   float output_data[48];
 
-  tflite::TransposeParams params = {4, {3, 0, 1, 2}};
+  tflite::micro::TransposeParams params = {4, {3, 0, 1, 2}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -573,7 +573,7 @@ TEST(TransposeTest, 5DDividedIntoTwo2DsOne) {
 
   float output_data[48];
 
-  tflite::TransposeParams params = {5, {1, 4, 2, 3, 0}};
+  tflite::micro::TransposeParams params = {5, {1, 4, 2, 3, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -591,7 +591,7 @@ TEST(TransposeTest, 5DDividedIntoTwo2DsTwo) {
 
   float output_data[48];
 
-  tflite::TransposeParams params = {5, {2, 3, 0, 4, 1}};
+  tflite::micro::TransposeParams params = {5, {2, 3, 0, 4, 1}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -609,7 +609,7 @@ TEST(TransposeTest, 5DDividedIntoTwo2DsThree) {
 
   float output_data[48];
 
-  tflite::TransposeParams params = {5, {3, 0, 4, 1, 2}};
+  tflite::micro::TransposeParams params = {5, {3, 0, 4, 1, 2}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -623,7 +623,7 @@ TEST(TransposeTest, SimpleTestNoReorder) {
   float output_data[6];
   const float expected_output_data[] = {0, 1, 2, 3, 4, 5};
 
-  tflite::TransposeParams params = {4, {0, 1, 2, 3}};
+  tflite::micro::TransposeParams params = {4, {0, 1, 2, 3}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -637,7 +637,7 @@ TEST(TransposeTest, SimpleTestWithReorder) {
   float output_data[6];
   const float expected_output_data[] = {0, 3, 1, 4, 2, 5};
 
-  tflite::TransposeParams params = {4, {2, 1, 3, 0}};
+  tflite::micro::TransposeParams params = {4, {2, 1, 3, 0}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -659,7 +659,7 @@ TEST(TransposeTest, ComplexTestWithReorder) {
       15, 16, 17, 18, 19, 35, 36, 37, 38, 39, 55,  56,  57,  58,  59,
       75, 76, 77, 78, 79, 95, 96, 97, 98, 99, 115, 116, 117, 118, 119};
 
-  tflite::TransposeParams params = {4, {2, 0, 1, 3}};
+  tflite::micro::TransposeParams params = {4, {2, 0, 1, 3}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
@@ -681,7 +681,7 @@ TEST(TransposeTest, Complex5DTestWithReorder) {
       70, 75, 71, 76, 72, 77,  73,  78,  74,  79,  90,  95,  91,  96,  92,
       97, 93, 98, 94, 99, 110, 115, 111, 116, 112, 117, 113, 118, 114, 119};
 
-  tflite::TransposeParams params = {5, {2, 0, 1, 4, 3}};
+  tflite::micro::TransposeParams params = {5, {2, 0, 1, 4, 3}};
 
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);

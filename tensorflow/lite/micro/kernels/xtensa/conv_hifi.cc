@@ -19,17 +19,16 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_conv.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   XtensaConvOpData* data = static_cast<XtensaConvOpData*>(node->user_data);
   const auto params = static_cast<const TfLiteConvParams*>(node->builtin_data);
@@ -299,7 +298,7 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
     int8_t* unpacked_filter_data =
         static_cast<int8_t*>(context->GetScratchBuffer(
             context, data.reference_op_data.filter_buffer_index));
-    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+    tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
@@ -377,5 +376,6 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
