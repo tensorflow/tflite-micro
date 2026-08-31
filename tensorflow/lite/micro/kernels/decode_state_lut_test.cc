@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/decode_state_lut.h"
+
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -265,19 +267,60 @@ void TestDataSetup(TestingInfo<T>* info, TestingData<T>* data) {
   info->decode_common_metadata = &data->decode_common_metadata;
 }
 
+uint8_t ComputeAxis(bool use_alt_axis, bool quantized,
+                    const TfLiteIntArray& dims) {
+  const uint8_t axis = use_alt_axis ? dims.size - 1 : 0;
+  const int channel_count = dims.data[axis];
+  if (quantized || channel_count > 1) {
+    return axis << tflite::DecodeStateLut::kDcmParamsAxisMaskShift;
+  }
+
+  return tflite::DecodeStateLut::kDcmParamsAxisMask;
+}
+
 template <typename T>
 void TestDecompression(TestingInfo<T>* info) {
   GenerateData(*info);
 
+  const int first_dim = info->use_alt_axis
+                            ? info->total_elements / info->channel_count
+                            : info->channel_count;
+  const int last_dim = info->use_alt_axis
+                           ? info->channel_count
+                           : info->total_elements / info->channel_count;
+  const int output_dims_array[] = {2, first_dim, last_dim};
+  const TfLiteIntArray* const output_dims =
+      tflite::testing::IntArrayFromInts(output_dims_array);
+  // The actual zero-point and scale data are never used,
+  // so only supply the sizes.
+  const TfLiteIntArray kOutputZeroPoints = {
+      std::is_same<T, bool>::value || std::is_same<T, float>::value
+          ? 0
+          : static_cast<int>(info->channel_count)};
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints.size};
+  const TensorOutDatum tod = {
+      info->output,
+      *output_dims,
+      typeToTfLiteType<T>(),
+      kOutputScales,
+      kOutputZeroPoints,
+      info->use_alt_axis ? output_dims->size - 1 : 0,
+      {},
+  };
+  const std::initializer_list<const TensorOutDatum*> outputs = {&tod};
+
   const size_t stride = info->total_value_table_elements / info->channel_count;
+  const uint8_t axis_param = ComputeAxis(
+      info->use_alt_axis, kOutputZeroPoints.size != 0, *output_dims);
+  const uint8_t lut_params = axis_param | static_cast<uint8_t>(info->bit_width);
   *info->decode_common_metadata = {
-      tflite::DecodeState::kDcmTypeLUT,       // type: LUT
-      1,                                      // DCM version: 1
-      0,                                      // reserved
-      0,                                      // reserved
-      1,                                      // LUT version: 1
-      static_cast<uint8_t>(info->bit_width),  // Parameters: bit-width
-      static_cast<uint8_t>(stride),           // value table channel stride
+      tflite::DecodeState::kDcmTypeLUT,  // type: LUT
+      1,                                 // DCM version: 1
+      0,                                 // reserved
+      0,                                 // reserved
+      1,                                 // LUT version: 1
+      lut_params,                        // Parameters: axis, bit-width
+      static_cast<uint8_t>(stride),      // value table channel stride
   };
 
   const int encoded_dims_array[] = {
@@ -303,31 +346,6 @@ void TestDecompression(TestingInfo<T>* info) {
   };
   const std::initializer_list<const TensorInDatum*> ancillaries = {
       &tid_ancillary};
-
-  const int first_dim = info->use_alt_axis
-                            ? info->total_elements / info->channel_count
-                            : info->channel_count;
-  const int last_dim = info->use_alt_axis
-                           ? info->channel_count
-                           : info->total_elements / info->channel_count;
-  const int output_dims_array[] = {2, first_dim, last_dim};
-  const TfLiteIntArray* const output_dims =
-      tflite::testing::IntArrayFromInts(output_dims_array);
-  // The actual zero-point and scale data are never used,
-  // so only supply the sizes.
-  const TfLiteIntArray kOutputZeroPoints = {
-      static_cast<int>(info->channel_count)};
-  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints.size};
-  const TensorOutDatum tod = {
-      info->output,
-      *output_dims,
-      typeToTfLiteType<T>(),
-      kOutputScales,
-      kOutputZeroPoints,
-      info->use_alt_axis ? kOutputScales.size - 1 : 0,
-      {},
-  };
-  const std::initializer_list<const TensorOutDatum*> outputs = {&tod};
 
   const std::initializer_list<const void*> expected = {info->goldens};
 

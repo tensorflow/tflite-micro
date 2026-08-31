@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/decode_state_prune.h"
+
 #include <array>
 #include <cstdint>
 #include <initializer_list>
@@ -86,12 +88,44 @@ constexpr int8_t kAncillaryDataPrune5[] = {
     26, 23, 24, 25, 26   // chan 0
 };
 
-constexpr uint8_t kDcmPrune[tflite::DecodeState::kDcmSizeInBytes] = {
-    tflite::DecodeState::kDcmTypePrune,  // type: Prune
-    1,                                   // DCM version: 1
-    0,                                   // reserved
-    0,                                   // reserved
-    1,                                   // Prune version: 1
+constexpr uint8_t kDcmPruneAxis0[tflite::DecodeState::kDcmSizeInBytes] = {
+    tflite::DecodeState::kDcmTypePrune,                      // type: Prune
+    1,                                                       // DCM version: 1
+    0,                                                       // reserved
+    0,                                                       // reserved
+    1,                                                       // Prune version: 1
+    0 << tflite::DecodeStatePrune::kDcmParamsAxisMaskShift,  // prune params:
+                                                             // axis
+};
+
+constexpr uint8_t kDcmPruneAxis3[tflite::DecodeState::kDcmSizeInBytes] = {
+    tflite::DecodeState::kDcmTypePrune,                      // type: Prune
+    1,                                                       // DCM version: 1
+    0,                                                       // reserved
+    0,                                                       // reserved
+    1,                                                       // Prune version: 1
+    3 << tflite::DecodeStatePrune::kDcmParamsAxisMaskShift,  // prune params:
+                                                             // axis
+};
+
+constexpr uint8_t kDcmPruneNoAxis[tflite::DecodeState::kDcmSizeInBytes] = {
+    tflite::DecodeState::kDcmTypePrune,            // type: Prune
+    1,                                             // DCM version: 1
+    0,                                             // reserved
+    0,                                             // reserved
+    1,                                             // Prune version: 1
+    tflite::DecodeStatePrune::kDcmParamsAxisMask,  // prune params: axis
+};
+
+constexpr uint8_t
+    kDcmPruneUnsupportedAxis[tflite::DecodeState::kDcmSizeInBytes] = {
+        tflite::DecodeState::kDcmTypePrune,  // type: Prune
+        1,                                   // DCM version: 1
+        0,                                   // reserved
+        0,                                   // reserved
+        1,                                   // Prune version: 1
+        1 << tflite::DecodeStatePrune::kDcmParamsAxisMaskShift,  // prune
+                                                                 // params: axis
 };
 
 // Align the tensor data the same as a Buffer in the TfLite schema.
@@ -193,11 +227,11 @@ using tflite::testing::AncillaryData;
 using tflite::testing::TensorInDatum;
 using tflite::testing::TensorOutDatum;
 
-TEST(DecodeStatePruneTest, DecodePruneFloat) {
+TEST(DecodeStatePruneTest, DecodePruneFloatAxis0) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) float output_data[std::size(kExpectPrune2)] = {};
   alignas(16) const AncillaryData<float, std::size(kAncillaryDataPrune2)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune2}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune2}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -244,11 +278,114 @@ TEST(DecodeStatePruneTest, DecodePruneFloat) {
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
 }
 
+TEST(DecodeStatePruneTest, DecodePruneFloatNoAxis) {
+  // Align the tensor data the same as a Buffer in the TfLite schema
+  alignas(16) float output_data[std::size(kExpectPrune2)] = {};
+  alignas(16) const AncillaryData<float, std::size(kAncillaryDataPrune2)>
+      kAncillaryData = {{kDcmPruneNoAxis}, {kAncillaryDataPrune2}};
+
+  const TfLiteIntArray* const kEncodedDims =
+      tflite::testing::IntArrayFromInts(kEncodedShapePrune);
+  static const TensorInDatum kEncodeTID = {
+      kEncodedPrune,
+      *kEncodedDims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> kEncodes = {
+      &kEncodeTID,
+  };
+
+  constexpr int kAncillaryShape[] = {1, sizeof(kAncillaryData)};
+  const TfLiteIntArray* const kAncillaryDims =
+      tflite::testing::IntArrayFromInts(kAncillaryShape);
+  static const TensorInDatum kAncillaryTID = {
+      &kAncillaryData,
+      *kAncillaryDims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> kAncillaries = {
+      &kAncillaryTID};
+
+  const TfLiteIntArray* const kOutputDims =
+      tflite::testing::IntArrayFromInts(kOutputShapePrune);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
+  static const TensorOutDatum kTOD = {
+      output_data,
+      *kOutputDims,
+      kTfLiteFloat32,
+      kOutputScales,
+      *kOutputZeroPoints,
+      0,
+      {},
+  };
+  static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
+      &kTOD};
+
+  const std::initializer_list<const void*> kExpected = {kExpectPrune2};
+
+  tflite::testing::TestDecode<kEncodes.size() + kAncillaries.size(),
+                              kOutputs.size()>(
+      kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE());
+}
+
+TEST(DecodeStatePruneTest, DecodePruneFloatUnsupportedAxis) {
+  // Align the tensor data the same as a Buffer in the TfLite schema
+  alignas(16) float output_data[std::size(kExpectPrune2)] = {};
+  alignas(16) const AncillaryData<float, std::size(kAncillaryDataPrune2)>
+      kAncillaryData = {{kDcmPruneUnsupportedAxis}, {kAncillaryDataPrune2}};
+
+  const TfLiteIntArray* const kEncodedDims =
+      tflite::testing::IntArrayFromInts(kEncodedShapePrune);
+  static const TensorInDatum kEncodeTID = {
+      kEncodedPrune,
+      *kEncodedDims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> kEncodes = {
+      &kEncodeTID,
+  };
+
+  constexpr int kAncillaryShape[] = {1, sizeof(kAncillaryData)};
+  const TfLiteIntArray* const kAncillaryDims =
+      tflite::testing::IntArrayFromInts(kAncillaryShape);
+  static const TensorInDatum kAncillaryTID = {
+      &kAncillaryData,
+      *kAncillaryDims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> kAncillaries = {
+      &kAncillaryTID};
+
+  const TfLiteIntArray* const kOutputDims =
+      tflite::testing::IntArrayFromInts(kOutputShapePrune);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
+  static const TensorOutDatum kTOD = {
+      output_data,
+      *kOutputDims,
+      kTfLiteFloat32,
+      kOutputScales,
+      *kOutputZeroPoints,
+      0,
+      {},
+  };
+  static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
+      &kTOD};
+
+  const std::initializer_list<const void*> kExpected = {kExpectPrune2};
+
+  tflite::testing::TestDecode<kEncodes.size() + kAncillaries.size(),
+                              kOutputs.size()>(
+      kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE(),
+      nullptr, nullptr, kTfLiteError);
+}
+
 TEST(DecodeStatePruneTest, DecodePruneInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune3)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune3)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune3}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune3}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -294,7 +431,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune3)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune3)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune3}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune3}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -339,7 +476,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedMixedZeroPointInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune0)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune0)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune0}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune0}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -384,7 +521,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedSingleChannelInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune5)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune5)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune5}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune5}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -429,7 +566,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedAltAxisInt8) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int8_t output_data[std::size(kExpectPrune4)] = {};
   alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataPrune4)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune4}};
+      kAncillaryData = {{kDcmPruneAxis3}, {kAncillaryDataPrune4}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -479,7 +616,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedInt16) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int16_t output_data[std::size(kExpectPrune1)] = {};
   alignas(16) const AncillaryData<int16_t, std::size(kAncillaryDataPrune1)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune1}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune1}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);
@@ -529,7 +666,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedInvalidZeroPointInt16) {
   // Align the tensor data the same as a Buffer in the TfLite schema
   alignas(16) int16_t output_data[std::size(kExpectPrune1)] = {};
   alignas(16) const AncillaryData<int16_t, std::size(kAncillaryDataPrune1)>
-      kAncillaryData = {{kDcmPrune}, {kAncillaryDataPrune1}};
+      kAncillaryData = {{kDcmPruneAxis0}, {kAncillaryDataPrune1}};
 
   const TfLiteIntArray* const kEncodedDims =
       tflite::testing::IntArrayFromInts(kEncodedShapePrune);

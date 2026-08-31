@@ -19,6 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
+#include "tensorflow/lite/micro/kernels/decode_state_lut.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
@@ -38,7 +39,7 @@ constexpr uint8_t kDcmLUT0[tflite::DecodeState::kDcmSizeInBytes] = {
     0,                                 // reserved
     0,                                 // reserved
     1,                                 // LUT version: 1
-    kBitWidthLUT,                      // Parameters: bit-width 2
+    kBitWidthLUT,                      // Parameters: axis 0, bit-width 2
     std::size(kAncillaryDataLUT0),     // channel stride
 };
 
@@ -48,7 +49,7 @@ constexpr uint8_t kDcmLUT1[tflite::DecodeState::kDcmSizeInBytes] = {
     0,                                 // reserved
     0,                                 // reserved
     1,                                 // LUT version: 1
-    kBitWidthLUT,                      // Parameters: bit-width 2
+    kBitWidthLUT,                      // Parameters: axis 0, bit-width 2
     std::size(kAncillaryDataLUT1),     // channel stride
 };
 
@@ -425,6 +426,65 @@ TEST(DecodeTest, DecodeWithCustomMismatchedRegistration) {
                               outputs.size()>(
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE(),
       nullptr, &cdr, kTfLiteError);
+}
+
+TEST(DecodeTest, DecodeAxisNotSupportedLUT) {
+  constexpr uint8_t
+      kDcmUnsupportedAxisLUT[tflite::DecodeState::kDcmSizeInBytes] = {
+          tflite::DecodeState::kDcmTypeLUT,  // type: LUT
+          1,                                 // DCM version: 1
+          0,                                 // reserved
+          0,                                 // reserved
+          1,                                 // LUT version: 1
+          (1 << tflite::DecodeStateLut::kDcmParamsAxisMaskShift) |
+              kBitWidthLUT,               // Parameters: axis 1, bit-width 2
+          std::size(kAncillaryDataLUT0),  // channel stride
+      };
+  // Align the tensor data the same as a Buffer in the TfLite schema
+  alignas(16) int8_t output_data[std::size(kExpectLUT0)] = {};
+  alignas(16) const AncillaryData<int8_t, std::size(kAncillaryDataLUT0)>
+      kAncillaryData = {{kDcmUnsupportedAxisLUT}, {kAncillaryDataLUT0}};
+
+  constexpr int kAncillaryShapeLUT[] = {1, sizeof(kAncillaryData)};
+
+  const TfLiteIntArray* const encoded_dims =
+      tflite::testing::IntArrayFromInts(kEncodedShapeLUT);
+  static const TensorInDatum tid_encode = {
+      kEncodedLUT,
+      *encoded_dims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> encodes = {
+      &tid_encode,
+  };
+
+  const TfLiteIntArray* const ancillary_dims =
+      tflite::testing::IntArrayFromInts(kAncillaryShapeLUT);
+  static const TensorInDatum tid_ancillary = {
+      &kAncillaryData,
+      *ancillary_dims,
+  };
+  static constexpr std::initializer_list<const TensorInDatum*> ancillaries = {
+      &tid_ancillary};
+
+  const TfLiteIntArray* const output_dims =
+      tflite::testing::IntArrayFromInts(kOutputShapeLUT);
+  constexpr int kOutputZeroPointsData[] = {0};
+  const TfLiteIntArray* const kOutputZeroPoints =
+      tflite::testing::IntArrayFromInts(kOutputZeroPointsData);
+  const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
+  static const TensorOutDatum tod = {
+      output_data, *output_dims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
+      1,           {},
+  };
+  static constexpr std::initializer_list<const TensorOutDatum*> outputs = {
+      &tod};
+
+  const std::initializer_list<const void*> expected = {kExpectLUT0};
+
+  tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
+                              outputs.size()>(
+      encodes, ancillaries, outputs, expected, tflite::Register_DECODE(),
+      nullptr, nullptr, kTfLiteError);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
