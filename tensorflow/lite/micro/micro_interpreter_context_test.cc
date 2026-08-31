@@ -15,7 +15,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_interpreter_context.h"
 
 #include <cstdint>
+#include <utility>
 
+#include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
@@ -308,6 +310,56 @@ TEST(MicroInterpreterContextTest, TestResetDecompressionMemory) {
   p = static_cast<uint8_t*>(micro_context.AllocateDecompressionMemory(
       kAllocateSize, tflite::MicroArenaBufferAlignment()));
   EXPECT_EQ(p, &g_alt_memory[0]);
+}
+
+TEST(MicroInterpreterContextTest, TestSetCustomDecode) {
+  tflite::MicroInterpreterContext micro_context =
+      tflite::CreateMicroInterpreterContext();
+
+  const std::initializer_list<tflite::MicroContext::CustomDecodeRegistration>
+      cdr = {
+          {
+              nullptr,  // the test won't instantiate tflite::DecodeState
+              tflite::DecodeState::kDcmTypeCustomFirst,
+          },
+      };
+  TfLiteStatus status;
+
+  // Test that all of the MicroInterpreterContext fences are correct, by
+  // forcing the MicroInterpreterContext state. The SetCustomDecodeRegistrations
+  // method should only be allowed during the kInit state, and can only be
+  // set once.
+
+  // fail during Prepare state
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kPrepare);
+  status = micro_context.SetCustomDecodeRegistrations(cdr.begin(), cdr.size());
+  EXPECT_EQ(status, kTfLiteError);
+
+  // fail during Invoke state
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInvoke);
+  status = micro_context.SetCustomDecodeRegistrations(cdr.begin(), cdr.size());
+  EXPECT_EQ(status, kTfLiteError);
+
+  // succeed during Init state
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+  status = micro_context.SetCustomDecodeRegistrations(cdr.begin(), cdr.size());
+  EXPECT_EQ(status, kTfLiteOk);
+
+  // fail on second Init state attempt
+  micro_context.SetInterpreterState(
+      tflite::MicroInterpreterContext::InterpreterState::kInit);
+  status = micro_context.SetCustomDecodeRegistrations(cdr.begin(), cdr.size());
+  EXPECT_EQ(status, kTfLiteError);
+
+  // check registered info. matches
+  const tflite::MicroContext::CustomDecodeRegistration* registration;
+  size_t count;
+  std::tie(registration, count) = micro_context.GetCustomDecodeRegistrations();
+  EXPECT_EQ(registration, cdr.begin());
+  EXPECT_EQ(count, 1U);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
