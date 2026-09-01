@@ -509,10 +509,11 @@ TEST(FftTest, RfftInputLengthGreaterThanFftLengthFails) {
   float output[kOutputLen];
   const TFLMRegistration* registration =
       tflite::tflm_signal::Register_RFFT_FLOAT();
-  EXPECT_EQ(kTfLiteError, tflite::testing::TestFFT<float>(
-                              input_shape, input, output_shape, golden,
-                              *registration, g_gen_data_fft_length_64_float,
-                              g_gen_data_size_fft_length_64_float, output, 1e-7));
+  EXPECT_EQ(kTfLiteError,
+            tflite::testing::TestFFT<float>(
+                input_shape, input, output_shape, golden, *registration,
+                g_gen_data_fft_length_64_float,
+                g_gen_data_size_fft_length_64_float, output, 1e-7));
 }
 
 TF_LITE_MICRO_TESTS_MAIN
