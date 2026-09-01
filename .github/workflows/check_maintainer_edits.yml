@@ -1,0 +1,60 @@
+name: Check Maintainer Edits
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-maintainer-edits:
+    runs-on: ubuntu-latest
+    name: Check Maintainer Edits Permission
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check Permission and Remind
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+
+            // Skip known automated bots
+            const exemptBots = ['dependabot[bot]', 'TFLM-bot', 'github-actions[bot]'];
+            if (exemptBots.includes(author)) {
+              return;
+            }
+
+            // Only check PRs created from forks
+            const isFork = pr.head.repo && pr.head.repo.full_name !== context.payload.repository.full_name;
+            if (!isFork) {
+              return;
+            }
+
+            // If maintainer_can_modify is disabled, check if reminder was already posted
+            if (pr.maintainer_can_modify === false) {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+              });
+
+              const alreadyCommented = comments.some(comment =>
+                comment.user.login === 'github-actions[bot]' &&
+                comment.body.includes('Allow edits from maintainers')
+              );
+
+              if (!alreadyCommented) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: `Hi @${author},\n\nPlease enable "Allow edits from maintainers" in the right sidebar of this pull request so maintainers can assist with rebasing, resolving CI issues, and merging.\n\nFor instructions, see https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork`
+                });
+              }
+            }
