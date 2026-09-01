@@ -101,6 +101,8 @@ TfLiteStatus RfftPrepare(TfLiteContext* context, TfLiteNode* node) {
   params->output_length =
       output_shape.Dims(output_shape.DimensionsCount() - 1) / 2;
 
+  TF_LITE_ENSURE(context, params->input_length <= params->fft_length);
+
   context->RequestScratchBufferInArena(context, params->fft_length * sizeof(T),
                                        &params->scratch_buffer_index);
   micro_context->DeallocateTempTfLiteTensor(input);

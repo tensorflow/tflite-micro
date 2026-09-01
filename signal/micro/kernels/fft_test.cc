@@ -500,4 +500,20 @@ TEST(FftTest, FftAutoScaleTestLarge) {
                            nullptr, 0, output, &scale_bit));
 }
 
+TEST(FftTest, RfftInputLengthGreaterThanFftLengthFails) {
+  constexpr int kOutputLen = 66;
+  int input_shape[] = {1, 128};
+  float input[128] = {0};
+  int output_shape[] = {1, kOutputLen};
+  float golden[kOutputLen] = {0};
+  float output[kOutputLen];
+  const TFLMRegistration* registration =
+      tflite::tflm_signal::Register_RFFT_FLOAT();
+  EXPECT_EQ(kTfLiteError,
+            tflite::testing::TestFFT<float>(
+                input_shape, input, output_shape, golden, *registration,
+                g_gen_data_fft_length_64_float,
+                g_gen_data_size_fft_length_64_float, output, 1e-7));
+}
+
 TF_LITE_MICRO_TESTS_MAIN
