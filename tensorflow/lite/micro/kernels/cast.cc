@@ -13,7 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <algorithm>
+#include <type_traits>
+
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
@@ -44,10 +48,20 @@ TfLiteStatus CastPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+template <typename ToT, typename FromT>
+ToT CastValue(FromT a) {
+  if constexpr (std::is_floating_point_v<FromT> && std::is_integral_v<ToT> &&
+                !std::is_same_v<ToT, bool>) {
+    return tflite::SafeCast<ToT>(a);
+  } else {
+    return static_cast<ToT>(a);
+  }
+}
+
 template <typename FromT, typename ToT>
 void copyCast(const FromT* in, ToT* out, int num_elements) {
   std::transform(in, in + num_elements, out,
-                 [](FromT a) { return static_cast<ToT>(a); });
+                 [](FromT a) { return CastValue<ToT>(a); });
 }
 
 template <typename FromT>
@@ -68,6 +82,9 @@ TfLiteStatus copyToTensor(TfLiteContext* context, const FromT* in,
       break;
     case kTfLiteFloat32:
       copyCast(in, tflite::micro::GetTensorData<float>(out), num_elements);
+      break;
+    case kTfLiteBool:
+      copyCast(in, tflite::micro::GetTensorData<bool>(out), num_elements);
       break;
     default:
       // Unsupported type.
