@@ -326,7 +326,7 @@ void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
       const T* value_table =
           static_cast<const T*>(comp_data_.data.lut_data->value_table);
       for (size_t channel = 0; channel < num_channels_; channel++) {
-        size_t index;
+        size_t index = 0;
         switch (compressed_bit_width_) {
           case 1:
             index = GetNextTableIndexWidth1(current_offset);
@@ -348,6 +348,9 @@ void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
             break;
           case 7:
             index = GetNextTableIndexWidth7(current_offset);
+            break;
+          default:
+            index = 0;
             break;
         }
         current_offset++;
@@ -367,7 +370,7 @@ void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
       size_t count = max_count;
 
       while (count-- > 0) {
-        size_t index;
+        size_t index = 0;
         switch (compressed_bit_width_) {
           case 1:
             index = GetNextTableIndexWidth1(current_offset);
@@ -389,6 +392,9 @@ void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
             break;
           case 7:
             index = GetNextTableIndexWidth7(current_offset);
+            break;
+          default:
+            index = 0;
             break;
         }
         current_offset++;

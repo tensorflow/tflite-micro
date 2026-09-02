@@ -95,15 +95,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       context, op_data.reference_op_data.filter_buffer_index, filter);
 
 #ifdef USE_TFLM_COMPRESSION
+  [[maybe_unused]] MicroContext* micro_context = GetMicroContext(context);
 
-  MicroContext* micro_context = GetMicroContext(context);
-
-  const CompressionTensorData* filter_comp_td =
+  [[maybe_unused]] const CompressionTensorData* filter_comp_td =
       micro_context->GetTensorCompressionData(node,
                                               kDepthwiseConvWeightsTensor);
-  const CompressionTensorData* bias_comp_td =
+  [[maybe_unused]] const CompressionTensorData* bias_comp_td =
       micro_context->GetTensorCompressionData(node, kDepthwiseConvBiasTensor);
-
 #endif  // USE_TFLM_COMPRESSION
 
   switch (input->type) {  // Already know in/out types are same.
