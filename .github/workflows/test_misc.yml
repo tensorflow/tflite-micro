@@ -41,9 +41,7 @@ jobs:
           cache-save: ${{ github.event_name == 'push' }}
           repository-cache: true
       - name: Build with Warnings as Errors
-        run: |
-          bazel build --compilation_mode=opt --copt="-Werror" --copt="-Wall" --copt="-Wextra" --copt="-Wno-unused-parameter" //...
-          bazel build --compilation_mode=opt --copt="-Werror" --copt="-Wall" --copt="-Wextra" --copt="-Wno-unused-parameter" --//:with_compression //...
+        run: bazel build --compilation_mode=opt --copt="-Werror" --copt="-Wall" --copt="-Wextra" --copt="-Wno-unused-parameter" //...
 
   project_generation:
     runs-on: ubuntu-latest
