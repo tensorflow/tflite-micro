@@ -38,9 +38,12 @@ class DecodeStatePrune : public DecodeState {
                               const TfLiteEvalTensor& ancillary,
                               const TfLiteEvalTensor& output) override;
 
- private:
+ public:
   // Prune Decode Common Metadata constants
   static constexpr size_t kDcmVersionOffset = 4;
+  static constexpr size_t kDcmParamsOffset = 5;
+  static constexpr uint8_t kDcmParamsAxisMask = 0xF0;
+  static constexpr uint8_t kDcmParamsAxisMaskShift = 4;
 
  protected:
   virtual ~DecodeStatePrune() = default;
