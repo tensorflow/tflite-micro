@@ -29,6 +29,7 @@ from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
+from tflite_micro.tensorflow.lite.micro.compression import verify
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
@@ -121,27 +122,9 @@ class LutCompressionTest(unittest.TestCase):
         )
     ]
 
-    # Compress
     compressed_fb = compress.compress(flatbuffer, specs)
 
-    # Run inference on both (convert bytearray to bytes for interpreter)
-    uncompressed_interp = runtime.Interpreter.from_bytes(bytes(flatbuffer))
-    compressed_interp = runtime.Interpreter.from_bytes(bytes(compressed_fb))
-
-    # Test with multiple random inputs
-    np.random.seed(42)
-    for _ in range(10):
-      test_input = np.random.randint(-128, 127, (1, 4), dtype=np.int8)
-
-      uncompressed_interp.set_input(test_input, 0)
-      uncompressed_interp.invoke()
-      expected = uncompressed_interp.get_output(0)
-
-      compressed_interp.set_input(test_input, 0)
-      compressed_interp.invoke()
-      actual = compressed_interp.get_output(0)
-
-      np.testing.assert_array_equal(expected, actual)
+    verify.assert_outputs_match(flatbuffer, compressed_fb)
 
   def test_lut_decode_operators_present(self):
     """DECODE operators are inserted for LUT-compressed tensors."""
@@ -208,20 +191,7 @@ class LutCompressionTest(unittest.TestCase):
 
     compressed_fb = compress.compress(flatbuffer, specs)
 
-    uncompressed_interp = runtime.Interpreter.from_bytes(bytes(flatbuffer))
-    compressed_interp = runtime.Interpreter.from_bytes(bytes(compressed_fb))
-
-    test_input = np.array([[1, 2, 3, 4]], dtype=np.int8)
-
-    uncompressed_interp.set_input(test_input, 0)
-    uncompressed_interp.invoke()
-    expected = uncompressed_interp.get_output(0)
-
-    compressed_interp.set_input(test_input, 0)
-    compressed_interp.invoke()
-    actual = compressed_interp.get_output(0)
-
-    np.testing.assert_array_equal(expected, actual)
+    verify.assert_outputs_match(flatbuffer, compressed_fb)
 
   def test_lut_per_channel_quantization(self):
     """Per-channel quantized weights compress and decompress correctly."""
@@ -237,20 +207,7 @@ class LutCompressionTest(unittest.TestCase):
 
     compressed_fb = compress.compress(flatbuffer, specs)
 
-    uncompressed_interp = runtime.Interpreter.from_bytes(bytes(flatbuffer))
-    compressed_interp = runtime.Interpreter.from_bytes(bytes(compressed_fb))
-
-    test_input = np.array([[1, 2, 3, 4]], dtype=np.int8)
-
-    uncompressed_interp.set_input(test_input, 0)
-    uncompressed_interp.invoke()
-    expected = uncompressed_interp.get_output(0)
-
-    compressed_interp.set_input(test_input, 0)
-    compressed_interp.invoke()
-    actual = compressed_interp.get_output(0)
-
-    np.testing.assert_array_equal(expected, actual)
+    verify.assert_outputs_match(flatbuffer, compressed_fb)
 
   def test_lut_unquantized_weights(self):
     """Unquantized weights compress and decompress correctly."""
@@ -266,20 +223,7 @@ class LutCompressionTest(unittest.TestCase):
 
     compressed_fb = compress.compress(flatbuffer, specs)
 
-    uncompressed_interp = runtime.Interpreter.from_bytes(bytes(flatbuffer))
-    compressed_interp = runtime.Interpreter.from_bytes(bytes(compressed_fb))
-
-    test_input = np.array([[1, 2, 3, 4]], dtype=np.int8)
-
-    uncompressed_interp.set_input(test_input, 0)
-    uncompressed_interp.invoke()
-    expected = uncompressed_interp.get_output(0)
-
-    compressed_interp.set_input(test_input, 0)
-    compressed_interp.invoke()
-    actual = compressed_interp.get_output(0)
-
-    np.testing.assert_array_equal(expected, actual)
+    verify.assert_outputs_match(flatbuffer, compressed_fb)
 
 
 def _build_shared_weights_model():
