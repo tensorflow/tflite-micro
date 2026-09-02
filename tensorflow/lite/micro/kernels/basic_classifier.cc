@@ -17,6 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
@@ -53,10 +54,16 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kTargetPosteriorsTensor);
   TF_LITE_ENSURE(context, target_posteriors != nullptr);
 
+  TF_LITE_ENSURE_EQ(context, NumDimensions(input), 1);
   TF_LITE_ENSURE_EQ(context, NumDimensions(target_indices), 1);
   TF_LITE_ENSURE_EQ(context, NumDimensions(thresholds), 1);
   TF_LITE_ENSURE_EQ(context, NumDimensions(detected), 1);
   TF_LITE_ENSURE_EQ(context, NumDimensions(target_posteriors), 1);
+
+  const int num_targets = target_indices->dims->data[0];
+  TF_LITE_ENSURE_EQ(context, thresholds->dims->data[0], num_targets);
+  TF_LITE_ENSURE_EQ(context, detected->dims->data[0], num_targets);
+  TF_LITE_ENSURE_EQ(context, target_posteriors->dims->data[0], num_targets);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteInt32);
   TF_LITE_ENSURE_TYPES_EQ(context, target_indices->type, kTfLiteInt32);
@@ -75,19 +82,19 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
+  TFLITE_DCHECK(input != nullptr);
   const TfLiteEvalTensor* target_indices =
       tflite::micro::GetEvalInput(context, node, kTargetIndicesTensor);
-  TF_LITE_ENSURE(context, target_indices != nullptr);
+  TFLITE_DCHECK(target_indices != nullptr);
   const TfLiteEvalTensor* thresholds =
       tflite::micro::GetEvalInput(context, node, kThresholdsTensor);
-  TF_LITE_ENSURE(context, thresholds != nullptr);
+  TFLITE_DCHECK(thresholds != nullptr);
   TfLiteEvalTensor* detected =
       tflite::micro::GetEvalOutput(context, node, kDetectedTensor);
-  TF_LITE_ENSURE(context, detected != nullptr);
+  TFLITE_DCHECK(detected != nullptr);
   TfLiteEvalTensor* target_posteriors =
       tflite::micro::GetEvalOutput(context, node, kTargetPosteriorsTensor);
-  TF_LITE_ENSURE(context, target_posteriors != nullptr);
+  TFLITE_DCHECK(target_posteriors != nullptr);
 
   const int32_t* input_data = tflite::micro::GetTensorData<int32_t>(input);
   const int32_t* target_indices_data =
@@ -98,9 +105,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   int32_t* target_posteriors_data =
       tflite::micro::GetTensorData<int32_t>(target_posteriors);
 
-  for (int i = 0; i < detected->dims->data[0]; i++) {
-    detected_data[i] = input_data[target_indices_data[i]] >= thresholds_data[i];
-    target_posteriors_data[i] = input_data[target_indices_data[i]];
+  const int32_t input_size = input->dims->data[0];
+  const int num_targets = detected->dims->data[0];
+  for (int i = 0; i < num_targets; ++i) {
+    const int32_t target_idx = target_indices_data[i];
+    if (target_idx < 0 || target_idx >= input_size) {
+      return kTfLiteError;
+    }
+    detected_data[i] = input_data[target_idx] >= thresholds_data[i];
+    target_posteriors_data[i] = input_data[target_idx];
   }
   return kTfLiteOk;
 }

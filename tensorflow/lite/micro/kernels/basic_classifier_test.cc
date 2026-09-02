@@ -73,6 +73,79 @@ void TestBasicClassifier(
   }
 }
 
+void TestBasicClassifierInvalidTargetIndex(
+    int* input_dims_data, const int32_t* input_data,
+    int* target_indices_dims_data, const int32_t* target_indices_data,
+    int* thresholds_dims_data, const int32_t* thresholds_data,
+    int* detected_dims_data, bool* detected_data,
+    int* target_posteriors_dims_data, int32_t* target_posteriors_data) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* target_indices_dims =
+      IntArrayFromInts(target_indices_dims_data);
+  TfLiteIntArray* thresholds_dims = IntArrayFromInts(thresholds_dims_data);
+  TfLiteIntArray* detected_dims = IntArrayFromInts(detected_dims_data);
+  TfLiteIntArray* target_posteriors_dims =
+      IntArrayFromInts(target_posteriors_dims_data);
+  constexpr int kInputsSize = 3;
+  constexpr int kOutputsSize = 2;
+  constexpr int kTensorsSize = kInputsSize + kOutputsSize;
+  TfLiteTensor tensors[kTensorsSize] = {
+      CreateTensor(input_data, input_dims),
+      CreateTensor(target_indices_data, target_indices_dims),
+      CreateTensor(thresholds_data, thresholds_dims),
+      CreateTensor(detected_data, detected_dims),
+      CreateTensor(target_posteriors_data, target_posteriors_dims),
+  };
+  int inputs_array_data[] = {3, 0, 1, 2};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {2, 3, 4};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_BASIC_CLASSIFIER();
+  micro::KernelRunner runner(registration, tensors, kTensorsSize, inputs_array,
+                             outputs_array,
+                             /*builtin_data=*/nullptr);
+
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_NE(kTfLiteOk, runner.Invoke());
+}
+
+void TestBasicClassifierMismatchedDims(
+    int* input_dims_data, const int32_t* input_data,
+    int* target_indices_dims_data, const int32_t* target_indices_data,
+    int* thresholds_dims_data, const int32_t* thresholds_data,
+    int* detected_dims_data, bool* detected_data,
+    int* target_posteriors_dims_data, int32_t* target_posteriors_data) {
+  TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* target_indices_dims =
+      IntArrayFromInts(target_indices_dims_data);
+  TfLiteIntArray* thresholds_dims = IntArrayFromInts(thresholds_dims_data);
+  TfLiteIntArray* detected_dims = IntArrayFromInts(detected_dims_data);
+  TfLiteIntArray* target_posteriors_dims =
+      IntArrayFromInts(target_posteriors_dims_data);
+  constexpr int kInputsSize = 3;
+  constexpr int kOutputsSize = 2;
+  constexpr int kTensorsSize = kInputsSize + kOutputsSize;
+  TfLiteTensor tensors[kTensorsSize] = {
+      CreateTensor(input_data, input_dims),
+      CreateTensor(target_indices_data, target_indices_dims),
+      CreateTensor(thresholds_data, thresholds_dims),
+      CreateTensor(detected_data, detected_dims),
+      CreateTensor(target_posteriors_data, target_posteriors_dims),
+  };
+  int inputs_array_data[] = {3, 0, 1, 2};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {2, 3, 4};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_BASIC_CLASSIFIER();
+  micro::KernelRunner runner(registration, tensors, kTensorsSize, inputs_array,
+                             outputs_array,
+                             /*builtin_data=*/nullptr);
+
+  EXPECT_NE(kTfLiteOk, runner.InitAndPrepare());
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -141,6 +214,42 @@ TEST(BasicClassifierTest, MulticlassCase) {
       thresholds_shape, thresholds, detected_shape, detected,
       target_posteriors_shape, target_posteriors, golden_detected,
       golden_target_posteriors);
+}
+
+TEST(BasicClassifierTest, InvalidTargetIndex) {
+  int input_shape[] = {1, 3};
+  int target_indices_shape[] = {1, 1};
+  int thresholds_shape[] = {1, 1};
+  int detected_shape[] = {1, 1};
+  int target_posteriors_shape[] = {1, 1};
+  const int32_t input[] = {10, 20, 30};
+  const int32_t target_indices[] = {5};
+  const int32_t thresholds[] = {15};
+  bool detected[1];
+  int32_t target_posteriors[1];
+
+  tflite::testing::TestBasicClassifierInvalidTargetIndex(
+      input_shape, input, target_indices_shape, target_indices,
+      thresholds_shape, thresholds, detected_shape, detected,
+      target_posteriors_shape, target_posteriors);
+}
+
+TEST(BasicClassifierTest, MismatchedDims) {
+  int input_shape[] = {1, 5};
+  int target_indices_shape[] = {1, 2};
+  int thresholds_shape[] = {1, 3};
+  int detected_shape[] = {1, 2};
+  int target_posteriors_shape[] = {1, 2};
+  const int32_t input[] = {10, 20, 30, 40, 50};
+  const int32_t target_indices[] = {1, 2};
+  const int32_t thresholds[] = {15, 25, 35};
+  bool detected[2];
+  int32_t target_posteriors[2];
+
+  tflite::testing::TestBasicClassifierMismatchedDims(
+      input_shape, input, target_indices_shape, target_indices,
+      thresholds_shape, thresholds, detected_shape, detected,
+      target_posteriors_shape, target_posteriors);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
