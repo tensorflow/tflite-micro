@@ -59,6 +59,7 @@ void TestCast(const InputT (&input)[N], const OutputT (&golden)[N]) {
 
 template <typename IntT>
 void TestFloatToInt(float pos_overflow, float neg_overflow) {
+  [[maybe_unused]]
   constexpr bool is_signed = std::numeric_limits<IntT>::is_signed;
   const float input[] = {100.f,
                          1.0f,

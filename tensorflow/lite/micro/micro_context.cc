@@ -174,4 +174,14 @@ void MicroContext::ResetDecompressionMemoryAllocations() {
   std::fill_n(decompress_regions_allocations_, decompress_regions_size_, 0);
 }
 
+TfLiteStatus MicroContext::SetCustomDecodeRegistrations(
+    const CustomDecodeRegistration* registrations, size_t count) {
+  if (custom_decode_registrations_ != nullptr) {
+    return kTfLiteError;
+  }
+  custom_decode_registrations_ = registrations;
+  custom_decode_registrations_size_ = count;
+  return kTfLiteOk;
+}
+
 }  // namespace tflite
