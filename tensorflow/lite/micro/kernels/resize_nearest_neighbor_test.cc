@@ -353,4 +353,41 @@ TEST(ResizeNearestNeighborTest, ThreeDimensionalResizeInt16) {
       output_dims, output_data);
 }
 
+TEST(ResizeNearestNeighborTest, RejectsSizeMismatchWithDeclaredOutputShape) {
+  // The size tensor requests a 1024x1024 output, but the model declares a
+  // 1x1 output. Prepare must reject this instead of letting Eval() write
+  // 1024*1024*depth bytes into a 1-element buffer.
+  int input_dims[] = {4, 1, 1, 2, 1};
+  const int8_t input_data[] = {1, 2};
+  int size_dims[] = {1, 2};
+  const int32_t size_data[] = {1024, 1024};
+  int output_dims[] = {4, 1, 1, 1, 1};
+  int8_t output_data[1];
+
+  TfLiteIntArray* input_dims_arr = IntArrayFromInts(input_dims);
+  TfLiteIntArray* size_dims_arr = IntArrayFromInts(size_dims);
+  TfLiteIntArray* output_dims_arr = IntArrayFromInts(output_dims);
+
+  constexpr int tensors_size = 3;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateTensor(input_data, input_dims_arr),
+      CreateTensor(size_data, size_dims_arr),
+      CreateTensor(output_data, output_dims_arr),
+  };
+  tensors[1].allocation_type = kTfLiteMmapRo;
+
+  TfLiteResizeNearestNeighborParams builtin_data = {false, false};
+
+  int inputs_array_data[] = {2, 0, 1};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 2};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_RESIZE_NEAREST_NEIGHBOR();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, &builtin_data);
+
+  EXPECT_NE(kTfLiteOk, runner.InitAndPrepare());
+}
+
 TF_LITE_MICRO_TESTS_MAIN
