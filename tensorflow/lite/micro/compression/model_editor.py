@@ -24,6 +24,11 @@ import flatbuffers
 from tflite_micro.tensorflow.lite.micro.compression import tensor_type
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
+# The file identifier declared by schema.fbs, at bytes 4-7 of a
+# finished .tflite flatbuffer. Loaders such as the TfLite interpreter
+# verify it before reading the model.
+_TFLITE_FILE_IDENTIFIER = b"TFL3"
+
 
 class _BufferList(list):
   """Custom list that auto-sets buffer.index on append.
@@ -372,6 +377,13 @@ class OperatorCode:
     self._fb.version = value
 
 
+_BUILTIN_OPERATOR_NAMES = {
+    code: name
+    for name, code in vars(tflite.BuiltinOperator).items()
+    if not name.startswith("_")
+}
+
+
 class Operator:
   """Operator specification wrapping an OperatorT flatbuffer object.
 
@@ -429,6 +441,17 @@ class Operator:
     self._custom_code = value
 
   @property
+  def opcode_name(self) -> str:
+    """The operator's kind as text, for display.
+
+    Custom operators go by their custom code, builtins by the name of
+    their enumerator, and an unrecognized code by its number.
+    """
+    if self._custom_code is not None:
+      return self._custom_code
+    return _BUILTIN_OPERATOR_NAMES.get(self._opcode, f"opcode {self._opcode}")
+
+  @property
   def opcode_index(self) -> Optional[int]:
     """Index into operator_codes array (from read or after build)."""
     return self._opcode_index
@@ -439,7 +462,11 @@ class Operator:
 
   @property
   def index(self) -> Optional[int]:
-    """Operator index in the subgraph's operator list."""
+    """Operator index in the subgraph's operator list.
+
+    Returns index after read() or build(). May be None or stale after
+    modifications. Use with caution.
+    """
     return self._index
 
 
@@ -740,7 +767,7 @@ def read(buffer: bytes) -> Model:
       sg.tensors.append(tensor)
 
     # Read operators
-    for fb_op in fb_sg.operators:
+    for op_idx, fb_op in enumerate(fb_sg.operators):
       # Get operator code info
       opcode_obj = model.operator_codes[fb_op.opcodeIndex]
 
@@ -765,6 +792,7 @@ def read(buffer: bytes) -> Model:
           custom_code=opcode_obj.custom_code,
           opcode_index=fb_op.opcodeIndex,
       )
+      op._index = op_idx
       sg.operators.append(op)
 
     # Read subgraph inputs/outputs
@@ -823,8 +851,14 @@ class _ModelCompiler:
   def compile(self) -> bytearray:
     """Compile model using backing ModelT, preserving all fields."""
     # Use the backing ModelT directly---this preserves all fields we don't
-    # explicitly handle (version, signature_defs, etc.)
+    # explicitly handle (signature_defs, etc.)
     root = self.model._fb
+
+    # A .tflite file declares schema version 3. A model built from
+    # scratch leaves the field at the flatbuffer default of 0; a model
+    # from read() keeps the version it declared.
+    if not root.version:
+      root.version = 3
 
     # Initialize buffers
     # If model.buffers exists (from read()), preserve those buffers
@@ -858,7 +892,7 @@ class _ModelCompiler:
 
     # Pack and return
     builder = flatbuffers.Builder(4 * 2**20)
-    builder.Finish(root.Pack(builder))
+    builder.Finish(root.Pack(builder), file_identifier=_TFLITE_FILE_IDENTIFIER)
     return builder.Output()
 
   def _collect_operator_codes(self):
@@ -917,7 +951,8 @@ class _ModelCompiler:
 
     # Compile operators
     sg_t.operators = []
-    for op in sg.operators:
+    for op_idx, op in enumerate(sg.operators):
+      op._index = op_idx
       sg_t.operators.append(self._compile_operator(op, tensor_to_index))
 
     # Set subgraph inputs/outputs

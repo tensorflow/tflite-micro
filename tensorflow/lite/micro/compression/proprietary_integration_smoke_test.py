@@ -33,6 +33,7 @@ tensors:
     compression:
       - lut:
           index_bitwidth: 2
+          per_tensor:
 """
 
 

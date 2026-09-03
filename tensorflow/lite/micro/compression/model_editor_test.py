@@ -246,6 +246,61 @@ class TestBasicModel(unittest.TestCase):
                      tflite.BuiltinOperator.FULLY_CONNECTED)
 
 
+class TestFileFormat(unittest.TestCase):
+  """Test the .tflite file-level framing of built flatbuffers."""
+
+  def test_build_writes_file_identifier(self):
+    """A built flatbuffer carries the TFL3 identifier at bytes 4-7."""
+    fb = Model(subgraphs=[Subgraph()]).build()
+    self.assertEqual(bytes(fb[4:8]), b"TFL3")
+
+  def test_build_declares_schema_version(self):
+    """A model built from scratch declares schema version 3."""
+    fb = Model(subgraphs=[Subgraph()]).build()
+    self.assertEqual(tflite.ModelT.InitFromPackedBuf(fb, 0).version, 3)
+
+  def test_build_keeps_declared_version(self):
+    """build() preserves the version a model already declares."""
+    model = model_editor.read(bytes(Model(subgraphs=[Subgraph()]).build()))
+    # The editor exposes no setter for a model's schema version.
+    model._fb.version = 4
+    fb = model.build()
+    self.assertEqual(tflite.ModelT.InitFromPackedBuf(fb, 0).version, 4)
+
+
+class TestOperatorIndex(unittest.TestCase):
+  """Test that read() and build() set Operator.index."""
+
+  def build_model(self) -> Model:
+    """Build a model with two chained operators, created inline so no
+    index is assigned at construction."""
+    act = Tensor(shape=(1, ), dtype=tflite.TensorType.INT8, name="act")
+    mid = Tensor(shape=(1, ), dtype=tflite.TensorType.INT8, name="mid")
+    out = Tensor(shape=(1, ), dtype=tflite.TensorType.INT8, name="out")
+    return Model(subgraphs=[
+        Subgraph(operators=[
+            Operator(opcode=tflite.BuiltinOperator.ABS,
+                     inputs=[act],
+                     outputs=[mid]),
+            Operator(opcode=tflite.BuiltinOperator.ABS,
+                     inputs=[mid],
+                     outputs=[out]),
+        ])
+    ])
+
+  def test_build_sets_index(self):
+    """Operators carry their subgraph position after build()."""
+    model = self.build_model()
+    self.assertIsNone(model.subgraphs[0].operators[1].index)
+    model.build()
+    self.assertEqual([op.index for op in model.subgraphs[0].operators], [0, 1])
+
+  def test_read_sets_index(self):
+    """Operators carry their subgraph position after read()."""
+    model = model_editor.read(bytes(self.build_model().build()))
+    self.assertEqual([op.index for op in model.subgraphs[0].operators], [0, 1])
+
+
 class TestAdvancedModel(unittest.TestCase):
   """Test multiple operators, custom ops, shared tensors, and mixed references."""
 
@@ -1852,6 +1907,25 @@ class TestFieldPreservation(unittest.TestCase):
     # Should still be single-element, not expanded to 4
     self.assertEqual(len(quant2.zeroPoint), 1)
     self.assertEqual(quant2.zeroPoint[0], 128)
+
+
+class TestOperatorName(unittest.TestCase):
+  """Tests for naming an operator's kind as text."""
+
+  def test_builtin_named_by_its_enumerator(self):
+    op = model_editor.Operator(opcode=tflite.BuiltinOperator.PAD)
+    self.assertEqual(op.opcode_name, "PAD")
+
+  def test_custom_named_by_its_code(self):
+    """A custom operator goes by its code, not by CUSTOM."""
+    op = model_editor.Operator(opcode=tflite.BuiltinOperator.CUSTOM,
+                               custom_code="MyCustomOp")
+    self.assertEqual(op.opcode_name, "MyCustomOp")
+
+  def test_unrecognized_code_falls_back_to_its_number(self):
+    """A code from a newer schema still yields something printable."""
+    op = model_editor.Operator(opcode=31337)
+    self.assertIn("31337", op.opcode_name)
 
 
 if __name__ == "__main__":
