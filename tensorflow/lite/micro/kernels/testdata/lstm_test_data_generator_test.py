@@ -15,8 +15,7 @@
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+import unittest
 from tflite_micro.tensorflow.lite.micro.kernels.testdata import lstm_test_data_utils
 
 _KERNEL_CONFIG = {
@@ -77,7 +76,7 @@ def create_keras_lstm(stateful=True):
   return tf.keras.Model(input_layer, lstm_output, name="LSTM")
 
 
-class QuantizedLSTMDebuggerTest(test_util.TensorFlowTestCase):
+class QuantizedLSTMDebuggerTest(unittest.TestCase):
 
   # only the float output from the debugger is used to setup the test data in .cc
   def testFloatCompareWithKeras(self):
@@ -101,8 +100,8 @@ class QuantizedLSTMDebuggerTest(test_util.TensorFlowTestCase):
       output_keras, _, _ = keras_lstm.predict(test_data.reshape(1, 1, 2))
 
       diff = abs(output_float.flatten() - output_keras.flatten())
-      self.assertAllLess(diff, 1e-6)
+      self.assertTrue(np.all(diff < 1e-6))
 
 
 if __name__ == "__main__":
-  test.main()
+  unittest.main()

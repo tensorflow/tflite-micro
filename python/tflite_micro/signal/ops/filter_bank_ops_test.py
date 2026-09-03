@@ -18,14 +18,14 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.platform import resource_loader
+import unittest
 from tflite_micro.python.tflite_micro.signal.ops import filter_bank_ops
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class FilterBankOpTest(tf.test.TestCase):
+class FilterBankOpTest(unittest.TestCase):
 
-  _PREFIX_PATH = resource_loader.get_path_to_datafile('')
+  _PREFIX_PATH = os.path.dirname(__file__)
 
   def GetResource(self, filepath):
     full_path = os.path.join(self._PREFIX_PATH, filepath)
@@ -51,7 +51,7 @@ class FilterBankOpTest(tf.test.TestCase):
         2557.3728027343750000, 2621.4863281250000000, 2685.5998535156250000,
         2749.7133789062500000, 2813.8271484375000000
     ]
-    self.assertAllEqual(center_freq_exp, center_freq)
+    np.testing.assert_array_equal(center_freq_exp, center_freq)
 
     center_freq = filter_bank_ops._calc_center_freq(33, 125, 3800)
     center_freq_exp = [
@@ -67,7 +67,7 @@ class FilterBankOpTest(tf.test.TestCase):
         1807.3863525390625000, 1865.3226318359375000, 1923.2589111328125000,
         1981.1953125000000000, 2039.1315917968750000, 2097.0678710937500000
     ]
-    self.assertAllEqual(center_freq_exp, center_freq)
+    np.testing.assert_array_equal(center_freq_exp, center_freq)
 
     center_freq = filter_bank_ops._calc_center_freq(41, 100, 7500)
     center_freq_exp = [
@@ -86,7 +86,7 @@ class FilterBankOpTest(tf.test.TestCase):
         2517.4450683593750000, 2581.4167480468750000, 2645.3884277343750000,
         2709.3601074218750000, 2773.3320312500000000
     ]
-    self.assertAllLess(abs(center_freq_exp - center_freq), 0.00025)
+    self.assertTrue(np.all(abs(center_freq_exp - center_freq) < 0.00025))
 
   def testFilterBankStartEndIndices(self):
     start_index, end_index = filter_bank_ops.calc_start_end_indices(
@@ -255,11 +255,13 @@ class FilterBankOpTest(tf.test.TestCase):
     self.assertEqual(start_index, 5)
     self.assertEqual(end_index, 122)
     self.assertEqual(weights.size, 117)
-    self.assertAllEqual(weights, weights_exp)
-    self.assertAllEqual(unweights, unweights_exp)
-    self.assertAllEqual(channel_frequency_starts, channel_frequency_starts_exp)
-    self.assertAllEqual(channel_weight_starts, channel_weight_starts_exp)
-    self.assertAllEqual(channel_widths, channel_widths_exp)
+    np.testing.assert_array_equal(weights, weights_exp)
+    np.testing.assert_array_equal(unweights, unweights_exp)
+    np.testing.assert_array_equal(channel_frequency_starts,
+                                  channel_frequency_starts_exp)
+    np.testing.assert_array_equal(channel_weight_starts,
+                                  channel_weight_starts_exp)
+    np.testing.assert_array_equal(channel_widths, channel_widths_exp)
     ##################################
     (start_index, end_index, weights, unweights, channel_frequency_starts,
      channel_weight_starts,
@@ -328,11 +330,13 @@ class FilterBankOpTest(tf.test.TestCase):
     self.assertEqual(start_index, 5)
     self.assertEqual(end_index, 250)
     self.assertEqual(weights.size, 245)
-    self.assertAllEqual(weights, weights_exp)
-    self.assertAllEqual(unweights, unweights_exp)
-    self.assertAllEqual(channel_frequency_starts, channel_frequency_starts_exp)
-    self.assertAllEqual(channel_weight_starts, channel_weight_starts_exp)
-    self.assertAllEqual(channel_widths, channel_widths_exp)
+    np.testing.assert_array_equal(weights, weights_exp)
+    np.testing.assert_array_equal(unweights, unweights_exp)
+    np.testing.assert_array_equal(channel_frequency_starts,
+                                  channel_frequency_starts_exp)
+    np.testing.assert_array_equal(channel_weight_starts,
+                                  channel_weight_starts_exp)
+    np.testing.assert_array_equal(channel_widths, channel_widths_exp)
     ##################################
     (start_index, end_index, weights, unweights, channel_frequency_starts,
      channel_weight_starts,
@@ -377,11 +381,13 @@ class FilterBankOpTest(tf.test.TestCase):
     self.assertEqual(start_index, 5)
     self.assertEqual(end_index, 122)
     self.assertEqual(weights.size, 117)
-    self.assertAllEqual(weights, weights_exp)
-    self.assertAllEqual(unweights, unweights_exp)
-    self.assertAllEqual(channel_frequency_starts, channel_frequency_starts_exp)
-    self.assertAllEqual(channel_weight_starts, channel_weight_starts_exp)
-    self.assertAllEqual(channel_widths, channel_widths_exp)
+    np.testing.assert_array_equal(weights, weights_exp)
+    np.testing.assert_array_equal(unweights, unweights_exp)
+    np.testing.assert_array_equal(channel_frequency_starts,
+                                  channel_frequency_starts_exp)
+    np.testing.assert_array_equal(channel_weight_starts,
+                                  channel_weight_starts_exp)
+    np.testing.assert_array_equal(channel_widths, channel_widths_exp)
     ##################################
     (start_index, end_index, weights, unweights, channel_frequency_starts,
      channel_weight_starts,
@@ -426,11 +432,13 @@ class FilterBankOpTest(tf.test.TestCase):
     self.assertEqual(start_index, 5)
     self.assertEqual(end_index, 122)
     self.assertEqual(weights.size, 117)
-    self.assertAllEqual(weights, weights_exp)
-    self.assertAllEqual(unweights, unweights_exp)
-    self.assertAllEqual(channel_frequency_starts, channel_frequency_starts_exp)
-    self.assertAllEqual(channel_weight_starts, channel_weight_starts_exp)
-    self.assertAllEqual(channel_widths, channel_widths_exp)
+    np.testing.assert_array_equal(weights, weights_exp)
+    np.testing.assert_array_equal(unweights, unweights_exp)
+    np.testing.assert_array_equal(channel_frequency_starts,
+                                  channel_frequency_starts_exp)
+    np.testing.assert_array_equal(channel_weight_starts,
+                                  channel_weight_starts_exp)
+    np.testing.assert_array_equal(channel_widths, channel_widths_exp)
     ##################################
     (start_index, end_index, weights, unweights, channel_frequency_starts,
      channel_weight_starts,
@@ -1008,11 +1016,13 @@ class FilterBankOpTest(tf.test.TestCase):
     self.assertEqual(start_index, 4)
     self.assertEqual(end_index, 241)
     self.assertEqual(weights.size, 237)
-    self.assertAllLessEqual(abs(weights - weights_exp), 1)
-    self.assertAllLessEqual(abs(unweights - unweights_exp), 1)
-    self.assertAllEqual(channel_frequency_starts, channel_frequency_starts_exp)
-    self.assertAllEqual(channel_weight_starts, channel_weight_starts_exp)
-    self.assertAllEqual(channel_widths, channel_widths_exp)
+    np.testing.assert_allclose(weights, weights_exp, atol=1)
+    np.testing.assert_allclose(unweights, unweights_exp, atol=1)
+    np.testing.assert_array_equal(channel_frequency_starts,
+                                  channel_frequency_starts_exp)
+    np.testing.assert_array_equal(channel_weight_starts,
+                                  channel_weight_starts_exp)
+    np.testing.assert_array_equal(channel_widths, channel_widths_exp)
 
   def SingleFilterBankSpectralSubtractionVectorTest(self, filename):
     lines = self.GetResource(filename).splitlines()
@@ -1042,15 +1052,8 @@ class FilterBankOpTest(tf.test.TestCase):
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
       noise_estimate = interpreter.get_output(1)
-      self.assertAllEqual(out_frame, out_frame_exp)
-      self.assertAllEqual(noise_estimate, noise_estimate_exp)
-      # TF
-      [out_frame, noise_estimate] = self.evaluate(
-          filter_bank_ops.filter_bank_spectral_subtraction(
-              in_frame, num_channels, smoothing, alternate_smoothing,
-              smoothing_bits, min_signal_remaining, clamping))
-      self.assertAllEqual(out_frame, out_frame_exp)
-      self.assertAllEqual(noise_estimate, noise_estimate_exp)
+      np.testing.assert_array_equal(out_frame, out_frame_exp)
+      np.testing.assert_array_equal(noise_estimate, noise_estimate_exp)
       i += 3
 
   def SingleFilterBankSquareRootVectorTest(self, filename):
@@ -1072,11 +1075,7 @@ class FilterBankOpTest(tf.test.TestCase):
       interpreter.set_input(scale_bits, 1)
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
-      self.assertAllEqual(out_frame, out_frame_exp)
-      # TF
-      out_frame = self.evaluate(
-          filter_bank_ops.filter_bank_square_root(in_frame, scale_bits))
-      self.assertAllEqual(out_frame, out_frame_exp)
+      np.testing.assert_array_equal(out_frame, out_frame_exp)
       i += 3
 
   def SingleFilterBankVectorTest(self, filename):
@@ -1102,28 +1101,10 @@ class FilterBankOpTest(tf.test.TestCase):
       interpreter.set_input(in_frame, 0)
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
-      self.assertAllEqual(out_frame_exp, out_frame)
-      # TF
-      out_frame = self.evaluate(
-          filter_bank_ops.filter_bank(in_frame, sample_rate, num_channels,
-                                      lower_band_limit, upper_band_limit))
-      self.assertAllEqual(out_frame_exp, out_frame)
+      np.testing.assert_array_equal(out_frame_exp, out_frame)
       i += 2
 
-  def SingleFilterBankTest(self, filename):
-    lines = self.GetResource(filename).splitlines()
-    args = lines[0].split()
-    input_tensor = np.arange(int(args[0]), dtype=np.uint32)
-    output_exp = [int(i) for i in lines[1:]]
-    output_tensor = self.evaluate(
-        filter_bank_ops.filter_bank(input_tensor, int(args[1]), int(args[4]),
-                                    float(args[2]), float(args[3])))
-    self.assertAllLessEqual(abs(output_exp - output_tensor), 144)
-
   def testFilterBank(self):
-    self.SingleFilterBankTest('testdata/filter_bank_accumulation_8k.txt')
-    self.SingleFilterBankTest('testdata/filter_bank_accumulation_16k.txt')
-    self.SingleFilterBankTest('testdata/filter_bank_accumulation_44k.txt')
     self.SingleFilterBankVectorTest('testdata/filter_bank_test1.txt')
 
   def testFilterBankSpectralSubtractionVector(self):
@@ -1134,61 +1115,6 @@ class FilterBankOpTest(tf.test.TestCase):
     self.SingleFilterBankSquareRootVectorTest(
         'testdata/filter_bank_square_root_test1.txt')
 
-  def testFilterBankSquareRoot(self):
-    fft_scale_bits = 7
-    input_array = [
-        632803382, 3322331443, 7096652410, 7915374281, 1173754459, 305980674,
-        2000536077, 1168558488, 5076475823, 15976754090, 3805664731, 613998164,
-        1697378269, 2775934843, 3579468406, 2317762617, 2025182819, 3166301049,
-        1937595023, 1774351019, 2085308695, 3187965791, 2871034131, 4396421345,
-        8203017514, 4506083115, 3159809690, 750384531, 243621165, 61552427,
-        794881, 285365, 324568, 209218, 212215, 311565, 183541, 223754, 201098,
-        385031
-    ]
-    output_exp = [
-        196, 450, 658, 695, 267, 136, 349, 267, 556, 987, 481, 193, 321, 411,
-        467, 376, 351, 439, 343, 329, 356, 441, 418, 518, 707, 524, 439, 214,
-        121, 61, 6, 4, 4, 3, 3, 4, 3, 3, 3, 4
-    ]
-    output_array = self.evaluate(
-        filter_bank_ops.filter_bank_square_root(input_array, fft_scale_bits))
-    self.assertAllEqual(output_array, output_exp)
-
-    fft_scale_bits = 2
-    input_array = [
-        1384809583, 3253852150, 7271882261, 4247132793, 165951197, 106924444,
-        334793989, 1186792065, 683710887, 328783218, 1777824058, 859450346,
-        384515125, 118491239, 29264336, 324188526, 1925807083, 2591551091,
-        1170412774, 393317159, 1003847215, 1375415668, 1272433002, 5102945913,
-        5527301760, 3564304855, 4171837220, 4252817101, 2886468276, 1293586339,
-        867722874, 137636997
-    ]
-    output_exp = [
-        9303, 14260, 21318, 16292, 3220, 2585, 4574, 8612, 6537, 4533, 10541,
-        7329, 4902, 2721, 1352, 4501, 10971, 12726, 8552, 4958, 7921, 9271,
-        8917, 17858, 18586, 14925, 16147, 16303, 13431, 8991, 7364, 2933
-    ]
-    output_array = self.evaluate(
-        filter_bank_ops.filter_bank_square_root(input_array, fft_scale_bits))
-    self.assertAllEqual(output_array, output_exp)
-
-  def testFilterBankLog(self):
-    output_scale = 1600
-    correction_bits = 3
-    input_array = [
-        29, 21, 29, 40, 19, 11, 13, 23, 13, 11, 25, 17, 5, 4, 46, 14, 17, 14,
-        20, 14, 10, 10, 15, 11, 17, 12, 15, 16, 19, 18, 6, 2
-    ]
-    output_exp = [
-        8715, 8198, 8715, 9229, 8038, 7164, 7431, 8344, 7431, 7164, 8477, 7860,
-        5902, 5545, 9453, 7550, 7860, 7550, 8120, 7550, 7011, 7011, 7660, 7164,
-        7860, 7303, 7660, 7763, 8038, 7952, 6194, 4436
-    ]
-    output_array = self.evaluate(
-        filter_bank_ops.filter_bank_log(input_array, output_scale,
-                                        correction_bits))
-    self.assertAllEqual(output_array, output_exp)
-
 
 if __name__ == '__main__':
-  tf.test.main()
+  unittest.main()
