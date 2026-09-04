@@ -21,12 +21,14 @@ limitations under the License.
 #include <functional>
 #include <limits>
 
+#include "absl/types/span.h"
 #include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/kernels/internal/common.h"
 #include "tensorflow/lite/kernels/internal/cppmath.h"
 #include "tensorflow/lite/kernels/internal/max.h"
 #include "tensorflow/lite/kernels/internal/min.h"
 #include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/kernels/internal/reduce_common.h"
 #include "tensorflow/lite/kernels/internal/types.h"
 
 // Check if the reduction at index is the first one along the dimensions given
@@ -49,59 +51,6 @@ inline bool IsFirstReduction(const int* index, const int num_axis,
 }
 
 namespace tflite {
-
-namespace reduce_utils {
-
-inline bool CheckedElementCount(const int* dims, const int num_dims,
-                                size_t& out_count) {
-  if (num_dims < 0 || (dims == nullptr && num_dims != 0)) {
-    return false;
-  }
-  size_t count = 1;
-  for (int idx = 0; idx < num_dims; ++idx) {
-    if (dims[idx] < 0) {
-      return false;
-    }
-    size_t current = static_cast<size_t>(dims[idx]);
-    if (current > 0 &&
-        count > std::numeric_limits<size_t>::max() / current) {
-      return false;
-    }
-    count *= current;
-  }
-  out_count = count;
-  return true;
-}
-
-template <typename T>
-inline bool CheckedReducedElementCount(const int* dims, const int num_dims,
-                                       const int* axes, const int num_axes,
-                                       T& out_count) {
-  if (num_dims < 0 || (dims == nullptr && num_dims != 0) ||
-      (axes == nullptr && num_axes != 0)) {
-    return false;
-  }
-  T count = 1;
-  for (int idx = 0; idx < num_axes; ++idx) {
-    int axis = axes[idx];
-    if (axis < 0 || axis >= num_dims) {
-      return false;
-    }
-    if (dims[axis] < 0) {
-      return false;
-    }
-    T current = static_cast<T>(dims[axis]);
-    if (count > 0 &&
-        current > std::numeric_limits<T>::max() / count) {
-      return false;
-    }
-    count *= current;
-  }
-  out_count = count;
-  return true;
-}
-
-}  // namespace reduce_utils
 
 namespace reference_ops {
 
@@ -219,7 +168,9 @@ inline bool InitTensorDataForReduce(const int* dims, const int num_dims,
     return false;
   }
   size_t num_elements = 0;
-  if (!reduce_utils::CheckedElementCount(dims, num_dims, num_elements)) {
+  if (!reduce_utils::CheckedElementCount(
+          absl::MakeConstSpan(dims, static_cast<size_t>(num_dims)),
+          num_elements)) {
     return false;
   }
   for (size_t idx = 0; idx < num_elements; ++idx) {
@@ -279,8 +230,10 @@ inline bool Mean(const T* input_data, const int* input_dims,
     return false;
   }
   size_t num_outputs = 0;
-  if (!reduce_utils::CheckedElementCount(output_dims, output_num_dims,
-                                          num_outputs)) {
+  if (!reduce_utils::CheckedElementCount(
+          absl::MakeConstSpan(output_dims,
+                              static_cast<size_t>(output_num_dims)),
+          num_outputs)) {
     return false;
   }
   for (size_t idx = 0; idx < num_outputs; ++idx) {
@@ -308,7 +261,9 @@ inline bool Mean(const T* input_data, const int* input_dims,
   }
   size_t num_elements_in_axis = 0;
   if (!reduce_utils::CheckedReducedElementCount(
-          input_dims, input_num_dims, resolved_axis, num_resolved_axis,
+          absl::MakeConstSpan(input_dims, static_cast<size_t>(input_num_dims)),
+          absl::MakeConstSpan(resolved_axis,
+                              static_cast<size_t>(num_resolved_axis)),
           num_elements_in_axis)) {
     return false;
   }
@@ -395,8 +350,10 @@ inline bool QuantizedMeanOrSum(const T* input_data, int32_t input_zero_point,
     return false;
   }
   size_t num_outputs = 0;
-  if (!reduce_utils::CheckedElementCount(output_dims, output_num_dims,
-                                          num_outputs)) {
+  if (!reduce_utils::CheckedElementCount(
+          absl::MakeConstSpan(output_dims,
+                              static_cast<size_t>(output_num_dims)),
+          num_outputs)) {
     return false;
   }
   for (size_t idx = 0; idx < num_outputs; ++idx) {
@@ -432,7 +389,9 @@ inline bool QuantizedMeanOrSum(const T* input_data, int32_t input_zero_point,
   }
   int64_t num_elements_in_axis = 0;
   if (!reduce_utils::CheckedReducedElementCount(
-          input_dims, input_num_dims, resolved_axis, num_resolved_axis,
+          absl::MakeConstSpan(input_dims, static_cast<size_t>(input_num_dims)),
+          absl::MakeConstSpan(resolved_axis,
+                              static_cast<size_t>(num_resolved_axis)),
           num_elements_in_axis)) {
     return false;
   }
