@@ -317,6 +317,8 @@ template <typename T>
 void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
 
+  TFLITE_DCHECK(compressed_bit_width_ > 0 && compressed_bit_width_ < 8);
+
   if (comp_data_.data.lut_data->use_alternate_axis) {
     const size_t stride = comp_data_.data.lut_data->value_table_channel_stride;
     size_t current_offset = 0;
@@ -348,9 +350,6 @@ void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
             break;
           case 7:
             index = GetNextTableIndexWidth7(current_offset);
-            break;
-          default:
-            index = 0;
             break;
         }
         current_offset++;
@@ -392,9 +391,6 @@ void DecompressionState::DecompressToBufferWidthAny(T* buffer) {
             break;
           case 7:
             index = GetNextTableIndexWidth7(current_offset);
-            break;
-          default:
-            index = 0;
             break;
         }
         current_offset++;
