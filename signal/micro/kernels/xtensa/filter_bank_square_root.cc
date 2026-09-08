@@ -16,15 +16,19 @@ limitations under the License.
 #include "signal/micro/kernels/filter_bank_square_root.h"
 
 #include <stdint.h>
+#include <xtensa/tie/xt_misc.h>
 
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-
+#if defined(XT_NSAU)
 // Defined in square_root.S
 extern "C" uint32_t xtensa_sqrt_64(const uint64_t num);
+#else
+#include "signal/src/square_root.h"
+#endif  // defined(XT_NSAU)
 
 namespace tflite {
 namespace {
@@ -36,7 +40,11 @@ constexpr int kOutputTensor = 0;
 void ApplyFilterbankSqrt(const uint64_t* input, int num_channels,
                          int scale_down_bits, uint32_t* output) {
   for (int i = 0; i < num_channels; ++i) {
+#if defined(XT_NSAU)
     output[i] = xtensa_sqrt_64(input[i]) >> scale_down_bits;
+#else
+    output[i] = tflm_signal::Sqrt64(input[i]) >> scale_down_bits;
+#endif  // defined(XT_NSAU)
   }
 }
 

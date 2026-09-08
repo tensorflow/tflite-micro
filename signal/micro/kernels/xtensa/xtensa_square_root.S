@@ -17,6 +17,8 @@ limitations under the License.
 
 #include "xtensa/config/core-isa.h"
 
+#if XCHAL_HAVE_NSA == 1 // NSA/NSAU available
+
 #ifdef __XTENSA_CALL0_ABI__
 #define NO_REGISTER_WINDOW (1)
 #endif
@@ -398,3 +400,5 @@ retw.n
 #undef num_minus_bit_plus_res
 #undef res_shift_left_plus_bit
 #undef res_minus_num
+
+#endif // #if XCHAL_HAVE_NSA == 1
