@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
@@ -29,6 +30,9 @@ namespace tflite {
 TfLiteStatus DecodeStateLut::Setup(const TfLiteTensor& input,
                                    const TfLiteTensor& ancillary,
                                    const TfLiteTensor& output) {
+  TfLiteContext* ctx = const_cast<TfLiteContext*>(context_);
+  TF_LITE_ENSURE(ctx, ancillary.bytes >= kDcmSizeInBytes);
+
   const uint8_t* const ancillary_data = GetTensorData<uint8_t>(&ancillary);
   if (ancillary_data[kDcmVersionOffset] != 1) {
     MicroPrintf("unsupported version %u", ancillary_data[kDcmVersionOffset]);
@@ -51,15 +55,55 @@ TfLiteStatus DecodeStateLut::Setup(const TfLiteTensor& input,
     }
   }
 
+  TF_LITE_ENSURE(ctx, num_channels_ > 0);
+
   compressed_indices_ = GetTensorData<uint8_t>(&input);
   count_indices_ = NumElements(&output);
-  elements_per_channel_ =
-      use_alternate_axis_ ? 1 : count_indices_ / num_channels_;
-  value_table_ = &ancillary_data[kDcmSizeInBytes];
-  value_table_channel_stride_ = ancillary_data[kDcmValueTableStrideOffset];
   compressed_bit_width_ =
       ancillary_data[kDcmParamsOffset] & kDcmParamsBitWidthMask;
+  value_table_channel_stride_ = ancillary_data[kDcmValueTableStrideOffset];
 
+  TF_LITE_ENSURE(ctx, compressed_bit_width_ >= 1 &&
+                          compressed_bit_width_ <= kMaxBitWidth);
+  TF_LITE_ENSURE(ctx, value_table_channel_stride_ >= 1 &&
+                          value_table_channel_stride_ <=
+                              kMaxValueTableChannelStride);
+
+  if (!use_alternate_axis_) {
+    TF_LITE_ENSURE(ctx, count_indices_ % num_channels_ == 0);
+    elements_per_channel_ = count_indices_ / num_channels_;
+  } else {
+    elements_per_channel_ = 1;
+  }
+
+  const size_t elt = static_cast<size_t>(TfLiteTypeGetSize(output.type));
+  TF_LITE_ENSURE(ctx, elt > 0);
+
+  // Both axes walk at most (num_channels-1)*stride + (stride-1) when the
+  // compressor's contract holds (index < stride). Do not require
+  // stride >= 2^bit_width: official tests use 2^n-1 and min(table, elements).
+  size_t table_count = 0;
+  TF_LITE_ENSURE(
+      ctx, !__builtin_mul_overflow(
+               static_cast<size_t>(value_table_channel_stride_), num_channels_,
+               &table_count));
+  size_t table_bytes = 0;
+  TF_LITE_ENSURE(ctx, !__builtin_mul_overflow(table_count, elt, &table_bytes));
+  size_t need = 0;
+  TF_LITE_ENSURE(ctx, !__builtin_add_overflow(
+                          static_cast<size_t>(kDcmSizeInBytes), table_bytes,
+                          &need));
+  TF_LITE_ENSURE(ctx, ancillary.bytes >= need);
+
+  size_t index_bits = 0;
+  TF_LITE_ENSURE(ctx,
+                 !__builtin_mul_overflow(
+                     count_indices_, static_cast<size_t>(compressed_bit_width_),
+                     &index_bits));
+  const size_t index_bytes = (index_bits + 7) / 8;
+  TF_LITE_ENSURE(ctx, input.bytes >= index_bytes);
+
+  value_table_ = &ancillary_data[kDcmSizeInBytes];
   return kTfLiteOk;
 }
 
@@ -101,14 +145,18 @@ T* DecodeStateLut::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
+  // Optimized unpackers mask the index to 2^bit_width. Only safe when the
+  // per-channel table is at least that large.
+  const bool fast_table =
+      value_table_channel_stride_ >= (1u << compressed_bit_width_);
   if (std::is_same<T, int8_t>::value && compressed_bit_width_ == 4 &&
-      !use_alternate_axis_) {
+      !use_alternate_axis_ && fast_table) {
     DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
   } else if (std::is_same<T, int8_t>::value && compressed_bit_width_ == 3 &&
-             !use_alternate_axis_) {
+             !use_alternate_axis_ && fast_table) {
     DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
   } else if (std::is_same<T, int8_t>::value && compressed_bit_width_ == 2 &&
-             !use_alternate_axis_) {
+             !use_alternate_axis_ && fast_table) {
     DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
   } else {
     DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
@@ -453,7 +501,11 @@ void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
             break;
         }
         current_offset++;
-        *buffer++ = value_table[index];
+        if (index < stride) {
+          *buffer++ = value_table[index];
+        } else {
+          *buffer++ = static_cast<T>(0);
+        }
         value_table += stride;
       }
       count -= num_channels_;
@@ -497,7 +549,11 @@ void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
             break;
         }
         current_offset++;
-        *buffer++ = value_table[index];
+        if (index < stride) {
+          *buffer++ = value_table[index];
+        } else {
+          *buffer++ = static_cast<T>(0);
+        }
       }
       value_table += stride;
     }

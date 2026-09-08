@@ -92,6 +92,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
     TF_LITE_ENSURE(context, IsConstantTensor(input));
     TF_LITE_ENSURE(context, IsConstantTensor(ancillary));
+    TF_LITE_ENSURE(context,
+                   ancillary->bytes >= DecodeState::kDcmSizeInBytes);
 
     if (DecodeState::Version(*ancillary) != 1) {
       MicroPrintf("version %u != 1", DecodeState::Version(*ancillary));

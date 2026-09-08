@@ -720,6 +720,22 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
+    name = "decode_lut_bounds_test",
+    srcs = [
+        "decode_lut_bounds_test.cc",
+    ],
+    deps = [
+        ":decode_test_helpers",
+        ":kernel_runner",
+        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "decode_test",
     srcs = [
         "decode_test.cc",
