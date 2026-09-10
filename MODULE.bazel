@@ -48,13 +48,6 @@ http_archive(
     ],
 )
 
-http_archive(
-    name = "nnlib_hifi4",
-    build_file = "@tflite_micro//third_party/xtensa/nnlib_hifi4:nnlib_hifi4.BUILD",
-    integrity = "sha256-Suzk3hJjYAxGjfIWbUyYZjBt99i1vy+6qR4qGMsl4JA=",
-    strip_prefix = "nnlib-hifi4-fade051c7c3ad553045fd3f1d1583e63e009ed4e",
-    urls = ["https://github.com/foss-xtensa/nnlib-hifi4/archive/fade051c7c3ad553045fd3f1d1583e63e009ed4e.zip"],
-)
 
 # Python
 
