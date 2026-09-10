@@ -236,6 +236,7 @@ tflm_kernel_cc_library(
         "add_n.cc",
         "arg_min_max.cc",
         "assign_variable.cc",
+        "basic_classifier.cc",
         "batch_matmul.cc",
         "batch_matmul_common.cc",
         "batch_to_space_nd.cc",
@@ -496,6 +497,21 @@ tflm_cc_test(
         ":kernel_runner",
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:test_helpers",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
+    name = "basic_classifier_test",
+    srcs = [
+        "basic_classifier_test.cc",
+    ],
+    deps = [
+        ":kernel_runner",
+        ":micro_ops",
+        "//tensorflow/lite/c:c_api_types",
+        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],

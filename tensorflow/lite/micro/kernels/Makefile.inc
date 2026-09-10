@@ -114,6 +114,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/activations_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/add_n_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/arg_min_max_test.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/basic_classifier_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args_test.cc \

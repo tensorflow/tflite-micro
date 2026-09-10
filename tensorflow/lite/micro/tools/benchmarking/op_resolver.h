@@ -23,7 +23,7 @@ limitations under the License.
 
 namespace tflite {
 
-using TflmOpResolver = MicroMutableOpResolver<117>;
+using TflmOpResolver = MicroMutableOpResolver<118>;
 
 inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddAbs());
@@ -33,6 +33,7 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   TF_LITE_ENSURE_STATUS(op_resolver.AddArgMin());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAssignVariable());
   TF_LITE_ENSURE_STATUS(op_resolver.AddAveragePool2D());
+  TF_LITE_ENSURE_STATUS(op_resolver.AddBasicClassifier());
   TF_LITE_ENSURE_STATUS(op_resolver.AddBatchMatMul());
   TF_LITE_ENSURE_STATUS(op_resolver.AddBatchToSpaceNd());
   TF_LITE_ENSURE_STATUS(op_resolver.AddBroadcastArgs());
