@@ -99,6 +99,7 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":runtime",
+        requirement("ai-edge-litert"),
         requirement("numpy"),
         requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
@@ -109,6 +110,9 @@ tflm_py_test(
 tflm_py_test(
     name = "test_compression_unsupported",
     srcs = ["test_compression_unsupported.py"],
+    data = [
+        "sine_float.tflite",
+    ],
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols in _runtime.so
@@ -122,8 +126,6 @@ tflm_py_test(
     }),
     deps = [
         ":runtime",
-        requirement("numpy"),
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/compression:model_editor",
     ],
 )
