@@ -29,7 +29,7 @@ class ResourceVariablesTest(unittest.TestCase):
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_keras)
 
     tflm_interpreter.set_input([[True]], 0)
-    tflm_interpreter.set_input([np.full((100,), 15.0, dtype=np.float32)], 1)
+    tflm_interpreter.set_input([np.full((100, ), 15.0, dtype=np.float32)], 1)
     tflm_interpreter.invoke()
     np.testing.assert_array_equal(
         tflm_interpreter.get_output(0),
@@ -37,7 +37,7 @@ class ResourceVariablesTest(unittest.TestCase):
     )
 
     tflm_interpreter.set_input([[False]], 0)
-    tflm_interpreter.set_input([np.full((100,), 9.0, dtype=np.float32)], 1)
+    tflm_interpreter.set_input([np.full((100, ), 9.0, dtype=np.float32)], 1)
     tflm_interpreter.invoke()
     np.testing.assert_array_equal(
         tflm_interpreter.get_output(0),
@@ -47,7 +47,7 @@ class ResourceVariablesTest(unittest.TestCase):
     # resets variables to initial value
     tflm_interpreter.reset()
     tflm_interpreter.set_input([[True]], 0)
-    tflm_interpreter.set_input([np.full((100,), 5.0, dtype=np.float32)], 1)
+    tflm_interpreter.set_input([np.full((100, ), 5.0, dtype=np.float32)], 1)
     tflm_interpreter.invoke()
     np.testing.assert_array_equal(
         tflm_interpreter.get_output(0),
@@ -57,4 +57,3 @@ class ResourceVariablesTest(unittest.TestCase):
 
 if __name__ == "__main__":
   unittest.main()
-
