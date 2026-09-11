@@ -44,14 +44,7 @@ except ImportError:
     except ImportError:
       pass
   except ImportError:
-    try:
-      import tensorflow.lite as tflite_interp
-
-      OpResolverType = tflite_interp.experimental.OpResolverType
-    except ImportError:
-      raise ImportError(
-        "Could not import ai_edge_litert, tflite_runtime, or tensorflow."
-      )
+    raise ImportError("Could not import ai_edge_litert or tflite_runtime.")
 
 np.set_printoptions(threshold=sys.maxsize)
 
