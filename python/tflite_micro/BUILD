@@ -101,7 +101,6 @@ tflm_py_test(
         ":runtime",
         requirement("ai-edge-litert"),
         requirement("numpy"),
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
     ],

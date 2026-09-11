@@ -22,6 +22,7 @@ from tflite_micro.tensorflow.lite.micro.compression import model_editor
 
 _MODEL_PATH = os.path.join(os.path.dirname(__file__), "sine_float.tflite")
 
+
 def _get_test_model():
   with open(_MODEL_PATH, "rb") as f:
     return f.read()
