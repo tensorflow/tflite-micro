@@ -8,6 +8,7 @@ tflm_py_library(
     visibility = ["//:__subpackages__"],
     deps = [
         requirement("flatbuffers"),
+        requirement("tensorflow"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
     ],
