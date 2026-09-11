@@ -20,19 +20,24 @@
 # 3. (gdb) run bazel-out/k8-fastbuild/bin/python/tflite_micro/runtime_test
 
 import gc
+import unittest
 import weakref
 
 import numpy as np
-import tensorflow as tf
 
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+try:
+  import ai_edge_litert.interpreter as tflite_interp
+  from ai_edge_litert.interpreter import OpResolverType
+except ImportError:
+  import tflite_runtime.interpreter as tflite_interp
+  from tflite_runtime.interpreter import OpResolverType
+
 from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.examples.recipes import add_four_numbers
 from tflite_micro.tensorflow.lite.micro.testing import generate_test_models
 
 
-class PeserveAllTensorsTest(test_util.TensorFlowTestCase):
+class PeserveAllTensorsTest(unittest.TestCase):
 
   def AddFourNumbersTestInterpreterMaker(self, inputs):
     """Returns a tflm interpreter with a simple model that loads 4 numbers loaded
@@ -95,14 +100,13 @@ class PeserveAllTensorsTest(test_util.TensorFlowTestCase):
     self.assertEqual(len(set(tensors)), 7)
 
 
-class ConvModelTests(test_util.TensorFlowTestCase):
+class ConvModelTests(unittest.TestCase):
   filename = "/tmp/interpreter_test_conv_model.tflite"
   input_shape = (1, 16, 16, 1)
   output_shape = (1, 10)
 
   def testInitErrorHandling(self):
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "Invalid model file path"):
+    with self.assertRaisesRegex(ValueError, "Invalid model file path"):
       runtime.Interpreter.from_file("wrong.tflite")
 
   def testInput(self):
@@ -114,7 +118,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
     # Test input tensor details
     input_details = tflm_interpreter.get_input_details(0)
-    self.assertAllEqual(input_details["shape"], self.input_shape)
+    np.testing.assert_array_equal(input_details["shape"], self.input_shape)
     # Single channel int8 quantization
     self.assertEqual(input_details["dtype"], np.int8)
     self.assertEqual(len(input_details["quantization_parameters"]["scales"]),
@@ -134,26 +138,22 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
     data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
     # Try to access out of bound data
-    with self.assertRaisesWithPredicateMatch(IndexError,
-                                             "Tensor is out of bound"):
+    with self.assertRaisesRegex(IndexError, "Tensor is out of bound"):
       tflm_interpreter.set_input(data_x, 1)
     # Pass data with wrong dimension
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "Dimension mismatch."):
+    with self.assertRaisesRegex(ValueError, "Dimension mismatch."):
       reshaped_data = data_x.reshape((1, 16, 16, 1, 1))
       tflm_interpreter.set_input(reshaped_data, 0)
     # Pass data with wrong dimension in one axis
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "Dimension mismatch."):
+    with self.assertRaisesRegex(ValueError, "Dimension mismatch."):
       reshaped_data = data_x.reshape((1, 2, 128, 1))
       tflm_interpreter.set_input(reshaped_data, 0)
     # Pass data with wrong type
-    with self.assertRaisesWithPredicateMatch(ValueError, "Got value of type"):
+    with self.assertRaisesRegex(ValueError, "Got value of type"):
       float_data = data_x.astype(np.float32)
       tflm_interpreter.set_input(float_data, 0)
     # Reach wrong details
-    with self.assertRaisesWithPredicateMatch(IndexError,
-                                             "Tensor is out of bound"):
+    with self.assertRaisesRegex(IndexError, "Tensor is out of bound"):
       tflm_interpreter.get_input_details(1)
 
   def testOutput(self):
@@ -162,7 +162,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
 
     # Test the output tensor details
     output_details = tflm_interpreter.get_output_details(0)
-    self.assertAllEqual(output_details["shape"], self.output_shape)
+    np.testing.assert_array_equal(output_details["shape"], self.output_shape)
     # Single channel int8 quantization
     self.assertEqual(output_details["dtype"], np.int8)
     self.assertEqual(len(output_details["quantization_parameters"]["scales"]),
@@ -180,11 +180,9 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
     tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
     # Try to access out of bound data
-    with self.assertRaisesWithPredicateMatch(IndexError,
-                                             "Tensor is out of bound"):
+    with self.assertRaisesRegex(IndexError, "Tensor is out of bound"):
       tflm_interpreter.get_output(1)
-    with self.assertRaisesWithPredicateMatch(IndexError,
-                                             "Tensor is out of bound"):
+    with self.assertRaisesRegex(IndexError, "Tensor is out of bound"):
       tflm_interpreter.get_output_details(1)
 
   def testCompareWithTFLite(self):
@@ -194,10 +192,10 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     tflm_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     # TFLite interpreter
-    tflite_interpreter = tf.lite.Interpreter(
-        model_content=model_data,
-        experimental_op_resolver_type=\
-        tf.lite.experimental.OpResolverType.BUILTIN_REF)
+    kwargs = {"model_content": model_data}
+    if OpResolverType is not None:
+      kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
+    tflite_interpreter = tflite_interp.Interpreter(**kwargs)
     tflite_interpreter.allocate_tensors()
     tflite_output_details = tflite_interpreter.get_output_details()[0]
     tflite_input_details = tflite_interpreter.get_input_details()[0]
@@ -219,9 +217,9 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       tflm_output = tflm_interpreter.get_output(0)
 
       # Check that TFLM output has correct metadata
-      self.assertDTypeEqual(tflm_output, np.int8)
+      self.assertEqual(tflm_output.dtype, np.int8)
       self.assertEqual(tflm_output.shape, self.output_shape)
-      self.assertAllEqual(tflite_output, tflm_output)
+      np.testing.assert_array_equal(tflite_output, tflm_output)
 
   def _helperModelFromFileAndBufferEqual(self):
     model_data = generate_test_models.generate_conv_model(True, self.filename)
@@ -241,12 +239,12 @@ class ConvModelTests(test_util.TensorFlowTestCase):
       bytes_interpreter.invoke()
       bytes_output = bytes_interpreter.get_output(0)
 
-      self.assertDTypeEqual(file_output, np.int8)
+      self.assertEqual(file_output.dtype, np.int8)
       self.assertEqual(file_output.shape, self.output_shape)
-      self.assertDTypeEqual(bytes_output, np.int8)
+      self.assertEqual(bytes_output.dtype, np.int8)
       self.assertEqual(bytes_output.shape, self.output_shape)
       # Same interpreter and model, should expect all equal
-      self.assertAllEqual(file_output, bytes_output)
+      np.testing.assert_array_equal(file_output, bytes_output)
 
   def testModelFromFileAndBufferEqual(self):
     self._helperModelFromFileAndBufferEqual()
@@ -270,9 +268,9 @@ class ConvModelTests(test_util.TensorFlowTestCase):
         if prev_output is None:
           prev_output = output
 
-        self.assertDTypeEqual(output, np.int8)
+        self.assertEqual(output.dtype, np.int8)
         self.assertEqual(output.shape, self.output_shape)
-        self.assertAllEqual(output, prev_output)
+        np.testing.assert_array_equal(output, prev_output)
 
   def _helperNoop(self):
     pass
@@ -305,25 +303,23 @@ class ConvModelTests(test_util.TensorFlowTestCase):
   def testMalformedCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = [("wrong", "format")]
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "must be a list of strings"):
+    with self.assertRaisesRegex(ValueError, "must be a list of strings"):
       interpreter = runtime.Interpreter.from_bytes(model_data,
                                                    custom_op_registerers)
 
     custom_op_registerers = "WrongFormat"
-    with self.assertRaisesWithPredicateMatch(ValueError,
-                                             "must be a list of strings"):
+    with self.assertRaisesRegex(ValueError, "must be a list of strings"):
       interpreter = runtime.Interpreter.from_bytes(model_data,
                                                    custom_op_registerers)
 
   def testNonExistentCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
     custom_op_registerers = ["SomeRandomOp"]
-    with self.assertRaisesWithPredicateMatch(
+    with self.assertRaisesRegex(
         RuntimeError, "TFLM could not register custom op via SomeRandomOp"):
       interpreter = runtime.Interpreter.from_bytes(model_data,
                                                    custom_op_registerers)
 
 
 if __name__ == "__main__":
-  test.main()
+  unittest.main()
