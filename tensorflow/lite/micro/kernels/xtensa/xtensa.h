@@ -1,4 +1,4 @@
-/* Copyright 2025 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ limitations under the License.
 #if defined(HIFIMINI)
 #include <xtensa/tie/xt_hifi2.h>
 
-#include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils_hifimini.h"
+#include "tensorflow/lite/micro/kernels/xtensa/hifimini/fixedpoint_utils.h"
 #endif  // defined(HIFMINI)
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 #include "include/nnlib/xa_nnlib_api.h"
 #include "include/nnlib/xa_nnlib_standards.h"
 
@@ -34,5 +34,9 @@ limitations under the License.
 #include "utils.h"
 #include "vision_api.h"
 #endif  // defined(VISION_P6)
+
+#if (( XCHAL_HAVE_HIFI5_VFPU || XCHAL_HAVE_HIFI4_VFPU || XCHAL_HAVE_HIFI3Z_VFPU || XCHAL_HAVE_HIFI3_VFPU || XCHAL_HAVE_HIFI1_VFPU || XCHAL_HAVE_HIFIN_SP_VFPU ) && FLOAT_OPT_FLAG )
+#define INCLUDE_FLOAT_OPT 
+#endif
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_H_
