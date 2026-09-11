@@ -24,6 +24,11 @@ import flatbuffers
 from tflite_micro.tensorflow.lite.micro.compression import tensor_type
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
+# The file identifier declared by schema.fbs, at bytes 4-7 of a
+# finished .tflite flatbuffer. Loaders such as the TfLite interpreter
+# verify it before reading the model.
+_TFLITE_FILE_IDENTIFIER = b"TFL3"
+
 
 class _BufferList(list):
   """Custom list that auto-sets buffer.index on append.
@@ -823,8 +828,14 @@ class _ModelCompiler:
   def compile(self) -> bytearray:
     """Compile model using backing ModelT, preserving all fields."""
     # Use the backing ModelT directly---this preserves all fields we don't
-    # explicitly handle (version, signature_defs, etc.)
+    # explicitly handle (signature_defs, etc.)
     root = self.model._fb
+
+    # A .tflite file declares schema version 3. A model built from
+    # scratch leaves the field at the flatbuffer default of 0; a model
+    # from read() keeps the version it declared.
+    if not root.version:
+      root.version = 3
 
     # Initialize buffers
     # If model.buffers exists (from read()), preserve those buffers
@@ -858,7 +869,7 @@ class _ModelCompiler:
 
     # Pack and return
     builder = flatbuffers.Builder(4 * 2**20)
-    builder.Finish(root.Pack(builder))
+    builder.Finish(root.Pack(builder), file_identifier=_TFLITE_FILE_IDENTIFIER)
     return builder.Output()
 
   def _collect_operator_codes(self):
