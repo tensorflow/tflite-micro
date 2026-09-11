@@ -279,11 +279,11 @@ py_wheel(
         ":local": "py3",
     }),
     requires = [
+        "absl-py",
         "bitarray",
         "flatbuffers",
         "numpy",
         "pyyaml",
-        "tensorflow",
     ],
     stamp = 1,  # 1 == always stamp
     strip_path_prefixes = [package_name()],
