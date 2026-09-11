@@ -42,7 +42,8 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":evaluate",
-        ":train",
         "//tensorflow/lite/micro/tools:requantize_flatbuffer",
+        requirement("ai-edge-litert"),
+        requirement("numpy"),
     ],
 )
