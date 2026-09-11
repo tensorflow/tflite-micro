@@ -37,12 +37,7 @@ except ImportError:
     except ImportError:
       pass
   except ImportError:
-    try:
-      import tensorflow.lite as tflite_interp
-      OpResolverType = tflite_interp.experimental.OpResolverType
-    except ImportError:
-      raise ImportError(
-          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
+    raise ImportError("Could not import ai_edge_litert or tflite_runtime.")
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.python.tflite_micro import runtime
