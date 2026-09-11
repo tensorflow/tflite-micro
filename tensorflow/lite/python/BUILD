@@ -18,4 +18,8 @@ py_library(
     name = "schema_util",
     srcs = ["schema_util.py"],
     visibility = ["//:__subpackages__"],
+    deps = [
+        requirement("flatbuffers"),
+        requirement("tensorflow"),
+    ],
 )

@@ -14,9 +14,7 @@
 # ==============================================================================
 """Schema utilities to get builtin code from operator code."""
 
-__all__ = [
-    'get_builtin_code_from_operator_code',
-]
+from tensorflow.python.util import all_util
 
 
 def get_builtin_code_from_operator_code(opcode):
@@ -38,3 +36,10 @@ def get_builtin_code_from_operator_code(opcode):
     return max(opcode.BuiltinCode(), opcode.DeprecatedBuiltinCode())
 
   return max(opcode.builtinCode, opcode.deprecatedBuiltinCode)
+
+
+_allowed_symbols = [
+    'get_builtin_code_from_operator_code',
+]
+
+all_util.remove_undocumented(__name__, _allowed_symbols)
