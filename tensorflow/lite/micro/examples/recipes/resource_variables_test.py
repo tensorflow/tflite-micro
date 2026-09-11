@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+import unittest
 import numpy as np
 
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+from tflite_micro.python.tflite_micro import runtime as tflm_runtime
 from tflite_micro.tensorflow.lite.micro.examples.recipes import resource_variables_lib
 
-from tflite_micro.python.tflite_micro import runtime as tflm_runtime
 
-
-class ResourceVariablesTest(test_util.TensorFlowTestCase):
+class ResourceVariablesTest(unittest.TestCase):
 
   # Tests the custom accumulator model. Input conditional is [True], and
   # accumulator value is array of 5.0. Given these inputs, we expect the output
@@ -31,17 +29,17 @@ class ResourceVariablesTest(test_util.TensorFlowTestCase):
     tflm_interpreter = tflm_runtime.Interpreter.from_bytes(model_keras)
 
     tflm_interpreter.set_input([[True]], 0)
-    tflm_interpreter.set_input([np.full((100,), 15.0, dtype=np.float32)], 1)
+    tflm_interpreter.set_input([np.full((100, ), 15.0, dtype=np.float32)], 1)
     tflm_interpreter.invoke()
-    self.assertAllEqual(
+    np.testing.assert_array_equal(
         tflm_interpreter.get_output(0),
         np.full((1, 100), 15.0, dtype=np.float32),
     )
 
     tflm_interpreter.set_input([[False]], 0)
-    tflm_interpreter.set_input([np.full((100,), 9.0, dtype=np.float32)], 1)
+    tflm_interpreter.set_input([np.full((100, ), 9.0, dtype=np.float32)], 1)
     tflm_interpreter.invoke()
-    self.assertAllEqual(
+    np.testing.assert_array_equal(
         tflm_interpreter.get_output(0),
         np.full((1, 100), 6.0, dtype=np.float32),
     )
@@ -49,13 +47,13 @@ class ResourceVariablesTest(test_util.TensorFlowTestCase):
     # resets variables to initial value
     tflm_interpreter.reset()
     tflm_interpreter.set_input([[True]], 0)
-    tflm_interpreter.set_input([np.full((100,), 5.0, dtype=np.float32)], 1)
+    tflm_interpreter.set_input([np.full((100, ), 5.0, dtype=np.float32)], 1)
     tflm_interpreter.invoke()
-    self.assertAllEqual(
+    np.testing.assert_array_equal(
         tflm_interpreter.get_output(0),
         np.full((1, 100), 5.0, dtype=np.float32),
     )
 
 
 if __name__ == "__main__":
-  test.main()
+  unittest.main()
