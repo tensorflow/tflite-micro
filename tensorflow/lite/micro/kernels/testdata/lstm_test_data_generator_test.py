@@ -78,7 +78,6 @@ def create_keras_lstm(stateful=True):
 
 
 class QuantizedLSTMDebuggerTest(unittest.TestCase):
-
   # only the float output from the debugger is used to setup the test data in .cc
   def testFloatCompareWithKeras(self):
     keras_lstm = create_keras_lstm()
