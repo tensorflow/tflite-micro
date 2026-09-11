@@ -53,6 +53,12 @@ TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, 1, input->dims->data[1]);
   TF_LITE_ENSURE_EQ(context, input->dims->data[2], output->dims->data[2]);
   TF_LITE_ENSURE_EQ(context, output->dims->data[3], input->dims->data[3]);
+  // The number of slots in the circular buffer (output->dims->data[1]) must be
+  // at least 1. CircularBufferEval computes the shift size as
+  // (num_slots - 1) * depth and passes it to memmove; a num_slots of 0 makes
+  // that size negative, which wraps to a huge size_t and causes an
+  // out-of-bounds read/write on the output tensor.
+  TF_LITE_ENSURE(context, output->dims->data[1] >= 1);
 
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
