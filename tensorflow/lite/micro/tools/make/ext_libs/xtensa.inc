@@ -8,6 +8,40 @@ ifeq ($(TARGET_ARCH), hifimini)
   THIRD_PARTY_CC_HDRS += \
     $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
 
+else ifeq ($(TARGET_ARCH), hifi_iq)
+  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi_iq $(TENSORFLOW_ROOT))
+  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+    $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
+  endif
+
+  PLATFORM_FLAGS = \
+    -Wno-shadow\
+
+  CCFLAGS += $(PLATFORM_FLAGS)
+  CXXFLAGS += $(PLATFORM_FLAGS)
+
+  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi_iq
+
+  THIRD_PARTY_KERNEL_CC_SRCS += \
+    $(shell find $(NNLIB_PATH) -name "*.c")
+
+  EXCLUDED_NNLIB_SRCS = \
+    $(NNLIB_PATH)/algo/layers/cnn/src/xa_nn_cnn_api.c \
+    $(NNLIB_PATH)/algo/layers/gru/src/xa_nn_gru_api.c \
+    $(NNLIB_PATH)/algo/layers/lstm/src/xa_nn_lstm_api.c \
+
+  THIRD_PARTY_KERNEL_CC_SRCS := $(filter-out $(EXCLUDED_NNLIB_SRCS), $(THIRD_PARTY_KERNEL_CC_SRCS))
+
+  THIRD_PARTY_CC_HDRS += \
+    $(shell find $(NNLIB_PATH) -name "*.h") \
+
+  INCLUDES += \
+    -I$(NNLIB_PATH)/ \
+    -I$(NNLIB_PATH)/algo/kernels/ \
+    -I$(NNLIB_PATH)/include/nnlib/ \
+    -I$(NNLIB_PATH)/include/ \
+    -I$(NNLIB_PATH)/algo/common/include/ \
+
 else ifeq ($(TARGET_ARCH), hifi5)
   DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
   ifneq ($(DOWNLOAD_RESULT), SUCCESS)
