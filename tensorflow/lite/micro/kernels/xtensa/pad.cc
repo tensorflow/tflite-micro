@@ -190,13 +190,54 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
 #if defined(VISION_P6)
       PadEvalVision(*op_data_xtensa, input, output);
-#else
+#else // defined(VISION_P6)
       int8_t pad_value;
       if (constant_values == nullptr) {
         pad_value = static_cast<uint8_t>(data->output_zero_point);
       } else {
         pad_value = *tflite::micro::GetTensorData<int8_t>(constant_values);
       }
+#if (defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
+      if((input->dims->size <= 4))
+      {
+        int err;
+        const int8_t *input_data_ptr;
+        int8_t *output_data_ptr;
+
+        input_data_ptr  = tflite::micro::GetTensorData<int8_t>(input);
+        output_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
+
+        const TfLiteEvalTensor* paddings = tflite::micro::GetEvalInput(context, node, /*index=*/1);
+        const int32_t* paddings_data_ptr = tflite::micro::GetTensorData<int32_t>(paddings);
+
+        err =  xa_nn_pad_8_8(output_data_ptr
+                            ,output->dims->data
+                            ,input_data_ptr
+                            ,input->dims->data
+                            ,paddings_data_ptr
+                            ,paddings->dims->data
+                            ,output->dims->size
+                            ,input->dims->size
+                            ,paddings->dims->size
+                            ,pad_value);
+        TF_LITE_ENSURE(context, (err==0) ); 
+      }
+      else
+      {
+        if (data->params.resizing_category == ResizingCategory::kImageStyle) {
+          reference_ops::PadImageStyle(
+              data->params, tflite::micro::GetTensorShape(input),
+              tflite::micro::GetTensorData<int8_t>(input), &pad_value,
+              tflite::micro::GetTensorShape(output),
+              tflite::micro::GetTensorData<int8_t>(output));
+        } else {
+          reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
+                            tflite::micro::GetTensorData<int8_t>(input),
+                            &pad_value, tflite::micro::GetTensorShape(output),
+                            tflite::micro::GetTensorData<int8_t>(output));
+        }
+      }
+#else // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
       if (data->params.resizing_category == ResizingCategory::kImageStyle) {
         reference_ops::PadImageStyle(
             data->params, tflite::micro::GetTensorShape(input),
@@ -209,16 +250,17 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                            &pad_value, tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int8_t>(output));
       }
-#endif
+#endif // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+#endif // defined(VISION_P6)
     } break;
     case kTfLiteInt16: {
       int16_t pad_value =
           constant_values == nullptr
               ? 0
               : *tflite::micro::GetTensorData<int16_t>(constant_values);
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if (defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
       /* NNLib currently only supports up to 4D input tensors */
-      if (tflite::micro::GetTensorShape(input).DimensionsCount() == 4) {
+      if (tflite::micro::GetTensorShape(input).DimensionsCount() <= 4) {
         const TfLiteEvalTensor* paddings =
             tflite::micro::GetEvalInput(context, node, /*index=*/1);
         int32_t err = xa_nn_pad_16_16(
@@ -234,24 +276,51 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             pad_value);
         if (err != 0) return kTfLiteError;
       } else {
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
         reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
                            tflite::micro::GetTensorData<int16_t>(input),
                            &pad_value, tflite::micro::GetTensorShape(output),
                            tflite::micro::GetTensorData<int16_t>(output));
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if (defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
       }
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
     } break;
     case kTfLiteInt32: {
       int32_t pad_value =
           constant_values == nullptr
               ? 0
               : *tflite::micro::GetTensorData<int32_t>(constant_values);
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  if(tflite::micro::GetTensorShape(input).DimensionsCount() <= 4)
+  {  
+      const TfLiteEvalTensor* paddings =
+          tflite::micro::GetEvalInput(context, node, /*index=*/1);
+      int32_t err = xa_nn_pad_32_32(
+          tflite::micro::GetTensorData<int32_t>(output),
+          tflite::micro::GetTensorShape(output).DimsData(),
+          tflite::micro::GetTensorData<int32_t>(input),
+          tflite::micro::GetTensorShape(input).DimsData(),
+          tflite::micro::GetTensorData<int32_t>(paddings),
+          tflite::micro::GetTensorShape(paddings).DimsData(),
+          tflite::micro::GetTensorShape(output).DimensionsCount(),
+          tflite::micro::GetTensorShape(input).DimensionsCount(),
+          tflite::micro::GetTensorShape(paddings).DimensionsCount(),
+          pad_value);
+      if (err != 0) return kTfLiteError;
+  }
+  else
+  {
+      reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
+                        tflite::micro::GetTensorData<int32_t>(input),
+                        &pad_value, tflite::micro::GetTensorShape(output),
+                        tflite::micro::GetTensorData<int32_t>(output));    
+  }
+#else // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       reference_ops::Pad(data->params, tflite::micro::GetTensorShape(input),
                          tflite::micro::GetTensorData<int32_t>(input),
                          &pad_value, tflite::micro::GetTensorShape(output),
                          tflite::micro::GetTensorData<int32_t>(output));
+#endif // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     } break;
     default:
 
