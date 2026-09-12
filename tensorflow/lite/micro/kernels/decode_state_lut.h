@@ -42,11 +42,13 @@ class DecodeStateLut : public DecodeState {
   static constexpr size_t kMaxBitWidth = 7;
   static constexpr size_t kMaxValueTableChannelStride = 128;
 
- private:
+ public:
   // LUT Decode Common Metadata constants
   static constexpr size_t kDcmVersionOffset = 4;
   static constexpr size_t kDcmParamsOffset = 5;
   static constexpr uint8_t kDcmParamsBitWidthMask = 0x07;
+  static constexpr uint8_t kDcmParamsAxisMask = 0xF0;
+  static constexpr uint8_t kDcmParamsAxisMaskShift = 4;
   static constexpr size_t kDcmValueTableStrideOffset = 6;
 
  protected:

@@ -31,26 +31,38 @@ TfLiteStatus DecodeStatePrune::Setup(const TfLiteTensor& input,
                                      const TfLiteTensor& ancillary,
                                      const TfLiteTensor& output) {
   const uint8_t* const ancillary_data = GetTensorData<uint8_t>(&ancillary);
-  if (ancillary_data[kDcmVersionOffset] != 1) {
-    MicroPrintf("unsupported version %u", ancillary_data[kDcmVersionOffset]);
-    return kTfLiteError;
+  TF_LITE_ENSURE_MSG(const_cast<TfLiteContext*>(context_),
+                     ancillary_data[kDcmVersionOffset] == 1,
+                     "unsupported version %u",
+                     ancillary_data[kDcmVersionOffset]);
+
+  // Resolve num_channels_, use_alternate_axis_, and zero points.
+  // Axis parameter of the DCM is used to extract the channel count dimension
+  // from the output tensor shape.
+  // Constructor defaults num_channels_ to 1 (one).
+  // If the axis has all masked bits set, the output tensor has a single
+  // channel.
+  const uint8_t axis_mask =
+      ancillary_data[kDcmParamsOffset] & kDcmParamsAxisMask;
+  if (axis_mask != kDcmParamsAxisMask) {
+    const uint8_t axis = axis_mask >> kDcmParamsAxisMaskShift;
+    TFLITE_DCHECK(axis < NumDimensions(&output));
+    num_channels_ = SizeOfDimension(&output, axis);
+
+    if ((axis == NumDimensions(&output) - 1)) {
+      if (num_channels_ > 1) {
+        use_alternate_axis_ = true;
+      }
+    } else {
+      TF_LITE_ENSURE_MSG(const_cast<TfLiteContext*>(context_), axis == 0,
+                         "unsupported channel axis %u", axis);
+    }
   }
 
-  // resolve num_channels_, use_alternate_axis_, and zero points
   if (output.quantization.type == kTfLiteAffineQuantization &&
       output.quantization.params != nullptr) {
     const TfLiteAffineQuantization* quantization =
         reinterpret_cast<TfLiteAffineQuantization*>(output.quantization.params);
-    num_channels_ = quantization->scale->size;
-    if ((quantization->quantized_dimension == output.dims->size - 1) &&
-        num_channels_ > 1) {
-      use_alternate_axis_ = true;
-    } else if (quantization->quantized_dimension != 0) {
-      MicroPrintf("unsupported quantization axis %u",
-                  quantization->quantized_dimension);
-      return kTfLiteError;
-    }
-
     TFLITE_DCHECK(num_channels_ ==
                   static_cast<size_t>(quantization->zero_point->size));
     bool has_non_zero_zp =
@@ -71,10 +83,8 @@ TfLiteStatus DecodeStatePrune::Setup(const TfLiteTensor& input,
       const size_t bufsize = num_channels_ * sizeof(*zero_points_);
       zero_points_ = static_cast<decltype(zero_points_)>(
           micro_context->AllocatePersistentBuffer(bufsize));
-      if (zero_points_ == nullptr) {
-        MicroPrintf("unable to allocate zero_points_");
-        return kTfLiteError;
-      }
+      TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_),
+                     zero_points_ != nullptr);
       std::copy_n(quantization->zero_point->data, num_channels_, zero_points_);
     } else {
       single_zero_point_ = quantization->zero_point->data[0];
