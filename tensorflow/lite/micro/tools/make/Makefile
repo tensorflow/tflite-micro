@@ -181,6 +181,11 @@ ifneq ($(TOOLCHAIN), gcc)
   CC_WARNINGS += -Wshadow
 endif
 
+WERROR ?= 0
+ifeq ($(WERROR), 1)
+  CC_WARNINGS += -Werror
+endif
+
 COMMON_FLAGS := \
   -fno-unwind-tables \
   -fno-asynchronous-unwind-tables \
