@@ -56,8 +56,8 @@ TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
     const float reluish_scale = 3.0f / 32768.0f;
     const float output_scale = output->params.scale;
 
-    const double output_multiplier =
-        static_cast<double>(hires_input_scale / output_scale);
+    const double output_multiplier = static_cast<double>(hires_input_scale) /
+                                     static_cast<double>(output_scale);
     int32_t output_multiplier_fixedpoint_int32;
     QuantizeMultiplier(output_multiplier, &output_multiplier_fixedpoint_int32,
                        &params->output_multiplier_exponent);
@@ -67,8 +67,8 @@ TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
 
     TF_LITE_ENSURE(context, params->output_multiplier_exponent <= 0);
 
-    const double reluish_multiplier =
-        static_cast<double>(hires_input_scale / reluish_scale);
+    const double reluish_multiplier = static_cast<double>(hires_input_scale) /
+                                      static_cast<double>(reluish_scale);
     int32_t reluish_multiplier_fixedpoint_int32;
     QuantizeMultiplier(reluish_multiplier, &reluish_multiplier_fixedpoint_int32,
                        &params->reluish_multiplier_exponent);

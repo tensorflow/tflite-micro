@@ -67,8 +67,8 @@ void PrepareQuantized(
       twice_max_input_scale;
   const double real_output_multiplier =
       (twice_max_input_scale * twice_max_input_scale) /
-      static_cast<double>((1 << data->arithmetic_params.left_shift * 2) *
-                          output_quantization_params.scale);
+      (static_cast<double>(1 << data->arithmetic_params.left_shift * 2) *
+       static_cast<double>(output_quantization_params.scale));
   QuantizeMultiplierSmallerThanOneExp(
       real_input1_multiplier, &data->arithmetic_params.input1_multiplier,
       &data->arithmetic_params.input1_shift);
