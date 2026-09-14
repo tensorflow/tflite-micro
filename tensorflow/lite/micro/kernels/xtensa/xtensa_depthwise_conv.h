@@ -25,7 +25,7 @@ namespace tflite {
 struct XtensaDepthwiseConvOpData {
   OpDataConv reference_op_data;
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   int scratch_tensor_index;
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
@@ -39,29 +39,42 @@ struct XtensaDepthwiseConvOpData {
 #endif  // VISION_P6
 };
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 TfLiteStatus DepthwiseConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
 
-TfLiteStatus DepthwiseConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
-                                       const TfLiteDepthwiseConvParams& params,
-                                       const XtensaDepthwiseConvOpData& data,
-                                       const TfLiteEvalTensor* input,
-                                       const TfLiteEvalTensor* filter,
-                                       const TfLiteEvalTensor* bias,
-                                       TfLiteEvalTensor* output);
+TfLiteStatus DepthwiseConvEvalInt8Hifi(TfLiteContext* context, TfLiteNode* node,
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output);
 
-TfLiteStatus DepthwiseConvEvalHifiInt16(TfLiteContext* context,
-                                        TfLiteNode* node,
-                                        const TfLiteDepthwiseConvParams& params,
-                                        const XtensaDepthwiseConvOpData& data,
-                                        const TfLiteEvalTensor* input,
-                                        const TfLiteEvalTensor* filter,
-                                        const TfLiteEvalTensor* bias,
-                                        TfLiteEvalTensor* output);
+TfLiteStatus DepthwiseConvEvalInt16Hifi(TfLiteContext* context, TfLiteNode* node,
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output);
+
+#if defined(INCLUDE_FLOAT_OPT) && !(defined(HIFI_IQ))
+TfLiteStatus DepthwiseConvEvalFloat32Hifi(TfLiteContext* context, TfLiteNode* node,
+                                   const TfLiteDepthwiseConvParams& params,
+                                   const XtensaDepthwiseConvOpData& data,
+                                   const TfLiteEvalTensor* input,
+                                   const TfLiteEvalTensor* filter,
+                                   const TfLiteEvalTensor* bias,
+                                   TfLiteEvalTensor* output);
+#endif
 
 TfLiteStatus DepthwiseConvReferenceEvalInt8(TfLiteContext* context,
                                             TfLiteNode* node);
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+TfLiteStatus DepthwiseConvReferenceEvalInt16(TfLiteContext* context,
+                                            TfLiteNode* node);
+TfLiteStatus DepthwiseConvReferenceEvalFloat32(TfLiteContext* context,
+                                            TfLiteNode* node);                                                                                        
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 #if defined(VISION_P6)
 
@@ -77,6 +90,9 @@ TfLiteStatus DepthwiseConvEvalVision(TfLiteContext* context, TfLiteNode* node,
                                      TfLiteEvalTensor* output);
 
 #endif  // VISION_P6
+
+void* DepthwiseConvInitXtensa(TfLiteContext* context, const char* buffer, size_t length);
+TfLiteStatus DepthwiseConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
 
 }  // namespace tflite
 
