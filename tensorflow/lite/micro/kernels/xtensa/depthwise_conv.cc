@@ -98,9 +98,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   MicroContext* micro_context = GetMicroContext(context);
 
+  [[maybe_unused]]
   const CompressionTensorData* filter_comp_td =
       micro_context->GetTensorCompressionData(node,
                                               kDepthwiseConvWeightsTensor);
+  [[maybe_unused]]
   const CompressionTensorData* bias_comp_td =
       micro_context->GetTensorCompressionData(node, kDepthwiseConvBiasTensor);
 

@@ -247,4 +247,12 @@ MicroProfilerInterface* MicroInterpreterContext::GetAlternateProfiler() const {
   return alt_profiler_;
 }
 
+TfLiteStatus MicroInterpreterContext::SetCustomDecodeRegistrations(
+    const CustomDecodeRegistration* registrations, size_t count) {
+  if (state_ != InterpreterState::kInit) {
+    return kTfLiteError;
+  }
+  return MicroContext::SetCustomDecodeRegistrations(registrations, count);
+}
+
 }  // namespace tflite

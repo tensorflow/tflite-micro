@@ -573,7 +573,7 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedInvalidZeroPointInt16) {
   tflite::testing::TestDecode<kEncodes.size() + kAncillaries.size(),
                               kOutputs.size()>(
       kEncodes, kAncillaries, kOutputs, kExpected, tflite::Register_DECODE(),
-      nullptr, kTfLiteError);
+      nullptr, nullptr, kTfLiteError);
 }
 
 TF_LITE_MICRO_TESTS_MAIN

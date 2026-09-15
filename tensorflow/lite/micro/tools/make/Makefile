@@ -161,6 +161,7 @@ endif
 
 
 CC_WARNINGS := \
+  -Werror \
   -Wsign-compare \
   -Wdouble-promotion \
   -Wunused-variable \
