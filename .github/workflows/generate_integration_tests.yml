@@ -16,7 +16,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   generate_integration_tests:
@@ -27,11 +26,11 @@ jobs:
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
     name: Generate Integration Tests
     steps:
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.10'
-      - uses: actions/checkout@v7
-      - uses: bazel-contrib/setup-bazel@0.18.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
         with:
           bazelisk-cache: true
           disk-cache: true

@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 60
     name: Vision P6 Build
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -44,7 +44,7 @@ jobs:
     timeout-minutes: 60
     name: Hifi5 Unit Tests
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 60
     name: Hifi5 Unit Tests with Compression
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -84,7 +84,7 @@ jobs:
     timeout-minutes: 60
     name: Hifi3z Unit Tests
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -104,7 +104,7 @@ jobs:
     timeout-minutes: 60
     name: Hifi3z Unit Tests with Compression
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -126,7 +126,7 @@ jobs:
     timeout-minutes: 60
     name: Fusion F1 Unit Tests
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -146,7 +146,7 @@ jobs:
     timeout-minutes: 60
     name: Vision P6 Unit Tests
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -166,7 +166,7 @@ jobs:
     timeout-minutes: 60
     name: Hifimini Unit Tests
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true

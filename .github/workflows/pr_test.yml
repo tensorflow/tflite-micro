@@ -1,10 +1,14 @@
 name: PR Tests
 
 on:
+  # zizmor: ignore[dangerous-triggers]
   pull_request_target:
     types:
       - synchronize
       - labeled
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -19,7 +23,7 @@ jobs:
     steps:
       - name: check-scope
         id: check-scope
-        uses: actions/github-script@v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           github-token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
           script: |
