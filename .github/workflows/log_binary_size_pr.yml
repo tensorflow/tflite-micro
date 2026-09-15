@@ -29,7 +29,10 @@ on:
 
 env:
   LOG_BRANCH: profiling-logs
-  
+
+permissions:
+  contents: read
+
 jobs:
   binary-size-log:
     runs-on: ubuntu-latest

@@ -16,7 +16,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   generate_integration_tests:

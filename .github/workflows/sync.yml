@@ -15,6 +15,9 @@ on:
   # Allow manually triggering of the workflow.
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   sync:
     runs-on: ubuntu-latest
