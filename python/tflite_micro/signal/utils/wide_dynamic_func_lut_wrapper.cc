@@ -42,17 +42,12 @@ int16_t PcanGainLookupFunction(const float strength, const float offset,
 
 py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
                             int gain_bits) {
-  // Avoid accessing outside of the buffer below gain_lut[4 * interval + 3].
-  int16_t gain_lut_storage[kWideDynamicFunctionLUTSize + 1];
-  int16_t* gain_lut = gain_lut_storage;
+  int16_t gain_lut[kWideDynamicFunctionLUTSize + 1];
 
   gain_lut[0] =
       PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 0);
   gain_lut[1] =
       PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 1);
-  // This puts the pointer outside of the buffer making the calculation in the
-  // loop below a lot simpler.
-  gain_lut -= 6;
 
   for (size_t interval = 2; interval <= kWideDynamicFunctionBits; ++interval) {
     const uint32_t x0 = static_cast<uint32_t>(1) << (interval - 1);
@@ -72,14 +67,12 @@ py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
     const int32_t a1 = 4 * diff1 - diff2;
     const int32_t a2 = diff2 - a1;
 
-    gain_lut[4 * interval] = y0;
-    gain_lut[4 * interval + 1] = static_cast<int16_t>(a1);
-    gain_lut[4 * interval + 2] = static_cast<int16_t>(a2);
-    gain_lut[4 * interval + 3] = 0;
+    const size_t base_idx = 4 * interval - 6;
+    gain_lut[base_idx] = y0;
+    gain_lut[base_idx + 1] = static_cast<int16_t>(a1);
+    gain_lut[base_idx + 2] = static_cast<int16_t>(a2);
+    gain_lut[base_idx + 3] = 0;
   }
-  // Brings the pointer back to the start of the buffer post calculation for the
-  // lut
-  gain_lut += 6;
 
   py::list lut_list = py::list();
   for (size_t i = 0; i < kWideDynamicFunctionLUTSize; i++) {
