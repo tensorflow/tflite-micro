@@ -17,6 +17,9 @@
 # Collection of helper functions that can be used in the different continuous
 # integration scripts.
 
+# Enable -Werror by default for CI runs, but allow overriding with WERROR=0.
+export WERROR=${WERROR:-1}
+
 # Executes a command with a timeout and formats output for GitHub Actions.
 function readable_run {
   # 1. specific GitHub Actions syntax to start a collapsible section
