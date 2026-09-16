@@ -42,10 +42,14 @@ install_core() {
     # Update installation paths in core parameter files (works for both fresh Cadence
     # core packages and pre-configured Google3 depot core packages).
     sed -i \
-      -e "s|^install-prefix = .*|install-prefix = ${XTENSA_TOOLS_DIR}|" \
-      -e "s|^config-prefix = .*|config-prefix = ${core_dir}|" \
-      -e "s|^xtensa-tools = .*|xtensa-tools = ${XTENSA_TOOLS_DIR}/Tools|" \
-      -e "s|^tc-tools = .*|tc-tools = ${XTENSA_TOOLS_DIR}/TIE|" \
+      -e "s|^install-prefix = .*|install-prefix = ${XTENSA_TOOLS_DIR}|g" \
+      -e "s|^config-prefix = .*|config-prefix = ${core_dir}|g" \
+      -e "s|^xtensa-tools = .*|xtensa-tools = ${XTENSA_TOOLS_DIR}/Tools|g" \
+      -e "s|^tc-tools = .*|tc-tools = ${XTENSA_TOOLS_DIR}/TIE|g" \
+      -e "s|\.\./\.\./\.\./\.\./\.\./unsupported_toolchains/xtensa/RI_2022_9/XtensaTools|${XTENSA_TOOLS_DIR}|g" \
+      -e "s|\.\./\.\./${core_name}|${core_dir}|g" \
+      -e "s|/usr/local/google/home/[^/]*/xtensa/[^/]*/install/builds/RI-2022.9-linux/${core_name}|${core_dir}|g" \
+      -e "s|/usr/local/google/home/[^/]*/xtensa/[^/]*/install/tools/RI-2022.9-linux/XtensaTools|${XTENSA_TOOLS_DIR}|g" \
       "${core_dir}/config/default-params" \
       "${core_dir}/config/${core_name}-params"
 

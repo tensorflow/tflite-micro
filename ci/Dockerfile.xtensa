@@ -77,7 +77,7 @@ COPY --from=installer /usr/local/bin/bazel /usr/local/bin/bazel
 
 ENV XTENSA_BASE="/opt/xtensa/XtDevTools/install/"
 ENV LIC_DIR="/opt/xtensa/licenses/RI-2022.9-linux"
-ENV LM_LICENSE_FILE="/opt/xtensa/licenses/RI-2022.9-linux/PRD_H5_RDO_07_01_2022/misc/license.dat"
+ENV LM_LICENSE_FILE="/opt/xtensa/licenses/RI-2022.9-linux/P29A_FusionF1/misc/license.dat:/opt/xtensa/licenses/RI-2022.9-linux/P29A_HiFi3z/misc/license.dat:/opt/xtensa/licenses/RI-2022.9-linux/P29A_VP6/misc/license.dat:/opt/xtensa/licenses/RI-2022.9-linux/PRD_H5_RDO_07_01_2022/misc/license.dat"
 ENV LD_LIBRARY_PATH="/opt/xtensa/XtDevTools/install/tools/RI-2022.9-linux/XtensaTools/Tools/tools.lnx86/cdsgcc/gcc/6.3/install/lib64"
 
 CMD ["/opt/xtensa/XtDevTools/install/tools/RI-2022.9-linux/XtensaTools/bin/xt-clang++", "--xtensa-core="]
