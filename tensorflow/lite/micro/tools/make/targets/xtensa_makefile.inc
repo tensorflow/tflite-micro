@@ -98,11 +98,13 @@ MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/ex
 ifeq ($(XTENSA_CORE), P29A_FusionF1)
   # P29A_FusionF1 has 1 MB of SRAM (sram0_seg = 0x100000), which is too small
   # for the multi-model SeaNet integration tests (~1.4 MB),
-  # layer_by_layer_output_tool (~3 MB tensor arena), and
-  # tflm_benchmark (~5 MB default tensor arena).
+  # layer_by_layer_output_tool (~3 MB tensor arena),
+  # tflm_benchmark (~5 MB default tensor arena), and internal SeaNet/Conformer
+  # benchmarks.
   MICRO_LITE_INTEGRATION_TESTS :=
   MICRO_LITE_LAYER_BY_LAYER_OUTPUT :=
   MICRO_LITE_BENCHMARKS :=
+  MICRO_LITE_EXAMPLE_TESTS := $(filter-out %seanet/Makefile_internal.inc %conformer/Makefile_internal.inc, $(MICRO_LITE_EXAMPLE_TESTS))
 endif
 
 ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
