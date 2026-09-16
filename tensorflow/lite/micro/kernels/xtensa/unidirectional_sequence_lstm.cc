@@ -84,12 +84,32 @@ TfLiteStatus UnidirectionalSequenceLstmPrepare(TfLiteContext* context,
     return kTfLiteError;
   }
   // request buffers (four buffers)
-  for (size_t i = 0; i < 4; i++) {
+  size_t default_buffer_size = op_data->size_info.batch_size *
+                               op_data->size_info.state_dimension *
+                               TfLiteTypeGetSize(cell_state_type);
+  size_t buffer0_size = default_buffer_size;
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  {
+    const TfLiteType activation_type =
+        lstm_tensors.GetInternalTensor(kLstmInputTensor)->type;
+    const TfLiteType weight_type =
+        lstm_tensors.GetInternalTensor(kLstmInputToForgetWeightsTensor)->type;
+    if (activation_type == kTfLiteInt8 && weight_type == kTfLiteInt8) {
+      int fused_scratch_size = xa_nn_lstm_getsize(
+          op_data->size_info.batch_size, op_data->size_info.time_steps,
+          op_data->size_info.state_dimension, /*cell_state_precision=*/16);
+      if (static_cast<size_t>(fused_scratch_size) > buffer0_size) {
+        buffer0_size = static_cast<size_t>(fused_scratch_size);
+      }
+    }
+  }
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  TF_LITE_ENSURE_OK(context,
+                    context->RequestScratchBufferInArena(
+                        context, buffer0_size, &(op_data->buffer_indices[0])));
+  for (size_t i = 1; i < 4; i++) {
     TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
-                                   context,
-                                   op_data->size_info.batch_size *
-                                       op_data->size_info.state_dimension *
-                                       TfLiteTypeGetSize(cell_state_type),
+                                   context, default_buffer_size,
                                    &(op_data->buffer_indices[i])));
   }
   return kTfLiteOk;
@@ -110,7 +130,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
     case kTfLiteFloat32: {
       LSTMBuffers<float> buffers =
           CreateLSTMBuffers<float>(context, op_data.buffer_indices);
-      EvalLstm<float, float, float, float>(op_data, kernel_content, buffers);
+      return EvalLstm<float, float, float, float>(op_data, kernel_content, buffers);
       break;
     }
     case kTfLiteInt8: {
@@ -119,7 +139,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
           // 8(activation)x8(weight)->16(cell) LSTM with 32 bits bias
           LSTMBuffers<int16_t> buffers =
               CreateLSTMBuffers<int16_t>(context, op_data.buffer_indices);
-          EvalLstm<int8_t, int8_t, int16_t, int32_t>(op_data, kernel_content,
+          return EvalLstm<int8_t, int8_t, int16_t, int32_t>(op_data, kernel_content,
                                                      buffers);
           break;
         }
@@ -137,7 +157,7 @@ TfLiteStatus UnidirectionalSequenceLstmEval(TfLiteContext* context,
           // 16(activation)x8(weight)->16(cell) LSTM with 64 bits bias
           LSTMBuffers<int16_t> buffers =
               CreateLSTMBuffers<int16_t>(context, op_data.buffer_indices);
-          EvalLstm<int16_t, int8_t, int16_t, int64_t>(op_data, kernel_content,
+          return EvalLstm<int16_t, int8_t, int16_t, int64_t>(op_data, kernel_content,
                                                       buffers);
           break;
         }
