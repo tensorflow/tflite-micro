@@ -44,9 +44,8 @@ else
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
-  # run generic benchmark
+  # run person detection benchmark (tflm_benchmark links all ops and exceeds 1 MB SRAM)
   readable_run make -f ${MAKEFILE} \
     ${COMMON_ARGS} \
-    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    $(get_parallel_jobs) run_tflm_benchmark
+    $(get_parallel_jobs) run_person_detection_benchmark
 fi
