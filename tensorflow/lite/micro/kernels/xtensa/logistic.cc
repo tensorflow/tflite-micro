@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logistic.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/kernels/xtensa/xtensa_logistic.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -33,7 +34,7 @@ namespace {
 
 void* LogisticInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataLogistic));
+  return context->AllocatePersistentBuffer(context, sizeof(OpDataLogisticXtensa));
 }
 
 TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
@@ -43,7 +44,9 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kLogisticOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpDataLogistic* data = static_cast<OpDataLogistic*>(node->user_data);
+  OpDataLogisticXtensa* xtensa_data =
+      static_cast<OpDataLogisticXtensa*>(node->user_data);
+  OpDataLogistic* data = &xtensa_data->reference_op_data;
 
   if (input->type != output->type) {
     MicroPrintf(
@@ -54,7 +57,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-#if HIFI_VFPU && (defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
       const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
       const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
       const int flat_size = MatchingFlatSize(input_shape, output_shape);
@@ -70,25 +73,24 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
                               tflite::micro::GetTensorData<float>(input),
                               tflite::micro::GetTensorShape(output),
                               tflite::micro::GetTensorData<float>(output));
-#endif  // HIFI_VFPU && (defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
       break;
     }
     case kTfLiteInt8: {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
       const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
       const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);
       const int flat_size = MatchingFlatSize(input_shape, output_shape);
 
-      const int8_t* input_data_ptr =
-          tflite::micro::GetTensorData<int8_t>(input);
+      const int8_t* input_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
       int8_t* output_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
 
       TF_LITE_ENSURE_EQ(
           context,
-          xa_nn_vec_sigmoid_asym8s_asym8s(
-              output_data_ptr, input_data_ptr, data->input_zero_point,
-              data->input_range_radius, data->input_multiplier,
-              data->input_left_shift, flat_size),
+          xa_nn_vec_apply_lut_asym8s_asym8s(
+              output_data_ptr, input_data_ptr,
+              static_cast<int8_t*>(xtensa_data->sigmoid_lut),
+              256, flat_size),
           0);
 #else
       reference_integer_ops::Logistic(
@@ -96,18 +98,27 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
           data->input_multiplier, data->input_left_shift,
           NumElements(input->dims), tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorData<int8_t>(output));
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
       break;
     }
     case kTfLiteInt16: {
       switch (output->type) {
-        case kTfLiteInt16:
+        case kTfLiteInt16 : {
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ) 
+          TF_LITE_ENSURE_EQ(context, xa_nn_vec_sigmoid_sym16s_sym16s(tflite::micro::GetTensorData<int16_t>(output),
+                                tflite::micro::GetTensorData<int16_t>(input),
+                                data->input_multiplier,
+                                data->input_left_shift,
+                                NumElements(input->dims)), 0);      
+#else
           reference_integer_ops::Logistic(
               data->input_multiplier, data->input_left_shift,
               NumElements(input->dims),
               tflite::micro::GetTensorData<int16_t>(input),
               tflite::micro::GetTensorData<int16_t>(output));
-          break;
+#endif       
+          return kTfLiteOk;       
+        } break;
         default:
           MicroPrintf("Input %s, output %s not supported.",
                       TfLiteTypeGetName(input->type),
