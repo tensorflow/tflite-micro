@@ -29,12 +29,7 @@ except ImportError:
     import tflite_runtime.interpreter as tflite_interp
     from tflite_runtime.interpreter import OpResolverType
   except ImportError:
-    try:
-      import tensorflow.lite as tflite_interp
-      from tensorflow.lite.experimental import OpResolverType
-    except ImportError:
-      raise ImportError(
-          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
+    raise ImportError("Could not import ai_edge_litert or tflite_runtime.")
 
 _USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
     'use_tflite',
