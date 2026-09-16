@@ -32,10 +32,10 @@ jobs:
       - name: Vision P6 Build
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2020.4-linux
+          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_NO_TESTS tflite-micro/
 
   hifi5_unit_tests:
@@ -55,7 +55,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_hifi5:0.2 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/
 
   hifi5_unit_tests_with_compression:
@@ -75,7 +75,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_hifi5:0.2 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/
 
   hifi_3z_unit_tests:
@@ -92,10 +92,10 @@ jobs:
       - name: Hifi3z Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2020.4-linux
+          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh EXTERNAL tflite-micro/
 
   hifi_3z_unit_tests_with_compression:
@@ -112,10 +112,10 @@ jobs:
       - name: Hifi3z Unit Tests with Compression
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2020.4-linux
+          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh EXTERNAL tflite-micro/
 
   # --- Extended Jobs ---
@@ -134,10 +134,10 @@ jobs:
       - name: Fusion F1 Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2020.4-linux
+          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/
 
   vision_p6_extended:
@@ -154,28 +154,8 @@ jobs:
       - name: Vision P6 Unit Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2020.4-linux
+          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_13:0.3 \
+            ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/
-
-  hifimini_unit_tests:
-    if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    name: Hifimini Unit Tests
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - run: rm -rf .git
-      - name: Hifimini Unit Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2019.2-linux
-        run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa_xplorer_11:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifimini.sh tflite-micro/

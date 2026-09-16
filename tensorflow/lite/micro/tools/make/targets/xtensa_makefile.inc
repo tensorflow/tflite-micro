@@ -43,9 +43,13 @@ PLATFORM_FLAGS = \
   -mlongcalls
 
 export PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/bin:$(PATH)
+export LD_LIBRARY_PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/Tools/tools.lnx86/cdsgcc/gcc/6.3/install/lib64:$(LD_LIBRARY_PATH)
 TARGET_TOOLCHAIN_PREFIX := xt-
 CXX_TOOL := clang++
 CC_TOOL := clang
+# xt-ar (xtensa-elf-ar) in RI-2022.9 hits an LLVM option registration conflict
+# ("Option 'mc-relax-all' registered more than once!"). Standard GNU ar works cleanly.
+AR := ar
 
 # Building with C++17 requires libc++
 ifneq ($(CC_VER11), true)
