@@ -42,10 +42,18 @@ void* ConvInitXtensa(TfLiteContext* context, const char* buffer,
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, ConvPrepare(context, node));
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-  TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+#if defined(HIFI5) && defined(NNLIB_HIFI5)
+  const TfLiteEvalTensor* filter =
+      tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);      
+  if(input->type == kTfLiteInt8 && filter->type == kTfLiteInt4)
+    TF_LITE_ENSURE_OK(context, ConvPrepareHifiInt4(context, node));
+  else
+#endif // defined(HIFI5) && defined(NNLIB_HIFI5)  
+    TF_LITE_ENSURE_OK(context, ConvPrepareHifi(context, node));
+#endif
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, ConvPrepareVision(context, node));
 #endif  // defined(VISION_P6)

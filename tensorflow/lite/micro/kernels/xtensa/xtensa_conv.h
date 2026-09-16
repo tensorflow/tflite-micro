@@ -25,9 +25,9 @@ namespace tflite {
 struct XtensaConvOpData {
   OpDataConv reference_op_data;
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   int scratch_tensor_index;
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 #if defined(VISION_P6)
   int8_t* reorder_coefficient_bias;  // buffers used to keep reordered coeff and
@@ -40,9 +40,19 @@ struct XtensaConvOpData {
 #endif  // VISION_P6
 };
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 TfLiteStatus ConvPrepareHifi(TfLiteContext* context, TfLiteNode* node);
+#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+TfLiteStatus ConvPrepareHifiInt4(TfLiteContext* context, TfLiteNode* node);
 
+TfLiteStatus ConvEvalHifiInt4(TfLiteContext* context, TfLiteNode* node,
+                              const TfLiteConvParams& params,
+                              const XtensaConvOpData& data,
+                              const TfLiteEvalTensor* input,
+                              const TfLiteEvalTensor* filter,
+                              const TfLiteEvalTensor* bias,
+                              TfLiteEvalTensor* output);
+#endif
 TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
                               const TfLiteConvParams& params,
                               const XtensaConvOpData& data,
@@ -59,7 +69,17 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
                                const TfLiteEvalTensor* bias,
                                TfLiteEvalTensor* output);
 
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(INCLUDE_FLOAT_OPT) 
+TfLiteStatus ConvEvalHifiFloat32(TfLiteContext* context, TfLiteNode* node,
+                               const TfLiteConvParams& params,
+                               const XtensaConvOpData& data,
+                               const TfLiteEvalTensor* input,
+                               const TfLiteEvalTensor* filter,
+                               const TfLiteEvalTensor* bias,
+                               TfLiteEvalTensor* output);
+#endif
+
+#endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 #if defined(VISION_P6)
 
@@ -78,6 +98,8 @@ TfLiteStatus ConvEvalVision(TfLiteContext* context, TfLiteNode* node,
 TfLiteStatus ConvReferenceEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus ConvReferenceEvalFloat32(TfLiteContext* context, TfLiteNode* node);
 
 void* ConvInitXtensa(TfLiteContext* context, const char* buffer, size_t length);
 TfLiteStatus ConvPrepareXtensa(TfLiteContext* context, TfLiteNode* node);
