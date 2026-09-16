@@ -23,6 +23,7 @@ interpreter.
 """
 
 from dataclasses import dataclass
+from typing import Optional, Union
 import yaml
 
 EXAMPLE_YAML_SPEC = """
@@ -33,12 +34,15 @@ tensors:
     compression:
       - lut:
           index_bitwidth: 4
+          per_channel:
+            axis: 0
 
   - subgraph: 0
     tensor: 55
     compression:
       - lut:
           index_bitwidth: 2
+          per_tensor:
 
 """ # This example is checked in this module's unit test.
 
@@ -57,13 +61,31 @@ class Tensor:
 
 
 @dataclass
+class PerTensor:
+  """One value table for the whole tensor."""
+
+
+@dataclass
+class PerChannel:
+  """One value table per slice along an axis.
+
+  Attributes:
+    axis: The axis of the tensor's shape that gives the channel count.
+  """
+  axis: int
+
+
+@dataclass
 class LookUpTableCompression(CompressionMethod):
   """LUT compression using lookup tables.
 
   Attributes:
     index_bitwidth: Number of bits per index (1-7).
+    mode: PerTensor or PerChannel. Exactly one is required per lut
+      entry.
   """
   index_bitwidth: int
+  mode: Optional[Union[PerTensor, PerChannel]] = None
 
 
 @dataclass
@@ -92,10 +114,37 @@ class ParseError(Exception):
     self.original_exception = wrapped_exception
 
 
+def _parse_lut(lut: dict) -> LookUpTableCompression:
+  """Parse a lut compression entry from its YAML dict."""
+  has_per_tensor = "per_tensor" in lut
+  has_per_channel = "per_channel" in lut
+  if has_per_tensor and has_per_channel:
+    raise ParseError(
+        "lut: per_tensor and per_channel are contradictory; give exactly one")
+  if not has_per_tensor and not has_per_channel:
+    raise ParseError("lut: one of per_tensor or per_channel is required")
+
+  if has_per_tensor:
+    if lut["per_tensor"] is not None:
+      raise ParseError("lut: per_tensor takes no value")
+    mode = PerTensor()
+  else:
+    per_channel = lut["per_channel"]
+    if not isinstance(per_channel, dict) or "axis" not in per_channel:
+      raise ParseError("lut: per_channel requires an axis")
+    axis = per_channel["axis"]
+    if not isinstance(axis, int) or isinstance(axis, bool) or axis < 0:
+      raise ParseError("lut: per_channel axis must be a non-negative integer")
+    mode = PerChannel(axis=axis)
+
+  return LookUpTableCompression(index_bitwidth=lut["index_bitwidth"],
+                                mode=mode)
+
+
 def _parse_compression_method(comp: dict) -> CompressionMethod:
   """Parse a single compression method from YAML dict."""
   if "lut" in comp:
-    return LookUpTableCompression(index_bitwidth=comp["lut"]["index_bitwidth"])
+    return _parse_lut(comp["lut"])
   elif "huffman" in comp:
     return HuffmanCompression()
   elif "pruning" in comp:

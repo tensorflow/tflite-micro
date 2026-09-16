@@ -182,7 +182,7 @@ def _compress_and_insert(model, coordinates):
   """LUT-compress the tensors at (subgraph, tensor) coordinates and insert
   DECODE operators for them."""
   compressor_plugin = lut.LutCompressor()
-  method = spec.LookUpTableCompression(index_bitwidth=1)
+  method = spec.LookUpTableCompression(index_bitwidth=1, mode=spec.PerTensor())
   results = {}
   for sg_idx, tensor_idx in coordinates:
     tensor = model.subgraphs[sg_idx].tensors[tensor_idx]

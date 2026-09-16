@@ -300,26 +300,38 @@ tensors:
     compression:
       - lut:
           index_bitwidth: 4
+          per_channel:
+            axis: 0
 
   - subgraph: 0
     tensor: 10
     compression:
       - lut:
           index_bitwidth: 4
+          per_channel:
+            axis: 0
 
   - subgraph: 0
     tensor: 11
     compression:
       - lut:
           index_bitwidth: 2
+          per_tensor:
 
   - subgraph: 0
     tensor: 22
     compression:
       - lut:
           index_bitwidth: 2
+          per_tensor:
 ```
 Note that each tensor can have a different bit width (1 through 7 bits).
+
+Each `lut` entry states its compression mode, exactly one of `per_channel`
+or `per_tensor`. `per_channel` builds one value table per channel, along
+the given axis of the tensor's shape; use the quantized axis for a
+per-channel quantized tensor. A bare `per_tensor:` builds one value table
+for the whole tensor.
 
 Once the `YAML` specification is ready, compress the model using the following:
 ```
