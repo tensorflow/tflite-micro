@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2026 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # Called with following arguments:
 # 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
 # 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
-# Tests the microcontroller code for bluepill
+# Tests the microcontroller code for bluepill platform
 
 set -ex
 
@@ -32,11 +32,14 @@ COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} OPT
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
-
-# Make sure that the release build succeeds.
+# 1. Verify optimized release build succeeds
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=release build
+
+# 2. Build and run unit tests in Renode
+readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} test
+
+# 3. Test standalone single-test runner
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} test_kernel_add_test
