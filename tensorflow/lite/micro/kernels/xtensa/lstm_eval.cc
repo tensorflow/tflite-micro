@@ -49,7 +49,7 @@ LstmTensors::~LstmTensors() {
 }
 
 // Verify the LSTM internal tensor properties (e.g., type checks)
-// Input/output/states/fc weights tensors are required for kernel evaluation.
+// Input/output/states/fc weights tensors are required for kernel evaulation.
 // The state tensors should be variables. Variants of the standard LSTM
 // are not supported here, therefore their corresponding tensors should be
 // invalid
@@ -105,14 +105,14 @@ TfLiteStatus LstmTensors::ValidateTensorStatus(TfLiteContext* context) const {
 
 namespace lstm_internal {
 
-#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
 const int32_t kInt16Max = std::numeric_limits<int16_t>::max();
 const int32_t kInt16Min = std::numeric_limits<int16_t>::min();
 #endif
 
 void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
                     int n_input, int16_t* output) {
-#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
@@ -122,21 +122,29 @@ void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
     }
   }
 #else
-  xa_nn_elm_add_16x16_16(output, input_1, input_2, n_batch * n_input);
+  WORD32 err;
+  err = xa_nn_elm_add_16x16_16(output, input_1, input_2, n_batch * n_input);
+  (void)err;
 #endif
 }
 
 void AddElementWise(const float* input_1, const float* input_2, int n_batch,
                     int n_input, float* output) {
+#if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI5) || defined(HIFI4))
+  WORD32 err;
+  err = xa_nn_elm_add_f32xf32_f32(output, input_1, input_2, n_batch * n_input);
+  (void)err;
+#else                      
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
       output[index] = input_1[index] + input_2[index];
     }
   }
+#endif  
 }
 
-#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
 void Sigmoid(const RuntimeShape& data_shape, int16_t* data) {
   reference_integer_ops::Logistic(
       0 /*data->input_multiplier*/, 0 /*data->input_left_shift */,
@@ -224,15 +232,23 @@ void FullyConnected(const FullyConnectedParams& params,
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
-#else  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#else  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
 void Sigmoid(int16_t* data, int32_t data_size) {
-  xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0, data_size);
+  WORD32 err;
+  err = xa_nn_vec_sigmoid_sym16s_sym16s(data, data, 0, 0, data_size);
+  (void)err;
 }
 
 void Sigmoid(float* data, int32_t data_size) {
+#if defined(INCLUDE_FLOAT_OPT) && !(defined(HIFI_IQ))
+  WORD32 err;
+  err = xa_nn_vec_sigmoid_f32_f32(data, data, data_size);
+  (void)err;
+#else
   int data_dims[2] = {1, data_size};
   RuntimeShape data_shape(2, reinterpret_cast<const int32_t*>(data_dims));
   reference_ops::Logistic(data_shape, data, data_shape, data);
+#endif
 }
 
 void Tanh(int32_t cell_state_scale_power, int16_t* input_data,
@@ -249,8 +265,10 @@ void Tanh(int32_t cell_state_scale_power, int16_t* input_data,
     input_multiplier = 3;
 #endif
   }
-  xa_nn_vec_tanh_sym16s_sym16s(output_data, input_data, input_multiplier,
+  WORD32 err;
+  err = xa_nn_vec_tanh_sym16s_sym16s(output_data, input_data, input_multiplier,
                                tanh_input_left_shift, data_size);
+  (void)err;
 }
 
 void Tanh(int32_t cell_state_scale_power, float* input_data, float* output_data,
@@ -263,20 +281,24 @@ void Tanh(int32_t cell_state_scale_power, float* input_data, float* output_data,
 // Input and output have the same shape in LSTM
 void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int8_t* output_data, int32_t data_size) {
-  xa_nn_elm_mul_sym16sxsym16s_asym8s(
+  WORD32 err;
+  err = xa_nn_elm_mul_sym16sxsym16s_asym8s(
       output_data, params.output_offset, params.output_shift,
       params.output_multiplier, params.quantized_activation_min,
       params.quantized_activation_max, input1_data, input2_data, data_size);
+  (void)err;    
 }
 
 // Input and output have the same shape in LSTM
 void Mul(const ArithmeticParams& params, const int16_t* input1_data,
          const int16_t* input2_data, int16_t* output_data, int32_t data_size) {
   int dims_4D[4] = {1, 1, 1, data_size};
-  xa_nn_elm_mul_broadcast_4D_sym16sxsym16s_sym16s(
+  WORD32 err;
+  err = xa_nn_elm_mul_broadcast_4D_sym16sxsym16s_sym16s(
       output_data, dims_4D, params.output_shift, params.output_multiplier,
       params.quantized_activation_min, params.quantized_activation_max,
       input1_data, dims_4D, input2_data, dims_4D);
+  (void)err;    
   return;
 }
 
@@ -294,19 +316,24 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int32_t* bias_data, int16_t* output_data,
                     const int num_batches, const int output_depth,
                     const int accum_depth) {
-#pragma loop_count min = 1
-  for (int b = 0; b < num_batches; b++) {
-    xa_nn_matXvec_out_stride_sym8sxasym8s_16(
-        output_data + b * output_depth, filter_data,
-        input_data + b * accum_depth, bias_data, output_depth, accum_depth,
-        accum_depth, 1, params.input_offset, params.output_multiplier,
+  WORD32 err;
+  if(num_batches == 1) {
+    err = xa_nn_matXvec_out_stride_sym8sxasym8s_16(
+        output_data, filter_data, input_data, bias_data,
+        output_depth, accum_depth, accum_depth, 1, 
+        params.input_offset, params.output_multiplier,
         params.output_shift);
   }
+  else{
+      err = xa_nn_matmul_sym8sxasym8s_sym16s(
+          output_data, filter_data, input_data, bias_data, 
+          output_depth, accum_depth, accum_depth, num_batches, 
+          accum_depth, output_depth, 1, params.input_offset, 
+          params.output_multiplier, params.output_shift);
+  }
+  (void)err;
   return;
 }
-
-#define ARG_CHK_ALIGN(_ptr, _align) \
-  (((unsigned int)(_ptr) & ((_align) - 1)) == 0)
 
 void FullyConnected(const FullyConnectedParams& params,
                     const int16_t* input_data, const int8_t* filter_data,
@@ -314,22 +341,29 @@ void FullyConnected(const FullyConnectedParams& params,
                     const int num_batches, const int output_depth,
                     const int accum_depth) {
   WORD32 err;
-  if (num_batches == 1 && ARG_CHK_ALIGN(output_data, sizeof(WORD16) * 8) &&
-      ARG_CHK_ALIGN(filter_data, sizeof(WORD8) * 16) &&
-      ARG_CHK_ALIGN(input_data, sizeof(WORD16) * 8) &&
-      ARG_CHK_ALIGN(bias_data, sizeof(WORD64) * 2)) {
-    err = xa_nn_matXvec_v2_sym8sxsym16s_sym16s(
-        output_data, filter_data, input_data, bias_data, output_depth,
-        accum_depth, accum_depth, params.output_multiplier, params.output_shift,
-        -32768, 32767, NULL);
-  } else {
-    err = xa_nn_matmul_sym8sxsym16s_sym16s(
-        output_data, filter_data, input_data, bias_data, output_depth,
-        accum_depth, accum_depth, num_batches, accum_depth, output_depth, 1,
-        params.input_offset, params.output_multiplier, params.output_shift,
-        params.output_offset);
+  // The optimized single-batch fully_connected_v2 kernel requires all of its
+  // pointer arguments to be 16-byte aligned (see xa_nn_matXvec_v2_sym8sxsym16s
+  // alignment checks). Fall back to the matmul kernel, which tolerates lower
+  // alignment, whenever any pointer does not meet this requirement.
+  const bool inputs_16byte_aligned =
+      ((reinterpret_cast<uintptr_t>(output_data) & 15) == 0) &&
+      ((reinterpret_cast<uintptr_t>(filter_data) & 15) == 0) &&
+      ((reinterpret_cast<uintptr_t>(input_data) & 15) == 0) &&
+      ((reinterpret_cast<uintptr_t>(bias_data) & 15) == 0);
+  if(num_batches == 1 && inputs_16byte_aligned) {
+      err = xa_nn_fully_connected_v2_sym8sxsym16s_sym16s(
+              output_data, filter_data, input_data, bias_data,
+              accum_depth, output_depth, params.output_multiplier, params.output_shift,
+              -32768, 32767, NULL);
   }
-  (void)err;
+  else{
+      err = xa_nn_matmul_sym8sxsym16s_sym16s(
+          output_data, filter_data, input_data, bias_data, output_depth,
+          accum_depth, accum_depth, num_batches, accum_depth, output_depth, 1,
+          params.input_offset, params.output_multiplier, params.output_shift,
+          params.output_offset);
+  }
+  (void)err;    
   return;
 }
 
@@ -348,26 +382,32 @@ void FullyConnected(const FullyConnectedParams& params, const float* input_data,
       params, input_shape, input_data, filter_shape, filter_data, bias_shape,
       bias_data, output_shape, output_data);
 }
-#endif  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
+#endif  // #if !(defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
 
 void Clipping(const int v_size, const CellStateInfo& cell_state_info,
               int16_t* vector) {
-  for (int i = 0; i < v_size; i++) {
-    vector[i] =
-        std::max(std::min(cell_state_info.quantized_cell_clip, vector[i]),
-                 static_cast<int16_t>(-cell_state_info.quantized_cell_clip));
-  }
+  WORD32 err;
+  err = xa_nn_vec_activation_min_max_16_16(vector, vector, -cell_state_info.quantized_cell_clip,
+                                      cell_state_info.quantized_cell_clip , v_size);
+  (void)err;
 }
 
 void Clipping(const int v_size, const CellStateInfo& cell_state_info,
               float* vector) {
+#if defined(INCLUDE_FLOAT_OPT)
+  WORD32 err;
+  err = xa_nn_vec_activation_min_max_f32_f32(vector, vector, -cell_state_info.cell_clip,
+                                      cell_state_info.cell_clip , v_size);
+  (void)err;
+#else
   for (int i = 0; i < v_size; i++) {
     vector[i] = std::max(std::min(cell_state_info.cell_clip, vector[i]),
                          -cell_state_info.cell_clip);
   }
+#endif
 }
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 void UpdateLstmCell(const LstmStepManager& step_info,
                     TfLiteEvalTensor* cell_state,
                     // Gate outputs
@@ -383,14 +423,16 @@ void UpdateLstmCell(const LstmStepManager& step_info,
   TFLITE_DCHECK_LE(step_info.CellStateOffset() + cell_state_shape.FlatSize(),
                    tflite::micro::GetTensorShape(cell_state).FlatSize());
 
+  WORD32 err;
   // Multiplier is equivalent to 0.5 here so adding 1 to shifts
-  xa_nn_lstm_cell_state_update_16(
+  err = xa_nn_lstm_cell_state_update_16(
       tflite::micro::GetTensorData<int16_t>(cell_state) +
           step_info.CellStateOffset(),
       forget_gate_output, cell_gate_output, input_gate_output,
       forget_cell_mul_params.output_shift - 1,
       input_mul_params.output_shift - 1, cell_state_info.quantized_cell_clip,
       cell_state_shape.FlatSize());
+  (void)err;    
 }
 
 void UpdateLstmCell(const LstmStepManager& step_info,
@@ -434,7 +476,7 @@ void UpdateLstmCell(const LstmStepManager& step_info,
                  step_info.CellStateOffset());
   }
 }
-#endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 // Increment the data offset so the sigle time step invocation call can access
 // the corresponding input/output tensor data at the time step
@@ -473,8 +515,7 @@ void LstmStepManager::UpdateBatch() {
 // Multi-batch for time_major input
 RuntimeShape LstmStepManager::InputShape() const {
   int batch_size = 1;
-  if (size_info_.time_major ||
-      (size_info_.batch_size > 1 && size_info_.time_steps == 1)) {
+  if (size_info_.time_major) {
     batch_size = size_info_.batch_size;
   }
   const int dims[2] = {batch_size, size_info_.input_dimension};
@@ -486,8 +527,7 @@ RuntimeShape LstmStepManager::InputShape() const {
 // Multi-batch for time_major input
 RuntimeShape LstmStepManager::StateShape() const {
   int batch_size = 1;
-  if (size_info_.time_major ||
-      (size_info_.batch_size > 1 && size_info_.time_steps == 1)) {
+  if (size_info_.time_major) {
     batch_size = size_info_.batch_size;
   }
   const int dims[2] = {batch_size, size_info_.state_dimension};
@@ -496,4 +536,96 @@ RuntimeShape LstmStepManager::StateShape() const {
 }
 
 }  // namespace lstm_internal
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+template <>
+TfLiteStatus EvalLstm<int8_t, int8_t, int16_t, int32_t>(
+    const OpDataLSTM& op_data, LSTMKernelContents& kernel_content,
+    const LSTMBuffers<int16_t>& buffers) {
+  const LstmSizeInfo& size_info = op_data.size_info;
+  void* p_scratch = buffers.buffer0;
+
+  // Gate weights: input (W) and recurrent (U) for i/f/c/o gates.
+  lstm_weights_ptrs weights;
+  weights.p_ig_W = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmInputToInputWeightsTensor));
+  weights.p_fg_W = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmInputToForgetWeightsTensor));
+  weights.p_cg_W = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmInputToCellWeightsTensor));
+  weights.p_og_W = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmInputToOutputWeightsTensor));
+  weights.p_ig_U = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmRecurrentToInputWeightsTensor));
+  weights.p_fg_U = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmRecurrentToForgetWeightsTensor));
+  weights.p_cg_U = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmRecurrentToCellWeightsTensor));
+  weights.p_og_U = (void*)tflite::micro::GetTensorData<int8_t>(
+      kernel_content.GetInternalTensor(kLstmRecurrentToOutputWeightsTensor));
+
+  lstm_bias_ptrs biases = {};
+  biases.p_ig_W_bias = (void*)tflite::micro::GetOptionalTensorData<int32_t>(
+      kernel_content.GetInternalTensor(kLstmInputGateBiasTensor));
+  biases.p_fg_W_bias = (void*)tflite::micro::GetOptionalTensorData<int32_t>(
+      kernel_content.GetInternalTensor(kLstmForgetGateBiasTensor));
+  biases.p_cg_W_bias = (void*)tflite::micro::GetOptionalTensorData<int32_t>(
+      kernel_content.GetInternalTensor(kLstmCellGateBiasTensor));
+  biases.p_og_W_bias = (void*)tflite::micro::GetOptionalTensorData<int32_t>(
+      kernel_content.GetInternalTensor(kLstmOutputGateBiasTensor));
+
+  const GateParameters& ig = op_data.input_gate_parameters;
+  const GateParameters& fg = op_data.forget_gate_parameters;
+  const GateParameters& cg = op_data.cell_gate_parameters;
+  const GateParameters& og = op_data.output_gate_parameters;
+
+  lstm_quant_params qp;
+  qp.ig_W_out_multiplier = ig.input_fc_params.output_multiplier;
+  qp.fg_W_out_multiplier = fg.input_fc_params.output_multiplier;
+  qp.cg_W_out_multiplier = cg.input_fc_params.output_multiplier;
+  qp.og_W_out_multiplier = og.input_fc_params.output_multiplier;
+  qp.ig_U_out_multiplier = ig.recurrent_fc_params.output_multiplier;
+  qp.fg_U_out_multiplier = fg.recurrent_fc_params.output_multiplier;
+  qp.cg_U_out_multiplier = cg.recurrent_fc_params.output_multiplier;
+  qp.og_U_out_multiplier = og.recurrent_fc_params.output_multiplier;
+  qp.ig_W_out_shift = ig.input_fc_params.output_shift;
+  qp.fg_W_out_shift = fg.input_fc_params.output_shift;
+  qp.cg_W_out_shift = cg.input_fc_params.output_shift;
+  qp.og_W_out_shift = og.input_fc_params.output_shift;
+  qp.ig_U_out_shift = ig.recurrent_fc_params.output_shift;
+  qp.fg_U_out_shift = fg.recurrent_fc_params.output_shift;
+  qp.cg_U_out_shift = cg.recurrent_fc_params.output_shift;
+  qp.og_U_out_shift = og.recurrent_fc_params.output_shift;
+  qp.quantized_cell_clip = op_data.cell_state_info.quantized_cell_clip;
+  qp.cell_state_scale = op_data.cell_state_info.cell_state_scale_power;
+  qp.hidden_multiplier =
+      op_data.inter_gate_parameters.output_mul_params.output_multiplier;
+  qp.hidden_shift = op_data.inter_gate_parameters.output_mul_params.output_shift;
+  // input_zero_bias = -input_zero_point (matches input FC input_offset).
+  qp.input_zero_bias = fg.input_fc_params.input_offset;
+  // hidden_zero_bias = hidden_zero_point (output mul offset).
+  qp.hidden_zero_bias =
+      op_data.inter_gate_parameters.output_mul_params.output_offset;
+
+  // Zero-initialize so any newer nnlib flag fields (e.g. `back`) default to 0
+  // without referencing them explicitly (keeps this header-version agnostic).
+  lstm_flags flags = {};
+  flags.time_major = size_info.time_major;
+  flags.use_cifg = 0;
+
+  WORD32 err = xa_nn_lstm_sym8sxasym8s_16(
+      tflite::micro::GetTensorData<int8_t>(kernel_content.output_tensor),
+      tflite::micro::GetTensorData<int8_t>(kernel_content.HiddenStateTensor()),
+      tflite::micro::GetTensorData<int16_t>(kernel_content.CellStateTensor()),
+      &weights, &biases,
+      (WORD8*)tflite::micro::GetTensorData<int8_t>(
+          kernel_content.GetInternalTensor(kLstmInputTensor)),
+      size_info.input_dimension, size_info.state_dimension,
+      size_info.state_dimension, size_info.batch_size, size_info.time_steps,
+      size_info.state_dimension, &qp, &flags, p_scratch);
+
+  return (err == 0) ? kTfLiteOk : kTfLiteError;
+}
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+
 }  // namespace tflite
