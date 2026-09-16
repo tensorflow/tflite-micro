@@ -43,9 +43,11 @@ fi
 
 DOWNLOADED_CORSTONE_PATH=${DOWNLOADS_DIR}/corstone300
 
-if [ -d ${DOWNLOADED_CORSTONE_PATH} ]; then
-  echo >&2 "${DOWNLOADED_CORSTONE_PATH} already exists, skipping the download."
-else
+if [ -d ${DOWNLOADED_CORSTONE_PATH} ] || command -v FVP_Corstone_SSE-300_Ethos-U55 >/dev/null 2>&1; then
+  echo >&2 "Corstone-300 FVP already available, skipping the download."
+  echo "SUCCESS"
+  exit 0
+fi
   UNAME_S=$(uname -s)
   UNAME_M=$(uname -m)
   if [ ${UNAME_S} == Linux ]; then
