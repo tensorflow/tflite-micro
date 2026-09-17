@@ -37,6 +37,7 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":resource_variables_lib",
+        requirement("numpy"),
         "//python/tflite_micro:runtime",
     ],
 )
