@@ -36,8 +36,6 @@ import prettyprinter.doc
 import sys
 import textwrap
 
-import absl.app
-
 from tensorflow.lite.micro.compression import metadata_py_generated as compression_schema
 from tensorflow.lite.micro.compression import tensor_type
 from tensorflow.lite.python import schema_py_generated as tflite_schema
@@ -417,5 +415,4 @@ def pretty_numpy_array(array, ctx):
 
 
 if __name__ == "__main__":
-  sys.modules['__main__'].__doc__ = USAGE
-  absl.app.run(main)
+  main(sys.argv)
