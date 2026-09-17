@@ -119,7 +119,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     int output_channels = filter->dims->data[kConvQuantizedDimension];
 
     TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
-        context, input, filter, bias, output, kTfLiteActNone,
+        context, input, filter, bias, output, params->activation,
         &data->params.output_multiplier, &data->params.output_shift,
         &data->params.quantized_activation_min,
         &data->params.quantized_activation_max,
@@ -179,6 +179,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   const int filter_width = SizeOfDimension(filter, 2);
   const int filter_height = SizeOfDimension(filter, 1);
 
+  /* TFLM checks if input_depth == filter_depth. So groups will always be 1*/
+  int num_groups = 1;
+
   // Dynamically allocate per-channel quantization parameters.
   const int num_channels = filter->dims->data[kConvQuantizedDimension];
   data->per_channel_output_multiplier =
@@ -191,7 +194,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Quantized kernels use an int32 scratch buffer.
   if (input->type == kTfLiteInt8) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
     const int stride_width = params->stride_width;
     const int stride_height = params->stride_height;
 
@@ -201,12 +204,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     const int output_height = height;
     const int output_width = width;
     int32_t scratch_buffer_size = 0;
-    scratch_buffer_size = xa_nn_transpose_conv_getsize(
-        input_height, input_width, input_depth, filter_height, filter_width,
-        stride_width, stride_height, output_height, output_width, num_channels,
-        1 /* num_groups */, PREC_SYM8S, PREC_ASYM8S);
+    scratch_buffer_size = xa_nn_transpose_conv_getsize(input_height,
+                              input_width, input_depth, filter_height,
+                              filter_width, stride_width, stride_height,
+                              output_height, output_width, num_channels,
+                              num_groups, PREC_SYM8S, PREC_ASYM8S);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
-                      context, scratch_buffer_size,
+                      context,
+                      scratch_buffer_size,
                       &(data->scratch_buffer_index)) == kTfLiteOk);
 #else  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
@@ -219,7 +224,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   // Quantized 16x8 kernels use an int64 scratch buffer.
   if (input->type == kTfLiteInt16) {
     TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
     const int stride_width = params->stride_width;
     const int stride_height = params->stride_height;
 
@@ -229,12 +234,14 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
     const int output_height = height;
     const int output_width = width;
     int32_t scratch_buffer_size = 0;
-    scratch_buffer_size = xa_nn_transpose_conv_getsize(
-        input_height, input_width, input_depth, filter_height, filter_width,
-        stride_width, stride_height, output_height, output_width, num_channels,
-        1 /* num_groups */, PREC_SYM8S, PREC_SYM16S);
+    scratch_buffer_size = xa_nn_transpose_conv_getsize(input_height,
+                              input_width, input_depth, filter_height,
+                              filter_width, stride_width, stride_height,
+                              output_height, output_width, num_channels,
+                              num_groups, PREC_SYM8S, PREC_SYM16S);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
-                      context, scratch_buffer_size,
+                      context,
+                      scratch_buffer_size,
                       &(data->scratch_buffer_index)) == kTfLiteOk);
 #else   // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
@@ -243,6 +250,30 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                       &(data->scratch_buffer_index)) == kTfLiteOk);
 #endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
   }
+
+#if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5)) && !defined(HIFI_IQ)
+  if (input->type == kTfLiteFloat32) {
+    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
+    const int stride_width = params->stride_width;
+    const int stride_height = params->stride_height;
+
+    const int input_height = SizeOfDimension(input, 1);
+    const int input_width = SizeOfDimension(input, 2);
+    const int input_depth = SizeOfDimension(input, 3);
+    const int output_height = height;
+    const int output_width = width;
+    int32_t scratch_buffer_size = 0;
+    scratch_buffer_size = xa_nn_transpose_conv_getsize(input_height,
+                              input_width, input_depth, filter_height,
+                              filter_width, stride_width, stride_height,
+                              output_height, output_width, num_channels,
+                              num_groups, PREC_F32, PREC_F32);
+    TFLITE_DCHECK(context->RequestScratchBufferInArena(
+                      context,
+                      scratch_buffer_size,
+                      &(data->scratch_buffer_index)) == kTfLiteOk);
+  }
+#endif // #if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
 
   // All per-channel quantized tensors need valid zero point and scale arrays.
   if (input->type == kTfLiteInt8 || input->type == kTfLiteInt16) {
@@ -294,6 +325,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+  int err;
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
   const TfLiteEvalTensor* filter =
@@ -335,6 +367,64 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
                                &op_params.float_activation_min,
                                &op_params.float_activation_max);
 
+#if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5)) && !defined(HIFI_IQ)
+      std::float_t* scratch_buffer = static_cast<float_t*>(
+        context->GetScratchBuffer(context, data.scratch_buffer_index)); 
+      const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
+      const RuntimeShape& filter_shape =
+          tflite::micro::GetTensorShape(filter);
+      const RuntimeShape& output_shape =
+          tflite::micro::GetTensorShape(output);
+      const int stride_width = data.params.stride_width;
+      const int stride_height = data.params.stride_height;
+      const int pad_width = data.params.padding_values.width;
+      const int pad_height = data.params.padding_values.height;
+
+      const int batches = MatchingDim(input_shape, 0, output_shape, 0);
+      const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
+      const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
+
+      /* TFLM checks if input_depth == filter_depth. So groups will always be 1*/
+      int num_groups = 1;
+
+      const int input_height = input_shape.Dims(1);
+      const int input_width = input_shape.Dims(2);
+      const int filter_height = filter_shape.Dims(1);
+      const int filter_width = filter_shape.Dims(2);
+      const int output_height = output_shape.Dims(1);
+      const int output_width = output_shape.Dims(2);
+      const float* input_data =
+          tflite::micro::GetTensorData<float>(input);
+      const float* filter_data =
+          tflite::micro::GetTensorData<float>(filter);
+      const float* bias_data = tflite::micro::GetTensorData<float>(bias);
+      float* output_data = tflite::micro::GetTensorData<float>(output);
+
+      const int num_elements = output_shape.FlatSize();
+
+      for (int b = 0; b < batches; b++) {
+        err = xa_nn_transpose_conv_f32(
+          &output_data[b * output_height * output_width * output_depth],
+          const_cast<FLOAT32*>(
+              &input_data[b * input_height * input_width * input_depth]),
+          const_cast<FLOAT32*>(filter_data), const_cast<FLOAT32*>(bias_data),
+          stride_width, stride_height, pad_width, pad_height, input_depth,
+          output_depth, input_height, input_width, filter_height,
+          filter_width, output_height, output_width, num_elements / batches,
+          num_groups, scratch_buffer
+        );
+        TF_LITE_ENSURE(context, err == 0);
+      }
+      
+      err = xa_nn_vec_activation_min_max_f32_f32(
+        output_data,
+        output_data,
+        op_params.float_activation_min,
+        op_params.float_activation_max,
+        (batches * output_height * output_width * output_depth)
+      );
+      TF_LITE_ENSURE(context, err == 0);
+#else
       reference_ops::TransposeConv(
           op_params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
@@ -353,82 +443,62 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output),
           tflite::micro::GetTensorShape(nullptr), nullptr);
+#endif          
       break;
     }
     case kTfLiteInt8: {
       int32_t* scratch_buffer = static_cast<int32_t*>(
           context->GetScratchBuffer(context, data.scratch_buffer_index));
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-      if (bias != nullptr && bias->type == kTfLiteInt32) {
-        const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
-        const RuntimeShape& filter_shape =
-            tflite::micro::GetTensorShape(filter);
-        const RuntimeShape& output_shape =
-            tflite::micro::GetTensorShape(output);
-        const int stride_width = data.params.stride_width;
-        const int stride_height = data.params.stride_height;
-        const int pad_width = data.params.padding_values.width;
-        const int pad_height = data.params.padding_values.height;
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+      const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
+      const RuntimeShape& filter_shape =
+          tflite::micro::GetTensorShape(filter);
+      const RuntimeShape& output_shape =
+          tflite::micro::GetTensorShape(output);
+      const int stride_width = data.params.stride_width;
+      const int stride_height = data.params.stride_height;
+      const int pad_width = data.params.padding_values.width;
+      const int pad_height = data.params.padding_values.height;
 
-        const int batches = MatchingDim(input_shape, 0, output_shape, 0);
-        const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
-        const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
+      const int batches = MatchingDim(input_shape, 0, output_shape, 0);
+      const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
+      const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
 
-        const int input_height = input_shape.Dims(1);
-        const int input_width = input_shape.Dims(2);
-        const int filter_height = filter_shape.Dims(1);
-        const int filter_width = filter_shape.Dims(2);
-        const int output_height = output_shape.Dims(1);
-        const int output_width = output_shape.Dims(2);
-        const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
-#ifdef USE_TFLM_COMPRESSION
-        const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(
-            micro_context, filter, filter_comp_td, data.filter_scratch_index);
-        const int32_t* bias_data = tflite::micro::GetTensorData<int32_t>(
-            micro_context, bias, bias_comp_td, data.bias_scratch_index);
-#else   // USE_TFLM_COMPRESSION
-        const int8_t* filter_data =
-            tflite::micro::GetTensorData<int8_t>(filter);
-        const int32_t* bias_data = tflite::micro::GetTensorData<int32_t>(bias);
-#endif  // USE_TFLM_COMPRESSION
-        int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
+      /* TFLM checks if input_depth == filter_depth. So groups will always be 1*/
+      int num_groups = 1;
 
-        const int num_elements = output_shape.FlatSize();
+      const int input_height = input_shape.Dims(1);
+      const int input_width = input_shape.Dims(2);
+      const int filter_height = filter_shape.Dims(1);
+      const int filter_width = filter_shape.Dims(2);
+      const int output_height = output_shape.Dims(1);
+      const int output_width = output_shape.Dims(2);
+      const int8_t* input_data =
+          tflite::micro::GetTensorData<int8_t>(input);
+      const int8_t* filter_data =
+          tflite::micro::GetTensorData<int8_t>(filter);
+      const int32_t* bias_data = tflite::micro::GetOptionalTensorData<int32_t>(bias);
+      int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
 
-        for (int b = 0; b < batches; b++) {
-          xa_nn_transpose_conv_sym8sxasym8s(
-              &output_data[b * output_height * output_width * output_depth],
-              const_cast<WORD8*>(
-                  &input_data[b * input_height * input_width * input_depth]),
-              const_cast<WORD8*>(filter_data), const_cast<WORD32*>(bias_data),
-              stride_width, stride_height, pad_width, pad_height, input_depth,
-              output_depth, input_height, input_width, filter_height,
-              filter_width, output_height, output_width, num_elements / batches,
-              1 /* num_groups */, data.params.input_offset,
-              data.params.output_offset, data.per_channel_output_shift,
-              data.per_channel_output_multiplier, scratch_buffer);
-        }
-      } else {
-        reference_integer_ops::TransposeConv(
-            data.params, data.per_channel_output_multiplier,
-            data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
-            tflite::micro::GetTensorData<int8_t>(input),
-            tflite::micro::GetTensorShape(filter),
-#ifdef USE_TFLM_COMPRESSION
-            tflite::micro::GetTensorData<int8_t>(micro_context, filter,
-                                                 filter_comp_td,
-                                                 data.filter_scratch_index),
-            tflite::micro::GetTensorShape(bias),
-            tflite::micro::GetOptionalTensorData<int32_t>(
-                micro_context, bias, bias_comp_td, data.bias_scratch_index),
-#else   // USE_TFLM_COMPRESSION
-            tflite::micro::GetTensorData<int8_t>(filter),
-            tflite::micro::GetTensorShape(bias),
-            tflite::micro::GetOptionalTensorData<int32_t>(bias),
-#endif  // USE_TFLM_COMPRESSION
-            tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int8_t>(output),
-            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+      const int num_elements = output_shape.FlatSize();
+
+      for (int b = 0; b < batches; b++) {
+        err = xa_nn_transpose_conv_v2_sym8sxasym8s(
+          &output_data[b * output_height * output_width * output_depth],
+          const_cast<WORD8*>(
+              &input_data[b * input_height * input_width * input_depth]),
+          const_cast<WORD8*>(filter_data), const_cast<WORD32*>(bias_data),
+          stride_width, stride_height, pad_width, pad_height, input_depth,
+          output_depth, input_height, input_width, filter_height,
+          filter_width, output_height, output_width, num_elements / batches,
+          num_groups, data.params.input_offset, data.params.output_offset,
+          data.per_channel_output_shift, data.per_channel_output_multiplier,
+          scratch_buffer,
+          data.params.quantized_activation_min,
+          data.params.quantized_activation_max,
+          NULL
+        );
+        TF_LITE_ENSURE(context, err == 0);
       }
 #else
       reference_integer_ops::TransposeConv(
@@ -458,7 +528,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           context->GetScratchBuffer(context, data.scratch_buffer_index));
       // TODO(b/192090531): Remove this once all 8x16 transpose conv models use
       // 64-bit biases.
-      if (bias == nullptr || bias->type == kTfLiteInt16) {
+      if (bias->type == kTfLiteInt16) {
         std::int64_t* bias_converted_buffer = nullptr;
         if (bias != nullptr) {
           bias_converted_buffer =
@@ -493,7 +563,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int16_t>(output),
             tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
       } else {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
         const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
         const RuntimeShape& filter_shape =
             tflite::micro::GetTensorShape(filter);
@@ -507,6 +577,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         const int batches = MatchingDim(input_shape, 0, output_shape, 0);
         const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
         const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
+
+        /* TFLM checks if input_depth == filter_depth. So groups will always be 1*/
+        int num_groups = 1;
 
         const int input_height = input_shape.Dims(1);
         const int input_width = input_shape.Dims(2);
@@ -531,18 +604,24 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         const int num_elements = output_shape.FlatSize();
 
         for (int b = 0; b < batches; b++) {
-          xa_nn_transpose_conv_sym8sxsym16s(
-              &output_data[b * output_height * output_width * output_depth],
-              const_cast<WORD16*>(
-                  &input_data[b * input_height * input_width * input_depth]),
-              const_cast<WORD8*>(filter_data), const_cast<WORD64*>(bias_data),
-              stride_width, stride_height, pad_width, pad_height, input_depth,
-              output_depth, input_height, input_width, filter_height,
-              filter_width, output_height, output_width, num_elements / batches,
-              1 /* num_groups */, data.per_channel_output_shift,
-              data.per_channel_output_multiplier, scratch_buffer);
+          err = xa_nn_transpose_conv_v2_sym8sxsym16s(
+            &output_data[b * output_height * output_width * output_depth],
+            const_cast<WORD16*>(
+                &input_data[b * input_height * input_width * input_depth]),
+            const_cast<WORD8*>(filter_data), const_cast<WORD64*>(bias_data),
+            stride_width, stride_height, pad_width, pad_height, input_depth,
+            output_depth, input_height, input_width, filter_height,
+            filter_width, output_height, output_width, num_elements / batches,
+            num_groups, data.per_channel_output_shift, data.per_channel_output_multiplier,
+            scratch_buffer,
+            data.params.quantized_activation_min,
+            data.params.quantized_activation_max,
+            NULL
+          );
+          TF_LITE_ENSURE(context, err == 0);
         }
-#else  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+
+#else  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
         reference_integer_ops::TransposeConv(
             data.params, data.per_channel_output_multiplier,
             data.per_channel_output_shift, tflite::micro::GetTensorShape(input),
