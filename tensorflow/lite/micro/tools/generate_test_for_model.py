@@ -14,9 +14,9 @@
 # ==============================================================================
 
 import csv
+import logging
 
 import numpy as np
-from absl import logging
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
 
 OpResolverType = None

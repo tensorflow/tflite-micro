@@ -14,7 +14,7 @@
 # ==============================================================================
 """Tool to re-align the tflite flatbuffer via the C++ flatbuffer api."""
 
-from absl import app
+import sys
 
 from tflite_micro.tensorflow.lite.micro.tools import tflite_flatbuffer_align_wrapper
 
@@ -31,4 +31,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main(sys.argv)
