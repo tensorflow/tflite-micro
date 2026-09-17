@@ -37,6 +37,5 @@ jobs:
           allow-unsafe-pr-checkout: true
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ..
           tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/
