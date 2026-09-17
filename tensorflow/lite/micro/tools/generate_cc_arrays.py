@@ -23,15 +23,13 @@ import os
 import struct
 import wave
 
-import numpy as np
-from PIL import Image
-
 
 def generate_file(out_fname, array_name, array_type, array_contents, size):
-  """Write an array of values to a CC or header file."""
+  """Write an array of values to a CC or header file atomically."""
   os.makedirs(os.path.dirname(out_fname), exist_ok=True)
+  tmp_fname = "{}.tmp.{}".format(out_fname, os.getpid())
   if out_fname.endswith(".cc"):
-    with open(out_fname, "w") as out_cc_file:
+    with open(tmp_fname, "w") as out_cc_file:
       out_cc_file.write("#include <cstdint>\n\n")
       # Header include path logic, maintaining compatibility with genfiles/ structure.
       header_path = out_fname.split("genfiles/")[-1].replace(".cc", ".h")
@@ -41,7 +39,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
       out_cc_file.write(array_contents)
       out_cc_file.write("};\n")
   elif out_fname.endswith(".h"):
-    with open(out_fname, "w") as out_hdr_file:
+    with open(tmp_fname, "w") as out_hdr_file:
       out_hdr_file.write("#include <cstdint>\n\n")
       out_hdr_file.write("constexpr unsigned int {}_size = {};\n".format(
           array_name, str(size)))
@@ -49,6 +47,7 @@ def generate_file(out_fname, array_name, array_type, array_contents, size):
           array_type, array_name))
   else:
     raise ValueError("generated file must be end with .cc or .h")
+  os.replace(tmp_fname, out_fname)
 
 
 def bytes_to_hexstring(buffer):
@@ -65,6 +64,7 @@ def generate_array(input_fname):
     out_string = bytes_to_hexstring(buffer)
     return [size, out_string]
   elif input_fname.endswith(".bmp"):
+    from PIL import Image
     img = Image.open(input_fname, mode="r")
     image_bytes = img.tobytes()
     size = len(image_bytes)
@@ -88,6 +88,7 @@ def generate_array(input_fname):
         return [0, ""]
       return [len(elements.split(",")), elements]
   elif input_fname.endswith(".npy"):
+    import numpy as np
     data = np.float32(np.load(input_fname, allow_pickle=False))
     data_1d = data.flatten()
     out_string = ",".join([str(x) for x in data_1d])
@@ -123,6 +124,15 @@ def get_array_name_and_type(input_fname):
     return [base_array_name + "_data", "unsigned char"]
 
 
+def _is_up_to_date(out_fnames, input_fname):
+  """Check if output files exist and are newer than input_fname and script."""
+  try:
+    in_mtime = max(os.path.getmtime(input_fname), os.path.getmtime(__file__))
+    return all(os.path.getmtime(f) >= in_mtime for f in out_fnames)
+  except OSError:
+    return False
+
+
 def main():
   """Create cc sources with c arrays with data from each .tflite or .bmp."""
   parser = argparse.ArgumentParser()
@@ -140,10 +150,12 @@ def main():
 
   if args.output.endswith(".cc") or args.output.endswith(".h"):
     assert len(args.inputs) == 1
-    size, cc_array = generate_array(args.inputs[0])
-    generated_array_name, array_type = get_array_name_and_type(args.inputs[0])
-    generate_file(args.output, generated_array_name, array_type, cc_array,
-                  size)
+    if not _is_up_to_date([args.output], args.inputs[0]):
+      size, cc_array = generate_array(args.inputs[0])
+      generated_array_name, array_type = get_array_name_and_type(
+          args.inputs[0])
+      generate_file(args.output, generated_array_name, array_type, cc_array,
+                    size)
   else:
     # Deduplicate inputs to prevent duplicate generated files (ODR issue).
     for input_file in list(dict.fromkeys(args.inputs)):
@@ -165,6 +177,8 @@ def main():
       # Print output cc filename for Make to include it in the build.
       print(output_cc_fname)
       output_hdr_fname = output_base_fname + ".h"
+      if _is_up_to_date([output_cc_fname, output_hdr_fname], input_file):
+        continue
       size, cc_array = generate_array(input_file)
       generated_array_name, array_type = get_array_name_and_type(input_file)
       generate_file(
