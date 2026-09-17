@@ -60,28 +60,42 @@ constexpr int kReverseShift = -1;
 // it we widen the operands to an unsigned type at least as wide as unsigned int
 // so the arithmetic itself stays unsigned, then truncate back down to the
 // narrow type -- both steps are well-defined.
-template <typename T>
-inline T WrappingAdd(T a, T b) {
-  if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
-    using U = std::make_unsigned_t<T>;
-    using P = std::common_type_t<U, unsigned int>;
+namespace detail {
+
+template <typename T, bool IsIntegralNonBool = std::is_integral<T>::value &&
+                                               !std::is_same<T, bool>::value>
+struct WrappingArithmetic {
+  static inline T Add(T a, T b) {
+    typedef typename std::make_unsigned<T>::type U;
+    typedef typename std::common_type<U, unsigned int>::type P;
     return static_cast<T>(static_cast<U>(static_cast<P>(static_cast<U>(a)) +
                                          static_cast<P>(static_cast<U>(b))));
-  } else {
-    return a + b;
   }
+
+  static inline T Mul(T a, T b) {
+    typedef typename std::make_unsigned<T>::type U;
+    typedef typename std::common_type<U, unsigned int>::type P;
+    return static_cast<T>(static_cast<U>(static_cast<P>(static_cast<U>(a)) *
+                                         static_cast<P>(static_cast<U>(b))));
+  }
+};
+
+template <typename T>
+struct WrappingArithmetic<T, false> {
+  static inline T Add(T a, T b) { return a + b; }
+  static inline T Mul(T a, T b) { return a * b; }
+};
+
+}  // namespace detail
+
+template <typename T>
+inline T WrappingAdd(T a, T b) {
+  return detail::WrappingArithmetic<T>::Add(a, b);
 }
 
 template <typename T>
 inline T WrappingMul(T a, T b) {
-  if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
-    using U = std::make_unsigned_t<T>;
-    using P = std::common_type_t<U, unsigned int>;
-    return static_cast<T>(static_cast<U>(static_cast<P>(static_cast<U>(a)) *
-                                         static_cast<P>(static_cast<U>(b))));
-  } else {
-    return a * b;
-  }
+  return detail::WrappingArithmetic<T>::Mul(a, b);
 }
 
 // Tensor value arithmetic helpers for ops where integer overflow is documented

@@ -26,6 +26,9 @@ class half {
   struct zero_initializer {};
   explicit constexpr half(zero_initializer) : bits_(0) {}
 
+  struct raw_bits_initializer {};
+  constexpr half(raw_bits_initializer, uint16_t bits) : bits_(bits) {}
+
  public:
   half() = default;
 
@@ -45,9 +48,7 @@ class half {
 #endif
 
   static constexpr half from_bits(uint16_t bits) {
-    half result{zero_initializer{}};
-    result.bits_ = bits;
-    return result;
+    return half(raw_bits_initializer{}, bits);
   }
 
   constexpr uint16_t to_bits() const { return bits_; }
