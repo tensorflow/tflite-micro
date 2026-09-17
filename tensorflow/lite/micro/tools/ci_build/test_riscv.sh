@@ -29,8 +29,6 @@ COMMON_ARGS="TARGET=${TARGET} TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
-
 # check that the release build is ok.
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=release build

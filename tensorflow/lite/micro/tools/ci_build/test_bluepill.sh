@@ -32,9 +32,6 @@ COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} OPT
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
-
 # 1. Verify optimized release build succeeds
 readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=release build
