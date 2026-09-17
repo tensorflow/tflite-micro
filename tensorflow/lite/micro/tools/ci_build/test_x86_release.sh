@@ -37,9 +37,6 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
 
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} third_party_downloads ${COMMON_ARGS}
-
 # Build with release and logs so that we can run the tests and get
 # additional debugging info on failures.
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}

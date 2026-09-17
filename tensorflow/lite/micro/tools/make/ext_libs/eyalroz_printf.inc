@@ -13,8 +13,6 @@
 # limitations under the License.
 # ==============================================================================
 
-$(eval $(call add_third_party_download,$(EYALROZ_PRINTF_URL),$(EYALROZ_PRINTF_MD5),eyalroz_printf,))
-
 PRINTF_PATH := $(DOWNLOADS_DIR)/eyalroz_printf
 THIRD_PARTY_CC_SRCS += \
   $(PRINTF_PATH)/src/printf/printf.c

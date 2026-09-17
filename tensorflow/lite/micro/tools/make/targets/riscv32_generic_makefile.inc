@@ -11,7 +11,9 @@ RISCV_EXTRA_CFLAGS :=
 
 TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/riscv_toolchain/bin/
 TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
-$(eval $(call add_third_party_download,$(RISCV_TOOLCHAIN_URL),$(RISCV_TOOLCHAIN_MD5),riscv_toolchain,))
+ifneq ($(SKIP_DOWNLOADS), 1)
+  $(shell $(MAKEFILE_DIR)/download_and_extract.sh $(RISCV_TOOLCHAIN_URL) $(RISCV_TOOLCHAIN_MD5) $(DOWNLOADS_DIR)/riscv_toolchain)
+endif
 
 export PATH := $(TARGET_TOOLCHAIN_ROOT):$(PATH)
 
