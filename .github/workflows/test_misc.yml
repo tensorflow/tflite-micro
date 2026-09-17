@@ -23,6 +23,21 @@ jobs:
       - name: Check
         run: tensorflow/lite/micro/tools/ci_build/test_code_style.sh
 
+  makefile_checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    name: Makefile Checks
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+      - name: Check
+        run: tensorflow/lite/micro/tools/ci_build/test_makefile.sh
+
   cpp_build_warnings:
     runs-on: linux-x86-n2-16
     timeout-minutes: 60
