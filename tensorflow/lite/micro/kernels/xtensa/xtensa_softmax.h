@@ -22,12 +22,13 @@ limitations under the License.
 
 namespace tflite {
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 struct XtensaSoftmaxOpData {
   SoftmaxParams params;
   int scratch_tensor_index;
+  int32_t* softmax_lut; 
 };
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 #if defined(VISION_P6)
 struct XtensaSoftmaxOpData {
