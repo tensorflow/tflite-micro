@@ -26,8 +26,36 @@ source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 # one pass.
 set +e
 
-# --fix_formatting to let the script fix both code and build file format errors.
-FIX_FORMAT_FLAG=${1}
+# Parse arguments
+USE_DOCKER=0
+FIX_FORMAT_FLAG=""
+PASSTHROUGH_ARGS=()
+
+for arg in "$@"; do
+  case "${arg}" in
+    --docker)
+      USE_DOCKER=1
+      ;;
+    --fix_formatting|-f|--fix)
+      FIX_FORMAT_FLAG="--fix_formatting"
+      PASSTHROUGH_ARGS+=("${arg}")
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("${arg}")
+      ;;
+  esac
+done
+
+# If --docker was requested and we are not already inside a container,
+# delegate execution to run_in_docker.sh
+if [[ ${USE_DOCKER} -eq 1 ]]; then
+  if [[ -f /.dockerenv ]]; then
+    # Already running inside Docker; do not recurse.
+    :
+  else
+    exec "${SCRIPT_DIR}/run_in_docker.sh" "${BASH_SOURCE[0]}" "${PASSTHROUGH_ARGS[@]}"
+  fi
+fi
 
 function start_group() {
   local title="$1"
@@ -238,6 +266,12 @@ if [[ ${TOTAL_FAILURES} -gt 0 ]]; then
         ${ERROR_REPORTER_RESULT} != 0 || \
         ${ASSERT_RESULT}         != 0 ]]; then
     echo "Non-formatting errors require manual code fixes (see log above for details)."
+    echo ""
+  fi
+  if [[ ! -f /.dockerenv && -z "${GITHUB_ACTIONS:-}" ]]; then
+    echo "Tip: To run formatting or checks using the exact CI tool versions, run with --docker:"
+    echo "  tensorflow/lite/micro/tools/ci_build/test_code_style.sh --docker"
+    echo "  tensorflow/lite/micro/tools/ci_build/test_code_style.sh --docker --fix_formatting"
     echo ""
   fi
   echo "============================================================"
