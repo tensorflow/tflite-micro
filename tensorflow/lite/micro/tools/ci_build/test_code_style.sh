@@ -50,10 +50,10 @@ PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f 
 ############################################################
 
 if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]; then
-  echo "${CPP_FILES}" | xargs clang-format -i
+  echo "${CPP_FILES}" | xargs -r clang-format -i
   CPP_FORMAT_RESULT=$?
 else
-  echo "${CPP_FILES}" | xargs clang-format --dry-run --Werror
+  echo "${CPP_FILES}" | xargs -r clang-format --dry-run --Werror
   CPP_FORMAT_RESULT=$?
 fi
 
@@ -62,10 +62,10 @@ fi
 ############################################################
 
 if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]; then
-  echo "${PY_FILES}" | xargs python3 -m yapf --parallel -i
+  echo "${PY_FILES}" | xargs -r python3 -m yapf --parallel -i
   PY_FORMAT_RESULT=$?
 else
-  echo "${PY_FILES}" | xargs python3 -m yapf --parallel --diff
+  echo "${PY_FILES}" | xargs -r python3 -m yapf --parallel --diff
   PY_FORMAT_RESULT=$?
 fi
 
