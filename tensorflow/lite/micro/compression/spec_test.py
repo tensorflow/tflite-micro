@@ -18,17 +18,20 @@ from tflite_micro.tensorflow.lite.micro.compression import spec
 
 # This corresponds to spec.EXAMPLE_YAML_SPEC
 EXPECTED_PYTHON_SPEC = [
-    spec.Tensor(subgraph=0,
-                tensor=42,
-                compression=[spec.LookUpTableCompression(index_bitwidth=4)]),
-    spec.Tensor(subgraph=0,
-                tensor=55,
-                compression=[spec.LookUpTableCompression(index_bitwidth=2)]),
+  spec.Tensor(
+    subgraph=0,
+    tensor=42,
+    compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+  ),
+  spec.Tensor(
+    subgraph=0,
+    tensor=55,
+    compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+  ),
 ]
 
 
 class TestLoadYaml(unittest.TestCase):
-
   def testExampleSpec(self):
     result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC)
     self.assertEqual(result, EXPECTED_PYTHON_SPEC)

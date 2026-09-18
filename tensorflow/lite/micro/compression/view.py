@@ -38,7 +38,9 @@ import textwrap
 
 import absl.app
 
-from tensorflow.lite.micro.compression import metadata_py_generated as compression_schema
+from tensorflow.lite.micro.compression import (
+  metadata_py_generated as compression_schema,
+)
 from tensorflow.lite.micro.compression import tensor_type
 from tensorflow.lite.python import schema_py_generated as tflite_schema
 
@@ -52,8 +54,7 @@ if is_bazel:
     Print a human-readable visualization of a .tflite model.
     Note: When running through Bazel, MODEL_PATH must be an absolute path.
     
-    Example: bazel run //tensorflow/lite/micro/compression:view -- $(realpath model.tflite)"""
-                          )
+    Example: bazel run //tensorflow/lite/micro/compression:view -- $(realpath model.tflite)""")
 else:
   USAGE = textwrap.dedent(f"""\
     Usage: {os.path.basename(sys.argv[0])} <MODEL_PATH>
@@ -93,7 +94,8 @@ class MetadataReader:
         buffer_index = item.buffer
         buffer = model.buffers[buffer_index]
         metadata = compression_schema.MetadataT.InitFromPackedBuf(
-            buffer.data, 0)
+          buffer.data, 0
+        )
         if metadata.subgraphs is None:
           raise ValueError("Invalid compression metadata")
         return cls(model, buffer_index, metadata)
@@ -103,25 +105,28 @@ class MetadataReader:
   def unpack(self):
     result = []
     for index, subgraph in enumerate(self.metadata.subgraphs):
-      result.append({
+      result.append(
+        {
           "_index": index,
           "lut_tensors": unpack_lut_metadata(subgraph.lutTensors),
-      })
+        }
+      )
     return {"subgraphs": result}
 
 
-def unpack_operators(model: tflite_schema.ModelT,
-                     operators: list[tflite_schema.OperatorT]):
+def unpack_operators(
+  model: tflite_schema.ModelT, operators: list[tflite_schema.OperatorT]
+):
   result = []
   for index, op in enumerate(operators):
     opcode = model.operatorCodes[op.opcodeIndex]
     name = OPERATOR_NAMES[opcode.builtinCode]
     d = {
-        "_operator": index,
-        "opcode_index": op.opcodeIndex,
-        "_opcode_name": name,
-        "inputs": op.inputs,
-        "outputs": op.outputs,
+      "_operator": index,
+      "opcode_index": op.opcodeIndex,
+      "_opcode_name": name,
+      "inputs": op.inputs,
+      "outputs": op.outputs,
     }
     result.append(d)
   return result
@@ -129,8 +134,7 @@ def unpack_operators(model: tflite_schema.ModelT,
 
 def unpack_TensorType(type):
   attrs = [
-      attr for attr in dir(tflite_schema.TensorType)
-      if not attr.startswith("__")
+    attr for attr in dir(tflite_schema.TensorType) if not attr.startswith("__")
   ]
   lut = {getattr(tflite_schema.TensorType, attr): attr for attr in attrs}
   return lut[type]
@@ -159,13 +163,11 @@ class CompressionMethod(Enum):
 
 
 OPERATOR_NAMES = {
-    code: name
-    for name, code in tflite_schema.BuiltinOperator.__dict__.items()
+  code: name for name, code in tflite_schema.BuiltinOperator.__dict__.items()
 }
 
 
 class Codec:
-
   def __init__(self, reader: MetadataReader, model: tflite_schema.ModelT):
     self.reader = reader
     self.model = model
@@ -179,7 +181,8 @@ class Codec:
       return None
 
   def list_compressions(
-      self, coordinates: TensorCoordinates) -> list[CompressionMethod]:
+    self, coordinates: TensorCoordinates
+  ) -> list[CompressionMethod]:
     metadata = self._tensor_metadata(coordinates)
     if metadata:
       return [CompressionMethod.LUT]
@@ -194,8 +197,9 @@ class Codec:
     model_subgraph = self.model.subgraphs[coordinates.subgraph_ix]
     model_tensor = model_subgraph.tensors[coordinates.tensor_index]
     value_buffer = self.model.buffers[metadata.valueBuffer]
-    values = np.frombuffer(bytes(value_buffer.data),
-                           dtype=tensor_type.to_numpy(model_tensor.type))
+    values = np.frombuffer(
+      bytes(value_buffer.data), dtype=tensor_type.to_numpy(model_tensor.type)
+    )
     values_per_table = 2**metadata.indexBitwidth
     tables = len(values) // values_per_table
     values = values.reshape((tables, values_per_table))
@@ -207,11 +211,11 @@ def unpack_tensors(tensors, subgraph_index: int, codec: Codec | None):
   result = []
   for index, t in enumerate(tensors):
     d = {
-        "_tensor": index,
-        "name": _decode_name(t.name),
-        "type": unpack_TensorType(t.type),
-        "shape": t.shape,
-        "buffer": t.buffer,
+      "_tensor": index,
+      "name": _decode_name(t.name),
+      "type": unpack_TensorType(t.type),
+      "shape": t.shape,
+      "buffer": t.buffer,
     }
 
     if t.isVariable:
@@ -222,15 +226,16 @@ def unpack_tensors(tensors, subgraph_index: int, codec: Codec | None):
 
     if t.quantization is not None and t.quantization.scale is not None:
       d["quantization"] = {
-          "scale": t.quantization.scale,
-          "zero": t.quantization.zeroPoint,
-          "dimension": t.quantization.quantizedDimension,
+        "scale": t.quantization.scale,
+        "zero": t.quantization.zeroPoint,
+        "dimension": t.quantization.quantizedDimension,
       }
     result.append(d)
 
     if codec is not None:
-      coordinates = TensorCoordinates(subgraph_ix=subgraph_index,
-                                      tensor_index=index)
+      coordinates = TensorCoordinates(
+        subgraph_ix=subgraph_index, tensor_index=index
+      )
       d |= unpack_compression(coordinates, codec)
 
   return result
@@ -254,13 +259,12 @@ def unpack_subgraphs(model: tflite_schema.ModelT, codec: Codec | None):
   result = []
   for index, s in enumerate(model.subgraphs):
     d = {
-        "_subgraph": index,
-        "_operator_count": len(s.operators),
-        "_tensor_count": len(s.tensors),
-        "name": _decode_name(s.name),
-        "operators": unpack_operators(model, s.operators),
-        "tensors": unpack_tensors(s.tensors, subgraph_index=index,
-                                  codec=codec),
+      "_subgraph": index,
+      "_operator_count": len(s.operators),
+      "_tensor_count": len(s.tensors),
+      "name": _decode_name(s.name),
+      "operators": unpack_operators(model, s.operators),
+      "tensors": unpack_tensors(s.tensors, subgraph_index=index, codec=codec),
     }
     result.append(d)
   return result
@@ -270,10 +274,10 @@ def unpack_opcodes(opcodes: list[tflite_schema.OperatorCodeT]) -> list:
   result = []
   for index, opcode in enumerate(opcodes):
     d: dict = {
-        "_opcode_index": index,
-        "_name": OPERATOR_NAMES[opcode.builtinCode],
-        "builtin_code": opcode.builtinCode,
-        "version": opcode.version,
+      "_opcode_index": index,
+      "_name": OPERATOR_NAMES[opcode.builtinCode],
+      "builtin_code": opcode.builtinCode,
+      "version": opcode.version,
     }
     if opcode.customCode is not None:
       d["custom_code"] = opcode.customCode
@@ -301,16 +305,19 @@ def unpack_metadata(model: tflite_schema.ModelT):
 
 
 def unpack_lut_metadata(lut_tensors):
-  return [{
+  return [
+    {
       "tensor": t.tensor,
       "value_buffer": t.valueBuffer,
       "index_bitwidth": t.indexBitwidth,
-  } for t in sorted(lut_tensors, key=lambda x: x.tensor)]
+    }
+    for t in sorted(lut_tensors, key=lambda x: x.tensor)
+  ]
 
 
 def find_lut_info_for_buffer(buffer_index, model, compression_data):
   """Find LUT metadata for a given buffer index.
-  
+
   Returns a dict with tensor_index, subgraph_index, and index_bitwidth if the
   buffer contains compressed indices, otherwise returns None.
   """
@@ -323,9 +330,9 @@ def find_lut_info_for_buffer(buffer_index, model, compression_data):
       tensor = model.subgraphs[subgraph_idx].tensors[lut_tensor.tensor]
       if tensor.buffer == buffer_index:
         return {
-            "tensor_index": lut_tensor.tensor,
-            "subgraph_index": subgraph_idx,
-            "index_bitwidth": lut_tensor.indexBitwidth,
+          "tensor_index": lut_tensor.tensor,
+          "subgraph_index": subgraph_idx,
+          "index_bitwidth": lut_tensor.indexBitwidth,
         }
   return None
 
@@ -334,8 +341,8 @@ def unpack_buffers(model, compression_data):
   buffers = []
   for index, buffer in enumerate(model.buffers):
     native = {
-        "_buffer": index,
-        "_bytes": len(buffer.data) if buffer.data is not None else 0,
+      "_buffer": index,
+      "_bytes": len(buffer.data) if buffer.data is not None else 0,
     }
 
     if compression_data is not None and index == compression_data.buffer_index:
@@ -351,9 +358,8 @@ def unpack_buffers(model, compression_data):
       bstring.frombytes(bytes(buffer.data))
       bitwidth = lut_info["index_bitwidth"]
       chunks = [
-          bstring[i:i + bitwidth]
-          for i in range(0,
-                         len(bstring) - bitwidth + 1, bitwidth)
+        bstring[i : i + bitwidth]
+        for i in range(0, len(bstring) - bitwidth + 1, bitwidth)
       ]
       indices = [bitarray.util.ba2int(chunk) for chunk in chunks]
 
@@ -361,9 +367,9 @@ def unpack_buffers(model, compression_data):
       indices_array = np.array(indices, dtype=np.uint8)
 
       native["_lut_indices"] = {
-          "tensor": lut_info["tensor_index"],
-          "bitwidth": bitwidth,
-          "indices": indices_array,
+        "tensor": lut_info["tensor_index"],
+        "bitwidth": bitwidth,
+        "indices": indices_array,
       }
 
     buffers.append(native)
@@ -383,12 +389,12 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
   codec = Codec(compression_metadata, model) if compression_metadata else None
 
   output = {
-      "description": model.description,
-      "version": model.version,
-      "operator_codes": unpack_opcodes(model.operatorCodes),
-      "metadata": unpack_metadata(model),
-      "subgraphs": unpack_subgraphs(model, codec),
-      "buffers": unpack_buffers(model, compression_metadata),
+    "description": model.description,
+    "version": model.version,
+    "operator_codes": unpack_opcodes(model.operatorCodes),
+    "metadata": unpack_metadata(model),
+    "subgraphs": unpack_subgraphs(model, codec),
+    "buffers": unpack_buffers(model, compression_metadata),
   }
 
   return output
@@ -397,11 +403,13 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
 @prettyprinter.register_pretty(np.ndarray)
 def pretty_numpy_array(array, ctx):
   # Format array without ellipsis, similar to how buffer data is displayed
-  string = np.array2string(array,
-                           threshold=np.inf,
-                           max_line_width=78,
-                           separator=' ',
-                           suppress_small=True)
+  string = np.array2string(
+    array,
+    threshold=np.inf,
+    max_line_width=78,
+    separator=' ',
+    suppress_small=True,
+  )
   lines = string.splitlines()
 
   if len(lines) == 1:

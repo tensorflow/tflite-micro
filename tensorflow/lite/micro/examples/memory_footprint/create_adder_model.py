@@ -40,10 +40,12 @@ def main(_):
   # quantization requires a representative data set
   def representative_dataset():
     for i in range(500):
-      yield ([
+      yield (
+        [
           tf.random.normal(input_shape, seed=i),
-          tf.random.normal(input_shape, seed=i * 2)
-      ])
+          tf.random.normal(input_shape, seed=i * 2),
+        ]
+      )
 
   converter.representative_dataset = representative_dataset
   model_tflite = converter.convert()

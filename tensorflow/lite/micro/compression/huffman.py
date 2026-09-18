@@ -39,9 +39,9 @@ class HuffmanCompressor(compressor.Compressor):
     return decode.DecodeType.HUFFMAN
 
   def compress(
-      self,
-      tensor: model_editor.Tensor,
-      method: spec.CompressionMethod,
+    self,
+    tensor: model_editor.Tensor,
+    method: spec.CompressionMethod,
   ) -> compressor.CompressionResult:
     """Compress a tensor using Huffman encoding.
 
@@ -56,5 +56,6 @@ class HuffmanCompressor(compressor.Compressor):
       CompressionError: Always, since this is a stub.
     """
     raise compressor.CompressionError(
-        "Huffman compression not yet implemented. "
-        "This stub exists to validate the plugin architecture.")
+      "Huffman compression not yet implemented. "
+      "This stub exists to validate the plugin architecture."
+    )

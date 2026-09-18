@@ -33,12 +33,13 @@ except ImportError:
       from tensorflow.lite.experimental import OpResolverType
     except ImportError:
       raise ImportError(
-          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
+        "Could not import ai_edge_litert, tflite_runtime, or tensorflow."
+      )
 
 
 class TestDataGenerator:
-  """ Generate test input/output for given model(s). A list of model(s) are taken as input.
-      The generated input and output files are in csv format and created in given output folder. """
+  """Generate test input/output for given model(s). A list of model(s) are taken as input.
+  The generated input and output files are in csv format and created in given output folder."""
 
   def __init__(self, output_dir, model_paths, inputs):
     self.output_dir = output_dir
@@ -52,28 +53,37 @@ class TestDataGenerator:
 
   def _generate_inputs_single(self, interpreter, dtype):
     input_tensor = interpreter.tensor(
-        interpreter.get_input_details()[0]['index'])
+      interpreter.get_input_details()[0]['index']
+    )
     return [
-        np.random.randint(low=np.iinfo(dtype).min,
-                          high=np.iinfo(dtype).max,
-                          dtype=dtype,
-                          size=input_tensor().shape),
+      np.random.randint(
+        low=np.iinfo(dtype).min,
+        high=np.iinfo(dtype).max,
+        dtype=dtype,
+        size=input_tensor().shape,
+      ),
     ]
 
   def _generate_inputs_add_sub(self, interpreter, dtype):
     input_tensor0 = interpreter.tensor(
-        interpreter.get_input_details()[0]['index'])
+      interpreter.get_input_details()[0]['index']
+    )
     input_tensor1 = interpreter.tensor(
-        interpreter.get_input_details()[1]['index'])
+      interpreter.get_input_details()[1]['index']
+    )
     return [
-        np.random.randint(low=np.iinfo(dtype).min,
-                          high=np.iinfo(dtype).max,
-                          dtype=dtype,
-                          size=input_tensor0().shape),
-        np.random.randint(low=np.iinfo(dtype).min,
-                          high=np.iinfo(dtype).max,
-                          dtype=dtype,
-                          size=input_tensor1().shape)
+      np.random.randint(
+        low=np.iinfo(dtype).min,
+        high=np.iinfo(dtype).max,
+        dtype=dtype,
+        size=input_tensor0().shape,
+      ),
+      np.random.randint(
+        low=np.iinfo(dtype).min,
+        high=np.iinfo(dtype).max,
+        dtype=dtype,
+        size=input_tensor1().shape,
+      ),
     ]
 
   def _generate_inputs_transpose_conv(self, interpreter, dtype):
@@ -86,19 +96,20 @@ class TestDataGenerator:
     output_width = output_shape[2]
 
     output_shape = np.array(
-        [1, output_height, output_width,
-         filter_tensor().shape[0]],
-        dtype=np.int32)
+      [1, output_height, output_width, filter_tensor().shape[0]], dtype=np.int32
+    )
     if dtype == float or dtype == np.float32 or dtype == np.float64:
       random = np.random.uniform(low=1, high=100, size=input_tensor1().shape)
       return [output_shape, random.astype(np.float32)]
     else:
       return [
-          output_shape,
-          np.random.randint(low=np.iinfo(dtype).min,
-                            high=np.iinfo(dtype).max,
-                            dtype=dtype,
-                            size=input_tensor1().shape)
+        output_shape,
+        np.random.randint(
+          low=np.iinfo(dtype).min,
+          high=np.iinfo(dtype).max,
+          dtype=dtype,
+          size=input_tensor1().shape,
+        ),
       ]
 
   def _GetTypeStringFromTensor(self, tensor):
@@ -112,10 +123,10 @@ class TestDataGenerator:
       return 'float'
 
   def generate_golden_single_in_single_out(self):
-    """ Takes a single model as input. It is expecting a list with one model.
-        It then generates input and output in CSV format for that model. """
+    """Takes a single model as input. It is expecting a list with one model.
+    It then generates input and output in CSV format for that model."""
 
-    if (len(self.model_paths) != 1):
+    if len(self.model_paths) != 1:
       raise RuntimeError(f'Single model expected')
     model_path = self.model_paths[0]
     kwargs = {"model_path": model_path}
@@ -123,7 +134,7 @@ class TestDataGenerator:
       kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
     else:
       logging.warning(
-          "Could not find OpResolverType. Reference kernels might not be used."
+        "Could not find OpResolverType. Reference kernels might not be used."
       )
     interpreter = tflite_interp.Interpreter(**kwargs)
 
@@ -133,17 +144,20 @@ class TestDataGenerator:
     if len(input_details) > 1:
       raise RuntimeError(f'Only models with one input supported')
     input_tensor = interpreter.tensor(
-        interpreter.get_input_details()[0]['index'])
+      interpreter.get_input_details()[0]['index']
+    )
     output_tensor = interpreter.tensor(
-        interpreter.get_output_details()[0]['index'])
+      interpreter.get_output_details()[0]['index']
+    )
 
     input_type = interpreter.get_input_details()[0]['dtype']
     output_type = interpreter.get_output_details()[0]['dtype']
     if input_type != np.int8 or output_type != np.int8:
       raise RuntimeError(f'Only int8 models supported')
 
-    generated_inputs = self._generate_inputs_single(interpreter,
-                                                    input_tensor().dtype)
+    generated_inputs = self._generate_inputs_single(
+      interpreter, input_tensor().dtype
+    )
     for i, _input_detail in enumerate(input_details):
       interpreter.set_tensor(input_details[i]["index"], generated_inputs[i])
 
@@ -152,11 +166,11 @@ class TestDataGenerator:
     self._write_golden(generated_inputs, model_path, output_tensor)
 
   def generate_goldens(self, builtin_operator):
-    """ Takes a list of one or more models as input.
-        It also takes a built in operator as input because the generated input depends
-        on what type of operator it is, and it supports a limited number of operators.
-        All models in the list assumes the operator as the first operator. It generates
-        input and output in CSV format for the corresponding models. """
+    """Takes a list of one or more models as input.
+    It also takes a built in operator as input because the generated input depends
+    on what type of operator it is, and it supports a limited number of operators.
+    All models in the list assumes the operator as the first operator. It generates
+    input and output in CSV format for the corresponding models."""
 
     for model_path in self.model_paths:
       # Load model and run a single inference with random inputs.
@@ -165,34 +179,41 @@ class TestDataGenerator:
         kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
       else:
         logging.warning(
-            "Could not find OpResolverType. Reference kernels might not be used."
+          "Could not find OpResolverType. Reference kernels might not be used."
         )
       interpreter = tflite_interp.Interpreter(**kwargs)
       interpreter.allocate_tensors()
       input_tensor = interpreter.tensor(
-          interpreter.get_input_details()[0]['index'])
+        interpreter.get_input_details()[0]['index']
+      )
       output_tensor = interpreter.tensor(
-          interpreter.get_output_details()[0]['index'])
+        interpreter.get_output_details()[0]['index']
+      )
 
-      if builtin_operator in (schema_fb.BuiltinOperator.CONV_2D,
-                              schema_fb.BuiltinOperator.DEPTHWISE_CONV_2D,
-                              schema_fb.BuiltinOperator.STRIDED_SLICE,
-                              schema_fb.BuiltinOperator.PAD,
-                              schema_fb.BuiltinOperator.LEAKY_RELU):
+      if builtin_operator in (
+        schema_fb.BuiltinOperator.CONV_2D,
+        schema_fb.BuiltinOperator.DEPTHWISE_CONV_2D,
+        schema_fb.BuiltinOperator.STRIDED_SLICE,
+        schema_fb.BuiltinOperator.PAD,
+        schema_fb.BuiltinOperator.LEAKY_RELU,
+      ):
         generated_inputs = self._generate_inputs_single(
-            interpreter,
-            input_tensor().dtype)
-      elif builtin_operator in (schema_fb.BuiltinOperator.ADD,
-                                schema_fb.BuiltinOperator.SUB):
+          interpreter, input_tensor().dtype
+        )
+      elif builtin_operator in (
+        schema_fb.BuiltinOperator.ADD,
+        schema_fb.BuiltinOperator.SUB,
+      ):
         generated_inputs = self._generate_inputs_add_sub(
-            interpreter,
-            input_tensor().dtype)
+          interpreter, input_tensor().dtype
+        )
       elif builtin_operator == schema_fb.BuiltinOperator.TRANSPOSE_CONV:
         input_tensor = interpreter.tensor(
-            interpreter.get_input_details()[1]['index'])
+          interpreter.get_input_details()[1]['index']
+        )
         generated_inputs = self._generate_inputs_transpose_conv(
-            interpreter,
-            input_tensor().dtype)
+          interpreter, input_tensor().dtype
+        )
       else:
         raise RuntimeError(f'Unsupported BuiltinOperator: {builtin_operator}')
 
@@ -203,15 +224,16 @@ class TestDataGenerator:
       self._write_golden(generated_inputs, model_path, output_tensor)
 
   def _write_golden(self, generated_inputs, model_path, output_tensor):
-    """ Generates input and outputs in CSV format for given model. """
+    """Generates input and outputs in CSV format for given model."""
 
     # Write input to CSV file.
     for input_idx, input_tensor_data in enumerate(generated_inputs):
       input_type = self._GetTypeStringFromTensor(input_tensor_data)
       self.input_types[input_idx] = input_type
       input_flat = input_tensor_data.flatten().tolist()
-      csv_input_filename = \
-          f"{model_path.split('.')[0]}_input{input_idx}_{input_type}.csv"
+      csv_input_filename = (
+        f"{model_path.split('.')[0]}_input{input_idx}_{input_type}.csv"
+      )
       input_csvfile = open(csv_input_filename, 'w', newline='')
       input_csvwriter = csv.writer(input_csvfile)
       input_csvwriter.writerow(input_flat)
@@ -229,18 +251,23 @@ class TestDataGenerator:
     golden_csvwriter.writerow(output_flat)
     self.csv_filenames.append(csv_golden_filename)
 
-  def generate_makefile(self,
-                        test_file='integration_tests.cc',
-                        src_prefix=None):
-    """ Generates a makefile which takes the the given input model(s) as input and also the
-        corresponding generated input(s) and output(s) in csv format. It also take the name of a test file as input.
-        For example usage see: tensorflow/lite/micro/integration_tests/generate_per_layer_tests.py. """
+  def generate_makefile(
+    self, test_file='integration_tests.cc', src_prefix=None
+  ):
+    """Generates a makefile which takes the the given input model(s) as input and also the
+    corresponding generated input(s) and output(s) in csv format. It also take the name of a test file as input.
+    For example usage see: tensorflow/lite/micro/integration_tests/generate_per_layer_tests.py."""
 
     makefile = open(self.output_dir + '/Makefile.inc', 'w')
     output_dir_list = self.output_dir.split('/')
     if src_prefix is None:
-      src_prefix = output_dir_list[-3] + '_' + output_dir_list[
-          -2] + '_' + output_dir_list[-1]
+      src_prefix = (
+        output_dir_list[-3]
+        + '_'
+        + output_dir_list[-2]
+        + '_'
+        + output_dir_list[-1]
+      )
 
     def to_rel_path(path):
       if 'third_party/tflite_micro/' in path:
@@ -256,15 +283,29 @@ class TestDataGenerator:
       makefile.write('$(TENSORFLOW_ROOT)' + to_rel_path(csv_input) + ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
-    makefile.write('$(TENSORFLOW_ROOT)' + to_rel_path(self.output_dir) + '/' +
-                   test_file + '  \\\n')
     makefile.write(
-        "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \\\n")
+      '$(TENSORFLOW_ROOT)'
+      + to_rel_path(self.output_dir)
+      + '/'
+      + test_file
+      + '  \\\n'
+    )
+    makefile.write(
+      "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \\\n"
+    )
     makefile.write('\n\n')
     makefile.write(src_prefix + '_HDR := \\\n')
     makefile.write(
-        "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.h \\\n")
+      "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.h \\\n"
+    )
     makefile.write('\n\n')
     makefile.write('$(eval $(call microlite_test,' + src_prefix + '_test,\\\n')
-    makefile.write('$(' + src_prefix + '_SRCS),$(' + src_prefix + '_HDR),$(' +
-                   src_prefix + '_GENERATOR_INPUTS)))')
+    makefile.write(
+      '$('
+      + src_prefix
+      + '_SRCS),$('
+      + src_prefix
+      + '_HDR),$('
+      + src_prefix
+      + '_GENERATOR_INPUTS)))'
+    )

@@ -20,6 +20,7 @@ bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate
 --model_path=".tflite file path" --img_path="MNIST image path"
 
 """
+
 import os
 
 from absl import app
@@ -32,10 +33,12 @@ from tflite_micro.python.tflite_micro import runtime
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("model_path", "/tmp/lstm_trained_model/lstm.tflite",
-                    "the trained model path.")
-flags.DEFINE_string("img_path", "/tmp/samples/sample0.jpg",
-                    "path for the image to be predicted.")
+flags.DEFINE_string(
+  "model_path", "/tmp/lstm_trained_model/lstm.tflite", "the trained model path."
+)
+flags.DEFINE_string(
+  "img_path", "/tmp/samples/sample0.jpg", "path for the image to be predicted."
+)
 
 
 def read_img(img_path):
@@ -51,7 +54,7 @@ def read_img(img_path):
   data = np.asarray(image, dtype=np.float32)
   if data.shape not in [(28, 28), (28, 28, 1)]:
     raise ValueError(
-        "Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)"
+      "Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)"
     )
   # Normalize the image if necessary
   if data.max() > 1:
@@ -71,8 +74,10 @@ def quantize_input_data(data, input_details):
   # Get input quantization parameters
   data_type = input_details["dtype"]
   input_quantization_parameters = input_details["quantization_parameters"]
-  input_scale, input_zero_point = input_quantization_parameters["scales"][
-      0], input_quantization_parameters["zero_points"][0]
+  input_scale, input_zero_point = (
+    input_quantization_parameters["scales"][0],
+    input_quantization_parameters["zero_points"][0],
+  )
   # quantize the input data
   data = data / input_scale + input_zero_point
   return data.astype(data_type)
@@ -86,8 +91,10 @@ def dequantize_output_data(data, output_details):
       output_details : output of get_output_details from the tflm interpreter.
   """
   output_quantization_parameters = output_details["quantization_parameters"]
-  output_scale, output_zero_point = output_quantization_parameters["scales"][
-      0], output_quantization_parameters["zero_points"][0]
+  output_scale, output_zero_point = (
+    output_quantization_parameters["scales"][0],
+    output_quantization_parameters["zero_points"][0],
+  )
   # Caveat: tflm_output_quant need to be converted to float to avoid integer overflow during dequantization
   # e.g., (tflm_output_quant -output_zero_point) and (tflm_output_quant + (-output_zero_point))
   # can produce different results (int8 calculation)
@@ -154,15 +161,19 @@ def predict_image(interpreter, image_path):
 def main(_):
   if not os.path.exists(FLAGS.model_path):
     raise ValueError(
-        "Model file does not exist. Please check the .tflite model path.")
+      "Model file does not exist. Please check the .tflite model path."
+    )
   if not os.path.exists(FLAGS.img_path):
     raise ValueError("Image file does not exist. Please check the image path.")
 
   tflm_interpreter = runtime.Interpreter.from_file(FLAGS.model_path)
   category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
   predicted_category = np.argmax(category_probabilities)
-  logging.info("Model predicts the image as %i with probability %.2f",
-               predicted_category, category_probabilities[predicted_category])
+  logging.info(
+    "Model predicts the image as %i with probability %.2f",
+    predicted_category,
+    category_probabilities[predicted_category],
+  )
 
 
 if __name__ == "__main__":

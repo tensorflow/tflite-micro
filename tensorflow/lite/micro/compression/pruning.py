@@ -38,9 +38,9 @@ class PruningCompressor(compressor.Compressor):
     return decode.DecodeType.PRUNING
 
   def compress(
-      self,
-      tensor: model_editor.Tensor,
-      method: spec.CompressionMethod,
+    self,
+    tensor: model_editor.Tensor,
+    method: spec.CompressionMethod,
   ) -> compressor.CompressionResult:
     """Compress a tensor using pruning (sparsity) encoding.
 
@@ -55,5 +55,6 @@ class PruningCompressor(compressor.Compressor):
       CompressionError: Always, since this is a stub.
     """
     raise compressor.CompressionError(
-        "Pruning compression not yet implemented. "
-        "This stub exists to validate the plugin architecture.")
+      "Pruning compression not yet implemented. "
+      "This stub exists to validate the plugin architecture."
+    )

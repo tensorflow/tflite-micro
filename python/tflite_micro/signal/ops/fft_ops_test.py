@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """Tests for FFT ops."""
+
 import os
 
 import numpy as np
@@ -24,7 +25,6 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class RfftOpTest(tf.test.TestCase):
-
   _PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
   def GetResource(self, filepath):
@@ -38,7 +38,8 @@ class RfftOpTest(tf.test.TestCase):
     func = tf.function(fft_ops.fft_auto_scale)
     input_size = len(lines[0].split())
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(input_size, dtype=tf.int16))
+      tf.TensorSpec(input_size, dtype=tf.int16)
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     i = 0
     while i < len(lines):
@@ -65,7 +66,8 @@ class RfftOpTest(tf.test.TestCase):
     func = tf.function(fft_ops.rfft)
     input_size = len(lines[1].split())
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(input_size, dtype=tf.int16), fft_length)
+      tf.TensorSpec(input_size, dtype=tf.int16), fft_length
+    )
     # TODO(b/286252893): make test more robust (vs scipy)
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
@@ -96,15 +98,22 @@ class RfftOpTest(tf.test.TestCase):
     len_lines_multiple_of_eight = int(len(lines) - len(lines) % 8) - 7
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
-    in_frames = np.array([[int(j) for j in lines[i].split()]
-                          for i in range(1, len_lines_multiple_of_eight, 2)],
-                         dtype=np.int16)
-    out_frames_exp = [[int(j) for j in lines[i + 1].split()]
-                      for i in range(1, len_lines_multiple_of_eight, 2)]
+    in_frames = np.array(
+      [
+        [int(j) for j in lines[i].split()]
+        for i in range(1, len_lines_multiple_of_eight, 2)
+      ],
+      dtype=np.int16,
+    )
+    out_frames_exp = [
+      [int(j) for j in lines[i + 1].split()]
+      for i in range(1, len_lines_multiple_of_eight, 2)
+    ]
     # Compare TFLM inference against the expected golden values
     # TODO(b/286252893): validate usage of testing vs interpreter here
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(np.shape(in_frames), dtype=tf.int16), fft_length)
+      tf.TensorSpec(np.shape(in_frames), dtype=tf.int16), fft_length
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     interpreter.set_input(in_frames, 0)
     interpreter.invoke()
@@ -117,11 +126,14 @@ class RfftOpTest(tf.test.TestCase):
     # Expand outer dims to [4, x, input_size] to test >1 outer dim.
     in_frames_multiple_outer_dims = np.reshape(in_frames, [4, -1, input_size])
     out_frames_exp_multiple_outer_dims = np.reshape(
-        out_frames_exp, [4, -1, len(out_frames_exp[0])])
+      out_frames_exp, [4, -1, len(out_frames_exp[0])]
+    )
     out_frames_multiple_outer_dims = self.evaluate(
-        fft_ops.rfft(in_frames_multiple_outer_dims, fft_length))
-    self.assertAllEqual(out_frames_exp_multiple_outer_dims,
-                        out_frames_multiple_outer_dims)
+      fft_ops.rfft(in_frames_multiple_outer_dims, fft_length)
+    )
+    self.assertAllEqual(
+      out_frames_exp_multiple_outer_dims, out_frames_multiple_outer_dims
+    )
 
   def testRfftOpImpulseTest(self):
     for dtype in [np.int16, np.int32]:
@@ -172,57 +184,64 @@ class RfftOpTest(tf.test.TestCase):
   def testRfftSineTest(self):
     sine_wave_amplitude = 10000
     # how many sine periods per fft_length samples
-    sine_wave_angle = (1 / fft_ops._MIN_FFT_LENGTH)
+    sine_wave_angle = 1 / fft_ops._MIN_FFT_LENGTH
     fft_length = fft_ops._MIN_FFT_LENGTH
     while fft_length <= fft_ops._MAX_FFT_LENGTH:
       fft_input = sine_wave_amplitude * np.sin(
-          sine_wave_angle * np.pi * 2 * np.array(range(0, fft_length)))
+        sine_wave_angle * np.pi * 2 * np.array(range(0, fft_length))
+      )
       fft_input_float = np.float32(fft_input)
       fft_input_int16 = np.int16(np.round(fft_input_float))
       fft_input_int32 = np.int32(np.round(fft_input_float))
 
       fft_output_float = self.evaluate(
-          fft_ops.rfft(fft_input_float, fft_length))
+        fft_ops.rfft(fft_input_float, fft_length)
+      )
       fft_output_int16 = self.evaluate(
-          fft_ops.rfft(fft_input_int16, fft_length))
+        fft_ops.rfft(fft_input_int16, fft_length)
+      )
       fft_output_int32 = np.round(
-          self.evaluate(fft_ops.rfft(fft_input_int32, fft_length)))
+        self.evaluate(fft_ops.rfft(fft_input_int32, fft_length))
+      )
       sine_bin = round(fft_length / fft_ops._MIN_FFT_LENGTH)
       expected_real = 0
       # The output of floating point RFFT is not scaled
       # This is the expected output of the theorerical DFT
-      expected_imag_sine_bin_float = np.float32(-sine_wave_amplitude / 2 *
-                                                fft_length)
+      expected_imag_sine_bin_float = np.float32(
+        -sine_wave_amplitude / 2 * fft_length
+      )
       # The output of the integer RFFT is scaled by 1 / fft_length
       expected_imag_sine_bin_int16 = np.int16(round(-sine_wave_amplitude / 2))
       expected_imag_sine_bin_int32 = np.int32(round(-sine_wave_amplitude / 2))
       expected_imag_other_bins = 0
       for i in range(0, int(fft_length / 2 + 1)):
-        self.assertAlmostEqual(fft_output_float[2 * i],
-                               expected_real,
-                               delta=0.1)
+        self.assertAlmostEqual(
+          fft_output_float[2 * i], expected_real, delta=0.1
+        )
         self.assertAlmostEqual(fft_output_int16[2 * i], expected_real, delta=2)
         self.assertAlmostEqual(fft_output_int32[2 * i], expected_real, delta=0)
         if i == sine_bin:
-          self.assertAlmostEqual(fft_output_float[2 * i + 1],
-                                 expected_imag_sine_bin_float,
-                                 delta=1.3e-12)
-          self.assertAlmostEqual(fft_output_int16[2 * i + 1],
-                                 expected_imag_sine_bin_int16,
-                                 delta=2)
-          self.assertAlmostEqual(fft_output_int32[2 * i + 1],
-                                 expected_imag_sine_bin_int32,
-                                 delta=2)
+          self.assertAlmostEqual(
+            fft_output_float[2 * i + 1],
+            expected_imag_sine_bin_float,
+            delta=1.3e-12,
+          )
+          self.assertAlmostEqual(
+            fft_output_int16[2 * i + 1], expected_imag_sine_bin_int16, delta=2
+          )
+          self.assertAlmostEqual(
+            fft_output_int32[2 * i + 1], expected_imag_sine_bin_int32, delta=2
+          )
         else:
-          self.assertAlmostEqual(fft_output_float[2 * i + 1],
-                                 expected_imag_other_bins,
-                                 delta=0.35)
-          self.assertAlmostEqual(fft_output_int16[2 * i + 1],
-                                 expected_imag_other_bins,
-                                 delta=2)
-          self.assertAlmostEqual(fft_output_int32[2 * i + 1],
-                                 expected_imag_other_bins,
-                                 delta=1)
+          self.assertAlmostEqual(
+            fft_output_float[2 * i + 1], expected_imag_other_bins, delta=0.35
+          )
+          self.assertAlmostEqual(
+            fft_output_int16[2 * i + 1], expected_imag_other_bins, delta=2
+          )
+          self.assertAlmostEqual(
+            fft_output_int32[2 * i + 1], expected_imag_other_bins, delta=1
+          )
       fft_length = 2 * fft_length
 
   def testRfft(self):
@@ -236,14 +255,16 @@ class RfftOpTest(tf.test.TestCase):
       fft_input = np.zeros(round(fft_ops._MAX_FFT_LENGTH * 2), dtype=dtype)
       with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
         self.evaluate(
-            fft_ops.rfft(fft_input, round(fft_ops._MAX_FFT_LENGTH * 2)))
+          fft_ops.rfft(fft_input, round(fft_ops._MAX_FFT_LENGTH * 2))
+        )
 
   def testFftTooSmall(self):
     for dtype in [np.int16, np.int32, np.float32]:
       fft_input = np.zeros(round(fft_ops._MIN_FFT_LENGTH / 2), dtype=dtype)
       with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
         self.evaluate(
-            fft_ops.rfft(fft_input, round(fft_ops._MIN_FFT_LENGTH / 2)))
+          fft_ops.rfft(fft_input, round(fft_ops._MIN_FFT_LENGTH / 2))
+        )
 
   def testFftLengthNoEven(self):
     for dtype in [np.int16, np.int32, np.float32]:
@@ -260,19 +281,21 @@ class RfftOpTest(tf.test.TestCase):
           fft_input = np.random.random(fft_length).astype(dtype) * 2 - 1
         else:
           fft_input = np.random.randint(
-              np.iinfo(np.int16).min,
-              np.iinfo(np.int16).max + 1, fft_length).astype(dtype)
+            np.iinfo(np.int16).min, np.iinfo(np.int16).max + 1, fft_length
+          ).astype(dtype)
         fft_output = self.evaluate(fft_ops.rfft(fft_input, fft_length))
         self.assertEqual(fft_output.shape[0], (fft_length / 2 + 1) * 2)
         ifft_output = self.evaluate(fft_ops.irfft(fft_output, fft_length))
         self.assertEqual(ifft_output.shape[0], fft_length)
         # Output of integer RFFT and IRFFT is scaled by 1/fft_length
         if dtype == np.int16:
-          self.assertArrayNear(fft_input,
-                               ifft_output.astype(np.int32) * fft_length, 6500)
+          self.assertArrayNear(
+            fft_input, ifft_output.astype(np.int32) * fft_length, 6500
+          )
         elif dtype == np.int32:
-          self.assertArrayNear(fft_input,
-                               ifft_output.astype(np.int32) * fft_length, 7875)
+          self.assertArrayNear(
+            fft_input, ifft_output.astype(np.int32) * fft_length, 7875
+          )
         else:
           self.assertArrayNear(fft_input, ifft_output, 5e-7)
         fft_length = 2 * fft_length
@@ -283,25 +306,26 @@ class RfftOpTest(tf.test.TestCase):
       while fft_length <= fft_ops._MAX_FFT_LENGTH:
         if dtype == np.float32:
           # Random input in the range [-1, 1)
-          fft_input = np.random.random([2, 5, fft_length
-                                        ]).astype(dtype) * 2 - 1
+          fft_input = np.random.random([2, 5, fft_length]).astype(dtype) * 2 - 1
         else:
           fft_input = np.random.randint(
-              np.iinfo(np.int16).min,
-              np.iinfo(np.int16).max + 1, [2, 5, fft_length]).astype(dtype)
+            np.iinfo(np.int16).min,
+            np.iinfo(np.int16).max + 1,
+            [2, 5, fft_length],
+          ).astype(dtype)
         fft_output = self.evaluate(fft_ops.rfft(fft_input, fft_length))
         self.assertEqual(fft_output.shape[-1], (fft_length / 2 + 1) * 2)
         ifft_output = self.evaluate(fft_ops.irfft(fft_output, fft_length))
         self.assertEqual(ifft_output.shape[-1], fft_length)
         # Output of integer RFFT and IRFFT is scaled by 1/fft_length
         if dtype == np.int16:
-          self.assertAllClose(fft_input,
-                              ifft_output.astype(np.int32) * fft_length,
-                              atol=7875)
+          self.assertAllClose(
+            fft_input, ifft_output.astype(np.int32) * fft_length, atol=7875
+          )
         elif dtype == np.int32:
-          self.assertAllClose(fft_input,
-                              ifft_output.astype(np.int32) * fft_length,
-                              atol=7875)
+          self.assertAllClose(
+            fft_input, ifft_output.astype(np.int32) * fft_length, atol=7875
+          )
         else:
           self.assertAllClose(fft_input, ifft_output, rtol=5e-7, atol=5e-7)
         fft_length = 2 * fft_length

@@ -28,24 +28,28 @@ from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 
 import tensorflow as tf
-from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import (
+  audio_preprocessor,
+)
 
 
 class AudioPreprocessorTest(test_util.TensorFlowTestCase):
-
   def setUp(self):
     self.sample_prefix_path = resource_loader.get_path_to_datafile('testdata')
 
   def testFeatureGeneration(self):
     feature_params = audio_preprocessor.FeatureParams()
     audio_pp = audio_preprocessor.AudioPreprocessor(feature_params)
-    window_size = int(feature_params.window_size_ms *
-                      feature_params.sample_rate / 1000)
-    data: tf.Tensor = tf.random.uniform(minval=int(tf.dtypes.int16.min),
-                                        maxval=tf.dtypes.int16.max,
-                                        seed=42,
-                                        shape=(1, window_size),
-                                        dtype=tf.int32)
+    window_size = int(
+      feature_params.window_size_ms * feature_params.sample_rate / 1000
+    )
+    data: tf.Tensor = tf.random.uniform(
+      minval=int(tf.dtypes.int16.min),
+      maxval=tf.dtypes.int16.max,
+      seed=42,
+      shape=(1, window_size),
+      dtype=tf.int32,
+    )
     data = tf.cast(data, dtype=tf.int16)  # type: ignore
 
     # test signal ops internal state retained and features do not match
@@ -78,9 +82,46 @@ class AudioPreprocessorTest(test_util.TensorFlowTestCase):
     feature = audio_pp.generate_feature_using_tflm(audio_pp.samples)
     feature_list = feature.numpy().tolist()
     expected = [
-        124, 105, 126, 103, 125, 101, 123, 100, 116, 98, 115, 97, 113, 90, 91,
-        82, 104, 96, 117, 97, 121, 103, 126, 101, 125, 104, 126, 104, 125, 101,
-        116, 90, 81, 74, 80, 71, 83, 76, 82, 71
+      124,
+      105,
+      126,
+      103,
+      125,
+      101,
+      123,
+      100,
+      116,
+      98,
+      115,
+      97,
+      113,
+      90,
+      91,
+      82,
+      104,
+      96,
+      117,
+      97,
+      121,
+      103,
+      126,
+      101,
+      125,
+      104,
+      126,
+      104,
+      125,
+      101,
+      116,
+      90,
+      81,
+      74,
+      80,
+      71,
+      83,
+      76,
+      82,
+      71,
     ]
     self.assertSequenceEqual(feature_list, expected)
 
@@ -91,9 +132,46 @@ class AudioPreprocessorTest(test_util.TensorFlowTestCase):
     feature = audio_pp.generate_feature_using_tflm(audio_pp.samples)
     feature_list = feature.numpy().tolist()
     expected = [
-        126, 103, 124, 102, 124, 102, 123, 100, 118, 97, 118, 100, 118, 98,
-        121, 100, 121, 98, 117, 91, 96, 74, 54, 87, 100, 87, 109, 92, 91, 80,
-        64, 55, 83, 74, 74, 78, 114, 95, 101, 81
+      126,
+      103,
+      124,
+      102,
+      124,
+      102,
+      123,
+      100,
+      118,
+      97,
+      118,
+      100,
+      118,
+      98,
+      121,
+      100,
+      121,
+      98,
+      117,
+      91,
+      96,
+      74,
+      54,
+      87,
+      100,
+      87,
+      109,
+      92,
+      91,
+      80,
+      64,
+      55,
+      83,
+      74,
+      74,
+      78,
+      114,
+      95,
+      101,
+      81,
     ]
     self.assertSequenceEqual(feature_list, expected)
 

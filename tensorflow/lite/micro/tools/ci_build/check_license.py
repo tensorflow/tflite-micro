@@ -21,45 +21,46 @@ import subprocess
 import sys
 
 TARGET_DIRS = [
-    "tensorflow/lite/kernels/internal/reference",
-    "tensorflow/lite/micro",
-    "third_party",
+  "tensorflow/lite/kernels/internal/reference",
+  "tensorflow/lite/micro",
+  "third_party",
 ]
 
 EXCLUDES = (
-    "kernels/internal/reference/integer_ops/",
-    "kernels/internal/reference/reference_ops.h",
-    "python/schema_py_generated.py",
-    "python_requirements.in",
-    "tensorflow/lite/micro/compression/metadata_saved.h",
-    "tools/make/downloads",
-    "tools/make/targets/ecm3531",
-    "BUILD",
-    "leon_commands",
-    "LICENSE",
-    ".gitignore",
-    ".bmp",
-    ".bzl",
-    ".csv",
-    ".h5",
-    ".inc",
-    ".ipynb",
-    ".md",
-    ".patch",
-    ".properties",
-    ".tflite",
-    ".tpl",
-    ".txt",
-    ".wav",
-    ".png",
-    ".jpg",
-    ".json",
-    ".lock",
-    ".yapf",
+  "kernels/internal/reference/integer_ops/",
+  "kernels/internal/reference/reference_ops.h",
+  "python/schema_py_generated.py",
+  "python_requirements.in",
+  "tensorflow/lite/micro/compression/metadata_saved.h",
+  "tools/make/downloads",
+  "tools/make/targets/ecm3531",
+  "BUILD",
+  "leon_commands",
+  "LICENSE",
+  ".gitignore",
+  ".bmp",
+  ".bzl",
+  ".csv",
+  ".h5",
+  ".inc",
+  ".ipynb",
+  ".md",
+  ".patch",
+  ".properties",
+  ".tflite",
+  ".tpl",
+  ".txt",
+  ".wav",
+  ".png",
+  ".jpg",
+  ".json",
+  ".lock",
+  ".toml",
 )
 
 COPYRIGHT_REGEX = re.compile(
-    r"Copyright 20\d\d The TensorFlow Authors\. All Rights Reserved\.")
+  r"Copyright 20\d\d The TensorFlow Authors\. All Rights Reserved\."
+)
 LICENSE_KEYWORD = "Apache License, Version 2.0"
 
 

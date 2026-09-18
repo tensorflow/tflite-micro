@@ -23,8 +23,12 @@ import pathlib
 import tempfile
 import unittest
 
-from tflite_micro.tensorflow.lite.micro.compression import compression_integration_test
-from tflite_micro.tensorflow.lite.micro.compression import proprietary_integration_test
+from tflite_micro.tensorflow.lite.micro.compression import (
+  compression_integration_test,
+)
+from tflite_micro.tensorflow.lite.micro.compression import (
+  proprietary_integration_test,
+)
 
 _SPEC_YAML = """\
 tensors:

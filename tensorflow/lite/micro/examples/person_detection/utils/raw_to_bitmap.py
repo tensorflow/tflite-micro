@@ -40,9 +40,9 @@ import re
 import numpy as np
 
 _DICT_RESOLUTIONS = {
-    'QVGA': (324, 244, 1),
-    'GRAY': (96, 96, 1),
-    'RGB': (96, 96, 3),
+  'QVGA': (324, 244, 1),
+  'GRAY': (96, 96, 1),
+  'RGB': (96, 96, 3),
 }
 
 _VERSION = 0
@@ -158,38 +158,42 @@ def parse_file(inputfile, width, height, channels):
 
 def main():
   parser = argparse.ArgumentParser(
-      description='This program converts raw data from HM01B0 to a bmp file.')
-
-  parser.add_argument('-i',
-                      '--input',
-                      dest='inputfile',
-                      required=True,
-                      help='input file',
-                      metavar='FILE',
-                      type=check_file_existence)
-
-  parser.add_argument(
-      '-r',
-      '--resolution',
-      dest='resolution',
-      required=False,
-      help='Resolution',
-      choices=['QVGA', 'RGB', 'GRAY'],
-      default='QVGA',
+    description='This program converts raw data from HM01B0 to a bmp file.'
   )
 
-  parser.add_argument('-v',
-                      '--version',
-                      help='Program version',
-                      action='version',
-                      version='%(prog)s {ver}'.format(ver='v%d.%d' %
-                                                      (_VERSION, _SUBVERSION)))
+  parser.add_argument(
+    '-i',
+    '--input',
+    dest='inputfile',
+    required=True,
+    help='input file',
+    metavar='FILE',
+    type=check_file_existence,
+  )
+
+  parser.add_argument(
+    '-r',
+    '--resolution',
+    dest='resolution',
+    required=False,
+    help='Resolution',
+    choices=['QVGA', 'RGB', 'GRAY'],
+    default='QVGA',
+  )
+
+  parser.add_argument(
+    '-v',
+    '--version',
+    help='Program version',
+    action='version',
+    version='%(prog)s {ver}'.format(ver='v%d.%d' % (_VERSION, _SUBVERSION)),
+  )
 
   args = parser.parse_args()
 
-  (width, height,
-   channels) = _DICT_RESOLUTIONS.get(args.resolution,
-                                     ('Resolution not supported', 0, 0, 0))
+  (width, height, channels) = _DICT_RESOLUTIONS.get(
+    args.resolution, ('Resolution not supported', 0, 0, 0)
+  )
   frame_list = parse_file(open(args.inputfile), width, height, channels)
   bitmap_list = reshape_bitmaps(frame_list, width, height, channels)
   show_and_save_bitmaps(args.inputfile, bitmap_list, channels)

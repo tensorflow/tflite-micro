@@ -26,30 +26,35 @@ TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string('input_tflite_file', None,
-                    'Full path name to the input TFLite file.')
 flags.DEFINE_string(
-    'output_dir', None, 'Directory to output generated files. \
+  'input_tflite_file', None, 'Full path name to the input TFLite file.'
+)
+flags.DEFINE_string(
+  'output_dir',
+  None,
+  'Directory to output generated files. \
   Note that final output will be in FLAGS.output_dir/<base name of model>. \
-  Where <base name of model> will come from FLAGS.input_tflite_file.')
+  Where <base name of model> will come from FLAGS.input_tflite_file.',
+)
 flags.DEFINE_integer('arena_size', 1024 * 136, 'Size of arena')
-flags.DEFINE_boolean('verify_output', False,
-                     'Verify output or just run model.')
+flags.DEFINE_boolean('verify_output', False, 'Verify output or just run model.')
 
 flags.mark_flag_as_required('input_tflite_file')
 flags.mark_flag_as_required('output_dir')
 
 
 class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
-
   def __init__(self, output_dir, model_path, verify_output, arena_size):
     super().__init__(output_dir, [model_path], [0])  # Third argument not used.
     self.verify_output = verify_output
     self.arena_size = arena_size
 
     self.target = model_path.split('/')[-1].split('.')[0]
-    self.target_with_path = model_path.split('tflite_micro/')[-1]. \
-        split('tflite-micro/')[-1].split('.')[0]
+    self.target_with_path = (
+      model_path.split('tflite_micro/')[-1]
+      .split('tflite-micro/')[-1]
+      .split('.')[0]
+    )
 
     # Only int8 models supported
     self.input_type = 'int8'
@@ -64,17 +69,18 @@ class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
   def generate_test(self, template_dir, template_file, out_file):
     template_file_path = os.path.join(template_dir, template_file)
     build_template = template.Template(filename=template_file_path)
-    path_to_target = self.target_with_path.split('/' + self.target)[0] + \
-        '/' + self.target
+    path_to_target = (
+      self.target_with_path.split('/' + self.target)[0] + '/' + self.target
+    )
     with open(self.output_dir + '/' + out_file, 'w') as file_obj:
       key_values_in_template = {
-          'arena_size': self.arena_size,
-          'verify_output': int(self.verify_output),
-          'path_to_target': path_to_target,
-          'target': self.target,
-          'target_with_path': self.target_with_path,
-          'input_dtype': self.input_type,
-          'output_dtype': self.output_type
+        'arena_size': self.arena_size,
+        'verify_output': int(self.verify_output),
+        'path_to_target': path_to_target,
+        'target': self.target,
+        'target_with_path': self.target_with_path,
+        'input_dtype': self.input_type,
+        'output_dtype': self.output_type,
       }
       file_obj.write(build_template.render(**key_values_in_template))
 
@@ -83,10 +89,10 @@ class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
     build_template = template.Template(filename=template_file_path)
     with open(self.output_dir + '/BUILD', 'w') as file_obj:
       key_values_in_template = {
-          'verify_output': self.verify_output,
-          'target': self.target,
-          'input_dtype': self.input_type,
-          'output_dtype': self.output_type
+        'verify_output': self.verify_output,
+        'target': self.target,
+        'input_dtype': self.input_type,
+        'output_dtype': self.output_type,
       }
       file_obj.write(build_template.render(**key_values_in_template))
 
@@ -104,18 +110,20 @@ def main(_):
   new_model_path = out_dir + '/' + model_name
   shutil.copyfile(model_path, new_model_path)
 
-  data_generator = MicroMutableOpTestGenerator(out_dir, new_model_path,
-                                               FLAGS.verify_output,
-                                               FLAGS.arena_size)
+  data_generator = MicroMutableOpTestGenerator(
+    out_dir, new_model_path, FLAGS.verify_output, FLAGS.arena_size
+  )
   data_generator.generate_golden()
   data_generator.generate_build_file(TEMPLATE_DIR)
   data_generator.generate_makefile(
-      test_file='micro_mutable_op_resolver_test.cc',
-      src_prefix=name_of_make_target)
+    test_file='micro_mutable_op_resolver_test.cc',
+    src_prefix=name_of_make_target,
+  )
   data_generator.generate_test(
-      TEMPLATE_DIR,
-      template_file='micro_mutable_op_resolver_test.cc.mako',
-      out_file='micro_mutable_op_resolver_test.cc')
+    TEMPLATE_DIR,
+    template_file='micro_mutable_op_resolver_test.cc.mako',
+    out_file='micro_mutable_op_resolver_test.cc',
+  )
 
 
 if __name__ == '__main__':

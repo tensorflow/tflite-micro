@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """Tests for stacker ops."""
+
 import os
 
 import numpy as np
@@ -24,7 +25,6 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class StackerOpTest(tf.test.TestCase):
-
   _PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
   def GetResource(self, filepath):
@@ -43,15 +43,18 @@ class StackerOpTest(tf.test.TestCase):
     func = tf.function(stacker_op.stacker)
     input_size = len(lines[1].split())
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(input_size, dtype=tf.int16), num_channels,
-        stacker_left_context, stacker_right_context, stacker_step)
+      tf.TensorSpec(input_size, dtype=tf.int16),
+      num_channels,
+      stacker_left_context,
+      stacker_right_context,
+      stacker_step,
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in triplets <input, expected output, expected valid>
     i = 1
     while i < len(lines):
-      input_array = np.array([int(j) for j in lines[i].split()],
-                             dtype=np.int16)
+      input_array = np.array([int(j) for j in lines[i].split()], dtype=np.int16)
       output_array_exp = [int(j) for j in lines[i + 1].split()]
       output_valid_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
@@ -64,8 +67,14 @@ class StackerOpTest(tf.test.TestCase):
         self.assertAllEqual(out_frame, output_array_exp)
       # TF
       [out_frame, out_valid] = self.evaluate(
-          stacker_op.stacker(input_array, num_channels, stacker_left_context,
-                             stacker_right_context, stacker_step))
+        stacker_op.stacker(
+          input_array,
+          num_channels,
+          stacker_left_context,
+          stacker_right_context,
+          stacker_step,
+        )
+      )
       self.assertEqual(out_valid, output_valid_exp)
       if out_valid:
         self.assertAllEqual(out_frame, output_array_exp)

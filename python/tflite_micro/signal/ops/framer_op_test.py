@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """Tests for framer op."""
+
 import os
 
 import numpy as np
@@ -24,7 +25,6 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class FramerOpTest(tf.test.TestCase):
-
   _PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
   def GetResource(self, filepath):
@@ -42,8 +42,8 @@ class FramerOpTest(tf.test.TestCase):
     func = tf.function(framer_op.framer)
     input_size = len(lines[1].split())
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(input_size, dtype=tf.int16), frame_size, frame_step,
-        prefill)
+      tf.TensorSpec(input_size, dtype=tf.int16), frame_size, frame_step, prefill
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in triplets <input, expected output, expected valid>
@@ -62,7 +62,8 @@ class FramerOpTest(tf.test.TestCase):
         self.assertAllEqual(out_frame, out_frame_exp)
       # TF
       out_frame, out_valid = self.evaluate(
-          framer_op.framer(in_block, frame_size, frame_step, prefill))
+        framer_op.framer(in_block, frame_size, frame_step, prefill)
+      )
       self.assertEqual(out_valid, out_valid_exp)
       if out_valid:
         self.assertAllEqual(out_frame, out_frame_exp)
@@ -76,27 +77,34 @@ class FramerOpTest(tf.test.TestCase):
     block_num = 10
     block_size = frame_step * n_frames
 
-    test_input = np.random.randint(np.iinfo('int16').min,
-                                   np.iinfo('int16').max,
-                                   block_size * block_num,
-                                   dtype=np.int16)
-    expected_output = np.concatenate((np.zeros(frame_size - frame_step,
-                                               dtype=np.int16), test_input))
+    test_input = np.random.randint(
+      np.iinfo('int16').min,
+      np.iinfo('int16').max,
+      block_size * block_num,
+      dtype=np.int16,
+    )
+    expected_output = np.concatenate(
+      (np.zeros(frame_size - frame_step, dtype=np.int16), test_input)
+    )
     func = tf.function(framer_op.framer)
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(block_size, dtype=tf.int16), frame_size, frame_step,
-        prefill)
+      tf.TensorSpec(block_size, dtype=tf.int16), frame_size, frame_step, prefill
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
     block_index = 0
     frame_index = 0
     while block_index < block_num:
-      in_block = test_input[(block_index * block_size):((block_index + 1) *
-                                                        block_size)]
+      in_block = test_input[
+        (block_index * block_size) : ((block_index + 1) * block_size)
+      ]
       expected_valid = 1
       expected_frame = [
-          expected_output[((frame_index + i) *
-                           frame_step):((frame_index + i) * frame_step +
-                                        frame_size)] for i in range(n_frames)
+        expected_output[
+          ((frame_index + i) * frame_step) : (
+            (frame_index + i) * frame_step + frame_size
+          )
+        ]
+        for i in range(n_frames)
       ]
       # TFLM
       interpreter.set_input(in_block, 0)
@@ -108,7 +116,8 @@ class FramerOpTest(tf.test.TestCase):
         self.assertAllEqual(out_frame, expected_frame)
       # TF
       out_frame, out_valid = self.evaluate(
-          framer_op.framer(in_block, frame_size, frame_step, prefill))
+        framer_op.framer(in_block, frame_size, frame_step, prefill)
+      )
       frame_index += n_frames
       self.assertEqual(out_valid, expected_valid)
       self.assertAllEqual(out_frame, expected_frame)

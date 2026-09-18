@@ -38,6 +38,7 @@ class LutCompressedArray:
                    compression, or one per channel for per-channel compression.
     indices: Array of indices into the lookup tables, same shape as original.
   """
+
   compression_axis: Optional[int] = None
   lookup_tables: list[np.ndarray] = field(default_factory=list)
   indices: np.ndarray = field(default_factory=lambda: np.array([]))
@@ -68,6 +69,7 @@ class LutAncillaryData:
     value_table_stride: Number of elements per channel in value tables.
     value_tables: Packed value table data following the DCM.
   """
+
   lut_version: int = 1
   bitwidth: int = 4
   value_table_stride: int = 16
@@ -78,7 +80,8 @@ class LutAncillaryData:
       raise ValueError(f"bitwidth must be 1-7, got {self.bitwidth}")
     if not 0 <= self.value_table_stride <= 128:
       raise ValueError(
-          f"value_table_stride must be 0-128, got {self.value_table_stride}")
+        f"value_table_stride must be 0-128, got {self.value_table_stride}"
+      )
 
   def to_user_data(self) -> bytes:
     """Serialize to 12-byte user_data for DCM bytes 4-15."""
@@ -96,8 +99,9 @@ class LutAncillaryData:
     return self.value_tables
 
 
-def compress_array(tensor: np.ndarray,
-                   axis: Optional[int]) -> LutCompressedArray:
+def compress_array(
+  tensor: np.ndarray, axis: Optional[int]
+) -> LutCompressedArray:
   """Compresses the given tensor using lookup tables.
 
   Args:
@@ -169,8 +173,9 @@ def identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
       return q.axis
 
   raise compressor.CompressionError(
-      "Invalid or no quantization parameters from which to "
-      "infer the axis along which tensor should be compressed.")
+    "Invalid or no quantization parameters from which to "
+    "infer the axis along which tensor should be compressed."
+  )
 
 
 def check_bitwidth(compressed: int, specified: int, tensor_spec: spec.Tensor):
@@ -191,14 +196,16 @@ def check_bitwidth(compressed: int, specified: int, tensor_spec: spec.Tensor):
   """
   if compressed > specified:
     raise compressor.CompressionError(
-        f"index_bitwidth too small: {compressed} bits needed to "
-        f"enumerate unique values in tensor specified in {tensor_spec}")
+      f"index_bitwidth too small: {compressed} bits needed to "
+      f"enumerate unique values in tensor specified in {tensor_spec}"
+    )
   elif compressed < specified:
     print(
-        f"warning: index_bitwidth too large: only {compressed} "
-        f"bits needed to enumerate unique values in tensor specified in "
-        f"{tensor_spec}",
-        file=sys.stderr)
+      f"warning: index_bitwidth too large: only {compressed} "
+      f"bits needed to enumerate unique values in tensor specified in "
+      f"{tensor_spec}",
+      file=sys.stderr,
+    )
 
 
 def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
@@ -215,7 +222,8 @@ def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
   bits = bitarray.bitarray(endian=endianness)
   for i in indices.ravel():
     bits.extend(
-        bitarray.util.int2ba(int(i), length=bitwidth, endian=endianness))
+      bitarray.util.int2ba(int(i), length=bitwidth, endian=endianness)
+    )
   return bits.tobytes()
 
 
@@ -250,9 +258,9 @@ class LutCompressor(compressor.Compressor):
     return decode.DecodeType.LUT
 
   def compress(
-      self,
-      tensor: model_editor.Tensor,
-      method: spec.CompressionMethod,
+    self,
+    tensor: model_editor.Tensor,
+    method: spec.CompressionMethod,
   ) -> compressor.CompressionResult:
     """Compress a tensor using LUT compression.
 
@@ -268,7 +276,8 @@ class LutCompressor(compressor.Compressor):
     """
     if not isinstance(method, spec.LookUpTableCompression):
       raise compressor.CompressionError(
-          f"LutCompressor requires LookUpTableCompression, got {type(method)}")
+        f"LutCompressor requires LookUpTableCompression, got {type(method)}"
+      )
 
     if tensor.array is None:
       raise compressor.CompressionError("Tensor has no data to compress")
@@ -281,38 +290,39 @@ class LutCompressor(compressor.Compressor):
     actual_bitwidth = compressed.index_bitwidth
     if actual_bitwidth > spec_bitwidth:
       raise compressor.CompressionError(
-          f"index_bitwidth too small: {actual_bitwidth} bits needed, "
-          f"but only {spec_bitwidth} specified")
+        f"index_bitwidth too small: {actual_bitwidth} bits needed, "
+        f"but only {spec_bitwidth} specified"
+      )
     elif actual_bitwidth < spec_bitwidth:
       print(
-          f"warning: index_bitwidth larger than necessary: only "
-          f"{actual_bitwidth} bits needed, but {spec_bitwidth} specified",
-          file=sys.stderr)
+        f"warning: index_bitwidth larger than necessary: only "
+        f"{actual_bitwidth} bits needed, but {spec_bitwidth} specified",
+        file=sys.stderr,
+      )
 
     # Pack indices into bytes
     encoded_data = pack_indices(compressed.indices, spec_bitwidth)
 
     # Pack value tables
     table_len = max(len(t) for t in compressed.lookup_tables)
-    value_tables_bytes = pack_lookup_tables(compressed.lookup_tables,
-                                            table_len)
+    value_tables_bytes = pack_lookup_tables(compressed.lookup_tables, table_len)
 
     # Build ancillary data
     lut_data = LutAncillaryData(
-        lut_version=1,
-        bitwidth=spec_bitwidth,
-        value_table_stride=table_len,
-        value_tables=value_tables_bytes,
+      lut_version=1,
+      bitwidth=spec_bitwidth,
+      value_table_stride=table_len,
+      value_tables=value_tables_bytes,
     )
 
     # Build complete ancillary data tensor bytes: DCM header + value tables
     dcm = decode.DecodeCommonMetadata(
-        decode_type=self.decode_type,
-        user_data=lut_data.to_user_data(),
+      decode_type=self.decode_type,
+      user_data=lut_data.to_user_data(),
     )
     ancillary_data = dcm.to_bytes() + lut_data.to_bytes()
 
     return compressor.CompressionResult(
-        encoded_data=encoded_data,
-        ancillary_data=ancillary_data,
+      encoded_data=encoded_data,
+      ancillary_data=ancillary_data,
     )

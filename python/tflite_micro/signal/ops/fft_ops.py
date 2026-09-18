@@ -44,8 +44,10 @@ def get_pow2_fft_length(input_length):
   fft_bits = math.ceil(math.log2(input_length))
   fft_length = pow(2, fft_bits)
   if not _MIN_FFT_LENGTH <= fft_length <= _MAX_FFT_LENGTH:
-    raise ValueError("Invalid fft_length. Must be between %d and %d." %
-                     (_MIN_FFT_LENGTH, _MAX_FFT_LENGTH))
+    raise ValueError(
+      "Invalid fft_length. Must be between %d and %d."
+      % (_MIN_FFT_LENGTH, _MAX_FFT_LENGTH)
+    )
   return fft_length, fft_bits
 
 
@@ -53,11 +55,14 @@ def _fft_wrapper(fft_fn, default_name):
   """Wrapper around gen_fft_ops.*rfft*."""
 
   def _fft(input_tensor, fft_length, name=default_name):
-    if not ((_MIN_FFT_LENGTH <= fft_length <= _MAX_FFT_LENGTH) and
-            (fft_length % 2 == 0)):
+    if not (
+      (_MIN_FFT_LENGTH <= fft_length <= _MAX_FFT_LENGTH)
+      and (fft_length % 2 == 0)
+    ):
       raise ValueError(
-          "Invalid fft_length. Must be an even number between %d and %d." %
-          (_MIN_FFT_LENGTH, _MAX_FFT_LENGTH))
+        "Invalid fft_length. Must be an even number between %d and %d."
+        % (_MIN_FFT_LENGTH, _MAX_FFT_LENGTH)
+      )
     with tf.name_scope(name) as name:
       input_tensor = tf.convert_to_tensor(input_tensor)
       return fft_fn(input_tensor, fft_length=fft_length, name=name)
@@ -81,8 +86,9 @@ def _fft_auto_scale_wrapper(fft_auto_scale_fn, default_name):
 
 rfft = _fft_wrapper(gen_fft_ops.signal_rfft, "signal_rfft")
 irfft = _fft_wrapper(gen_fft_ops.signal_irfft, "signal_irfft")
-fft_auto_scale = _fft_auto_scale_wrapper(gen_fft_ops.signal_fft_auto_scale,
-                                         "signal_fft_auto_scale")
+fft_auto_scale = _fft_auto_scale_wrapper(
+  gen_fft_ops.signal_fft_auto_scale, "signal_fft_auto_scale"
+)
 tf.no_gradient("signal_rfft")
 tf.no_gradient("signal_irfft")
 tf.no_gradient("signal_fft_auto_scale")

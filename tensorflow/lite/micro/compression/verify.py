@@ -64,15 +64,18 @@ def assert_outputs_match(original, candidate, *, tolerance=None):
       if tolerance is None:
         np.testing.assert_array_equal(expected, actual, err_msg=msg)
       else:
-        np.testing.assert_allclose(expected,
-                                   actual,
-                                   rtol=tolerance.rtol,
-                                   atol=tolerance.atol,
-                                   err_msg=msg)
+        np.testing.assert_allclose(
+          expected,
+          actual,
+          rtol=tolerance.rtol,
+          atol=tolerance.atol,
+          err_msg=msg,
+        )
 
 
 class Tolerance(typing.NamedTuple):
   """Output comparison tolerances for assert_outputs_match."""
+
   rtol: float
   atol: float
 
