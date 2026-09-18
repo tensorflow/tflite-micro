@@ -178,36 +178,6 @@ def identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
   )
 
 
-def check_bitwidth(compressed: int, specified: int, tensor_spec: spec.Tensor):
-  """Validates that the specified bitwidth is sufficient.
-
-  It is an error if the bitwidth required to compress a tensor exceeds the
-  specified bitwith, and a warning if the tensor can be compressed in less than
-  the specified bitwidth. The latter is allowed, and is not an error, to permit
-  testing with larger bitwidths without re-binning a model.
-
-  Args:
-    compressed: The bitwidth required by the compressed data.
-    specified: The bitwidth specified in the compression spec.
-    tensor_spec: The tensor spec, for error messages.
-
-  Raises:
-    CompressionError: If specified bitwidth is too small.
-  """
-  if compressed > specified:
-    raise compressor.CompressionError(
-      f"index_bitwidth too small: {compressed} bits needed to "
-      f"enumerate unique values in tensor specified in {tensor_spec}"
-    )
-  elif compressed < specified:
-    print(
-      f"warning: index_bitwidth too large: only {compressed} "
-      f"bits needed to enumerate unique values in tensor specified in "
-      f"{tensor_spec}",
-      file=sys.stderr,
-    )
-
-
 def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
   """Packs indices into a bytearray using bitwidth-sized fields.
 
@@ -285,8 +255,6 @@ class LutCompressor(compressor.Compressor):
     spec_bitwidth = method.index_bitwidth
     axis = identify_compression_axis(tensor)
     compressed = compress_array(tensor.array, axis)
-    # Note: check_bitwidth requires a spec.Tensor but we don't have it here.
-    # We'll do a simpler check.
     actual_bitwidth = compressed.index_bitwidth
     if actual_bitwidth > spec_bitwidth:
       raise compressor.CompressionError(
@@ -294,6 +262,7 @@ class LutCompressor(compressor.Compressor):
         f"but only {spec_bitwidth} specified"
       )
     elif actual_bitwidth < spec_bitwidth:
+      # Allowed, to test with larger bitwidths without re-binning a model.
       print(
         f"warning: index_bitwidth larger than necessary: only "
         f"{actual_bitwidth} bits needed, but {spec_bitwidth} specified",
