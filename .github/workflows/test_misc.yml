@@ -80,3 +80,26 @@ jobs:
         run: |
           cd ..
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_project_generation.sh tflite-micro/
+
+  clang_tidy:
+    runs-on: linux-x86-n2-16
+    timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.9
+    name: Clang Tidy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+          fetch-depth: 0
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
+          repository-cache: true
+      - name: Generate Compilation Database
+        run: python3 tensorflow/lite/micro/tools/ci_build/generate_compile_commands.py
+      - name: Clang-Tidy Differential Check
+        run: tensorflow/lite/micro/tools/ci_build/test_clang_tidy.sh

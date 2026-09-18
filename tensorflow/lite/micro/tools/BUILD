@@ -227,3 +227,10 @@ flatbuffer_py_library(
     name = "layer_by_layer_schema_py",
     srcs = ["layer_by_layer_schema.fbs"],
 )
+
+py_binary(
+    name = "refresh_compile_commands",
+    srcs = ["ci_build/generate_compile_commands.py"],
+    main = "ci_build/generate_compile_commands.py",
+    visibility = ["//visibility:public"],
+)

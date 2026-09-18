@@ -11,7 +11,6 @@ bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_python", version = "1.8.3")
 bazel_dep(name = "rules_shell", version = "0.6.1")
-bazel_dep(name = "wolfd_bazel_compile_commands", version = "0.5.2")
 
 # TFLM Dependencies
 
@@ -47,7 +46,6 @@ http_archive(
         "https://github.com/google/gemmlowp/archive/fda83bdc38b118cc6b56753bd540caa49e570745.zip",
     ],
 )
-
 
 # Python
 
