@@ -1,0 +1,14 @@
+{
+  "lint": "warn",
+  "warningsList": [
+    "+unsorted-dict-items",
+    "-function-docstring",
+    "-function-docstring-args",
+    "-function-docstring-header",
+    "-function-docstring-return",
+    "-module-docstring",
+    "-native-cc-binary",
+    "-native-cc-library",
+    "-unnamed-macro"
+  ]
+}
