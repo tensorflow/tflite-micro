@@ -35,7 +35,7 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   // functions.
   SingleArenaBufferAllocator(uint8_t* buffer_head, uint8_t* buffer_tail);
   SingleArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
-  virtual ~SingleArenaBufferAllocator();
+  ~SingleArenaBufferAllocator() override;
 
   // Creates a new SingleArenaBufferAllocator from a given buffer head and size.
   static SingleArenaBufferAllocator* Create(uint8_t* buffer_head,
@@ -48,26 +48,23 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   // (it sets the location of temp space at the end of the head section). This
   // call will fail if a chain of allocations through AllocateTemp() have not
   // been cleaned up with a call to ResetTempAllocations().
-  virtual TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
-                                    size_t alignment) override;
+  TfLiteStatus ResizeBuffer(uint8_t* resizable_buf, size_t size,
+                            size_t alignment) override;
 
   // Returns a buffer that is resizable viable ResizeBuffer(). Only one
   // resizable buffer is currently supported.
-  virtual uint8_t* AllocateResizableBuffer(size_t size,
-                                           size_t alignment) override;
+  uint8_t* AllocateResizableBuffer(size_t size, size_t alignment) override;
 
   // Frees up the memory occupied by the resizable buffer
-  virtual TfLiteStatus DeallocateResizableBuffer(
-      uint8_t* resizable_buf) override;
+  TfLiteStatus DeallocateResizableBuffer(uint8_t* resizable_buf) override;
 
   // Reserves the non-persistent memory that is planned by the memory planner.
-  virtual TfLiteStatus ReserveNonPersistentOverlayMemory(
-      size_t size, size_t alignment) override;
+  TfLiteStatus ReserveNonPersistentOverlayMemory(size_t size,
+                                                 size_t alignment) override;
 
   // Allocates persistent memory starting at the tail of the arena (highest
   // address and moving downwards).
-  virtual uint8_t* AllocatePersistentBuffer(size_t size,
-                                            size_t alignment) override;
+  uint8_t* AllocatePersistentBuffer(size_t size, size_t alignment) override;
 
   // Allocates a temporary buffer from the head of the arena (lowest address and
   // moving upwards) but does not update the actual head allocation size or
@@ -77,20 +74,20 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   // calls to AllocateTemp() must end with a call to ResetTempAllocations(). If
   // AllocateFromHead() is called before a call to ResetTempAllocations(), it
   // will fail with an error message.
-  virtual uint8_t* AllocateTemp(size_t size, size_t alignment) override;
+  uint8_t* AllocateTemp(size_t size, size_t alignment) override;
 
   // Signals that a temporary buffer is no longer needed. This is currently for
   // book-keeping purpose and the memory region are not immediately available
   // for reuse. The deallocated memory region are only reclaimed after
   // ResetTempAllocations is called as it is right now.
-  virtual void DeallocateTemp(uint8_t* buf) override;
+  void DeallocateTemp(uint8_t* buf) override;
 
   // Returns true if all temporary buffers are already deallocated.
-  virtual bool IsAllTempDeallocated() override;
+  bool IsAllTempDeallocated() override;
 
   // Resets a chain of temporary allocations back to the current head of the
   // arena (lowest address).
-  virtual TfLiteStatus ResetTempAllocations() override;
+  TfLiteStatus ResetTempAllocations() override;
 
   // Returns a pointer to the buffer currently assigned to the head section.
   // This buffer is set by calling SetHeadSize().
