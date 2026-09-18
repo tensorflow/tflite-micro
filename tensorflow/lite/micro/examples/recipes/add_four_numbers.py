@@ -14,7 +14,6 @@
 # =============================================================================
 """Simple TF model creation using resource variables."""
 
-import numpy as np
 import tensorflow as tf
 
 """

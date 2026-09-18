@@ -102,8 +102,8 @@ class HtmlConverter:
         % (node.name, node.size)
       )
       self._html_body += "<ul class=\"nested\">\n"
-      for node in node.children:
-        self._draw_collapsible_list(node)
+      for child in node.children:
+        self._draw_collapsible_list(child)
       self._html_body += "</ul>\n"
       self._html_body += "</li>\n"
 

@@ -211,7 +211,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     tflite_input_details = tflite_interpreter.get_input_details()[0]
 
     num_steps = 100
-    for i in range(0, num_steps):
+    for _ in range(num_steps):
       # Create random input
       data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
@@ -239,7 +239,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     bytes_interpreter = runtime.Interpreter.from_bytes(model_data)
 
     num_steps = 100
-    for i in range(0, num_steps):
+    for _ in range(num_steps):
       data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
       file_interpreter.set_input(data_x, 0)
@@ -264,11 +264,11 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     model_data = generate_test_models.generate_conv_model(False)
 
     interpreters = [
-      runtime.Interpreter.from_bytes(model_data) for i in range(10)
+      runtime.Interpreter.from_bytes(model_data) for _ in range(10)
     ]
 
     num_steps = 100
-    for i in range(0, num_steps):
+    for _ in range(num_steps):
       data_x = np.random.randint(-127, 127, self.input_shape, dtype=np.int8)
 
       prev_output = None
@@ -317,17 +317,13 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     with self.assertRaisesWithPredicateMatch(
       ValueError, "must be a list of strings"
     ):
-      interpreter = runtime.Interpreter.from_bytes(
-        model_data, custom_op_registerers
-      )
+      runtime.Interpreter.from_bytes(model_data, custom_op_registerers)
 
     custom_op_registerers = "WrongFormat"
     with self.assertRaisesWithPredicateMatch(
       ValueError, "must be a list of strings"
     ):
-      interpreter = runtime.Interpreter.from_bytes(
-        model_data, custom_op_registerers
-      )
+      runtime.Interpreter.from_bytes(model_data, custom_op_registerers)
 
   def testNonExistentCustomOps(self):
     model_data = generate_test_models.generate_conv_model(False)
@@ -335,9 +331,7 @@ class ConvModelTests(test_util.TensorFlowTestCase):
     with self.assertRaisesWithPredicateMatch(
       RuntimeError, "TFLM could not register custom op via SomeRandomOp"
     ):
-      interpreter = runtime.Interpreter.from_bytes(
-        model_data, custom_op_registerers
-      )
+      runtime.Interpreter.from_bytes(model_data, custom_op_registerers)
 
 
 if __name__ == "__main__":

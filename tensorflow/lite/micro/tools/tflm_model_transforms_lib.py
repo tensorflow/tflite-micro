@@ -52,12 +52,14 @@ def log_size_difference(input_path, transformed_model_path):
 
 
 def check_models_equivalent(
-  initial_model_path: str = None,
-  secondary_model_path: str = None,
+  initial_model_path=None,
+  secondary_model_path=None,
   test_vector_count: int = 1,
   seed: int = 42,
-  custom_op_registerers=[],
+  custom_op_registerers=None,
 ):
+  if custom_op_registerers is None:
+    custom_op_registerers = []
   """Checks that the two models are equivalent by testing that the same set of random inputs produce the same outputs using the TFLM interpreter.
 
   Note that this function does not test the correctness of the inference. It
@@ -151,8 +153,10 @@ def run_all_transformations(
   save_intermediates=False,
   test_transformed_model=True,
   custom_save_dir=None,
-  custom_op_registerers=[],
+  custom_op_registerers=None,
 ):
+  if custom_op_registerers is None:
+    custom_op_registerers = []
   """Apply all current transform methods on an input .tflite file, and optionally save the models between methods.
 
   Args:

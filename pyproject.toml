@@ -16,6 +16,7 @@
 [tool.ruff]
 line-length = 80
 indent-width = 2
+target-version = "py310"
 extend-exclude = [
   "ci",
   "tensorflow/lite/python",
@@ -26,3 +27,16 @@ extend-exclude = [
 
 [tool.ruff.format]
 quote-style = "preserve"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "B006",
+  "B007",
+  "B020",
+]
+ignore = [
+  "E501",
+]
+

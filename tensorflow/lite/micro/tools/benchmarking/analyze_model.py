@@ -27,7 +27,7 @@ _SCHEMA_DIR = os.path.abspath(
 if _SCHEMA_DIR not in sys.path:
   sys.path.insert(0, _SCHEMA_DIR)
 
-import schema_py_generated as schema_fb  # pylint: disable=g-import-not-at-top
+import schema_py_generated as schema_fb  # noqa: E402  # pylint: disable=g-import-not-at-top
 
 _TENSOR_TYPE_NAMES = {
   getattr(schema_fb.TensorType, name): name

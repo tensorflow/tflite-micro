@@ -22,7 +22,6 @@ from tflite_micro.tensorflow.lite.micro.compression.model_editor import (
   Buffer,
   Model,
   Operator,
-  OperatorCode,
   Quantization,
   Subgraph,
   Tensor,
@@ -250,7 +249,6 @@ class TestBasicModel(unittest.TestCase):
 
   def test_operator_codes(self):
     """Verify operator code table is correctly populated."""
-    fb_sg = self.fb_model.subgraphs[0]
     loopback_sg = self.loopback_model.subgraphs[0]
 
     self.assertIsNotNone(self.fb_model.operatorCodes)

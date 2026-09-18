@@ -15,12 +15,18 @@
 """Runs TFLM specific transformations to reduce model size on a .tflite model."""
 
 import sys
-import unittest
 
 from absl import app
 from absl import flags
 from absl import logging
 import numpy as np
+
+from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.python.tflite_micro import runtime
+from tflite_micro.tensorflow.lite.micro.tools import (
+  layer_by_layer_schema_py_generated as layer_schema_fb,
+)
+from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 
 OpResolverType = None
 try:
@@ -47,13 +53,6 @@ except ImportError:
       raise ImportError(
         "Could not import ai_edge_litert, tflite_runtime, or tensorflow."
       )
-
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-from tflite_micro.python.tflite_micro import runtime
-from tflite_micro.tensorflow.lite.micro.tools import (
-  layer_by_layer_schema_py_generated as layer_schema_fb,
-)
-from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -225,7 +224,7 @@ def main(_) -> None:
   debug_obj = None
 
   # Setting Inputs either randomly or using provided Debug File
-  if _DEBUG_FILE.value == None:
+  if _DEBUG_FILE.value is None:
     debug_obj, tflm_interpreter, tflite_interpreter = (
       GenerateRandomInputTfLiteComparison(
         tflm_interpreter, tflite_interpreter, model, _RNG.value
@@ -249,7 +248,7 @@ def main(_) -> None:
 
       comparison_ouput = None
 
-      if _DEBUG_FILE.value == None:
+      if _DEBUG_FILE.value is None:
         tflite_output = tflite_interpreter.get_tensor(
           output.tensorIndex, subgraph.subgraphIndex
         )

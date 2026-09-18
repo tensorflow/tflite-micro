@@ -21,7 +21,6 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/audio_preprocessor_test
 """
 
 from pathlib import Path
-import filecmp
 
 from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader

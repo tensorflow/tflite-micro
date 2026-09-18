@@ -141,9 +141,9 @@ def VerifyOpList(op_list, header):
 
   supported_op_list = []
   with open(header, 'r') as f:
-    for l in f.readlines():
-      if "TfLiteStatus Add" in l:
-        op = l.strip().split(' ')[1].split('(')[0]
+    for line in f:
+      if "TfLiteStatus Add" in line:
+        op = line.strip().split(' ')[1].split('(')[0]
         supported_op_list.append(op)
 
   for op in op_list:
