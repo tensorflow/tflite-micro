@@ -143,9 +143,15 @@ class PerLayerTestGenerator(generate_test_for_model.TestDataGenerator):
     targets_with_path = []
     for model_path in self.model_paths:
       targets.append(model_path.split('/')[-1].split('.')[0])
-      targets_with_path.append(
-          model_path.split('tflite_micro/')[-1].split('tflite-micro/')
-          [-1].split('.')[0])
+      rel_path = model_path
+      if 'third_party/tflite_micro/' in rel_path:
+        rel_path = rel_path.split('third_party/tflite_micro/')[-1]
+      elif 'tensorflow/' in rel_path:
+        rel_path = 'tensorflow/' + rel_path.split('tensorflow/', 1)[-1]
+      else:
+        rel_path = rel_path.split('tflite_micro/')[-1].split(
+            'tflite-micro/')[-1]
+      targets_with_path.append(rel_path.split('.')[0])
 
     template_file_path = os.path.join(TEMPLATE_DIR,
                                       'integration_tests_cc.mako')

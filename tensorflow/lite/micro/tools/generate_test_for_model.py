@@ -241,20 +241,23 @@ class TestDataGenerator:
     if src_prefix is None:
       src_prefix = output_dir_list[-3] + '_' + output_dir_list[
           -2] + '_' + output_dir_list[-1]
+
+    def to_rel_path(path):
+      if 'third_party/tflite_micro/' in path:
+        return path.split('third_party/tflite_micro/')[-1]
+      if 'tensorflow/' in path:
+        return 'tensorflow/' + path.split('tensorflow/', 1)[-1]
+      return path
+
     makefile.write(src_prefix + '_GENERATOR_INPUTS := \\\n')
     for model_path in self.model_paths:
-      makefile.write('$(TENSORFLOW_ROOT)' +
-                     model_path.split('third_party/tflite_micro/')[-1] +
-                     ' \\\n')
+      makefile.write('$(TENSORFLOW_ROOT)' + to_rel_path(model_path) + ' \\\n')
     for csv_input in self.csv_filenames:
-      makefile.write('$(TENSORFLOW_ROOT)' +
-                     csv_input.split('third_party/tflite_micro/')[-1] +
-                     ' \\\n')
+      makefile.write('$(TENSORFLOW_ROOT)' + to_rel_path(csv_input) + ' \\\n')
     makefile.write('\n')
     makefile.write(src_prefix + '_SRCS := \\\n')
-    makefile.write('$(TENSORFLOW_ROOT)' +
-                   self.output_dir.split('third_party/tflite_micro/')[-1] +
-                   '/' + test_file + '  \\\n')
+    makefile.write('$(TENSORFLOW_ROOT)' + to_rel_path(self.output_dir) + '/' +
+                   test_file + '  \\\n')
     makefile.write(
         "$(TENSORFLOW_ROOT)python/tflite_micro/python_ops_resolver.cc \\\n")
     makefile.write('\n\n')
