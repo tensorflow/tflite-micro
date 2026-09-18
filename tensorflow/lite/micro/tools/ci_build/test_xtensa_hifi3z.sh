@@ -31,8 +31,6 @@ COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${1} == "INTERNAL" ]]; then
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
@@ -50,12 +48,10 @@ if [[ ${1} == "INTERNAL" ]]; then
     ${COMMON_ARGS} \
     $(get_parallel_jobs) test_integration_tests_seanet_leaky_relu_test
 else
-  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
-  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
+  BENCHMARK_ARGS="${COMMON_ARGS} GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite"
+  readable_run make -f ${MAKEFILE} ${BENCHMARK_ARGS} $(get_parallel_jobs) build
+  readable_run make -f ${MAKEFILE} ${BENCHMARK_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark
-  readable_run make -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    $(get_parallel_jobs) run_tflm_benchmark
+  readable_run make -f ${MAKEFILE} ${BENCHMARK_ARGS} $(get_parallel_jobs) run_tflm_benchmark
 fi

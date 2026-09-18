@@ -19,7 +19,7 @@ jobs:
   # --- Basic Jobs ---
 
   vision_p6_basic:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    if: inputs.scope == 'basic'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Vision P6 Build

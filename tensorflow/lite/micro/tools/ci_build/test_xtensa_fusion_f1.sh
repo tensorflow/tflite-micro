@@ -31,8 +31,6 @@ COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${1} == "INTERNAL" ]]; then
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
