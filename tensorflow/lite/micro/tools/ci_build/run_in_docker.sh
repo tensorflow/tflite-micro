@@ -83,6 +83,7 @@ GROUP_ID="$(id -g)"
 exec docker run ${DOCKER_TTY_FLAGS} --rm --init \
   ${DOCKER_RUN_OPTS:-} \
   --user "${USER_ID}:${GROUP_ID}" \
+  -e USER="${USER:-$(id -un)}" \
   -e HOME=/tmp \
   -e RUFF_CACHE_DIR=/tmp/ruff_cache \
   -e GIT_CONFIG_COUNT=1 \
