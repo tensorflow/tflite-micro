@@ -16,8 +16,6 @@
 
 import numpy as np
 import tensorflow as tf
-
-
 """
 Generates a simple TfLite model that adds 4 numbers.
 
@@ -31,15 +29,15 @@ Usage where you want model written to file:
   model = generate_model(True, file_path)
 """
 
+
 class AddFourNumbers(tf.Module):
-  @tf.function(
-      input_signature=[
-          tf.TensorSpec(shape=[1], dtype=tf.float32, name="a"),
-          tf.TensorSpec(shape=[1], dtype=tf.float32, name="b"),
-          tf.TensorSpec(shape=[1], dtype=tf.float32, name="c"),
-          tf.TensorSpec(shape=[1], dtype=tf.float32, name="d"),
-      ]
-  )
+
+  @tf.function(input_signature=[
+      tf.TensorSpec(shape=[1], dtype=tf.float32, name="a"),
+      tf.TensorSpec(shape=[1], dtype=tf.float32, name="b"),
+      tf.TensorSpec(shape=[1], dtype=tf.float32, name="c"),
+      tf.TensorSpec(shape=[1], dtype=tf.float32, name="d"),
+  ])
   def __call__(self, a, b, c, d):
     return a + b + c + d
 
@@ -48,9 +46,8 @@ def get_model_from_concrete_function():
   """Accumulator model built via TF concrete functions."""
   model = AddFourNumbers("AddFourNumbers")
   concrete_func = model.__call__.get_concrete_function()
-  converter = tf.lite.TFLiteConverter.from_concrete_functions(
-      [concrete_func], model
-  )
+  converter = tf.lite.TFLiteConverter.from_concrete_functions([concrete_func],
+                                                              model)
   return converter.convert()
 
 
