@@ -65,15 +65,15 @@ def compare_all_val_in_files(old_file, new_file, error_on_mem_increase):
   old_dict = file_to_dict(old_file)
   new_dict = file_to_dict(new_file)
   any_mem_increase = False
-  for section, val in old_dict.items():
-    if int(new_dict[section]) > int(old_dict[section]):
+  for section, old_val in old_dict.items():
+    if int(new_dict[section]) > int(old_val):
       print(section, " larger than previous value")
-      print("old: ", old_dict[section])
+      print("old: ", old_val)
       print("new: ", new_dict[section])
       any_mem_increase = True
     else:
       print(section)
-      print("old: ", old_dict[section])
+      print("old: ", old_val)
       print("new: ", new_dict[section])
 
   if any_mem_increase:

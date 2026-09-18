@@ -14,14 +14,11 @@
 # ==============================================================================
 
 import os
-import sys
 import copy
-import csv
 
 from absl import app
 from absl import flags
 import numpy as np
-import random as rand
 from mako import template
 
 from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
@@ -31,35 +28,6 @@ from tflite_micro.tensorflow.lite.micro.tools import generate_test_for_model
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
-
-
-def BytesFromFlatbufferType(tensor_type):
-  if tensor_type in (
-    schema_fb.TensorType.INT8,
-    schema_fb.TensorType.UINT8,
-    schema_fb.TensorType.BOOL,
-  ):
-    return 1
-  elif tensor_type in (
-    schema_fb.TensorType.INT16,
-    schema_fb.TensorType.FLOAT16,
-  ):
-    return 2
-  elif tensor_type in (
-    schema_fb.TensorType.FLOAT32,
-    schema_fb.TensorType.INT32,
-    schema_fb.TensorType.UINT32,
-  ):
-    return 4
-  elif tensor_type in (
-    schema_fb.TensorType.FLOAT64,
-    schema_fb.TensorType.INT64,
-    schema_fb.TensorType.COMPLEX64,
-    schema_fb.TensorType.UINT64,
-  ):
-    return 8
-  else:
-    raise RuntimeError(f'Unsupported TensorType: {tensor_type}')
 
 
 class TestModelGenerator:
@@ -87,7 +55,6 @@ class TestModelGenerator:
       buffer = copy.deepcopy(model.buffers[subgraph.tensors[tensor_idx].buffer])
       if input_idx in self.inputs:
         buffer.data = None
-      bytes_per_element = BytesFromFlatbufferType(tensor.type)
       if buffer.data is not None and len(tensor.shape) > 2:
         for i in range(len(buffer.data)):
           buffer.data[i] = buffer.data[i] * np.random.uniform(low=0.5, high=1.0)

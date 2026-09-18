@@ -134,7 +134,7 @@ class Interpreter(object):
   def from_file(
     self,
     model_path,
-    custom_op_registerers=[],
+    custom_op_registerers=None,
     arena_size=None,
     intrepreter_config=InterpreterConfig.kAllocationRecording,
     alt_decompression_memory_size=0,
@@ -154,6 +154,9 @@ class Interpreter(object):
     Returns:
       An Interpreter instance
     """
+    if custom_op_registerers is None:
+      custom_op_registerers = []
+
     if model_path is None or not os.path.isfile(model_path):
       raise ValueError("Invalid model file path")
 
@@ -172,7 +175,7 @@ class Interpreter(object):
   def from_bytes(
     self,
     model_data,
-    custom_op_registerers=[],
+    custom_op_registerers=None,
     arena_size=None,
     intrepreter_config=InterpreterConfig.kAllocationRecording,
     alt_decompression_memory_size=0,
@@ -192,6 +195,9 @@ class Interpreter(object):
     Returns:
       An Interpreter instance
     """
+
+    if custom_op_registerers is None:
+      custom_op_registerers = []
 
     return Interpreter(
       model_data,

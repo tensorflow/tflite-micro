@@ -28,8 +28,6 @@ try:
 except ImportError:
   import importlib_resources as resources
 import sys
-import tempfile
-import os
 
 
 def runtime_test():

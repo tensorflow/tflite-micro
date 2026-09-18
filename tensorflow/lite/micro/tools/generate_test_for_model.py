@@ -87,7 +87,6 @@ class TestDataGenerator:
     ]
 
   def _generate_inputs_transpose_conv(self, interpreter, dtype):
-    input_tensor0 = interpreter.tensor(0)
     filter_tensor = interpreter.tensor(1)
     input_tensor1 = interpreter.tensor(2)
 
@@ -98,7 +97,7 @@ class TestDataGenerator:
     output_shape = np.array(
       [1, output_height, output_width, filter_tensor().shape[0]], dtype=np.int32
     )
-    if dtype == float or dtype == np.float32 or dtype == np.float64:
+    if dtype in (float, np.float32, np.float64):
       random = np.random.uniform(low=1, high=100, size=input_tensor1().shape)
       return [output_shape, random.astype(np.float32)]
     else:
@@ -127,7 +126,7 @@ class TestDataGenerator:
     It then generates input and output in CSV format for that model."""
 
     if len(self.model_paths) != 1:
-      raise RuntimeError(f'Single model expected')
+      raise RuntimeError('Single model expected')
     model_path = self.model_paths[0]
     kwargs = {"model_path": model_path}
     if OpResolverType is not None:
@@ -142,7 +141,7 @@ class TestDataGenerator:
 
     input_details = interpreter.get_input_details()
     if len(input_details) > 1:
-      raise RuntimeError(f'Only models with one input supported')
+      raise RuntimeError('Only models with one input supported')
     input_tensor = interpreter.tensor(
       interpreter.get_input_details()[0]['index']
     )
@@ -153,7 +152,7 @@ class TestDataGenerator:
     input_type = interpreter.get_input_details()[0]['dtype']
     output_type = interpreter.get_output_details()[0]['dtype']
     if input_type != np.int8 or output_type != np.int8:
-      raise RuntimeError(f'Only int8 models supported')
+      raise RuntimeError('Only int8 models supported')
 
     generated_inputs = self._generate_inputs_single(
       interpreter, input_tensor().dtype

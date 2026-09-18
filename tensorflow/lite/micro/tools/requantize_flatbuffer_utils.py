@@ -61,7 +61,7 @@ def clip_range(vals, bit_width):
   min_val = -(2 ** (bit_width - 1))
   max_val = 2 ** (bit_width - 1) - 1
   if vals.max() > max_val or vals.min() < min_val:
-    logging.info(f"WARNING: integer overflow!")
+    logging.info("WARNING: integer overflow!")
   return np.clip(vals, min_val, max_val)
 
 
@@ -113,7 +113,7 @@ def change_quantization_settings_8to16(tensor, buffers):
   # Set MAX_INT8 from 127 to 128 to compromise the range precision loss due to int8 quantization
   MIN_INT8, MAX_INT8 = -128, 128
   # Narrow range (-min == max) is used for symmetrical quantization
-  MIN_INT16, MAX_INT16 = -32767, 32767
+  MIN_INT16 = -32767
 
   # Asymmertical quantized: scale * (qmax - zero_point) = rmax
   rmax = scale * (MAX_INT8 - zero_point)
@@ -126,7 +126,7 @@ def change_quantization_settings_8to16(tensor, buffers):
 
   # requantize the buffer data to int16 if necessary
   tensor_buffer = buffers[tensor.buffer]
-  if type(tensor_buffer.data) != type(None):
+  if tensor_buffer.data is not None:
     expected_buffer_size = np.prod(tensor.shape)
     data = np.frombuffer(tensor_buffer.data, dtype=np.int8)
     # Different ops may share one buffer. No need to requantize the buffer

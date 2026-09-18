@@ -122,18 +122,30 @@ fi
 end_group
 
 ############################################################
-# Python Formatting Check (ruff)
+# Python Formatting & Lint Check (ruff)
 ############################################################
 
-start_group "Python Formatting (ruff)"
+start_group "Python Formatting & Lint (ruff)"
 if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" || ${FIX_FORMAT_FLAG} == "-f" || ${FIX_FORMAT_FLAG} == "--fix" ]]; then
   echo "${PY_FILES}" | xargs -r ruff format
   PY_FORMAT_RESULT=$?
+  echo "${PY_FILES}" | xargs -r ruff check --fix
+  PY_LINT_RESULT=$?
+  if [[ ${PY_FORMAT_RESULT} -ne 0 || ${PY_LINT_RESULT} -ne 0 ]]; then
+    PY_CHECK_RESULT=1
+  else
+    PY_CHECK_RESULT=0
+  fi
 else
   echo "${PY_FILES}" | xargs -r ruff format --diff
   PY_FORMAT_RESULT=$?
-  if [[ ${PY_FORMAT_RESULT} -eq 0 ]]; then
-    echo "PASSED: All Python files are properly formatted."
+  echo "${PY_FILES}" | xargs -r ruff check
+  PY_LINT_RESULT=$?
+  if [[ ${PY_FORMAT_RESULT} -eq 0 && ${PY_LINT_RESULT} -eq 0 ]]; then
+    echo "PASSED: All Python files are properly formatted and pass linting."
+    PY_CHECK_RESULT=0
+  else
+    PY_CHECK_RESULT=1
   fi
 fi
 end_group
@@ -244,7 +256,7 @@ echo "                 Code Style Check Summary"
 echo "============================================================"
 print_status "${LICENSE_CHECK_RESULT}"  "License Check"
 print_status "${CPP_FORMAT_RESULT}"     "C/C++ Formatting (clang-format)"
-print_status "${PY_FORMAT_RESULT}"      "Python Formatting (ruff)"
+print_status "${PY_CHECK_RESULT}"      "Python Formatting & Lint (ruff)"
 print_status "${BUILD_FORMAT_RESULT}"   "Build File Formatting (buildifier)"
 print_status "${GTEST_RESULT}"          "Disallowed Code: gtest / gmock"
 print_status "${ERROR_REPORTER_RESULT}" "Disallowed Code: ReportError"
@@ -262,10 +274,11 @@ if [[ ${TOTAL_FAILURES} -gt 0 ]]; then
     echo ""
   fi
   if [[ ${LICENSE_CHECK_RESULT}  != 0 || \
+        ${PY_LINT_RESULT}        != 0 || \
         ${GTEST_RESULT}          != 0 || \
         ${ERROR_REPORTER_RESULT} != 0 || \
         ${ASSERT_RESULT}         != 0 ]]; then
-    echo "Non-formatting errors require manual code fixes (see log above for details)."
+    echo "Non-formatting / lint errors require manual code fixes (see log above for details)."
     echo ""
   fi
   if [[ ! -f /.dockerenv && -z "${GITHUB_ACTIONS:-}" ]]; then

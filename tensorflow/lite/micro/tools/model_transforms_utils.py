@@ -121,7 +121,7 @@ def _remove_initialization_subgraph(model):
   # have a VAR_HANDLE/ASSIGN_VARIABLE pair. This is due to the specifics of how
   # resource variable buffers are allocated in the TFLM runtime.
   # See b/279035671 for more details.
-  if any(val == False for val in shared_name_to_allocated_pair.values()):
+  if any(not val for val in shared_name_to_allocated_pair.values()):
     return
 
   # In preparation for removing subgraph 1 (resource variable initialization

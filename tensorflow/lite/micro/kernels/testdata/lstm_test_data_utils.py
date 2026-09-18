@@ -32,7 +32,7 @@ def clip_range(vals, bit_width):
   min_val = -(2 ** (bit_width - 1))
   max_val = 2 ** (bit_width - 1) - 1
   if vals.max() > max_val or vals.min() < min_val:
-    print(f"WARNING: integer overflow!")
+    print("WARNING: integer overflow!")
   return np.clip(vals, min_val, max_val)
 
 
@@ -394,7 +394,6 @@ class QuantizedLSTMDebugger(object):
     prev_hidden_state_tensor = deepcopy(self.hidden_state_tensor)
     prev_cell_state_tensor = deepcopy(self.cell_state_tensor)
 
-    prev_hidden_state_float = prev_hidden_state_tensor.float_data
     prev_cell_state_float = prev_cell_state_tensor.float_data
 
     # forget gate
