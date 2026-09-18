@@ -29,6 +29,7 @@ constexpr int kTensorsSize = kInputsSize + kOutputsSize;
 
 class StackerKernelRunner {
  public:
+  // clang-format off
   StackerKernelRunner(int* input_dims_data, const int16_t* input_data,
                       int* output_dims_data, int16_t* output_data,
                       int* output_ready_dims_data, bool* ouput_ready_data)
@@ -45,6 +46,7 @@ class StackerKernelRunner {
         outputs_array_{testing::IntArrayFromInts(outputs_array_data_)},
         kernel_runner_{*registration_, tensors_,       kTensorsSize,
                        inputs_array_,  outputs_array_, nullptr} {}
+  // clang-format on
 
   micro::KernelRunner* kernel_runner() { return &kernel_runner_; }
 
