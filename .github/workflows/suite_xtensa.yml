@@ -18,25 +18,31 @@ on:
 jobs:
   # --- Basic Jobs ---
 
-  vision_p6_basic:
-    if: inputs.scope == 'basic'
+  vision_p6_tests:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    name: Vision P6 Build
+    name: Vision P6 Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
-      - name: Vision P6 Build
+      - name: Vision P6 Tests
         env:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
+          SCOPE: ${{ inputs.scope }}
         run: |
+          if [[ "${SCOPE}" == "all" ]]; then
+            TEST_MODE="RUN_TESTS"
+          else
+            TEST_MODE="RUN_NO_TESTS"
+          fi
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_NO_TESTS tflite-micro/
+            tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh ${TEST_MODE} tflite-micro/
 
   hifi5_unit_tests:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
@@ -139,23 +145,3 @@ jobs:
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/
-
-  vision_p6_extended:
-    if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    name: Vision P6 Unit Tests
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - run: rm -rf .git
-      - name: Vision P6 Unit Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
-        run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh RUN_TESTS tflite-micro/
