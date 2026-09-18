@@ -54,14 +54,18 @@ RUN apt-get update && apt-get install -y \
     clang-22 \
     clang++-22 \
     clang-format-22 \
+    clang-tidy-22 \
     && ln -s /usr/bin/clang-22 /usr/bin/clang \
     && ln -s /usr/bin/clang++-22 /usr/bin/clang++ \
     && ln -s /usr/bin/clang-format-22 /usr/bin/clang-format \
+    && ln -s /usr/bin/clang-tidy-22 /usr/bin/clang-tidy \
+    && ln -s /usr/bin/clang-tidy-diff-22.py /usr/bin/clang-tidy-diff.py \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install all Python dependencies
 # - ruff and yapf to check for Python formatting
+# - pyrefly for Python type checking
 # - Pillow was added first for the C array generation
 # - pandas, and matplotlib for create_size_log scripts
 # - pyyaml, requests, psutil, and robotframework for Renode test
@@ -72,6 +76,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pandas \
     Pillow \
     psutil \
+    pyrefly==1.3.1 \
     pyyaml \
     requests \
     robotframework==4.0.1 \
