@@ -51,6 +51,3 @@ KISSFFT_PATCH_PATH := "third_party/kissfft/kissfft.patch"
 
 EYALROZ_PRINTF_URL := "https://github.com/eyalroz/printf/archive/f8ed5a9bd9fa8384430973465e94aa14c925872d.zip"
 EYALROZ_PRINTF_MD5 := "5772534c1d6f718301bca1fefaba28f3"
-
-# The pigweed download uses git and is more complex than a simple download and
-# extract. It is left as a shell script for now.

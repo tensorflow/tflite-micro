@@ -22,90 +22,55 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-# explicitly call third_party_downloads since we need pigweed for the license
-# and clang-format checks.
-make -f tensorflow/lite/micro/tools/make/Makefile third_party_downloads
-
 # Explicitly disable exit on error so that we can report all the style errors in
-# one pass and clean up the temporary git repository even when one of the
-# scripts fail with an error code.
+# one pass.
 set +e
 
-# --fix_formatting to let the script fix both code and build file format error.
+# --fix_formatting to let the script fix both code and build file format errors.
 FIX_FORMAT_FLAG=${1}
 
 ############################################################
 # License Check
 ############################################################
-tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/pigweed_presubmit.py \
-  tensorflow/lite/kernels/internal/reference/ \
-  tensorflow/lite/micro/ \
-  third_party/ \
-  -p copyright_notice \
-  -e kernels/internal/reference/integer_ops/ \
-  -e kernels/internal/reference/reference_ops.h \
-  -e python/schema_py_generated.py \
-  -e python_requirements.in \
-  -e tensorflow/lite/micro/compression/metadata_saved.h \
-  -e tools/make/downloads \
-  -e tools/make/targets/ecm3531 \
-  -e BUILD\
-  -e leon_commands \
-  -e "\.bmp" \
-  -e "\.bzl" \
-  -e "\.csv" \
-  -e "\.h5" \
-  -e "\.inc" \
-  -e "\.ipynb" \
-  -e "\.patch" \
-  -e "\.properties" \
-  -e "\.tflite" \
-  -e "\.tpl" \
-  -e "\.txt" \
-  -e "\.wav" \
-  --output-directory /tmp
 
+python3 tensorflow/lite/micro/tools/ci_build/check_license.py
 LICENSE_CHECK_RESULT=$?
 
 ############################################################
-# Code Formatting Check
+# File Exclusions for Formatting
 ############################################################
 
-if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]
-then
-  FIX_FORMAT_OPTIONS="--fix"
+EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/xtensa|ci/|c/common\.c|core/api/error_reporter\.cc|kernels/internal/reference/integer_ops/|kernels/internal/reference/reference_ops\.h|kernels/internal/types\.h|lite/python|lite/tools|experimental|schema/schema_generated\.h|schema/schema_utils\.h|tensorflow/lite/micro/compression/metadata_saved\.h|tensorflow/lite/micro/tools/layer_by_layer_schema_generated\.h|\.inc$|\.md$)"
+
+CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
+PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
+
+############################################################
+# C/C++ Formatting Check (clang-format)
+############################################################
+
+if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]; then
+  echo "${CPP_FILES}" | xargs clang-format -i
+  CPP_FORMAT_RESULT=$?
 else
-  FIX_FORMAT_OPTIONS=""
+  echo "${CPP_FILES}" | xargs clang-format --dry-run --Werror
+  CPP_FORMAT_RESULT=$?
 fi
 
-EXCLUDE_SHARED_TFL_CODE=$(sed 's/^/-e /' ci/tflite_files.txt)
+############################################################
+# Python Formatting Check (yapf)
+############################################################
 
-tensorflow/lite/micro/tools/make/downloads/pigweed/pw_presubmit/py/pw_presubmit/format_code.py \
-  ${FIX_FORMAT_OPTIONS} \
-  -e "\.github" \
-  -e third_party/hexagon \
-  -e third_party/xtensa \
-  -e ci \
-  -e c/common.c \
-  -e core/api/error_reporter.cc \
-  -e kernels/internal/reference/integer_ops/ \
-  -e kernels/internal/reference/reference_ops.h \
-  -e kernels/internal/types.h \
-  -e lite/python \
-  -e lite/tools \
-  -e experimental \
-  -e schema/schema_generated.h \
-  -e schema/schema_utils.h \
-  -e tensorflow/lite/micro/compression/metadata_saved.h \
-  -e tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h \
-  -e "\.inc" \
-  -e "\.md" \
-  ${EXCLUDE_SHARED_TFL_CODE}
-
-CODE_FORMAT_RESULT=$?
+if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]; then
+  echo "${PY_FILES}" | xargs python3 -m yapf --parallel -i
+  PY_FORMAT_RESULT=$?
+else
+  echo "${PY_FILES}" | xargs python3 -m yapf --parallel --diff
+  PY_FORMAT_RESULT=$?
+fi
 
 ############################################################
-# Build Formatting Check
+# Build Formatting Check (buildifier)
 ############################################################
 
 BUILDIFIER_MODE="diff"
@@ -156,19 +121,21 @@ ASSERT_RESULT=$?
 popd
 
 ###########################################################################
-# All checks are complete, clean up.
+# All checks are complete, report errors and exit.
 ###########################################################################
 
-
-# Re-enable exit on error now that we are done with the temporary git repo.
 set -ex
 
-if [[ ${CODE_FORMAT_RESULT}  != 0 || ${BUILD_FORMAT_RESULT} != 0 ]]
+if [[ ${CPP_FORMAT_RESULT}   != 0 || \
+      ${PY_FORMAT_RESULT}    != 0 || \
+      ${BUILD_FORMAT_RESULT} != 0 ]]
 then
   echo "The formatting errors can be fixed with tensorflow/lite/micro/tools/ci_build/test_code_style.sh --fix_formatting"
 fi
+
 if [[ ${LICENSE_CHECK_RESULT}  != 0 || \
-      ${CODE_FORMAT_RESULT}    != 0 || \
+      ${CPP_FORMAT_RESULT}     != 0 || \
+      ${PY_FORMAT_RESULT}      != 0 || \
       ${BUILD_FORMAT_RESULT}   != 0 || \
       ${GTEST_RESULT}          != 0 || \
       ${ERROR_REPORTER_RESULT} != 0 || \

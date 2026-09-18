@@ -86,7 +86,7 @@ TfLiteStatus KernelRunner::InitAndPrepare(const char* init_data,
   TF_LITE_ENSURE(&context_, ValidateTempBufferDeallocated());
 
   if (registration_.prepare) {
-    tflite ::micro::ClearBufferApi(&context_);
+    tflite::micro::ClearBufferApi(&context_);
     context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
     context_.RequestScratchBufferInArena =
         MicroContextRequestScratchBufferInArena;

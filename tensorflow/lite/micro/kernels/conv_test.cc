@@ -56,7 +56,7 @@ static const float kGoldenData[kOutputElements] = {18, 2, 5, 18, 2, 5,
 alignas(tflite::MicroArenaBufferAlignment()) constexpr uint8_t
     kBinQuantFilterData[] = {
         0x05, 0x38, 0x20, 0x90, 0x00,
-};
+    };
 constexpr float kBinQuantFilterValueTable[] = {
     1, 2, 3, 4, -1,
 };

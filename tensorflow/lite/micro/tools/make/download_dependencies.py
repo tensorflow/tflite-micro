@@ -57,42 +57,44 @@ class Dependency:
 
 
 DEPENDENCIES = {
-    "gemmlowp": Dependency(
+    "gemmlowp":
+    Dependency(
         name="gemmlowp",
-        url="https://github.com/google/gemmlowp/archive/719139ce755a0f31cbf1c37f7f98adcc7fc9f425.zip",
+        url=
+        "https://github.com/google/gemmlowp/archive/719139ce755a0f31cbf1c37f7f98adcc7fc9f425.zip",
         md5="7e8191b24853d75de2af87622ad293ba",
         dep_type="archive",
     ),
-    "ruy": Dependency(
+    "ruy":
+    Dependency(
         name="ruy",
-        url="https://github.com/google/ruy/archive/d37128311b445e758136b8602d1bbd2a755e115d.zip",
+        url=
+        "https://github.com/google/ruy/archive/d37128311b445e758136b8602d1bbd2a755e115d.zip",
         md5="abf7a91eb90d195f016ebe0be885bb6e",
         dep_type="archive",
     ),
-    "flatbuffers": Dependency(
+    "flatbuffers":
+    Dependency(
         name="flatbuffers",
-        url="https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.zip",
+        url=
+        "https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.zip",
         md5="023eca1e211d64007124420cd6be29c7",
         patch="tensorflow/lite/micro/tools/make/flatbuffers.patch",
         dep_type="archive",
     ),
-    "kissfft": Dependency(
+    "kissfft":
+    Dependency(
         name="kissfft",
         url="https://github.com/mborgerding/kissfft/archive/refs/tags/v130.zip",
         md5="438ba1fef5783cc5f5f201395cc477ca",
         patch="third_party/kissfft/kissfft.patch",
         dep_type="archive",
     ),
-    "pigweed": Dependency(
-        name="pigweed",
-        git_repo="https://pigweed.googlesource.com/pigweed/pigweed",
-        git_commit="47268dff45019863e20438ca3746c6c62df6ef09",
-        patch="tensorflow/lite/micro/tools/make/pigweed.patch",
-        dep_type="git",
-    ),
-    "eyalroz_printf": Dependency(
+    "eyalroz_printf":
+    Dependency(
         name="eyalroz_printf",
-        url="https://github.com/eyalroz/printf/archive/f8ed5a9bd9fa8384430973465e94aa14c925872d.zip",
+        url=
+        "https://github.com/eyalroz/printf/archive/f8ed5a9bd9fa8384430973465e94aa14c925872d.zip",
         md5="5772534c1d6f718301bca1fefaba28f3",
         dep_type="archive",
     ),
@@ -103,7 +105,6 @@ DEFAULT_DEPENDENCIES = [
     "ruy",
     "flatbuffers",
     "kissfft",
-    "pigweed",
     "eyalroz_printf",
 ]
 STAMP_FILENAME = ".download_complete"
@@ -166,18 +167,15 @@ def download_url_with_retry(url, output_path, max_retries=5):
           headers={"User-Agent": "TFLM-Downloader/1.0"},
       )
       with urllib.request.urlopen(req, timeout=30) as response, open(
-          str(output_path), "wb"
-      ) as out_file:
+          str(output_path), "wb") as out_file:
         shutil.copyfileobj(response, out_file)
       return
     except Exception as e:
       if attempt == max_retries:
         raise RuntimeError(
             "Failed to download {} after {} attempts: {}".format(
-                url, max_retries, e
-            )
-        )
-      time.sleep(min(2 ** attempt, 8))
+                url, max_retries, e))
+      time.sleep(min(2**attempt, 8))
 
 
 def extract_archive(archive_path, extract_dir):
@@ -244,17 +242,16 @@ def apply_patch(patch_path, target_dir):
     )
     if res2.returncode != 0:
       raise RuntimeError(
-          "Failed to apply patch {}:\npatch output:\n{}\ngit output:\n{}".format(
+          "Failed to apply patch {}:\npatch output:\n{}\ngit output:\n{}".
+          format(
               patch_path,
               patch_err,
               res2.stderr.decode("utf-8", errors="replace"),
-          )
-      )
+          ))
   except FileNotFoundError:
     raise RuntimeError(
         "Failed to apply patch {}: neither 'patch' nor 'git' commands were found."
-        .format(patch_path)
-    )
+        .format(patch_path))
 
 
 def download_and_prepare(dep, downloads_dir, tensorflow_root):
@@ -265,8 +262,8 @@ def download_and_prepare(dep, downloads_dir, tensorflow_root):
   sys.stderr.write("Downloading and setting up {}...\n".format(dep.name))
   downloads_dir.mkdir(parents=True, exist_ok=True)
   staging_dir = Path(
-      tempfile.mkdtemp(prefix=".tmp_{}_".format(dep.name), dir=str(downloads_dir))
-  )
+      tempfile.mkdtemp(prefix=".tmp_{}_".format(dep.name),
+                       dir=str(downloads_dir)))
 
   try:
     if dep.type == "archive":
@@ -277,11 +274,8 @@ def download_and_prepare(dep, downloads_dir, tensorflow_root):
         if dep.md5 and dep.md5 != "SKIP_MD5_CHECK":
           actual_md5 = compute_file_hash(temp_archive)
           if actual_md5 != dep.md5:
-            raise ValueError(
-                "MD5 mismatch for {}: expected {}, got {}".format(
-                    dep.name, dep.md5, actual_md5
-                )
-            )
+            raise ValueError("MD5 mismatch for {}: expected {}, got {}".format(
+                dep.name, dep.md5, actual_md5))
 
         extract_archive(temp_archive, staging_dir)
       finally:
@@ -303,11 +297,8 @@ def download_and_prepare(dep, downloads_dir, tensorflow_root):
             check=True,
         )
       except subprocess.CalledProcessError as e:
-        raise RuntimeError(
-            "Failed to clone git repo {}:\n{}".format(
-                dep.git_repo, e.stderr.decode("utf-8", errors="replace")
-            )
-        )
+        raise RuntimeError("Failed to clone git repo {}:\n{}".format(
+            dep.git_repo, e.stderr.decode("utf-8", errors="replace")))
       cloned_dir = staging_dir / dep.name
       if dep.git_commit:
         try:
@@ -319,13 +310,11 @@ def download_and_prepare(dep, downloads_dir, tensorflow_root):
               check=True,
           )
         except subprocess.CalledProcessError as e:
-          raise RuntimeError(
-              "Failed to checkout commit {} in {}:\n{}".format(
-                  dep.git_commit,
-                  dep.git_repo,
-                  e.stderr.decode("utf-8", errors="replace"),
-              )
-          )
+          raise RuntimeError("Failed to checkout commit {} in {}:\n{}".format(
+              dep.git_commit,
+              dep.git_repo,
+              e.stderr.decode("utf-8", errors="replace"),
+          ))
       git_dir = cloned_dir / ".git"
       if git_dir.exists():
         shutil.rmtree(str(git_dir), ignore_errors=True)
@@ -362,8 +351,7 @@ def download_and_prepare(dep, downloads_dir, tensorflow_root):
 
 def main():
   parser = argparse.ArgumentParser(
-      description="Download third-party dependencies for TFLM."
-  )
+      description="Download third-party dependencies for TFLM.")
   parser.add_argument(
       "--downloads_dir",
       default="tensorflow/lite/micro/tools/make/downloads",
@@ -389,33 +377,28 @@ def main():
   # Validate dependency names
   for name in target_deps:
     if name not in DEPENDENCIES:
-      sys.stderr.write(
-          "Unknown dependency: {}. Available: {}\n".format(
-              name, list(DEPENDENCIES.keys())
-          )
-      )
+      sys.stderr.write("Unknown dependency: {}. Available: {}\n".format(
+          name, list(DEPENDENCIES.keys())))
       return 1
 
   # Filter out dependencies that are already satisfied
   to_download = [
-      name
-      for name in target_deps
-      if not is_already_downloaded(
-          DEPENDENCIES[name], downloads_dir / name, tensorflow_root
-      )
+      name for name in target_deps
+      if not is_already_downloaded(DEPENDENCIES[name], downloads_dir /
+                                   name, tensorflow_root)
   ]
 
   if to_download:
     with concurrent.futures.ThreadPoolExecutor(
-        max_workers=min(len(to_download), 4)
-    ) as executor:
+        max_workers=min(len(to_download), 4)) as executor:
       futures = {
           executor.submit(
               download_and_prepare,
               DEPENDENCIES[name],
               downloads_dir,
               tensorflow_root,
-          ): name
+          ):
+          name
           for name in to_download
       }
       for future in concurrent.futures.as_completed(futures):
