@@ -59,8 +59,7 @@ EXCLUDES = (
 )
 
 COPYRIGHT_REGEX = re.compile(
-    r"Copyright 20\d\d The TensorFlow Authors\. All Rights Reserved\."
-)
+    r"Copyright 20\d\d The TensorFlow Authors\. All Rights Reserved\.")
 LICENSE_KEYWORD = "Apache License, Version 2.0"
 
 
