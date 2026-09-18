@@ -1372,10 +1372,6 @@ pillow==12.1.0 \
     #   -r python/python_requirements.in
     #   matplotlib
     #   tensorboard
-platformdirs==4.5.1 \
-    --hash=sha256:61d5cdcc6065745cdd94f0f878977f8de9437be93de97c1c12f853c9c0cdcbda \
-    --hash=sha256:d03afa3963c806a9bed9d5125c8f4cb2fdaf74a55ab60e5d59b3fde758104d31
-    # via yapf
 prettyprinter==0.18.0 \
     --hash=sha256:358a58f276cb312e3ca29d7a7f244c91e4e0bda7848249d30e4f36d2eb58b67c \
     --hash=sha256:9fe5da7ec53510881dd35d7a5c677ba45f34cfe6a8e78d1abd20652cf82139a8
@@ -1701,10 +1697,6 @@ wrapt==2.0.1 \
     --hash=sha256:fe21b118b9f58859b5ebaa4b130dee18669df4bd111daad082b7beb8799ad16b \
     --hash=sha256:fec0d993ecba3991645b4857837277469c8cc4c554a7e24d064d1ca291cfb81f
     # via tensorflow
-yapf==0.43.0 \
-    --hash=sha256:00d3aa24bfedff9420b2e0d5d9f5ab6d9d4268e72afbf59bb3fa542781d5218e \
-    --hash=sha256:224faffbc39c428cb095818cf6ef5511fdab6f7430a10783fdfb292ccf2852ca
-    # via -r python/python_requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==80.9.0 \

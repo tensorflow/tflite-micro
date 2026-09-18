@@ -27,44 +27,44 @@ from tflite_micro.tensorflow.lite.micro.tools import tflm_model_transforms_lib
 # output will be located at: /path/to/my_model_tflm_optimized.tflite
 
 _INPUT_MODEL_PATH = flags.DEFINE_string(
-    "input_model_path",
-    None,
-    ".tflite input model path",
-    required=True,
+  "input_model_path",
+  None,
+  ".tflite input model path",
+  required=True,
 )
 
 _SAVE_INTERMEDIATE_MODELS = flags.DEFINE_bool(
-    "save_intermediate_models",
-    False,
-    "optional config to save models between different transforms. Models are"
-    " saved to a /tmp/ directory and tested at each stage.",
+  "save_intermediate_models",
+  False,
+  "optional config to save models between different transforms. Models are"
+  " saved to a /tmp/ directory and tested at each stage.",
 )
 
 _TEST_TRANSFORMED_MODELS = flags.DEFINE_bool(
-    "test_transformed_model",
-    True,
-    "optional config to enable/disable testing models on random data and"
-    " asserting equivalent output.",
+  "test_transformed_model",
+  True,
+  "optional config to enable/disable testing models on random data and"
+  " asserting equivalent output.",
 )
 
 _OUTPUT_MODEL_PATH = flags.DEFINE_string(
-    "output_model_path",
-    None,
-    ".tflite output path. Leave blank if same as input+_tflm_optimized.tflite",
+  "output_model_path",
+  None,
+  ".tflite output path. Leave blank if same as input+_tflm_optimized.tflite",
 )
 
 
 def main(_) -> None:
   output_model_path = _OUTPUT_MODEL_PATH.value or (
-      _INPUT_MODEL_PATH.value.split(".tflite")[0] + "_tflm_optimized.tflite")
+    _INPUT_MODEL_PATH.value.split(".tflite")[0] + "_tflm_optimized.tflite"
+  )
 
-  logging.info("\n--Running TFLM optimizations on: %s",
-               _INPUT_MODEL_PATH.value)
+  logging.info("\n--Running TFLM optimizations on: %s", _INPUT_MODEL_PATH.value)
   tflm_model_transforms_lib.run_all_transformations(
-      _INPUT_MODEL_PATH.value,
-      output_model_path,
-      _SAVE_INTERMEDIATE_MODELS.value,
-      _TEST_TRANSFORMED_MODELS.value,
+    _INPUT_MODEL_PATH.value,
+    output_model_path,
+    _SAVE_INTERMEDIATE_MODELS.value,
+    _TEST_TRANSFORMED_MODELS.value,
   )
 
 

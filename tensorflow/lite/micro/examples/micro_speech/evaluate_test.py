@@ -27,22 +27,23 @@ from tensorflow.python.framework import test_util
 from tensorflow.python.platform import resource_loader
 from tensorflow.python.platform import test
 from tflite_micro.python.tflite_micro import runtime
-from tflite_micro.tensorflow.lite.micro.examples.micro_speech import audio_preprocessor
+from tflite_micro.tensorflow.lite.micro.examples.micro_speech import (
+  audio_preprocessor,
+)
 from tflite_micro.tensorflow.lite.micro.examples.micro_speech import evaluate
 
 
 class MicroSpeechTest(test_util.TensorFlowTestCase):
-
   def setUp(self):
     model_prefix_path = resource_loader.get_path_to_datafile('models')
     self.sample_prefix_path = resource_loader.get_path_to_datafile('testdata')
     model_path = Path(model_prefix_path, 'micro_speech_quantized.tflite')
     self.tflm_interpreter = runtime.Interpreter.from_file(model_path)
     self.test_data = [
-        ('no', 'no_1000ms.wav'),
-        ('yes', 'yes_1000ms.wav'),
-        ('silence', 'noise_1000ms.wav'),
-        ('silence', 'silence_1000ms.wav'),
+      ('no', 'no_1000ms.wav'),
+      ('yes', 'yes_1000ms.wav'),
+      ('silence', 'noise_1000ms.wav'),
+      ('silence', 'silence_1000ms.wav'),
     ]
 
   def testModelAccuracyWithInt8Features(self):
@@ -59,8 +60,7 @@ class MicroSpeechTest(test_util.TensorFlowTestCase):
       features = evaluate.generate_features(audio_pp)
 
       # Run model inference (quantized) on the feature data
-      category_probabilities = evaluate.predict(self.tflm_interpreter,
-                                                features)
+      category_probabilities = evaluate.predict(self.tflm_interpreter, features)
 
       # Check the prediction result
       predicted_category = np.argmax(category_probabilities)
@@ -82,8 +82,7 @@ class MicroSpeechTest(test_util.TensorFlowTestCase):
       features = evaluate.generate_features(audio_pp)
 
       # Run model inference (quantized) on the feature data
-      category_probabilities = evaluate.predict(self.tflm_interpreter,
-                                                features)
+      category_probabilities = evaluate.predict(self.tflm_interpreter, features)
 
       # Check the prediction result
       predicted_category = np.argmax(category_probabilities)

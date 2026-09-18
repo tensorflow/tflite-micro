@@ -58,14 +58,14 @@ else
 fi
 
 ############################################################
-# Python Formatting Check (yapf)
+# Python Formatting Check (ruff)
 ############################################################
 
 if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]; then
-  echo "${PY_FILES}" | xargs -r python3 -m yapf --parallel -i
+  echo "${PY_FILES}" | xargs -r ruff format
   PY_FORMAT_RESULT=$?
 else
-  echo "${PY_FILES}" | xargs -r python3 -m yapf --parallel --diff
+  echo "${PY_FILES}" | xargs -r ruff format --diff
   PY_FORMAT_RESULT=$?
 fi
 

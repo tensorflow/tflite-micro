@@ -67,11 +67,13 @@ class ProprietaryModelTest(unittest.TestCase):
   def setUpClass(cls):
     if not cls.models_dir:
       raise unittest.SkipTest(
-          "No models directory provided. "
-          "Usage: bazel test ... --test_arg=--models-dir=/path/to/models")
+        "No models directory provided. "
+        "Usage: bazel test ... --test_arg=--models-dir=/path/to/models"
+      )
 
     cls.model_paths = sorted(
-        glob.glob(os.path.join(cls.models_dir, '*.tflite')))
+      glob.glob(os.path.join(cls.models_dir, '*.tflite'))
+    )
     if not cls.model_paths:
       raise unittest.SkipTest(f"No .tflite files found in {cls.models_dir}")
 
@@ -103,8 +105,8 @@ class ProprietaryModelTest(unittest.TestCase):
         return spec.parse_yaml(f.read())
 
     raise FileNotFoundError(
-        f"No compression spec file found for {model_path}. "
-        f"Expected: {spec_path}")
+      f"No compression spec file found for {model_path}. Expected: {spec_path}"
+    )
 
   def _load_tolerance(self, model_path):
     """Load tolerance from sidecar config if present.
@@ -117,15 +119,17 @@ class ProprietaryModelTest(unittest.TestCase):
     with open(config_path) as f:
       config = yaml.safe_load(f)
     # float() rescues exponents like 1e-6, which YAML reads as strings
-    return verify.Tolerance(rtol=float(config.get('rtol', 0)),
-                            atol=float(config.get('atol', 0)))
+    return verify.Tolerance(
+      rtol=float(config.get('rtol', 0)), atol=float(config.get('atol', 0))
+    )
 
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--models-dir",
-      help="directory of .tflite models with sidecar compression specs")
+    "--models-dir",
+    help="directory of .tflite models with sidecar compression specs",
+  )
   args, rest = parser.parse_known_args()
   if args.models_dir:
     if not os.path.isdir(args.models_dir):

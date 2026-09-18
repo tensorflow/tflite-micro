@@ -22,7 +22,9 @@ import unittest
 
 # `.*_generated` is the name of the module created by the Bazel rule
 # `flatbuffer_py_library' based on the schema.
-from tflite_micro.tensorflow.lite.micro.compression import metadata_py_generated as schema
+from tflite_micro.tensorflow.lite.micro.compression import (
+  metadata_py_generated as schema,
+)
 
 
 @dataclass
@@ -33,15 +35,15 @@ class _LutTensor:
 
 
 _EXPECTED_0 = _LutTensor(
-    tensor=63,
-    valueBuffer=128,
-    indexBitwidth=2,
+  tensor=63,
+  valueBuffer=128,
+  indexBitwidth=2,
 )
 
 _EXPECTED_1 = _LutTensor(
-    tensor=64,
-    valueBuffer=129,
-    indexBitwidth=4,
+  tensor=64,
+  valueBuffer=129,
+  indexBitwidth=4,
 )
 
 # This is set in the schema definition.
@@ -49,10 +51,8 @@ _EXPECTED_SCHEMA_VERSION = 1
 
 
 class TestReadEqualsWrite(unittest.TestCase):
-
   def setUp(self):
-    """Sets up the test by creating a flatbuffer using the metadata schema.
-    """
+    """Sets up the test by creating a flatbuffer using the metadata schema."""
     # The classes with a `T` suffix provide an object-oriented representation of
     # the object tree in the flatbuffer using native data structures.
     lut_tensor0 = schema.LutTensorT()
@@ -78,8 +78,7 @@ class TestReadEqualsWrite(unittest.TestCase):
     self.flatbuffer: bytearray = builder.Output()
 
   def testLutTensors(self):
-    """Reads back the LutTensors and ensures they match expected values.
-    """
+    """Reads back the LutTensors and ensures they match expected values."""
     # Read the flatbuffer using the flatbuffers runtime module.
     metadata = schema.MetadataT.InitFromPackedBuf(self.flatbuffer, 0)
 
@@ -94,16 +93,14 @@ class TestReadEqualsWrite(unittest.TestCase):
     self.assertEqual(read_tensor1.indexBitwidth, _EXPECTED_1.indexBitwidth)
 
   def testSchemaVersion(self):
-    """Reads back the LutTensors and ensures they match expected values.
-    """
+    """Reads back the LutTensors and ensures they match expected values."""
     # Read the flatbuffer using the flatbuffers runtime module.
     metadata = schema.MetadataT.InitFromPackedBuf(self.flatbuffer, 0)
 
     self.assertEqual(metadata.schemaVersion, _EXPECTED_SCHEMA_VERSION)
 
   def testPrintFlatbufferLen(self):
-    """Print the flatbuffer length for the log.
-    """
+    """Print the flatbuffer length for the log."""
     print(f"length: {len(self.flatbuffer)}")
 
 

@@ -32,7 +32,9 @@ from tflite_micro.tensorflow.lite.micro.compression import lut
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import pruning
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.micro.tools import tflite_flatbuffer_align_wrapper
+from tflite_micro.tensorflow.lite.micro.tools import (
+  tflite_flatbuffer_align_wrapper,
+)
 
 USAGE = f"""\
 Usage: compress.py --input <in.tflite> --spec <spec.yaml> [--output <out.tflite>]
@@ -67,9 +69,9 @@ Compressed models use DECODE operators to decompress tensors at runtime.
 
 # Plugin dispatch table: maps CompressionMethod subclasses to compressor instances
 _COMPRESSORS: dict[Type[spec.CompressionMethod], compressor.Compressor] = {
-    spec.LookUpTableCompression: lut.LutCompressor(),
-    spec.HuffmanCompression: huffman.HuffmanCompressor(),
-    spec.PruningCompression: pruning.PruningCompressor(),
+  spec.LookUpTableCompression: lut.LutCompressor(),
+  spec.HuffmanCompression: huffman.HuffmanCompressor(),
+  spec.PruningCompression: pruning.PruningCompressor(),
 }
 
 
@@ -78,7 +80,8 @@ def _get_compressor(method: spec.CompressionMethod) -> compressor.Compressor:
   compressor_instance = _COMPRESSORS.get(type(method))
   if compressor_instance is None:
     raise compressor.CompressionError(
-        f"No compressor registered for {type(method).__name__}")
+      f"No compressor registered for {type(method).__name__}"
+    )
   return compressor_instance
 
 
@@ -104,8 +107,9 @@ def _apply_flatbuffer_alignment(model_bytes: bytearray) -> bytearray:
 
   try:
     # Unpack and repack with proper alignment
-    tflite_flatbuffer_align_wrapper.align_tflite_model(temp_in_path,
-                                                       temp_out_path)
+    tflite_flatbuffer_align_wrapper.align_tflite_model(
+      temp_in_path, temp_out_path
+    )
 
     with open(temp_out_path, 'rb') as f:
       aligned_model = bytearray(f.read())
@@ -135,20 +139,21 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
   specs = list(specs)
   if not specs:
     raise compressor.CompressionError(
-        "Compression spec is empty; no tensors to compress")
+      "Compression spec is empty; no tensors to compress"
+    )
 
   model = model_editor.read(model_in)
   compression_results: dict[tuple[int, int], compressor.CompressionResult] = {}
 
   for tensor_spec in specs:
     try:
-      tensor = model.subgraphs[tensor_spec.subgraph].tensors[
-          tensor_spec.tensor]
+      tensor = model.subgraphs[tensor_spec.subgraph].tensors[tensor_spec.tensor]
 
       # Currently only one compression method per tensor
       if len(tensor_spec.compression) != 1:
         raise compressor.CompressionError(
-            "Each tensor must have exactly one compression method")
+          "Each tensor must have exactly one compression method"
+        )
 
       method = tensor_spec.compression[0]
       plugin = _get_compressor(method)
@@ -158,12 +163,13 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
       compressed_size = len(result.encoded_data) + len(result.ancillary_data)
       if compressed_size > original_size:
         warnings.warn(
-            f"Compression of tensor {tensor.name!r} (subgraph "
-            f"{tensor_spec.subgraph}, tensor {tensor_spec.tensor}) resulted "
-            f"in expansion: {original_size} bytes -> {compressed_size} bytes "
-            f"(encoded: {len(result.encoded_data)}, "
-            f"ancillary: {len(result.ancillary_data)})",
-            stacklevel=2)
+          f"Compression of tensor {tensor.name!r} (subgraph "
+          f"{tensor_spec.subgraph}, tensor {tensor_spec.tensor}) resulted "
+          f"in expansion: {original_size} bytes -> {compressed_size} bytes "
+          f"(encoded: {len(result.encoded_data)}, "
+          f"ancillary: {len(result.ancillary_data)})",
+          stacklevel=2,
+        )
 
       # Store result for DECODE insertion, which installs the encoded
       # data. Leave the tensor's buffer untouched: a later spec entry may
@@ -175,7 +181,8 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
       raise
     except Exception as e:
       raise compressor.CompressionError(
-          f"error compressing {tensor_spec}") from e
+        f"error compressing {tensor_spec}"
+      ) from e
 
   # Insert DECODE operators into the graph
   decode_insert.insert_decode_operators(model, compression_results)

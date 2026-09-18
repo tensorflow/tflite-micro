@@ -40,18 +40,22 @@ from tflite_micro.python.tflite_micro.signal.ops import pcan_op
 from tflite_micro.python.tflite_micro import runtime
 
 _ENABLE_DEBUG = flags.DEFINE_enum(
-    'debug_mode',
-    'off',
-    ['off', 'all'],
-    'Enable debug output',
+  'debug_mode',
+  'off',
+  ['off', 'all'],
+  'Enable debug output',
 )
 
-_FILE_TO_TEST = flags.DEFINE_enum('file_to_test', 'no', ['no', 'yes'],
-                                  'File to test')
+_FILE_TO_TEST = flags.DEFINE_enum(
+  'file_to_test', 'no', ['no', 'yes'], 'File to test'
+)
 
 _OUTPUT_TYPE = flags.DEFINE_enum(
-    'output_type', 'int8', ['int8', 'float32'],
-    'Type of TfLite output file (.tflite) to generate')
+  'output_type',
+  'int8',
+  ['int8', 'float32'],
+  'Type of TfLite output file (.tflite) to generate',
+)
 
 
 def _debug_print(*args):
@@ -65,21 +69,27 @@ class _GenerateFeature(tf.Module):
   def __init__(self, name: str, params: FeatureParams, detail: str):
     super().__init__(name=name)
     self._params = params
-    window_sample_count: int = int(params.window_size_ms * params.sample_rate /
-                                   1000)
+    window_sample_count: int = int(
+      params.window_size_ms * params.sample_rate / 1000
+    )
     hann_window_weights = window_op.hann_window_weights(
-        window_sample_count, params.window_scaling_bits)
-    self._hann_window_weights_tensor = tf.constant(hann_window_weights,
-                                                   name='hann_window_weights')
+      window_sample_count, params.window_scaling_bits
+    )
+    self._hann_window_weights_tensor = tf.constant(
+      hann_window_weights, name='hann_window_weights'
+    )
     self._fft_size, self._fft_size_log2 = fft_ops.get_pow2_fft_length(
-        window_sample_count)
-    self._filter_bank_index_start, self._filter_bank_index_end = \
-        filter_bank_ops.calc_start_end_indices(
-            self._fft_size,
-            params.sample_rate,
-            params.filter_bank_number_of_channels,
-            params.filter_bank_lower_band_limit_hz,
-            params.filter_bank_upper_band_limit_hz)
+      window_sample_count
+    )
+    self._filter_bank_index_start, self._filter_bank_index_end = (
+      filter_bank_ops.calc_start_end_indices(
+        self._fft_size,
+        params.sample_rate,
+        params.filter_bank_number_of_channels,
+        params.filter_bank_lower_band_limit_hz,
+        params.filter_bank_upper_band_limit_hz,
+      )
+    )
     self._detail = detail
 
   def generate_feature_for_frame(self, audio_frame: tf.Tensor) -> tf.Tensor:
@@ -94,19 +104,22 @@ class _GenerateFeature(tf.Module):
     detail = self._detail
 
     # update filter_bank_ops constants
-    filter_bank_ops.FILTER_BANK_WEIGHT_SCALING_BITS = \
-        params.filter_bank_scaling_bits
+    filter_bank_ops.FILTER_BANK_WEIGHT_SCALING_BITS = (
+      params.filter_bank_scaling_bits
+    )
     filter_bank_ops.FILTER_BANK_ALIGNMENT = params.filter_bank_alignment
-    filter_bank_ops.FILTER_BANK_CHANNEL_BLOCK_SIZE = \
-        params.filter_bank_channel_block_size
+    filter_bank_ops.FILTER_BANK_CHANNEL_BLOCK_SIZE = (
+      params.filter_bank_channel_block_size
+    )
 
     _debug_print_internal(f'audio frame output [{detail}]: {audio_frame!r}')
 
     # apply window to audio frame
     weights = self._hann_window_weights_tensor
     _debug_print_internal(f'window weights output [{detail}]: {weights!r}')
-    window_output: tf.Tensor = window_op.window(audio_frame, weights,
-                                                params.window_scaling_bits)
+    window_output: tf.Tensor = window_op.window(
+      audio_frame, weights, params.window_scaling_bits
+    )
     _debug_print_internal(f'window output [{detail}]: {window_output!r}')
 
     # pre-scale window output
@@ -116,7 +129,8 @@ class _GenerateFeature(tf.Module):
 
     # compute FFT on scaled window output
     _debug_print_internal(
-        f'fft size, log2 [{detail}]: {self._fft_size}, {self._fft_size_log2}')
+      f'fft size, log2 [{detail}]: {self._fft_size}, {self._fft_size_log2}'
+    )
     fft_output: tf.Tensor = fft_ops.rfft(window_scaled_output, self._fft_size)
     _debug_print_internal(f'fft output [{detail}]: {fft_output!r}')
 
@@ -124,9 +138,11 @@ class _GenerateFeature(tf.Module):
     index_end = self._filter_bank_index_end
     # convert fft output complex numbers to energy values
     _debug_print_internal(
-        f'index start, end [{detail}]: {index_start}, {index_end}')
-    energy_output: tf.Tensor = energy_op.energy(fft_output, index_start,
-                                                index_end)
+      f'index start, end [{detail}]: {index_start}, {index_end}'
+    )
+    energy_output: tf.Tensor = energy_op.energy(
+      fft_output, index_start, index_end
+    )
     # Energy op does not zero indices outside [index_start,index_end).
     # The following operations to zero portions of the energy op output
     # could be much more efficiently performed inside the energy op C++
@@ -137,68 +153,76 @@ class _GenerateFeature(tf.Module):
     zeros_head = tf.zeros(index_start, dtype=tf.int32)
     number_of_elements = energy_output.shape.num_elements()
     zeros_tail = tf.zeros(
-        number_of_elements - index_end,  # type: ignore
-        dtype=tf.int32)
+      number_of_elements - index_end,  # type: ignore
+      dtype=tf.int32,
+    )
     energy_slice = energy_output[index_start:index_end]
-    energy_output = tf.concat([zeros_head, energy_slice, zeros_tail],
-                              0)  # type: ignore
+    energy_output = tf.concat([zeros_head, energy_slice, zeros_tail], 0)  # type: ignore
     energy_output = tf.cast(energy_output, dtype=tf.uint32)  # type: ignore
     _debug_print_internal(f'energy output [{detail}]: {energy_output!r}')
 
     # compress energy output into 40 channels
     filter_output: tf.Tensor = filter_bank_ops.filter_bank(
-        energy_output, params.sample_rate,
-        params.filter_bank_number_of_channels,
-        params.filter_bank_lower_band_limit_hz,
-        params.filter_bank_upper_band_limit_hz)
+      energy_output,
+      params.sample_rate,
+      params.filter_bank_number_of_channels,
+      params.filter_bank_lower_band_limit_hz,
+      params.filter_bank_upper_band_limit_hz,
+    )
     _debug_print_internal(f'filterbank output [{detail}]: {filter_output!r}')
 
     # scale down filter_output
     filter_scaled_output: tf.Tensor = filter_bank_ops.filter_bank_square_root(
-        filter_output, scaling_shift)
+      filter_output, scaling_shift
+    )
     _debug_print_internal(
-        f'scaled filterbank output [{detail}]: {filter_scaled_output!r}')
+      f'scaled filterbank output [{detail}]: {filter_scaled_output!r}'
+    )
 
     # noise reduction
     spectral_sub_bits: int = params.filter_bank_spectral_subtraction_bits
     filter_noise_output: tf.Tensor
     filter_noise_estimate: tf.Tensor
-    filter_noise_output, filter_noise_estimate = \
-        filter_bank_ops.filter_bank_spectral_subtraction(
-            filter_scaled_output,
-            num_channels=params.filter_bank_number_of_channels,
-            smoothing=params.filter_bank_even_smoothing,
-            alternate_smoothing=params.filter_bank_odd_smoothing,
-            smoothing_bits=params.filter_bank_smoothing_bits,
-            min_signal_remaining=params.filter_bank_min_signal_remaining,
-            clamping=params.filter_bank_clamping,
-            spectral_subtraction_bits=spectral_sub_bits,
-        )
+    filter_noise_output, filter_noise_estimate = (
+      filter_bank_ops.filter_bank_spectral_subtraction(
+        filter_scaled_output,
+        num_channels=params.filter_bank_number_of_channels,
+        smoothing=params.filter_bank_even_smoothing,
+        alternate_smoothing=params.filter_bank_odd_smoothing,
+        smoothing_bits=params.filter_bank_smoothing_bits,
+        min_signal_remaining=params.filter_bank_min_signal_remaining,
+        clamping=params.filter_bank_clamping,
+        spectral_subtraction_bits=spectral_sub_bits,
+      )
+    )
     _debug_print_internal(f'noise output [{detail}]: {filter_noise_output!r}')
 
     # automatic gain control (PCAN)
-    correction_bits: int = self._fft_size_log2 - \
-        int(params.filter_bank_scaling_bits / 2)
+    correction_bits: int = self._fft_size_log2 - int(
+      params.filter_bank_scaling_bits / 2
+    )
     filter_agc_output: tf.Tensor = pcan_op.pcan(
-        filter_noise_output,
-        filter_noise_estimate,
-        strength=params.pcan_strength,
-        offset=params.pcan_offset,
-        gain_bits=params.pcan_gain_bits,
-        smoothing_bits=params.pcan_smoothing_bits,
-        input_correction_bits=correction_bits)
-    _debug_print_internal(
-        f'AGC Noise output [{detail}]: {filter_agc_output!r}')
+      filter_noise_output,
+      filter_noise_estimate,
+      strength=params.pcan_strength,
+      offset=params.pcan_offset,
+      gain_bits=params.pcan_gain_bits,
+      smoothing_bits=params.pcan_smoothing_bits,
+      input_correction_bits=correction_bits,
+    )
+    _debug_print_internal(f'AGC Noise output [{detail}]: {filter_agc_output!r}')
 
     # re-scale features from UINT32 to INT16
     feature_post_scale: int = 1 << params.filter_bank_post_scaling_bits
     feature_pre_scale_shift: int = correction_bits
     feature_rescaled_output: tf.Tensor = filter_bank_ops.filter_bank_log(
-        filter_agc_output,
-        output_scale=feature_post_scale,
-        input_correction_bits=feature_pre_scale_shift)
+      filter_agc_output,
+      output_scale=feature_post_scale,
+      input_correction_bits=feature_pre_scale_shift,
+    )
     _debug_print_internal(
-        f'scaled noise output [{detail}]: {feature_rescaled_output!r}')
+      f'scaled noise output [{detail}]: {feature_rescaled_output!r}'
+    )
 
     # These scaling values are derived from those used in input_data.py in the
     # training pipeline.
@@ -233,22 +257,19 @@ class _GenerateFeature(tf.Module):
     feature_output: tf.Tensor
     if self._params.use_float_output:
       # feature_rescaled_output is INT16, cast to FLOAT32
-      feature_output = tf.cast(feature_rescaled_output,
-                               tf.float32)  # type: ignore
+      feature_output = tf.cast(feature_rescaled_output, tf.float32)  # type: ignore
       # feature_output will be FLOAT32
       feature_output /= self._params.legacy_output_scaling
     else:
       value_scale = tf.constant(256, dtype=tf.int32)
       value_div = tf.constant(int((25.6 * 26) + 0.5), dtype=tf.int32)
-      feature_output = tf.cast(feature_rescaled_output,
-                               tf.int32)  # type: ignore
+      feature_output = tf.cast(feature_rescaled_output, tf.int32)  # type: ignore
       feature_output = (feature_output * value_scale) + int(value_div / 2)
-      feature_output = tf.truncatediv(feature_output,
-                                      value_div)  # type: ignore
+      feature_output = tf.truncatediv(feature_output, value_div)  # type: ignore
       feature_output += tf.constant(-128, dtype=tf.int32)
-      feature_output = tf.clip_by_value(feature_output,
-                                        clip_value_min=-128,
-                                        clip_value_max=127)  # type: ignore
+      feature_output = tf.clip_by_value(
+        feature_output, clip_value_min=-128, clip_value_max=127
+      )  # type: ignore
       feature_output = tf.cast(feature_output, tf.int8)  # type: ignore
 
     _debug_print_internal(f'feature output [{detail}]: {feature_output!r}')
@@ -285,8 +306,9 @@ class FeatureParams:
   filter_bank_upper_band_limit_hz: float = 7500.0
   """filter bank upper band limit"""
 
-  filter_bank_scaling_bits: int = \
-      filter_bank_ops.FILTER_BANK_WEIGHT_SCALING_BITS
+  filter_bank_scaling_bits: int = (
+    filter_bank_ops.FILTER_BANK_WEIGHT_SCALING_BITS
+  )
   """filter bank weight scaling bits, updates filter bank constant"""
 
   filter_bank_alignment: int = 4
@@ -348,8 +370,9 @@ class AudioPreprocessor:
   def __init__(self, params: FeatureParams, detail: str = 'unknown'):
     self._detail = detail
     self._params = params
-    self._samples_per_window = int(params.window_size_ms * params.sample_rate /
-                                   1000)
+    self._samples_per_window = int(
+      params.window_size_ms * params.sample_rate / 1000
+    )
     self._tflm_interpreter = None
     self._feature_generator = None
     self._feature_generator_concrete_function = None
@@ -358,9 +381,9 @@ class AudioPreprocessor:
 
   def _get_feature_generator(self):
     if self._feature_generator is None:
-      self._feature_generator = _GenerateFeature(name='GenerateFeature',
-                                                 params=self._params,
-                                                 detail=self._detail)
+      self._feature_generator = _GenerateFeature(
+        name='GenerateFeature', params=self._params, detail=self._detail
+      )
     return self._feature_generator
 
   def _get_concrete_function(self):
@@ -369,14 +392,16 @@ class AudioPreprocessor:
       fg = self._get_feature_generator()
       func = tf.function(func=fg.generate_feature_for_frame)
       self._feature_generator_concrete_function = func.get_concrete_function(
-          tf.TensorSpec(shape=shape, dtype=tf.int16))  # type: ignore
+        tf.TensorSpec(shape=shape, dtype=tf.int16)
+      )  # type: ignore
     return self._feature_generator_concrete_function
 
   def _get_model(self):
     if self._model is None:
       cf = self._get_concrete_function()
       converter = tf.lite.TFLiteConverter.from_concrete_functions(
-          [cf], self._get_feature_generator())
+        [cf], self._get_feature_generator()
+      )
       converter.allow_custom_ops = True
       self._model = converter.convert()
       if _ENABLE_DEBUG.value != 'off':
@@ -401,9 +426,11 @@ class AudioPreprocessor:
     samples: tf.Tensor
     samples, sample_rate = tf.audio.decode_wav(file_data, desired_channels=1)
     sample_rate = int(sample_rate)
-    _debug_print(f'Loaded {filename.name}'
-                 f' sample-rate={sample_rate}'
-                 f' sample-count={len(samples)}')
+    _debug_print(
+      f'Loaded {filename.name}'
+      f' sample-rate={sample_rate}'
+      f' sample-count={len(samples)}'
+    )
     assert sample_rate == self._params.sample_rate, 'mismatched sample rate'
     # convert samples to INT16
     # i = (((int) ((x * 32767) + 32768.5f)) - 32768);
@@ -522,8 +549,9 @@ class AudioPreprocessor:
       type_name = 'float'
     else:
       type_name = 'int8'
-    fname = Path(tempfile.gettempdir(),
-                 'audio_preprocessor_' + type_name + '.tflite')
+    fname = Path(
+      tempfile.gettempdir(), 'audio_preprocessor_' + type_name + '.tflite'
+    )
     with open(fname, mode='wb') as file_handle:
       file_handle.write(model)
     return fname

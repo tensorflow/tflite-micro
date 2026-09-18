@@ -33,10 +33,9 @@ from tflite_micro.tensorflow.lite.micro.compression import verify
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
-def _build_compressible_model(weight_shape=(4, 4),
-                              index_bitwidth=2,
-                              per_channel=False,
-                              unquantized=False):
+def _build_compressible_model(
+  weight_shape=(4, 4), index_bitwidth=2, per_channel=False, unquantized=False
+):
   """Build a model with clustered weights for compression testing.
 
   Args:
@@ -63,46 +62,48 @@ def _build_compressible_model(weight_shape=(4, 4),
     scales = [0.5 + 0.1 * i for i in range(rows)]
     zero_points = [0] * rows
     quantization = model_editor.Quantization(
-        scales=scales,
-        zero_points=zero_points,
-        axis=0,
+      scales=scales,
+      zero_points=zero_points,
+      axis=0,
     )
   else:
     quantization = model_editor.Quantization(scales=0.5, zero_points=0)
 
   weights = model_editor.Tensor(
-      shape=weight_shape,
-      dtype=tflite.TensorType.INT8,
-      data=weight_data,
-      name="weights",
-      quantization=quantization,
+    shape=weight_shape,
+    dtype=tflite.TensorType.INT8,
+    data=weight_data,
+    name="weights",
+    quantization=quantization,
   )
 
   input_t = model_editor.Tensor(
-      shape=(1, cols),
-      dtype=tflite.TensorType.INT8,
-      name="input",
+    shape=(1, cols),
+    dtype=tflite.TensorType.INT8,
+    name="input",
   )
   output_t = model_editor.Tensor(
-      shape=(1, rows),
-      dtype=tflite.TensorType.INT8,
-      name="output",
+    shape=(1, rows),
+    dtype=tflite.TensorType.INT8,
+    name="output",
   )
 
-  model = model_editor.Model(subgraphs=[
+  model = model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[weights],
-          inputs=[input_t],
-          outputs=[output_t],
-          operators=[
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input_t, weights],
-                  outputs=[output_t],
-              )
-          ],
+        tensors=[weights],
+        inputs=[input_t],
+        outputs=[output_t],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, weights],
+            outputs=[output_t],
+          )
+        ],
       )
-  ])
+    ]
+  )
   return model.build()
 
 
@@ -115,11 +116,11 @@ class LutCompressionTest(unittest.TestCase):
 
     # Create compression spec for weights tensor (index 0 in tensors list)
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        )
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      )
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -131,11 +132,11 @@ class LutCompressionTest(unittest.TestCase):
     flatbuffer = _build_compressible_model()
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        )
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      )
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -144,8 +145,10 @@ class LutCompressionTest(unittest.TestCase):
 
     # Find DECODE operators
     decode_ops = [
-        op for op in sg.operators if op.opcode == tflite.BuiltinOperator.CUSTOM
-        and op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
+      op
+      for op in sg.operators
+      if op.opcode == tflite.BuiltinOperator.CUSTOM
+      and op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
     ]
 
     self.assertEqual(len(decode_ops), 1)
@@ -160,11 +163,11 @@ class LutCompressionTest(unittest.TestCase):
     flatbuffer = _build_compressible_model(weight_shape=(64, 64))
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        )
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      )
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -173,20 +176,22 @@ class LutCompressionTest(unittest.TestCase):
     compressed_size = len(compressed_fb)
 
     self.assertLess(
-        compressed_size, original_size,
-        f"Compressed model ({compressed_size} bytes) should be smaller than "
-        f"original ({original_size} bytes)")
+      compressed_size,
+      original_size,
+      f"Compressed model ({compressed_size} bytes) should be smaller than "
+      f"original ({original_size} bytes)",
+    )
 
   def test_lut_4bit_compression(self):
     """4-bit LUT compression produces correct inference results."""
     flatbuffer = _build_compressible_model(index_bitwidth=4)
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=4)],
-        )
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[spec.LookUpTableCompression(index_bitwidth=4)],
+      )
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -198,11 +203,11 @@ class LutCompressionTest(unittest.TestCase):
     flatbuffer = _build_compressible_model(per_channel=True)
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        )
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      )
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -214,11 +219,11 @@ class LutCompressionTest(unittest.TestCase):
     flatbuffer = _build_compressible_model(unquantized=True)
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        )
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      )
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -238,97 +243,103 @@ def _build_shared_weights_model():
   """
   # 4 unique values per tensor for 2-bit LUT compression. Small values avoid
   # saturation in chained layers. Different row sums produce varied outputs.
-  weights1_data = np.array([
+  weights1_data = np.array(
+    [
       [-1, 0, 0, 1],
       [-1, 0, 1, 1],
       [-1, 1, 1, 1],
       [0, 1, 1, 1],
-  ],
-                           dtype=np.int8)
+    ],
+    dtype=np.int8,
+  )
   weights1 = model_editor.Tensor(
-      shape=(4, 4),
-      dtype=tflite.TensorType.INT8,
-      data=weights1_data,
-      name="weights1",
-      quantization=model_editor.Quantization(scales=1.0, zero_points=0),
+    shape=(4, 4),
+    dtype=tflite.TensorType.INT8,
+    data=weights1_data,
+    name="weights1",
+    quantization=model_editor.Quantization(scales=1.0, zero_points=0),
   )
 
-  weights2_data = np.array([
+  weights2_data = np.array(
+    [
       [1, 1, 1, 1],
       [1, 1, 2, 2],
       [1, 2, 2, 3],
       [2, 2, 3, 3],
-  ],
-                           dtype=np.int8)
+    ],
+    dtype=np.int8,
+  )
   weights2 = model_editor.Tensor(
-      shape=(4, 4),
-      dtype=tflite.TensorType.INT8,
-      data=weights2_data,
-      name="weights2",
-      quantization=model_editor.Quantization(scales=1.0, zero_points=0),
+    shape=(4, 4),
+    dtype=tflite.TensorType.INT8,
+    data=weights2_data,
+    name="weights2",
+    quantization=model_editor.Quantization(scales=1.0, zero_points=0),
   )
 
   # All tensors need matching quantization for FULLY_CONNECTED
   quant = model_editor.Quantization(scales=1.0, zero_points=0)
 
   input1 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input1",
-      quantization=quant,
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input1",
+    quantization=quant,
   )
   input2 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input2",
-      quantization=quant,
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input2",
+    quantization=quant,
   )
   output1 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output1",
-      quantization=quant,
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output1",
+    quantization=quant,
   )
   intermediate = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="intermediate",
-      quantization=quant,
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="intermediate",
+    quantization=quant,
   )
   output2 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output2",
-      quantization=quant,
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output2",
+    quantization=quant,
   )
 
-  model = model_editor.Model(subgraphs=[
+  model = model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[weights1, weights2],
-          inputs=[input1, input2],
-          outputs=[output1, output2],
-          operators=[
-              # FC1: uses weights1
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input1, weights1],
-                  outputs=[output1],
-              ),
-              # FC2: uses weights2 (runs between FC1 and FC3)
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input2, weights2],
-                  outputs=[intermediate],
-              ),
-              # FC3: uses weights1 (second consumer, after DECODE(weights2))
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[intermediate, weights1],
-                  outputs=[output2],
-              ),
-          ],
+        tensors=[weights1, weights2],
+        inputs=[input1, input2],
+        outputs=[output1, output2],
+        operators=[
+          # FC1: uses weights1
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input1, weights1],
+            outputs=[output1],
+          ),
+          # FC2: uses weights2 (runs between FC1 and FC3)
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input2, weights2],
+            outputs=[intermediate],
+          ),
+          # FC3: uses weights1 (second consumer, after DECODE(weights2))
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[intermediate, weights1],
+            outputs=[output2],
+          ),
+        ],
       )
-  ])
+    ]
+  )
   return model.build()
 
 
@@ -359,16 +370,16 @@ class AltDecompressionMemoryTest(unittest.TestCase):
     flatbuffer = _build_shared_weights_model()
 
     specs = [
-        spec.Tensor(
-            subgraph=0,
-            tensor=0,  # weights1
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        ),
-        spec.Tensor(
-            subgraph=0,
-            tensor=1,  # weights2
-            compression=[spec.LookUpTableCompression(index_bitwidth=2)],
-        ),
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,  # weights1
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      ),
+      spec.Tensor(
+        subgraph=0,
+        tensor=1,  # weights2
+        compression=[spec.LookUpTableCompression(index_bitwidth=2)],
+      ),
     ]
 
     compressed_fb = compress.compress(flatbuffer, specs)
@@ -378,8 +389,8 @@ class AltDecompressionMemoryTest(unittest.TestCase):
 
     # Run with alt decompression memory
     interp_with_alt = runtime.Interpreter.from_bytes(
-        bytes(compressed_fb),
-        alt_decompression_memory_size=256,
+      bytes(compressed_fb),
+      alt_decompression_memory_size=256,
     )
 
     test_input1 = np.array([[1, 1, 1, 1]], dtype=np.int8)
@@ -398,9 +409,11 @@ class AltDecompressionMemoryTest(unittest.TestCase):
     actual2 = interp_with_alt.get_output(1)
 
     np.testing.assert_array_equal(
-        expected1, actual1, "Output 1 mismatch with alt decompression memory")
+      expected1, actual1, "Output 1 mismatch with alt decompression memory"
+    )
     np.testing.assert_array_equal(
-        expected2, actual2, "Output 2 mismatch with alt decompression memory")
+      expected2, actual2, "Output 2 mismatch with alt decompression memory"
+    )
 
 
 class HuffmanCompressionTest(unittest.TestCase):

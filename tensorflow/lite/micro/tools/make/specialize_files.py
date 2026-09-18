@@ -39,20 +39,27 @@ def _specialize_files(base_file_list, directory):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
-      description="Helper functions used during the Makefile build")
+    description="Helper functions used during the Makefile build"
+  )
 
   parser.add_argument(
-      "--base_files",
-      default="",
-      help="String with (space separated) list of all the files "
-      "to attempt to specialize.")
+    "--base_files",
+    default="",
+    help="String with (space separated) list of all the files "
+    "to attempt to specialize.",
+  )
 
-  parser.add_argument("--specialize_directory",
-                      default="",
-                      help="Directory containing the more specialized files.")
+  parser.add_argument(
+    "--specialize_directory",
+    default="",
+    help="Directory containing the more specialized files.",
+  )
 
   args = parser.parse_args()
 
   if args.base_files != "" and args.specialize_directory != "":
-    print(" ".join(
-        _specialize_files(args.base_files.split(), args.specialize_directory)))
+    print(
+      " ".join(
+        _specialize_files(args.base_files.split(), args.specialize_directory)
+      )
+    )

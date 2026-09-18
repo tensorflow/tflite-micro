@@ -23,10 +23,12 @@ from tflite_micro.tensorflow.lite.micro.compression import model_editor
 
 def _create_test_model():
   """Create a simple quantized model for testing."""
-  model = tf.keras.Sequential([
-      tf.keras.layers.Dense(10, input_shape=(5, ), activation='relu'),
-      tf.keras.layers.Dense(5, activation='softmax')
-  ])
+  model = tf.keras.Sequential(
+    [
+      tf.keras.layers.Dense(10, input_shape=(5,), activation='relu'),
+      tf.keras.layers.Dense(5, activation='softmax'),
+    ]
+  )
   model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
 
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
@@ -42,8 +44,9 @@ def _create_test_model():
   converter.inference_output_type = tf.uint8
 
   tflite_model = converter.convert()
-  return bytes(tflite_model) if isinstance(tflite_model,
-                                           bytearray) else tflite_model
+  return (
+    bytes(tflite_model) if isinstance(tflite_model, bytearray) else tflite_model
+  )
 
 
 def _inject_compression_metadata(model_data):

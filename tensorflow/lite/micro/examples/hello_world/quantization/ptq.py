@@ -29,6 +29,7 @@ Note that we are using the directory of the TF model as the source_model_dir her
 The quant model (named hello_world_int8.tflite) will be created inside the target_dir.
 `bazel-bin/tensorflow/lite/micro/examples/hello_world/quantization/ptq  --source_model_dir=/tmp/float_model --target_dir=/tmp/quant_model/`
 """
+
 import math
 import os
 
@@ -40,10 +41,14 @@ import tensorflow as tf
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("source_model_dir", "/tmp/float_model/",
-                    "the directory where the trained model can be found.")
-flags.DEFINE_string("target_dir", "/tmp/quant_model",
-                    "the directory to save the quant model.")
+flags.DEFINE_string(
+  "source_model_dir",
+  "/tmp/float_model/",
+  "the directory where the trained model can be found.",
+)
+flags.DEFINE_string(
+  "target_dir", "/tmp/quant_model", "the directory to save the quant model."
+)
 
 
 def get_data():
@@ -52,8 +57,9 @@ def get_data():
   """
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
-  x_values = np.random.uniform(low=0, high=2 * math.pi,
-                               size=1000).astype(np.float32)
+  x_values = np.random.uniform(low=0, high=2 * math.pi, size=1000).astype(
+    np.float32
+  )
 
   # Shuffle the values to guarantee they're not in order
   np.random.shuffle(x_values)
@@ -78,14 +84,14 @@ def save_tflite_model(tflite_model, target_dir, model_name):
 
 def convert_quantized_tflite_model(source_model_dir, x_values):
   """Convert the save TF model to tflite model, then save it as .tflite
-    flatbuffer format
+  flatbuffer format
 
-    Args:
-        source_model_dir (tf.keras.Model): the trained hello_world flaot Model dir
-        x_train (numpy.array): list of the training data
+  Args:
+      source_model_dir (tf.keras.Model): the trained hello_world flaot Model dir
+      x_train (numpy.array): list of the training data
 
-    Returns:
-        The converted model in serialized format.
+  Returns:
+      The converted model in serialized format.
   """
 
   # Convert the model to the TensorFlow Lite format with quantization
@@ -106,10 +112,13 @@ def convert_quantized_tflite_model(source_model_dir, x_values):
 def main(_):
   x_values = get_data()
   quantized_tflite_model = convert_quantized_tflite_model(
-      FLAGS.source_model_dir, x_values)
-  save_tflite_model(quantized_tflite_model,
-                    FLAGS.target_dir,
-                    model_name="hello_world_int8.tflite")
+    FLAGS.source_model_dir, x_values
+  )
+  save_tflite_model(
+    quantized_tflite_model,
+    FLAGS.target_dir,
+    model_name="hello_world_int8.tflite",
+  )
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@
 
 Model is built either with basic TF functions (concrete function model), or via
 Keras. The model simply mimics an accumulator (via the persistent memory / state
-functionality of resource variables), taking in two inputs: 
+functionality of resource variables), taking in two inputs:
 1) A boolean for choosing addition/subtraction.
 2) The value to add/subtract from the accumulator variable.
 
@@ -41,17 +41,19 @@ class CompareAndAccumulate(tf.Module):
   def __init__(self, name):
     super().__init__(name=name)
     self._accum = tf.Variable(
-        initial_value=np.zeros((100, ), dtype=np.float32),
-        trainable=False,
-        name="Accumulator",
-        dtype=tf.float32,
-        shape=[100],
+      initial_value=np.zeros((100,), dtype=np.float32),
+      trainable=False,
+      name="Accumulator",
+      dtype=tf.float32,
+      shape=[100],
     )
 
-  @tf.function(input_signature=[
+  @tf.function(
+    input_signature=[
       tf.TensorSpec(shape=[100], dtype=tf.float32, name="accum_val"),
       tf.TensorSpec(shape=[1], dtype=tf.bool, name="accumulate_add"),
-  ])
+    ]
+  )
   def __call__(self, accum_val, accumulate_add):
     if accumulate_add:
       self._accum.assign_add(accum_val)
@@ -69,11 +71,11 @@ class CompareAndAccumulateKerasLayer(tf.keras.layers.Layer):
   def __init__(self, name):
     super().__init__(name=name)
     self._accum = tf.Variable(
-        initial_value=[np.zeros((100, ), dtype=np.float32)],
-        trainable=False,
-        name="Accumulator",
-        dtype=tf.float32,
-        shape=(1, 100),
+      initial_value=[np.zeros((100,), dtype=np.float32)],
+      trainable=False,
+      name="Accumulator",
+      dtype=tf.float32,
+      shape=(1, 100),
     )
 
   def call(self, accum_val, accumulate_add):
@@ -93,23 +95,26 @@ def get_model_from_concrete_function():
   """Accumulator model built via TF concrete functions."""
   model = CompareAndAccumulate("CompareAndAccumulate")
   concrete_func = model.__call__.get_concrete_function()
-  converter = tf.lite.TFLiteConverter.from_concrete_functions([concrete_func],
-                                                              model)
+  converter = tf.lite.TFLiteConverter.from_concrete_functions(
+    [concrete_func], model
+  )
   return converter.convert()
 
 
 def get_model_from_keras():
   """Accumulator model built via Keras custom layer."""
-  input_layer_int = tf.keras.layers.Input(shape=[100],
-                                          dtype=tf.float32,
-                                          name="accum_val")
-  input_layer_bool = tf.keras.layers.Input(shape=[1],
-                                           dtype=tf.bool,
-                                           name="accumulate_add")
+  input_layer_int = tf.keras.layers.Input(
+    shape=[100], dtype=tf.float32, name="accum_val"
+  )
+  input_layer_bool = tf.keras.layers.Input(
+    shape=[1], dtype=tf.bool, name="accumulate_add"
+  )
   accumulate_out = CompareAndAccumulateKerasLayer("CompareAndAccumulate")(
-      input_layer_int, input_layer_bool)
+    input_layer_int, input_layer_bool
+  )
 
-  model = tf.keras.models.Model(inputs=[input_layer_int, input_layer_bool],
-                                outputs=accumulate_out)
+  model = tf.keras.models.Model(
+    inputs=[input_layer_int, input_layer_bool], outputs=accumulate_out
+  )
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
   return converter.convert()

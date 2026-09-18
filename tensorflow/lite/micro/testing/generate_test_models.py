@@ -31,8 +31,9 @@ import numpy as np
 import tensorflow as tf
 
 
-def generate_conv_model(write_to_file=True,
-                        filename="/tmp/tf_micro_conv_test_model.int8.tflite"):
+def generate_conv_model(
+  write_to_file=True, filename="/tmp/tf_micro_conv_test_model.int8.tflite"
+):
   """Creates a basic Keras model and converts to tflite.
 
   This model does not make any relevant classifications. It only exists to
@@ -43,15 +44,15 @@ def generate_conv_model(write_to_file=True,
 
   model = tf.keras.models.Sequential()
   model.add(
-      tf.keras.layers.Conv2D(16, 3, activation="relu",
-                             input_shape=input_shape))
+    tf.keras.layers.Conv2D(16, 3, activation="relu", input_shape=input_shape)
+  )
   model.add(tf.keras.layers.Conv2D(32, 3, activation="relu"))
   model.add(tf.keras.layers.MaxPooling2D(2))
   model.add(tf.keras.layers.Flatten())
   model.add(tf.keras.layers.Dense(10))
-  model.compile(optimizer="adam",
-                loss="categorical_crossentropy",
-                metrics=["accuracy"])
+  model.compile(
+    optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+  )
   model.summary()
 
   # Test with random data
@@ -74,7 +75,8 @@ def generate_conv_model(write_to_file=True,
   # TODO(b/324385802): Disable per channel quantization in FC layers (currently
   # default behaviour) since it's not yet supported in TFLM.
   converter._experimental_disable_per_channel_quantization_for_dense_layers = (  # pylint: disable=protected-access
-      True)
+    True
+  )
 
   tflite_model = converter.convert()
   if write_to_file:

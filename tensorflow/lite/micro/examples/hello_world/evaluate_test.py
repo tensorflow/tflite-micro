@@ -31,11 +31,11 @@ class HelloWorldFloatModelTest(unittest.TestCase):
   def test_compare_with_tflite(self):
     x_values = evaluate.generate_random_float_input()
 
-    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path,
-                                                      x_values)
+    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path, x_values)
 
     tflite_y_predictions = evaluate.get_tflite_prediction(
-        self.model_path, x_values)
+      self.model_path, x_values
+    )
 
     np.testing.assert_array_equal(tflm_y_predictions, tflite_y_predictions)
 
@@ -49,11 +49,11 @@ class HelloWorldQuantModelTest(unittest.TestCase):
   def test_compare_with_tflite(self):
     x_values = evaluate.generate_random_int8_input()
 
-    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path,
-                                                      x_values)
+    tflm_y_predictions = evaluate.get_tflm_prediction(self.model_path, x_values)
 
     tflite_y_predictions = evaluate.get_tflite_prediction(
-        self.model_path, x_values)
+      self.model_path, x_values
+    )
 
     np.testing.assert_array_equal(tflm_y_predictions, tflite_y_predictions)
 

@@ -40,7 +40,7 @@ tensors:
       - lut:
           index_bitwidth: 2
 
-""" # This example is checked in this module's unit test.
+"""  # This example is checked in this module's unit test.
 
 
 class CompressionMethod:
@@ -63,6 +63,7 @@ class LookUpTableCompression(CompressionMethod):
   Attributes:
     index_bitwidth: Number of bits per index (1-7).
   """
+
   index_bitwidth: int
 
 
@@ -72,6 +73,7 @@ class HuffmanCompression(CompressionMethod):
 
   Supported tensor types: INT8, INT16 only.
   """
+
   pass
 
 
@@ -81,6 +83,7 @@ class PruningCompression(CompressionMethod):
 
   Supported tensor types: All TFLM tensor types.
   """
+
   pass
 
 
@@ -116,9 +119,9 @@ def parse_yaml(y: str) -> list[Tensor]:
         methods.append(_parse_compression_method(comp))
 
       tensor = Tensor(
-          subgraph=item["subgraph"],
-          tensor=item["tensor"],
-          compression=methods,
+        subgraph=item["subgraph"],
+        tensor=item["tensor"],
+        compression=methods,
       )
       tensors.append(tensor)
 

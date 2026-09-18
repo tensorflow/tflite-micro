@@ -15,7 +15,7 @@
 
 
 class FNode:
-  """ A node representing a flatbuffer element. """
+  """A node representing a flatbuffer element."""
 
   def __init__(self):
     self.isLeaf = False
@@ -25,8 +25,10 @@ class FNode:
     self.value = 0
 
   def print(self):
-    print("%d, %s, %d, %d, %s" %
-          (self.isLeaf, self.name, len(self.children), self.size, self.value))
+    print(
+      "%d, %s, %d, %d, %s"
+      % (self.isLeaf, self.name, len(self.children), self.size, self.value)
+    )
 
 
 """
@@ -45,7 +47,6 @@ where value can be:
 
 
 class FlatbufferSizeGraph:
-
   def __init__(self):
     self._root = FNode()
     self._verbose = False
@@ -58,8 +59,10 @@ class FlatbufferSizeGraph:
       print("Start processing %s" % flatbuffer_json)
       node.print()
 
-    if "value" in flatbuffer_json.keys(
-    ) and "total_size" in flatbuffer_json.keys():
+    if (
+      "value" in flatbuffer_json.keys()
+      and "total_size" in flatbuffer_json.keys()
+    ):
       node.size = flatbuffer_json["total_size"]
       self._process_value(node, flatbuffer_json["value"])
     else:
@@ -71,20 +74,26 @@ class FlatbufferSizeGraph:
     return node
 
   def _process_value(self, node, value_in_flatbuffer_json):
-    if type(value_in_flatbuffer_json) is not dict and type(
-        value_in_flatbuffer_json) is not list:
+    if (
+      type(value_in_flatbuffer_json) is not dict
+      and type(value_in_flatbuffer_json) is not list
+    ):
       node.value = value_in_flatbuffer_json
       node.isLeaf = True
 
     if type(value_in_flatbuffer_json) is dict:
-      if "value" in value_in_flatbuffer_json.keys(
-      ) and "total_size" in value_in_flatbuffer_json.keys():
+      if (
+        "value" in value_in_flatbuffer_json.keys()
+        and "total_size" in value_in_flatbuffer_json.keys()
+      ):
         raise Exception(
-            "Field is another dict with value and total size again??")
+          "Field is another dict with value and total size again??"
+        )
 
       for name in value_in_flatbuffer_json.keys():
         node.children.append(
-            self._build_node_for_field(name, value_in_flatbuffer_json[name]))
+          self._build_node_for_field(name, value_in_flatbuffer_json[name])
+        )
     elif type(value_in_flatbuffer_json) is list:
       for nidx, next_obj in enumerate(value_in_flatbuffer_json):
         leaf_name = "%s[%d]" % (node.name, nidx)
@@ -93,8 +102,9 @@ class FlatbufferSizeGraph:
         node.children.append(self._build_node_for_field(leaf_name, next_obj))
 
   def create_graph(self, flatbuffer_in_json_with_size):
-    self._root = self._build_node_for_field("ROOT",
-                                            flatbuffer_in_json_with_size)
+    self._root = self._build_node_for_field(
+      "ROOT", flatbuffer_in_json_with_size
+    )
 
   def display_graph(self, graph_traveser):
     return graph_traveser.display_flatbuffer(self._root)

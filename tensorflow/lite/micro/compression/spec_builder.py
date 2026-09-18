@@ -19,7 +19,7 @@ needing to write YAML strings.
 
 Example usage:
     from tflite_micro.compression import SpecBuilder
-    
+
     spec = (SpecBuilder()
         .add_tensor(subgraph=0, tensor=2)
             .with_lut(index_bitwidth=4)
@@ -35,8 +35,7 @@ from . import spec
 class TensorBuilder:
   """Builder for individual tensor compression specifications."""
 
-  def __init__(self, subgraph: int, tensor: int,
-               parent_builder: 'SpecBuilder'):
+  def __init__(self, subgraph: int, tensor: int, parent_builder: 'SpecBuilder'):
     self.subgraph = subgraph
     self.tensor = tensor
     self.compression_methods: List[spec.CompressionMethod] = []
@@ -44,22 +43,25 @@ class TensorBuilder:
 
   def with_lut(self, index_bitwidth: int) -> 'SpecBuilder':
     """Add LUT compression to this tensor.
-        
-        Args:
-            index_bitwidth: Number of bits for the LUT index (e.g., 4 for 16 values)
-            
-        Returns:
-            The parent SpecBuilder for method chaining
-        """
+
+    Args:
+        index_bitwidth: Number of bits for the LUT index (e.g., 4 for 16 values)
+
+    Returns:
+        The parent SpecBuilder for method chaining
+    """
     self.compression_methods.append(
-        spec.LookUpTableCompression(index_bitwidth=index_bitwidth))
+      spec.LookUpTableCompression(index_bitwidth=index_bitwidth)
+    )
     return self._parent
 
   def _build(self) -> spec.Tensor:
     """Build the Tensor specification object."""
-    return spec.Tensor(subgraph=self.subgraph,
-                       tensor=self.tensor,
-                       compression=self.compression_methods)
+    return spec.Tensor(
+      subgraph=self.subgraph,
+      tensor=self.tensor,
+      compression=self.compression_methods,
+    )
 
 
 class SpecBuilder:
@@ -71,14 +73,14 @@ class SpecBuilder:
 
   def add_tensor(self, subgraph: int, tensor: int) -> TensorBuilder:
     """Add a tensor to be compressed.
-        
-        Args:
-            subgraph: The subgraph index containing the tensor
-            tensor: The tensor index within the subgraph
-            
-        Returns:
-            A TensorBuilder for configuring compression methods
-        """
+
+    Args:
+        subgraph: The subgraph index containing the tensor
+        tensor: The tensor index within the subgraph
+
+    Returns:
+        A TensorBuilder for configuring compression methods
+    """
     # Finalize any current tensor
     if self._current_tensor is not None:
       self._tensor_builders.append(self._current_tensor)
@@ -89,10 +91,10 @@ class SpecBuilder:
 
   def build(self) -> List[spec.Tensor]:
     """Build the final compression specification.
-        
-        Returns:
-            A list of Tensor specifications ready for use with compress()
-        """
+
+    Returns:
+        A list of Tensor specifications ready for use with compress()
+    """
     # Make sure to include the last tensor if there is one
     if self._current_tensor is not None:
       self._tensor_builders.append(self._current_tensor)
