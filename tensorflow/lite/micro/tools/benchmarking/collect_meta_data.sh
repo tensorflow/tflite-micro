@@ -77,10 +77,6 @@ cp -p ${TEMPLATE_FILE} ${GENERATED_FILE}
 
 # model analysis and SHA1
 if [[ ${MODEL_FILE} ]]; then
-  # Try to install dependencies, but don't fail if it doesn't work.
-  # Some environments (like MSYS2) are externally managed and don't allow pip install.
-  python3 -m pip install absl-py tensorflow || true
-
   if result=$(python3 \
     "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/benchmarking/analyze_model.py" \
     --model_file="${MODEL_FILE}" 2>/dev/null); then
