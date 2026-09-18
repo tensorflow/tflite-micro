@@ -52,26 +52,32 @@ def _build_compressible_model(
   unique_count = 2**index_bitwidth
 
   # Create weights with limited unique values per channel
-  pattern = np.arange(1, unique_count + 1, dtype=np.int8)
-  weight_data = np.resize(pattern, (rows, cols))
-
   if unquantized:
+    dtype = tflite.TensorType.FLOAT32
+    pattern = np.arange(1, unique_count + 1, dtype=np.float32)
+    weight_data = np.resize(pattern, (rows, cols))
     quantization = None
-  elif per_channel:
-    # Per-channel: one scale per output channel (row in FC weights)
-    scales = [0.5 + 0.1 * i for i in range(rows)]
-    zero_points = [0] * rows
-    quantization = model_editor.Quantization(
-      scales=scales,
-      zero_points=zero_points,
-      axis=0,
-    )
+    io_quantization = None
   else:
-    quantization = model_editor.Quantization(scales=0.5, zero_points=0)
+    dtype = tflite.TensorType.INT8
+    pattern = np.arange(1, unique_count + 1, dtype=np.int8)
+    weight_data = np.resize(pattern, (rows, cols))
+    io_quantization = model_editor.Quantization(scales=0.5, zero_points=0)
+    if per_channel:
+      # Per-channel: one scale per output channel (row in FC weights)
+      scales = [0.5 + 0.1 * i for i in range(rows)]
+      zero_points = [0] * rows
+      quantization = model_editor.Quantization(
+        scales=scales,
+        zero_points=zero_points,
+        axis=0,
+      )
+    else:
+      quantization = io_quantization
 
   weights = model_editor.Tensor(
     shape=weight_shape,
-    dtype=tflite.TensorType.INT8,
+    dtype=dtype,
     data=weight_data,
     name="weights",
     quantization=quantization,
@@ -79,13 +85,15 @@ def _build_compressible_model(
 
   input_t = model_editor.Tensor(
     shape=(1, cols),
-    dtype=tflite.TensorType.INT8,
+    dtype=dtype,
     name="input",
+    quantization=io_quantization,
   )
   output_t = model_editor.Tensor(
     shape=(1, rows),
-    dtype=tflite.TensorType.INT8,
+    dtype=dtype,
     name="output",
+    quantization=io_quantization,
   )
 
   model = model_editor.Model(

@@ -38,11 +38,13 @@ import textwrap
 
 import absl.app
 
-from tensorflow.lite.micro.compression import (
+from tflite_micro.tensorflow.lite.micro.compression import (
   metadata_py_generated as compression_schema,
 )
-from tensorflow.lite.micro.compression import tensor_type
-from tensorflow.lite.python import schema_py_generated as tflite_schema
+from tflite_micro.tensorflow.lite.micro.compression import tensor_type
+from tflite_micro.tensorflow.lite.python import (
+  schema_py_generated as tflite_schema,
+)
 
 # Detect if running under Bazel by checking for BAZEL environment variables
 is_bazel = 'BUILD_WORKING_DIRECTORY' in os.environ or 'BAZEL_TEST' in os.environ
