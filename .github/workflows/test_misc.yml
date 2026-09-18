@@ -14,7 +14,7 @@ jobs:
 
     name: Code Style
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.9
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -29,7 +29,7 @@ jobs:
 
     name: Makefile Checks
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.9
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -42,7 +42,7 @@ jobs:
     runs-on: linux-x86-n2-16
     timeout-minutes: 60
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.9
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     name: C++ Build Warnings
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -64,7 +64,7 @@ jobs:
 
     name: Project Generation
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.9
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -85,7 +85,7 @@ jobs:
     runs-on: linux-x86-n2-16
     timeout-minutes: 60
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.9
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     name: Clang Tidy
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
