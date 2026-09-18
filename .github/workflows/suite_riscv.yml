@@ -24,6 +24,6 @@ jobs:
         ref: ${{ inputs.trigger-sha }}
         allow-unsafe-pr-checkout: true
     - name: Test
-      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.8
+      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.9
       with:
         args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh

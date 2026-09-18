@@ -15,7 +15,7 @@
 #
 # --- Build and upload to GHCR.IO ---
 # (Run from the root of the TFLM repository)
-#   export TFLM_CI_VERSION=0.6.8
+#   export TFLM_CI_VERSION=0.6.9
 #   docker build --no-cache -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
 #
@@ -50,19 +50,18 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install LLVM/Clang and create symlinks
-RUN wget https://apt.llvm.org/llvm.sh \
-    && chmod +x llvm.sh \
-    && ./llvm.sh 21 \
-    && rm llvm.sh \
-    && apt-get update && apt-get install -y clang-21 clang++-21 clang-format-21 \
-    && ln -s /usr/bin/clang-21 /usr/bin/clang \
-    && ln -s /usr/bin/clang++-21 /usr/bin/clang++ \
-    && ln -s /usr/bin/clang-format-21 /usr/bin/clang-format \
+RUN apt-get update && apt-get install -y \
+    clang-22 \
+    clang++-22 \
+    clang-format-22 \
+    && ln -s /usr/bin/clang-22 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-22 /usr/bin/clang++ \
+    && ln -s /usr/bin/clang-format-22 /usr/bin/clang-format \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install all Python dependencies
-# - yapf to check for Python formatting
+# - ruff and yapf to check for Python formatting
 # - Pillow was added first for the C array generation
 # - pandas, and matplotlib for create_size_log scripts
 # - pyyaml, requests, psutil, and robotframework for Renode test
@@ -76,6 +75,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pyyaml \
     requests \
     robotframework==4.0.1 \
+    ruff==0.16.8 \
     yapf==0.40.2
 
 # Copy and run install scripts, then clean them up
