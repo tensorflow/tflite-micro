@@ -46,6 +46,8 @@ jobs:
   issue-on-error:
     needs: [generate_integration_tests]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
+    permissions:
+      issues: write
     uses: ./.github/workflows/issue_on_error.yml
     with:
       repo: ${{ github.repository }}
