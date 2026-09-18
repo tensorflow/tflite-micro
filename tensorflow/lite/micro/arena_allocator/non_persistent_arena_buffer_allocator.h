@@ -29,7 +29,7 @@ namespace tflite {
 class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
  public:
   NonPersistentArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
-  virtual ~NonPersistentArenaBufferAllocator();
+  ~NonPersistentArenaBufferAllocator() override;
 
   // Allocates a temporary buffer. This buffer is not resizable.
   uint8_t* AllocateTemp(size_t size, size_t alignment) override;

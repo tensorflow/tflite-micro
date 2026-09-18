@@ -30,7 +30,7 @@ namespace tflite {
 class PersistentArenaBufferAllocator : public IPersistentBufferAllocator {
  public:
   PersistentArenaBufferAllocator(uint8_t* buffer, size_t buffer_size);
-  virtual ~PersistentArenaBufferAllocator();
+  ~PersistentArenaBufferAllocator() override;
 
   // Allocates persistent memory. The persistent buffer is never freed.
   // Returns nullptr if errors occurred.
