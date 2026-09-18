@@ -39,7 +39,7 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../../.." && pwd)"
 
-DEFAULT_IMAGE="ghcr.io/tflm-bot/tflm-ci:0.6.9"
+DEFAULT_IMAGE="ghcr.io/tflm-bot/tflm-ci:0.6.10"
 IMAGE="${TFLM_DOCKER_IMAGE:-${DEFAULT_IMAGE}}"
 
 if ! command -v docker > /dev/null 2>&1; then
