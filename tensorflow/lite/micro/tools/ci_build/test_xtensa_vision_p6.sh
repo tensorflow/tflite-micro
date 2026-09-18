@@ -28,10 +28,11 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_VP6 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+if [[ ${1} == "RUN_TESTS" ]]; then
+  COMMON_ARGS="${COMMON_ARGS} GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite"
+fi
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
-
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 
@@ -43,8 +44,5 @@ if [[ ${1} == "RUN_TESTS" ]]; then
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark
-  readable_run make -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    $(get_parallel_jobs) run_tflm_benchmark
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) run_tflm_benchmark
 fi
