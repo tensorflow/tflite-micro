@@ -117,8 +117,8 @@ py_test(
     ],
     # Only compatible when compression is NOT enabled
     target_compatible_with = select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
         "//:with_compression_enabled": ["@platforms//:incompatible"],
+        "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [
@@ -302,12 +302,12 @@ sh_test(
         "whl_test.sh",
     ],
     args = [
-        "$(location :whl)",
+        "$(rootpath :whl)",
     ] + select({
-        "@rules_python//python/config_settings:is_python_3.10": ["$(location @python_3_10//:bin/python3)"],
-        "@rules_python//python/config_settings:is_python_3.11": ["$(location @python_3_11//:bin/python3)"],
-        "@rules_python//python/config_settings:is_python_3.12": ["$(location @python_3_12//:bin/python3)"],
-        "@rules_python//python/config_settings:is_python_3.13": ["$(location @python_3_13//:bin/python3)"],
+        "@rules_python//python/config_settings:is_python_3.10": ["$(rootpath @python_3_10//:bin/python3)"],
+        "@rules_python//python/config_settings:is_python_3.11": ["$(rootpath @python_3_11//:bin/python3)"],
+        "@rules_python//python/config_settings:is_python_3.12": ["$(rootpath @python_3_12//:bin/python3)"],
+        "@rules_python//python/config_settings:is_python_3.13": ["$(rootpath @python_3_13//:bin/python3)"],
     }),
     data = [
         ":whl",

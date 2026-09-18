@@ -75,8 +75,8 @@ sh_test(
     size = "small",
     srcs = ["metadata_saved_test.sh"],
     args = [
-        "$(location metadata_saved.h)",
-        "$(location :metadata_cc_srcs)",
+        "$(rootpath metadata_saved.h)",
+        "$(rootpath :metadata_cc_srcs)",
     ],
     data = [
         "metadata_saved.h",
@@ -492,9 +492,11 @@ tflm_py_binary(
     ],
 )
 
-generate_view_tests([
-    "//tensorflow/lite/micro/models:keyword_scrambled.tflite",
-    "//tensorflow/lite/micro/models:keyword_scrambled_8bit.tflite",
-    "//tensorflow/lite/micro/models:person_detect.tflite",
-    "//tensorflow/lite/micro/models:person_detect_vela.tflite",
-])
+generate_view_tests(
+    targets = [
+        "//tensorflow/lite/micro/models:keyword_scrambled.tflite",
+        "//tensorflow/lite/micro/models:keyword_scrambled_8bit.tflite",
+        "//tensorflow/lite/micro/models:person_detect.tflite",
+        "//tensorflow/lite/micro/models:person_detect_vela.tflite",
+    ],
+)

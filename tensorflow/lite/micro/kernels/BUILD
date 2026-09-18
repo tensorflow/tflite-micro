@@ -761,8 +761,8 @@ tflm_cc_test(
         "notap",
     ],
     target_compatible_with = select({
-        "//conditions:default": ["@platforms//:incompatible"],
         "//:with_compression_enabled": [],
+        "//conditions:default": ["@platforms//:incompatible"],
     }),
     deps = [
         ":decompress",

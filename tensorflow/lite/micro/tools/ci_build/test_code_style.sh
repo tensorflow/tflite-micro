@@ -44,6 +44,7 @@ EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/xtensa|ci/|c/common\.c
 
 CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
 PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
+BUILD_FILES=$(git ls-files "*BUILD" "*BUILD.bazel" "*.bzl" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
 
 ############################################################
 # C/C++ Formatting Check (clang-format)
@@ -74,13 +75,13 @@ fi
 ############################################################
 
 BUILDIFIER_MODE="diff"
-if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]
-then
+BUILDIFIER_LINT="warn"
+if [[ ${FIX_FORMAT_FLAG} == "--fix_formatting" ]]; then
   BUILDIFIER_MODE="fix"
+  BUILDIFIER_LINT="fix"
 fi
 
-BUILD_FILES=$(find . -name BUILD -o -name "*.bzl" -not -path "./tensorflow/lite/micro/tools/make/downloads/*")
-buildifier --mode=${BUILDIFIER_MODE} --diff_command="diff -u" ${BUILD_FILES}
+echo "${BUILD_FILES}" | xargs -r buildifier --mode=${BUILDIFIER_MODE} --lint=${BUILDIFIER_LINT} --diff_command="diff -u"
 BUILD_FORMAT_RESULT=$?
 
 #############################################################################
