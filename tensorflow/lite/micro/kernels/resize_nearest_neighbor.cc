@@ -57,6 +57,14 @@ TfLiteStatus ResizeNearestNeighborPrepare(TfLiteContext* context,
   TF_LITE_ENSURE_MSG(context, IsConstantTensor(size),
                      "Non-constant >size< tensor is not supported");
 
+  // Eval() writes size[0] * size[1] * depth bytes into the output buffer,
+  // which the allocator sized from the declared output dimensions. Reject
+  // models whose size tensor disagrees with the declared output shape to
+  // prevent a linear out-of-bounds write.
+  TF_LITE_ENSURE_EQ(context, NumDimensions(output), 4);
+  TF_LITE_ENSURE_EQ(context, size->data.i32[0], output->dims->data[1]);
+  TF_LITE_ENSURE_EQ(context, size->data.i32[1], output->dims->data[2]);
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(size);
   micro_context->DeallocateTempTfLiteTensor(output);
