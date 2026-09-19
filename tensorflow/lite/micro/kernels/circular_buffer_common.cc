@@ -23,12 +23,14 @@ limitations under the License.
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/circular_buffer.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 
-// The CircularBuffer op has one input and one output tensor.
+// The CircularBuffer op has one input and up to two output tensors.
 const int kCircularBufferInputTensor = 0;
 const int kCircularBufferOutputTensor = 0;
+const int kCircularBufferValidOutputTensor = 1;
 
 // Indices into the init flexbuffer's vector.
 // The parameter's name is in the comment that follows.
@@ -36,6 +38,8 @@ const int kCircularBufferOutputTensor = 0;
 const int kCircularBufferCyclesMaxIndex = 0;  // 'cycles_max'
 
 TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE(context, node->inputs->size == 1);
+  TF_LITE_ENSURE(context, node->outputs->size == 1 || node->outputs->size == 2);
   MicroContext* micro_context = GetMicroContext(context);
 
   TfLiteTensor* input =
@@ -58,6 +62,31 @@ TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   // The circular buffer custom operator currently only supports int8.
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteInt8);
+
+  if (node->outputs->size == 2) {
+    TfLiteTensor* valid_output = micro_context->AllocateTempOutputTensor(
+        node, kCircularBufferValidOutputTensor);
+    if (valid_output == nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(input);
+      micro_context->DeallocateTempTfLiteTensor(output);
+      return kTfLiteError;
+    }
+    if (valid_output->dims == nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(valid_output);
+      micro_context->DeallocateTempTfLiteTensor(input);
+      micro_context->DeallocateTempTfLiteTensor(output);
+      return kTfLiteError;
+    }
+    TfLiteType valid_type = valid_output->type;
+    int valid_count = ElementCount(*valid_output->dims);
+    micro_context->DeallocateTempTfLiteTensor(valid_output);
+    if (valid_type != kTfLiteBool || valid_count != 1) {
+      micro_context->DeallocateTempTfLiteTensor(input);
+      micro_context->DeallocateTempTfLiteTensor(output);
+      TF_LITE_ENSURE_TYPES_EQ(context, valid_type, kTfLiteBool);
+      TF_LITE_ENSURE_EQ(context, valid_count, 1);
+    }
+  }
 
   if (op_data->cycles_max <= 0) {
     // The last circular buffer layer simply accumulates outputs, and does not
