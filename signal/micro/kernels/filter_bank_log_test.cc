@@ -109,4 +109,25 @@ TEST(FilterBankLogTest, FilterBankLogTest16Channel) {
                 output));
 }
 
+
+// A model whose output tensor (1 element) is smaller than the input channel
+// count (32) is an inconsistent topology. FilterBankLogPrepare must reject it with
+// kTfLiteError during preparation rather than proceeding to Eval.
+TEST(FilterBankLogTest, FilterBankLogRejectsUndersizedOutput) {
+  int input_shape[] = {1, 32};
+  int output_shape[] = {1, 1};
+  const uint32_t input[] = {29, 21, 29, 40, 19, 11, 13, 23, 13, 11, 25,
+                            17, 5,  4,  46, 14, 17, 14, 20, 14, 10, 10,
+                            15, 11, 17, 12, 15, 16, 19, 18, 6,  2};
+  const int16_t golden[] = {0};
+  int16_t output[1];
+  // Prepare rejects the inconsistent output shape with kTfLiteError.
+  EXPECT_EQ(kTfLiteError,
+            tflite::testing::TestFilterBankLog(
+                input_shape, input, output_shape, golden,
+                g_gen_data_filter_bank_log_scale_1600_correction_bits_3,
+                g_gen_data_size_filter_bank_log_scale_1600_correction_bits_3,
+                output));
+}
+
 TF_LITE_MICRO_TESTS_MAIN

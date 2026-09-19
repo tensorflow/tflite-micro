@@ -78,6 +78,13 @@ TfLiteStatus FilterBankLogPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteUInt32);
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt16);
 
+  // FilterbankLog writes one output element per input channel
+  // (ElementCount(input)). Validate here in Prepare that the output tensor is at
+  // least that large, so a model with an inconsistent output shape is rejected
+  // during preparation instead of during Eval.
+  TF_LITE_ENSURE(context,
+                 ElementCount(*output->dims) >= ElementCount(*input->dims));
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
