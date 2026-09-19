@@ -108,11 +108,15 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
         }
         dot_prod = MultiplyByQuantizedMultiplier(
             dot_prod, data.effective_scale_1_a, data.effective_scale_1_b);
-        dot_prod = std::min(std::max(output_min, dot_prod), output_max);
         // The int16 version of the op assumes a zero_point of 0.  This
         // code accounts for the potentially non-zero zero_point for the int8
-        // version of the op.
-        *result_in_batch = data.activation_state_zero_point + dot_prod;
+        // version of the op. The zero-point must be added BEFORE the
+        // saturating clamp below (not after), otherwise the sum can exceed
+        // the int8 range and silently wrap around when narrowed into the
+        // persistent activation_state buffer.
+        dot_prod = data.activation_state_zero_point + dot_prod;
+        dot_prod = std::min(std::max(output_min, dot_prod), output_max);
+        *result_in_batch = dot_prod;
         result_in_batch += n_memory;
       }
     }
