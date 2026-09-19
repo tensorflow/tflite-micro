@@ -49,6 +49,10 @@ TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE(context, input != nullptr);
   TF_LITE_ENSURE(context, output != nullptr);
+  // The kernel indexes dims->data[0..3] below; ensure both tensors are rank-4
+  // before any access to avoid an out-of-bounds read on malformed models.
+  TF_LITE_ENSURE(context,
+                 NumDimensions(input) == 4 && NumDimensions(output) == 4);
   TF_LITE_ENSURE_EQ(context, input->dims->data[0], output->dims->data[0]);
   TF_LITE_ENSURE_EQ(context, 1, input->dims->data[1]);
   TF_LITE_ENSURE_EQ(context, input->dims->data[2], output->dims->data[2]);
