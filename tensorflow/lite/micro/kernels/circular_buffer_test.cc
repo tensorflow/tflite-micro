@@ -256,4 +256,27 @@ TEST(CircularBufferTest, Reset) {
   EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
+TEST(CircularBufferTest, ZeroNumSlotsRejectedInPrepare) {
+  // With num_slots == 0, CircularBufferEval computes the buffer shift size as
+  // (num_slots - 1) * depth, which is negative and wraps to a huge size_t when
+  // passed to memmove, causing an out-of-bounds read/write on the output
+  // tensor. Since all dimensions come from the model, Prepare must reject a
+  // zero slot count.
+  int8_t in = 0, out = 0;
+  int in_dims[] = {4, 1, 1, 1, 1}, out_dims[] = {4, 1, 0, 1, 1};
+  TfLiteTensor tensors[] = {
+      tflite::testing::CreateQuantizedTensor(
+          &in, tflite::testing::IntArrayFromInts(in_dims), 1, 0),
+      tflite::testing::CreateQuantizedTensor(
+          &out, tflite::testing::IntArrayFromInts(out_dims), 1, 0),
+  };
+  int ins[] = {1, 0}, outs[] = {1, 1};
+  tflite::micro::KernelRunner runner(
+      *tflite::Register_CIRCULAR_BUFFER(), tensors, 2,
+      tflite::testing::IntArrayFromInts(ins),
+      tflite::testing::IntArrayFromInts(outs), nullptr);
+
+  EXPECT_NE(kTfLiteOk, runner.InitAndPrepare());
+}
+
 TF_LITE_MICRO_TESTS_MAIN
