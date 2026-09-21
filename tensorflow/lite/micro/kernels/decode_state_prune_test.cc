@@ -413,7 +413,9 @@ TEST(DecodeStatePruneTest, DecodePruneQuantizedSingleChannelInt8) {
   const TfLiteFloatArray kOutputScales = {kOutputZeroPoints->size};
   static const TensorOutDatum kTOD = {
       output_data, *kOutputDims, kTfLiteInt8, kOutputScales, *kOutputZeroPoints,
-      0,           {},
+      // The single channel sits on the last dimension, so a converter keeps
+      // quantized_dimension there even though it ends up with one scale.
+      (kOutputDims->size - 1), {},
   };
   static constexpr std::initializer_list<const TensorOutDatum*> kOutputs = {
       &kTOD};
