@@ -41,13 +41,17 @@ TfLiteStatus DecodeStateLut::Setup(const TfLiteTensor& input,
     const TfLiteAffineQuantization* quantization =
         reinterpret_cast<TfLiteAffineQuantization*>(output.quantization.params);
     num_channels_ = quantization->scale->size;
-    if ((quantization->quantized_dimension == output.dims->size - 1) &&
-        num_channels_ > 1) {
-      use_alternate_axis_ = true;
-    } else if (quantization->quantized_dimension != 0) {
-      MicroPrintf("unsupported quantization axis %u",
-                  quantization->quantized_dimension);
-      return kTfLiteError;
+    // One scale means per-tensor quantization with one value table, so the
+    // axis carries no layout information. It is still the axis of the
+    // original tensor, which may not be 0.
+    if (num_channels_ > 1) {
+      if (quantization->quantized_dimension == output.dims->size - 1) {
+        use_alternate_axis_ = true;
+      } else if (quantization->quantized_dimension != 0) {
+        MicroPrintf("unsupported quantization axis %u",
+                    quantization->quantized_dimension);
+        return kTfLiteError;
+      }
     }
   }
 

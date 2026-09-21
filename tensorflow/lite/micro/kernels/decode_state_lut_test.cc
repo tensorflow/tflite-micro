@@ -324,7 +324,9 @@ void TestDecompression(TestingInfo<T>* info) {
       typeToTfLiteType<T>(),
       kOutputScales,
       kOutputZeroPoints,
-      info->use_alt_axis ? kOutputScales.size - 1 : 0,
+      // The last output dimension. With a single channel that is neither 0
+      // nor a usable alternate axis, which is what a converter leaves behind.
+      info->use_alt_axis ? output_dims->size - 1 : 0,
       {},
   };
   const std::initializer_list<const TensorOutDatum*> outputs = {&tod};
