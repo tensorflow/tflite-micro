@@ -22,7 +22,7 @@ def generate_view_tests(targets):
             data = [target],
             target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
             deps = [
-                ":view",
+                ":view_lib",
                 requirement("absl_py"),
             ],
             size = "small",

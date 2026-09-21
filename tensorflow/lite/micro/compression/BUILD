@@ -82,6 +82,7 @@ sh_test(
         "metadata_saved.h",
         ":metadata_cc_srcs",
     ],
+    tags = ["notap"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
@@ -93,6 +94,8 @@ tflm_cc_test(
     deps = [
         ":metadata_saved",
         "//tensorflow/lite/micro:hexdump",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:span",
         "//tensorflow/lite/micro/testing:micro_test",
         "@flatbuffers//:runtime_cc",
     ],
@@ -159,7 +162,7 @@ py_test(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        ":compress",
+        ":compress_lib",
         ":compressor",
         ":decode_insert",
         ":model_editor",
@@ -249,6 +252,7 @@ tflm_py_test(
     tags = [
         "noasan",
         "nomsan",
+        "notap",
         "noubsan",
     ],
     target_compatible_with = select({
@@ -475,8 +479,8 @@ tflm_py_test(
     ],
 )
 
-tflm_py_binary(
-    name = "view",
+tflm_py_library(
+    name = "view_lib",
     srcs = [
         "view.py",
     ],
@@ -489,6 +493,17 @@ tflm_py_binary(
         requirement("bitarray"),
         requirement("numpy"),
         requirement("prettyprinter"),
+    ],
+)
+
+tflm_py_binary(
+    name = "view",
+    srcs = [
+        "view.py",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":view_lib",
     ],
 )
 
