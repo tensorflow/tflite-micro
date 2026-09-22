@@ -311,7 +311,7 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
     }
 
     const bool is_complete_inference =
-            (status == kTfLiteOk) && IsOutputValid(interpreter);
+        (status == kTfLiteOk) && IsOutputValid(interpreter);
 
     if (is_complete_inference) {
       profiler.Log();
