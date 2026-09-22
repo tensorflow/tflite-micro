@@ -22,7 +22,7 @@ import re
 
 from mako import template
 
-from tensorflow.lite.tools import visualize
+from tflite_micro.tensorflow.lite.tools import visualize
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)

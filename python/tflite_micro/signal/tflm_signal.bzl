@@ -2,7 +2,7 @@
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_library")
+load("//python:py_rules.bzl", "tflm_py_library")
 
 # TODO(b/286890280): refactor to be more generic build target for any custom OP
 def py_tflm_signal_library(
@@ -75,7 +75,7 @@ def py_tflm_signal_library(
             }),
         )
 
-    py_library(
+    tflm_py_library(
         name = name,
         srcs = srcs,
         srcs_version = "PY2AND3",

@@ -1,12 +1,12 @@
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
     licenses = ["notice"],
 )
 
-py_library(
+tflm_py_library(
     name = "add_four_numbers",
     srcs = ["add_four_numbers.py"],
     visibility = ["//:__subpackages__"],
@@ -16,7 +16,7 @@ py_library(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "resource_variables_lib",
     srcs = ["resource_variables_lib.py"],
     visibility = ["//:__subpackages__"],
@@ -26,7 +26,7 @@ py_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "resource_variables_test",
     srcs = ["resource_variables_test.py"],
     tags = [

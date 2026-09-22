@@ -1,11 +1,10 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")  # @unused
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
-load("//python:py_rules.bzl", "tflm_py_library")
+load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_python_op_resolver_friends",
@@ -89,7 +88,7 @@ tflm_py_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "runtime_test",
     srcs = ["runtime_test.py"],
     tags = [
@@ -107,7 +106,7 @@ py_test(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "test_compression_unsupported",
     srcs = ["test_compression_unsupported.py"],
     tags = [
@@ -129,7 +128,7 @@ py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "postinstall_check",
     srcs = [
         "postinstall_check.py",

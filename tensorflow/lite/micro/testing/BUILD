@@ -1,5 +1,5 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library")
 load(
     "//tensorflow:extra_rules.bzl",
     "tflm_kernel_friends",
@@ -86,7 +86,7 @@ tflm_cc_library(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "generate_test_models_lib",
     srcs = ["generate_test_models.py"],
     visibility = [
@@ -98,7 +98,7 @@ py_library(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "generate_test_models",
     srcs = ["generate_test_models.py"],
     tags = [

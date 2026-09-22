@@ -1,4 +1,3 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
@@ -26,7 +25,7 @@ package(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "compression",
     srcs = ["__init__.py"],
     deps = [
@@ -120,7 +119,7 @@ tflm_py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "compress_lib",
     srcs = [
         "compress.py",
@@ -137,7 +136,7 @@ py_library(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "compress",
     srcs = [
         "compress.py",
@@ -148,7 +147,7 @@ py_binary(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "compress_test",
     size = "small",
     srcs = [
@@ -279,7 +278,7 @@ tflm_py_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "spec_test",
     size = "small",
     srcs = ["spec_test.py"],
@@ -289,7 +288,7 @@ py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "spec_builder",
     srcs = ["spec_builder.py"],
     deps = [
@@ -297,7 +296,7 @@ py_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "spec_builder_test",
     size = "small",
     srcs = ["spec_builder_test.py"],

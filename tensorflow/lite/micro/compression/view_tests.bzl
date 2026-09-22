@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_test")
+load("//python:py_rules.bzl", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 def generate_view_tests(targets):
@@ -13,7 +13,7 @@ def generate_view_tests(targets):
         # Create a test name from the last component of the target name
         short_name = target.split(":")[-1] if ":" in target else target.split("/")[-1]
         test_name = "view_test_{}".format(short_name.replace(".", "_"))
-        py_test(
+        tflm_py_test(
             name = test_name,
             srcs = ["view_test.py"],
             args = ["$(location {})".format(target)],

@@ -1,5 +1,7 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
 def extra_tensorflow_targets():
-    native.cc_library(
+    cc_library(
         name = "cc_headers",
         hdrs = native.glob(
             ["site-packages/tensorflow/include/**"],
@@ -9,7 +11,7 @@ def extra_tensorflow_targets():
         visibility = ["//visibility:public"],
     )
 
-    native.cc_library(
+    cc_library(
         name = "cc_library",
         srcs = ["site-packages/tensorflow/libtensorflow_framework.so.2"],
         deps = [":cc_headers"],
