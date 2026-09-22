@@ -116,6 +116,4 @@ tensorflow/lite/portable_type_to_tflitetype.h
 tensorflow/lite/python/schema_util.py
 tensorflow/lite/schema/schema_utils.h
 tensorflow/lite/tools/flatbuffer_utils.py
-tensorflow/lite/tools/randomize_weights.py
-tensorflow/lite/tools/strip_strings.py
 tensorflow/lite/tools/visualize.py
