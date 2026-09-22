@@ -23,7 +23,7 @@ properly work.
 
 import os
 import tempfile
-from absl import logging
+import logging
 import numpy as np
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils

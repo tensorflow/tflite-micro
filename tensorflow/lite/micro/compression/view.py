@@ -27,16 +27,11 @@
 
 from dataclasses import dataclass
 from enum import Enum
-import bitarray
-import bitarray.util
 import numpy as np
 import os
-import prettyprinter
-import prettyprinter.doc
+import pprint
 import sys
 import textwrap
-
-import absl.app
 
 from tflite_micro.tensorflow.lite.micro.compression import (
   metadata_py_generated as compression_schema,
@@ -67,7 +62,8 @@ else:
 def print_model(model_path):
   with open(model_path, 'rb') as flatbuffer:
     d = create_dictionary(memoryview(flatbuffer.read()))
-    prettyprinter.cpprint(d)
+    with np.printoptions(linewidth=78, suppress=True):
+      pprint.pprint(d, width=78, sort_dicts=False)
 
 
 def main(argv):
@@ -356,14 +352,12 @@ def unpack_buffers(model, compression_data):
     lut_info = find_lut_info_for_buffer(index, model, compression_data)
     if lut_info and buffer.data is not None:
       # Decode the indices from the buffer
-      bstring = bitarray.bitarray()
-      bstring.frombytes(bytes(buffer.data))
       bitwidth = lut_info["index_bitwidth"]
-      chunks = [
-        bstring[i : i + bitwidth]
-        for i in range(0, len(bstring) - bitwidth + 1, bitwidth)
+      bit_str = "".join(f"{b:08b}" for b in bytes(buffer.data))
+      indices = [
+        int(bit_str[i : i + bitwidth], 2)
+        for i in range(0, len(bit_str) - bitwidth + 1, bitwidth)
       ]
-      indices = [bitarray.util.ba2int(chunk) for chunk in chunks]
 
       # Convert indices to numpy array to match data field formatting
       indices_array = np.array(indices, dtype=np.uint8)
@@ -402,30 +396,5 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
   return output
 
 
-@prettyprinter.register_pretty(np.ndarray)
-def pretty_numpy_array(array, ctx):
-  # Format array without ellipsis, similar to how buffer data is displayed
-  string = np.array2string(
-    array,
-    threshold=np.inf,
-    max_line_width=78,
-    separator=' ',
-    suppress_small=True,
-  )
-  lines = string.splitlines()
-
-  if len(lines) == 1:
-    return lines[0]
-
-  parts = list()
-  parts.append(prettyprinter.doc.HARDLINE)
-  for line in lines:
-    parts.append(line)
-    parts.append(prettyprinter.doc.HARDLINE)
-
-  return prettyprinter.doc.nest(ctx.indent, prettyprinter.doc.concat(parts))
-
-
 if __name__ == "__main__":
-  sys.modules['__main__'].__doc__ = USAGE
-  absl.app.run(main)
+  main(sys.argv)

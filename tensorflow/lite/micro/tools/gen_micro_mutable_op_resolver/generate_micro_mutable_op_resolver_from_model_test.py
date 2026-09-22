@@ -13,34 +13,15 @@
 # limitations under the License.
 # ==============================================================================
 
+import argparse
 import os
 import shutil
 
-from absl import app
-from absl import flags
 from mako import template
 from tflite_micro.tensorflow.lite.micro.tools import generate_test_for_model
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_string(
-  'input_tflite_file', None, 'Full path name to the input TFLite file.'
-)
-flags.DEFINE_string(
-  'output_dir',
-  None,
-  'Directory to output generated files. \
-  Note that final output will be in FLAGS.output_dir/<base name of model>. \
-  Where <base name of model> will come from FLAGS.input_tflite_file.',
-)
-flags.DEFINE_integer('arena_size', 1024 * 136, 'Size of arena')
-flags.DEFINE_boolean('verify_output', False, 'Verify output or just run model.')
-
-flags.mark_flag_as_required('input_tflite_file')
-flags.mark_flag_as_required('output_dir')
 
 
 class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
@@ -97,13 +78,35 @@ class MicroMutableOpTestGenerator(generate_test_for_model.TestDataGenerator):
       file_obj.write(build_template.render(**key_values_in_template))
 
 
-def main(_):
-  model_path = FLAGS.input_tflite_file
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--input_tflite_file',
+    required=True,
+    help='Full path name to the input TFLite file.',
+  )
+  parser.add_argument(
+    '--output_dir',
+    required=True,
+    help='Directory to output generated files.',
+  )
+  parser.add_argument(
+    '--arena_size', type=int, default=1024 * 136, help='Size of arena'
+  )
+  parser.add_argument(
+    '--verify_output',
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help='Verify output or just run model.',
+  )
+  args, _ = parser.parse_known_args()
+
+  model_path = args.input_tflite_file
   model_name = model_path.split('/')[-1]
   base_model_name = model_name.split('.')[0]
   name_of_make_target = 'generated_micro_mutable_op_resolver_' + base_model_name
 
-  out_dir = FLAGS.output_dir + '/' + base_model_name
+  out_dir = args.output_dir + '/' + base_model_name
   os.makedirs(out_dir, exist_ok=True)
 
   # Copy model to out dir to get the Mako generation right
@@ -111,7 +114,7 @@ def main(_):
   shutil.copyfile(model_path, new_model_path)
 
   data_generator = MicroMutableOpTestGenerator(
-    out_dir, new_model_path, FLAGS.verify_output, FLAGS.arena_size
+    out_dir, new_model_path, args.verify_output, args.arena_size
   )
   data_generator.generate_golden()
   data_generator.generate_build_file(TEMPLATE_DIR)
@@ -127,4 +130,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()

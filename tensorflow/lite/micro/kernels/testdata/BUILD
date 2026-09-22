@@ -47,7 +47,6 @@ tflm_py_binary(
         "lstm_test_data_utils.py",
     ],
     deps = [
-        requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],

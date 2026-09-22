@@ -279,7 +279,6 @@ py_wheel(
         ":local": "py3",
     }),
     requires = [
-        "bitarray",
         "flatbuffers",
         "numpy",
         "pyyaml",

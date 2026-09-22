@@ -16,42 +16,16 @@
 model. See README.md for more info.
 """
 
+import argparse
 import os
 import re
 
-from absl import app
-from absl import flags
 from mako import template
 
 from tensorflow.lite.tools import visualize
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
-
-FLAGS = flags.FLAGS
-flags.DEFINE_string(
-  'common_tflite_path',
-  None,
-  'Common path to tflite files. This need to be an absolute path.'
-  'This would typically be the path to the directory where the models reside.',
-)
-flags.DEFINE_list(
-  'input_tflite_files',
-  None,
-  'Relative path name list of the input TFLite files.'
-  'This would be relative to the common path.'
-  'This would typically be the name(s) of the tflite file(s).',
-)
-flags.DEFINE_string('output_dir', None, 'Directory to output generated files.')
-flags.DEFINE_string(
-  'verify_op_list_against_header',
-  None,
-  'Take micro_mutable_op_resolver.h as input and verifies that all generated operator calls are there.',
-)
-
-flags.mark_flag_as_required('common_tflite_path')
-flags.mark_flag_as_required('input_tflite_files')
-flags.mark_flag_as_required('output_dir')
 
 
 def ParseString(word):
@@ -154,13 +128,47 @@ def VerifyOpList(op_list, header):
   return False
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--common_tflite_path',
+    required=True,
+    help=(
+      'Common path to tflite files. This need to be an absolute path.'
+      'This would typically be the path to the directory where the models'
+      ' reside.'
+    ),
+  )
+  parser.add_argument(
+    '--input_tflite_files',
+    required=True,
+    help=(
+      'Relative path name list of the input TFLite files.'
+      'This would be relative to the common path.'
+      'This would typically be the name(s) of the tflite file(s).'
+    ),
+  )
+  parser.add_argument(
+    '--output_dir',
+    required=True,
+    help='Directory to output generated files.',
+  )
+  parser.add_argument(
+    '--verify_op_list_against_header',
+    default=None,
+    help=(
+      'Take micro_mutable_op_resolver.h as input and verifies that all'
+      ' generated operator calls are there.'
+    ),
+  )
+  args, _ = parser.parse_known_args()
+
   model_names = []
   final_operator_list = []
   merged_operator_list = []
 
-  common_model_path = FLAGS.common_tflite_path
-  relative_model_paths = FLAGS.input_tflite_files
+  common_model_path = args.common_tflite_path
+  relative_model_paths = [x for x in args.input_tflite_files.split(',') if x]
 
   for relative_model_path in relative_model_paths:
     full_model_path = f"{common_model_path}/{relative_model_path}"
@@ -184,17 +192,17 @@ def main(_):
     if operator not in final_operator_list
   ]
 
-  if FLAGS.verify_op_list_against_header and VerifyOpList(
-    final_operator_list, FLAGS.verify_op_list_against_header
+  if args.verify_op_list_against_header and VerifyOpList(
+    final_operator_list, args.verify_op_list_against_header
   ):
     return True
 
-  os.makedirs(FLAGS.output_dir, exist_ok=True)
+  os.makedirs(args.output_dir, exist_ok=True)
   GenerateMicroMutableOpsResolverHeaderFile(
-    final_operator_list, model_name, FLAGS.output_dir
+    final_operator_list, model_name, args.output_dir
   )
   return False
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()

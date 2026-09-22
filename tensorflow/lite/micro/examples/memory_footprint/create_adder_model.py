@@ -14,7 +14,7 @@
 # ==============================================================================
 """Creates a simple tflite model that adds two input tensor of size 1."""
 
-from absl import app
+import sys
 import tensorflow as tf
 
 
@@ -54,4 +54,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main(sys.argv)

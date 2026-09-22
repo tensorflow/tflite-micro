@@ -23,12 +23,10 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/audio_preprocessor
 """
 
 from __future__ import annotations
+import argparse
 from pathlib import Path
 from dataclasses import dataclass
 import tempfile
-
-from absl import app
-from absl import flags
 
 import tensorflow as tf
 from tensorflow.python.platform import resource_loader
@@ -39,27 +37,11 @@ from tflite_micro.python.tflite_micro.signal.ops import filter_bank_ops
 from tflite_micro.python.tflite_micro.signal.ops import pcan_op
 from tflite_micro.python.tflite_micro import runtime
 
-_ENABLE_DEBUG = flags.DEFINE_enum(
-  'debug_mode',
-  'off',
-  ['off', 'all'],
-  'Enable debug output',
-)
-
-_FILE_TO_TEST = flags.DEFINE_enum(
-  'file_to_test', 'no', ['no', 'yes'], 'File to test'
-)
-
-_OUTPUT_TYPE = flags.DEFINE_enum(
-  'output_type',
-  'int8',
-  ['int8', 'float32'],
-  'Type of TfLite output file (.tflite) to generate',
-)
+_DEBUG_MODE = 'off'
 
 
 def _debug_print(*args):
-  if _ENABLE_DEBUG.value != 'off':
+  if _DEBUG_MODE != 'off':
     print(*args)
 
 
@@ -96,7 +78,7 @@ class _GenerateFeature(tf.Module):
     # Graph execution does not handle global variables.  Instead, capture the
     # global variable(s) within a closure (_debug_print_internal).
     def _debug_print_internal(*args):
-      if _ENABLE_DEBUG.value != 'off' and tf.executing_eagerly():
+      if _DEBUG_MODE != 'off' and tf.executing_eagerly():
         print(*args)
 
     _debug_print('*** generate_feature_for_frame ***')
@@ -404,7 +386,7 @@ class AudioPreprocessor:
       )
       converter.allow_custom_ops = True
       self._model = converter.convert()
-      if _ENABLE_DEBUG.value != 'off':
+      if _DEBUG_MODE != 'off':
         tf.lite.experimental.Analyzer.analyze(model_content=self._model)
     return self._model
 
@@ -557,17 +539,40 @@ class AudioPreprocessor:
     return fname
 
 
-def _main(_):
+def _main():
+  global _DEBUG_MODE
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--debug_mode',
+    default='off',
+    choices=['off', 'all'],
+    help='Enable debug output',
+  )
+  parser.add_argument(
+    '--file_to_test',
+    default='no',
+    choices=['no', 'yes'],
+    help='File to test',
+  )
+  parser.add_argument(
+    '--output_type',
+    default='int8',
+    choices=['int8', 'float32'],
+    help='Type of TfLite output file (.tflite) to generate',
+  )
+  args, _ = parser.parse_known_args()
+  _DEBUG_MODE = args.debug_mode
+
   prefix_path = resource_loader.get_path_to_datafile('testdata')
 
-  fname = _FILE_TO_TEST.value
+  fname = args.file_to_test
   audio_30ms_path = Path(prefix_path, f'{fname}_30ms.wav')
 
-  use_float_output = _OUTPUT_TYPE.value == 'float32'
+  use_float_output = args.output_type == 'float32'
   params = FeatureParams(use_float_output=use_float_output)
   pp = AudioPreprocessor(params=params, detail=fname)
 
-  if _ENABLE_DEBUG.value != 'off':
+  if _DEBUG_MODE != 'off':
     pp.load_samples(audio_30ms_path)
     _ = pp.generate_feature(pp.samples)
 
@@ -576,4 +581,4 @@ def _main(_):
 
 
 if __name__ == '__main__':
-  app.run(_main)
+  _main()

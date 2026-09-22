@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+import logging
 import os
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
-import matplotlib.pyplot as plt
 from tflite_micro.python.tflite_micro import runtime
 
 OpResolverType = None
@@ -36,12 +34,6 @@ except ImportError:
       raise ImportError(
         "Could not import ai_edge_litert, tflite_runtime, or tensorflow."
       )
-
-_USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
-  'use_tflite',
-  False,
-  'Inference with the TF Lite interpreter instead of the TFLM interpreter',
-)
 
 _PREFIX_PATH = os.path.dirname(__file__)
 
@@ -138,7 +130,18 @@ def get_tflite_prediction(model_path, x_values):
   return y_predictions
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--use_tflite',
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help=(
+      'Inference with the TF Lite interpreter instead of the TFLM interpreter'
+    ),
+  )
+  args, _ = parser.parse_known_args()
+
   model_path = os.path.join(_PREFIX_PATH, 'models/hello_world_float.tflite')
 
   x_values = generate_random_float_input()
@@ -146,17 +149,14 @@ def main(_):
   # Calculate the corresponding sine values
   y_true_values = np.sin(x_values).astype(np.float32)
 
-  if _USE_TFLITE_INTERPRETER.value:
+  if args.use_tflite:
     y_predictions = get_tflite_prediction(model_path, x_values)
-    plt.plot(x_values, y_predictions, 'b.', label='TFLite Prediction')
   else:
     y_predictions = get_tflm_prediction(model_path, x_values)
-    plt.plot(x_values, y_predictions, 'b.', label='TFLM Prediction')
 
-  plt.plot(x_values, y_true_values, 'r.', label='Actual values')
-  plt.legend()
-  plt.show()
+  mean_abs_error = np.mean(np.abs(y_predictions - y_true_values))
+  logging.info('Mean absolute error: %f', mean_abs_error)
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()

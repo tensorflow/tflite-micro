@@ -15,7 +15,6 @@ py_binary(
         "templates/micro_mutable_op_resolver.h.mako",
     ],
     deps = [
-        requirement("absl_py"),
         requirement("mako"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
@@ -35,7 +34,6 @@ py_binary(
         "templates/micro_mutable_op_resolver_test.cc.mako",
     ],
     deps = [
-        requirement("absl_py"),
         requirement("mako"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
         "//tensorflow/lite/python:schema_py",
