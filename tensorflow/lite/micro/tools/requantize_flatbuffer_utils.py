@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 import numpy as np
-from absl import logging
+import logging
 from tflite_micro.tensorflow.lite.python.schema_py_generated import TensorType
 
 # Map flatbuffer tensor type code to numpy data type. see Table TensorType in tensorflow/lite/schema/schema.fbs

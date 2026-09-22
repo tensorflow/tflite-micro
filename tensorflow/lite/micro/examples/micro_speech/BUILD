@@ -210,7 +210,6 @@ py_binary(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),
         "//python/tflite_micro:runtime",

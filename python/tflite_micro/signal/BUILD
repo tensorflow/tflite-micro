@@ -240,7 +240,6 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":overlap_add_op",
-        requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],

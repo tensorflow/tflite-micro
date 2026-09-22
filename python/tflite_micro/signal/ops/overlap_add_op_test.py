@@ -14,7 +14,6 @@
 # ==============================================================================
 """Tests for overlap add op."""
 
-from absl.testing import parameterized
 import numpy as np
 import tensorflow as tf
 
@@ -22,7 +21,7 @@ from tflite_micro.python.tflite_micro.signal.ops import overlap_add_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
-class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
+class OverlapAddOpTest(tf.test.TestCase):
   def RunOverlapAdd(
     self, interpreter, input_frames, frame_step, expected_output_frames, dtype
   ):
@@ -39,10 +38,7 @@ class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
     )
     self.assertAllEqual(output_frame, expected_output_frames)
 
-  @parameterized.named_parameters(
-    ('_FLOAT32InputOutput', tf.float32), ('_INT16InputOutput', tf.int16)
-  )
-  def testOverlapAddValidInput(self, dtype):
+  def _checkOverlapAddValidInput(self, dtype):
     input_frames = np.array(
       [
         [1, -5, 4, 2, 7],
@@ -129,10 +125,12 @@ class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
       )
       frame_index += 1
 
-  @parameterized.named_parameters(
-    ('_FLOAT32InputOutput', tf.float32), ('_INT16InputOutput', tf.int16)
-  )
-  def testOverlapAddNframes5(self, dtype):
+  def testOverlapAddValidInput(self):
+    for dtype in (tf.float32, tf.int16):
+      with self.subTest(dtype=dtype):
+        self._checkOverlapAddValidInput(dtype)
+
+  def _checkOverlapAddNframes5(self, dtype):
     input_frames = np.array(
       [
         [1, -5, 4, 2, 7],
@@ -249,10 +247,12 @@ class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
       dtype=dtype,
     )
 
-  @parameterized.named_parameters(
-    ('_FLOAT32InputOutput', tf.float32), ('_INT16InputOutput', tf.int16)
-  )
-  def testOverlapAddNframes5Channels2(self, dtype):
+  def testOverlapAddNframes5(self):
+    for dtype in (tf.float32, tf.int16):
+      with self.subTest(dtype=dtype):
+        self._checkOverlapAddNframes5(dtype)
+
+  def _checkOverlapAddNframes5Channels2(self, dtype):
     input_frames = np.array(
       [
         [
@@ -438,6 +438,11 @@ class OverlapAddOpTest(parameterized.TestCase, tf.test.TestCase):
       expected_output_frames_step_5,
       dtype=dtype,
     )
+
+  def testOverlapAddNframes5Channels2(self):
+    for dtype in (tf.float32, tf.int16):
+      with self.subTest(dtype=dtype):
+        self._checkOverlapAddNframes5Channels2(dtype)
 
   def testStepSizeTooLarge(self):
     ovlerap_add_input = np.zeros(160, dtype=np.int16)

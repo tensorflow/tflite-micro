@@ -64,7 +64,6 @@ tflm_py_binary(
     deps = [
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
-        requirement("absl_py"),
     ],
 )
 
@@ -108,7 +107,6 @@ py_binary(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        requirement("absl_py"),
     ],
 )
 
@@ -143,7 +141,6 @@ py_library(
     ],
     deps = [
         ":model_transforms_utils",
-        requirement("absl_py"),
         requirement("numpy"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
@@ -179,7 +176,6 @@ py_binary(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
-        requirement("absl_py"),
     ],
 )
 
@@ -198,7 +194,6 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
-        requirement("absl_py"),
         requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
@@ -211,7 +206,6 @@ py_binary(
     deps = [
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",
-        requirement("absl_py"),
         requirement("ai-edge-litert"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",

@@ -14,7 +14,6 @@ py_binary(
     ],
     visibility = ["//:__subpackages__"],
     deps = [
-        requirement("absl_py"),
         requirement("mako"),
         "//tensorflow/lite/micro/tools:generate_test_for_model",
         "//tensorflow/lite/python:schema_py",

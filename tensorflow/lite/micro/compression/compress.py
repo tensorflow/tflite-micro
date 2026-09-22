@@ -16,14 +16,12 @@
 See USAGE.
 """
 
+import argparse
 import os
 import sys
 import tempfile
 import warnings
 from typing import ByteString, Iterable, Type
-
-import absl.app
-import absl.flags
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
@@ -193,36 +191,41 @@ def compress(model_in: ByteString, specs: Iterable[spec.Tensor]) -> bytearray:
 
 
 def _fail_w_usage() -> int:
-  absl.app.usage()
+  sys.stderr.write(USAGE)
   return 1
 
 
-FLAGS = absl.flags.FLAGS
-absl.flags.DEFINE_string("input", None, help="uncompressed .tflite flatbuffer")
-absl.flags.DEFINE_string("spec", None, help="specfile (see module spec.py)")
-absl.flags.DEFINE_string("output", None, help="compressed .tflite flatbuffer")
-
-
 def main(argv):
-  if len(argv) > 1:
+  parser = argparse.ArgumentParser(usage=USAGE)
+  parser.add_argument(
+    "--input", default=None, help="uncompressed .tflite flatbuffer"
+  )
+  parser.add_argument(
+    "--spec", default=None, help="specfile (see module spec.py)"
+  )
+  parser.add_argument(
+    "--output", default=None, help="compressed .tflite flatbuffer"
+  )
+  args, extra = parser.parse_known_args(argv[1:])
+  if extra:
     # no positional arguments accepted
     return _fail_w_usage()
 
-  in_path = FLAGS.input
+  in_path = args.input
   if in_path is None:
     return _fail_w_usage()
   else:
     with open(in_path, "rb") as in_file:
       in_model = in_file.read()
 
-  spec_path = FLAGS.spec
+  spec_path = args.spec
   if spec_path is None:
     return _fail_w_usage()
   else:
     with open(spec_path, "r") as spec_file:
       specs = spec.parse_yaml(spec_file.read())
 
-  out_path = FLAGS.output
+  out_path = args.output
   if out_path is None:
     out_path = in_path.split(".tflite")[0] + ".compressed.tflite"
 
@@ -235,5 +238,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-  sys.modules['__main__'].__doc__ = USAGE  # for absl's use
-  absl.app.run(main)
+  sys.exit(main(sys.argv))

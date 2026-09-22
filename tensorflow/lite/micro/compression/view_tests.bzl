@@ -1,5 +1,4 @@
 load("@rules_python//python:defs.bzl", "py_test")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 def generate_view_tests(targets):
@@ -23,7 +22,6 @@ def generate_view_tests(targets):
             target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
             deps = [
                 ":view_lib",
-                requirement("absl_py"),
             ],
             size = "small",
         )

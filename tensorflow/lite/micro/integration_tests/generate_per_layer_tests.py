@@ -13,11 +13,9 @@
 # limitations under the License.
 # ==============================================================================
 
+import argparse
 import os
 import copy
-
-from absl import app
-from absl import flags
 import numpy as np
 from mako import template
 
@@ -188,32 +186,34 @@ def op_info_from_name(name):
     raise RuntimeError(f'Unsupported op: {name}')
 
 
-FLAGS = flags.FLAGS
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--input_tflite_file',
+    required=True,
+    help='Full path name to the input TFLite file.',
+  )
+  parser.add_argument(
+    '--output_dir',
+    required=True,
+    help='directory to output generated files',
+  )
+  args, _ = parser.parse_known_args()
 
-flags.DEFINE_string(
-  'input_tflite_file', None, 'Full path name to the input TFLite file.'
-)
-flags.DEFINE_string('output_dir', None, 'directory to output generated files')
-
-flags.mark_flag_as_required('input_tflite_file')
-flags.mark_flag_as_required('output_dir')
-
-
-def main(_):
-  model = flatbuffer_utils.read_model(FLAGS.input_tflite_file)
-  os.makedirs(FLAGS.output_dir, exist_ok=True)
-  inputs, builtin_operator = op_info_from_name(FLAGS.output_dir.split('/')[-1])
-  generator = TestModelGenerator(model, FLAGS.output_dir, inputs)
+  model = flatbuffer_utils.read_model(args.input_tflite_file)
+  os.makedirs(args.output_dir, exist_ok=True)
+  inputs, builtin_operator = op_info_from_name(args.output_dir.split('/')[-1])
+  generator = TestModelGenerator(model, args.output_dir, inputs)
   model_names = generator.generate_models(0, builtin_operator)
-  data_generator = PerLayerTestGenerator(FLAGS.output_dir, model_names, inputs)
+  data_generator = PerLayerTestGenerator(args.output_dir, model_names, inputs)
   data_generator.generate_goldens(builtin_operator)
   data_generator.generate_build_file()
   data_generator.generate_makefile()
   data_generator.generate_tests()
   print(
-    f'successfully generated integration tests. Output location: {FLAGS.output_dir}'
+    f'successfully generated integration tests. Output location: {args.output_dir}'
   )
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()

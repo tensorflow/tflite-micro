@@ -26,7 +26,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl import app
+import sys
 import numpy as np
 import tensorflow as tf
 
@@ -91,4 +91,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main(sys.argv)

@@ -106,6 +106,8 @@ git checkout tensorflow/lite/kernels/internal/runtime_shape.cc
 git checkout tensorflow/lite/kernels/op_macros.h
 # http://b/242077843
 git checkout tensorflow/lite/kernels/internal/tensor_utils.cc
+git checkout tensorflow/lite/tools/randomize_weights.py
+git checkout tensorflow/lite/tools/strip_strings.py
 
 echo "Building schemas..."
 # Generate Flatbuffer schemas (Python and C++) and copy them to the source tree

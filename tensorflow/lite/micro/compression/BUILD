@@ -134,7 +134,6 @@ py_library(
         ":pruning",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
-        requirement("absl_py"),
     ],
 )
 
@@ -383,7 +382,6 @@ tflm_py_library(
         ":decode",
         ":model_editor",
         ":spec",
-        requirement("bitarray"),
         requirement("numpy"),
     ],
 )
@@ -489,10 +487,7 @@ tflm_py_library(
         ":metadata_py",
         ":tensor_type",
         "//tensorflow/lite/python:schema_py",
-        requirement("absl_py"),
-        requirement("bitarray"),
         requirement("numpy"),
-        requirement("prettyprinter"),
     ],
 )
 

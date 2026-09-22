@@ -106,7 +106,6 @@ py_binary(
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
     deps = [
-        requirement("absl_py"),
         requirement("numpy"),
         requirement("tensorflow"),
     ],

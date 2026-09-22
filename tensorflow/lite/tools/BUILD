@@ -19,7 +19,6 @@ py_binary(
     srcs = ["strip_strings.py"],
     deps = [
         ":flatbuffer_utils",
-        requirement("absl_py"),
     ],
 )
 

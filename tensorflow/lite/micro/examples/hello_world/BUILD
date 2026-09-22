@@ -48,10 +48,8 @@ py_binary(
     srcs = ["evaluate.py"],
     data = ["//tensorflow/lite/micro/examples/hello_world/models:hello_world_float.tflite"],
     deps = [
-        requirement("absl_py"),
         requirement("numpy"),
         requirement("ai-edge-litert"),
-        requirement("matplotlib"),
         "//python/tflite_micro:runtime",
     ],
 )

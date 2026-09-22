@@ -35,25 +35,15 @@ CAVEAT:
 
 """
 
+import argparse
+import logging
 import os
 
 import numpy as np
-from absl import app
-from absl import flags
-from absl import logging
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer_utils
 from tflite_micro.tensorflow.lite.python import schema_py_generated
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_string(
-  "int8_model_path", default=None, help="the int8 model path."
-)
-flags.DEFINE_string(
-  "save_path", default=None, help="path to save the requantized model."
-)
 
 # key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
 # Val: the requantize function defined in requantize_flatbuffer_utils.py
@@ -216,15 +206,23 @@ class Requantizer:
     return flatbuffer_utils.convert_object_to_bytearray(self.model)
 
 
-def main(_):
-  if not os.path.exists(FLAGS.int8_model_path):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--int8_model_path", default=None, help="the int8 model path."
+  )
+  parser.add_argument(
+    "--save_path", default=None, help="path to save the requantized model."
+  )
+  args, _ = parser.parse_known_args()
+  if not os.path.exists(args.int8_model_path):
     raise ValueError(
       "Model file does not exist. Please check the .tflite model path."
     )
-  requantizer = Requantizer.from_file(FLAGS.int8_model_path)
+  requantizer = Requantizer.from_file(args.int8_model_path)
   requantizer.requantize_8to16()
-  requantizer.save_model(FLAGS.save_path)
+  requantizer.save_model(args.save_path)
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()

@@ -17,8 +17,6 @@ import sys
 from dataclasses import dataclass, field
 from typing import ClassVar, Optional
 
-import bitarray
-import bitarray.util
 import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
@@ -224,13 +222,11 @@ def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
   Returns:
     Packed bytes with indices in big-endian bit order.
   """
-  endianness = "big"
-  bits = bitarray.bitarray(endian=endianness)
-  for i in indices.ravel():
-    bits.extend(
-      bitarray.util.int2ba(int(i), length=bitwidth, endian=endianness)
-    )
-  return bits.tobytes()
+  if indices.size == 0:
+    return b""
+  bit_str = "".join(f"{int(i):0{bitwidth}b}" for i in indices.ravel())
+  bit_str += "0" * ((-len(bit_str)) % 8)
+  return int(bit_str, 2).to_bytes(len(bit_str) // 8, byteorder="big")
 
 
 def pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytes:

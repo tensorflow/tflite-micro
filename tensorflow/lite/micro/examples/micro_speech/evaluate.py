@@ -21,8 +21,7 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/evaluate
   --sample_path="path to 1 second audio sample in WAV format"
 """
 
-from absl import app
-from absl import flags
+import argparse
 import numpy as np
 from pathlib import Path
 
@@ -31,12 +30,6 @@ from tensorflow.python.platform import resource_loader
 import tensorflow as tf
 from tflite_micro.tensorflow.lite.micro.examples.micro_speech import (
   audio_preprocessor,
-)
-
-_SAMPLE_PATH = flags.DEFINE_string(
-  name='sample_path',
-  default='',
-  help='path for the audio sample to be predicted.',
 )
 
 _FEATURES_SHAPE = (49, 40)
@@ -173,8 +166,16 @@ def get_category_names() -> list[str]:
   return ['silence', 'unknown', 'yes', 'no']
 
 
-def _main(_):
-  sample_path = Path(_SAMPLE_PATH.value)
+def _main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--sample_path',
+    default='',
+    help='path for the audio sample to be predicted.',
+  )
+  args, _ = parser.parse_known_args()
+
+  sample_path = Path(args.sample_path)
   assert sample_path.exists() and sample_path.is_file(), (
     'Audio sample file does not exist. Please check the path.'
   )
@@ -213,4 +214,4 @@ def _main(_):
 
 
 if __name__ == '__main__':
-  app.run(_main)
+  _main()

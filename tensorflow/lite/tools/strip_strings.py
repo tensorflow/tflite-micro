@@ -14,27 +14,29 @@
 # ==============================================================================
 r"""Strips all nonessential strings from a TFLite file."""
 
-from absl import app
-from absl import flags
+import argparse
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
-FLAGS = flags.FLAGS
 
-flags.DEFINE_string('input_tflite_file', None,
-                    'Full path name to the input TFLite file.')
-flags.DEFINE_string('output_tflite_file', None,
-                    'Full path name to the output stripped TFLite file.')
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--input_tflite_file',
+    required=True,
+    help='Full path name to the input TFLite file.',
+  )
+  parser.add_argument(
+    '--output_tflite_file',
+    required=True,
+    help='Full path name to the output stripped TFLite file.',
+  )
+  args, _ = parser.parse_known_args()
 
-flags.mark_flag_as_required('input_tflite_file')
-flags.mark_flag_as_required('output_tflite_file')
-
-
-def main(_):
-  model = flatbuffer_utils.read_model(FLAGS.input_tflite_file)
+  model = flatbuffer_utils.read_model(args.input_tflite_file)
   flatbuffer_utils.strip_strings(model)
-  flatbuffer_utils.write_model(model, FLAGS.output_tflite_file)
+  flatbuffer_utils.write_model(model, args.output_tflite_file)
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()
