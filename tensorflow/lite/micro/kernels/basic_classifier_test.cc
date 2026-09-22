@@ -252,4 +252,26 @@ TEST(BasicClassifierTest, MismatchedDims) {
       target_posteriors_shape, target_posteriors);
 }
 
+TEST(BasicClassifierTest, TwoDimensionalInput) {
+  int input_shape[] = {2, 1, 5};
+  int target_indices_shape[] = {1, 2};
+  int thresholds_shape[] = {1, 2};
+  int detected_shape[] = {1, 2};
+  int target_posteriors_shape[] = {1, 2};
+  const int32_t input[] = {14, 654, 321, 865, 653};
+  const int32_t target_indices[] = {2, 4};
+  const int32_t thresholds[] = {322, 653};
+  bool detected[2];
+  int32_t target_posteriors[2];
+  const bool golden_detected[] = {false, true};
+  const int32_t golden_target_posteriors[] = {321, 653};
+  memset(detected, 0, sizeof(detected));
+  memset(target_posteriors, 0, sizeof(target_posteriors));
+  tflite::testing::TestBasicClassifier(
+      input_shape, input, target_indices_shape, target_indices,
+      thresholds_shape, thresholds, detected_shape, detected,
+      target_posteriors_shape, target_posteriors, golden_detected,
+      golden_target_posteriors);
+}
+
 TF_LITE_MICRO_TESTS_MAIN
