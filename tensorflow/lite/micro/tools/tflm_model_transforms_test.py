@@ -19,10 +19,8 @@ check_models_equivalent() to assert results.
 """
 
 import os
-
-from tensorflow.python.platform import resource_loader
-from tensorflow.python.framework import test_util
-from tensorflow.python.platform import test
+import tempfile
+import unittest
 
 from tflite_micro.tensorflow.lite.micro.tools import tflm_model_transforms_lib
 from tflite_micro.tensorflow.lite.micro.examples.recipes import (
@@ -31,58 +29,62 @@ from tflite_micro.tensorflow.lite.micro.examples.recipes import (
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
-class TflmModelTransformsTest(test_util.TensorFlowTestCase):
+class TflmModelTransformsTest(unittest.TestCase):
   def test_model_transforms(self):
     for name, input_file_name in (
       ("person_detect", "person_detect.tflite"),
       ("keyword_scrambled", "keyword_scrambled.tflite"),
     ):
       with self.subTest(name=name):
-        test_tmpdir = self.get_temp_dir()
-        prefix_path = resource_loader.get_path_to_datafile("../models")
-        input_path = os.path.join(prefix_path, input_file_name)
-        transformed_model_path = test_tmpdir + "/transformed.tflite"
+        with tempfile.TemporaryDirectory() as test_tmpdir:
+          input_path = os.path.join(
+            os.path.dirname(__file__), "../models", input_file_name
+          )
+          transformed_model_path = os.path.join(
+            test_tmpdir, "transformed.tflite"
+          )
 
-        tflm_model_transforms_lib.run_all_transformations(
-          input_path=input_path,
-          transformed_model_path=transformed_model_path,
-          save_intermediates=True,
-          test_transformed_model=True,
-          custom_save_dir=test_tmpdir,
-        )
+          tflm_model_transforms_lib.run_all_transformations(
+            input_path=input_path,
+            transformed_model_path=transformed_model_path,
+            save_intermediates=True,
+            test_transformed_model=True,
+            custom_save_dir=test_tmpdir,
+          )
 
-        tflm_model_transforms_lib.check_models_equivalent(
-          initial_model_path=input_path,
-          secondary_model_path=transformed_model_path,
-          test_vector_count=5,
-        )
+          tflm_model_transforms_lib.check_models_equivalent(
+            initial_model_path=input_path,
+            secondary_model_path=transformed_model_path,
+            test_vector_count=5,
+          )
 
   # TODO(b/274635545): refactor functions to take in flatbuffer objects instead
   # of writing to files here
   def test_resource_model(self):
-    test_tmpdir = self.get_temp_dir()
-    resource_model = resource_variables_lib.get_model_from_keras()
-    input_file_name = test_tmpdir + "/resource.tflite"
-    flatbuffer_utils.write_model(
-      flatbuffer_utils.convert_bytearray_to_object(resource_model),
-      input_file_name,
-    )
-    transformed_model_path = test_tmpdir + "/transformed.tflite"
+    with tempfile.TemporaryDirectory() as test_tmpdir:
+      resource_model = resource_variables_lib.get_model_from_keras()
+      input_file_name = os.path.join(test_tmpdir, "resource.tflite")
+      flatbuffer_utils.write_model(
+        flatbuffer_utils.convert_bytearray_to_object(resource_model),
+        input_file_name,
+      )
+      transformed_model_path = os.path.join(test_tmpdir, "transformed.tflite")
 
-    tflm_model_transforms_lib.run_all_transformations(
-      input_path=input_file_name,
-      transformed_model_path=transformed_model_path,
-      save_intermediates=True,
-      test_transformed_model=True,
-      custom_save_dir=test_tmpdir,
-    )
+      tflm_model_transforms_lib.run_all_transformations(
+        input_path=input_file_name,
+        transformed_model_path=transformed_model_path,
+        save_intermediates=True,
+        test_transformed_model=True,
+        custom_save_dir=test_tmpdir,
+      )
 
-    tflm_model_transforms_lib.check_models_equivalent(
-      initial_model_path=input_file_name,
-      secondary_model_path=transformed_model_path,
-      test_vector_count=5,
-    )
+      tflm_model_transforms_lib.check_models_equivalent(
+        initial_model_path=input_file_name,
+        secondary_model_path=transformed_model_path,
+        test_vector_count=5,
+      )
 
 
 if __name__ == "__main__":
-  test.main()
+  unittest.main()
+
