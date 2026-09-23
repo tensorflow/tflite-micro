@@ -64,7 +64,12 @@ def _build_compressible_model(
     weight_data = np.resize(pattern, (rows, cols))
     io_quantization = model_editor.Quantization(scales=0.5, zero_points=0)
     if per_channel:
-      # Per-channel: one scale per output channel (row in FC weights)
+      # Per-channel: one scale per output channel (row in FC weights).
+      # Offset each row's values so the channel value tables differ; a
+      # decode using the wrong table or stride then changes the output.
+      weight_data = np.stack(
+        [np.resize(pattern, cols) + r * unique_count for r in range(rows)]
+      ).astype(np.int8)
       scales = [0.5 + 0.1 * i for i in range(rows)]
       zero_points = [0] * rows
       quantization = model_editor.Quantization(
@@ -105,6 +110,44 @@ def _build_compressible_model(
         operators=[
           model_editor.Operator(
             opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, weights],
+            outputs=[output_t],
+          )
+        ],
+      )
+    ]
+  )
+  return model.build()
+
+
+def _build_add_model(weight_data, quantization=None):
+  """Build a float ADD model with the given constant weights.
+
+  Quantization on a float tensor is metadata only: ADD ignores it, but
+  DECODE derives the channel layout from it.
+  """
+  weights = model_editor.Tensor(
+    shape=weight_data.shape,
+    dtype=tflite.TensorType.FLOAT32,
+    data=weight_data,
+    name="weights",
+    quantization=quantization,
+  )
+  input_t = model_editor.Tensor(
+    shape=weight_data.shape, dtype=tflite.TensorType.FLOAT32, name="input"
+  )
+  output_t = model_editor.Tensor(
+    shape=weight_data.shape, dtype=tflite.TensorType.FLOAT32, name="output"
+  )
+  model = model_editor.Model(
+    subgraphs=[
+      model_editor.Subgraph(
+        tensors=[weights],
+        inputs=[input_t],
+        outputs=[output_t],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.ADD,
             inputs=[input_t, weights],
             outputs=[output_t],
           )
@@ -244,6 +287,72 @@ class LutCompressionTest(unittest.TestCase):
         tensor=0,
         compression=[
           spec.LookUpTableCompression(index_bitwidth=2, mode=spec.PerTensor())
+        ],
+      )
+    ]
+
+    compressed_fb = compress.compress(flatbuffer, specs)
+
+    verify.assert_outputs_match(flatbuffer, compressed_fb)
+
+  def test_lut_per_channel_last_axis(self):
+    """A tensor quantized along its last axis compresses and runs.
+
+    Each column holds distinct values, so a decode using the wrong
+    table or stride changes the output.
+    """
+    cols = 4
+    weight_data = np.array(
+      [[10.0 * c + r for c in range(cols)] for r in range(4)], dtype=np.float32
+    )
+    flatbuffer = _build_add_model(
+      weight_data,
+      model_editor.Quantization(
+        scales=[0.1] * cols, zero_points=[0] * cols, axis=1
+      ),
+    )
+
+    specs = [
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[
+          spec.LookUpTableCompression(
+            index_bitwidth=2, mode=spec.PerChannel(axis=1)
+          )
+        ],
+      )
+    ]
+
+    compressed_fb = compress.compress(flatbuffer, specs)
+
+    verify.assert_outputs_match(flatbuffer, compressed_fb)
+
+  # The kernel still derives the channel layout from the output
+  # tensor's quantization and ignores the header's axis field, so it
+  # decodes an unquantized tensor per-tensor. Remove the decorator when
+  # the kernel reads the axis field.
+  @unittest.expectedFailure
+  def test_lut_per_channel_unquantized(self):
+    """A per-channel choice on an unquantized tensor compresses and runs.
+
+    Each row holds distinct values, so a decode using the wrong table
+    or stride changes the output.
+    """
+    rows = 4
+    weight_data = np.array(
+      [[10.0 * r + c for c in range(4)] for r in range(rows)], dtype=np.float32
+    )
+    flatbuffer = _build_add_model(weight_data)
+
+    specs = [
+      spec.Tensor(
+        subgraph=0,
+        tensor=0,
+        compression=[
+          spec.LookUpTableCompression(
+            index_bitwidth=2, mode=spec.PerChannel(axis=0)
+          )
         ],
       )
     ]
