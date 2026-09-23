@@ -43,7 +43,7 @@ def load_custom_op(name):
     from tflite_micro.python.tflite_micro import signal
 
     return importlib.import_module(
-        f'{signal.__name__}.gen_{name.removesuffix(".so")}'
+      f'{signal.__name__}.gen_{name.removesuffix(".so")}'
     )
   except ImportError:
     from tensorflow.python.framework import load_library

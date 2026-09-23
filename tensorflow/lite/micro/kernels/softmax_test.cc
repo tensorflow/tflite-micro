@@ -52,9 +52,8 @@ const float golden_2d[] = {0.011656231, 0.031684921, 0.086128544, 0.234121657,
 // 3-dimensional test data.
 const int flat_size_3d = 60;
 int shape_3d[] = {3, 3, 4, 5};
-const float input_data_3d[] = {
-    // c = 0
-    // h = 0
+const float input_data_3d[] = {  // c = 0
+                                 // h = 0
     3.00, 6.00, -5.00, 4.00, -9.00,
     // h = 1
     -10.00, -10.00, -8.00, 2.00, 2.00,
@@ -117,10 +116,9 @@ float golden_3d[] = {
 // 4-dimensional test data.
 const int flat_size_4d = 120;
 int shape_4d[] = {4, 2, 3, 4, 5};
-const float input_data_4d[] = {
-    // n = 0
-    // c = 0
-    // h = 0
+const float input_data_4d[] = {  // n = 0
+                                 // c = 0
+                                 // h = 0
     3.00, 6.00, -5.00, 4.00, -9.00,
     // h = 1
     -10.00, -10.00, -8.00, 2.00, 2.00,
@@ -320,7 +318,7 @@ void TestSoftmaxQuantized(int* input_dims_data, const float* input_data,
 TEST(SoftmaxTest, Softmax1DFloatShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_1d];
   tflite::testing::TestSoftmaxFloat(
-      tflite::testing ::shape_1d, tflite::testing::input_data_1d,
+      tflite::testing::shape_1d, tflite::testing::input_data_1d,
       tflite::testing::shape_1d, tflite::testing::golden_1d, output_data);
 }
 
@@ -357,7 +355,7 @@ TEST(SoftmaxTest, Softmax1DQuantizedInt16ShouldMatchGolden) {
 TEST(SoftmaxTest, Softmax2DFloatShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_2d];
   tflite::testing::TestSoftmaxFloat(
-      tflite::testing ::shape_2d, tflite::testing::input_data_2d,
+      tflite::testing::shape_2d, tflite::testing::input_data_2d,
       tflite::testing::shape_2d, tflite::testing::golden_2d, output_data);
 }
 
@@ -394,7 +392,7 @@ TEST(SoftmaxTest, Softmax2DQuantizedInt16ShouldMatchGolden) {
 TEST(SoftmaxTest, Softmax3DFloatShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_3d];
   tflite::testing::TestSoftmaxFloat(
-      tflite::testing ::shape_3d, tflite::testing::input_data_3d,
+      tflite::testing::shape_3d, tflite::testing::input_data_3d,
       tflite::testing::shape_3d, tflite::testing::golden_3d, output_data);
 }
 
@@ -432,7 +430,7 @@ TEST(SoftmaxTest, Softmax3DQuantizedInt16ShouldMatchGolden) {
 TEST(SoftmaxTest, Softmax4DFloatShouldMatchGolden) {
   float output_data[tflite::testing::flat_size_4d];
   tflite::testing::TestSoftmaxFloat(
-      tflite::testing ::shape_4d, tflite::testing::input_data_4d,
+      tflite::testing::shape_4d, tflite::testing::input_data_4d,
       tflite::testing::shape_4d, tflite::testing::golden_4d, output_data);
 }
 
