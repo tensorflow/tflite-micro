@@ -43,24 +43,5 @@ def tflm_py_test(deps = [], **kwargs):
         **kwargs
     )
 
-def tflm_whl_test(name, srcs, **kwargs):
-    sh_test(
-        name = name,
-        srcs = srcs,
-        args = [
-            "$(rootpath :whl)",
-        ] + select({
-            "@rules_python//python/config_settings:is_python_3.10": ["$(rootpath @python_3_10//:bin/python3)"],
-            "@rules_python//python/config_settings:is_python_3.11": ["$(rootpath @python_3_11//:bin/python3)"],
-            "@rules_python//python/config_settings:is_python_3.12": ["$(rootpath @python_3_12//:bin/python3)"],
-            "@rules_python//python/config_settings:is_python_3.13": ["$(rootpath @python_3_13//:bin/python3)"],
-        }),
-        data = [
-            ":whl",
-            "@python_3_10//:bin/python3",
-            "@python_3_11//:bin/python3",
-            "@python_3_12//:bin/python3",
-            "@python_3_13//:bin/python3",
-        ],
-        **kwargs
-    )
+def tflm_whl_test(**kwargs):
+    sh_test(**kwargs)
