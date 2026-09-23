@@ -323,16 +323,14 @@ tensors:
     compression:
       - lut:
           index_bitwidth: 2
+          per_tensor:
 ```
 Note that each tensor can have a different bit width (1 through 7 bits).
 
-A `lut` entry may state its compression mode, one of `per_channel` or
-`per_tensor`. `per_channel` builds one value table per channel, along the
-given axis of the tensor's shape. A bare `per_tensor:` builds one value
-table for the whole tensor. An entry without a mode, like tensor 22 above,
-takes the mode from the tensor's quantization: per-channel along the
-quantized axis when the tensor has one scale per channel, otherwise
-per-tensor.
+Each `lut` entry states its compression mode, exactly one of `per_channel`
+or `per_tensor`. `per_channel` builds one value table per channel, along
+the given axis of the tensor's shape. A bare `per_tensor:` builds one
+value table for the whole tensor.
 
 Once the `YAML` specification is ready, compress the model using the following:
 ```
