@@ -39,27 +39,12 @@ def get_tflm_interpreter(concrete_function, trackable_obj):
 
 def load_custom_op(name):
   try:
-    from tflite_micro.python.tflite_micro.signal import gen_delay_op
-    from tflite_micro.python.tflite_micro.signal import gen_energy_op
-    from tflite_micro.python.tflite_micro.signal import gen_fft_ops
-    from tflite_micro.python.tflite_micro.signal import gen_filter_bank_ops
-    from tflite_micro.python.tflite_micro.signal import gen_framer_op
-    from tflite_micro.python.tflite_micro.signal import gen_overlap_add_op
-    from tflite_micro.python.tflite_micro.signal import gen_pcan_op
-    from tflite_micro.python.tflite_micro.signal import gen_stacker_op
-    from tflite_micro.python.tflite_micro.signal import gen_window_op
+    import importlib
+    from tflite_micro.python.tflite_micro import signal
 
-    return {
-      'delay_op.so': gen_delay_op,
-      'energy_op.so': gen_energy_op,
-      'fft_ops.so': gen_fft_ops,
-      'filter_bank_ops.so': gen_filter_bank_ops,
-      'framer_op.so': gen_framer_op,
-      'overlap_add_op.so': gen_overlap_add_op,
-      'pcan_op.so': gen_pcan_op,
-      'stacker_op.so': gen_stacker_op,
-      'window_op.so': gen_window_op,
-    }[name]
+    return importlib.import_module(
+      f'{signal.__name__}.gen_{name.removesuffix(".so")}'
+    )
   except ImportError:
     from tensorflow.python.framework import load_library
     from tensorflow.python.platform import resource_loader
