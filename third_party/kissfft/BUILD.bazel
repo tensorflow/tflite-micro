@@ -9,6 +9,15 @@ licenses(["notice"])  # Apache 2.0
 exports_files(["COPYING"])
 
 cc_library(
+    name = "kiss_fft",
+    hdrs = [
+        "_kiss_fft_guts.h",
+        "kiss_fft.c",
+        "kiss_fft.h",
+    ],
+)
+
+cc_library(
     name = "kiss_fftr",
     srcs = [
     ],
