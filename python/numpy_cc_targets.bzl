@@ -1,5 +1,7 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
 def extra_numpy_targets():
-    native.cc_library(
+    cc_library(
         name = "cc_headers",
         hdrs = native.glob(
             [

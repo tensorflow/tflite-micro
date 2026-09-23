@@ -4,8 +4,8 @@ load(
     "@flatbuffers//:build_defs.bzl",
     _upstream_flatbuffer_cc_library = "flatbuffer_cc_library",
 )
-load("@rules_python//python:defs.bzl", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library")
 
 DEFAULT_FLATC_ARGS = [
     "--no-union-value-namespacing",
@@ -62,7 +62,7 @@ def flatbuffer_py_library(
         message = "Generating flatbuffer python files for %s:" % (name),
     )
 
-    py_library(
+    tflm_py_library(
         name = name,
         srcs = [out_file],
         deps = deps + [

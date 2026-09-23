@@ -1,12 +1,12 @@
-load("@rules_python//python:defs.bzl", "py_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_binary")
 
 package(
     default_visibility = ["//:__subpackages__"],
     licenses = ["notice"],
 )
 
-py_binary(
+tflm_py_binary(
     name = "generate_micro_mutable_op_resolver_from_model",
     srcs = [
         "generate_micro_mutable_op_resolver_from_model.py",
@@ -23,7 +23,7 @@ py_binary(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "generate_micro_mutable_op_resolver_from_model_test",
     srcs = [
         "generate_micro_mutable_op_resolver_from_model_test.py",

@@ -2,7 +2,7 @@
 // linking against the Tensorflow library shipping in the Tensorflow Python
 // package.
 
-#include <tensorflow/core/util/util.h>
+#include "tensorflow/core/util/util.h"
 
 int main(int argc, char* argv[]) {
   const char* ptr = "test";

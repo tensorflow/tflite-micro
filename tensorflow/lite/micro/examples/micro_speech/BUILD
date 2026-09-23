@@ -1,7 +1,8 @@
 # Description:
 #   TensorFlow Lite microcontroller example.
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
@@ -202,7 +203,7 @@ filegroup(
     srcs = glob(["models/*.tflite"]),
 )
 
-py_binary(
+tflm_py_binary(
     name = "audio_preprocessor",
     srcs = ["audio_preprocessor.py"],
     data = [
@@ -218,7 +219,7 @@ py_binary(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
     data = [
@@ -230,7 +231,7 @@ py_binary(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
     data = [
@@ -249,7 +250,7 @@ py_test(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "audio_preprocessor_test",
     srcs = ["audio_preprocessor_test.py"],
     data = [

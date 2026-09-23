@@ -1,6 +1,6 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
 load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library")
 load("//tensorflow:extra_rules.bzl", "tflm_signal_friends")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
@@ -32,7 +32,7 @@ cc_library(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "ops",
     srcs = [
         "__init__.py",
@@ -65,7 +65,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "delay_op_test",
     size = "small",
     srcs = ["ops/delay_op_test.py"],
@@ -94,7 +94,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "energy_op_test",
     size = "small",
     srcs = ["ops/energy_op_test.py"],
@@ -126,7 +126,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "fft_ops_test",
     srcs = ["ops/fft_ops_test.py"],
     data = [
@@ -159,7 +159,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "filter_bank_ops_test",
     size = "small",
     srcs = ["ops/filter_bank_ops_test.py"],
@@ -196,7 +196,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "framer_op_test",
     size = "small",
     srcs = ["ops/framer_op_test.py"],
@@ -228,7 +228,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "overlap_add_op_test",
     size = "small",
     srcs = ["ops/overlap_add_op_test.py"],
@@ -258,7 +258,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "pcan_op_test",
     srcs = ["ops/pcan_op_test.py"],
     data = [
@@ -289,7 +289,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "stacker_op_test",
     size = "small",
     srcs = ["ops/stacker_op_test.py"],
@@ -321,7 +321,7 @@ py_tflm_signal_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "window_op_test",
     srcs = ["ops/window_op_test.py"],
     data = [
