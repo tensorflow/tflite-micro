@@ -21,18 +21,24 @@ limitations under the License.
 
 namespace tflite {
 
-// The CircularBuffer op has one input and one output tensor.
+// The CircularBuffer op has one input and up to two output tensors.
+// - Output 0: buffered history tensor (variable tensor).
+// - Output 1 (optional): boolean scalar tensor indicating whether the buffer
+//   period has elapsed and new outputs are valid.
 extern const int kCircularBufferInputTensor;
 extern const int kCircularBufferOutputTensor;
+extern const int kCircularBufferValidOutputTensor;
 
 // Indices into the init flexbuffer's vector.
 // The parameter's name is in the comment that follows.
 // Elements in the vectors are ordered alphabetically by parameter name.
 extern const int kCircularBufferCyclesMaxIndex;  // 'cycles_max'
 
-// These fields control the stride period of a strided streaming model. This op
-// returns kTfLiteAbort until cycles_until_run-- is zero.  At this time,
-// cycles_until_run is reset to cycles_max.
+// These fields control the stride period of a strided streaming model.
+// For single-output models, this op returns kTfLiteAbort until
+// cycles_until_run-- reaches zero. For dual-output models, readiness is
+// written to the valid output tensor and kTfLiteOk is returned.
+// In both cases, cycles_until_run is reset to cycles_max when ready.
 struct OpDataCircularBuffer {
   int cycles_until_run;
   int cycles_max;
