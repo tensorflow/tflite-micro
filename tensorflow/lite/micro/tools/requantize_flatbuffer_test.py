@@ -22,6 +22,53 @@ from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
+def create_simple_fc_model():
+  """Create a simple model with two fully connected(fc) layers."""
+  import tensorflow as tf
+
+  model = tf.keras.models.Sequential(
+    [
+      tf.keras.layers.InputLayer(input_shape=(28, 28)),
+      tf.keras.layers.Flatten(),
+      tf.keras.layers.Dense(50, activation=tf.nn.relu),
+      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output"),
+    ]
+  )
+  fixed_input = tf.keras.layers.Input(
+    shape=[28, 28],
+    batch_size=1,
+    dtype=model.inputs[0].dtype,
+    name="fixed_input",
+  )
+  fixed_output = model(fixed_input)
+  return tf.keras.models.Model(fixed_input, fixed_output)
+
+
+def representative_dataset_gen(num_samples=100):
+  np.random.seed(42)
+  for _ in range(num_samples):
+    yield [np.random.random((1, 28, 28)).astype(np.float32)]
+
+
+def convert_tfl_converter(keras_model, representative_dataset_gen, int16=False):
+  """Convert and quantize the keras model using the standard tflite converter."""
+  import tensorflow as tf
+
+  converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
+  converter.optimizations = [tf.lite.Optimize.DEFAULT]
+  converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+  if int16:
+    converter.target_spec.supported_ops = [
+      tf.lite.OpsSet.EXPERIMENTAL_TFLITE_BUILTINS_ACTIVATIONS_INT16_WEIGHTS_INT8
+    ]
+  converter.representative_dataset = representative_dataset_gen
+  converter._experimental_disable_per_channel_quantization_for_dense_layers = (
+    True
+  )
+  converter._experimental_disable_per_channel = True
+  return converter.convert()
+
+
 def convert_8to16_requantizer(int8_model_bytes):
   '''Convert and quantize the int8 model using the int8 to int16 conversion tool'''
   int8_model = flatbuffer_utils.convert_bytearray_to_object(int8_model_bytes)
@@ -75,4 +122,3 @@ class SimpleFCModelTest(unittest.TestCase):
 
 if __name__ == "__main__":
   unittest.main()
-

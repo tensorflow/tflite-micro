@@ -63,12 +63,3 @@ tflm_py_binary(
         ":evaluate",
     ],
 )
-
-tflm_py_binary(
-    name = "train",
-    srcs = ["train.py"],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
-)

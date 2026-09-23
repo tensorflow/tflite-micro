@@ -188,6 +188,7 @@ py_namespace(
     name = "namespace",
     init = "__init__.py",
     namespace = "tflite_micro",
+    tags = ["manual"],
     deps = [
         ":files_to_package",
     ],

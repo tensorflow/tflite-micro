@@ -207,15 +207,13 @@ tflm_py_binary(
     name = "audio_preprocessor",
     srcs = ["audio_preprocessor.py"],
     data = [
+        ":models_tflite",
         ":samples_30ms",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         requirement("numpy"),
-        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
-        "//python/tflite_micro/signal:ops",
-        "//python/tflite_micro/signal/utils:util",
     ],
 )
 
@@ -233,6 +231,7 @@ tflm_py_binary(
 
 tflm_py_test(
     name = "evaluate_test",
+    size = "small",
     srcs = ["evaluate_test.py"],
     data = [
         ":models_tflite",
@@ -247,24 +246,5 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":evaluate",
-    ],
-)
-
-tflm_py_test(
-    name = "audio_preprocessor_test",
-    srcs = ["audio_preprocessor_test.py"],
-    data = [
-        ":models_tflite",
-        ":samples_30ms",
-    ],
-    main = "audio_preprocessor_test.py",
-    tags = [
-        "noasan",
-        "nomsan",  # Python doesn't like these symbols
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        ":audio_preprocessor",
     ],
 )

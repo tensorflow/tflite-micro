@@ -3,15 +3,6 @@ load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 tflm_py_binary(
-    name = "train",
-    srcs = ["train.py"],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
-)
-
-tflm_py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
     deps = [

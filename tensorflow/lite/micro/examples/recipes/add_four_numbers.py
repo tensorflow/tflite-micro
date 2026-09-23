@@ -30,6 +30,30 @@ Usage where you want model written to file:
 """
 
 
+def create_model_from_tf():
+  """Accumulator model built via TF concrete functions."""
+  import tensorflow as tf
+
+  class AddFourNumbers(tf.Module):
+    @tf.function(
+      input_signature=[
+        tf.TensorSpec(shape=[1], dtype=tf.float32, name="a"),
+        tf.TensorSpec(shape=[1], dtype=tf.float32, name="b"),
+        tf.TensorSpec(shape=[1], dtype=tf.float32, name="c"),
+        tf.TensorSpec(shape=[1], dtype=tf.float32, name="d"),
+      ]
+    )
+    def __call__(self, a, b, c, d):
+      return a + b + c + d
+
+  model = AddFourNumbers("AddFourNumbers")
+  concrete_func = model.__call__.get_concrete_function()
+  converter = tf.lite.TFLiteConverter.from_concrete_functions(
+    [concrete_func], model
+  )
+  return converter.convert()
+
+
 def get_model_from_concrete_function():
   """Model loaded from pre-generated tflite file."""
   model_path = os.path.join(
@@ -45,4 +69,3 @@ def generate_model(write_file=True, filename="/tmp/add.tflite"):
     with open(filename, "wb") as f:
       f.write(model)
   return model
-

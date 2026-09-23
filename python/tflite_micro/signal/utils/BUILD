@@ -1,5 +1,4 @@
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
@@ -43,10 +42,10 @@ pybind_extension(
 tflm_py_library(
     name = "util",
     srcs = ["util.py"],
+    tags = ["manual"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
     deps = [
-        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )
