@@ -14,7 +14,7 @@
 # =============================================================================
 """Simple TF model creation using resource variables."""
 
-import tensorflow as tf
+import os
 
 """
 Generates a simple TfLite model that adds 4 numbers.
@@ -30,27 +30,13 @@ Usage where you want model written to file:
 """
 
 
-class AddFourNumbers(tf.Module):
-  @tf.function(
-    input_signature=[
-      tf.TensorSpec(shape=[1], dtype=tf.float32, name="a"),
-      tf.TensorSpec(shape=[1], dtype=tf.float32, name="b"),
-      tf.TensorSpec(shape=[1], dtype=tf.float32, name="c"),
-      tf.TensorSpec(shape=[1], dtype=tf.float32, name="d"),
-    ]
-  )
-  def __call__(self, a, b, c, d):
-    return a + b + c + d
-
-
 def get_model_from_concrete_function():
-  """Accumulator model built via TF concrete functions."""
-  model = AddFourNumbers("AddFourNumbers")
-  concrete_func = model.__call__.get_concrete_function()
-  converter = tf.lite.TFLiteConverter.from_concrete_functions(
-    [concrete_func], model
+  """Model loaded from pre-generated tflite file."""
+  model_path = os.path.join(
+    os.path.dirname(__file__), "add_four_numbers.tflite"
   )
-  return converter.convert()
+  with open(model_path, "rb") as f:
+    return f.read()
 
 
 def generate_model(write_file=True, filename="/tmp/add.tflite"):
@@ -59,3 +45,4 @@ def generate_model(write_file=True, filename="/tmp/add.tflite"):
     with open(filename, "wb") as f:
       f.write(model)
   return model
+
