@@ -20,5 +20,6 @@ package(default_visibility = ["//visibility:public"])
         "3.11",
         "3.12",
         "3.13",
+        "3.14",
     ]
 ]

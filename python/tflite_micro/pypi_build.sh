@@ -28,12 +28,13 @@ container. Uses bazel, but does not pollute the WORKSPACE's default cache.
    cp311
    cp312
    cp313
+   cp314
 
 <output-directory> defaults to $OUT_DIR_DEFAULT.
 "
 
 case "$1" in
-    cp310|cp311|cp312|cp313)
+    cp310|cp311|cp312|cp313|cp314)
         PY_TAG=$1
         OUTDIR=$(realpath ${2:-$OUT_DIR_DEFAULT})
         mkdir -p $OUTDIR

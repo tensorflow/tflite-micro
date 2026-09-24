@@ -67,6 +67,7 @@ def flatbuffer_py_library(
         srcs = [out_file],
         deps = deps + [
             requirement("flatbuffers"),
+            requirement("numpy"),
         ],
         visibility = ["//visibility:public"],
     )

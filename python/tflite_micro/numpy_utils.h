@@ -17,6 +17,7 @@ limitations under the License.
 
 // Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#define PY_ARRAY_UNIQUE_SYMBOL tflite_micro_python_interpreter_array_api
 #include <numpy/ndarraytypes.h>
 
 #include "tensorflow/lite/c/c_api_types.h"

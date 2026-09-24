@@ -58,6 +58,7 @@ PYTHON_VERSIONS = [
     "3.11",
     "3.12",
     "3.13",
+    "3.14",
 ]
 
 pip.whl_mods(
@@ -96,6 +97,7 @@ use_repo(
     python_3_11 = "python_3_11_x86_64-unknown-linux-gnu",
     python_3_12 = "python_3_12_x86_64-unknown-linux-gnu",
     python_3_13 = "python_3_13_x86_64-unknown-linux-gnu",
+    python_3_14 = "python_3_14_x86_64-unknown-linux-gnu",
 )
 
 use_repo(
@@ -105,5 +107,6 @@ use_repo(
     "tflm_pip_deps_311_numpy",
     "tflm_pip_deps_312_numpy",
     "tflm_pip_deps_313_numpy",
+    "tflm_pip_deps_314_numpy",
     "tflm_pip_deps_whl_mods",
 )

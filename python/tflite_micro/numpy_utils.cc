@@ -13,14 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "python/tflite_micro/numpy_utils.h"
-
 // Disallow Numpy 1.7 deprecated symbols.
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 // Since we are calling `import_array()` here, define PY_ARRAY_UNIQUE_SYMBOL
 // here and NO_IMPORT_ARRAY everywhere else arrayobject.h is included
 // See https://numpy.org/doc/1.16/reference/c-api.array.html#importing-the-api
 #define PY_ARRAY_UNIQUE_SYMBOL tflite_micro_python_interpreter_array_api
+#include "python/tflite_micro/numpy_utils.h"
+
 #include <numpy/arrayobject.h>
 
 #include "tensorflow/lite/c/c_api_types.h"
