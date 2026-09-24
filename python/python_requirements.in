@@ -27,9 +27,8 @@
 # it is run.
 
 ai-edge-litert
+flatbuffers
 mako
 numpy
 pillow
-protobuf
 pyyaml
-twine

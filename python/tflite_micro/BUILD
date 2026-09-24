@@ -210,6 +210,7 @@ string_flag(
         "cp311_cp311_manylinux_2_28_x86_64",
         "cp312_cp312_manylinux_2_28_x86_64",
         "cp313_cp313_manylinux_2_28_x86_64",
+        "cp314_cp314_manylinux_2_28_x86_64",
         "local",
     ],
 )
@@ -243,6 +244,13 @@ config_setting(
 )
 
 config_setting(
+    name = "cp314_cp314_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp314_cp314_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
     name = "local",
     flag_values = {
         ":compatibility_tag": "local",
@@ -260,6 +268,7 @@ py_wheel(
         ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
         ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
         ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
+        ":cp314_cp314_manylinux_2_28_x86_64": "cp314",
         ":local": "none",
     }),
     description_file = ":description_file",
@@ -269,6 +278,7 @@ py_wheel(
         ":cp311_cp311_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":cp312_cp312_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":cp313_cp313_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":cp314_cp314_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":local": "any",
     }),
     python_tag = select({
@@ -276,6 +286,7 @@ py_wheel(
         ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
         ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
         ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
+        ":cp314_cp314_manylinux_2_28_x86_64": "cp314",
         ":local": "py3",
     }),
     requires = [
@@ -286,7 +297,6 @@ py_wheel(
     stamp = 1,  # 1 == always stamp
     strip_path_prefixes = [package_name()],
     summary = "TensorFlow Lite for Microcontrollers",
-    twine = "@tflm_pip_deps_twine//:pkg",
     version = "{BUILD_EMBED_LABEL}.dev{STABLE_GIT_COMMIT_TIME}",
     deps = [
         ":namespace",

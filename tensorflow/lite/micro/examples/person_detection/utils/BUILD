@@ -11,6 +11,7 @@ tflm_py_binary(
     srcs = ["raw_to_bitmap.py"],
     deps = [
         requirement("numpy"),
+        requirement("pillow"),
     ],
 )
 
@@ -19,6 +20,7 @@ tflm_py_library(
     srcs = ["raw_to_bitmap.py"],
     deps = [
         requirement("numpy"),
+        requirement("pillow"),
     ],
 )
 

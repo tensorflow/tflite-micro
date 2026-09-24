@@ -54,6 +54,7 @@ def tflm_whl_test(name, srcs, **kwargs):
             "@rules_python//python/config_settings:is_python_3.11": ["$(rootpath @python_3_11//:bin/python3)"],
             "@rules_python//python/config_settings:is_python_3.12": ["$(rootpath @python_3_12//:bin/python3)"],
             "@rules_python//python/config_settings:is_python_3.13": ["$(rootpath @python_3_13//:bin/python3)"],
+            "@rules_python//python/config_settings:is_python_3.14": ["$(rootpath @python_3_14//:bin/python3)"],
         }),
         data = [
             ":whl",
@@ -61,6 +62,7 @@ def tflm_whl_test(name, srcs, **kwargs):
             "@python_3_11//:bin/python3",
             "@python_3_12//:bin/python3",
             "@python_3_13//:bin/python3",
+            "@python_3_14//:bin/python3",
         ],
         **kwargs
     )
