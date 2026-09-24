@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_ARRAY_H_
-#define TENSORFLOW_LITE_ARRAY_H_
+#ifndef TENSORFLOW_LITE_MICRO_ARRAY_H_
+#define TENSORFLOW_LITE_MICRO_ARRAY_H_
 
 #include <cstring>
 #include <initializer_list>
@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
+namespace micro {
 
 /// TfLite*Array helpers
 
@@ -153,6 +154,18 @@ inline FloatArrayUniquePtr BuildTfLiteArray(const TfLiteFloatArray& other) {
   return BuildTfLiteArray(other.size, other.data);
 }
 
-}  // namespace tflite
+}  // namespace micro
+
+#ifndef TENSORFLOW_LITE_ARRAY_H_
+#define TENSORFLOW_LITE_ARRAY_H_
+
+using micro::BuildTfLiteArray;
+using micro::FloatArrayUniquePtr;
+using micro::IntArrayUniquePtr;
+using micro::TfLiteArrayUniquePtr;
 
 #endif  // TENSORFLOW_LITE_ARRAY_H_
+
+}  // namespace tflite
+
+#endif  // TENSORFLOW_LITE_MICRO_ARRAY_H_

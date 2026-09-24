@@ -370,6 +370,7 @@ TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
 
 }  // namespace micro
 
+#ifndef TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 using micro::CalculateActivationRange;
 using micro::CalculateShapeForBroadcast;
 using micro::CheckedShapeProduct;
@@ -396,6 +397,7 @@ using micro::TfLiteTypeGetSizeBits;
 using micro::GetShapeDebugString;
 using micro::GetTensorDebugString;
 #endif  // !TF_LITE_STATIC_MEMORY
+#endif  // TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 
 }  // namespace tflite
 

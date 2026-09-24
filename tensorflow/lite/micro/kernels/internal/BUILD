@@ -80,9 +80,12 @@ cc_library(
 
 cc_library(
     name = "reference_base",
-    srcs = glob([
-        "reference/*.cc",
-    ]),
+    srcs = glob(
+        [
+            "reference/*.cc",
+        ],
+        exclude = ["reference/portable_tensor_utils.cc"],
+    ),
     hdrs = glob([
         "reference/*.h",
         "reference/integer_ops/*.h",

@@ -29,6 +29,9 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 
+#ifndef TENSORFLOW_LITE_PORTABLE_TYPE_TO_TFLITETYPE_H_
+#define TENSORFLOW_LITE_PORTABLE_TYPE_TO_TFLITETYPE_H_
+
 namespace tflite {
 
 // Map statically from a C++ type to a TfLiteType. Used in interpreter for
@@ -77,4 +80,5 @@ MATCH_TYPE_AND_TFLITE_TYPE(double, kTfLiteFloat64);
 MATCH_TYPE_AND_TFLITE_TYPE(uint64_t, kTfLiteUInt64);
 
 }  // namespace tflite
+#endif  // TENSORFLOW_LITE_PORTABLE_TYPE_TO_TFLITETYPE_H_
 #endif  // TENSORFLOW_LITE_MICRO_PORTABLE_TYPE_TO_TFLITETYPE_H_

@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
+namespace micro {
 namespace array_internal {
 
 #ifndef TF_LITE_STATIC_MEMORY
@@ -34,4 +35,5 @@ void TfLiteArrayDeleter::operator()(TfLiteFloatArray* a) {
 #endif  // TF_LITE_STATIC_MEMORY
 
 }  // namespace array_internal
+}  // namespace micro
 }  // namespace tflite
