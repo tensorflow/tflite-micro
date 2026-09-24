@@ -170,6 +170,6 @@ cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
         "//tensorflow/lite/micro/kernels:op_macros",
-        "@gemmlowp",
+        "@gemmlowp//:fixedpoint",
     ],
 )
