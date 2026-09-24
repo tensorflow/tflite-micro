@@ -34,6 +34,7 @@ inline T TfLiteMax(const T& x, const T& y) {
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_MAX_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_MAX_H_
 using micro::TfLiteMax;
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_MAX_H_
 

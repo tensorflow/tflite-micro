@@ -34,6 +34,7 @@ inline T TfLiteMin(const T& x, const T& y) {
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_MIN_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_MIN_H_
 using micro::TfLiteMin;
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_MIN_H_
 

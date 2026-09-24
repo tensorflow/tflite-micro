@@ -24,6 +24,10 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
+#ifdef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
+using ::tflite::GetTensorData;
+using ::tflite::GetTensorShape;
+#else
 template <typename T>
 inline T* GetTensorData(TfLiteTensor* tensor) {
   return tensor != nullptr ? reinterpret_cast<T*>(tensor->data.raw) : nullptr;
@@ -37,6 +41,7 @@ inline const T* GetTensorData(const TfLiteTensor* tensor) {
 
 TFLITE_NOINLINE RuntimeShape GetTensorShape(const TfLiteTensor* tensor);
 RuntimeShape GetTensorShape(std::vector<int32_t> data);
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 
 }  // namespace micro
 

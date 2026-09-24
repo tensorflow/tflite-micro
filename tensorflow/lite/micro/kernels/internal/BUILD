@@ -20,7 +20,7 @@ cc_library(
         "common.h",
         "optimized/neon_check.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":compatibility",
         ":cppmath",
@@ -33,7 +33,7 @@ cc_library(
 cc_library(
     name = "compatibility",
     hdrs = ["compatibility.h"],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         "//tensorflow/lite/core:macros",
         "//tensorflow/lite/micro/kernels:op_macros",
@@ -48,14 +48,14 @@ cc_library(
         "max.h",
         "min.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
 )
 
 tflm_cc_library(
     name = "quantization_util",
     srcs = ["quantization_util.cc"],
     hdrs = ["quantization_util.h"],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":compatibility",
         ":cppmath",
@@ -70,7 +70,7 @@ cc_library(
         "portable_tensor.h",
         "tensor_ctypes.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":types",
         "//tensorflow/lite/c:common",
@@ -91,7 +91,7 @@ cc_library(
         "reference/*.h",
         "reference/integer_ops/*.h",
     ]),
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     features = ["-parse_headers"],
     deps = [
         ":common",
@@ -116,7 +116,7 @@ cc_library(
     hdrs = [
         "strided_slice_logic.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":compatibility",
         ":types",
@@ -129,7 +129,7 @@ cc_library(
         "portable_tensor.h",
         "tensor_ctypes.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":types",
         "//tensorflow/lite/c:common",
@@ -143,7 +143,7 @@ cc_library(
         "runtime_shape.h",
         "types.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":compatibility",
         "//tensorflow/lite/micro/types:half",
@@ -162,7 +162,7 @@ cc_library(
         "reference/portable_tensor_utils.h",
         "reference/portable_tensor_utils_impl.h",
     ],
-    copts = tflite_copts(),
+    copts = tflm_copts() + tflite_copts(),
     deps = [
         ":common",
         ":compatibility",

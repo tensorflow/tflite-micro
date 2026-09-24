@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_KERNELS_PADDING_H_
-#define TENSORFLOW_LITE_KERNELS_PADDING_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_PADDING_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_PADDING_H_
 
 #include <cstdint>
 #include <limits>
@@ -204,6 +204,22 @@ inline Padding3DValues ComputePadding3DValues(
   return padding_values;
 }
 }  // namespace micro
+
+#ifndef TENSORFLOW_LITE_KERNELS_PADDING_H_
+#define TENSORFLOW_LITE_KERNELS_PADDING_H_
+using micro::CheckedNarrowPaddingValue;
+using micro::ComputeEffectiveFilterSize;
+using micro::ComputeOutSize;
+using micro::ComputeOutSizeChecked;
+using micro::ComputePadding;
+using micro::ComputePadding3DValues;
+using micro::ComputePaddingHeightWidth;
+using micro::ComputePaddingHeightWidthChecked;
+using micro::ComputePaddingWithOffset;
+using micro::ComputePaddingWithOffsetChecked;
+using micro::ValidatePaddingArguments;
+#endif  // TENSORFLOW_LITE_KERNELS_PADDING_H_
+
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_KERNELS_PADDING_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_PADDING_H_

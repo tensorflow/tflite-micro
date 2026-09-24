@@ -1394,6 +1394,54 @@ void optimized_ops_prefetch_write_l1_keep(const T* ptr) {
 }
 
 }  // namespace micro
+
+#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_COMMON_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_COMMON_H_
+using micro::ActivationFunction;
+using micro::ActivationFunctionWithMinMax;
+using micro::AddTensorValuesWithExpectedOverflow;
+using micro::BiasAndClamp;
+using micro::CeilQuotient;
+using micro::CopyDimsToDesc;
+using micro::CountLeadingSignBits;
+using micro::CountLeadingZeros;
+using micro::DownScaleInt32ToInt16Multiplier;
+using micro::FloorLog2;
+using micro::GetActivationMinMax;
+using micro::GetInvSqrtQuantizedMultiplierExp;
+using micro::GetReciprocal;
+using micro::kReverseShift;
+using micro::LegacyHowManyThreads;
+using micro::log_x_for_x_greater_than_or_equal_to_1;
+using micro::log_x_for_x_greater_than_or_equal_to_1_impl;
+using micro::LUTLookup;
+using micro::LUTPopulate;
+using micro::LUTSize;
+using micro::min_log_x_output_bits;
+using micro::MulTensorValuesWithExpectedOverflow;
+using micro::MultiplyByQuantizedMultiplier;
+using micro::MultiplyByQuantizedMultiplierGreaterThanOne;
+using micro::MultiplyByQuantizedMultiplierSmallerThanOneExp;
+using micro::NdArrayDesc;
+using micro::NdArrayDescsForElementwiseBroadcast;
+using micro::NDOpsHelper;
+using micro::optimized_ops_prefetch_write_l1_keep;
+using micro::optimized_ops_preload_l1_keep;
+using micro::optimized_ops_preload_l1_stream;
+using micro::ReduceDimensionsForBroadcast;
+using micro::RoundDown;
+using micro::RoundUp;
+using micro::SaturatingAddNonGemmlowp;
+using micro::SaturatingRoundingMultiplyByPOTParam;
+using micro::SaturatingSub;
+using micro::SubscriptToIndex;
+using micro::WrappingAdd;
+using micro::WrappingMul;
+#ifdef USE_NEON
+using micro::MultiplyByQuantizedMultiplier4Rows;
+#endif
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_COMMON_H_
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_COMMON_H_

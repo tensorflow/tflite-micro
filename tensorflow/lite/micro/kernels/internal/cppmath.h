@@ -39,6 +39,7 @@ DECLARE_STD_GLOBAL_SWITCH1(TfLiteExpm1, expm1)
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_CPPMATH_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_CPPMATH_H_
 using micro::TfLiteExpm1;
 using micro::TfLiteRound;
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_CPPMATH_H_

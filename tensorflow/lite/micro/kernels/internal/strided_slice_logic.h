@@ -273,6 +273,21 @@ inline StridedSliceParams BuildStridedSliceParams(
 
 }  // namespace strided_slice
 }  // namespace micro
+
+#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_
+namespace strided_slice {
+using micro::strided_slice::BuildStridedSliceParams;
+using micro::strided_slice::Clamp;
+using micro::strided_slice::LoopCondition;
+using micro::strided_slice::StartForAxis;
+using micro::strided_slice::StopForAxis;
+using micro::strided_slice::StridedSliceEndForAxis;
+using micro::strided_slice::StridedSlicePadIndices;
+using micro::strided_slice::StridedSliceStartForAxis;
+}  // namespace strided_slice
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_

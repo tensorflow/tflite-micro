@@ -138,6 +138,14 @@ class SequentialTensorWriter {
 };
 
 }  // namespace micro
+
+#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_H_
+using micro::SequentialTensorWriter;
+using micro::VectorOfQuantizedTensors;
+using micro::VectorOfTensors;
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_H_
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_PORTABLE_TENSOR_H_

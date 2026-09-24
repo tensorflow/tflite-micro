@@ -657,6 +657,53 @@ void PackInt8IntoDenseInt(const int8_t* src_buffer, int num_elements,
                           int bit_width, int8_t* dst_buffer);
 }  // namespace tensor_utils
 }  // namespace micro
+
+#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_UTILS_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_UTILS_H_
+using micro::CpuBackendContext;
+namespace tensor_utils {
+using micro::tensor_utils::ApplyLayerNorm;
+using micro::tensor_utils::ApplyLayerNormFloat;
+using micro::tensor_utils::ApplyRelu1ToVector;
+using micro::tensor_utils::ApplyRelu6ToVector;
+using micro::tensor_utils::ApplyReluToVector;
+using micro::tensor_utils::ApplySigmoid;
+using micro::tensor_utils::ApplySigmoidFloat;
+using micro::tensor_utils::ApplySignbitToVector;
+using micro::tensor_utils::ApplyTanh;
+using micro::tensor_utils::ApplyTanhFloat;
+using micro::tensor_utils::AsymmetricQuantizeFloats;
+using micro::tensor_utils::BatchQuantizeFloats;
+using micro::tensor_utils::BatchVectorBatchVectorDotProduct;
+using micro::tensor_utils::CwiseAdd;
+using micro::tensor_utils::CwiseClipping;
+using micro::tensor_utils::CwiseMul;
+using micro::tensor_utils::IsZeroVector;
+using micro::tensor_utils::MatrixBatchVectorMultiply;
+using micro::tensor_utils::MatrixBatchVectorMultiplyAccumulate;
+using micro::tensor_utils::MatrixScalarMultiplyAccumulate;
+using micro::tensor_utils::MeanStddevNormalization;
+using micro::tensor_utils::PackInt8IntoDenseInt;
+using micro::tensor_utils::ReductionSumVector;
+using micro::tensor_utils::SparseMatrixBatchVectorMultiplyAccumulate;
+using micro::tensor_utils::SparseMatrixBatchVectorMultiplyAccumulate1x16;
+using micro::tensor_utils::SparseMatrixBatchVectorMultiplyAccumulate1x4;
+using micro::tensor_utils::Sub1Vector;
+using micro::tensor_utils::SymmetricQuantizeFloats;
+using micro::tensor_utils::TwoGateSaturatingAdd;
+using micro::tensor_utils::UnpackDenseInt4IntoInt8;
+using micro::tensor_utils::UnpackPackedIntToInt8;
+using micro::tensor_utils::VectorBatchVectorAdd;
+using micro::tensor_utils::VectorBatchVectorAssign;
+using micro::tensor_utils::VectorBatchVectorCwiseProduct;
+using micro::tensor_utils::VectorBatchVectorCwiseProductAccumulate;
+using micro::tensor_utils::VectorScalarMultiply;
+using micro::tensor_utils::VectorVectorCwiseProduct;
+using micro::tensor_utils::VectorVectorCwiseProductAccumulate;
+using micro::tensor_utils::VectorVectorDotProduct;
+}  // namespace tensor_utils
+#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_UTILS_H_
+
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_PORTABLE_TENSOR_UTILS_H_
