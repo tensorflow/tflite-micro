@@ -84,6 +84,7 @@ cc_library(
         [
             "reference/*.cc",
         ],
+        allow_empty = True,
         exclude = ["reference/portable_tensor_utils.cc"],
     ),
     hdrs = glob([
