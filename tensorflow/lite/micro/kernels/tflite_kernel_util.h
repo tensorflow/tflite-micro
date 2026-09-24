@@ -379,14 +379,10 @@ using micro::CheckedShapeProduct;
 using micro::CheckedShapeProductToInt;
 using micro::GetInput;
 using micro::GetInputSafe;
-using micro::GetIntermediates;
-using micro::GetIntermediatesSafe;
 using micro::GetOptionalInputTensor;
 using micro::GetOutput;
 using micro::GetOutputSafe;
 using micro::GetQuantizedConvolutionMultipler;
-using micro::GetTemporary;
-using micro::GetTemporarySafe;
 using micro::GetVariableInput;
 using micro::HasUnspecifiedDimension;
 using micro::HaveSameShapes;
@@ -398,7 +394,6 @@ using micro::IsMobilePlatform;
 using micro::NumDimensions;
 using micro::NumElements;
 using micro::NumInputs;
-using micro::NumIntermediates;
 using micro::NumOutputs;
 using micro::PopulateConvolutionQuantizationParams;
 using micro::SizeOfDimension;
@@ -406,9 +401,14 @@ using micro::TfLiteTypeGetSize;
 using micro::TfLiteTypeGetSizeBits;
 
 #ifndef TF_LITE_STATIC_MEMORY
+using micro::GetIntermediates;
+using micro::GetIntermediatesSafe;
 using micro::GetOutputShapeFromInput;
 using micro::GetShapeDebugString;
+using micro::GetTemporary;
+using micro::GetTemporarySafe;
 using micro::GetTensorDebugString;
+using micro::NumIntermediates;
 using micro::SetTensorToDynamic;
 using micro::SetTensorToPersistentRo;
 #endif  // !TF_LITE_STATIC_MEMORY
