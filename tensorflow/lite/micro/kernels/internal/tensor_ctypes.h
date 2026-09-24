@@ -41,6 +41,7 @@ RuntimeShape GetTensorShape(std::vector<int32_t> data);
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 using micro::GetTensorData;
 using micro::GetTensorShape;
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_

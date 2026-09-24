@@ -760,6 +760,14 @@ struct ConvParams {
   // float activation params.
   float float_activation_min;
   float float_activation_max;
+#ifdef TENSORFLOW_LITE_KERNELS_INTERNAL_TYPES_H_
+  operator ::tflite::ConvParams() const {
+    static_assert(sizeof(::tflite::ConvParams) == sizeof(*this), "");
+    ::tflite::ConvParams dst;
+    std::memcpy(&dst, this, sizeof(dst));
+    return dst;
+  }
+#endif
 };
 
 struct Conv3DParams {
@@ -804,6 +812,14 @@ struct DepthwiseParams {
   float float_activation_max;
   const int32_t* output_multiplier_per_channel;
   const int32_t* output_shift_per_channel;
+#ifdef TENSORFLOW_LITE_KERNELS_INTERNAL_TYPES_H_
+  operator ::tflite::DepthwiseParams() const {
+    static_assert(sizeof(::tflite::DepthwiseParams) == sizeof(*this), "");
+    ::tflite::DepthwiseParams dst;
+    std::memcpy(&dst, this, sizeof(dst));
+    return dst;
+  }
+#endif
 };
 
 struct DequantizationParams {
@@ -1141,29 +1157,70 @@ struct is_int32_or_int64
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TYPES_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_TYPES_H_
+using micro::ActivationParams;
+using micro::ArithmeticParams;
+using micro::ArraySize;
+using micro::BroadcastableOpCategory;
 using micro::ComparisonParams;
+using micro::ComputeStrides;
 using micro::ConcatenationParams;
+using micro::Conv3DParams;
 using micro::ConvParams;
+using micro::DepthToSpaceParams;
 using micro::DepthwiseParams;
 using micro::DequantizationParams;
 using micro::FakeQuantParams;
+using micro::FlatSize;
+using micro::FlatSizeSkipDim;
 using micro::FullyConnectedParams;
+using micro::FullyConnectedWeightsFormat;
+using micro::FusedActivationFunctionType;
+using micro::GatherParams;
+using micro::GetActivationParams;
 using micro::HardSwishParams;
+using micro::Int4;
+using micro::is_int32_or_int64;
+using micro::is_small_integer;
+using micro::IsPackedWithoutStrides;
+using micro::kTransposeMaxDimensions;
+using micro::L2NormalizationParams;
 using micro::LeakyReluParams;
+using micro::LocalResponseNormalizationParams;
 using micro::LogisticParams;
 using micro::LstmCellParams;
+using micro::MatchingArraySize;
+using micro::MatchingDim;
+using micro::MatchingElementsSize;
+using micro::MatchingExtendedShapeFlatSize;
+using micro::MatchingFlatSize;
+using micro::MatchingFlatSizeSkipDim;
 using micro::MeanParams;
+using micro::MinMax;
+using micro::NextIndex;
+using micro::Offset;
 using micro::PackParams;
+using micro::Padding3DValues;
+using micro::PaddingType;
+using micro::PaddingValues;
 using micro::PadParams;
 using micro::PerChannelDequantizationParams;
+using micro::PerChannelQuantizationParams;
 using micro::PoolParams;
 using micro::PreluParams;
 using micro::QuantizationParams;
+using micro::ReducedOutputOffset;
+using micro::ReluParams;
+using micro::RequiredBufferSizeForDims;
 using micro::ReshapeParams;
 using micro::ResizeBilinearParams;
 using micro::ResizeNearestNeighborParams;
+using micro::ResizingCategory;
+using micro::SetActivationParams;
 using micro::SliceParams;
 using micro::SoftmaxParams;
+using micro::SpaceToBatchParams;
+using micro::SpaceToDepthParams;
 using micro::SplitParams;
 using micro::SqueezeParams;
 using micro::StridedSliceParams;

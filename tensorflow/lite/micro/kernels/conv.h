@@ -132,6 +132,16 @@ inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
 
 }  // namespace micro
 
+using micro::CalculateOpDataConv;
+using micro::ConvInit;
+using micro::ConvParamsFloat;
+using micro::ConvParamsQuantized;
+using micro::ConvPrepare;
+using micro::kConvBiasTensor;
+using micro::kConvInputTensor;
+using micro::kConvOutputTensor;
+using micro::kConvQuantizedDimension;
+using micro::kConvWeightsTensor;
 using micro::OpDataConv;
 using micro::Register_CONV_2D;
 using micro::Register_CONV_2D_INT16;

@@ -56,6 +56,14 @@ class RuntimeShape {
     ReplaceWith(dimensions_count, dims_data);
   }
 
+#ifdef TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
+  RuntimeShape(const ::tflite::RuntimeShape& other)
+      : RuntimeShape(other.DimensionsCount(), other.DimsData()) {}
+  operator ::tflite::RuntimeShape() const {
+    return ::tflite::RuntimeShape(DimensionsCount(), DimsData());
+  }
+#endif
+
   bool operator==(const RuntimeShape& comp) const {
     return this->size_ == comp.size_ &&
            std::memcmp(DimsData(), comp.DimsData(), size_ * sizeof(int32_t)) ==
@@ -167,6 +175,8 @@ inline int Offset(const RuntimeShape& shape, int i0, int i1, int i2, int i3,
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_
+using micro::Dims;
 using micro::Offset;
 using micro::RuntimeShape;
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_RUNTIME_SHAPE_H_

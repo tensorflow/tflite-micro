@@ -75,6 +75,11 @@ inline TFLMRegistration Register_ADD_INT16() { return Register_ADD(); }
 #endif
 
 }  // namespace micro
+using micro::AddPrepare;
+using micro::CalculateOpDataAdd;
+using micro::kAddInputTensor1;
+using micro::kAddInputTensor2;
+using micro::kAddOutputTensor;
 using micro::OpDataAdd;
 using micro::Register_ADD;
 using micro::Register_ADD_INT16;

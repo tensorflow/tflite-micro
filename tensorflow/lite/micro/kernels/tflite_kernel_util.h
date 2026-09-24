@@ -371,22 +371,34 @@ TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
+#define TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 using micro::CalculateActivationRange;
+using micro::CalculateActivationRangeQuantized;
 using micro::CalculateShapeForBroadcast;
 using micro::CheckedShapeProduct;
 using micro::CheckedShapeProductToInt;
 using micro::GetInput;
+using micro::GetInputSafe;
+using micro::GetIntermediates;
+using micro::GetIntermediatesSafe;
 using micro::GetOptionalInputTensor;
 using micro::GetOutput;
+using micro::GetOutputSafe;
+using micro::GetQuantizedConvolutionMultipler;
+using micro::GetTemporary;
+using micro::GetTemporarySafe;
+using micro::GetVariableInput;
 using micro::HasUnspecifiedDimension;
 using micro::HaveSameShapes;
 using micro::IsConstantOrPersistentTensor;
 using micro::IsConstantTensor;
 using micro::IsDynamicTensor;
+using micro::IsHybridOp;
 using micro::IsMobilePlatform;
 using micro::NumDimensions;
 using micro::NumElements;
 using micro::NumInputs;
+using micro::NumIntermediates;
 using micro::NumOutputs;
 using micro::PopulateConvolutionQuantizationParams;
 using micro::SizeOfDimension;
@@ -394,8 +406,11 @@ using micro::TfLiteTypeGetSize;
 using micro::TfLiteTypeGetSizeBits;
 
 #ifndef TF_LITE_STATIC_MEMORY
+using micro::GetOutputShapeFromInput;
 using micro::GetShapeDebugString;
 using micro::GetTensorDebugString;
+using micro::SetTensorToDynamic;
+using micro::SetTensorToPersistentRo;
 #endif  // !TF_LITE_STATIC_MEMORY
 #endif  // TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 

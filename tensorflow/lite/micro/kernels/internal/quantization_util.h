@@ -281,6 +281,7 @@ void QuantizeMultiplierArray(const double* effective_scales, size_t size,
 }  // namespace micro
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_QUANTIZATION_UTIL_H_
+#define TENSORFLOW_LITE_KERNELS_INTERNAL_QUANTIZATION_UTIL_H_
 using micro::CalculateInputRadius;
 using micro::CheckedLog2;
 using micro::ChooseQuantizationParams;

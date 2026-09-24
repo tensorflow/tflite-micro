@@ -86,6 +86,15 @@ inline TFLMRegistration Register_DEPTHWISE_CONV_2D_INT4() {
 #endif
 
 }  // namespace micro
+using micro::CalculateOpDataDepthwiseConv;
+using micro::DepthwiseConvParamsFloat;
+using micro::DepthwiseConvParamsQuantized;
+using micro::DepthwiseConvPrepare;
+using micro::kDepthwiseConvBiasTensor;
+using micro::kDepthwiseConvInputTensor;
+using micro::kDepthwiseConvOutputTensor;
+using micro::kDepthwiseConvQuantizedDimension;
+using micro::kDepthwiseConvWeightsTensor;
 using micro::Register_DEPTHWISE_CONV_2D;
 using micro::Register_DEPTHWISE_CONV_2D_INT16;
 using micro::Register_DEPTHWISE_CONV_2D_INT4;
