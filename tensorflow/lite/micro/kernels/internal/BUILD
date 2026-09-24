@@ -55,7 +55,7 @@ tflm_cc_library(
     name = "quantization_util",
     srcs = ["quantization_util.cc"],
     hdrs = ["quantization_util.h"],
-    copts = tflm_copts() + tflite_copts(),
+    copts = tflite_copts(),
     deps = [
         ":compatibility",
         ":cppmath",
