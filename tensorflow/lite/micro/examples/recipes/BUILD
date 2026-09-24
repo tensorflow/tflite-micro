@@ -9,21 +9,15 @@ package(
 tflm_py_library(
     name = "add_four_numbers",
     srcs = ["add_four_numbers.py"],
+    data = ["add_four_numbers.tflite"],
     visibility = ["//:__subpackages__"],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
 )
 
 tflm_py_library(
     name = "resource_variables_lib",
     srcs = ["resource_variables_lib.py"],
+    data = ["resource_variables.tflite"],
     visibility = ["//:__subpackages__"],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
 )
 
 tflm_py_test(

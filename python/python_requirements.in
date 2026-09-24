@@ -32,5 +32,4 @@ numpy
 pillow
 protobuf
 pyyaml
-tensorflow
 twine

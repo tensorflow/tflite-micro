@@ -1,4 +1,3 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library")
 load(
     "//tensorflow:extra_rules.bzl",
@@ -89,24 +88,20 @@ tflm_cc_library(
 tflm_py_library(
     name = "generate_test_models_lib",
     srcs = ["generate_test_models.py"],
+    data = ["conv_test_model.tflite"],
     visibility = [
         ":tflite_micro",
     ],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
+    deps = [],
 )
 
 tflm_py_binary(
     name = "generate_test_models",
     srcs = ["generate_test_models.py"],
+    data = ["conv_test_model.tflite"],
     tags = [
         "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
+    deps = [],
 )

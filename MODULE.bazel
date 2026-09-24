@@ -62,14 +62,6 @@ PYTHON_VERSIONS = [
 
 pip.whl_mods(
     additive_build_content = """\
-load("@@//python:tensorflow_cc_targets.bzl", "extra_tensorflow_targets")
-extra_tensorflow_targets()
-""",
-    hub_name = "tflm_pip_deps_whl_mods",
-    whl_name = "tensorflow",
-)
-pip.whl_mods(
-    additive_build_content = """\
 load("@@//python:numpy_cc_targets.bzl", "extra_numpy_targets")
 extra_numpy_targets()
 """,
@@ -86,17 +78,12 @@ extra_numpy_targets()
         pip.parse(
             extra_hub_aliases = {
                 "numpy": ["cc_headers"],
-                "tensorflow": [
-                    "cc_headers",
-                    "cc_library",
-                ],
             },
             hub_name = "tflm_pip_deps",
             python_version = version,
             requirements_lock = "//python:python_requirements_%s.txt" % version.replace(".", "_"),
             whl_modifications = {
                 "@tflm_pip_deps_whl_mods//:numpy.json": "numpy",
-                "@tflm_pip_deps_whl_mods//:tensorflow.json": "tensorflow",
             },
         ),
     )
@@ -115,12 +102,8 @@ use_repo(
     pip,
     "tflm_pip_deps",
     "tflm_pip_deps_310_numpy",
-    "tflm_pip_deps_310_tensorflow",
     "tflm_pip_deps_311_numpy",
-    "tflm_pip_deps_311_tensorflow",
     "tflm_pip_deps_312_numpy",
-    "tflm_pip_deps_312_tensorflow",
     "tflm_pip_deps_313_numpy",
-    "tflm_pip_deps_313_tensorflow",
     "tflm_pip_deps_whl_mods",
 )

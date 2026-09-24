@@ -69,6 +69,10 @@ tflm_py_binary(
 tflm_py_test(
     name = "requantize_flatbuffer_test",
     srcs = ["requantize_flatbuffer_test.py"],
+    data = [
+        "simple_fc_int16.tflite",
+        "simple_fc_int8.tflite",
+    ],
     main = "requantize_flatbuffer_test.py",
     tags = [
         "noasan",
@@ -79,7 +83,6 @@ tflm_py_test(
     deps = [
         ":requantize_flatbuffer",
         requirement("numpy"),
-        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )
@@ -193,7 +196,6 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
 )

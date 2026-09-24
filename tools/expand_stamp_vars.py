@@ -31,6 +31,7 @@ bazel-out/volatile-status.txt. See the Bazel documentation for the option
 --workspace_status_command.
 """
 
+import os
 import sys
 
 
@@ -64,8 +65,9 @@ def _main():
   """Stamp variables are read from all files passed as positional arguments."""
   stamps = {}
   for name in sys.argv[1:]:
-    with open(name) as f:
-      stamps.update(read_stamps(f))
+    if os.path.exists(name):
+      with open(name) as f:
+        stamps.update(read_stamps(f))
 
   expand(sys.stdin, sys.stdout, stamps)
 
