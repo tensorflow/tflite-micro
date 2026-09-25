@@ -36,6 +36,7 @@ container. Uses bazel, but does not pollute the WORKSPACE's default cache.
 case "$1" in
     cp310|cp311|cp312|cp313|cp314)
         PY_TAG=$1
+        PY_VERSION=3.${PY_TAG#cp3}
         OUTDIR=$(realpath ${2:-$OUT_DIR_DEFAULT})
         mkdir -p $OUTDIR
         break
@@ -81,8 +82,9 @@ docker run \
     PY_PLATFORM=\$AUDITWHEEL_PLAT
     PY_COMPATIBILITY=${PY_TAG}_\${PY_ABI}_\${PY_PLATFORM}
 
-    # Link the desired Python version into the PATH, where bazel will find it.
-    # The build image contains many different Python versions as options.
+    # Link the desired Python version into the PATH for any tool that runs
+    # python3 from there. Bazel does not; its hermetic rules_python toolchain
+    # comes from the python_version flag passed below.
     ln -sf /opt/python/$PY_TAG-$PY_TAG/bin/* /usr/bin
 
     # Bazelisk fails if it can't check HOME for a .rc file., and pip (in
@@ -104,16 +106,20 @@ docker run \
                 --action_env=XDG_CACHE_HOME `# locate pip's cache inside OUTDIR`
     }
 
-    # Build the wheel via bazel, using the Python compatibility tag matching the
-    # build environment. Enable compression support for the official package.
+    # Build the wheel via bazel. The python_version flag selects the toolchain
+    # whose headers the extension modules compile against, and must agree with
+    # the compatibility tag, which only labels the wheel. Enable compression
+    # support for the official package.
     call_bazel build //python/tflite_micro:whl.dist \
         --compilation_mode=opt \
+        --@rules_python//python/config_settings:python_version=$PY_VERSION \
         --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
         --//:with_compression=true
 
     # Test in the container environment. Use the same options as the build.
     call_bazel test //python/tflite_micro:whl_test \
             --compilation_mode=opt \
+            --@rules_python//python/config_settings:python_version=$PY_VERSION \
             --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
             --//:with_compression=true
 EOF
