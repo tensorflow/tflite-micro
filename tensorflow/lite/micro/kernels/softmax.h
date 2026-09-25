@@ -47,7 +47,7 @@ inline TFLMRegistration Register_SOFTMAX_INT8_INT16() {
 }
 #endif
 
-#if defined(CMSIS_NN)
+#if defined(CMSIS_NN) || defined(XTENSA)
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 input/output and uses the latency optimized implementations.
 TFLMRegistration Register_SOFTMAX_INT8();
@@ -60,6 +60,10 @@ TFLMRegistration Register_SOFTMAX_INT16();
 inline TFLMRegistration Register_SOFTMAX_INT8() { return Register_SOFTMAX(); }
 
 inline TFLMRegistration Register_SOFTMAX_INT16() { return Register_SOFTMAX(); }
+#endif
+
+#if defined(XTENSA)
+TFLMRegistration Register_SOFTMAX_FLOAT32();
 #endif
 
 }  // namespace tflite

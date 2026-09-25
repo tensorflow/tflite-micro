@@ -30,7 +30,7 @@ limitations under the License.
 namespace tflite {
 namespace {
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 TfLiteStatus PrepareHifi(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
 
@@ -46,14 +46,33 @@ TfLiteStatus PrepareHifi(TfLiteContext* context, TfLiteNode* node) {
       MatchingDim(input_shape, trailing_dim, output_shape, trailing_dim);
 
   if (input->type == kTfLiteInt8) {
-    int required_scratch =
-        get_softmax_scratch_size(PREC_ASYM8S, PREC_ASYM8S, depth);
+    int required_scratch;
+    const int outer_size =
+        MatchingFlatSizeSkipDim(input_shape, trailing_dim, output_shape);
+    int lut_flag = (outer_size * depth) > 256? 1 : 0 ;
+    int depth_aligned = (depth+31)& ~31;
+    if(lut_flag)
+    {
+      required_scratch = 4 * 4 * depth_aligned; 
+    }
+    else{
+      required_scratch = 4 * depth_aligned; 
+    }
     TF_LITE_ENSURE(context, required_scratch > 0);
 
     auto* data = static_cast<XtensaSoftmaxOpData*>(node->user_data);
     TF_LITE_ENSURE_OK(
         context, context->RequestScratchBufferInArena(
                      context, required_scratch, &(data->scratch_tensor_index)));
+    if(lut_flag)
+    {
+    void* raw_lut = context->AllocatePersistentBuffer(
+        context, sizeof(int32_t) * 256);
+    TF_LITE_ENSURE(context, raw_lut != nullptr);
+    data->softmax_lut = reinterpret_cast<int32_t*>(raw_lut);
+    xa_nn_init_lut_asym8s_softmax(data->softmax_lut, data->params.diff_min,
+        data->params.input_multiplier,data->params.input_left_shift);
+    }
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
@@ -86,13 +105,13 @@ TfLiteStatus EvalHifi(const XtensaSoftmaxOpData* op_data,
   }
   return kTfLiteOk;
 }
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 }  // namespace
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length) {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaSoftmaxOpData));
@@ -105,11 +124,11 @@ void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                                            sizeof(XtensaSoftmaxOpData));
 #else
   return SoftmaxInit(context, buffer, length);
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 }
 
 TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   return PrepareHifi(context, node);
 #else
   TF_LITE_ENSURE_OK(context, SoftmaxPrepare(context, node));
@@ -127,7 +146,7 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
   TFLITE_DCHECK(node->user_data != nullptr);
 
   if (input->type == kTfLiteInt8 && output->type == kTfLiteInt16) {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
     return EvalHifi(static_cast<XtensaSoftmaxOpData*>(node->user_data), input,
                     output, context);
 #else
@@ -138,7 +157,7 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int16_t>(output));
     return kTfLiteOk;
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   } else {
     MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
                 input->type);
