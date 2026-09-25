@@ -56,17 +56,7 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 
 #endif  // USE_TFLM_COMPRESSION
 
-  if (bias != nullptr && bias->type != kTfLiteInt32 &&
-      bias->type != kTfLiteInt64) {
-    MicroPrintf("Bias type %s (%d) not supported.",
-                TfLiteTypeGetName(bias->type), bias->type);
-    return kTfLiteError;
-  }
-  const bool requires_int32_accum =
-      (bias != nullptr && bias->type == kTfLiteInt32) ||
-      (bias == nullptr && params.quantized_bias_type == kTfLiteInt32);
-
-  if (requires_int32_accum) {
+  if (bias != nullptr && bias->type == kTfLiteInt32) {
     reference_integer_ops::ConvPerChannel(
         ConvParamsQuantized(params, op_data),
         op_data.per_channel_output_multiplier, op_data.per_channel_output_shift,
@@ -78,16 +68,16 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
                                              weights_comp_td,
                                              op_data.weights_scratch_index),
         tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetOptionalTensorData<int32_t>(
+        tflite::micro::GetTensorData<int32_t>(
             micro_context, bias, bias_comp_td, op_data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetOptionalTensorData<std::int32_t>(bias),
+        tflite::micro::GetTensorData<std::int32_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int16_t>(output));
-  } else {
+  } else if (bias == nullptr || bias->type == kTfLiteInt64) {
     reference_integer_ops::ConvPerChannel(
         ConvParamsQuantized(params, op_data),
         op_data.per_channel_output_multiplier, op_data.per_channel_output_shift,
@@ -99,8 +89,8 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
                                              weights_comp_td,
                                              op_data.weights_scratch_index),
         tflite::micro::GetTensorShape(bias),
-        tflite::micro::GetOptionalTensorData<int64_t>(
-            micro_context, bias, bias_comp_td, op_data.bias_scratch_index),
+        tflite::micro::GetOptionalTensorData<int64_t>(micro_context, bias, bias_comp_td,
+                                              op_data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorData<int8_t>(filter),
         tflite::micro::GetTensorShape(bias),
@@ -108,6 +98,10 @@ TfLiteStatus ConvReferenceEvalInt16(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
         tflite::micro::GetTensorShape(output),
         tflite::micro::GetTensorData<int16_t>(output));
+  } else {
+    MicroPrintf("Bias type %s (%d) not supported.",
+                TfLiteTypeGetName(bias->type), bias->type);
+    return kTfLiteError;
   }
 
   return kTfLiteOk;
