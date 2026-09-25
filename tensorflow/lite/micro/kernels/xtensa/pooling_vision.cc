@@ -15,8 +15,7 @@ limitations under the License.
 #if defined(VISION_P6)
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/reference/pooling.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
@@ -26,7 +25,7 @@ limitations under the License.
 #define AVG_POOLING 1
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus PoolingPrepareVision(TfLiteContext* context, TfLiteNode* node,
                                   uint8_t pool_type) {
   TF_LITE_ENSURE_STATUS(PoolingPrepare(context, node));
@@ -112,6 +111,7 @@ TfLiteStatus PoolEvalVision(TfLiteContext* context, TfLiteNode* node,
          input_size, tflite::micro::GetTensorData<int8_t>(output), output_size);
   return kTfLiteOk;
 }
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // VISIONP6

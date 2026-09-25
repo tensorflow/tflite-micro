@@ -63,7 +63,7 @@ void RunModel(const uint8_t* model, const inputT* input0,
 
   TfLiteTensor* output_tensor = interpreter.output(0);
   EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(outputT));
-  outputT* output = ::tflite::GetTensorData<outputT>(output_tensor);
+  outputT* output = ::tflite::micro::GetTensorData<outputT>(output_tensor);
   for (uint32_t i = 0; i < golden_size; i++) {
     // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
     // off by 1.

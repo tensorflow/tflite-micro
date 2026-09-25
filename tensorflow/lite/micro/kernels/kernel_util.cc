@@ -16,7 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -210,7 +210,7 @@ void PrintNBytes(const TfLiteEvalTensor* tensor, int n_bytes,
 // same as the PrintNBytes above but the buffer needs to be extracted out of the
 // TfLiteEvalTensor*
 void PrintNBytes(const TfLiteTensor* tensor, int n_bytes, const char* prefix) {
-  const int8_t* tensor_data = tflite::GetTensorData<int8_t>(tensor);
+  const int8_t* tensor_data = tflite::micro::GetTensorData<int8_t>(tensor);
   PrintNBytes(tensor_data, n_bytes, prefix);
 }
 
@@ -290,7 +290,7 @@ TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
       context->GetScratchBuffer(context, scratch_buffer_index));
   new_tensor.dims = tensor->dims;
   new_tensor.type = kTfLiteInt8;
-  tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+  tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
       tflite::micro::GetTensorData<int8_t>(tensor),
       tflite::micro::GetTensorShape(tensor).FlatSize(),
       tflite::micro::GetTensorData<int8_t>(&new_tensor));

@@ -46,18 +46,18 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "third_party/hexagon/hexagon_fully_connected.h"
 #include "third_party/hexagon/hexagon_tflm_translation_fully_connected.h"
 
 namespace tflite {
+namespace micro {
 
 namespace {
 
@@ -69,21 +69,18 @@ TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
   float output_activation_min, output_activation_max;
   CalculateActivationRange(activation, &output_activation_min,
                            &output_activation_max);
-  tflite::FullyConnectedParams op_params;
+  FullyConnectedParams op_params;
   op_params.float_activation_min = output_activation_min;
   op_params.float_activation_max = output_activation_max;
 
   const float* bias_data =
-      nullptr != bias ? tflite::micro::GetTensorData<float>(bias) : nullptr;
+      nullptr != bias ? GetTensorData<float>(bias) : nullptr;
 
-  tflite::reference_ops::FullyConnected(
-      op_params, tflite::micro::GetTensorShape(input),
-      tflite::micro::GetTensorData<float>(input),
-      tflite::micro::GetTensorShape(filter),
-      tflite::micro::GetTensorData<float>(filter),
-      tflite::micro::GetTensorShape(bias), bias_data,
-      tflite::micro::GetTensorShape(output),
-      tflite::micro::GetTensorData<float>(output));
+  reference_ops::FullyConnected(
+      op_params, GetTensorShape(input), GetTensorData<float>(input),
+      GetTensorShape(filter), GetTensorData<float>(filter),
+      GetTensorShape(bias), bias_data, GetTensorShape(output),
+      GetTensorData<float>(output));
   return kTfLiteOk;
 }
 
@@ -96,13 +93,13 @@ TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context,
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedInputTensor);
+      GetEvalInput(context, node, kFullyConnectedInputTensor);
   const TfLiteEvalTensor* filter =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedWeightsTensor);
+      GetEvalInput(context, node, kFullyConnectedWeightsTensor);
   const TfLiteEvalTensor* bias =
-      tflite::micro::GetEvalInput(context, node, kFullyConnectedBiasTensor);
+      GetEvalInput(context, node, kFullyConnectedBiasTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
+      GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
 
@@ -116,21 +113,21 @@ TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context,
       return HexagonFullyConnectedEvalInt8(context, node);
 
     default:
-      MicroPrintf( "Type %s (%d) not supported.",
-                         TfLiteTypeGetName(input->type), input->type);
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
       return kTfLiteError;
   }
   return kTfLiteOk;
 }
 
 TFLMRegistration Register_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(HexagonFullyConnectedInit,
-                                   HexagonFullyConnectedPrepare,
-                                   HexagonFullyConnectedEval);
+  return RegisterOp(HexagonFullyConnectedInit, HexagonFullyConnectedPrepare,
+                    HexagonFullyConnectedEval);
 }
 
 TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(HexagonFullyConnectedEval);
+  return RegisterOp(HexagonFullyConnectedEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

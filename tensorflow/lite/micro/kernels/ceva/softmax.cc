@@ -13,18 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/softmax.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/softmax.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_common.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -33,6 +32,7 @@ limitations under the License.
 #endif
 
 namespace tflite {
+namespace micro {
 namespace {
 
 // Takes a tensor and performs softmax along the last dimension.
@@ -72,7 +72,7 @@ TfLiteStatus SoftmaxQuantizedCEVA(TfLiteContext* context,
                                   const SoftmaxParams& op_data) {
   if (input->type == kTfLiteInt8) {
     if (output->type == kTfLiteInt16) {
-      tflite::reference_ops::Softmax(
+      tflite::micro::reference_ops::Softmax(
           op_data, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorShape(output),
@@ -118,7 +118,7 @@ TfLiteStatus SoftmaxQuantizedCEVA(TfLiteContext* context,
 #endif
     }
   } else {
-    tflite::reference_ops::SoftmaxInt16(
+    tflite::micro::reference_ops::SoftmaxInt16(
         op_data, tflite::micro::GetTensorShape(input),
         tflite::micro::GetTensorData<int16_t>(input),
         tflite::micro::GetTensorShape(output),
@@ -164,4 +164,5 @@ TFLMRegistration Register_SOFTMAX() {
   return tflite::micro::RegisterOp(SoftmaxInit, SoftmaxPrepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

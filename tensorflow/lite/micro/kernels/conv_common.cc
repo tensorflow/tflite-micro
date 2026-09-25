@@ -16,14 +16,13 @@ limitations under the License.
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 const int kConvInputTensor = 0;
 const int kConvWeightsTensor = 1;
 const int kConvBiasTensor = 2;
@@ -114,7 +113,7 @@ TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
   if (data_type != kTfLiteFloat32) {
     int output_channels = filter->dims->data[kConvQuantizedDimension];
 
-    TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
+    TF_LITE_ENSURE_STATUS(PopulateConvolutionQuantizationParams(
         context, input, filter, bias, output, params.activation,
         &data->output_multiplier, &data->output_shift,
         &data->output_activation_min, &data->output_activation_max,
@@ -232,4 +231,5 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
 }
+}  // namespace micro
 }  // namespace tflite

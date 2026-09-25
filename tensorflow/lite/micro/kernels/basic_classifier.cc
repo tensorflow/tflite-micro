@@ -17,8 +17,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_common.h"
@@ -123,8 +122,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
+namespace micro {
 TFLMRegistration Register_BASIC_CLASSIFIER() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
+}  // namespace micro
 
 }  // namespace tflite

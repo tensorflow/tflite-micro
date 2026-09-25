@@ -13,11 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include "signal/micro/kernels/fft_auto_scale_kernel.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-
+namespace micro {
 constexpr int kInputTensor = 0;
 constexpr int kOutputTensor = 0;
 constexpr int kScaleBitTensor = 1;
@@ -51,4 +50,5 @@ TfLiteStatus FftAutoScalePrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

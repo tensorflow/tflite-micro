@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 #ifdef USE_TFLM_COMPRESSION
 
 struct DecompressionState {
@@ -82,6 +82,12 @@ struct DecompressionState {
   MicroProfilerInterface* micro_profiler_;
 };
 
+#endif  // USE_TFLM_COMPRESSION
+
+}  // namespace micro
+
+#ifdef USE_TFLM_COMPRESSION
+using micro::DecompressionState;
 #endif  // USE_TFLM_COMPRESSION
 
 }  // namespace tflite

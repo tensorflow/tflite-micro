@@ -18,11 +18,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 // For the TfLite transpose_conv implementation, input tensor 0 corresponds to
 // the OutputShapeTensor. However, since TFLM does not support dynamic tensors,
 // the TFLM implementation ignores input tensor 0 and the only inputs we care
@@ -58,6 +58,15 @@ inline TFLMRegistration Register_TRANSPOSE_CONV_INT8() {
 
 #endif
 
+}  // namespace micro
+
+using micro::kTransposeConvBiasTensor;
+using micro::kTransposeConvFilterTensor;
+using micro::kTransposeConvInputTensor;
+using micro::kTransposeConvOutputTensor;
+using micro::kTransposeConvQuantizedDimension;
+using micro::Register_TRANSPOSE_CONV;
+using micro::Register_TRANSPOSE_CONV_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_TRANSPOSE_CONV_H_

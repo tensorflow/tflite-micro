@@ -18,7 +18,7 @@ limitations under the License.
 #include <initializer_list>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_utils.h"
@@ -53,7 +53,7 @@ void ValidateReshapeGoldens(TfLiteTensor* tensors, int tensors_size,
   EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
   TfLiteTensor* output_tensor = &tensors[outputs_array->data[0]];
-  const T* output_data = GetTensorData<T>(output_tensor);
+  const T* output_data = tflite::micro::GetTensorData<T>(output_tensor);
   for (size_t i = 0; i < expected_output_len; ++i) {
     EXPECT_NEAR(expected_output[i], output_data[i], 1e-5f);
   }

@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_INTERFACE_H_
 
 #include "mli_api.h"  // NOLINT
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 namespace tflite {
 namespace ops {
 namespace micro {
@@ -69,6 +69,8 @@ class MliTensorInterface {
 };
 
 }  // namespace micro
+
+using micro::MliTensorInterface;
 }  // namespace ops
 }  // namespace tflite
 

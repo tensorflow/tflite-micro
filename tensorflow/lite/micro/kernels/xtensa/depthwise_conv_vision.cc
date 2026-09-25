@@ -19,18 +19,17 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/depthwise_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_depthwise_conv.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus DepthwiseConvPrepareVision(TfLiteContext* context,
                                         TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -127,7 +126,7 @@ TfLiteStatus DepthwiseConvPrepareVision(TfLiteContext* context,
         bytes_unpacked, tflite::MicroArenaBufferAlignment());
     filter_int8.dims = filter->dims;
     filter_int8.type = kTfLiteInt8;
-    tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+    tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
         GetTensorData<int8_t>(filter), GetTensorShape(filter).FlatSize(),
         GetTensorData<int8_t>(&filter_int8));
 
@@ -239,5 +238,6 @@ TfLiteStatus DepthwiseConvEvalVision(TfLiteContext* context, TfLiteNode* node,
       data.reference_op_data.padding.height);
   return kTfLiteOk;
 }
+}  // namespace micro
 }  // namespace tflite
 #endif  // defined(VISION_P6)

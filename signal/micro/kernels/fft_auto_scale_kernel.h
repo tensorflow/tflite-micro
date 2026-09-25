@@ -18,9 +18,10 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus FftAutoScalePrepare(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // SIGNAL_MICRO_KERNELS_FFT_AUTO_SCALE_KERNEL_H_

@@ -20,11 +20,11 @@ limitations under the License.
 #include <limits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {

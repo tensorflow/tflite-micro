@@ -28,6 +28,11 @@ namespace tflite {
 namespace testing {
 namespace {
 
+using micro::kFullyConnectedBiasTensor;
+using micro::kFullyConnectedInputTensor;
+using micro::kFullyConnectedOutputTensor;
+using micro::kFullyConnectedWeightsTensor;
+
 // Simple test data for 2x2x10 input 2x3x10 weights.
 const int simple_input_size = 20;
 int simple_input_dims[] = {2, 2, 10};

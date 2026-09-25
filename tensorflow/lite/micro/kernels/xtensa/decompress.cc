@@ -20,7 +20,7 @@ limitations under the License.
 #include <cstddef>
 #include <type_traits>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -31,6 +31,7 @@ limitations under the License.
 #endif  // HIFI5
 
 namespace tflite {
+namespace micro {
 namespace {
 
 #ifdef HIFI5
@@ -713,6 +714,7 @@ template int64_t* DecompressionState::DecompressToBuffer<int64_t>(void*);
 
 #endif  // HIFI5
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // USE_TFLM_COMPRESSION

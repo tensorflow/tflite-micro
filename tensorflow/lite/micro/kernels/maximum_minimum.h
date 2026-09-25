@@ -18,17 +18,16 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/maximum_minimum.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/maximum_minimum.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 // This file has a reference implementation of TFMaximum/TFMinimum.
 enum KernelType {
   kReference,
@@ -100,6 +99,19 @@ inline TFLMRegistration Register_MINIMUM_INT8() { return Register_MINIMUM(); }
 
 #endif
 
+}  // namespace micro
+
+using micro::kInputTensor1;
+using micro::kInputTensor2;
+using micro::kOutputTensor;
+
+using micro::MaximumOp;
+using micro::MinimumOp;
+using micro::OpContext;
+using micro::Register_MAXIMUM;
+using micro::Register_MAXIMUM_INT8;
+using micro::Register_MINIMUM;
+using micro::Register_MINIMUM_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_MAXIMUM_MINIMUM_H_

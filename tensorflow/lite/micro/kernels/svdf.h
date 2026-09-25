@@ -19,7 +19,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 struct OpDataSvdf {
   int32_t effective_scale_1_a;
   int32_t effective_scale_2_a;
@@ -95,6 +95,18 @@ TFLMRegistration Register_SVDF_INT8();
 inline TFLMRegistration Register_SVDF_INT8() { return Register_SVDF(); }
 
 #endif
+
+}  // namespace micro
+extern const int kSvdfInputTensor;
+extern const int kSvdfWeightsFeatureTensor;
+extern const int kSvdfWeightsTimeTensor;
+extern const int kSvdfBiasTensor;
+extern const int kSvdfInputActivationStateTensor;
+extern const int kSvdfOutputTensor;
+
+using micro::OpDataSvdf;
+using micro::Register_SVDF;
+using micro::Register_SVDF_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_SVDF_H_

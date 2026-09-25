@@ -18,11 +18,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 struct OpDataFullyConnected {
   // The scaling factor from input to output (aka the 'real multiplier') can
   // be represented as a fixed point multiplier plus a left shift.
@@ -127,6 +127,17 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT4() {
 
 #endif
 
+}  // namespace micro
+extern const int kFullyConnectedInputTensor;
+extern const int kFullyConnectedWeightsTensor;
+extern const int kFullyConnectedBiasTensor;
+extern const int kFullyConnectedOutputTensor;
+
+using micro::OpDataFullyConnected;
+using micro::Register_FULLY_CONNECTED;
+using micro::Register_FULLY_CONNECTED_INT16;
+using micro::Register_FULLY_CONNECTED_INT4;
+using micro::Register_FULLY_CONNECTED_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_FULLY_CONNECTED_H_

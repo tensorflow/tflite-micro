@@ -29,6 +29,8 @@ limitations under the License.
 
 // TODO(b/230666079) enable below tests for xtensa when the xtensa
 // kernel is reconciled with reference kernel
+namespace tflite {
+namespace testing {
 #if !defined(XTENSA)
 namespace {
 // Test Settings
@@ -49,14 +51,12 @@ TEST(LstmEvalTest, CheckGateOutputFloat) {
 
   // Forget gate
   tflite::testing::TestCalculateLstmGateFloat<2, 2>(
-      float_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      float_node_contents.GetEvalTensor(
-          tflite::kLstmInputToForgetWeightsTensor),
-      float_node_contents.GetEvalTensor(tflite::kLstmForgetGateBiasTensor),
+      float_node_contents.GetEvalTensor(kLstmInputTensor),
+      float_node_contents.GetEvalTensor(kLstmInputToForgetWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmForgetGateBiasTensor),
       // Recurrent FC
       float_node_contents.HiddenStateEvalTensor(),
-      float_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToForgetWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmRecurrentToForgetWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Result comparison
       kTfLiteActSigmoid, gate_output_data.expected_forget_gate_output,
@@ -64,13 +64,12 @@ TEST(LstmEvalTest, CheckGateOutputFloat) {
 
   // Input gate
   tflite::testing::TestCalculateLstmGateFloat<2, 2>(
-      float_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      float_node_contents.GetEvalTensor(tflite::kLstmInputToInputWeightsTensor),
-      float_node_contents.GetEvalTensor(tflite::kLstmInputGateBiasTensor),
+      float_node_contents.GetEvalTensor(kLstmInputTensor),
+      float_node_contents.GetEvalTensor(kLstmInputToInputWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmInputGateBiasTensor),
       // Recurrent FC
       float_node_contents.HiddenStateEvalTensor(),
-      float_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToInputWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmRecurrentToInputWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Result comparison
       kTfLiteActSigmoid, gate_output_data.expected_input_gate_output,
@@ -78,14 +77,12 @@ TEST(LstmEvalTest, CheckGateOutputFloat) {
 
   // Output gate
   tflite::testing::TestCalculateLstmGateFloat<2, 2>(
-      float_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      float_node_contents.GetEvalTensor(
-          tflite::kLstmInputToOutputWeightsTensor),
-      float_node_contents.GetEvalTensor(tflite::kLstmOutputGateBiasTensor),
+      float_node_contents.GetEvalTensor(kLstmInputTensor),
+      float_node_contents.GetEvalTensor(kLstmInputToOutputWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmOutputGateBiasTensor),
       // Recurrent FC
       float_node_contents.HiddenStateEvalTensor(),
-      float_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToOutputWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmRecurrentToOutputWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Result comparison
       kTfLiteActSigmoid, gate_output_data.expected_output_gate_output,
@@ -93,13 +90,12 @@ TEST(LstmEvalTest, CheckGateOutputFloat) {
 
   // Cell gate
   tflite::testing::TestCalculateLstmGateFloat<2, 2>(
-      float_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      float_node_contents.GetEvalTensor(tflite::kLstmInputToCellWeightsTensor),
-      float_node_contents.GetEvalTensor(tflite::kLstmCellGateBiasTensor),
+      float_node_contents.GetEvalTensor(kLstmInputTensor),
+      float_node_contents.GetEvalTensor(kLstmInputToCellWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmCellGateBiasTensor),
       // Recurrent FC
       float_node_contents.HiddenStateEvalTensor(),
-      float_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToCellWeightsTensor),
+      float_node_contents.GetEvalTensor(kLstmRecurrentToCellWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Result comparison
       float_node_contents.BuiltinData().activation,
@@ -119,13 +115,12 @@ TEST(LstmEvalTest, CheckGateOutputInt8) {
   float tolerance = 1e-1f;
   tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
                                                 int16_t, 2, 2>(
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputToForgetWeightsTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmForgetGateBiasTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputToForgetWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmForgetGateBiasTensor),
       // Recurrent FC
       int8_node_contents.HiddenStateEvalTensor(),
-      int8_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToForgetWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmRecurrentToForgetWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int8_node_contents.QuantizationSettings(),
@@ -139,13 +134,12 @@ TEST(LstmEvalTest, CheckGateOutputInt8) {
   tolerance = 1e-1f;
   tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
                                                 int16_t, 2, 2>(
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputToInputWeightsTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputGateBiasTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputToInputWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputGateBiasTensor),
       // Recurrent FC
       int8_node_contents.HiddenStateEvalTensor(),
-      int8_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToInputWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmRecurrentToInputWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int8_node_contents.QuantizationSettings(),
@@ -158,13 +152,12 @@ TEST(LstmEvalTest, CheckGateOutputInt8) {
   tolerance = 1e-2f;
   tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
                                                 int16_t, 2, 2>(
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputToOutputWeightsTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmOutputGateBiasTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputToOutputWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmOutputGateBiasTensor),
       // Recurrent FC
       int8_node_contents.HiddenStateEvalTensor(),
-      int8_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToOutputWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmRecurrentToOutputWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int8_node_contents.QuantizationSettings(),
@@ -177,13 +170,12 @@ TEST(LstmEvalTest, CheckGateOutputInt8) {
   tolerance = 1e-2f;
   tflite::testing::TestCalculateLstmGateInteger<int8_t, int8_t, int32_t,
                                                 int16_t, 2, 2>(
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmInputToCellWeightsTensor),
-      int8_node_contents.GetEvalTensor(tflite::kLstmCellGateBiasTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputTensor),
+      int8_node_contents.GetEvalTensor(kLstmInputToCellWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmCellGateBiasTensor),
       // Recurrent FC
       int8_node_contents.HiddenStateEvalTensor(),
-      int8_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToCellWeightsTensor),
+      int8_node_contents.GetEvalTensor(kLstmRecurrentToCellWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int8_node_contents.QuantizationSettings(),
@@ -207,14 +199,12 @@ TEST(LstmEvalTest, CheckGateOutputInt16) {
   float tolerance = 1e-1f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int16_node_contents.GetEvalTensor(
-          tflite::kLstmInputToForgetWeightsTensor),
-      int16_node_contents.GetEvalTensor(tflite::kLstmForgetGateBiasTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputToForgetWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmForgetGateBiasTensor),
       // Recurrent FC
       int16_node_contents.HiddenStateEvalTensor(),
-      int16_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToForgetWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmRecurrentToForgetWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int16_node_contents.QuantizationSettings(),
@@ -228,13 +218,12 @@ TEST(LstmEvalTest, CheckGateOutputInt16) {
   tolerance = 1e-1f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputToInputWeightsTensor),
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputGateBiasTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputToInputWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputGateBiasTensor),
       // Recurrent FC
       int16_node_contents.HiddenStateEvalTensor(),
-      int16_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToInputWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmRecurrentToInputWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int16_node_contents.QuantizationSettings(),
@@ -248,14 +237,12 @@ TEST(LstmEvalTest, CheckGateOutputInt16) {
   tolerance = 1e-4f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int16_node_contents.GetEvalTensor(
-          tflite::kLstmInputToOutputWeightsTensor),
-      int16_node_contents.GetEvalTensor(tflite::kLstmOutputGateBiasTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputToOutputWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmOutputGateBiasTensor),
       // Recurrent FC
       int16_node_contents.HiddenStateEvalTensor(),
-      int16_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToOutputWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmRecurrentToOutputWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int16_node_contents.QuantizationSettings(),
@@ -268,13 +255,12 @@ TEST(LstmEvalTest, CheckGateOutputInt16) {
   tolerance = 1e-4f;
   tflite::testing::TestCalculateLstmGateInteger<int16_t, int8_t, int64_t,
                                                 int16_t, 2, 2>(
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputTensor),
-      int16_node_contents.GetEvalTensor(tflite::kLstmInputToCellWeightsTensor),
-      int16_node_contents.GetEvalTensor(tflite::kLstmCellGateBiasTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputTensor),
+      int16_node_contents.GetEvalTensor(kLstmInputToCellWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmCellGateBiasTensor),
       // Recurrent FC
       int16_node_contents.HiddenStateEvalTensor(),
-      int16_node_contents.GetEvalTensor(
-          tflite::kLstmRecurrentToCellWeightsTensor),
+      int16_node_contents.GetEvalTensor(kLstmRecurrentToCellWeightsTensor),
       nullptr,  // bias fused to activation FC,
       // Quantization settings
       int16_node_contents.QuantizationSettings(),
@@ -454,5 +440,7 @@ TEST(LstmEvalTest, TestLSTMEvalInt16) {
                                        int16_node_contents);
 }
 #endif  // !defined(XTENSA)
+}  // namespace testing
+}  // namespace tflite
 
 TF_LITE_MICRO_TESTS_MAIN

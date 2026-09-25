@@ -16,14 +16,14 @@ limitations under the License.
 #include <stdint.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/pooling.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 // Input/output tensor index.
@@ -93,7 +93,8 @@ TfLiteStatus L2Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void L2EvalFloat(const TfLitePoolParams& params, const TfLiteEvalTensor& input,
-                 tflite::PoolParams* op_params, TfLiteEvalTensor* output) {
+                 tflite::micro::PoolParams* op_params,
+                 TfLiteEvalTensor* output) {
   float activation_min, activation_max;
   CalculateActivationRange(params.activation, &activation_min, &activation_max);
 
@@ -113,7 +114,7 @@ TfLiteStatus L2Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kInputTensor);
 
-  tflite::PoolParams op_params;
+  tflite::micro::PoolParams op_params;
   op_params.stride_height = params->stride_height;
   op_params.stride_width = params->stride_width;
   op_params.filter_height = params->filter_height;
@@ -139,4 +140,5 @@ TFLMRegistration Register_L2_POOL_2D() {
   return tflite::micro::RegisterOp(nullptr, L2Prepare, L2Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

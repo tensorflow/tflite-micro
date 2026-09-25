@@ -17,18 +17,18 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/softmax.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/softmax.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_softmax.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
@@ -85,7 +85,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
         context, node, *(static_cast<XtensaSoftmaxOpData*>(node->user_data)),
         input, output);
 #else
-    tflite::reference_ops::Softmax(
+    tflite::micro::reference_ops::Softmax(
         params, tflite::micro::GetTensorShape(input),
         tflite::micro::GetTensorData<int8_t>(input),
         tflite::micro::GetTensorShape(output),
@@ -95,7 +95,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   if (input->type == kTfLiteInt16 && output->type == kTfLiteInt16) {
-    tflite::reference_ops::SoftmaxInt16(
+    tflite::micro::reference_ops::SoftmaxInt16(
         params, tflite::micro::GetTensorShape(input),
         tflite::micro::GetTensorData<int16_t>(input),
         tflite::micro::GetTensorShape(output),
@@ -104,10 +104,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   }
 
   if (input->type == kTfLiteFloat32) {
-    tflite::reference_ops::Softmax(params, tflite::micro::GetTensorShape(input),
-                                   tflite::micro::GetTensorData<float>(input),
-                                   tflite::micro::GetTensorShape(output),
-                                   tflite::micro::GetTensorData<float>(output));
+    tflite::micro::reference_ops::Softmax(
+        params, tflite::micro::GetTensorShape(input),
+        tflite::micro::GetTensorData<float>(input),
+        tflite::micro::GetTensorShape(output),
+        tflite::micro::GetTensorData<float>(output));
     return kTfLiteOk;
   }
 
@@ -123,4 +124,5 @@ TFLMRegistration Register_SOFTMAX() {
                                    Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite
