@@ -1,3 +1,5 @@
+load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
@@ -31,5 +33,22 @@ tflm_cc_library(
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels:lstm_shared",
+    ],
+)
+
+tflm_py_library(
+    name = "lstm_test_data_utils",
+    srcs = ["lstm_test_data_utils.py"],
+    deps = [
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "lstm_test_data_generator_test",
+    srcs = ["lstm_test_data_generator_test.py"],
+    deps = [
+        ":lstm_test_data_utils",
+        requirement("numpy"),
     ],
 )

@@ -18,16 +18,8 @@ import os
 import numpy as np
 from tflite_micro.python.tflite_micro import runtime
 
-OpResolverType = None
-try:
-  import ai_edge_litert.interpreter as tflite_interp
-  from ai_edge_litert.interpreter import OpResolverType
-except ImportError:
-  try:
-    import tflite_runtime.interpreter as tflite_interp
-    from tflite_runtime.interpreter import OpResolverType
-  except ImportError:
-    raise ImportError("Could not import ai_edge_litert or tflite_runtime.")
+import ai_edge_litert.interpreter as tflite_interp
+from ai_edge_litert.interpreter import OpResolverType
 
 _PREFIX_PATH = os.path.dirname(__file__)
 

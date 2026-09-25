@@ -14,7 +14,6 @@
 # =============================================================================
 import unittest
 import numpy as np
-import tensorflow as tf
 
 from tflite_micro.tensorflow.lite.micro.kernels.testdata import (
   lstm_test_data_utils,
@@ -61,20 +60,29 @@ _KERNEL_INITIALIZATION_SETTINGS = {
 }
 
 
+class _StatefulOnesLSTM:
+  """Stateful reference LSTM with units=2, ones weights, and zeros biases."""
+
+  def __init__(self, units=2):
+    self.h = np.zeros((units, 1), dtype=np.float64)
+    self.c = np.zeros((units, 1), dtype=np.float64)
+    self.w = np.ones((units, units), dtype=np.float64)
+    self.u = np.ones((units, units), dtype=np.float64)
+
+  def predict(self, x):
+    x_col = np.asarray(x, dtype=np.float64).reshape(-1, 1)
+    z = np.dot(self.w, x_col) + np.dot(self.u, self.h)
+    gate = 1.0 / (1.0 + np.exp(-z))
+    candidate = np.tanh(z)
+    self.c = gate * self.c + gate * candidate
+    self.h = gate * np.tanh(self.c)
+    return self.h.reshape(1, 1, -1), self.h.T, self.c.T
+
+
 def create_keras_lstm(stateful=True):
-  """Create a keras model with LSTM layer only for testing"""
-  input_layer = tf.keras.layers.Input(shape=(1, 2), batch_size=1, name="input")
-  lstm_output = tf.keras.layers.LSTM(
-    units=2,
-    return_sequences=True,
-    stateful=stateful,
-    unit_forget_bias=False,
-    return_state=True,
-    kernel_initializer="ones",
-    recurrent_initializer="ones",
-    bias_initializer="zeros",
-  )(input_layer)
-  return tf.keras.Model(input_layer, lstm_output, name="LSTM")
+  """Create a stateful reference LSTM with ones weights and zeros biases."""
+  del stateful
+  return _StatefulOnesLSTM(units=2)
 
 
 class QuantizedLSTMDebuggerTest(unittest.TestCase):

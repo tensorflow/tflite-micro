@@ -100,7 +100,6 @@ tflm_py_binary(
     srcs = ["generate_test_models.py"],
     data = ["conv_test_model.tflite"],
     tags = [
-        "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
     deps = [],

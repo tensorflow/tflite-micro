@@ -25,12 +25,8 @@ import weakref
 
 import numpy as np
 
-try:
-  import ai_edge_litert.interpreter as tflite_interp
-  from ai_edge_litert.interpreter import OpResolverType
-except ImportError:
-  import tflite_runtime.interpreter as tflite_interp
-  from tflite_runtime.interpreter import OpResolverType
+import ai_edge_litert.interpreter as tflite_interp
+from ai_edge_litert.interpreter import OpResolverType
 
 from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.examples.recipes import add_four_numbers
