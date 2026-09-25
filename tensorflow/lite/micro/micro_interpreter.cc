@@ -222,9 +222,9 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kMemoryPlanning);
 
-  TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
-                                   model_, graph_.GetAllocations(),
-                                   &scratch_buffer_handles_));
+  TF_LITE_ENSURE_STATUS(allocator_.FinishModelAllocation(
+      model_, graph_.GetAllocations(),
+      &scratch_buffer_handles_));
 
   micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
 
@@ -289,7 +289,7 @@ TfLiteStatus MicroInterpreter::Invoke() {
   // Ensure tensors are allocated before the interpreter is invoked to avoid
   // difficult to debug segfaults.
   if (!tensors_allocated_) {
-    TF_LITE_ENSURE_OK(&context_, AllocateTensors());
+    TF_LITE_ENSURE_STATUS(AllocateTensors());
   }
   return graph_.InvokeSubgraph(0);
 }
