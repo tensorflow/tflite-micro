@@ -117,9 +117,6 @@ class Interpreter(object):
       arena_size = len(model_data) * 10
     # Some models make use of resource variables ops, get the count here
     num_resource_variables = count_resource_variables(model_data)
-    print(
-      "Number of resource variables the model uses = ", num_resource_variables
-    )
 
     self._interpreter = _runtime.InterpreterWrapper(
       model_data,
