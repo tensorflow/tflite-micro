@@ -217,6 +217,27 @@ tflm_py_binary(
     ],
 )
 
+tflm_py_test(
+    name = "audio_preprocessor_test",
+    size = "small",
+    srcs = ["audio_preprocessor_test.py"],
+    data = [
+        ":models_tflite",
+        ":samples_30ms",
+    ],
+    main = "audio_preprocessor_test.py",
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":audio_preprocessor",
+        requirement("numpy"),
+    ],
+)
+
 tflm_py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],

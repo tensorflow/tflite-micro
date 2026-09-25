@@ -32,7 +32,6 @@ tflm_py_test(
         allow_empty = True,
     ),
     tags = [
-        "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "notap",  # TODO(b/186679612)
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],

@@ -27,24 +27,8 @@ from tflite_micro.tensorflow.lite.micro.tools import (
 )
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 
-OpResolverType = None
-try:
-  import ai_edge_litert.interpreter as tflite_interp
-
-  try:
-    from ai_edge_litert.interpreter import OpResolverType
-  except ImportError:
-    pass
-except ImportError:
-  try:
-    import tflite_runtime.interpreter as tflite_interp
-
-    try:
-      from tflite_runtime.interpreter import OpResolverType
-    except ImportError:
-      pass
-  except ImportError:
-    raise ImportError("Could not import ai_edge_litert or tflite_runtime.")
+import ai_edge_litert.interpreter as tflite_interp
+from ai_edge_litert.interpreter import OpResolverType
 
 np.set_printoptions(threshold=sys.maxsize)
 

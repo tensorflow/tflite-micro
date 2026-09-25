@@ -43,7 +43,7 @@ try:
 
   _HAS_TF = True
   _TF_MODULE_BASE = tf.Module
-except ImportError:
+except Exception:
   tf = None
   _HAS_TF = False
   _TF_MODULE_BASE = object
