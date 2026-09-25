@@ -126,6 +126,7 @@ tflm_py_library(
     ],
     deps = [
         ":compressor",
+        ":constant_inputs",
         ":decode_insert",
         ":huffman",
         ":lut",
@@ -374,6 +375,33 @@ tflm_py_library(
 )
 
 tflm_py_library(
+    name = "constant_inputs",
+    srcs = ["constant_inputs.py"],
+    deps = [
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+tflm_py_test(
+    name = "constant_inputs_test",
+    size = "small",
+    srcs = ["constant_inputs_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",  # Sanitizer symbols don't work with Python extension libs
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":constant_inputs",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_library(
     name = "lut",
     srcs = ["lut.py"],
     deps = [
@@ -471,6 +499,44 @@ tflm_py_test(
         ":model_editor",
         ":spec",
         "//python/tflite_micro:runtime",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_library(
+    name = "propose_spec_lib",
+    srcs = ["propose_spec.py"],
+    deps = [
+        ":constant_inputs",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_binary(
+    name = "propose_spec",
+    srcs = ["propose_spec.py"],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":propose_spec_lib",
+    ],
+)
+
+tflm_py_test(
+    name = "propose_spec_test",
+    size = "small",
+    srcs = ["propose_spec_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",  # Sanitizer symbols don't work with Python extension libs
+        "noubsan",
+    ],
+    deps = [
+        ":model_editor",
+        ":propose_spec_lib",
+        ":spec",
         "//tensorflow/lite/python:schema_py",
         requirement("numpy"),
     ],
