@@ -216,6 +216,15 @@ class Tensor:
     self._fb.name = value
 
   @property
+  def is_variable(self) -> bool:
+    """True when kernels keep state in the tensor across invocations."""
+    return bool(self._fb.isVariable)
+
+  @is_variable.setter
+  def is_variable(self, value: bool):
+    self._fb.isVariable = value
+
+  @property
   def array(self) -> Optional[np.ndarray]:
     """Get tensor data as properly-shaped numpy array.
 
@@ -389,6 +398,18 @@ class OperatorCode:
   @version.setter
   def version(self, value: int):
     self._fb.version = value
+
+
+def describe_operators(indices: List[int]) -> str:
+  """Names operators by index for a message, e.g. "operators 0, 1, 2".
+
+  More than four operators are summarized by their count.
+  """
+  if len(indices) == 1:
+    return f"operator {indices[0]}"
+  if len(indices) <= 4:
+    return "operators " + ", ".join(str(i) for i in indices)
+  return f"{len(indices)} operators"
 
 
 _BUILTIN_OPERATOR_NAMES = {
@@ -697,7 +718,7 @@ def dedupe_buffers(model: Model) -> None:
   """
   canonical: dict[bytes, Buffer] = {}
   for tensor in iter_tensors(model):
-    if tensor.buffer is None or tensor._fb.isVariable:
+    if tensor.buffer is None or tensor.is_variable:
       continue
     existing = canonical.get(tensor.buffer.data)
     if existing is None:

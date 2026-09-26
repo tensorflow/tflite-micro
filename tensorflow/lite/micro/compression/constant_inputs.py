@@ -73,12 +73,7 @@ class Use:
 
   def describe(self) -> str:
     """Describes the use in one line for an error message."""
-    if len(self.operators) == 1:
-      where = f"operator {self.operators[0]}"
-    elif len(self.operators) <= 4:
-      where = "operators " + ", ".join(str(i) for i in self.operators)
-    else:
-      where = f"{len(self.operators)} operators"
+    where = model_editor.describe_operators(list(self.operators))
     return (
       f"{self.operator_name} rejects a non-constant "
       f"{self.input_name!r} at input {self.position} ({where})"
