@@ -102,7 +102,7 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT8() {
 
 #endif
 
-#if defined(CMSIS_NN)
+#if defined(CMSIS_NN) || defined(XTENSA)
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int16.
 TFLMRegistration Register_FULLY_CONNECTED_INT16();
@@ -124,6 +124,12 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT16() {
 inline TFLMRegistration Register_FULLY_CONNECTED_INT4() {
   return Register_FULLY_CONNECTED();
 }
+
+#endif
+
+#if defined(XTENSA)
+
+TFLMRegistration Register_FULLY_CONNECTED_FLOAT32();
 
 #endif
 
