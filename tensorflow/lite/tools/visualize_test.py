@@ -18,8 +18,8 @@ import re
 import tempfile
 import unittest
 
-from tflite_micro.tensorflow.lite.tools import test_utils
-from tflite_micro.tensorflow.lite.tools import visualize
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.tools import test_utils
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.tools import visualize
 
 
 class VisualizeTest(unittest.TestCase):

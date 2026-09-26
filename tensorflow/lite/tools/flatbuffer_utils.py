@@ -31,8 +31,8 @@ import os
 
 import flatbuffers
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
-from tflite_micro.tensorflow.lite.python import schema_util
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.python import schema_util
 
 _TFLITE_FILE_IDENTIFIER = b'TFL3'
 

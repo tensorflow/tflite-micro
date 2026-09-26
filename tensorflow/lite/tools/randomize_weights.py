@@ -16,7 +16,7 @@ r"""Randomize all weights in a tflite file."""
 
 import argparse
 
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
 def main():

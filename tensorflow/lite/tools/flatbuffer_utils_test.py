@@ -20,9 +20,9 @@ import sys
 import tempfile
 import unittest
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-from tflite_micro.tensorflow.lite.tools import test_utils
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.python import schema_py_generated as schema
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.tools import test_utils
 
 _SKIPPED_BUFFER_INDEX = 1
 

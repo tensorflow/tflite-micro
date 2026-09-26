@@ -16,7 +16,7 @@ r"""Strips all nonessential strings from a TFLite file."""
 
 import argparse
 
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite_micro.tensorflow.lite.tools import flatbuffer_utils
 
 
 def main():
