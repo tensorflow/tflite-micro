@@ -15,6 +15,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 
+#include <cstddef>
 #include <vector>
 
 #include "tensorflow/lite/c/common.h"
@@ -42,6 +43,8 @@ inline const T* GetTensorData(const TfLiteTensor* tensor) {
 TFLITE_NOINLINE RuntimeShape GetTensorShape(const TfLiteTensor* tensor);
 RuntimeShape GetTensorShape(std::vector<int32_t> data);
 #endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
+
+RuntimeShape GetTensorShape(std::nullptr_t);
 
 }  // namespace micro
 
