@@ -15,6 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace tflite {
@@ -34,6 +35,8 @@ RuntimeShape GetTensorShape(const TfLiteTensor* tensor) {
 RuntimeShape GetTensorShape(std::vector<int32_t> data) {
   return RuntimeShape(data.size(), data.data());
 }
+
+RuntimeShape GetTensorShape(std::nullptr_t) { return RuntimeShape(); }
 
 }  // namespace micro
 }  // namespace tflite
