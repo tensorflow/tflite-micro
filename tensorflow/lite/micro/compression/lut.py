@@ -73,6 +73,9 @@ class LutAncillaryData:
   # Byte 5 axis field value meaning one value table for the whole tensor.
   PER_TENSOR_AXIS: ClassVar[int] = 0xF
 
+  # Widest index the byte 5 bitwidth field can express.
+  MAX_BITWIDTH: ClassVar[int] = 7
+
   lut_version: int = 1
   bitwidth: int = 4
   axis: int = 0
@@ -80,8 +83,10 @@ class LutAncillaryData:
   value_tables: bytes = b''
 
   def __post_init__(self):
-    if not 1 <= self.bitwidth <= 7:
-      raise ValueError(f"bitwidth must be 1-7, got {self.bitwidth}")
+    if not 1 <= self.bitwidth <= self.MAX_BITWIDTH:
+      raise ValueError(
+        f"bitwidth must be 1-{self.MAX_BITWIDTH}, got {self.bitwidth}"
+      )
     if not 0 <= self.axis <= 15:
       raise ValueError(f"axis must be 0-15, got {self.axis}")
     if not 0 <= self.value_table_stride <= 128:
