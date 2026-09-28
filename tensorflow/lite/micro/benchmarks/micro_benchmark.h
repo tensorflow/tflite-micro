@@ -63,7 +63,7 @@ class MicroBenchmarkRunner {
 
     // Pre-populate input tensor with random values.
     int input_length = input->bytes / sizeof(inputT);
-    inputT* input_values = tflite::GetTensorData<inputT>(input);
+    inputT* input_values = tflite::micro::GetTensorData<inputT>(input);
     for (int i = 0; i < input_length; i++) {
       // Pre-populate input tensor with a random value based on a constant seed.
       input_values[i] = static_cast<inputT>(
@@ -74,7 +74,7 @@ class MicroBenchmarkRunner {
 
   void SetInput(const inputT* custom_input, int input_index = 0) {
     TfLiteTensor* input = interpreter_.input(input_index);
-    inputT* input_buffer = tflite::GetTensorData<inputT>(input);
+    inputT* input_buffer = tflite::micro::GetTensorData<inputT>(input);
     int input_length = input->bytes / sizeof(inputT);
     for (int i = 0; i < input_length; i++) {
       input_buffer[i] = custom_input[i];

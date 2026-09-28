@@ -46,19 +46,19 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "third_party/hexagon/hexagon_svdf.h"
 #include "third_party/hexagon/hexagon_tflm_translation_svdf.h"
 
 namespace tflite {
+namespace micro {
 
 TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
@@ -66,20 +66,17 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
   const HexagonOpDataSvdf& data =
       *(static_cast<const HexagonOpDataSvdf*>(node->user_data));
 
-  const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* input = GetEvalInput(context, node, kSvdfInputTensor);
   const TfLiteEvalTensor* weights_feature =
-      tflite::micro::GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+      GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
   const TfLiteEvalTensor* weights_time =
-      tflite::micro::GetEvalInput(context, node, kSvdfWeightsTimeTensor);
+      GetEvalInput(context, node, kSvdfWeightsTimeTensor);
   const TfLiteEvalTensor* bias =
-      (NumInputs(node) == 5)
-          ? tflite::micro::GetEvalInput(context, node, kSvdfBiasTensor)
-          : nullptr;
-  TfLiteEvalTensor* activation_state = tflite::micro::GetMutableEvalInput(
-      context, node, kSvdfInputActivationStateTensor);
-  TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kSvdfOutputTensor);
+      (NumInputs(node) == 5) ? GetEvalInput(context, node, kSvdfBiasTensor)
+                             : nullptr;
+  TfLiteEvalTensor* activation_state =
+      GetMutableEvalInput(context, node, kSvdfInputActivationStateTensor);
+  TfLiteEvalTensor* output = GetEvalOutput(context, node, kSvdfOutputTensor);
 
   switch (weights_feature->type) {
     case kTfLiteFloat32: {
@@ -96,16 +93,16 @@ TfLiteStatus SvdfEval(TfLiteContext* context, TfLiteNode* node) {
     }
 
     default:
-      MicroPrintf( "Type %s not currently supported.",
-                         TfLiteTypeGetName(weights_feature->type));
+      MicroPrintf("Type %s not currently supported.",
+                  TfLiteTypeGetName(weights_feature->type));
       return kTfLiteError;
   }
   return kTfLiteOk;
 }
 
 TFLMRegistration Register_SVDF() {
-  return tflite::micro::RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare,
-                                   SvdfEval);
+  return RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare, SvdfEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

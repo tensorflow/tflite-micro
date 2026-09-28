@@ -16,10 +16,10 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
-
+namespace micro {
 // Input Tensors of size {n_batch, n_input}
 constexpr int kLstmInputTensor = 0;
 
@@ -146,5 +146,40 @@ struct LSTMBuffers {
   CellType* buffer3;
 };
 
+}  // namespace micro
+
+using micro::CellStateInfo;
+using micro::GateParameters;
+using micro::InterGateParameters;
+using micro::LSTMBuffers;
+using micro::LSTMKernelContents;
+using micro::LstmSizeInfo;
+using micro::OpDataLSTM;
+
+using micro::kLstmCellGateBiasTensor;
+using micro::kLstmCellLayerNormCoefficientsTensor;
+using micro::kLstmCellStateTensor;
+using micro::kLstmCellToForgetWeightsTensor;
+using micro::kLstmCellToInputWeightsTensor;
+using micro::kLstmCellToOutputWeightsTensor;
+using micro::kLstmForgetGateBiasTensor;
+using micro::kLstmForgetLayerNormCoefficientsTensor;
+using micro::kLstmInputGateBiasTensor;
+using micro::kLstmInputLayerNormCoefficientsTensor;
+using micro::kLstmInputTensor;
+using micro::kLstmInputToCellWeightsTensor;
+using micro::kLstmInputToForgetWeightsTensor;
+using micro::kLstmInputToInputWeightsTensor;
+using micro::kLstmInputToOutputWeightsTensor;
+using micro::kLstmOutputGateBiasTensor;
+using micro::kLstmOutputLayerNormCoefficientsTensor;
+using micro::kLstmOutputStateTensor;
+using micro::kLstmOutputTensor;
+using micro::kLstmProjectionBiasTensor;
+using micro::kLstmProjectionWeightsTensor;
+using micro::kLstmRecurrentToCellWeightsTensor;
+using micro::kLstmRecurrentToForgetWeightsTensor;
+using micro::kLstmRecurrentToInputWeightsTensor;
+using micro::kLstmRecurrentToOutputWeightsTensor;
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_SHARED_H_

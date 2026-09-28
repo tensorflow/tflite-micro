@@ -19,16 +19,15 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/reference/reduce.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/reduce.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_pad.h"
 
 namespace tflite {
-
+namespace micro {
 inline void OperandDims4D(uint32_t* dims, TfLiteTensor* opnd) {
   for (int i = NumDimensions(opnd) - 1, j = 0; i >= 0; i--, j++) {
     dims[j] = SizeOfDimension(opnd, i);
@@ -103,5 +102,6 @@ TfLiteStatus PadEvalVision(const XtensaPadData& data,
         input_size, tflite::micro::GetTensorData<int8_t>(output), output_size);
   return kTfLiteOk;
 }
+}  // namespace micro
 }  // namespace tflite
 #endif  // defined(VISION_P6)

@@ -18,7 +18,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "msb.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 
 namespace tflite {
 namespace tflm_signal {

@@ -15,19 +15,18 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/mean.h"
-#include "tensorflow/lite/kernels/internal/reference/reduce.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mean.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/reduce.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
@@ -64,7 +63,7 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
 }
 
 void ResolveAxis(const int* axis_data, int axis_count,
-                 tflite::MeanParams* op_params) {
+                 tflite::micro::MeanParams* op_params) {
   int i = 0;
   for (; i < axis_count; ++i) {
     op_params->axis[i] = static_cast<int16_t>(axis_data[i]);
@@ -303,7 +302,7 @@ TfLiteStatus EvalMeanHelper(TfLiteContext* context, TfLiteNode* node,
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      tflite::MeanParams op_params;
+      tflite::micro::MeanParams op_params;
       ResolveAxis(tflite::micro::GetTensorData<int>(axis), num_axis,
                   &op_params);
 
@@ -445,4 +444,5 @@ TfLiteStatus EvalAllHelper(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

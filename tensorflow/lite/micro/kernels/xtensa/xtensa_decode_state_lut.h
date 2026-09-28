@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state_lut.h"
 
 namespace tflite {
-
+namespace micro {
 class XtensaDecodeStateLut : public DecodeStateLut {
  public:
   XtensaDecodeStateLut() = delete;
@@ -53,6 +53,9 @@ class XtensaDecodeStateLut : public DecodeStateLut {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+}  // namespace micro
+
+using micro::XtensaDecodeStateLut;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_XTENSA_DECODE_STATE_LUT_H_

@@ -12,18 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/broadcast_to.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/broadcast_to.h"
 
 #include <stdint.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 constexpr int kInputTensor = 0;
 constexpr int kShapeTensor = 1;
@@ -66,7 +65,8 @@ TfLiteStatus ValidateOutputTensor(TfLiteContext* context, TfLiteTensor* input,
   }
 
   // Validating the shape of the output tensor.
-  tflite::RuntimeShape output_shape = tflite::GetTensorShape(output);
+  tflite::micro::RuntimeShape output_shape =
+      tflite::micro::GetTensorShape(output);
   for (int idx = 0; idx < output_num_dims; ++idx) {
     TF_LITE_ENSURE(context, output_shape.Dims(idx) == get_shape_data(idx));
   }
@@ -123,4 +123,5 @@ TFLMRegistration Register_BROADCAST_TO() {
                                    BroadcastToEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

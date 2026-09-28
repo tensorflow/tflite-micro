@@ -15,14 +15,14 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/decode_state_huffman.h"
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus DecodeStateHuffman::Setup(const TfLiteTensor& input,
                                        const TfLiteTensor& ancillary,
                                        const TfLiteTensor& output) {
@@ -166,4 +166,5 @@ template void DecodeStateHuffman::DecompressToBufferWith32BitTable<int8_t>(
 template void DecodeStateHuffman::DecompressToBufferWith32BitTable<int16_t>(
     int16_t*);
 
+}  // namespace micro
 }  // namespace tflite

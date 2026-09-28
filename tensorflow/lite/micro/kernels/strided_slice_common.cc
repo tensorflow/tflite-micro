@@ -17,16 +17,15 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/strided_slice.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/strided_slice.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/strided_slice.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 struct StridedSliceContext {
@@ -65,9 +64,9 @@ struct StridedSliceContext {
 // implementation, the 1-3D tensors are mapped to 4D.
 const int kMaxDim = 4;
 
-tflite::StridedSliceParams BuildStridedSliceParams(
+tflite::micro::StridedSliceParams BuildStridedSliceParams(
     StridedSliceContext* op_context) {
-  tflite::StridedSliceParams op_params{};
+  tflite::micro::StridedSliceParams op_params{};
   op_params.start_indices_count = op_context->dims;
   op_params.stop_indices_count = op_context->dims;
   op_params.strides_count = op_context->dims;
@@ -91,8 +90,8 @@ tflite::StridedSliceParams BuildStridedSliceParams(
 // long as the caller ensures the indexing tensors are present.
 TfLiteStatus CheckOutputSize(TfLiteContext* context,
                              StridedSliceContext* op_context) {
-  using ::tflite::strided_slice::StartForAxis;
-  using ::tflite::strided_slice::StopForAxis;
+  using ::tflite::micro::strided_slice::StartForAxis;
+  using ::tflite::micro::strided_slice::StopForAxis;
   TfLiteIntArray* output_shape = op_context->output->dims;
   int shape_size = 0;
   auto op_params = BuildStridedSliceParams(op_context);
@@ -152,4 +151,5 @@ TfLiteStatus StridedSlicePrepare(TfLiteContext* context, TfLiteNode* node) {
   return CheckOutputSize(context, &op_context);
 }
 
+}  // namespace micro
 }  // namespace tflite

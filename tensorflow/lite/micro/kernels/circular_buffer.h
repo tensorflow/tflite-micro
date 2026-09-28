@@ -20,7 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-
+namespace micro {
 // The CircularBuffer op has one input and up to two output tensors.
 // - Output 0: buffered history tensor (variable tensor).
 // - Output 1 (optional): boolean scalar tensor indicating whether the buffer
@@ -46,6 +46,8 @@ struct OpDataCircularBuffer {
 
 TfLiteStatus CircularBufferPrepare(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
+using micro::OpDataCircularBuffer;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_CIRCULAR_BUFFER_H_

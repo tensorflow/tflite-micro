@@ -14,15 +14,15 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 TfLiteStatus SetOutputTensorData(TfLiteContext* context, const TfLiteNode* node,
@@ -189,4 +189,5 @@ TFLMRegistration Register_DECODE() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

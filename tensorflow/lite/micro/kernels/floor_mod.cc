@@ -13,13 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/floor_mod.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/floor_mod.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/binary_function.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/binary_function.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
@@ -27,6 +26,7 @@ limitations under the License.
 // OLD-TODO(b/117523611): We should factor out a binary_op and put binary ops
 // there.
 namespace tflite {
+namespace micro {
 namespace {
 
 // Input/output tensor index.
@@ -125,4 +125,5 @@ TFLMRegistration Register_FLOOR_MOD() {
   return tflite::micro::RegisterOp(FloorModInit, FloorModPrepare, FloorModEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -19,8 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_context.h"
@@ -28,7 +27,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 struct OpData {
@@ -130,4 +129,5 @@ TFLMRegistration Register_WHILE() {
   return tflite::micro::RegisterOp(WhileInit, WhilePrepare, WhileEval);
 }
 
+}  // namespace micro
 }  // namespace tflite
