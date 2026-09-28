@@ -12,22 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+#ifndef TENSORFLOW_LITE_C_COMMON_SHIM_H_
+#define TENSORFLOW_LITE_C_COMMON_SHIM_H_
 
-/// \file
-///
-/// This file defines common C types and APIs for implementing operations,
-/// delegates and other constructs in TensorFlow Lite. The actual operations and
-/// delegates can be defined using C++, but the interface between the
-/// interpreter and the operations are C.
-///
-/// For documentation, see tensorflow/lite/core/c/common.h.
-///
-/// See also c_api_opaque.h which has more ABI-stable variants of some of these
-/// APIs.
+#include "tensorflow/lite/micro/c/common.h"
 
-#ifndef TENSORFLOW_LITE_C_COMMON_H_
-#define TENSORFLOW_LITE_C_COMMON_H_
-
-#include "tensorflow/lite/core/c/common.h"
-
-#endif  // TENSORFLOW_LITE_C_COMMON_H_
+#endif  // TENSORFLOW_LITE_C_COMMON_SHIM_H_

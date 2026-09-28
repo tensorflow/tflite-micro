@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 int8_t feature_data[] = {
     -127, -126, -115, -82,  -90,  -113, -15,  13,   -87,  -105, -77,  -106,

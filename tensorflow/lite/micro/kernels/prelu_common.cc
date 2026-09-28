@@ -15,7 +15,7 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/prelu.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"

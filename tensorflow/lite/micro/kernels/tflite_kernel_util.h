@@ -24,8 +24,8 @@ limitations under the License.
 #include <string>
 #endif  // TF_LITE_STATIC_MEMORY
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 namespace tflite {
 namespace micro {
@@ -101,29 +101,6 @@ const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
                                            const TfLiteNode* node, int index);
 
 #ifndef TF_LITE_STATIC_MEMORY
-// Note: You must check if result is not null:
-//
-//   TfLiteTensor* my_tensor = GetTemporary(context, node, kMyTensorIdx);
-//   TF_LITE_ENSURE(context, my_tensor != nullptr);
-//
-// This is because the index might point to the optional tensor constant
-// (kTfLiteOptionalTensor) in which case there is no tensor to return.
-TfLiteTensor* GetTemporary(TfLiteContext* context, const TfLiteNode* node,
-                           int index);
-
-// Same as `GetTemporary` but returns boolean and uses output argument for
-// tensor.
-//
-//   TfLiteTensor* my_tensor;
-//   TF_LITE_ENSURE_OK(context,
-//                     GetTemporarySafe(context, node, kMyTensorIdx,
-//                     &my_tensor));
-//   // can use my_tensor directly from here onwards, it is not nullptr
-//
-// Should be used in cases where the binary size is too large.
-TfLiteStatus GetTemporarySafe(const TfLiteContext* context,
-                              const TfLiteNode* node, int index,
-                              TfLiteTensor** tensor);
 
 // Note: You must check if result is not null:
 //
@@ -405,8 +382,6 @@ using micro::GetIntermediates;
 using micro::GetIntermediatesSafe;
 using micro::GetOutputShapeFromInput;
 using micro::GetShapeDebugString;
-using micro::GetTemporary;
-using micro::GetTemporarySafe;
 using micro::GetTensorDebugString;
 using micro::NumIntermediates;
 using micro::SetTensorToDynamic;

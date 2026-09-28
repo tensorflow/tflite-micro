@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/array.h"
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 namespace tflite {
 namespace micro {

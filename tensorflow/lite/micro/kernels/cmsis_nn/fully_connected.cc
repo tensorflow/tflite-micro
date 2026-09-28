@@ -16,8 +16,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
 
 #include "Include/arm_nnfunctions.h"
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"

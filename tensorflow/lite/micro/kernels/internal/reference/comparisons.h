@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/macros.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/broadcast_loop.h"
 #include "tensorflow/lite/micro/kernels/internal/runtime_shape.h"

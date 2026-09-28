@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/internal/reference/quantize.h"
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/requantize.h"

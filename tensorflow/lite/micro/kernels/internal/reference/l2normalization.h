@@ -18,7 +18,7 @@ limitations under the License.
 #include <algorithm>
 #include <cmath>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 

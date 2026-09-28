@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <type_traits>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/testdata/conv_test_data.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"

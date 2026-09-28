@@ -155,8 +155,6 @@ cc_binary(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":layer_by_layer_schema",
-        "//tensorflow/lite/c:c_api_types",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_framework",
@@ -164,6 +162,8 @@ cc_binary(
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro/c:c_api_types",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels:op_macros",
         "//tensorflow/lite/micro/tools/benchmarking:op_resolver",

@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/testdata/conv_test_data.h"
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 namespace tflite {
 // Kernel Conv Test Case: Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden

@@ -18,7 +18,7 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/micro/c/c_api_types.h"
 
 namespace tflite {
 // Interface classes that the TFLM framework relies on to get buffers it needs.

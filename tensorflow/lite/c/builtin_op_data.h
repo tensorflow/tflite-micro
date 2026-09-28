@@ -12,12 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_C_BUILTIN_OP_DATA_H_
-#define TENSORFLOW_LITE_C_BUILTIN_OP_DATA_H_
+#ifndef TENSORFLOW_LITE_C_BUILTIN_OP_DATA_SHIM_H_
+#define TENSORFLOW_LITE_C_BUILTIN_OP_DATA_SHIM_H_
 
-/// For documentation, see
-/// tensorflow/lite/core/c/builtin_op_data.h
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
 
-#include "tensorflow/lite/core/c/builtin_op_data.h"
-
-#endif  // TENSORFLOW_LITE_C_BUILTIN_OP_DATA_H_
+#endif  // TENSORFLOW_LITE_C_BUILTIN_OP_DATA_SHIM_H_

@@ -19,8 +19,8 @@ limitations under the License.
 #include <cstdint>
 #include <new>
 
-#include "tensorflow/lite/c/c_api_types.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/c_api_types.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"

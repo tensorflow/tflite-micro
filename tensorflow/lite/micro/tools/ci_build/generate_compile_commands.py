@@ -63,6 +63,7 @@ def build_generated_headers(repo_root):
   targets = [
     "//tensorflow/lite/micro:micro_framework",
     "//tensorflow/lite/micro/tools:layer_by_layer_schema",
+    "//tensorflow/lite/micro/benchmarks:keyword_scrambled_model_data",
   ]
   print(f"Building targets for headers: {' '.join(targets)}...")
   subprocess.run(["bazel", "build"] + targets, cwd=repo_root, check=True)
