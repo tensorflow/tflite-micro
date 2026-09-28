@@ -23,9 +23,15 @@ limitations under the License.
 
 namespace tflite {
 
+
 struct XtensaReduceOpData {
   OpDataReduce reference_op_data;
 
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  int scratch_tensor_index;
+  int32_t updated_multiplier;
+  int32_t updated_shift;
+#endif
 #if defined(VISION_P6)
   uint8_t* p_context;  // persistent lib context for this instance saved here
   uint32_t context_size;
@@ -39,6 +45,16 @@ TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus ReduceEvalVision(const XtensaReduceOpData& data,
                               const TfLiteEvalTensor* input,
                               TfLiteEvalTensor* output);
+
+#elif defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+
+TfLiteStatus PrepareMeanOrSumHifi(TfLiteContext* context, TfLiteNode* node, OpDataReduce* op_data);
+
+TfLiteStatus PrepareMaxHifi(TfLiteContext* context, TfLiteNode* node, OpDataReduce* op_data);
+
+TfLiteStatus EvalMeanHifi(TfLiteContext* context, TfLiteNode* node, OpDataReduce* op_data);
+
+TfLiteStatus EvalMaxHifi(TfLiteContext* context, TfLiteNode* node, OpDataReduce* op_data);
 
 #endif  // VISION_P6
 
