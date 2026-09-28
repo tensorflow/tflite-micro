@@ -180,11 +180,11 @@ class MicroContext {
 
   // Set the DECODE operator custom registrations.
   // Can only be called during the kInit state.
-  virtual TfLiteStatus SetCustomDecodeRegistrations(
+  TfLiteStatus SetCustomDecodeRegistrations(
       const CustomDecodeRegistration* registrations, size_t count);
 
-  // Get the custom decompression registrations.
-  virtual const std::pair<const CustomDecodeRegistration*, size_t /*count*/>
+  // Get the custom DECODE operator registrations.
+  std::pair<const CustomDecodeRegistration*, size_t /*count*/>
   GetCustomDecodeRegistrations() const {
     return std::make_pair(custom_decode_registrations_,
                           custom_decode_registrations_size_);
