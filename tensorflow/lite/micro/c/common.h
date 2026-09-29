@@ -276,6 +276,46 @@ typedef struct TfLiteExternalContext {
   TfLiteStatus (*Refresh)(struct TfLiteContext* context);
 } TfLiteExternalContext;
 
+#ifndef TF_LITE_STATIC_MEMORY
+typedef struct TfLiteTensor {
+  TfLiteType type;
+  TfLitePtrUnion data;
+  TfLiteIntArray* dims;
+  TfLiteQuantizationParams params;
+  TfLiteAllocationType allocation_type;
+  size_t bytes;
+  const void* allocation;
+  const char* name;
+  struct TfLiteDelegate* delegate;
+  TfLiteBufferHandle buffer_handle;
+  bool data_is_stale;
+  bool is_variable;
+  TfLiteQuantization quantization;
+  TfLiteSparsity* sparsity;
+  const TfLiteIntArray* dims_signature;
+} TfLiteTensor;
+
+inline void TfLiteTensorDataFree(TfLiteTensor* t) {}
+
+typedef struct TfLiteEvalTensor {
+  TfLitePtrUnion data;
+  TfLiteIntArray* dims;
+  TfLiteType type;
+} TfLiteEvalTensor;
+
+typedef struct TfLiteNode {
+  TfLiteIntArray* inputs;
+  TfLiteIntArray* outputs;
+  TfLiteIntArray* intermediates;
+  TfLiteIntArray* temporaries;
+  void* user_data;
+  void* builtin_data;
+  const void* custom_initial_data;
+  int custom_initial_data_size;
+  struct TfLiteDelegate* delegate;
+  bool might_have_side_effect;
+} TfLiteNode;
+#else   // defined(TF_LITE_STATIC_MEMORY)?
 typedef struct TfLiteTensor {
   TfLiteQuantization quantization;
   TfLiteQuantizationParams params;
@@ -304,6 +344,7 @@ typedef struct TfLiteNode {
   const void* custom_initial_data;
   int custom_initial_data_size;
 } TfLiteNode;
+#endif  // TF_LITE_STATIC_MEMORY
 
 typedef struct TfLiteRegistration {
   void* (*init)(struct TfLiteContext* context, const char* buffer,
