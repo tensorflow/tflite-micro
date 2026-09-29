@@ -357,12 +357,10 @@ TEST(DecodeTest, DecodeWithCustomRegistration) {
   const std::initializer_list<const void*> expected = {kExpectCustom};
 
   const std::initializer_list<tflite::MicroContext::CustomDecodeRegistration>
-      cdr = {
-          {
-              DecodeStateCustom::CreateDecodeStateCustom,
-              kDecodeTypeCustom,
-          },
-  };
+      cdr = {{
+          DecodeStateCustom::CreateDecodeStateCustom,
+          kDecodeTypeCustom,
+      }};
 
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
@@ -413,12 +411,10 @@ TEST(DecodeTest, DecodeWithCustomMismatchedRegistration) {
   const std::initializer_list<const void*> expected = {kExpectCustom};
 
   const std::initializer_list<tflite::MicroContext::CustomDecodeRegistration>
-      cdr = {
-          {
-              DecodeStateCustom::CreateDecodeStateCustom,
-              kDecodeTypeCustom + 1,
-          },
-  };
+      cdr = {{
+          DecodeStateCustom::CreateDecodeStateCustom,
+          kDecodeTypeCustom + 1,
+      }};
 
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
