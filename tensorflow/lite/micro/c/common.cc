@@ -69,7 +69,7 @@ T* TfLiteVarArrayCreate(const int size) {
 }  // namespace
 
 #ifndef TFLM_ATTRIBUTE_WEAK
-#if defined(__GNUC__) || defined(__clang__)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(_WIN32)
 #define TFLM_ATTRIBUTE_WEAK __attribute__((weak))
 #else
 #define TFLM_ATTRIBUTE_WEAK

@@ -276,6 +276,11 @@ typedef struct TfLiteExternalContext {
   TfLiteStatus (*Refresh)(struct TfLiteContext* context);
 } TfLiteExternalContext;
 
+typedef int TfLiteBufferHandle;
+enum {
+  kTfLiteNullBufferHandle = -1,
+};
+
 #ifndef TF_LITE_STATIC_MEMORY
 typedef struct TfLiteTensor {
   TfLiteType type;
