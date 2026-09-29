@@ -53,6 +53,7 @@ constexpr int kKeywordModelNodeAndRegistrationCount = 15;
 //
 // Run this test with '--copt=-DTF_LITE_STATIC_MEMORY' to get optimized memory
 // runtime values:
+#ifdef TF_LITE_STATIC_MEMORY
 // Total size contributed by the keyword model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
@@ -62,6 +63,17 @@ constexpr int kKeywordModelOnlyTotalSize = 14472;
 // TODO(b/207157610): replace magic number that depends on OPs
 constexpr int kKeywordModelOnlyTailSize = 13800;
 constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 128;
+#else
+// Total size contributed by the keyword model excluding the
+// RecordingMicroAllocator's overhead.
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kKeywordModelOnlyTotalSize = 14936;
+// Tail size contributed by the keyword model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kKeywordModelOnlyTailSize = 14264;
+constexpr int kKeywordModelPersistentTfLiteTensorDataSize = 224;
+#endif
 constexpr int kKeywordModelHeadSize = 672;
 constexpr int kKeywordModelTfLiteTensorVariableBufferDataSize = 10240;
 constexpr int kKeywordModelPersistentTfLiteTensorQuantizationData = 64;
@@ -81,6 +93,7 @@ constexpr int kKeywordModelPersistentBufferDataSize = 840;
 
 // NOTE: These values are measured on x86-64:
 // TODO(b/158651472): Consider auditing these values on non-64 bit systems.
+#ifdef TF_LITE_STATIC_MEMORY
 // Total size contributed by the conv model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
@@ -91,6 +104,18 @@ constexpr int kTestConvModelOnlyTotalSize = 9576;
 constexpr int kTestConvModelOnlyTailSize = 1832;
 constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 128;
 constexpr int kTestConvModelPersistentBufferDataSize = 748;
+#else
+// Total size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kTestConvModelOnlyTotalSize = 9832;
+// Tail size contributed by the conv model excluding the
+// RecordingMicroAllocator's overhead
+// TODO(b/207157610): replace magic number that depends on OPs
+constexpr int kTestConvModelOnlyTailSize = 2088;
+constexpr int kTestConvModelPersistentTfLiteTensorDataSize = 224;
+constexpr int kTestConvModelPersistentBufferDataSize = 740;
+#endif
 constexpr int kTestConvModelHeadSize = 7744;
 constexpr int kTestConvModelOpRuntimeDataSize = 136;
 constexpr int kTestConvModelPersistentTfLiteTensorQuantizationData = 0;
