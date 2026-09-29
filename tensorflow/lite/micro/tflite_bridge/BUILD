@@ -22,8 +22,8 @@ tflm_cc_library(
     ],
     deps = [
         ":micro_error_reporter",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )

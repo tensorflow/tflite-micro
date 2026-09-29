@@ -73,8 +73,8 @@ cc_library(
     copts = tflm_copts() + tflite_copts(),
     deps = [
         ":types",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -101,8 +101,8 @@ cc_library(
         ":strided_slice_logic",
         ":tensor",
         ":types",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels:op_macros",
         "@gemmlowp//:fixedpoint",
@@ -132,8 +132,8 @@ cc_library(
     copts = tflm_copts() + tflite_copts(),
     deps = [
         ":types",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -167,8 +167,8 @@ cc_library(
         ":common",
         ":compatibility",
         ":cppmath",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core:macros",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:op_macros",
         "@gemmlowp//:fixedpoint",
     ],

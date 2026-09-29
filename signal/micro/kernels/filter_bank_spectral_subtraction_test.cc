@@ -16,7 +16,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "signal/micro/kernels/filter_bank_spectral_subtraction_flexbuffers_generated_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"

@@ -16,8 +16,8 @@ limitations under the License.
 #include <cstdint>
 #include <cstdlib>
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"

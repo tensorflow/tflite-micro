@@ -16,8 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_KERNEL_RUNNER_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_KERNEL_RUNNER_H_
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/fake_micro_context.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/mock_micro_graph.h"

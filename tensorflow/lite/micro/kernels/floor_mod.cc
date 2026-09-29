@@ -15,7 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/reference/floor_mod.h"
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/binary_function.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"

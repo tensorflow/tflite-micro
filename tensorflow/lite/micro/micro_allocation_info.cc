@@ -17,7 +17,7 @@ limitations under the License.
 
 #include <algorithm>
 
-#include "tensorflow/lite/c/c_api_types.h"
+#include "tensorflow/lite/micro/c/c_api_types.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"

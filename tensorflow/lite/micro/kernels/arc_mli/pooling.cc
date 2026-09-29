@@ -15,7 +15,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
 
 #include "mli_api.h"  // NOLINT
-#include "tensorflow/lite/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_function_specializations.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_slicers.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"

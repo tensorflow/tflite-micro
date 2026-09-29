@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"

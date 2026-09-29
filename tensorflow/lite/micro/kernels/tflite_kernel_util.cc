@@ -29,9 +29,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/array.h"
 #endif  // TF_LITE_STATIC_MEMORY
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/context_util.h"
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 
@@ -152,26 +152,6 @@ const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
 }
 
 #ifndef TF_LITE_STATIC_MEMORY
-TfLiteTensor* GetTemporary(TfLiteContext* context, const TfLiteNode* node,
-                           int index) {
-  const int tensor_index = ValidateTensorIndexing(
-      context, index, node->temporaries->size, node->temporaries->data);
-  if (tensor_index < 0) {
-    return nullptr;
-  }
-  return GetTensorAtIndex(context, tensor_index);
-}
-
-TfLiteStatus GetTemporarySafe(const TfLiteContext* context,
-                              const TfLiteNode* node, int index,
-                              TfLiteTensor** tensor) {
-  int tensor_index;
-  TF_LITE_ENSURE_STATUS(
-      ValidateTensorIndexingSafe(context, index, node->temporaries->size,
-                                 node->temporaries->data, &tensor_index));
-  *tensor = GetTensorAtIndex(context, tensor_index);
-  return kTfLiteOk;
-}
 
 const TfLiteTensor* GetIntermediates(TfLiteContext* context,
                                      const TfLiteNode* node, int index) {
@@ -586,16 +566,7 @@ bool IsMobilePlatform() {
 #endif
 }
 
-bool HasUnspecifiedDimension(const TfLiteTensor* tensor) {
-#ifndef TF_LITE_STATIC_MEMORY
-  if (tensor->dims_signature) {
-    for (int i : TfLiteIntArrayView(tensor->dims_signature)) {
-      if (i == -1) return true;
-    }
-  }
-#endif  // TF_LITE_STATIC_MEMORY
-  return false;
-}
+bool HasUnspecifiedDimension(const TfLiteTensor* tensor) { return false; }
 
 TfLiteStatus CheckedShapeProduct(TfLiteContext* context,
                                  std::initializer_list<int> dims,

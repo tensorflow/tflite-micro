@@ -17,7 +17,7 @@ tflm_cc_library(
         "ibuffer_allocator.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -27,11 +27,11 @@ tflm_cc_library(
     hdrs = ["non_persistent_arena_buffer_allocator.h"],
     deps = [
         ":ibuffer_allocator",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -51,11 +51,11 @@ tflm_cc_library(
     hdrs = ["persistent_arena_buffer_allocator.h"],
     deps = [
         ":ibuffer_allocator",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -79,11 +79,11 @@ tflm_cc_library(
     ],
     deps = [
         ":ibuffer_allocator",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 

@@ -27,7 +27,7 @@ limitations under the License.
 
 #include <stdint.h>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 #ifndef TENSORFLOW_LITE_PORTABLE_TYPE_TO_TFLITETYPE_H_
 #define TENSORFLOW_LITE_PORTABLE_TYPE_TO_TFLITETYPE_H_

@@ -15,7 +15,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_QUANTIZE_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_QUANTIZE_H_
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {

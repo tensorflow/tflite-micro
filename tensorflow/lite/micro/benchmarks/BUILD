@@ -55,12 +55,12 @@ tflm_cc_binary(
     deps = [
         ":keyword_scrambled_model_data",
         ":micro_benchmark",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -81,11 +81,11 @@ tflm_cc_binary(
     deps = [
         ":keyword_scrambled_8bit_model_data",
         ":micro_benchmark",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -94,12 +94,12 @@ tflm_cc_binary(
     srcs = ["person_detection_benchmark.cc"],
     deps = [
         ":micro_benchmark",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/examples/person_detection:model_settings",
         "//tensorflow/lite/micro/examples/person_detection:person_detect_model_data",
         "//tensorflow/lite/micro/examples/person_detection:simple_images_test_data",
