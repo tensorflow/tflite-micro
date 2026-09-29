@@ -22,7 +22,6 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class DelayOpTest(tf.test.TestCase):
-
   def TestHelper(self, input_signal, delay_length, frame_size):
     inner_dim_size = input_signal.shape[-1]
     input_signal_rank = len(input_signal.shape)
@@ -36,27 +35,29 @@ class DelayOpTest(tf.test.TestCase):
     pad_input_signal = np.vstack([pad_outer_axes, [0, pad_size]])
     input_signal_padded = np.pad(input_signal, pad_input_signal)
     delay_exp_signal = np.vstack(
-        [pad_outer_axes, [delay_length, pad_size - delay_length]])
+      [pad_outer_axes, [delay_length, pad_size - delay_length]]
+    )
     delay_exp = np.pad(input_signal, delay_exp_signal)
     delay_out = np.zeros(input_signal_padded.shape)
 
-    in_frame_shape = input_signal.shape[:-1] + (frame_size, )
+    in_frame_shape = input_signal.shape[:-1] + (frame_size,)
     func = tf.function(delay_op.delay)
-    concrete_function = func.get_concrete_function(tf.TensorSpec(
-        in_frame_shape, dtype=tf.int16),
-                                                   delay_length=delay_length)
+    concrete_function = func.get_concrete_function(
+      tf.TensorSpec(in_frame_shape, dtype=tf.int16), delay_length=delay_length
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
 
     for i in range(frame_num):
-      in_frame = input_signal_padded[..., i * frame_size:(i + 1) * frame_size]
+      in_frame = input_signal_padded[..., i * frame_size : (i + 1) * frame_size]
       # TFLM
       interpreter.set_input(in_frame, 0)
       interpreter.invoke()
       out_frame_tflm = interpreter.get_output(0)
       # TF
       out_frame = self.evaluate(
-          delay_op.delay(in_frame, delay_length=delay_length))
-      delay_out[..., i * frame_size:(i + 1) * frame_size] = out_frame
+        delay_op.delay(in_frame, delay_length=delay_length)
+      )
+      delay_out[..., i * frame_size : (i + 1) * frame_size] = out_frame
       self.assertAllEqual(out_frame, out_frame_tflm)
     self.assertAllEqual(delay_out, delay_exp)
 
@@ -76,8 +77,7 @@ class DelayOpTest(tf.test.TestCase):
   def testMultiDimensionalDelay(self):
     input_signal = np.reshape(np.arange(0, 120, dtype=np.int16), [2, 3, 20])
     self.TestHelper(input_signal, 4, 6)
-    input_signal = np.reshape(np.arange(0, 72, dtype=np.int16),
-                              [2, 2, 3, 3, 2])
+    input_signal = np.reshape(np.arange(0, 72, dtype=np.int16), [2, 2, 3, 3, 2])
     self.TestHelper(input_signal, 7, 3)
 
 

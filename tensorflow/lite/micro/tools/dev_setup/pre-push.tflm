@@ -14,4 +14,9 @@
 # limitations under the License.
 # ==============================================================================
 
-tensorflow/lite/micro/tools/ci_build/test_code_style.sh
+DOCKER_FLAG=""
+if [ "${TFLM_PRE_PUSH_DOCKER:-0}" = "1" ] || [ "${USE_DOCKER:-0}" = "1" ]; then
+  DOCKER_FLAG="--docker"
+fi
+
+tensorflow/lite/micro/tools/ci_build/test_code_style.sh ${DOCKER_FLAG}

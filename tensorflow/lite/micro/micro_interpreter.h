@@ -28,13 +28,13 @@ limitations under the License.
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_interpreter_context.h"
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 /// Copied from tensorflow/lite/version.h to avoid a dependency chain into
@@ -98,7 +98,7 @@ class MicroInterpreter {
   T* typed_input_tensor(int tensor_index) {
     if (TfLiteTensor* tensor_ptr = input_tensor(tensor_index)) {
       if (tensor_ptr->type == typeToTfLiteType<T>()) {
-        return GetTensorData<T>(tensor_ptr);
+        return micro::GetTensorData<T>(tensor_ptr);
       }
     }
     return nullptr;
@@ -116,7 +116,7 @@ class MicroInterpreter {
   T* typed_output_tensor(int tensor_index) {
     if (TfLiteTensor* tensor_ptr = output_tensor(tensor_index)) {
       if (tensor_ptr->type == typeToTfLiteType<T>()) {
-        return GetTensorData<T>(tensor_ptr);
+        return micro::GetTensorData<T>(tensor_ptr);
       }
     }
     return nullptr;

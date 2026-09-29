@@ -102,9 +102,7 @@ TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_renode.
 # implementation of `make test` for bluepill
 TARGET_SPECIFIC_MAKE_TEST := 1
 
-TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)/*_test)
-
-test: build
-	$(TEST_SCRIPT) "$(TEST_TARGET_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
+test: build_tests
+	$(TEST_SCRIPT) "$(MICROLITE_TEST_BINARIES)" $(TEST_PASS_STRING) $(TARGET)
 
 include $(MAKEFILE_DIR)/ext_libs/eyalroz_printf.inc

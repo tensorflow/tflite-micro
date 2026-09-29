@@ -24,7 +24,7 @@ gen_window_op = util.load_custom_op('window_op.so')
 def hann_window_weights(window_length, shift, dtype=np.int16):
   arg = np.pi * 2 / window_length
   index = np.arange(window_length)
-  weights = (0.5 - (0.5 * np.cos(arg * (index + 0.5))))
+  weights = 0.5 - (0.5 * np.cos(arg * (index + 0.5)))
   if dtype == np.int16:
     weights = np.round(weights * (2**shift))
   return weights.astype(dtype=dtype)
@@ -50,10 +50,9 @@ def square_root_hann_window_weights(window_length, shift, dtype=np.int16):
 # be reconstructed with little distortion. For the square-root Hann window
 # implemented above, the normalizing constant is given by
 # sqrt((window_length / (2 * window_step)).
-def square_root_hann_cwola_window_weights(window_length,
-                                          window_step,
-                                          shift,
-                                          dtype=np.int16):
+def square_root_hann_cwola_window_weights(
+  window_length, window_step, shift, dtype=np.int16
+):
   arg_half = np.pi / window_length
   norm = np.sqrt(window_length / (2.0 * window_step))
   index = np.arange(window_length)

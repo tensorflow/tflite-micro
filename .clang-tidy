@@ -1,0 +1,26 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-narrowing-conversions,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-branch-clone,
+  performance-*,
+  -performance-no-int-to-ptr,
+  google-*,
+  -google-runtime-references,
+  -google-readability-todo,
+  modernize-use-override,
+  modernize-use-nullptr,
+  modernize-redundant-void-arg,
+  -modernize-make-unique,
+  -modernize-make-shared,
+  -modernize-avoid-c-arrays,
+  -modernize-use-auto,
+  -modernize-use-trailing-return-type,
+  -cppcoreguidelines-*,
+  -readability-magic-numbers
+
+HeaderFilterRegex: '(tensorflow/lite/micro|signal)/.*'
+
+WarningsAsErrors: '*'

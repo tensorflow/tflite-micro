@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2022 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2026 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver
   --common_tflite_path=${TEST_TFLITE_PATH} --input_tflite_files=${TEST_TFLITE_NAME} --output_dir=${TEST_OUTPUT_MODEL_DIR_REALPATH}
 
 readable_run bazel run tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_micro_mutable_op_resolver_from_model_test -- \
-  --input_tflite_file=${TEST_TFLITE_FILE} -output_dir=${TEST_OUTPUT_DIR_REALPATH}
+  --input_tflite_file=${TEST_TFLITE_FILE} --output_dir=${TEST_OUTPUT_DIR_REALPATH}
 
 readable_run bazel run ${GEN_TEST_OUTPUT_DIR_RELATIVE}:micro_mutable_op_resolver_test
 

@@ -21,20 +21,23 @@ from tflite_micro.tensorflow.lite.micro.compression import tensor_type
 
 
 class TensorTypeTest(unittest.TestCase):
-
   def test_maps_known_types_to_little_endian_dtypes(self):
-    self.assertEqual(tensor_type.to_numpy(tflite.TensorType.INT8),
-                     np.dtype("<i1"))
-    self.assertEqual(tensor_type.to_numpy(tflite.TensorType.UINT32),
-                     np.dtype("<u4"))
-    self.assertEqual(tensor_type.to_numpy(tflite.TensorType.FLOAT32),
-                     np.dtype("<f4"))
+    self.assertEqual(
+      tensor_type.to_numpy(tflite.TensorType.INT8), np.dtype("<i1")
+    )
+    self.assertEqual(
+      tensor_type.to_numpy(tflite.TensorType.UINT32), np.dtype("<u4")
+    )
+    self.assertEqual(
+      tensor_type.to_numpy(tflite.TensorType.FLOAT32), np.dtype("<f4")
+    )
 
   def test_dtype_itemsize_matches_type_width(self):
     # Reading buffers depends on the dtype having the right element size.
     self.assertEqual(tensor_type.to_numpy(tflite.TensorType.INT16).itemsize, 2)
     self.assertEqual(
-        tensor_type.to_numpy(tflite.TensorType.FLOAT64).itemsize, 8)
+      tensor_type.to_numpy(tflite.TensorType.FLOAT64).itemsize, 8
+    )
 
   def test_raises_on_type_without_numpy_equivalent(self):
     with self.assertRaises(ValueError):

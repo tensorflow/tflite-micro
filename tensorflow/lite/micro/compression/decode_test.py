@@ -18,7 +18,6 @@ from tflite_micro.tensorflow.lite.micro.compression import decode
 
 
 class TestDecodeCommonMetadata(unittest.TestCase):
-
   def testBasicSerialization(self):
     dcm = decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT)
     result = dcm.to_bytes()
@@ -40,8 +39,9 @@ class TestDecodeCommonMetadata(unittest.TestCase):
     self.assertEqual(result[4:16], b'\x00' * 12)
 
   def testCustomVersion(self):
-    dcm = decode.DecodeCommonMetadata(decode_type=decode.DecodeType.HUFFMAN,
-                                      version=2)
+    dcm = decode.DecodeCommonMetadata(
+      decode_type=decode.DecodeType.HUFFMAN, version=2
+    )
     result = dcm.to_bytes()
 
     self.assertEqual(result[0], 1)
@@ -49,8 +49,9 @@ class TestDecodeCommonMetadata(unittest.TestCase):
 
   def testUserData(self):
     user_data = b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c'
-    dcm = decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                      user_data=user_data)
+    dcm = decode.DecodeCommonMetadata(
+      decode_type=decode.DecodeType.LUT, user_data=user_data
+    )
     result = dcm.to_bytes()
 
     self.assertEqual(result[4:16], user_data)
@@ -58,8 +59,9 @@ class TestDecodeCommonMetadata(unittest.TestCase):
   def testUserDataPadding(self):
     # User data shorter than 12 bytes should be padded with zeros
     user_data = b'\x01\x02\x03'
-    dcm = decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                      user_data=user_data)
+    dcm = decode.DecodeCommonMetadata(
+      decode_type=decode.DecodeType.LUT, user_data=user_data
+    )
     result = dcm.to_bytes()
 
     expected = b'\x01\x02\x03' + b'\x00' * 9
@@ -68,8 +70,9 @@ class TestDecodeCommonMetadata(unittest.TestCase):
   def testUserDataTruncation(self):
     # User data longer than 12 bytes should be truncated
     user_data = b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'
-    dcm = decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                      user_data=user_data)
+    dcm = decode.DecodeCommonMetadata(
+      decode_type=decode.DecodeType.LUT, user_data=user_data
+    )
     result = dcm.to_bytes()
 
     self.assertEqual(result[4:16], user_data[:12])
@@ -79,33 +82,36 @@ class TestDecodeCommonMetadata(unittest.TestCase):
     decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT).to_bytes()
     decode.DecodeCommonMetadata(decode_type=decode.DecodeType(127)).to_bytes()
     decode.DecodeCommonMetadata(
-        decode_type=decode.DecodeType.custom(255)).to_bytes()
+      decode_type=decode.DecodeType.custom(255)
+    ).to_bytes()
 
     # Invalid decode types should raise ValueError
     with self.assertRaises(ValueError):
       decode.DecodeCommonMetadata(decode_type=decode.DecodeType(-1)).to_bytes()
     with self.assertRaises(ValueError):
-      decode.DecodeCommonMetadata(
-          decode_type=decode.DecodeType(256)).to_bytes()
+      decode.DecodeCommonMetadata(decode_type=decode.DecodeType(256)).to_bytes()
 
   def testVersionRange(self):
     # Valid versions: 0-255
-    decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                version=0).to_bytes()
-    decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                version=255).to_bytes()
+    decode.DecodeCommonMetadata(
+      decode_type=decode.DecodeType.LUT, version=0
+    ).to_bytes()
+    decode.DecodeCommonMetadata(
+      decode_type=decode.DecodeType.LUT, version=255
+    ).to_bytes()
 
     # Invalid versions should raise ValueError
     with self.assertRaises(ValueError):
-      decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                  version=-1).to_bytes()
+      decode.DecodeCommonMetadata(
+        decode_type=decode.DecodeType.LUT, version=-1
+      ).to_bytes()
     with self.assertRaises(ValueError):
-      decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT,
-                                  version=256).to_bytes()
+      decode.DecodeCommonMetadata(
+        decode_type=decode.DecodeType.LUT, version=256
+      ).to_bytes()
 
 
 class TestAncillaryDataTensor(unittest.TestCase):
-
   def testDcmOnly(self):
     dcm = decode.DecodeCommonMetadata(decode_type=decode.DecodeType.LUT)
     adt = decode.AncillaryDataTensor(dcm)
@@ -145,7 +151,6 @@ class TestAncillaryDataTensor(unittest.TestCase):
   def testWithSerializerProtocol(self):
     # Test with an object that implements AncillaryDataSerializer
     class MockSerializer:
-
       def to_bytes(self):
         return b'\xff\xee\xdd\xcc'
 

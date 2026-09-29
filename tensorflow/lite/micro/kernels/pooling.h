@@ -20,17 +20,16 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/pooling.h"
-#include "tensorflow/lite/kernels/internal/reference/pooling.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 extern const int kPoolingInputTensor;
 extern const int kPoolingOutputTensor;
 
@@ -95,7 +94,7 @@ void MaxPoolingEvalQuantized(TfLiteContext* context, TfLiteNode* node,
                              TfLiteEvalTensor* output) {
   TFLITE_DCHECK(input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
 
-  tflite::PoolParams op_params;
+  tflite::micro::PoolParams op_params;
   op_params.stride_height = params->stride_height;
   op_params.stride_width = params->stride_width;
   op_params.filter_height = params->filter_height;
@@ -137,6 +136,13 @@ inline TFLMRegistration Register_MAX_POOL_2D_INT16() {
   return tflite::Register_MAX_POOL_2D();
 }
 #endif
+
+}  // namespace micro
+using micro::OpDataPooling;
+using micro::Register_AVERAGE_POOL_2D_INT16;
+using micro::Register_AVERAGE_POOL_2D_INT8;
+using micro::Register_MAX_POOL_2D_INT16;
+using micro::Register_MAX_POOL_2D_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_POOLING_H_

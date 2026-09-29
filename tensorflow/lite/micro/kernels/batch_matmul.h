@@ -17,11 +17,11 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_BATCH_MATMUL_H_
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 struct QuantizationOpDataBatchMatmul {
   // The scaling factor from input to output (aka the 'real multiplier') can
   // be represented as a fixed point multiplier plus a left shift.
@@ -92,6 +92,13 @@ inline TFLMRegistration Register_BATCH_MATMUL_INT16() {
 }
 #endif  // defined(CMSIS_NN)
 
+}  // namespace micro
+
+using micro::OpDataBatchMatmul;
+using micro::QuantizationOpDataBatchMatmul;
+using micro::Register_BATCH_MATMUL;
+using micro::Register_BATCH_MATMUL_INT16;
+using micro::Register_BATCH_MATMUL_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_BATCH_MATMUL_H_

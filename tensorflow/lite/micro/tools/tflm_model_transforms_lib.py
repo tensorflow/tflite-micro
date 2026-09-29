@@ -23,7 +23,7 @@ properly work.
 
 import os
 import tempfile
-from absl import logging
+import logging
 import numpy as np
 
 from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
@@ -41,20 +41,25 @@ def log_size_difference(input_path, transformed_model_path):
   final_binary_size = os.path.getsize(transformed_model_path)
   logging.info("Initial file size: %d %s", initial_binary_size, "bytes.")
   logging.info("Final file size: %d %s", final_binary_size, "bytes.")
-  logging.info("Savings = %d %s", initial_binary_size - final_binary_size,
-               "bytes.")
   logging.info(
-      " (%.2f %s",
-      round((1 - (final_binary_size / initial_binary_size)) * 100, 2),
-      "% reduction )",
+    "Savings = %d %s", initial_binary_size - final_binary_size, "bytes."
+  )
+  logging.info(
+    " (%.2f %s",
+    round((1 - (final_binary_size / initial_binary_size)) * 100, 2),
+    "% reduction )",
   )
 
 
-def check_models_equivalent(initial_model_path: str = None,
-                            secondary_model_path: str = None,
-                            test_vector_count: int = 1,
-                            seed: int = 42,
-                            custom_op_registerers=[]):
+def check_models_equivalent(
+  initial_model_path=None,
+  secondary_model_path=None,
+  test_vector_count: int = 1,
+  seed: int = 42,
+  custom_op_registerers=None,
+):
+  if custom_op_registerers is None:
+    custom_op_registerers = []
   """Checks that the two models are equivalent by testing that the same set of random inputs produce the same outputs using the TFLM interpreter.
 
   Note that this function does not test the correctness of the inference. It
@@ -74,14 +79,14 @@ def check_models_equivalent(initial_model_path: str = None,
   """
   with open(initial_model_path, "rb") as input_model_file:
     initial_model_interpreter = runtime.Interpreter.from_bytes(
-        input_model_file.read(),
-        custom_op_registerers=custom_op_registerers,
+      input_model_file.read(),
+      custom_op_registerers=custom_op_registerers,
     )
 
   with open(secondary_model_path, "rb") as secondary_model_file:
     secondary_model_interpreter = runtime.Interpreter.from_bytes(
-        secondary_model_file.read(),
-        custom_op_registerers=custom_op_registerers,
+      secondary_model_file.read(),
+      custom_op_registerers=custom_op_registerers,
     )
 
   initial_model_object = flatbuffer_utils.read_model(initial_model_path)
@@ -89,11 +94,12 @@ def check_models_equivalent(initial_model_path: str = None,
 
   for _ in range(test_vector_count):
     for idx, input_tensor_idx in enumerate(
-        initial_model_object.subgraphs[0].inputs):
-      input_tensor = initial_model_object.subgraphs[0].tensors[
-          input_tensor_idx]
+      initial_model_object.subgraphs[0].inputs
+    ):
+      input_tensor = initial_model_object.subgraphs[0].tensors[input_tensor_idx]
       rand_data = model_transforms_utils.generate_random_input_data(
-          initial_model_object, input_tensor, rng)
+        initial_model_object, input_tensor, rng
+      )
       initial_model_interpreter.set_input(rand_data, idx)
       secondary_model_interpreter.set_input(rand_data, idx)
 
@@ -102,8 +108,8 @@ def check_models_equivalent(initial_model_path: str = None,
 
     for idx, _ in enumerate(initial_model_object.subgraphs[0].outputs):
       np.testing.assert_array_equal(
-          initial_model_interpreter.get_output(idx),
-          secondary_model_interpreter.get_output(idx),
+        initial_model_interpreter.get_output(idx),
+        secondary_model_interpreter.get_output(idx),
       )
 
     initial_model_interpreter.reset()
@@ -111,12 +117,12 @@ def check_models_equivalent(initial_model_path: str = None,
 
 
 def apply_transform_and_log(
-    transform_func,
-    model,
-    log_string,
-    save_model,
-    output_dir,
-    filepath,
+  transform_func,
+  model,
+  log_string,
+  save_model,
+  output_dir,
+  filepath,
 ):
   """Calls transform_func(model) and logs transformed model to output_dir/filepath.
 
@@ -142,13 +148,15 @@ def apply_transform_and_log(
 
 
 def run_all_transformations(
-    input_path,
-    transformed_model_path,
-    save_intermediates=False,
-    test_transformed_model=True,
-    custom_save_dir=None,
-    custom_op_registerers=[],
+  input_path,
+  transformed_model_path,
+  save_intermediates=False,
+  test_transformed_model=True,
+  custom_save_dir=None,
+  custom_op_registerers=None,
 ):
+  if custom_op_registerers is None:
+    custom_op_registerers = []
   """Apply all current transform methods on an input .tflite file, and optionally save the models between methods.
 
   Args:
@@ -174,28 +182,30 @@ def run_all_transformations(
   pre_transform_model_path = input_path
 
   transforms_list = [
-      model_transforms_utils.clear_resource_variable_buffers,
-      model_transforms_utils.remove_extraneous_quantization_data,
-      flatbuffer_utils.strip_strings,
-      model_transforms_utils.shorten_variable_shared_names,
+    model_transforms_utils.clear_resource_variable_buffers,
+    model_transforms_utils.remove_extraneous_quantization_data,
+    flatbuffer_utils.strip_strings,
+    model_transforms_utils.shorten_variable_shared_names,
   ]
   transform_names = [
-      "Clear Resource Variable Buffers",
-      "Remove Extra Quantization Data",
-      "Strip Strings",
-      "Shorten Variable Shared Names",
+    "Clear Resource Variable Buffers",
+    "Remove Extra Quantization Data",
+    "Strip Strings",
+    "Shorten Variable Shared Names",
   ]
   intermediate_file_names = [
-      "resource_buffer_cleared.tflite",
-      "quant_data_removed.tflite",
-      "string_stripped.tflite",
-      "variable_shared_names_shortened.tflite",
+    "resource_buffer_cleared.tflite",
+    "quant_data_removed.tflite",
+    "string_stripped.tflite",
+    "variable_shared_names_shortened.tflite",
   ]
 
-  for transform, name, file_name in zip(transforms_list, transform_names,
-                                        intermediate_file_names):
-    model = apply_transform_and_log(transform, model, name, save_intermediates,
-                                    output_dir, file_name)
+  for transform, name, file_name in zip(
+    transforms_list, transform_names, intermediate_file_names
+  ):
+    model = apply_transform_and_log(
+      transform, model, name, save_intermediates, output_dir, file_name
+    )
 
     # Testing will only work if the file has been saved to output path.
     # The "final" stage of a transformation is after it has been flatbuffer
@@ -203,9 +213,9 @@ def run_all_transformations(
     if test_transformed_model and save_intermediates:
       output_path = os.path.join(output_dir, file_name)
       check_models_equivalent(
-          initial_model_path=pre_transform_model_path,
-          secondary_model_path=output_path,
-          custom_op_registerers=custom_op_registerers,
+        initial_model_path=pre_transform_model_path,
+        secondary_model_path=output_path,
+        custom_op_registerers=custom_op_registerers,
       )
       pre_transform_model_path = output_path
 
@@ -215,9 +225,9 @@ def run_all_transformations(
 
   if test_transformed_model:
     check_models_equivalent(
-        initial_model_path=input_path,
-        secondary_model_path=transformed_model_path,
-        custom_op_registerers=custom_op_registerers,
+      initial_model_path=input_path,
+      secondary_model_path=transformed_model_path,
+      custom_op_registerers=custom_op_registerers,
     )
 
   log_size_difference(input_path, transformed_model_path)

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
@@ -180,7 +180,7 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_SafeCast) {
 //  255       | 30.0
 //  128       | 10.0
 TEST(QuantizationUtilTest, QuantizationUtilTest_ChooseQuantizationParams) {
-  tflite::QuantizationParams qp =
+  tflite::micro::QuantizationParams qp =
       tflite::ChooseQuantizationParams<uint8_t>(-10.0, 30.0);
   EXPECT_NEAR(qp.scale, 0.156863, 1e-5);
   EXPECT_EQ(qp.zero_point, 64);
@@ -188,7 +188,7 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_ChooseQuantizationParams) {
 
 TEST(QuantizationUtilTest,
      QuantizationUtilTest_ChooseQuantizationParamsZeroPointOnMinBoundary) {
-  tflite::QuantizationParams qp =
+  tflite::micro::QuantizationParams qp =
       tflite::ChooseQuantizationParams<uint8_t>(0.0, 30.0);
   EXPECT_NEAR(qp.scale, 0.117647, 1e-5);
   EXPECT_EQ(qp.zero_point, 0);
@@ -196,7 +196,7 @@ TEST(QuantizationUtilTest,
 
 TEST(QuantizationUtilTest,
      QuantizationUtilTest_ChooseQuantizationParamsEmptyRangeZero) {
-  tflite::QuantizationParams qp =
+  tflite::micro::QuantizationParams qp =
       tflite::ChooseQuantizationParams<uint8_t>(0.0, 0.0);
   EXPECT_NEAR(qp.scale, 0.0, 1e-5);
   EXPECT_EQ(qp.zero_point, 0);
@@ -204,7 +204,7 @@ TEST(QuantizationUtilTest,
 
 TEST(QuantizationUtilTest,
      QuantizationUtilTest_ChooseQuantizationParamsZeroPointOnMaxBoundary) {
-  tflite::QuantizationParams qp =
+  tflite::micro::QuantizationParams qp =
       tflite::ChooseQuantizationParams<uint8_t>(-10.0, 0.0);
   EXPECT_NEAR(qp.scale, 0.039216, 1e-5);
   EXPECT_EQ(qp.zero_point, 255);
@@ -351,7 +351,7 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_PreprocessSoftmaxScaling) {
   auto quantize = [](double beta, double scale, int integer_bits) {
     int32_t q;
     int s;
-    tflite::PreprocessSoftmaxScaling(beta, scale, integer_bits, &q, &s);
+    tflite::micro::PreprocessSoftmaxScaling(beta, scale, integer_bits, &q, &s);
     return std::pair<int32_t, int>{q, s};
   };
 
@@ -378,10 +378,10 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_PreprocessSoftmaxScaling) {
 }
 
 TEST(QuantizationUtilTest, QuantizationUtilTest_CalculateInputRadius) {
-  EXPECT_EQ(tflite::CalculateInputRadius(4, 27), 15);
-  EXPECT_EQ(tflite::CalculateInputRadius(3, 27), 14);
-  EXPECT_EQ(tflite::CalculateInputRadius(3, 28), 7);
-  EXPECT_EQ(tflite::CalculateInputRadius(4, 2), 503316480);
+  EXPECT_EQ(tflite::micro::CalculateInputRadius(4, 27), 15);
+  EXPECT_EQ(tflite::micro::CalculateInputRadius(3, 27), 14);
+  EXPECT_EQ(tflite::micro::CalculateInputRadius(3, 28), 7);
+  EXPECT_EQ(tflite::micro::CalculateInputRadius(4, 2), 503316480);
 }
 
 TEST(QuantizationUtilTest, QuantizationUtilTest_QuantizeMultiplierArray) {

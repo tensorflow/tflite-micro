@@ -6,7 +6,7 @@ load("@rules_python//python:defs.bzl", "py_library")
 # navigation and autocompletion based on the source graph and compiler commands.
 alias(
     name = "refresh_compile_commands",
-    actual = "@wolfd_bazel_compile_commands//:generate_compile_commands",
+    actual = "//tensorflow/lite/micro/tools:refresh_compile_commands",
 )
 
 bool_flag(
@@ -20,6 +20,10 @@ config_setting(
         ":with_compression": "True",
     },
 )
+
+licenses(["notice"])
+
+exports_files(["LICENSE"])
 
 # Synthesizes the "tflite_micro" top-level package namespace at import time, so
 # that `from tflite_micro...` imports resolve (see tflite_micro.py). Necessary

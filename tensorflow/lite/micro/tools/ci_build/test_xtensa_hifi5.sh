@@ -27,20 +27,12 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 
-COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi5 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=PRD_H5_RDO_07_01_2022 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi5 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=PRD_H5_RDO_07_01_2022 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite"
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
-
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
-# TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
 # run generic benchmark
-readable_run make -f ${MAKEFILE} \
-  ${COMMON_ARGS} \
-  GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-  $(get_parallel_jobs) run_tflm_benchmark
+readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) run_tflm_benchmark

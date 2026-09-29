@@ -18,7 +18,9 @@ import numpy as np
 import tensorflow as tf
 
 from tflite_micro.python.tflite_micro.signal.utils import util
-from tflite_micro.python.tflite_micro.signal.utils.freq_to_mel_wrapper import freq_to_mel
+from tflite_micro.python.tflite_micro.signal.utils.freq_to_mel_wrapper import (
+  freq_to_mel,
+)
 
 gen_filter_bank_ops = util.load_custom_op('filter_bank_ops.so')
 
@@ -58,9 +60,15 @@ def _quantize_filterbank_weight(float_weight, scale_bits):
   return weight, unweight
 
 
-def _init_filter_bank_weights(spectrum_size, sample_rate, alignment,
-                              channel_block_size, num_channels,
-                              lower_band_limit, upper_band_limit):
+def _init_filter_bank_weights(
+  spectrum_size,
+  sample_rate,
+  alignment,
+  channel_block_size,
+  num_channels,
+  lower_band_limit,
+  upper_band_limit,
+):
   """Initialize mel-spectrum filter bank weights."""
   # How should we align things to index counts given the byte alignment?
   item_size = np.dtype("int16").itemsize
@@ -76,8 +84,9 @@ def _init_filter_bank_weights(spectrum_size, sample_rate, alignment,
   actual_channel_starts = np.zeros(num_channels + 1, dtype=np.int16)
   actual_channel_widths = np.zeros(num_channels + 1, dtype=np.int16)
 
-  center_mel_freqs = _calc_center_freq(num_channels + 1, lower_band_limit,
-                                       upper_band_limit)
+  center_mel_freqs = _calc_center_freq(
+    num_channels + 1, lower_band_limit, upper_band_limit
+  )
 
   # (spectrum_size - 1) to exclude DC. Emulate Hidden Markov Model Toolkit (HTK)
   hz_per_sbin = (sample_rate / 2) / (spectrum_size - 1)
@@ -122,11 +131,13 @@ def _init_filter_bank_weights(spectrum_size, sample_rate, alignment,
     else:
       # How far back do we need to go to ensure that we have the proper
       # alignment?
-      aligned_start = int(
-          chan_freq_index_start / index_alignment) * index_alignment
-      aligned_width = (chan_freq_index_start - aligned_start + width)
-      padded_width = (int(
-          (aligned_width - 1) / channel_block_size) + 1) * channel_block_size
+      aligned_start = (
+        int(chan_freq_index_start / index_alignment) * index_alignment
+      )
+      aligned_width = chan_freq_index_start - aligned_start + width
+      padded_width = (
+        int((aligned_width - 1) / channel_block_size) + 1
+      ) * channel_block_size
 
       channel_frequency_starts[chan] = aligned_start
       channel_weight_starts[chan] = weight_index_start
@@ -156,16 +167,17 @@ def _init_filter_bank_weights(spectrum_size, sample_rate, alignment,
     else:
       denom_val = center_mel_freqs[chan - 1]
     for j in range(num_frequencies):
-      num = np.float32(center_mel_freqs[chan] -
-                       freq_to_mel(frequency * hz_per_sbin))
+      num = np.float32(
+        center_mel_freqs[chan] - freq_to_mel(frequency * hz_per_sbin)
+      )
       den = np.float32(center_mel_freqs[chan] - denom_val)
       weight = num / den
       # Make the float into an integer for the weights (and unweights).
       # Explicitly cast to int64. Numpy 2.0 introduces downcasting if we don't
       weight_index = weight_start + np.int64(frequency_offset) + j
-      weights[weight_index], unweights[
-          weight_index] = _quantize_filterbank_weight(
-              weight, FILTER_BANK_WEIGHT_SCALING_BITS)
+      weights[weight_index], unweights[weight_index] = (
+        _quantize_filterbank_weight(weight, FILTER_BANK_WEIGHT_SCALING_BITS)
+      )
       # Explicitly cast to int64. Numpy 2.0 introduces downcasting if we don't
       frequency = np.int64(frequency) + 1
     if frequency > end_index:
@@ -174,12 +186,20 @@ def _init_filter_bank_weights(spectrum_size, sample_rate, alignment,
   if end_index >= spectrum_size:
     raise ValueError("Lower frequency limit can't be larger than upper limit")
 
-  return (start_index, end_index, weights, unweights, channel_frequency_starts,
-          channel_weight_starts, channel_widths)
+  return (
+    start_index,
+    end_index,
+    weights,
+    unweights,
+    channel_frequency_starts,
+    channel_weight_starts,
+    channel_widths,
+  )
 
 
-def calc_start_end_indices(fft_length, sample_rate, num_channels,
-                           lower_band_limit, upper_band_limit):
+def calc_start_end_indices(
+  fft_length, sample_rate, num_channels, lower_band_limit, upper_band_limit
+):
   """Returns the range of FFT indices needed by mel-spectrum filter bank.
 
   The caller can use the indices to avoid calculating the energy of FFT bins
@@ -201,23 +221,29 @@ def calc_start_end_indices(fft_length, sample_rate, num_channels,
   if fft_length % 2 != 0:
     raise ValueError("FFT length must be an even number")
   spectrum_size = fft_length / 2 + 1
-  (start_index, end_index, _, _, _, _,
-   _) = _init_filter_bank_weights(spectrum_size, sample_rate,
-                                  FILTER_BANK_ALIGNMENT,
-                                  FILTER_BANK_CHANNEL_BLOCK_SIZE, num_channels,
-                                  lower_band_limit, upper_band_limit)
+  (start_index, end_index, _, _, _, _, _) = _init_filter_bank_weights(
+    spectrum_size,
+    sample_rate,
+    FILTER_BANK_ALIGNMENT,
+    FILTER_BANK_CHANNEL_BLOCK_SIZE,
+    num_channels,
+    lower_band_limit,
+    upper_band_limit,
+  )
   return start_index, end_index
 
 
 def _filter_bank_wrapper(filter_bank_fn, default_name):
   """Wrapper around gen_filter_bank_ops.filter_bank*."""
 
-  def _filter_bank(input_tensor,
-                   sample_rate,
-                   num_channels,
-                   lower_band_limit,
-                   upper_band_limit,
-                   name=default_name):
+  def _filter_bank(
+    input_tensor,
+    sample_rate,
+    num_channels,
+    lower_band_limit,
+    upper_band_limit,
+    name=default_name,
+  ):
     with tf.name_scope(name) as name:
       input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.uint32)
       dim_list = input_tensor.shape.as_list()
@@ -225,28 +251,45 @@ def _filter_bank_wrapper(filter_bank_fn, default_name):
         raise ValueError("Input tensor must have a rank of 1")
       spectrum_size = dim_list[0]
 
-      (_, _, weights, unweights, channel_frequency_starts,
-       channel_weight_starts, channel_widths) = _init_filter_bank_weights(
-           spectrum_size, sample_rate, FILTER_BANK_ALIGNMENT,
-           FILTER_BANK_CHANNEL_BLOCK_SIZE, num_channels, lower_band_limit,
-           upper_band_limit)
+      (
+        _,
+        _,
+        weights,
+        unweights,
+        channel_frequency_starts,
+        channel_weight_starts,
+        channel_widths,
+      ) = _init_filter_bank_weights(
+        spectrum_size,
+        sample_rate,
+        FILTER_BANK_ALIGNMENT,
+        FILTER_BANK_CHANNEL_BLOCK_SIZE,
+        num_channels,
+        lower_band_limit,
+        upper_band_limit,
+      )
       weights_tensor = tf.convert_to_tensor(weights, dtype=tf.int16)
       unweights_tensor = tf.convert_to_tensor(unweights, dtype=tf.int16)
       channel_frequency_starts_tensor = tf.convert_to_tensor(
-          channel_frequency_starts, dtype=tf.int16)
+        channel_frequency_starts, dtype=tf.int16
+      )
       channel_weight_starts_tensor = tf.convert_to_tensor(
-          channel_weight_starts, dtype=tf.int16)
-      channel_widths_tensor = tf.convert_to_tensor(channel_widths,
-                                                   dtype=tf.int16)
+        channel_weight_starts, dtype=tf.int16
+      )
+      channel_widths_tensor = tf.convert_to_tensor(
+        channel_widths, dtype=tf.int16
+      )
 
-      return filter_bank_fn(input_tensor,
-                            weights_tensor,
-                            unweights_tensor,
-                            channel_frequency_starts_tensor,
-                            channel_weight_starts_tensor,
-                            channel_widths_tensor,
-                            num_channels=num_channels,
-                            name=name)
+      return filter_bank_fn(
+        input_tensor,
+        weights_tensor,
+        unweights_tensor,
+        channel_frequency_starts_tensor,
+        channel_weight_starts_tensor,
+        channel_widths_tensor,
+        num_channels=num_channels,
+        name=name,
+      )
 
   return _filter_bank
 
@@ -261,56 +304,63 @@ def _filter_bank_square_root_wrapper(filter_bank_square_root_fn, default_name):
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
       scale_bits_tensor = tf.convert_to_tensor(scale_bits, dtype=tf.int32)
-      return filter_bank_square_root_fn(input_tensor,
-                                        scale_bits_tensor,
-                                        name=name)
+      return filter_bank_square_root_fn(
+        input_tensor, scale_bits_tensor, name=name
+      )
 
   return _filter_bank_square_root
 
 
 def _filter_bank_spectral_subtraction_wrapper(
-    filter_bank_spectral_subtraction_fn, default_name):
+  filter_bank_spectral_subtraction_fn, default_name
+):
   """Wrapper around gen_filter_bank_ops.filter_bank_spectral_subtraction*."""
 
-  def _filter_bank_spectral_subtraction(input_tensor,
-                                        num_channels,
-                                        smoothing,
-                                        alternate_smoothing,
-                                        smoothing_bits,
-                                        min_signal_remaining,
-                                        clamping,
-                                        spectral_subtraction_bits=14,
-                                        name=default_name):
+  def _filter_bank_spectral_subtraction(
+    input_tensor,
+    num_channels,
+    smoothing,
+    alternate_smoothing,
+    smoothing_bits,
+    min_signal_remaining,
+    clamping,
+    spectral_subtraction_bits=14,
+    name=default_name,
+  ):
     with tf.name_scope(name) as name:
       input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.uint32)
       dim_list = input_tensor.shape.as_list()
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
 
-      min_signal_remaining = int(min_signal_remaining *
-                                 (1 << spectral_subtraction_bits))
+      min_signal_remaining = int(
+        min_signal_remaining * (1 << spectral_subtraction_bits)
+      )
       # Alternate smoothing may be disabled
       if alternate_smoothing == 0:
         alternate_smoothing = smoothing
 
       smoothing = int(smoothing * (1 << spectral_subtraction_bits))
       one_minus_smoothing = int((1 << spectral_subtraction_bits) - smoothing)
-      alternate_smoothing = int(alternate_smoothing *
-                                (1 << spectral_subtraction_bits))
-      alternate_one_minus_smoothing = int((1 << spectral_subtraction_bits) -
-                                          alternate_smoothing)
+      alternate_smoothing = int(
+        alternate_smoothing * (1 << spectral_subtraction_bits)
+      )
+      alternate_one_minus_smoothing = int(
+        (1 << spectral_subtraction_bits) - alternate_smoothing
+      )
       return filter_bank_spectral_subtraction_fn(
-          input_tensor,
-          num_channels=num_channels,
-          smoothing=smoothing,
-          one_minus_smoothing=one_minus_smoothing,
-          alternate_smoothing=alternate_smoothing,
-          alternate_one_minus_smoothing=alternate_one_minus_smoothing,
-          smoothing_bits=smoothing_bits,
-          min_signal_remaining=min_signal_remaining,
-          clamping=clamping,
-          spectral_subtraction_bits=spectral_subtraction_bits,
-          name=name)
+        input_tensor,
+        num_channels=num_channels,
+        smoothing=smoothing,
+        one_minus_smoothing=one_minus_smoothing,
+        alternate_smoothing=alternate_smoothing,
+        alternate_one_minus_smoothing=alternate_one_minus_smoothing,
+        smoothing_bits=smoothing_bits,
+        min_signal_remaining=min_signal_remaining,
+        clamping=clamping,
+        spectral_subtraction_bits=spectral_subtraction_bits,
+        name=name,
+      )
 
   return _filter_bank_spectral_subtraction
 
@@ -318,34 +368,39 @@ def _filter_bank_spectral_subtraction_wrapper(
 def _filter_bank_log_wrapper(filter_bank_log_fn, default_name):
   """Wrapper around gen_filter_bank_ops.filter_bank_log*."""
 
-  def _filter_bank_log(input_tensor,
-                       output_scale,
-                       input_correction_bits,
-                       name=default_name):
+  def _filter_bank_log(
+    input_tensor, output_scale, input_correction_bits, name=default_name
+  ):
     with tf.name_scope(name) as name:
       input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.uint32)
       dim_list = input_tensor.shape.as_list()
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
 
-      return filter_bank_log_fn(input_tensor,
-                                output_scale=output_scale,
-                                input_correction_bits=input_correction_bits,
-                                name=name)
+      return filter_bank_log_fn(
+        input_tensor,
+        output_scale=output_scale,
+        input_correction_bits=input_correction_bits,
+        name=name,
+      )
 
   return _filter_bank_log
 
 
-filter_bank = _filter_bank_wrapper(gen_filter_bank_ops.signal_filter_bank,
-                                   "signal_filter_bank")
+filter_bank = _filter_bank_wrapper(
+  gen_filter_bank_ops.signal_filter_bank, "signal_filter_bank"
+)
 filter_bank_square_root = _filter_bank_square_root_wrapper(
-    gen_filter_bank_ops.signal_filter_bank_square_root,
-    "signal_filter_bank_square_root")
+  gen_filter_bank_ops.signal_filter_bank_square_root,
+  "signal_filter_bank_square_root",
+)
 filter_bank_spectral_subtraction = _filter_bank_spectral_subtraction_wrapper(
-    gen_filter_bank_ops.signal_filter_bank_spectral_subtraction,
-    "signal_filter_bank_spectral_subtraction")
+  gen_filter_bank_ops.signal_filter_bank_spectral_subtraction,
+  "signal_filter_bank_spectral_subtraction",
+)
 filter_bank_log = _filter_bank_log_wrapper(
-    gen_filter_bank_ops.signal_filter_bank_log, "signal_filter_bank_log")
+  gen_filter_bank_ops.signal_filter_bank_log, "signal_filter_bank_log"
+)
 
 tf.no_gradient("signal_filter_bank")
 tf.no_gradient("signal_filter_bank_square_root")

@@ -1,7 +1,10 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
-    default_visibility = ["//signal/src:__subpackages__"],
+    default_visibility = [
+        "//signal:__subpackages__",
+        "//tensorflow/lite/micro:__subpackages__",
+    ],
     licenses = ["notice"],
 )
 
@@ -19,6 +22,7 @@ cc_library(
         "kiss_fft_int32.h",
     ],
     deps = [
+        "@kissfft//:kiss_fft",
         "@kissfft//:kiss_fftr",
     ],
 )

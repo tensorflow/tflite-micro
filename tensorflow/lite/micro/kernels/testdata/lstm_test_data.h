@@ -18,7 +18,7 @@ limitations under the License.
 #include <string>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 
@@ -441,7 +441,7 @@ CreateQuantizedGateData(
     std::memcpy(quantized_gate_params.activation_zp_folded_bias,
                 quantized_gate_params.fused_bias, 2 * sizeof(int32_t));
     // Pre-calculate bias - zero_point * weight (a constant).
-    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+    tflite::micro::tensor_utils::MatrixScalarMultiplyAccumulate(
         quantized_gate_params.activation_weight,
         -1 * input_quantization_params.zero_point, 2, 2,
         quantized_gate_params.activation_zp_folded_bias);
@@ -451,7 +451,7 @@ CreateQuantizedGateData(
       quantized_gate_params.recurrent_zp_folded_bias[i] = 0;
     }
     // Calculate : -zero_point * weight since it is a constant
-    tflite::tensor_utils::MatrixScalarMultiplyAccumulate(
+    tflite::micro::tensor_utils::MatrixScalarMultiplyAccumulate(
         quantized_gate_params.recurrent_weight,
         -1 * output_quantization_params.zero_point, 2, 2,
         quantized_gate_params.recurrent_zp_folded_bias);

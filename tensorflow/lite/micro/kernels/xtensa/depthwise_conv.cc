@@ -18,20 +18,20 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
-#include "tensorflow/lite/kernels/internal/reference/depthwiseconv_uint8.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depthwiseconv_float.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depthwiseconv_uint8.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/depthwise_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_depthwise_conv.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
@@ -95,17 +95,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       context, op_data.reference_op_data.filter_buffer_index, filter);
 
 #ifdef USE_TFLM_COMPRESSION
+  [[maybe_unused]] MicroContext* micro_context = GetMicroContext(context);
 
-  MicroContext* micro_context = GetMicroContext(context);
-
-  [[maybe_unused]]
-  const CompressionTensorData* filter_comp_td =
+  [[maybe_unused]] const CompressionTensorData* filter_comp_td =
       micro_context->GetTensorCompressionData(node,
                                               kDepthwiseConvWeightsTensor);
-  [[maybe_unused]]
-  const CompressionTensorData* bias_comp_td =
+  [[maybe_unused]] const CompressionTensorData* bias_comp_td =
       micro_context->GetTensorCompressionData(node, kDepthwiseConvBiasTensor);
-
 #endif  // USE_TFLM_COMPRESSION
 
   switch (input->type) {  // Already know in/out types are same.
@@ -205,4 +201,5 @@ TFLMRegistration Register_DEPTHWISE_CONV_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

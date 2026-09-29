@@ -121,10 +121,6 @@ def tflm_kernel_cc_library(
         "//conditions:default": srcs,
     }
 
-    all_hdrs = {
-        "//conditions:default": hdrs,
-    }
-
     # Identify all of the sources for each target. This ends up creating a dictionary for both the
     # sources and headers that looks like the following:
     # {

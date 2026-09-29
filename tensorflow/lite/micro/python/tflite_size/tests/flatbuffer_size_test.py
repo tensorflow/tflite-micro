@@ -15,11 +15,12 @@
 import os
 
 import unittest
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size
+from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+  flatbuffer_size,
+)
 
 
 class FlatbufferSizeTest(unittest.TestCase):
-
   def _compareFile(self, file1, data2):
     with open(file1, 'rb') as f1:
       data1 = f1.read()

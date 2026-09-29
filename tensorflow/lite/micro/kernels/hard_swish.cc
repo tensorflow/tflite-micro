@@ -13,22 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/hard_swish.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/hard_swish.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/hard_swish.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 void* HardSwishInit(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -44,14 +44,14 @@ TfLiteStatus HardSwishEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      tflite::reference_ops::HardSwish<float>(
+      tflite::micro::reference_ops::HardSwish<float>(
           tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
           tflite::micro::GetTensorShape(output),
           tflite::micro::GetTensorData<float>(output));
     } break;
     case kTfLiteInt8: {
-      tflite::reference_ops::HardSwish<int8_t>(
+      tflite::micro::reference_ops::HardSwish<int8_t>(
           *params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<int8_t>(input),
           tflite::micro::GetTensorShape(output),
@@ -68,8 +68,8 @@ TfLiteStatus HardSwishEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_HARD_SWISH() {
-  return tflite::micro::RegisterOp(HardSwishInit, tflite::HardSwishPrepare,
-                                   HardSwishEval);
+  return RegisterOp(HardSwishInit, HardSwishPrepare, HardSwishEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

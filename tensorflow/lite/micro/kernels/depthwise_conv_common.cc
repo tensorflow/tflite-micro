@@ -15,19 +15,18 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/depthwise_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depthwiseconv_float.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/depthwise_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 const int kDepthwiseConvInputTensor = 0;
 const int kDepthwiseConvWeightsTensor = 1;
 const int kDepthwiseConvBiasTensor = 2;
@@ -114,7 +113,7 @@ TfLiteStatus CalculateOpDataDepthwiseConv(
   if (data_type != kTfLiteFloat32) {
     int output_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
 
-    TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
+    TF_LITE_ENSURE_STATUS(PopulateConvolutionQuantizationParams(
         context, input, filter, bias, output, params.activation,
         &data->output_multiplier, &data->output_shift,
         &data->output_activation_min, &data->output_activation_max,
@@ -236,4 +235,5 @@ TfLiteStatus DepthwiseConvPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

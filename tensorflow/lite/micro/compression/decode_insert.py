@@ -37,6 +37,7 @@ DECODE_CUSTOM_OP_NAME = "TFLM_DECODE"
 @dataclass
 class _CompressedTensorInfo:
   """Information about a compressed tensor for DECODE insertion."""
+
   subgraph_idx: int
   tensor_idx: int
   tensor: model_editor.Tensor
@@ -47,8 +48,8 @@ class _CompressedTensorInfo:
 
 
 def _create_ancillary_tensor(
-    ancillary_data: bytes,
-    original_tensor: model_editor.Tensor,
+  ancillary_data: bytes,
+  original_tensor: model_editor.Tensor,
 ) -> model_editor.Tensor:
   """Create an ancillary data tensor for a compressed tensor.
 
@@ -64,15 +65,16 @@ def _create_ancillary_tensor(
     name = f"{original_tensor.name}_ancillary"
 
   return model_editor.Tensor(
-      shape=(len(ancillary_data), ),
-      dtype=tflite.TensorType.UINT8,
-      data=ancillary_data,
-      name=name,
+    shape=(len(ancillary_data),),
+    dtype=tflite.TensorType.UINT8,
+    data=ancillary_data,
+    name=name,
   )
 
 
 def _create_output_tensor(
-    original_tensor: model_editor.Tensor, ) -> model_editor.Tensor:
+  original_tensor: model_editor.Tensor,
+) -> model_editor.Tensor:
   """Create the output tensor for a DECODE operator.
 
   The output tensor is a copy of the original tensor, differing only in
@@ -95,20 +97,20 @@ def _create_output_tensor(
 
 
 def _rewire_consumers(
-    consumers: list[model_editor.Operator],
-    old_tensor: model_editor.Tensor,
-    new_tensor: model_editor.Tensor,
+  consumers: list[model_editor.Operator],
+  old_tensor: model_editor.Tensor,
+  new_tensor: model_editor.Tensor,
 ) -> None:
   """Replace old_tensor with new_tensor in all consumer inputs."""
   for consumer in consumers:
     consumer.inputs = [
-        new_tensor if t is old_tensor else t for t in consumer.inputs
+      new_tensor if t is old_tensor else t for t in consumer.inputs
     ]
 
 
 def _rewrite_encoded_tensor(
-    tensor: model_editor.Tensor,
-    encoded_data: bytes,
+  tensor: model_editor.Tensor,
+  encoded_data: bytes,
 ) -> None:
   """Rewrite a compressed tensor to hold encoded data.
 
@@ -122,15 +124,15 @@ def _rewrite_encoded_tensor(
     tensor: The tensor to rewrite.
     encoded_data: The compressed/encoded data bytes.
   """
-  tensor.shape = (len(encoded_data), )
+  tensor.shape = (len(encoded_data),)
   tensor.dtype = tflite.TensorType.UINT8
   tensor.quantization = None
   tensor.buffer = model_editor.Buffer(data=encoded_data)
 
 
 def _drop_partially_covered_buffers(
-    model: model_editor.Model,
-    compression_results: dict[tuple[int, int], compressor.CompressionResult],
+  model: model_editor.Model,
+  compression_results: dict[tuple[int, int], compressor.CompressionResult],
 ) -> dict[tuple[int, int], compressor.CompressionResult]:
   """Drop compressed tensors whose buffer an uncompressed tensor shares.
 
@@ -148,8 +150,7 @@ def _drop_partially_covered_buffers(
     compression_results, minus entries for partially covered buffers.
   """
   coordinates = {
-      id(model.subgraphs[s].tensors[t]): (s, t)
-      for (s, t) in compression_results
+    id(model.subgraphs[s].tensors[t]): (s, t) for (s, t) in compression_results
   }
   by_buffer: dict[int, list[model_editor.Tensor]] = defaultdict(list)
   for tensor in model_editor.iter_tensors(model):
@@ -162,20 +163,21 @@ def _drop_partially_covered_buffers(
     if covered and len(covered) < len(aliases):
       uncovered = [t for t in aliases if id(t) not in coordinates]
       warnings.warn(
-          f"Not compressing tensor(s) "
-          f"{[t.name for t in covered]}: sharing a buffer with "
-          f"uncompressed tensor(s) {[t.name for t in uncovered]}, whose "
-          "data stays in the model, so compression cannot reduce model "
-          "size.",
-          stacklevel=3)
+        f"Not compressing tensor(s) "
+        f"{[t.name for t in covered]}: sharing a buffer with "
+        f"uncompressed tensor(s) {[t.name for t in uncovered]}, whose "
+        "data stays in the model, so compression cannot reduce model "
+        "size.",
+        stacklevel=3,
+      )
       for tensor in covered:
         del results[coordinates[id(tensor)]]
   return results
 
 
 def insert_decode_operators(
-    model: model_editor.Model,
-    compression_results: dict[tuple[int, int], compressor.CompressionResult],
+  model: model_editor.Model,
+  compression_results: dict[tuple[int, int], compressor.CompressionResult],
 ) -> None:
   """Insert DECODE operators for all compressed tensors.
 
@@ -221,7 +223,8 @@ def insert_decode_operators(
                          CompressionResult containing ancillary_data.
   """
   compression_results = _drop_partially_covered_buffers(
-      model, compression_results)
+    model, compression_results
+  )
 
   # Group compressed tensors by subgraph
   by_subgraph: dict[int, list[_CompressedTensorInfo]] = defaultdict(list)
@@ -234,20 +237,21 @@ def insert_decode_operators(
 
     if not consumers and not is_output:
       warnings.warn(
-          f"Compressed tensor {tensor.name!r} (subgraph {sg_idx}, "
-          f"tensor {tensor_idx}) has no consumers and is not a subgraph "
-          "output. No DECODE operator will be inserted.",
-          stacklevel=2)
+        f"Compressed tensor {tensor.name!r} (subgraph {sg_idx}, "
+        f"tensor {tensor_idx}) has no consumers and is not a subgraph "
+        "output. No DECODE operator will be inserted.",
+        stacklevel=2,
+      )
       continue
 
     info = _CompressedTensorInfo(
-        subgraph_idx=sg_idx,
-        tensor_idx=tensor_idx,
-        tensor=tensor,
-        encoded_data=result.encoded_data,
-        ancillary_data=result.ancillary_data,
-        consumers=consumers,
-        is_output=is_output,
+      subgraph_idx=sg_idx,
+      tensor_idx=tensor_idx,
+      tensor=tensor,
+      encoded_data=result.encoded_data,
+      ancillary_data=result.ancillary_data,
+      consumers=consumers,
+      is_output=is_output,
     )
     by_subgraph[sg_idx].append(info)
 
@@ -274,7 +278,7 @@ def insert_decode_operators(
       return ancillary
 
     def build_decode(
-        infos: list[_CompressedTensorInfo]
+      infos: list[_CompressedTensorInfo],
     ) -> tuple[model_editor.Operator, list[model_editor.Tensor]]:
       """Build one DECODE operator decoding all of infos' tensors.
 
@@ -291,10 +295,10 @@ def insert_decode_operators(
         inputs.extend([info.tensor, ancillary_tensor])
         outputs.append(decoded)
       op = model_editor.Operator(
-          opcode=tflite.BuiltinOperator.CUSTOM,
-          custom_code=DECODE_CUSTOM_OP_NAME,
-          inputs=inputs,
-          outputs=outputs,
+        opcode=tflite.BuiltinOperator.CUSTOM,
+        custom_code=DECODE_CUSTOM_OP_NAME,
+        inputs=inputs,
+        outputs=outputs,
       )
       return op, outputs
 
@@ -311,9 +315,9 @@ def insert_decode_operators(
       for consumer in info.consumers:
         by_consumer.setdefault(consumer, []).append(info)
 
-    for consumer in sorted(by_consumer,
-                           key=lambda op: op_position[op],
-                           reverse=True):
+    for consumer in sorted(
+      by_consumer, key=lambda op: op_position[op], reverse=True
+    ):
       infos = by_consumer[consumer]
       decode_op, decoded_tensors = build_decode(infos)
 
@@ -332,7 +336,7 @@ def insert_decode_operators(
       subgraph.operators.append(decode_op)
       for info, decoded in zip(output_infos, decoded_tensors):
         subgraph.outputs = [
-            decoded if t is info.tensor else t for t in subgraph.outputs
+          decoded if t is info.tensor else t for t in subgraph.outputs
         ]
 
     # Rewrite encoded tensors after all output tensors are created

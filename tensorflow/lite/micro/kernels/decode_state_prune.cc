@@ -18,15 +18,15 @@ limitations under the License.
 #include <algorithm>
 #include <cstddef>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus DecodeStatePrune::Setup(const TfLiteTensor& input,
                                      const TfLiteTensor& ancillary,
                                      const TfLiteTensor& output) {
@@ -205,4 +205,5 @@ template void DecodeStatePrune::DecompressToBuffer<int16_t>(void*);
 template void DecodeStatePrune::DecompressToBuffer<int32_t>(void*);
 template void DecodeStatePrune::DecompressToBuffer<int64_t>(void*);
 
+}  // namespace micro
 }  // namespace tflite

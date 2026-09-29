@@ -23,11 +23,9 @@ gen_framer_op = util.load_custom_op('framer_op.so')
 def _framer_wrapper(framer_fn, default_name):
   """Wrapper around gen_framer_op.framer*."""
 
-  def _framer(input_tensor,
-              frame_size,
-              frame_step,
-              prefill=False,
-              name=default_name):
+  def _framer(
+    input_tensor, frame_size, frame_step, prefill=False, name=default_name
+  ):
     if frame_step > frame_size:
       raise ValueError("frame_step must not be greater than frame_size.")
     with tf.name_scope(name) as name:
@@ -35,13 +33,16 @@ def _framer_wrapper(framer_fn, default_name):
       dim_list = input_tensor.shape.as_list()
       if dim_list[-1] % frame_step != 0:
         raise ValueError(
-            "Innermost input dimension size must be a multiple of %d elements"
-            % frame_step)
-      return framer_fn(input_tensor,
-                       frame_size=frame_size,
-                       frame_step=frame_step,
-                       prefill=prefill,
-                       name=name)
+          "Innermost input dimension size must be a multiple of %d elements"
+          % frame_step
+        )
+      return framer_fn(
+        input_tensor,
+        frame_size=frame_size,
+        frame_step=frame_step,
+        prefill=prefill,
+        name=name,
+      )
 
   return _framer
 

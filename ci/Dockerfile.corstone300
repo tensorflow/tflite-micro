@@ -1,0 +1,58 @@
+# ==============================================================================
+# Arm Corstone-300 & Ethos-U Toolchain Container for TFLite Micro
+#
+# Supports:
+#   - Arm Cortex-M55 (Helium / MVE)
+#   - Arm Ethos-U55 NPU FVP emulation
+#   - Arm GNU Toolchain (arm-none-eabi-gcc 14.3.rel1)
+#   - Arm Corstone-300 Ecosystem FVP (11.24_13)
+#
+# Usage:
+#
+# --- Build locally ---
+#   docker build -f ci/Dockerfile.corstone300 -t corstone300 .
+#
+# --- Build and push to GHCR.IO ---
+#   export CORSTONE_VERSION=0.1
+#   docker build --no-cache -f ci/Dockerfile.corstone300 -t ghcr.io/tflm-bot/corstone300:$CORSTONE_VERSION .
+#   docker push ghcr.io/tflm-bot/corstone300:$CORSTONE_VERSION
+#
+# ==============================================================================
+
+FROM python:3.11-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    libatomic1 \
+    wget \
+    xxd \
+    zip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir numpy Pillow
+
+# 1. Install Arm GNU Embedded Toolchain 14.3.rel1
+ENV ARM_GCC_VERSION=14.3.rel1
+RUN mkdir -p /opt/arm/gcc && \
+    wget -qO- https://developer.arm.com/-/media/Files/downloads/gnu/${ARM_GCC_VERSION}/binrel/arm-gnu-toolchain-${ARM_GCC_VERSION}-x86_64-arm-none-eabi.tar.xz | \
+    tar -xJ -C /opt/arm/gcc --strip-components=1
+
+# 2. Install Arm Corstone-300 FVP 11.24_13
+ENV FVP_VERSION=11.24_13
+RUN mkdir -p /opt/arm/fvp /tmp/fvp && \
+    wget -qO- https://developer.arm.com/-/media/Arm%20Developer%20Community/Downloads/OSS/FVP/Corstone-300/FVP_Corstone_SSE-300_${FVP_VERSION}_Linux64.tgz | \
+    tar -xz -C /tmp/fvp && \
+    /tmp/fvp/FVP_Corstone_SSE-300.sh --i-agree-to-the-contained-eula --no-interactive -d /opt/arm/fvp && \
+    rm -rf /tmp/fvp
+
+# 3. Add tools to PATH
+ENV PATH="/opt/arm/gcc/bin:/opt/arm/fvp/models/Linux64_GCC-9.3:${PATH}"
+
+# Configure git safe directories
+RUN git config --system --add safe.directory '*'
+
+WORKDIR /workspace

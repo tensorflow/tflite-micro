@@ -12,18 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/pad.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/pad.h"
 
 #include <limits>
 
 #include "Include/arm_nn_types.h"
 #include "Include/arm_nnfunctions.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pad.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 TfLiteStatus PadEvalInt8(TfLiteContext* context, TfLiteNode* node) {
@@ -150,4 +150,5 @@ TFLMRegistration Register_PAD_INT8() {
   return tflite::micro::RegisterOp(PadInit, PadPrepare, PadEvalInt8);
 }
 
+}  // namespace micro
 }  // namespace tflite

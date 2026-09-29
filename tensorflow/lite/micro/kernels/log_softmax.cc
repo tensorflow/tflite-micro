@@ -12,20 +12,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/log_softmax.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/log_softmax.h"
 
 #include <cstddef>
 #include <cstdint>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 // used only with quantized data
@@ -74,7 +74,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
 
     int input_left_shift;
     int reverse_scaling_right_shift;
-    tflite::PreprocessLogSoftmaxScalingExp(
+    tflite::micro::PreprocessLogSoftmaxScalingExp(
         kBeta, static_cast<double>(input->params.scale), kScaledDiffIntegerBits,
         &data->input_multiplier, &input_left_shift,
         &data->reverse_scaling_divisor, &reverse_scaling_right_shift);
@@ -83,8 +83,8 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
         static_cast<int32_t>(-reverse_scaling_right_shift);
     // diff_min has a negative value, and is used to limit the maximum magnitude
     // of the diffs, which are <= 0.
-    data->diff_min =
-        -tflite::CalculateInputRadius(kScaledDiffIntegerBits, input_left_shift);
+    data->diff_min = -tflite::micro::CalculateInputRadius(
+        kScaledDiffIntegerBits, input_left_shift);
 
     RuntimeShape input_shape = GetTensorShape(input);
     const int trailing_dim = input_shape.DimensionsCount() - 1;
@@ -145,4 +145,5 @@ TFLMRegistration Register_LOG_SOFTMAX() {
   return tflite::micro::RegisterOp(nullptr, LogSoftmaxPrepare, LogSoftmaxEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

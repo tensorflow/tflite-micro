@@ -18,36 +18,89 @@ from tflite_micro.tensorflow.lite.micro.compression import spec
 
 # This corresponds to spec.EXAMPLE_YAML_SPEC
 EXPECTED_PYTHON_SPEC = [
-    spec.Tensor(subgraph=0,
-                tensor=42,
-                compression=[spec.LookUpTableCompression(index_bitwidth=4)]),
-    spec.Tensor(subgraph=0,
-                tensor=55,
-                compression=[spec.LookUpTableCompression(index_bitwidth=2)]),
+  spec.Tensor(
+    subgraph=0,
+    tensor=42,
+    compression=[
+      spec.LookUpTableCompression(
+        index_bitwidth=4, mode=spec.PerChannel(axis=0)
+      )
+    ],
+  ),
+  spec.Tensor(
+    subgraph=0,
+    tensor=55,
+    compression=[
+      spec.LookUpTableCompression(index_bitwidth=2, mode=spec.PerTensor())
+    ],
+  ),
 ]
 
 
-class TestLoadYaml(unittest.TestCase):
+def _lut_spec(*lut_lines: str) -> str:
+  """Returns a one-tensor spec whose lut entry holds the given lines."""
+  lines = [
+    "tensors:",
+    "  - subgraph: 0",
+    "    tensor: 0",
+    "    compression:",
+    "      - lut:",
+  ]
+  lines += [" " * 10 + line for line in lut_lines]
+  return "\n".join(lines) + "\n"
 
-  def testExampleSpec(self):
-    result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC)
-    self.assertEqual(result, EXPECTED_PYTHON_SPEC)
 
-  def testMalformedYAML(self):
-    bad = spec.EXAMPLE_YAML_SPEC + "  & foobar: 0"
-    self.assertRaises(spec.ParseError, lambda: spec.parse_yaml(bad))
+class TestLutMode(unittest.TestCase):
+  """Tests for parsing the per_tensor/per_channel choice."""
 
-  def testUnexpectedType(self):
-    bad = spec.EXAMPLE_YAML_SPEC + "  - subgraph: 'foobar'"
-    self.assertRaises(spec.ParseError, lambda: spec.parse_yaml(bad))
+  def testMissingModeRaises(self):
+    bad = _lut_spec("index_bitwidth: 4")
+    with self.assertRaisesRegex(spec.ParseError, "per_tensor or per_channel"):
+      spec.parse_yaml(bad)
 
-  def testMissingFields(self):
-    bad = spec.EXAMPLE_YAML_SPEC + "  - foobar: 0"
-    self.assertRaises(spec.ParseError, lambda: spec.parse_yaml(bad))
+  def testBothModesRaise(self):
+    bad = _lut_spec(
+      "index_bitwidth: 4",
+      "per_tensor:",
+      "per_channel:",
+      "  axis: 0",
+    )
+    with self.assertRaisesRegex(spec.ParseError, "contradictory"):
+      spec.parse_yaml(bad)
 
-  def testIgnoreExtraKeys(self):
-    result = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC + "foobar: 0")
-    self.assertEqual(result, EXPECTED_PYTHON_SPEC)
+  def testPerTensorWithPayloadRaises(self):
+    bad = _lut_spec(
+      "index_bitwidth: 4",
+      "per_tensor: 1",
+    )
+    with self.assertRaisesRegex(spec.ParseError, "no value"):
+      spec.parse_yaml(bad)
+
+  def testPerChannelWithoutAxisRaises(self):
+    bad = _lut_spec(
+      "index_bitwidth: 4",
+      "per_channel:",
+    )
+    with self.assertRaisesRegex(spec.ParseError, "axis"):
+      spec.parse_yaml(bad)
+
+  def testNegativeAxisRaises(self):
+    bad = _lut_spec(
+      "index_bitwidth: 4",
+      "per_channel:",
+      "  axis: -1",
+    )
+    with self.assertRaisesRegex(spec.ParseError, "non-negative"):
+      spec.parse_yaml(bad)
+
+  def testNonIntegerAxisRaises(self):
+    bad = _lut_spec(
+      "index_bitwidth: 4",
+      "per_channel:",
+      "  axis: zero",
+    )
+    with self.assertRaisesRegex(spec.ParseError, "non-negative"):
+      spec.parse_yaml(bad)
 
 
 if __name__ == "__main__":

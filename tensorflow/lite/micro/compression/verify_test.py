@@ -31,7 +31,6 @@ from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
 
 class VerifyTest(unittest.TestCase):
-
   def test_identical_models_pass(self):
     verify.assert_outputs_match(_build_model(), _build_model())
 
@@ -39,8 +38,9 @@ class VerifyTest(unittest.TestCase):
     for branch in (1, 2):
       with self.subTest(branch=branch):
         with self.assertRaises(AssertionError):
-          verify.assert_outputs_match(_build_model(),
-                                      _build_model(nudge_branch=branch))
+          verify.assert_outputs_match(
+            _build_model(), _build_model(nudge_branch=branch)
+          )
 
   def test_tolerance_allows_small_differences(self):
     original = _build_model()
@@ -52,9 +52,9 @@ class VerifyTest(unittest.TestCase):
     # int8 outputs differ by at most 255, so this tolerance admits the
     # nudge while still proving the tolerance parameter changes the
     # outcome of the exact comparison above.
-    verify.assert_outputs_match(original,
-                                nudged,
-                                tolerance=verify.Tolerance(rtol=0, atol=255))
+    verify.assert_outputs_match(
+      original, nudged, tolerance=verify.Tolerance(rtol=0, atol=255)
+    )
 
 
 def _build_model(nudge_branch=None):
@@ -77,20 +77,24 @@ def _build_model(nudge_branch=None):
   # 4 unique small values per tensor avoid saturation; different rows
   # produce varied outputs.
   weights_data = [
-      np.array([
-          [-1, 0, 0, 1],
-          [-1, 0, 1, 1],
-          [-1, 1, 1, 1],
-          [0, 1, 1, 1],
+    np.array(
+      [
+        [-1, 0, 0, 1],
+        [-1, 0, 1, 1],
+        [-1, 1, 1, 1],
+        [0, 1, 1, 1],
       ],
-               dtype=np.int8),
-      np.array([
-          [1, 1, 1, 1],
-          [1, 1, 2, 2],
-          [1, 2, 2, 3],
-          [2, 2, 3, 3],
+      dtype=np.int8,
+    ),
+    np.array(
+      [
+        [1, 1, 1, 1],
+        [1, 1, 2, 2],
+        [1, 2, 2, 3],
+        [2, 2, 3, 3],
       ],
-               dtype=np.int8),
+      dtype=np.int8,
+    ),
   ]
   if nudge_branch is not None:
     nudged = weights_data[nudge_branch - 1].copy()
@@ -98,39 +102,44 @@ def _build_model(nudge_branch=None):
     weights_data[nudge_branch - 1] = nudged
 
   def tensor(name, shape, data=None):
-    return model_editor.Tensor(shape=shape,
-                               dtype=tflite.TensorType.INT8,
-                               data=data,
-                               name=name,
-                               quantization=model_editor.Quantization(
-                                   scales=1.0, zero_points=0))
+    return model_editor.Tensor(
+      shape=shape,
+      dtype=tflite.TensorType.INT8,
+      data=data,
+      name=name,
+      quantization=model_editor.Quantization(scales=1.0, zero_points=0),
+    )
 
-  return model_editor.Model(subgraphs=[
+  return model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[
-              w1 := tensor("weights1", (4, 4), weights_data[0]),
-              w2 := tensor("weights2", (4, 4), weights_data[1]),
-          ],
-          inputs=[
-              i1 := tensor("input1", (1, 4)),
-              i2 := tensor("input2", (1, 4)),
-          ],
-          outputs=[
-              o1 := tensor("output1", (1, 4)),
-              o2 := tensor("output2", (1, 4)),
-          ],
-          operators=[
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[i1, w1],
-                  outputs=[o1]),
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[i2, w2],
-                  outputs=[o2]),
-          ],
+        tensors=[
+          w1 := tensor("weights1", (4, 4), weights_data[0]),
+          w2 := tensor("weights2", (4, 4), weights_data[1]),
+        ],
+        inputs=[
+          i1 := tensor("input1", (1, 4)),
+          i2 := tensor("input2", (1, 4)),
+        ],
+        outputs=[
+          o1 := tensor("output1", (1, 4)),
+          o2 := tensor("output2", (1, 4)),
+        ],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[i1, w1],
+            outputs=[o1],
+          ),
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[i2, w2],
+            outputs=[o2],
+          ),
+        ],
       )
-  ]).build()
+    ]
+  ).build()
 
 
 if __name__ == "__main__":

@@ -36,8 +36,5 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 readable_run make -f ${MAKEFILE} TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} clean
 
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
-
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} test

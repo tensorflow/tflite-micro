@@ -140,13 +140,17 @@ ifeq ($(TOOLCHAIN), armclang)
   MICRO_LITE_BENCHMARKS := $(filter-out $(EXCLUDED_TESTS), $(MICRO_LITE_BENCHMARKS))
 
 else ifeq ($(TOOLCHAIN), gcc)
-  TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
-  TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
-  ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
-    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-      $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+  ifeq ($(shell which arm-none-eabi-gcc 2>/dev/null),)
+    TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
+    TARGET_TOOLCHAIN_ROOT ?= $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
+    ifeq ($(TARGET_TOOLCHAIN_ROOT), $(TARGET_DEFAULT_TOOLCHAIN_ROOT))
+      DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
+      ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+        $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+      endif
     endif
+  else
+    TARGET_TOOLCHAIN_ROOT ?=
   endif
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 

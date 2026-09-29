@@ -15,13 +15,19 @@
 import json
 import sys
 
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size_wrapper_pybind
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size_graph
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import flatbuffer_size_graph_html_converter
+from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+  flatbuffer_size_wrapper_pybind,
+)
+from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+  flatbuffer_size_graph,
+)
+from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+  flatbuffer_size_graph_html_converter,
+)
 
 
 def convert_tflite_to_html(in_flatbuf):
-  """ Given a input tflite flatbuffer, returns a html and a json with size info"""
+  """Given a input tflite flatbuffer, returns a html and a json with size info"""
   size_wrapper = flatbuffer_size_wrapper_pybind.FlatbufferSize()
   out_json = size_wrapper.convertToJsonString(in_flatbuf)
   json_as_dict = json.loads(out_json)

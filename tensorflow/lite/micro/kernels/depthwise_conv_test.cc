@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/test_helpers.h"
@@ -27,6 +27,12 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
+
+using micro::kDepthwiseConvBiasTensor;
+using micro::kDepthwiseConvInputTensor;
+using micro::kDepthwiseConvOutputTensor;
+using micro::kDepthwiseConvQuantizedDimension;
+using micro::kDepthwiseConvWeightsTensor;
 
 // Index of the output tensor in context->tensors, specific to
 // DepthwiseConv.
@@ -153,7 +159,8 @@ void ValidateDepthwiseConvGoldens(
   ASSERT_EQ(runner.InitAndPrepare(init_data), kTfLiteOk);
   EXPECT_EQ(kTfLiteOk, runner.Invoke());
 
-  const T* output_data = tflite::GetTensorData<T>(&tensors[kOutputTensorIndex]);
+  const T* output_data =
+      tflite::micro::GetTensorData<T>(&tensors[kOutputTensorIndex]);
 
   for (int i = 0; i < output_length; ++i) {
     EXPECT_NEAR(expected_output_data[i], output_data[i], tolerance);

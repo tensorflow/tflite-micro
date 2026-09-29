@@ -256,4 +256,53 @@ TEST(CircularBufferTest, Reset) {
   EXPECT_EQ(kTfLiteOk, runner.Invoke());
 }
 
+TEST(CircularBufferTest, DualOutput) {
+  constexpr int depth = 3;
+  constexpr int num_slots = 4;
+  int8_t input_data[depth];
+  int8_t output_data[depth * num_slots] = {0};
+  bool valid_data[1] = {false};
+
+  int input_dims[] = {4, 1, 1, 1, depth};
+  int output_dims[] = {4, 1, num_slots, 1, depth};
+  int valid_dims[] = {1, 1};
+
+  TfLiteTensor tensors[] = {
+      tflite::testing::CreateQuantizedTensor(
+          input_data, tflite::testing::IntArrayFromInts(input_dims), 1, 0),
+      tflite::testing::CreateQuantizedTensor(
+          output_data, tflite::testing::IntArrayFromInts(output_dims), 1, 0),
+      tflite::testing::CreateTensor(
+          valid_data, tflite::testing::IntArrayFromInts(valid_dims)),
+  };
+
+  int ins[] = {1, 0};
+  int outs[] = {2, 1, 2};
+  tflite::micro::KernelRunner runner(
+      *tflite::Register_CIRCULAR_BUFFER(), tensors, 3,
+      tflite::testing::IntArrayFromInts(ins),
+      tflite::testing::IntArrayFromInts(outs), nullptr);
+
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+
+  // Cycle 0: valid is false
+  for (int j = 0; j < depth; ++j) input_data[j] = j + 1;
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_FALSE(valid_data[0]);
+
+  // Reset restores countdown
+  EXPECT_EQ(kTfLiteOk, runner.Reset());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_FALSE(valid_data[0]);
+
+  // Cycle 1: valid is true
+  for (int j = 0; j < depth; ++j) input_data[j] = depth + j + 1;
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_TRUE(valid_data[0]);
+
+  // Cycle 2: valid is false
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_FALSE(valid_data[0]);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

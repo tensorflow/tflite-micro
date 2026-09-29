@@ -17,14 +17,14 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
-#include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depthwiseconv_float.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 void* DepthwiseConvInit(TfLiteContext* context, const char* buffer,
@@ -66,7 +66,7 @@ TfLiteStatus DepthwiseConvEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
-      tflite::reference_ops::DepthwiseConv(
+      tflite::micro::reference_ops::DepthwiseConv(
           DepthwiseConvParamsFloat(params, data),
           tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
@@ -92,7 +92,7 @@ TfLiteStatus DepthwiseConvEval(TfLiteContext* context, TfLiteNode* node) {
         case kTfLiteInt4: {
           int8_t* unpacked_filter_data = static_cast<int8_t*>(
               context->GetScratchBuffer(context, data.filter_buffer_index));
-          tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+          tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
               tflite::micro::GetTensorData<int8_t>(filter),
               tflite::micro::GetTensorShape(filter).FlatSize(),
               unpacked_filter_data);
@@ -187,4 +187,5 @@ TFLMRegistration Register_DEPTHWISE_CONV_2D() {
                                    DepthwiseConvEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -17,10 +17,14 @@ limitations under the License.
 #include "tensorflow/lite/c/common.h"
 
 namespace tflite {
-
+namespace micro {
 constexpr int kReshapeInputTensor = 0;
 constexpr int kReshapeOutputTensor = 0;
 
 TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
+
+using micro::kReshapeInputTensor;
+using micro::kReshapeOutputTensor;
 }  // namespace tflite

@@ -21,12 +21,16 @@ from tflite_micro.tensorflow.lite.micro.compression import spec_builder
 
 
 class SpecBuilderTest(unittest.TestCase):
-
   def test_basic_builder_pattern(self):
     """Test basic fluent builder usage."""
-    result = (spec_builder.SpecBuilder().add_tensor(
-        subgraph=0, tensor=2).with_lut(index_bitwidth=4).add_tensor(
-            subgraph=0, tensor=4).with_lut(index_bitwidth=2).build())
+    result = (
+      spec_builder.SpecBuilder()
+      .add_tensor(subgraph=0, tensor=2)
+      .with_lut(index_bitwidth=4)
+      .add_tensor(subgraph=0, tensor=4)
+      .with_lut(index_bitwidth=2)
+      .build()
+    )
 
     self.assertEqual(len(result), 2)
 
@@ -34,16 +38,14 @@ class SpecBuilderTest(unittest.TestCase):
     self.assertEqual(result[0].subgraph, 0)
     self.assertEqual(result[0].tensor, 2)
     self.assertEqual(len(result[0].compression), 1)
-    self.assertIsInstance(result[0].compression[0],
-                          spec.LookUpTableCompression)
+    self.assertIsInstance(result[0].compression[0], spec.LookUpTableCompression)
     self.assertEqual(result[0].compression[0].index_bitwidth, 4)
 
     # Check second tensor
     self.assertEqual(result[1].subgraph, 0)
     self.assertEqual(result[1].tensor, 4)
     self.assertEqual(len(result[1].compression), 1)
-    self.assertIsInstance(result[1].compression[0],
-                          spec.LookUpTableCompression)
+    self.assertIsInstance(result[1].compression[0], spec.LookUpTableCompression)
     self.assertEqual(result[1].compression[0].index_bitwidth, 2)
 
   def test_non_chained_usage(self):
@@ -66,13 +68,42 @@ class SpecBuilderTest(unittest.TestCase):
 
   def test_single_tensor(self):
     """Test building a spec with just one tensor."""
-    result = (spec_builder.SpecBuilder().add_tensor(
-        subgraph=2, tensor=42).with_lut(index_bitwidth=16).build())
+    result = (
+      spec_builder.SpecBuilder()
+      .add_tensor(subgraph=2, tensor=42)
+      .with_lut(index_bitwidth=16)
+      .build()
+    )
 
     self.assertEqual(len(result), 1)
     self.assertEqual(result[0].subgraph, 2)
     self.assertEqual(result[0].tensor, 42)
     self.assertEqual(result[0].compression[0].index_bitwidth, 16)
+
+  def test_mode_passes_through(self):
+    """The mode argument reaches the spec object unchanged."""
+    result = (
+      spec_builder.SpecBuilder()
+      .add_tensor(subgraph=0, tensor=1)
+      .with_lut(index_bitwidth=4, mode=spec.PerChannel(axis=0))
+      .add_tensor(subgraph=0, tensor=2)
+      .with_lut(index_bitwidth=2, mode=spec.PerTensor())
+      .build()
+    )
+
+    self.assertEqual(result[0].compression[0].mode, spec.PerChannel(axis=0))
+    self.assertEqual(result[1].compression[0].mode, spec.PerTensor())
+
+  def test_mode_defaults_to_none(self):
+    """Omitting the mode leaves it None; the compressor rejects None."""
+    result = (
+      spec_builder.SpecBuilder()
+      .add_tensor(subgraph=0, tensor=1)
+      .with_lut(index_bitwidth=4)
+      .build()
+    )
+
+    self.assertIsNone(result[0].compression[0].mode)
 
   def test_tensor_without_compression(self):
     """Test that tensors can be added without compression methods."""
@@ -91,9 +122,14 @@ class SpecBuilderTest(unittest.TestCase):
   def test_builder_produces_same_type_as_parse_yaml(self):
     """Test that builder produces same data structure as parse_yaml."""
     # Build using the builder
-    built_spec = (spec_builder.SpecBuilder().add_tensor(
-        subgraph=0, tensor=42).with_lut(index_bitwidth=4).add_tensor(
-            subgraph=0, tensor=55).with_lut(index_bitwidth=2).build())
+    built_spec = (
+      spec_builder.SpecBuilder()
+      .add_tensor(subgraph=0, tensor=42)
+      .with_lut(index_bitwidth=4)
+      .add_tensor(subgraph=0, tensor=55)
+      .with_lut(index_bitwidth=2)
+      .build()
+    )
 
     # Parse the example YAML from spec.py
     parsed_spec = spec.parse_yaml(spec.EXAMPLE_YAML_SPEC)
@@ -104,8 +140,10 @@ class SpecBuilderTest(unittest.TestCase):
       self.assertEqual(built.subgraph, parsed.subgraph)
       self.assertEqual(built.tensor, parsed.tensor)
       self.assertEqual(len(built.compression), len(parsed.compression))
-      self.assertEqual(built.compression[0].index_bitwidth,
-                       parsed.compression[0].index_bitwidth)
+      self.assertEqual(
+        built.compression[0].index_bitwidth,
+        parsed.compression[0].index_bitwidth,
+      )
 
 
 if __name__ == "__main__":

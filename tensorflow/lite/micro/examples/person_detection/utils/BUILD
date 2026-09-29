@@ -1,25 +1,26 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("//python:py_rules.bzl", "tflm_py_test")
+load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library", "tflm_py_test")
 
 package(
     features = ["-layering_check"],
     licenses = ["notice"],
 )
 
-py_binary(
+tflm_py_binary(
     name = "raw_to_bitmap",
     srcs = ["raw_to_bitmap.py"],
     deps = [
         requirement("numpy"),
+        requirement("pillow"),
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "raw_to_bitmap_lib",
     srcs = ["raw_to_bitmap.py"],
     deps = [
         requirement("numpy"),
+        requirement("pillow"),
     ],
 )
 
@@ -31,7 +32,6 @@ tflm_py_test(
         allow_empty = True,
     ),
     tags = [
-        "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "notap",  # TODO(b/186679612)
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],

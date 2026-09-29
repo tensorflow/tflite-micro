@@ -22,20 +22,17 @@ from tflite_micro import runtime
 from tflite_micro import compression
 
 import numpy as np
-try:
-  from importlib import resources
-except ImportError:
-  import importlib_resources as resources
+
+from importlib import resources
 import sys
-import tempfile
-import os
 
 
 def runtime_test():
   """Test the runtime interpreter functionality."""
   # Create an interpreter with a sine model
   with resources.as_file(
-      resources.files(__name__).joinpath("sine_float.tflite")) as model_path:
+    resources.files(__package__).joinpath("sine_float.tflite")
+  ) as model_path:
     interpreter = runtime.Interpreter.from_file(str(model_path))
     OUTPUT_INDEX = 0
     INPUT_INDEX = 0
@@ -66,8 +63,12 @@ def compression_test():
   assert callable(compression.compress)
 
   # Test availability of the SpecBuilder
-  _ = (compression.SpecBuilder().add_tensor(
-      subgraph=0, tensor=0).with_lut(index_bitwidth=4).build())
+  _ = (
+    compression.SpecBuilder()
+    .add_tensor(subgraph=0, tensor=0)
+    .with_lut(index_bitwidth=4)
+    .build()
+  )
 
   return True
 

@@ -21,10 +21,10 @@ limitations under the License.
 #include <cstdint>
 #include <initializer_list>
 
-#include "tensorflow/lite/core/c/common.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
@@ -66,7 +66,7 @@ struct AncillaryData {
 template <typename T>
 void CheckOutput(const TfLiteTensor& output, const void* const expected) {
   const T* const expected_data = reinterpret_cast<const T*>(expected);
-  const T* const output_data = tflite::GetTensorData<T>(&output);
+  const T* const output_data = tflite::micro::GetTensorData<T>(&output);
 
   constexpr float kTolerance = 1e-5;
   const size_t kOutputCount = tflite::NumElements(&output);

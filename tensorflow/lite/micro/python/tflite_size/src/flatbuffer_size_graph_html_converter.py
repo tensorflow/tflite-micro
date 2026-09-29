@@ -84,7 +84,7 @@ HTML_TAIL = """
 
 
 class HtmlConverter:
-  """ A class to convert the size graph to a tree of collapsible list """
+  """A class to convert the size graph to a tree of collapsible list"""
 
   def __init__(self):
     self._html_body = HTML_HEAD
@@ -92,13 +92,18 @@ class HtmlConverter:
   def _draw_collapsible_list(self, node):
     if node.isLeaf is True or len(node.children) == 0:
       self._html_body += "<li> %s: %s (size: %d) </li>\n" % (
-          node.name, node.value, node.size)
+        node.name,
+        node.value,
+        node.size,
+      )
     else:
-      self._html_body += "<li> <span class = \"caret\"> %s (size: %d) </span>\n" % (
-          node.name, node.size)
+      self._html_body += (
+        "<li> <span class = \"caret\"> %s (size: %d) </span>\n"
+        % (node.name, node.size)
+      )
       self._html_body += "<ul class=\"nested\">\n"
-      for node in node.children:
-        self._draw_collapsible_list(node)
+      for child in node.children:
+        self._draw_collapsible_list(child)
       self._html_body += "</ul>\n"
       self._html_body += "</li>\n"
 

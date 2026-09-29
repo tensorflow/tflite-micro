@@ -12,17 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/depth_to_space.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depth_to_space.h"
 
 #include <stdint.h>
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -106,7 +106,7 @@ TfLiteStatus DepthToSpaceEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
-  tflite::DepthToSpaceParams op_params;
+  tflite::micro::DepthToSpaceParams op_params;
   op_params.block_size = static_cast<int32_t>(params->block_size);
 
   switch (input->type) {  // Already know in/out types are same.
@@ -140,4 +140,5 @@ TFLMRegistration Register_DEPTH_TO_SPACE() {
                                    DepthToSpaceEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

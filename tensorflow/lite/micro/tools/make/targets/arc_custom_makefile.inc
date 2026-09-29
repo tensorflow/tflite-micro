@@ -76,13 +76,11 @@ TEST_SCRIPT := $(TENSORFLOW_ROOT)tensorflow/lite/micro/testing/test_with_arc_mdb
 
 TARGET_SPECIFIC_MAKE_TEST := 1
 
-TEST_TARGET_BINARIES = $(shell ls -1 $(BINDIR)*_test)
-
 # Removing conv test due to bug in one of cases.
 EXCLUDED_TEST_BINARIES := \
   $(BINDIR)kernel_conv_test
 
-TEST_TARGET_BINARIES := $(filter-out $(EXCLUDED_TEST_BINARIES), $(TEST_TARGET_BINARIES))
+TEST_TARGET_BINARIES = $(filter-out $(EXCLUDED_TEST_BINARIES), $(MICROLITE_TEST_BINARIES))
 
-test: build
+test: build_tests
 	$(foreach test,$(TEST_TARGET_BINARIES),$(TEST_SCRIPT) $(test) $(TCF_FILE) $(TEST_PASS_STRING) || exit;)

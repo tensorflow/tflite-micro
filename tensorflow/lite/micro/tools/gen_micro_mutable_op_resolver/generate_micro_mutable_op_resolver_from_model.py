@@ -13,46 +13,24 @@
 # limitations under the License.
 # ==============================================================================
 """This tool generates a header with Micro Mutable Op Resolver code for a given
-   model. See README.md for more info.
+model. See README.md for more info.
 """
 
+import argparse
 import os
 import re
 
-from absl import app
-from absl import flags
 from mako import template
 
-from tensorflow.lite.tools import visualize
+from tflite_micro.tensorflow.lite.tools import visualize
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
 
-FLAGS = flags.FLAGS
-flags.DEFINE_string(
-    'common_tflite_path', None,
-    'Common path to tflite files. This need to be an absolute path.'
-    'This would typically be the path to the directory where the models reside.'
-)
-flags.DEFINE_list(
-    'input_tflite_files', None,
-    'Relative path name list of the input TFLite files.'
-    'This would be relative to the common path.'
-    'This would typically be the name(s) of the tflite file(s).')
-flags.DEFINE_string('output_dir', None, 'Directory to output generated files.')
-flags.DEFINE_string(
-    'verify_op_list_against_header', None,
-    'Take micro_mutable_op_resolver.h as input and verifies that all generated operator calls are there.'
-)
-
-flags.mark_flag_as_required('common_tflite_path')
-flags.mark_flag_as_required('input_tflite_files')
-flags.mark_flag_as_required('output_dir')
-
 
 def ParseString(word):
   """Converts a flatbuffer operator string to a format suitable for Micro
-     Mutable Op Resolver. Example: CONV_2D --> AddConv2D."""
+  Mutable Op Resolver. Example: CONV_2D --> AddConv2D."""
 
   # Edge case for AddDetectionPostprocess().
   # The custom code is TFLite_Detection_PostProcess.
@@ -76,8 +54,9 @@ def ParseString(word):
   return 'Add' + formated_op_string
 
 
-def GenerateMicroMutableOpsResolverHeaderFile(operators, name_of_model,
-                                              output_dir):
+def GenerateMicroMutableOpsResolverHeaderFile(
+  operators, name_of_model, output_dir
+):
   """Generates Micro Mutable Op Resolver code based on a template."""
 
   number_of_ops = len(operators)
@@ -87,9 +66,9 @@ def GenerateMicroMutableOpsResolverHeaderFile(operators, name_of_model,
   build_template = template.Template(filename=template_file_path)
   with open(output_dir + '/gen_' + outfile, 'w') as file_obj:
     key_values_in_template = {
-        'model': name_of_model,
-        'number_of_ops': number_of_ops,
-        'operators': operators
+      'model': name_of_model,
+      'number_of_ops': number_of_ops,
+      'operators': operators,
     }
     file_obj.write(build_template.render(**key_values_in_template))
 
@@ -107,21 +86,26 @@ def GetModelOperatorsAndActivation(model_path):
 
   for op_code in data["operator_codes"]:
     if op_code['custom_code'] is None:
-      op_code["builtin_code"] = max(op_code["builtin_code"],
-                                    op_code["deprecated_builtin_code"])
+      op_code["builtin_code"] = max(
+        op_code["builtin_code"], op_code["deprecated_builtin_code"]
+      )
     else:
       custom_op_found = True
       operators_and_activations.add(
-          visualize.NameListToString(op_code['custom_code']))
+        visualize.NameListToString(op_code['custom_code'])
+      )
 
   for op_code in data["operator_codes"]:
     # Custom operator already added.
-    if custom_op_found and visualize.BuiltinCodeToName(
-        op_code['builtin_code']) == "CUSTOM":
+    if (
+      custom_op_found
+      and visualize.BuiltinCodeToName(op_code['builtin_code']) == "CUSTOM"
+    ):
       continue
 
     operators_and_activations.add(
-        visualize.BuiltinCodeToName(op_code['builtin_code']))
+      visualize.BuiltinCodeToName(op_code['builtin_code'])
+    )
 
   return operators_and_activations
 
@@ -131,9 +115,9 @@ def VerifyOpList(op_list, header):
 
   supported_op_list = []
   with open(header, 'r') as f:
-    for l in f.readlines():
-      if "TfLiteStatus Add" in l:
-        op = l.strip().split(' ')[1].split('(')[0]
+    for line in f:
+      if "TfLiteStatus Add" in line:
+        op = line.strip().split(' ')[1].split('(')[0]
         supported_op_list.append(op)
 
   for op in op_list:
@@ -144,13 +128,47 @@ def VerifyOpList(op_list, header):
   return False
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--common_tflite_path',
+    required=True,
+    help=(
+      'Common path to tflite files. This need to be an absolute path.'
+      'This would typically be the path to the directory where the models'
+      ' reside.'
+    ),
+  )
+  parser.add_argument(
+    '--input_tflite_files',
+    required=True,
+    help=(
+      'Relative path name list of the input TFLite files.'
+      'This would be relative to the common path.'
+      'This would typically be the name(s) of the tflite file(s).'
+    ),
+  )
+  parser.add_argument(
+    '--output_dir',
+    required=True,
+    help='Directory to output generated files.',
+  )
+  parser.add_argument(
+    '--verify_op_list_against_header',
+    default=None,
+    help=(
+      'Take micro_mutable_op_resolver.h as input and verifies that all'
+      ' generated operator calls are there.'
+    ),
+  )
+  args, _ = parser.parse_known_args()
+
   model_names = []
   final_operator_list = []
   merged_operator_list = []
 
-  common_model_path = FLAGS.common_tflite_path
-  relative_model_paths = FLAGS.input_tflite_files
+  common_model_path = args.common_tflite_path
+  relative_model_paths = [x for x in args.input_tflite_files.split(',') if x]
 
   for relative_model_path in relative_model_paths:
     full_model_path = f"{common_model_path}/{relative_model_path}"
@@ -169,19 +187,22 @@ def main(_):
     model_name = ", ".join(model_names)
 
   [
-      final_operator_list.append(operator) for operator in merged_operator_list
-      if operator not in final_operator_list
+    final_operator_list.append(operator)
+    for operator in merged_operator_list
+    if operator not in final_operator_list
   ]
 
-  if FLAGS.verify_op_list_against_header and VerifyOpList(
-      final_operator_list, FLAGS.verify_op_list_against_header):
+  if args.verify_op_list_against_header and VerifyOpList(
+    final_operator_list, args.verify_op_list_against_header
+  ):
     return True
 
-  os.makedirs(FLAGS.output_dir, exist_ok=True)
-  GenerateMicroMutableOpsResolverHeaderFile(final_operator_list, model_name,
-                                            FLAGS.output_dir)
+  os.makedirs(args.output_dir, exist_ok=True)
+  GenerateMicroMutableOpsResolverHeaderFile(
+    final_operator_list, model_name, args.output_dir
+  )
   return False
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()

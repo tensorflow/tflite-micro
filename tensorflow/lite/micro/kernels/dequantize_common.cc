@@ -15,16 +15,15 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/reference/dequantize.h"
-#include "tensorflow/lite/kernels/internal/reference/quantize.h"
-#include "tensorflow/lite/kernels/internal/reference/requantize.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/dequantize.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/dequantize.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/quantize.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/requantize.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus DequantizePrepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   DequantizeOpData* data = static_cast<DequantizeOpData*>(node->user_data);
@@ -55,4 +54,5 @@ TfLiteStatus DequantizePrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

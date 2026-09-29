@@ -116,7 +116,7 @@ void SetRandomInput(const uint32_t random_seed,
     TfLiteTensor* input = interpreter.input_tensor(i);
 
     // Pre-populate input tensor with random values.
-    int8_t* input_values = tflite::GetTensorData<int8_t>(input);
+    int8_t* input_values = tflite::micro::GetTensorData<int8_t>(input);
     for (size_t j = 0; j < input->bytes; ++j) {
       input_values[j] = dist(eng);
     }
@@ -190,7 +190,7 @@ void ShowOutputCRC32(tflite::MicroInterpreter* interpreter) {
   GenCRC32Table();
   for (size_t i = 0; i < interpreter->outputs_size(); ++i) {
     TfLiteTensor* output = interpreter->output_tensor(i);
-    uint8_t* output_values = tflite::GetTensorData<uint8_t>(output);
+    uint8_t* output_values = tflite::micro::GetTensorData<uint8_t>(output);
     uint32_t crc32_value = ComputeCRC32(output_values, output->bytes);
     MicroPrintf("Output CRC32: 0x%X", crc32_value);
   }
@@ -200,7 +200,7 @@ void ShowInputCRC32(tflite::MicroInterpreter* interpreter) {
   GenCRC32Table();
   for (size_t i = 0; i < interpreter->inputs_size(); ++i) {
     TfLiteTensor* input = interpreter->input_tensor(i);
-    uint8_t* input_values = tflite::GetTensorData<uint8_t>(input);
+    uint8_t* input_values = tflite::micro::GetTensorData<uint8_t>(input);
     uint32_t crc32_value = ComputeCRC32(input_values, input->bytes);
     MicroPrintf("Input CRC32: 0x%X", crc32_value);
   }

@@ -1,40 +1,47 @@
-FROM ubuntu:bionic
-ARG DEBIAN_FRONTEND=noninteractive
+# ==============================================================================
+# Qualcomm Hexagon Toolchain Container for TFLite Micro
+#
+# Supports:
+#   - Qualcomm Hexagon DSP (v66)
+#   - Hexagon SDK 3.5.1
+#   - Hexagon Tools 8.3.07 (hexagon-clang++, hexagon-sim)
+#
+# Usage:
+#
+# --- Build locally ---
+#   docker build -f ci/Dockerfile.hexagon -t hexagon .
+#
+# --- Build and push to GHCR.IO ---
+#   export HEXAGON_VERSION=0.5
+#   docker build --no-cache -f ci/Dockerfile.hexagon -t ghcr.io/tflm-bot/hexagon:$HEXAGON_VERSION .
+#   docker push ghcr.io/tflm-bot/hexagon:$HEXAGON_VERSION
+#
+# ==============================================================================
 
-RUN \
-  apt update && \
-  apt install -y \
-    automake \
+FROM ghcr.io/tflm-bot/hexagon:0.4 AS toolchain
+
+FROM python:3.11-bookworm
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     git \
+    libncurses5 \
+    libtinfo5 \
     unzip \
     wget \
-    python3 \
-    python \
-    python3-pip
+    zip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/hexagon
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    numpy \
+    Pillow
 
-COPY ./qualcomm_hexagon_sdk_3_5_1_linux.zip .
-
-RUN \
-  pip3 install --upgrade pip setuptools wheel
-
-RUN \
-  pip3 install Pillow
-
-RUN \
-  pip3 install numpy
-
-RUN unzip qualcomm_hexagon_sdk_3_5_1_linux.zip && \
-  rm qualcomm_hexagon_sdk_3_5_1_linux.zip && \
-  cd qualcomm_hexagon_sdk_3_5_1_linux && \
-  chmod +x qualcomm_hexagon_sdk_3_5_1_eval.bin && \
-  ./qualcomm_hexagon_sdk_3_5_1_eval.bin -i silent -DDOWNLOAD_ANDROID=false -DDOWNLOAD_FULL_ANDROID=false -DDOWNLOAD_ECLIPSE=false && \
-  cd /opt/hexagon && rm -rf qualcomm_hexagon_sdk_3_5_1_linux
-
-COPY ./hexagon_tflm_core.a /root/Qualcomm/  
+# Copy the Hexagon SDK, tools, and prebuilt core library
+COPY --from=toolchain /root/Qualcomm /root/Qualcomm
 
 ENV HEXAGON_TFLM_CORE=/root/Qualcomm/hexagon_tflm_core.a
 ENV HEXAGON_CPU_VER=v66
@@ -43,5 +50,9 @@ ENV HEXAGON_ROOT=${HEXAGON_SDK_ROOT}/tools/HEXAGON_Tools/
 ENV HEXAGON_TOOL_VER=8.3.07
 ENV PATH=${HEXAGON_ROOT}/${HEXAGON_TOOL_VER}/Tools/bin:${PATH}
 
+# Configure git safe directories
+RUN git config --system --add safe.directory '*'
 
-CMD hexagon-clang++
+WORKDIR /workspace
+
+CMD ["hexagon-clang++"]

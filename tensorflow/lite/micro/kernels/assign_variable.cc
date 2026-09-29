@@ -19,8 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_graph.h"
@@ -30,7 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kInputVariableId = 0;
@@ -151,4 +150,5 @@ TFLMRegistration Register_ASSIGN_VARIABLE() {
 #endif  // USE_TFLM_COMPRESSION
 }
 
+}  // namespace micro
 }  // namespace tflite

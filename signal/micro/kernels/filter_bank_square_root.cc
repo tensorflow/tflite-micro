@@ -18,13 +18,13 @@ limitations under the License.
 #include <stdint.h>
 
 #include "signal/micro/kernels/filter_bank_square_root.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -62,4 +62,9 @@ TFLMRegistration* Register_FILTER_BANK_SQUARE_ROOT() {
 
 }  // namespace tflm_signal
 
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_FILTER_BANK_SQUARE_ROOT;
+}  // namespace tflm_signal
 }  // namespace tflite

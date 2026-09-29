@@ -124,6 +124,10 @@ def _py_namespace(ctx):
 py_namespace = rule(
     implementation = _py_namespace,
     attrs = {
+        "deps": attr.label_list(
+            doc = "list of py_library() and py_package()s to include",
+            mandatory = True,
+        ),
         "init": attr.label(
             doc = "optional file for __init__.py",
             allow_single_file = [".py"],
@@ -131,10 +135,6 @@ py_namespace = rule(
         ),
         "namespace": attr.string(
             doc = "name for Python namespace",
-            mandatory = True,
-        ),
-        "deps": attr.label_list(
-            doc = "list of py_library() and py_package()s to include",
             mandatory = True,
         ),
     },

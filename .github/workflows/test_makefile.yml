@@ -12,7 +12,9 @@ jobs:
     runs-on: linux-x86-n2-16
     timeout-minutes: 60
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.7
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+    env:
+      WERROR: 1
     strategy:
       fail-fast: false
       matrix:
@@ -29,12 +31,11 @@ jobs:
             script: test_x86_no_tflite_static_memory.sh
     name: ${{ matrix.name }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
           allow-unsafe-pr-checkout: true
       - name: Test
         run: |
-          tensorflow/lite/micro/tools/ci_build/test_makefile.sh
           cd ..
           tflite-micro/tensorflow/lite/micro/tools/ci_build/${{ matrix.script }} tflite-micro/

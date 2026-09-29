@@ -23,24 +23,28 @@ gen_stacker_op = util.load_custom_op('stacker_op.so')
 def _stacker_wrapper(stacker_fn, default_name):
   """Wrapper around gen_stacker_op.stacker*."""
 
-  def _stacker(input_tensor,
-               num_channels,
-               stacker_left_context,
-               stacker_right_context,
-               stacker_step,
-               name=default_name):
+  def _stacker(
+    input_tensor,
+    num_channels,
+    stacker_left_context,
+    stacker_right_context,
+    stacker_step,
+    name=default_name,
+  ):
     with tf.name_scope(name) as name:
       input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.int16)
       dim_list = input_tensor.shape.as_list()
       if len(dim_list) != 1:
         raise ValueError("Input tensor must have a rank of 1")
 
-      return stacker_fn(input_tensor,
-                        num_channels=num_channels,
-                        stacker_left_context=stacker_left_context,
-                        stacker_right_context=stacker_right_context,
-                        stacker_step=stacker_step,
-                        name=name)
+      return stacker_fn(
+        input_tensor,
+        num_channels=num_channels,
+        stacker_left_context=stacker_left_context,
+        stacker_right_context=stacker_right_context,
+        stacker_step=stacker_step,
+        name=name,
+      )
 
   return _stacker
 

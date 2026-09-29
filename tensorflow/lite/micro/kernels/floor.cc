@@ -13,14 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/floor.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/floor.h"
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -45,4 +45,5 @@ TFLMRegistration Register_FLOOR() {
   return tflite::micro::RegisterOp(nullptr, nullptr, FloorEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

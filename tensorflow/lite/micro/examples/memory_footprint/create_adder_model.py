@@ -14,7 +14,7 @@
 # ==============================================================================
 """Creates a simple tflite model that adds two input tensor of size 1."""
 
-from absl import app
+import sys
 import tensorflow as tf
 
 
@@ -40,10 +40,12 @@ def main(_):
   # quantization requires a representative data set
   def representative_dataset():
     for i in range(500):
-      yield ([
+      yield (
+        [
           tf.random.normal(input_shape, seed=i),
-          tf.random.normal(input_shape, seed=i * 2)
-      ])
+          tf.random.normal(input_shape, seed=i * 2),
+        ]
+      )
 
   converter.representative_dataset = representative_dataset
   model_tflite = converter.convert()
@@ -52,4 +54,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main(sys.argv)

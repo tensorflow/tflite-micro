@@ -15,13 +15,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 template <typename T>
@@ -122,4 +121,5 @@ TFLMRegistration Register_SPLIT() {
   return tflite::micro::RegisterOp(nullptr, SplitPrepare, SplitEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

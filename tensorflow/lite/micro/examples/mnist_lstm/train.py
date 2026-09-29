@@ -22,46 +22,39 @@ Run:
 `bazel build tensorflow/lite/micro/examples/mnist_lstm:train`
 `bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/train`
 """
+
+import argparse
+import logging
 import os
 
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
 import tensorflow as tf
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_integer("epochs", 20, "number of epochs to train the model.")
-flags.DEFINE_string("save_dir", "/tmp/lstm_trained_model",
-                    "the directory to save the trained model.")
-flags.DEFINE_boolean("save_tf_model", False,
-                     "store the original unconverted tf model.")
-flags.DEFINE_boolean(
-    "quantize", False,
-    "convert and save the full integer (int8) quantized model.")
 
 
 def create_model(units=20):
   """Create a keras LSTM model for MNIST recognition
 
-    Args:
-        units (int, optional): dimensionality of the output space for the model.
-          Defaults to 20.
+  Args:
+      units (int, optional): dimensionality of the output space for the model.
+        Defaults to 20.
 
-    Returns:
-        tf.keras.Model: A Keras LSTM model
-    """
+  Returns:
+      tf.keras.Model: A Keras LSTM model
+  """
 
-  model = tf.keras.models.Sequential([
+  model = tf.keras.models.Sequential(
+    [
       tf.keras.layers.Input(shape=(28, 28), name="input"),
       tf.keras.layers.LSTM(units, return_sequences=True),
       tf.keras.layers.Flatten(),
-      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output")
-  ])
-  model.compile(optimizer="adam",
-                loss="sparse_categorical_crossentropy",
-                metrics=["accuracy"])
+      tf.keras.layers.Dense(10, activation=tf.nn.softmax, name="output"),
+    ]
+  )
+  model.compile(
+    optimizer="adam",
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"],
+  )
   model.summary()
   return model
 
@@ -69,11 +62,11 @@ def create_model(units=20):
 def get_train_data():
   """Get MNIST train and test data
 
-    Returns:
-        tuple: (data, label) pairs for train and test
-    """
+  Returns:
+      tuple: (data, label) pairs for train and test
+  """
   (x_train, y_train), _ = tf.keras.datasets.mnist.load_data()
-  x_train = x_train / 255.  # normalize pixel values to 0-1
+  x_train = x_train / 255.0  # normalize pixel values to 0-1
   x_train = x_train.astype(np.float32)
   return (x_train, y_train)
 
@@ -81,38 +74,40 @@ def get_train_data():
 def train_lstm_model(epochs, x_train, y_train):
   """Train keras LSTM model on MNIST dataset
 
-    Args: epochs (int) : number of epochs to train the model
-        x_train (numpy.array): list of the training data
-        y_train (numpy.array): list of the corresponding array
+  Args: epochs (int) : number of epochs to train the model
+      x_train (numpy.array): list of the training data
+      y_train (numpy.array): list of the corresponding array
 
-    Returns:
-        tf.keras.Model: A trained keras LSTM model
+  Returns:
+      tf.keras.Model: A trained keras LSTM model
   """
   model = create_model()
   callback = tf.keras.callbacks.EarlyStopping(
-      monitor="val_loss",
-      patience=3)  #early stop if validation loss does not drop anymore
-  model.fit(x_train,
-            y_train,
-            epochs=epochs,
-            validation_split=0.2,
-            batch_size=32,
-            callbacks=[callback])
+    monitor="val_loss", patience=3
+  )  # early stop if validation loss does not drop anymore
+  model.fit(
+    x_train,
+    y_train,
+    epochs=epochs,
+    validation_split=0.2,
+    batch_size=32,
+    callbacks=[callback],
+  )
   return model
 
 
 def convert_quantized_tflite_model(model, x_train):
   """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
 
-    See
-    https://www.tensorflow.org/lite/performance/post_training_integer_quant#convert_using_integer-only_quantization
+  See
+  https://www.tensorflow.org/lite/performance/post_training_integer_quant#convert_using_integer-only_quantization
 
-    Args:
-        model (tf.keras.Model): the trained LSTM Model
-        x_train (numpy.array): list of the training data
+  Args:
+      model (tf.keras.Model): the trained LSTM Model
+      x_train (numpy.array): list of the training data
 
-    Returns:
-        The converted model in serialized format.
+  Returns:
+      The converted model in serialized format.
   """
 
   def representative_dataset_gen(num_samples=100):
@@ -132,11 +127,11 @@ def convert_quantized_tflite_model(model, x_train):
 def convert_tflite_model(model):
   """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
 
-    Args:
-        model (tf.keras.Model): the trained LSTM Model
+  Args:
+      model (tf.keras.Model): the trained LSTM Model
 
-    Returns:
-        The converted model in serialized format.
+  Returns:
+      The converted model in serialized format.
   """
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
   tflite_model = converter.convert()
@@ -162,44 +157,72 @@ def save_tflite_model(tflite_model, save_dir, model_name):
 def prepare_trained_model(trained_model):
   """Fix the input of the trained model for inference
 
-    Args:
-        trained_model (tf.keras.Model): the trained LSTM model
+  Args:
+      trained_model (tf.keras.Model): the trained LSTM model
 
-    Returns:
-        run_model (tf.keras.Model): the trained model with fixed input tensor size for inference
+  Returns:
+      run_model (tf.keras.Model): the trained model with fixed input tensor size for inference
   """
   # TFLite converter requires fixed shape input to work, alternative: b/225231544
-  fixed_input = tf.keras.layers.Input(shape=[28, 28],
-                                      batch_size=1,
-                                      dtype=trained_model.inputs[0].dtype,
-                                      name="fixed_input")
+  fixed_input = tf.keras.layers.Input(
+    shape=[28, 28],
+    batch_size=1,
+    dtype=trained_model.inputs[0].dtype,
+    name="fixed_input",
+  )
   fixed_output = trained_model(fixed_input)
   run_model = tf.keras.models.Model(fixed_input, fixed_output)
   return run_model
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--epochs",
+    type=int,
+    default=20,
+    help="number of epochs to train the model.",
+  )
+  parser.add_argument(
+    "--save_dir",
+    default="/tmp/lstm_trained_model",
+    help="the directory to save the trained model.",
+  )
+  parser.add_argument(
+    "--save_tf_model",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="store the original unconverted tf model.",
+  )
+  parser.add_argument(
+    "--quantize",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="convert and save the full integer (int8) quantized model.",
+  )
+  args, _ = parser.parse_known_args()
+
   x_train, y_train = get_train_data()
-  trained_model = train_lstm_model(FLAGS.epochs, x_train, y_train)
+  trained_model = train_lstm_model(args.epochs, x_train, y_train)
   run_model = prepare_trained_model(trained_model)
   # Save the tf model
-  if FLAGS.save_tf_model:
-    run_model.save(FLAGS.save_dir, save_format="tf")
-    logging.info("TF model saved to %s", FLAGS.save_dir)
+  if args.save_tf_model:
+    run_model.save(args.save_dir, save_format="tf")
+    logging.info("TF model saved to %s", args.save_dir)
 
   # Convert and save the model to .tflite
   tflite_model = convert_tflite_model(run_model)
-  save_tflite_model(tflite_model,
-                    FLAGS.save_dir,
-                    model_name="mnist_lstm.tflite")
+  save_tflite_model(tflite_model, args.save_dir, model_name="mnist_lstm.tflite")
 
   # Convert and save the quantized model
-  if FLAGS.quantize:
+  if args.quantize:
     quantized_tflite_model = convert_quantized_tflite_model(run_model, x_train)
-    save_tflite_model(quantized_tflite_model,
-                      FLAGS.save_dir,
-                      model_name="mnist_lstm_quant.tflite")
+    save_tflite_model(
+      quantized_tflite_model,
+      args.save_dir,
+      model_name="mnist_lstm_quant.tflite",
+    )
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()

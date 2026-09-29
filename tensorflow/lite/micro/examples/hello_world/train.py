@@ -18,22 +18,14 @@ Run:
 `bazel build tensorflow/lite/micro/examples/hello_world:train`
 `bazel-bin/tensorflow/lite/micro/examples/hello_world/train --save_tf_model --save_dir=/tmp/model_created/`
 """
+
+import argparse
+import logging
 import math
 import os
 
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
 import tensorflow as tf
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_integer("epochs", 500, "number of epochs to train the model.")
-flags.DEFINE_string("save_dir", "/tmp/hello_world_models",
-                    "the directory to save the trained model.")
-flags.DEFINE_boolean("save_tf_model", False,
-                     "store the original unconverted tf model.")
 
 
 def get_data():
@@ -43,8 +35,9 @@ def get_data():
   """
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
-  x_values = np.random.uniform(low=0, high=2 * math.pi,
-                               size=1000).astype(np.float32)
+  x_values = np.random.uniform(low=0, high=2 * math.pi, size=1000).astype(
+    np.float32
+  )
 
   # Shuffle the values to guarantee they're not in order
   np.random.shuffle(x_values)
@@ -60,7 +53,7 @@ def create_model() -> tf.keras.Model:
 
   # First layer takes a scalar input and feeds it through 16 "neurons". The
   # neurons decide whether to activate based on the 'relu' activation function.
-  model.add(tf.keras.layers.Dense(16, activation='relu', input_shape=(1, )))
+  model.add(tf.keras.layers.Dense(16, activation='relu', input_shape=(1,)))
 
   # The new second and third layer will help the network learn more complex
   # representations
@@ -78,10 +71,10 @@ def create_model() -> tf.keras.Model:
 
 def convert_tflite_model(model):
   """Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
-    Args:
-        model (tf.keras.Model): the trained hello_world Model
-    Returns:
-        The converted model in serialized format.
+  Args:
+      model (tf.keras.Model): the trained hello_world Model
+  Returns:
+      The converted model in serialized format.
   """
   converter = tf.lite.TFLiteConverter.from_keras_model(model)
   tflite_model = converter.convert()
@@ -103,42 +96,72 @@ def save_tflite_model(tflite_model, save_dir, model_name):
   logging.info("Tflite model saved to %s", save_dir)
 
 
-def train_model(epochs, x_values, y_values):
+def train_model(
+  epochs,
+  x_values,
+  y_values,
+  save_tf_model=False,
+  save_dir="/tmp/hello_world_models",
+):
   """Train keras hello_world model
-    Args: epochs (int) : number of epochs to train the model
-        x_train (numpy.array): list of the training data
-        y_train (numpy.array): list of the corresponding array
-    Returns:
-        tf.keras.Model: A trained keras hello_world model
+  Args: epochs (int) : number of epochs to train the model
+      x_train (numpy.array): list of the training data
+      y_train (numpy.array): list of the corresponding array
+  Returns:
+      tf.keras.Model: A trained keras hello_world model
   """
   model = create_model()
-  model.fit(x_values,
-            y_values,
-            epochs=epochs,
-            validation_split=0.2,
-            batch_size=64,
-            verbose=2)
+  model.fit(
+    x_values,
+    y_values,
+    epochs=epochs,
+    validation_split=0.2,
+    batch_size=64,
+    verbose=2,
+  )
 
-  if FLAGS.save_tf_model:
-    save_path = os.path.join(FLAGS.save_dir, "model.keras")
-    if not os.path.exists(FLAGS.save_dir):
-      os.makedirs(FLAGS.save_dir)
+  if save_tf_model:
+    save_path = os.path.join(save_dir, "model.keras")
+    if not os.path.exists(save_dir):
+      os.makedirs(save_dir)
     model.save(save_path)
     logging.info("TF model saved to %s", save_path)
 
   return model
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--epochs",
+    type=int,
+    default=500,
+    help="number of epochs to train the model.",
+  )
+  parser.add_argument(
+    "--save_dir",
+    default="/tmp/hello_world_models",
+    help="the directory to save the trained model.",
+  )
+  parser.add_argument(
+    "--save_tf_model",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="store the original unconverted tf model.",
+  )
+  args, _ = parser.parse_known_args()
+
   x_values, y_values = get_data()
-  trained_model = train_model(FLAGS.epochs, x_values, y_values)
+  trained_model = train_model(
+    args.epochs, x_values, y_values, args.save_tf_model, args.save_dir
+  )
 
   # Convert and save the model to .tflite
   tflite_model = convert_tflite_model(trained_model)
-  save_tflite_model(tflite_model,
-                    FLAGS.save_dir,
-                    model_name="hello_world_float.tflite")
+  save_tflite_model(
+    tflite_model, args.save_dir, model_name="hello_world_float.tflite"
+  )
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()

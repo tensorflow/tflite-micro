@@ -36,9 +36,6 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
 
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} third_party_downloads ${COMMON_ARGS}
-
 # Test the hello_world as an example outside of the github repo.
 readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
 cp -r ${TENSORFLOW_ROOT}tensorflow/lite/micro/examples/hello_world ./

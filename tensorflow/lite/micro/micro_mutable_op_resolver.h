@@ -22,8 +22,6 @@ limitations under the License.
 #include "signal/micro/kernels/rfft.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/batch_matmul.h"
@@ -31,9 +29,11 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/depthwise_conv.h"
 #include "tensorflow/lite/micro/kernels/ethosu.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/maximum_minimum.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/kernels/mul.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
@@ -152,6 +152,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddAveragePool2D(
       const TFLMRegistration& registration = Register_AVERAGE_POOL_2D()) {
     return AddBuiltin(BuiltinOperator_AVERAGE_POOL_2D, registration, ParsePool);
+  }
+
+  TfLiteStatus AddBasicClassifier(
+      const TFLMRegistration& registration = Register_BASIC_CLASSIFIER()) {
+    return AddCustom("BasicClassifier", &registration);
   }
 
   TfLiteStatus AddBatchMatMul(

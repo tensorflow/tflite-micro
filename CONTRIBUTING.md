@@ -185,12 +185,12 @@ Below are some tips that might be useful and improve the development experience.
 * Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
   the TFLM continuous integration Docker container.
 
-* [yapf](https://github.com/google/yapf/) should be used for formatting Python
+* [ruff](https://github.com/astral-sh/ruff) should be used for formatting Python
   code. For example:
 
   ```
-  pip install yapf
-  yapf log_parser.py -i
+  pip install ruff
+  ruff format log_parser.py
   ```
 
 * Add a git hook to check for code style etc. prior to creating a pull request:

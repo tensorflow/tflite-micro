@@ -19,11 +19,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 struct OpDataReduce {
   int32_t multiplier;
   int shift;
@@ -64,6 +64,13 @@ TFLMRegistration Register_REDUCE_MIN();
 TFLMRegistration Register_SUM();
 TFLMRegistration Register_REDUCE_ALL();
 
+}  // namespace micro
+using micro::OpDataReduce;
+using micro::Register_MEAN;
+using micro::Register_REDUCE_ALL;
+using micro::Register_REDUCE_MAX;
+using micro::Register_REDUCE_MIN;
+using micro::Register_SUM;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_REDUCE_H_

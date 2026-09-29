@@ -13,17 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/slice.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/slice.h"
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -91,7 +90,7 @@ TfLiteStatus SliceEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
-  tflite::SliceParams op_params;
+  tflite::micro::SliceParams op_params;
   op_params.begin_count = kMaxDim;
   op_params.size_count = kMaxDim;
   for (int i = 0; i < kMaxDim; ++i) {
@@ -161,4 +160,5 @@ TFLMRegistration Register_SLICE() {
   return tflite::micro::RegisterOp(nullptr, SlicePrepare, SliceEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 60
     name: Hexagon Build Test
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -26,5 +26,5 @@ jobs:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/hexagon:0.4 \
+            ghcr.io/tflm-bot/hexagon:0.5 \
             tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/

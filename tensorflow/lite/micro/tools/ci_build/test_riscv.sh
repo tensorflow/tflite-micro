@@ -29,14 +29,10 @@ COMMON_ARGS="TARGET=${TARGET} TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
-
-# check that the release build is ok.
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=release build
+# check that the release build of library, examples, and benchmarks is ok.
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=release tflm build_examples build_benchmarks
 
 # Next, build w/o release so that we can run the tests and get additional
 # debugging info on failures.
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug build
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} BUILD_TYPE=debug test

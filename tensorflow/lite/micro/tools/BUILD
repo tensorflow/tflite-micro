@@ -1,6 +1,5 @@
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//python:py_rules.bzl",
@@ -27,7 +26,7 @@ package_group(
     packages = tflm_application_friends(),
 )
 
-py_library(
+tflm_py_library(
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
     deps = [
@@ -46,7 +45,7 @@ tflm_py_library(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],
     deps = [
@@ -64,13 +63,16 @@ tflm_py_binary(
     deps = [
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/tools:flatbuffer_utils",
-        requirement("absl_py"),
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "requantize_flatbuffer_test",
     srcs = ["requantize_flatbuffer_test.py"],
+    data = [
+        "simple_fc_int16.tflite",
+        "simple_fc_int8.tflite",
+    ],
     main = "requantize_flatbuffer_test.py",
     tags = [
         "noasan",
@@ -81,7 +83,6 @@ py_test(
     deps = [
         ":requantize_flatbuffer",
         requirement("numpy"),
-        requirement("tensorflow"),
         "//python/tflite_micro:runtime",
     ],
 )
@@ -98,7 +99,7 @@ pybind_extension(
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "tflite_flatbuffer_align",
     srcs = [
         "tflite_flatbuffer_align.py",
@@ -108,7 +109,6 @@ py_binary(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        requirement("absl_py"),
     ],
 )
 
@@ -129,7 +129,7 @@ tflm_py_library(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "tflm_model_transforms_lib",
     srcs = ["tflm_model_transforms_lib.py"],
     data = [
@@ -143,7 +143,6 @@ py_library(
     ],
     deps = [
         ":model_transforms_utils",
-        requirement("absl_py"),
         requirement("numpy"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
@@ -158,7 +157,6 @@ cc_binary(
         ":layer_by_layer_schema",
         "//tensorflow/lite/c:c_api_types",
         "//tensorflow/lite/c:common",
-        "//tensorflow/lite/kernels:op_macros",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_framework",
@@ -167,19 +165,19 @@ cc_binary(
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/kernels:kernel_util",
+        "//tensorflow/lite/micro/kernels:op_macros",
         "//tensorflow/lite/micro/tools/benchmarking:op_resolver",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers",
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "tflm_model_transforms",
     srcs = ["tflm_model_transforms.py"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
-        requirement("absl_py"),
     ],
 )
 
@@ -198,20 +196,17 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":tflm_model_transforms_lib",
-        requirement("absl_py"),
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:resource_variables_lib",
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "layer_by_layer_debugger",
     srcs = ["layer_by_layer_debugger.py"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",
-        requirement("absl_py"),
         requirement("ai-edge-litert"),
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/tools:flatbuffer_utils",
@@ -226,4 +221,11 @@ flatbuffer_cc_library(
 flatbuffer_py_library(
     name = "layer_by_layer_schema_py",
     srcs = ["layer_by_layer_schema.fbs"],
+)
+
+tflm_py_binary(
+    name = "refresh_compile_commands",
+    srcs = ["ci_build/generate_compile_commands.py"],
+    main = "ci_build/generate_compile_commands.py",
+    visibility = ["//visibility:public"],
 )

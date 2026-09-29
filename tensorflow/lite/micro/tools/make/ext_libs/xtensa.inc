@@ -36,12 +36,19 @@ else ifeq ($(TARGET_ARCH), hifi5)
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
 
-  # The NDSP library has a lot of file. Add as needed.
+  # Only include 16-bit power-of-two FFT files required by signal/rfft_int16.cc.
   THIRD_PARTY_KERNEL_CC_SRCS += \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/twiddles -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*16*.c" \
+      ! -name "*32x32*" ! -name "*24x16*" ! -name "*16x24*" \
+      ! -name "*DFT3*" ! -name "*DFT5*" ! -name "*DFT6*" ! -name "*DFT7*" \
+      ! -name "*DFT9*" ! -name "*DFT10*" ! -name "*DFT11*" ! -name "*DFT12*" \
+      ! -name "*DFT14*" ! -name "*DFT15*") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*16x16*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/twiddles -name "fft_*_twd16_*_tbl.c" \
+      \( -name "*_16_tbl.c" -o -name "*_32_tbl.c" -o -name "*_64_tbl.c" \
+      -o -name "*_128_tbl.c" -o -name "*_256_tbl.c" -o -name "*_512_tbl.c" \
+      -o -name "*_1024_tbl.c" -o -name "*_2048_tbl.c" -o -name "*_4096_tbl.c" \
+      -o -name "*_8192_tbl.c" \)) \
     $(shell find $(NDSPLIB_PATH)/library -name "version.c")
 
   EXCLUDED_NNLIB_SRCS = \
@@ -93,12 +100,22 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
 
-  # The NDSP library has a lot of file. Add as needed.
+  # Only include 16-bit power-of-two FFT files required by signal/rfft_int16.cc.
   THIRD_PARTY_KERNEL_CC_SRCS += \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ief -name "*.c") \
-    $(shell find $(NDSPLIB_PATH)/library/twiddles -name "*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft -name "*16*.c" \
+      ! -name "*32x32*" ! -name "*24x16*" ! -name "*16x24*" \
+      ! -name "*DFT3*" ! -name "*DFT5*" ! -name "*DFT6*" ! -name "*DFT7*" \
+      ! -name "*DFT9*" ! -name "*DFT10*" ! -name "*DFT11*" ! -name "*DFT12*" \
+      ! -name "*DFT14*" ! -name "*DFT15*") \
+    $(shell find $(NDSPLIB_PATH)/library/fft/fft_ie -name "*16x16*.c") \
+    $(shell find $(NDSPLIB_PATH)/library/twiddles \
+      \( -name "fft_*_twd16_*_tbl.c" \
+        \( -name "*_16_tbl.c" -o -name "*_32_tbl.c" -o -name "*_64_tbl.c" \
+        -o -name "*_128_tbl.c" -o -name "*_256_tbl.c" -o -name "*_512_tbl.c" \
+        -o -name "*_1024_tbl.c" -o -name "*_2048_tbl.c" -o -name "*_4096_tbl.c" \
+        -o -name "*_8192_tbl.c" \) \
+      -o -name "fft_real_twiddles.c" \
+      -o \( -name "fft_cplx_*_hifi3.c" ! -name "*24x24*" \) \)) \
     $(shell find $(NDSPLIB_PATH)/library -name "version.c")
 
   EXCLUDED_NNLIB_SRCS = \

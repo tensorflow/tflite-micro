@@ -34,7 +34,6 @@ function build_target() {
   local target=$3
   local target_arch=$4
   local MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
-  readable_run make -f ${MAKEFILE} third_party_downloads
   readable_run make $(get_parallel_jobs) -f ${MAKEFILE} build build_type=${build_type} TARGET=${target} TARGET_ARCH=${target_arch} ${binary_target}
 
   # Return the relative binary with path and name.

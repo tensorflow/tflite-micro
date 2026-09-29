@@ -40,9 +40,6 @@ COMMON_ARGS="CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} T
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-# TODO(b/143715361): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
-
 # Avoid running tests in parallel.
 readable_run make -f ${MAKEFILE} clean
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build

@@ -11,7 +11,6 @@ bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_python", version = "1.8.3")
 bazel_dep(name = "rules_shell", version = "0.6.1")
-bazel_dep(name = "wolfd_bazel_compile_commands", version = "0.5.2")
 
 # TFLM Dependencies
 
@@ -48,14 +47,6 @@ http_archive(
     ],
 )
 
-http_archive(
-    name = "nnlib_hifi4",
-    build_file = "@tflite_micro//third_party/xtensa/nnlib_hifi4:nnlib_hifi4.BUILD",
-    integrity = "sha256-ulZ+uY4dRsbDUMZbZtD972eghclWQrqYRb0Y4Znfyyc=",
-    strip_prefix = "nnlib-hifi4-34f5f995f28d298ae2b6e2ba6e76c32a5cb34989",
-    urls = ["https://github.com/foss-xtensa/nnlib-hifi4/archive/34f5f995f28d298ae2b6e2ba6e76c32a5cb34989.zip"],
-)
-
 # Python
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -67,16 +58,9 @@ PYTHON_VERSIONS = [
     "3.11",
     "3.12",
     "3.13",
+    "3.14",
 ]
 
-pip.whl_mods(
-    additive_build_content = """\
-load("@@//python:tensorflow_cc_targets.bzl", "extra_tensorflow_targets")
-extra_tensorflow_targets()
-""",
-    hub_name = "tflm_pip_deps_whl_mods",
-    whl_name = "tensorflow",
-)
 pip.whl_mods(
     additive_build_content = """\
 load("@@//python:numpy_cc_targets.bzl", "extra_numpy_targets")
@@ -95,17 +79,12 @@ extra_numpy_targets()
         pip.parse(
             extra_hub_aliases = {
                 "numpy": ["cc_headers"],
-                "tensorflow": [
-                    "cc_headers",
-                    "cc_library",
-                ],
             },
             hub_name = "tflm_pip_deps",
             python_version = version,
             requirements_lock = "//python:python_requirements_%s.txt" % version.replace(".", "_"),
             whl_modifications = {
                 "@tflm_pip_deps_whl_mods//:numpy.json": "numpy",
-                "@tflm_pip_deps_whl_mods//:tensorflow.json": "tensorflow",
             },
         ),
     )
@@ -118,18 +97,16 @@ use_repo(
     python_3_11 = "python_3_11_x86_64-unknown-linux-gnu",
     python_3_12 = "python_3_12_x86_64-unknown-linux-gnu",
     python_3_13 = "python_3_13_x86_64-unknown-linux-gnu",
+    python_3_14 = "python_3_14_x86_64-unknown-linux-gnu",
 )
 
 use_repo(
     pip,
     "tflm_pip_deps",
     "tflm_pip_deps_310_numpy",
-    "tflm_pip_deps_310_tensorflow",
     "tflm_pip_deps_311_numpy",
-    "tflm_pip_deps_311_tensorflow",
     "tflm_pip_deps_312_numpy",
-    "tflm_pip_deps_312_tensorflow",
     "tflm_pip_deps_313_numpy",
-    "tflm_pip_deps_313_tensorflow",
+    "tflm_pip_deps_314_numpy",
     "tflm_pip_deps_whl_mods",
 )

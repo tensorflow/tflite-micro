@@ -20,7 +20,11 @@
 set -e
 
 WHL="${1}"
-PYTHON_BIN="${2:-python3}"
+
+# Resolve the interpreter's symlinks. A venv made from the runfiles symlink
+# records the symlink's directory as its home, and Python 3.11 and 3.12 then
+# fail to find their standard library.
+PYTHON_BIN="$(realpath "${2:-$(command -v python3)}")"
 
 # The py_wheel rule creates two outputs: the base :whl target with literal stamp
 # variables in the filename (for Bazel caching), and :whl.dist with expanded
@@ -29,12 +33,13 @@ PYTHON_BIN="${2:-python3}"
 #
 # Pip 25.x in Python 3.12+ strictly validates wheel filenames and rejects
 # literal stamp variables like _BUILD_EMBED_LABEL_. To make this robust against
-# any version string format (which might contain various placeholders), we
-# simply rename the input wheel to a fixed, safe filename before installing.
-# We don't care about the version string in the filename for this test, as pip
-# installs the content anyway.
+# any version string format (which might contain various placeholders), rename
+# the input wheel to a fixed version before installing. Keep the wheel's
+# compatibility tags, so pip rejects a wheel tagged for a Python other than
+# the one running this test.
 
-SAFE_WHL="tflite_micro-0.0.0-py3-none-any.whl"
+TAGS="$(basename "${WHL}" .whl | sed 's/.*-\([^-]*-[^-]*-[^-]*\)$/\1/')"
+SAFE_WHL="tflite_micro-0.0.0-${TAGS}.whl"
 cp "${WHL}" "${SAFE_WHL}"
 
 # Create venv for this test.

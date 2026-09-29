@@ -47,163 +47,171 @@ def _build_simple_fc_model():
   )
   # yapf: enable
   input_t = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input",
   )
   output_t = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output",
   )
 
-  model = model_editor.Model(subgraphs=[
+  model = model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[weights],
-          operators=[
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input_t, weights],
-                  outputs=[output_t],
-              )
-          ],
-          inputs=[input_t],
-          outputs=[output_t],
+        tensors=[weights],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, weights],
+            outputs=[output_t],
+          )
+        ],
+        inputs=[input_t],
+        outputs=[output_t],
       )
-  ])
+    ]
+  )
   return model
 
 
 def _build_fc_model_without_bias():
   """Build a model whose FC operator has no bias input."""
   weights = model_editor.Tensor(
-      shape=(4, 4),
-      dtype=tflite.TensorType.INT8,
-      data=np.ones((4, 4), dtype=np.int8),
-      name="weights",
-      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    shape=(4, 4),
+    dtype=tflite.TensorType.INT8,
+    data=np.ones((4, 4), dtype=np.int8),
+    name="weights",
+    quantization=model_editor.Quantization(scales=0.5, zero_points=0),
   )
   input_t = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input",
   )
   output_t = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output",
   )
 
-  model = model_editor.Model(subgraphs=[
+  model = model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[weights],
-          operators=[
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input_t, weights, None],
-                  outputs=[output_t],
-              )
-          ],
-          inputs=[input_t],
-          outputs=[output_t],
+        tensors=[weights],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, weights, None],
+            outputs=[output_t],
+          )
+        ],
+        inputs=[input_t],
+        outputs=[output_t],
       )
-  ])
+    ]
+  )
   return model
 
 
 def _build_shared_weights_model():
   """Build model where one tensor is used by multiple operators."""
   weights = model_editor.Tensor(
-      shape=(4, 4),
-      dtype=tflite.TensorType.INT8,
-      data=np.ones((4, 4), dtype=np.int8),
-      name="shared_weights",
-      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    shape=(4, 4),
+    dtype=tflite.TensorType.INT8,
+    data=np.ones((4, 4), dtype=np.int8),
+    name="shared_weights",
+    quantization=model_editor.Quantization(scales=0.5, zero_points=0),
   )
   input1 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input1",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input1",
   )
   input2 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input2",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input2",
   )
   output1 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output1",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output1",
   )
   output2 = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output2",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output2",
   )
 
-  model = model_editor.Model(subgraphs=[
+  model = model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[weights],
-          operators=[
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input1, weights],
-                  outputs=[output1],
-              ),
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input2, weights],
-                  outputs=[output2],
-              ),
-          ],
-          inputs=[input1, input2],
-          outputs=[output1, output2],
+        tensors=[weights],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input1, weights],
+            outputs=[output1],
+          ),
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input2, weights],
+            outputs=[output2],
+          ),
+        ],
+        inputs=[input1, input2],
+        outputs=[output1, output2],
       )
-  ])
+    ]
+  )
   return model
 
 
 def _build_output_constant_model():
   """Build a model where a compressed constant is a subgraph output."""
   table = model_editor.Tensor(
-      shape=(4, 4),
-      dtype=tflite.TensorType.INT8,
-      data=np.ones((4, 4), dtype=np.int8),
-      name="table",
-      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    shape=(4, 4),
+    dtype=tflite.TensorType.INT8,
+    data=np.ones((4, 4), dtype=np.int8),
+    name="table",
+    quantization=model_editor.Quantization(scales=0.5, zero_points=0),
   )
   weights = model_editor.Tensor(
-      shape=(4, 4),
-      dtype=tflite.TensorType.INT8,
-      data=np.ones((4, 4), dtype=np.int8),
-      name="weights",
-      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+    shape=(4, 4),
+    dtype=tflite.TensorType.INT8,
+    data=np.ones((4, 4), dtype=np.int8),
+    name="weights",
+    quantization=model_editor.Quantization(scales=0.5, zero_points=0),
   )
   input_t = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="input",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="input",
   )
   output_t = model_editor.Tensor(
-      shape=(1, 4),
-      dtype=tflite.TensorType.INT8,
-      name="output",
+    shape=(1, 4),
+    dtype=tflite.TensorType.INT8,
+    name="output",
   )
 
-  model = model_editor.Model(subgraphs=[
+  model = model_editor.Model(
+    subgraphs=[
       model_editor.Subgraph(
-          tensors=[table],
-          operators=[
-              model_editor.Operator(
-                  opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                  inputs=[input_t, weights],
-                  outputs=[output_t],
-              )
-          ],
-          inputs=[input_t],
-          outputs=[output_t, table],
+        tensors=[table],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, weights],
+            outputs=[output_t],
+          )
+        ],
+        inputs=[input_t],
+        outputs=[output_t, table],
       )
-  ])
+    ]
+  )
   return model
 
 
@@ -218,42 +226,43 @@ def _build_shared_buffer_model(subgraph_count):
   subgraphs = []
   for i in range(subgraph_count):
     weights = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        buffer=shared,
-        name=f"weights{i}",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      buffer=shared,
+      name=f"weights{i}",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     input_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name=f"input{i}",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name=f"input{i}",
     )
     output_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name=f"output{i}",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name=f"output{i}",
     )
     subgraphs.append(
-        model_editor.Subgraph(
-            tensors=[weights],
-            operators=[
-                model_editor.Operator(
-                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                    inputs=[input_t, weights],
-                    outputs=[output_t],
-                )
-            ],
-            inputs=[input_t],
+      model_editor.Subgraph(
+        tensors=[weights],
+        operators=[
+          model_editor.Operator(
+            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+            inputs=[input_t, weights],
             outputs=[output_t],
-        ))
+          )
+        ],
+        inputs=[input_t],
+        outputs=[output_t],
+      )
+    )
   return model_editor.Model(subgraphs=subgraphs)
 
 
 def _make_dummy_compression_result(
-    element_count=16,
-    bitwidth=1,
-    value_table=b'\x01',
+  element_count=16,
+  bitwidth=1,
+  value_table=b'\x01',
 ) -> compressor.CompressionResult:
   """Create a CompressionResult with plausible dummy payloads.
 
@@ -264,14 +273,14 @@ def _make_dummy_compression_result(
   indices zero) that do not decode to the tensor's contents.
   """
   dcm = decode.DecodeCommonMetadata(
-      decode_type=decode.DecodeType.LUT,
-      # lut_version, index bitwidth, value table stride in elements
-      user_data=bytes([1, bitwidth, len(value_table)]) + b'\x00' * 9,
+    decode_type=decode.DecodeType.LUT,
+    # lut_version, index bitwidth, value table stride in elements
+    user_data=bytes([1, bitwidth, len(value_table)]) + b'\x00' * 9,
   )
   encoded_data = bytes((element_count * bitwidth + 7) // 8)
   return compressor.CompressionResult(
-      encoded_data=encoded_data,
-      ancillary_data=dcm.to_bytes() + value_table,
+    encoded_data=encoded_data,
+    ancillary_data=dcm.to_bytes() + value_table,
   )
 
 
@@ -284,9 +293,9 @@ class TestDecodeInsertion(unittest.TestCase):
 
     # Create compression result
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04')
+      (0, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      )
     }
 
     # Insert DECODE operators
@@ -297,10 +306,12 @@ class TestDecodeInsertion(unittest.TestCase):
     # Should have 2 operators: DECODE then FC
     self.assertEqual(len(sg.operators), 2)
     self.assertEqual(sg.operators[0].opcode, tflite.BuiltinOperator.CUSTOM)
-    self.assertEqual(sg.operators[0].custom_code,
-                     decode_insert.DECODE_CUSTOM_OP_NAME)
-    self.assertEqual(sg.operators[1].opcode,
-                     tflite.BuiltinOperator.FULLY_CONNECTED)
+    self.assertEqual(
+      sg.operators[0].custom_code, decode_insert.DECODE_CUSTOM_OP_NAME
+    )
+    self.assertEqual(
+      sg.operators[1].opcode, tflite.BuiltinOperator.FULLY_CONNECTED
+    )
 
   def test_decode_inputs_structure(self):
     """DECODE operator has correct inputs: encoded tensor + ancillary."""
@@ -308,9 +319,9 @@ class TestDecodeInsertion(unittest.TestCase):
     weights_tensor = model.subgraphs[0].tensor_by_name("weights")
 
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04')
+      (0, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      )
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -336,9 +347,9 @@ class TestDecodeInsertion(unittest.TestCase):
     expected.buffer = None
 
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04')
+      (0, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      )
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -360,9 +371,9 @@ class TestDecodeInsertion(unittest.TestCase):
     weights_tensor = model.subgraphs[0].tensor_by_name("weights")
 
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04')
+      (0, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      )
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -388,11 +399,13 @@ class TestDecodeInsertion(unittest.TestCase):
     # Should have 4 operators: 2 DECODEs + 2 FCs (DECODE before each FC)
     self.assertEqual(len(sg.operators), 4)
     self.assertEqual(sg.operators[0].opcode, tflite.BuiltinOperator.CUSTOM)
-    self.assertEqual(sg.operators[1].opcode,
-                     tflite.BuiltinOperator.FULLY_CONNECTED)
+    self.assertEqual(
+      sg.operators[1].opcode, tflite.BuiltinOperator.FULLY_CONNECTED
+    )
     self.assertEqual(sg.operators[2].opcode, tflite.BuiltinOperator.CUSTOM)
-    self.assertEqual(sg.operators[3].opcode,
-                     tflite.BuiltinOperator.FULLY_CONNECTED)
+    self.assertEqual(
+      sg.operators[3].opcode, tflite.BuiltinOperator.FULLY_CONNECTED
+    )
 
     decode_op1 = sg.operators[0]
     fc_op1 = sg.operators[1]
@@ -442,21 +455,22 @@ class TestDecodeInsertion(unittest.TestCase):
     alias = weights.copy(name="alias")
     sg.tensors.append(alias)
     input_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name="input_alias",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="input_alias",
     )
     output_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name="output_alias",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output_alias",
     )
     sg.operators.append(
-        model_editor.Operator(
-            opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-            inputs=[input_t, alias],
-            outputs=[output_t],
-        ))
+      model_editor.Operator(
+        opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+        inputs=[input_t, alias],
+        outputs=[output_t],
+      )
+    )
 
     result = _make_dummy_compression_result()
     compression_results = {(0, 0): result, (0, 1): result}
@@ -465,8 +479,9 @@ class TestDecodeInsertion(unittest.TestCase):
 
     # One DECODE before each consumer, sharing one ancillary tensor
     decodes = [
-        op for op in sg.operators
-        if op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
+      op
+      for op in sg.operators
+      if op.custom_code == decode_insert.DECODE_CUSTOM_OP_NAME
     ]
     self.assertEqual(len(decodes), 2)
     self.assertIs(decodes[0].inputs[1], decodes[1].inputs[1])
@@ -483,15 +498,15 @@ class TestDecodeInsertion(unittest.TestCase):
     model = model_editor.read(bytes(scratch.build()))
     weights_bytes = model.subgraphs[0].tensor_by_name("weights").buffer.data
 
-    result = _make_dummy_compression_result(bitwidth=2,
-                                            value_table=b'\x01\x02\x03\x04')
+    result = _make_dummy_compression_result(
+      bitwidth=2, value_table=b'\x01\x02\x03\x04'
+    )
     decode_insert.insert_decode_operators(model, {(0, 0): result})
 
     final = model_editor.read(bytes(model.build()))
     sg = final.subgraphs[0]
     decode_op = sg.operators[0]
-    self.assertEqual(decode_op.custom_code,
-                     decode_insert.DECODE_CUSTOM_OP_NAME)
+    self.assertEqual(decode_op.custom_code, decode_insert.DECODE_CUSTOM_OP_NAME)
     self.assertEqual(decode_op.inputs[0].buffer.data, result.encoded_data)
     self.assertEqual(decode_op.inputs[1].buffer.data, result.ancillary_data)
 
@@ -507,11 +522,10 @@ class TestDecodeInsertion(unittest.TestCase):
     model = _build_shared_buffer_model(subgraph_count=2)
 
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=1, value_table=b'\x01'),
-        (1, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04'),
+      (0, 0): _make_dummy_compression_result(bitwidth=1, value_table=b'\x01'),
+      (1, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      ),
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -524,14 +538,18 @@ class TestDecodeInsertion(unittest.TestCase):
     # Each alias carries its own results; nothing is shared
     self.assertIsNot(encoded0.buffer, encoded1.buffer)
     self.assertIsNot(ancillary0.buffer, ancillary1.buffer)
-    self.assertEqual(encoded0.buffer.data,
-                     compression_results[(0, 0)].encoded_data)
-    self.assertEqual(encoded1.buffer.data,
-                     compression_results[(1, 0)].encoded_data)
-    self.assertEqual(ancillary0.buffer.data,
-                     compression_results[(0, 0)].ancillary_data)
-    self.assertEqual(ancillary1.buffer.data,
-                     compression_results[(1, 0)].ancillary_data)
+    self.assertEqual(
+      encoded0.buffer.data, compression_results[(0, 0)].encoded_data
+    )
+    self.assertEqual(
+      encoded1.buffer.data, compression_results[(1, 0)].encoded_data
+    )
+    self.assertEqual(
+      ancillary0.buffer.data, compression_results[(0, 0)].ancillary_data
+    )
+    self.assertEqual(
+      ancillary1.buffer.data, compression_results[(1, 0)].ancillary_data
+    )
 
   def test_partially_covered_buffer_not_compressed(self):
     """A tensor sharing its buffer with an uncompressed tensor is
@@ -574,8 +592,7 @@ class TestDecodeInsertion(unittest.TestCase):
     self.assertEqual(len(sg.operators), 2)
     decode_op = sg.operators[1]
     self.assertEqual(decode_op.opcode, tflite.BuiltinOperator.CUSTOM)
-    self.assertEqual(decode_op.custom_code,
-                     decode_insert.DECODE_CUSTOM_OP_NAME)
+    self.assertEqual(decode_op.custom_code, decode_insert.DECODE_CUSTOM_OP_NAME)
     self.assertIs(decode_op.inputs[0], table)
 
     # Output list entry rewired to the decoded tensor; other entry untouched
@@ -594,9 +611,9 @@ class TestDecodeInsertion(unittest.TestCase):
     sg.outputs = [fc_output, weights]
 
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04')
+      (0, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      )
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -624,43 +641,45 @@ class TestDecodeInsertion(unittest.TestCase):
   def test_multiple_input_tensors_share_one_decode(self):
     """All compressed tensors of one consumer are decoded by one DECODE."""
     weights1 = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((4, 4), dtype=np.int8),
-        name="weights1",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((4, 4), dtype=np.int8),
+      name="weights1",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     weights2 = model_editor.Tensor(
-        shape=(2, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((2, 4), dtype=np.int8),
-        name="weights2",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(2, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((2, 4), dtype=np.int8),
+      name="weights2",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     output_t = model_editor.Tensor(
-        shape=(6, 4),
-        dtype=tflite.TensorType.INT8,
-        name="output",
+      shape=(6, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output",
     )
 
-    model = model_editor.Model(subgraphs=[
+    model = model_editor.Model(
+      subgraphs=[
         model_editor.Subgraph(
-            tensors=[weights1, weights2],
-            operators=[
-                model_editor.Operator(
-                    opcode=tflite.BuiltinOperator.CONCATENATION,
-                    inputs=[weights1, weights2],
-                    outputs=[output_t],
-                )
-            ],
-            outputs=[output_t],
+          tensors=[weights1, weights2],
+          operators=[
+            model_editor.Operator(
+              opcode=tflite.BuiltinOperator.CONCATENATION,
+              inputs=[weights1, weights2],
+              outputs=[output_t],
+            )
+          ],
+          outputs=[output_t],
         )
-    ])
+      ]
+    )
     sg = model.subgraphs[0]
 
     compression_results = {
-        (0, 0): _make_dummy_compression_result(element_count=16),
-        (0, 1): _make_dummy_compression_result(element_count=8),
+      (0, 0): _make_dummy_compression_result(element_count=16),
+      (0, 1): _make_dummy_compression_result(element_count=8),
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -684,37 +703,39 @@ class TestDecodeInsertion(unittest.TestCase):
   def test_multiple_output_tensors_share_one_decode(self):
     """All compressed subgraph outputs are decoded by a single DECODE."""
     table1 = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((4, 4), dtype=np.int8),
-        name="table1",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((4, 4), dtype=np.int8),
+      name="table1",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     table2 = model_editor.Tensor(
-        shape=(2, 2),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((2, 2), dtype=np.int8),
-        name="table2",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(2, 2),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((2, 2), dtype=np.int8),
+      name="table2",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     output_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name="output",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output",
     )
 
-    model = model_editor.Model(subgraphs=[
+    model = model_editor.Model(
+      subgraphs=[
         model_editor.Subgraph(
-            tensors=[table1, table2],
-            operators=[],
-            outputs=[table1, output_t, table2],
+          tensors=[table1, table2],
+          operators=[],
+          outputs=[table1, output_t, table2],
         )
-    ])
+      ]
+    )
     sg = model.subgraphs[0]
 
     compression_results = {
-        (0, 0): _make_dummy_compression_result(element_count=16),
-        (0, 1): _make_dummy_compression_result(element_count=4),
+      (0, 0): _make_dummy_compression_result(element_count=16),
+      (0, 1): _make_dummy_compression_result(element_count=4),
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -736,8 +757,9 @@ class TestDecodeInsertion(unittest.TestCase):
     """Ancillary tensor data contains valid DCM header."""
     model = _build_simple_fc_model()
 
-    result = _make_dummy_compression_result(bitwidth=2,
-                                            value_table=b'\x01\x02\x03\x04')
+    result = _make_dummy_compression_result(
+      bitwidth=2, value_table=b'\x01\x02\x03\x04'
+    )
     compression_results = {(0, 0): result}
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -757,42 +779,44 @@ class TestDecodeInsertion(unittest.TestCase):
     """Tensor with no consumers gets no DECODE operator and emits warning."""
     # Create model where compressed tensor is not used as input
     unused_tensor = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((4, 4), dtype=np.int8),
-        name="unused",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((4, 4), dtype=np.int8),
+      name="unused",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     input_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name="input",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="input",
     )
     output_t = model_editor.Tensor(
-        shape=(1, 4),
-        dtype=tflite.TensorType.INT8,
-        name="output",
+      shape=(1, 4),
+      dtype=tflite.TensorType.INT8,
+      name="output",
     )
     other_weights = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((4, 4), dtype=np.int8),
-        name="other_weights",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((4, 4), dtype=np.int8),
+      name="other_weights",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
 
-    model = model_editor.Model(subgraphs=[
+    model = model_editor.Model(
+      subgraphs=[
         model_editor.Subgraph(
-            tensors=[unused_tensor, other_weights],
-            operators=[
-                model_editor.Operator(
-                    opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
-                    inputs=[input_t, other_weights],
-                    outputs=[output_t],
-                )
-            ],
+          tensors=[unused_tensor, other_weights],
+          operators=[
+            model_editor.Operator(
+              opcode=tflite.BuiltinOperator.FULLY_CONNECTED,
+              inputs=[input_t, other_weights],
+              outputs=[output_t],
+            )
+          ],
         )
-    ])
+      ]
+    )
 
     # Compress the unused tensor
     compression_results = {(0, 0): _make_dummy_compression_result()}
@@ -814,9 +838,9 @@ class TestDecodeInsertion(unittest.TestCase):
     model = _build_simple_fc_model()
 
     compression_results = {
-        (0, 0):
-        _make_dummy_compression_result(bitwidth=2,
-                                       value_table=b'\x01\x02\x03\x04')
+      (0, 0): _make_dummy_compression_result(
+        bitwidth=2, value_table=b'\x01\x02\x03\x04'
+      )
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
@@ -831,35 +855,37 @@ class TestDecodeInsertion(unittest.TestCase):
   def test_mixed_compressed_and_uncompressed_inputs(self):
     """CONCATENATION with one compressed and one plain input."""
     weights = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.ones((4, 4), dtype=np.int8),
-        name="weights",
-        quantization=model_editor.Quantization(scales=0.5, zero_points=0),
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.ones((4, 4), dtype=np.int8),
+      name="weights",
+      quantization=model_editor.Quantization(scales=0.5, zero_points=0),
     )
     plain = model_editor.Tensor(
-        shape=(4, 4),
-        dtype=tflite.TensorType.INT8,
-        data=np.zeros((4, 4), dtype=np.int8),
-        name="plain",
+      shape=(4, 4),
+      dtype=tflite.TensorType.INT8,
+      data=np.zeros((4, 4), dtype=np.int8),
+      name="plain",
     )
 
-    model = model_editor.Model(subgraphs=[
+    model = model_editor.Model(
+      subgraphs=[
         model_editor.Subgraph(
-            tensors=[weights],
-            operators=[
-                model_editor.Operator(
-                    opcode=tflite.BuiltinOperator.CONCATENATION,
-                    inputs=[weights, plain],
-                    outputs=[
-                        model_editor.Tensor(shape=(4, 8),
-                                            dtype=tflite.TensorType.INT8,
-                                            name="output"),
-                    ],
-                )
-            ],
+          tensors=[weights],
+          operators=[
+            model_editor.Operator(
+              opcode=tflite.BuiltinOperator.CONCATENATION,
+              inputs=[weights, plain],
+              outputs=[
+                model_editor.Tensor(
+                  shape=(4, 8), dtype=tflite.TensorType.INT8, name="output"
+                ),
+              ],
+            )
+          ],
         )
-    ])
+      ]
+    )
 
     # insert_decode_operators() expects compressor output: a map from
     # (subgraph index, tensor index) to a CompressionResult. List
@@ -888,19 +914,18 @@ class TestDecodeInsertion(unittest.TestCase):
     model = _build_simple_fc_model()
     weights_tensor = model.subgraphs[0].tensor_by_name("weights")
 
-    encoded_data = b'\xAB\xCD\xEF'
+    encoded_data = b'\xab\xcd\xef'
     compression_results = {
-        (0, 0):
-        compressor.CompressionResult(
-            encoded_data=encoded_data,
-            ancillary_data=_make_dummy_compression_result().ancillary_data,
-        )
+      (0, 0): compressor.CompressionResult(
+        encoded_data=encoded_data,
+        ancillary_data=_make_dummy_compression_result().ancillary_data,
+      )
     }
 
     decode_insert.insert_decode_operators(model, compression_results)
 
     # Original tensor should be rewritten
-    self.assertEqual(weights_tensor.shape, (len(encoded_data), ))
+    self.assertEqual(weights_tensor.shape, (len(encoded_data),))
     self.assertEqual(weights_tensor.dtype, tflite.TensorType.UINT8)
     self.assertIsNone(weights_tensor.quantization)
     self.assertEqual(weights_tensor.buffer.data, encoded_data)

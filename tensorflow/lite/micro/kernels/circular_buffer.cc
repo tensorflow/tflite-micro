@@ -17,13 +17,12 @@ limitations under the License.
 
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 /*
@@ -48,7 +47,7 @@ limitations under the License.
  * - Input and output quantization params must be identical.
  */
 namespace tflite {
-
+namespace micro {
 void* CircularBufferInit(TfLiteContext* context, const char* buffer,
                          size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
@@ -96,15 +95,19 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
-  if (--data->cycles_until_run != 0) {
-    // Signal the interpreter to end current run if the delay before op invoke
-    // has not been reached.
-    return kTfLiteAbort;
+  const bool is_ready = (--data->cycles_until_run <= 0);
+  if (is_ready) {
+    data->cycles_until_run = data->cycles_max;
   }
 
-  data->cycles_until_run = data->cycles_max;
+  if (node->outputs->size == 2) {
+    TfLiteEvalTensor* valid_output = tflite::micro::GetEvalOutput(
+        context, node, kCircularBufferValidOutputTensor);
+    *tflite::micro::GetTensorData<bool>(valid_output) = is_ready;
+    return kTfLiteOk;
+  }
 
-  return kTfLiteOk;
+  return is_ready ? kTfLiteOk : kTfLiteAbort;
 }
 
 // Restores period counter (cycles_until_run) on reset. Buffer memory cleanup
@@ -123,4 +126,5 @@ TFLMRegistration* Register_CIRCULAR_BUFFER() {
   return &r;
 }
 
+}  // namespace micro
 }  // namespace tflite

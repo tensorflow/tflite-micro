@@ -77,7 +77,7 @@
 # user-defined metadata.
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import ClassVar, Protocol
 
 
 class DecodeType:
@@ -167,6 +167,9 @@ class DecodeCommonMetadata:
                decode types to avoid requiring additional alignment of metadata
                or ancillary data.
   """
+
+  SIZE: ClassVar[int] = 16
+
   decode_type: DecodeType
   version: int = 1
   user_data: bytes = b'\x00' * 12
@@ -180,19 +183,18 @@ class DecodeCommonMetadata:
     else:
       user_data = self.user_data[:12]
 
-    result = bytearray(16)
+    result = bytearray(self.SIZE)
     result[0] = decode_code
     result[1] = self.version
     # bytes 2-3 remain zero (reserved)
-    result[4:16] = user_data
+    result[4 : self.SIZE] = user_data
     return bytes(result)
 
 
 class AncillaryDataSerializer(Protocol):
   """Protocol for objects that can serialize ancillary data."""
 
-  def to_bytes(self) -> bytes:
-    ...
+  def to_bytes(self) -> bytes: ...
 
 
 @dataclass
@@ -208,11 +210,13 @@ class AncillaryDataTensor:
                     or as an object implementing the AncillaryDataSerializer
                     protocol. May be None if only the DCM is needed.
   """
+
   dcm: DecodeCommonMetadata
   ancillary_data: AncillaryDataSerializer | bytes | None = None
 
   def with_ancillary_data(
-      self, data: AncillaryDataSerializer | bytes) -> 'AncillaryDataTensor':
+    self, data: AncillaryDataSerializer | bytes
+  ) -> 'AncillaryDataTensor':
     """Create new ADT with ancillary data added.
 
     Args:

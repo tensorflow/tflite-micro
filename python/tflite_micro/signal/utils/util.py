@@ -13,9 +13,8 @@
 # limitations under the License.
 # ==============================================================================
 """Python utility functions."""
+
 import tensorflow as tf
-from tensorflow.python.framework import load_library
-from tensorflow.python.platform import resource_loader
 from tflite_micro.python.tflite_micro import runtime
 
 
@@ -30,7 +29,8 @@ def get_tflm_interpreter(concrete_function, trackable_obj):
     TFLite interpreter object
   """
   converter = tf.lite.TFLiteConverter.from_concrete_functions(
-      [concrete_function], trackable_obj)
+    [concrete_function], trackable_obj
+  )
   converter.allow_custom_ops = True
   tflite_model = converter.convert()
 
@@ -38,5 +38,17 @@ def get_tflm_interpreter(concrete_function, trackable_obj):
 
 
 def load_custom_op(name):
-  return load_library.load_op_library(
-      resource_loader.get_path_to_datafile('../ops/_' + name))
+  try:
+    import importlib
+    from tflite_micro.python.tflite_micro import signal
+
+    return importlib.import_module(
+      f'{signal.__name__}.gen_{name.removesuffix(".so")}'
+    )
+  except ImportError:
+    from tensorflow.python.framework import load_library
+    from tensorflow.python.platform import resource_loader
+
+    return load_library.load_op_library(
+      resource_loader.get_path_to_datafile('../ops/_' + name)
+    )

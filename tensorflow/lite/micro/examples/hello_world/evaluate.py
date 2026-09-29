@@ -12,41 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+import logging
 import os
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
-import matplotlib.pyplot as plt
 from tflite_micro.python.tflite_micro import runtime
 
-OpResolverType = None
-try:
-  import ai_edge_litert.interpreter as tflite_interp
-  from ai_edge_litert.interpreter import OpResolverType
-except ImportError:
-  try:
-    import tflite_runtime.interpreter as tflite_interp
-    from tflite_runtime.interpreter import OpResolverType
-  except ImportError:
-    try:
-      import tensorflow.lite as tflite_interp
-      from tensorflow.lite.experimental import OpResolverType
-    except ImportError:
-      raise ImportError(
-          "Could not import ai_edge_litert, tflite_runtime, or tensorflow.")
-
-_USE_TFLITE_INTERPRETER = flags.DEFINE_bool(
-    'use_tflite',
-    False,
-    'Inference with the TF Lite interpreter instead of the TFLM interpreter',
-)
+import ai_edge_litert.interpreter as tflite_interp
+from ai_edge_litert.interpreter import OpResolverType
 
 _PREFIX_PATH = os.path.dirname(__file__)
 
 
-def invoke_tflm_interpreter(input_shape, interpreter, x_value, input_index,
-                            output_index):
+def invoke_tflm_interpreter(
+  input_shape, interpreter, x_value, input_index, output_index
+):
   input_data = np.reshape(x_value, input_shape)
   interpreter.set_input(input_data, input_index)
   interpreter.invoke()
@@ -54,8 +34,9 @@ def invoke_tflm_interpreter(input_shape, interpreter, x_value, input_index,
   return y_quantized
 
 
-def invoke_tflite_interpreter(input_shape, interpreter, x_value, input_index,
-                              output_index):
+def invoke_tflite_interpreter(
+  input_shape, interpreter, x_value, input_index, output_index
+):
   input_data = np.reshape(x_value, input_shape)
   interpreter.set_tensor(input_index, input_data)
   interpreter.invoke()
@@ -69,8 +50,9 @@ def generate_random_int8_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
   np.random.seed(42)
-  x_values = np.random.uniform(low=0, high=2 * np.pi,
-                               size=sample_count).astype(np.int8)
+  x_values = np.random.uniform(low=0, high=2 * np.pi, size=sample_count).astype(
+    np.int8
+  )
   return x_values
 
 
@@ -79,8 +61,9 @@ def generate_random_float_input(sample_count=1000):
   # Generate a uniformly distributed set of random numbers in the range from
   # 0 to 2π, which covers a complete sine wave oscillation
   np.random.seed(42)
-  x_values = np.random.uniform(low=0, high=2 * np.pi,
-                               size=sample_count).astype(np.float32)
+  x_values = np.random.uniform(low=0, high=2 * np.pi, size=sample_count).astype(
+    np.float32
+  )
   return x_values
 
 
@@ -95,11 +78,9 @@ def get_tflm_prediction(model_path, x_values):
   y_predictions = np.empty(x_values.size, dtype=np.float32)
 
   for i, x_value in enumerate(x_values):
-    y_predictions[i] = invoke_tflm_interpreter(input_shape,
-                                               tflm_interpreter,
-                                               x_value,
-                                               input_index=0,
-                                               output_index=0)
+    y_predictions[i] = invoke_tflm_interpreter(
+      input_shape, tflm_interpreter, x_value, input_index=0, output_index=0
+    )
   return y_predictions
 
 
@@ -112,7 +93,8 @@ def get_tflite_prediction(model_path, x_values):
     kwargs["experimental_op_resolver_type"] = OpResolverType.BUILTIN_REF
   else:
     logging.warning(
-        "Could not find OpResolverType. Reference kernels might not be used.")
+      "Could not find OpResolverType. Reference kernels might not be used."
+    )
 
   tflite_interpreter = tflite_interp.Interpreter(**kwargs)
   tflite_interpreter.allocate_tensors()
@@ -125,16 +107,27 @@ def get_tflite_prediction(model_path, x_values):
 
   for i, x_value in enumerate(x_values):
     y_predictions[i] = invoke_tflite_interpreter(
-        input_shape,
-        tflite_interpreter,
-        x_value,
-        input_details['index'],
-        output_details['index'],
+      input_shape,
+      tflite_interpreter,
+      x_value,
+      input_details['index'],
+      output_details['index'],
     )
   return y_predictions
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--use_tflite',
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help=(
+      'Inference with the TF Lite interpreter instead of the TFLM interpreter'
+    ),
+  )
+  args, _ = parser.parse_known_args()
+
   model_path = os.path.join(_PREFIX_PATH, 'models/hello_world_float.tflite')
 
   x_values = generate_random_float_input()
@@ -142,17 +135,14 @@ def main(_):
   # Calculate the corresponding sine values
   y_true_values = np.sin(x_values).astype(np.float32)
 
-  if _USE_TFLITE_INTERPRETER.value:
+  if args.use_tflite:
     y_predictions = get_tflite_prediction(model_path, x_values)
-    plt.plot(x_values, y_predictions, 'b.', label='TFLite Prediction')
   else:
     y_predictions = get_tflm_prediction(model_path, x_values)
-    plt.plot(x_values, y_predictions, 'b.', label='TFLM Prediction')
 
-  plt.plot(x_values, y_true_values, 'r.', label='Actual values')
-  plt.legend()
-  plt.show()
+  mean_abs_error = np.mean(np.abs(y_predictions - y_true_values))
+  logging.info('Mean absolute error: %f', mean_abs_error)
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()

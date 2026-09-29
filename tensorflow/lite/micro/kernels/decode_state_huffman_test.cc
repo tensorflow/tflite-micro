@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstdint>
 #include <initializer_list>
 
-#include "tensorflow/lite/core/c/common.h"
+#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"

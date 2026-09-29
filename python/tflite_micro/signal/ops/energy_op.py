@@ -31,10 +31,9 @@ def _energy_wrapper(energy_fn, default_name):
         raise ValueError("Input tensor must have a rank of 1")
       if end_index == -1:
         end_index = dim_list[0] - 1
-      return energy_fn(input_tensor,
-                       start_index=start_index,
-                       end_index=end_index,
-                       name=name)
+      return energy_fn(
+        input_tensor, start_index=start_index, end_index=end_index, name=name
+      )
 
   return _energy
 

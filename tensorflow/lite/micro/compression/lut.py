@@ -15,10 +15,8 @@
 
 import sys
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import ClassVar, Optional
 
-import bitarray
-import bitarray.util
 import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
@@ -38,6 +36,7 @@ class LutCompressedArray:
                    compression, or one per channel for per-channel compression.
     indices: Array of indices into the lookup tables, same shape as original.
   """
+
   compression_axis: Optional[int] = None
   lookup_tables: list[np.ndarray] = field(default_factory=list)
   indices: np.ndarray = field(default_factory=lambda: np.array([]))
@@ -57,7 +56,8 @@ class LutAncillaryData:
 
   The LUT ancillary data uses the DCM user_data bytes (4-15) plus value tables:
     - Byte 4: LUT version (currently 1)
-    - Byte 5: Params (lower 3 bits = bitwidth, 1-7)
+    - Byte 5: Params (bits 7-4 = axis, 0-14 naming the channel axis of the
+      output tensor's shape, 15 meaning one table; bits 2-0 = bitwidth, 1-7)
     - Byte 6: Value table channel stride (elements per channel)
     - Bytes 7-15: Reserved (zeros)
     - Bytes 16+: Value tables (concatenated, stride elements per channel)
@@ -65,26 +65,40 @@ class LutAncillaryData:
   Attributes:
     lut_version: LUT format version (currently 1).
     bitwidth: Number of bits per index (1-7).
+    axis: Byte 5 bits 7-4: the channel axis (0-14), or PER_TENSOR_AXIS.
     value_table_stride: Number of elements per channel in value tables.
     value_tables: Packed value table data following the DCM.
   """
+
+  # Byte 5 axis field value meaning one value table for the whole tensor.
+  PER_TENSOR_AXIS: ClassVar[int] = 0xF
+
+  # Widest index the byte 5 bitwidth field can express.
+  MAX_BITWIDTH: ClassVar[int] = 7
+
   lut_version: int = 1
   bitwidth: int = 4
+  axis: int = 0
   value_table_stride: int = 16
   value_tables: bytes = b''
 
   def __post_init__(self):
-    if not 1 <= self.bitwidth <= 7:
-      raise ValueError(f"bitwidth must be 1-7, got {self.bitwidth}")
+    if not 1 <= self.bitwidth <= self.MAX_BITWIDTH:
+      raise ValueError(
+        f"bitwidth must be 1-{self.MAX_BITWIDTH}, got {self.bitwidth}"
+      )
+    if not 0 <= self.axis <= 15:
+      raise ValueError(f"axis must be 0-15, got {self.axis}")
     if not 0 <= self.value_table_stride <= 128:
       raise ValueError(
-          f"value_table_stride must be 0-128, got {self.value_table_stride}")
+        f"value_table_stride must be 0-128, got {self.value_table_stride}"
+      )
 
   def to_user_data(self) -> bytes:
     """Serialize to 12-byte user_data for DCM bytes 4-15."""
     user_data = bytearray(12)
     user_data[0] = self.lut_version
-    user_data[1] = self.bitwidth & 0x07
+    user_data[1] = ((self.axis & 0x0F) << 4) | (self.bitwidth & 0x07)
     user_data[2] = self.value_table_stride
     # Bytes 3-11 (DCM bytes 7-15) remain zero (reserved)
     return bytes(user_data)
@@ -96,8 +110,9 @@ class LutAncillaryData:
     return self.value_tables
 
 
-def compress_array(tensor: np.ndarray,
-                   axis: Optional[int]) -> LutCompressedArray:
+def compress_array(
+  tensor: np.ndarray, axis: Optional[int]
+) -> LutCompressedArray:
   """Compresses the given tensor using lookup tables.
 
   Args:
@@ -137,68 +152,32 @@ def compress_array(tensor: np.ndarray,
   return compressed
 
 
-def identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
-  """Determines the axis along which to compress.
-
-  The axis along which to compress is inferred from the tensor's quantization
-  parameters. Unquantized tensors use per-tensor compression.
+def check_channel_axis(axis: int, shape: tuple[int, ...]):
+  """Validates a per-channel axis against the tensor shape and the kernels.
 
   Args:
-    tensor: The tensor to analyze.
-
-  Returns:
-    The axis along which to compress, or None to indicate one value table for
-    the entire tensor.
+    axis: The axis named by the spec's per_channel mode.
+    shape: The shape of the tensor to be compressed.
 
   Raises:
-    CompressionError: If the axis cannot be determined from quantization.
+    CompressionError: If the axis is out of range for the shape, is an
+      axis the kernels do not support, or does not fit the DCM axis
+      field.
   """
-  q = tensor.quantization
-  if q is None:
-    return None
-
-  # model_editor wraps quantization, access scales/axis from wrapper
-  scales = q.scales if isinstance(q.scales, list) else [q.scales]
-  quantization_channels = len(scales)
-
-  if quantization_channels == 1:
-    return None
-
-  if q.axis is not None and q.axis < len(tensor.shape):
-    if quantization_channels == tensor.shape[q.axis]:
-      return q.axis
-
-  raise compressor.CompressionError(
-      "Invalid or no quantization parameters from which to "
-      "infer the axis along which tensor should be compressed.")
-
-
-def check_bitwidth(compressed: int, specified: int, tensor_spec: spec.Tensor):
-  """Validates that the specified bitwidth is sufficient.
-
-  It is an error if the bitwidth required to compress a tensor exceeds the
-  specified bitwith, and a warning if the tensor can be compressed in less than
-  the specified bitwidth. The latter is allowed, and is not an error, to permit
-  testing with larger bitwidths without re-binning a model.
-
-  Args:
-    compressed: The bitwidth required by the compressed data.
-    specified: The bitwidth specified in the compression spec.
-    tensor_spec: The tensor spec, for error messages.
-
-  Raises:
-    CompressionError: If specified bitwidth is too small.
-  """
-  if compressed > specified:
+  rank = len(shape)
+  if not 0 <= axis < rank:
     raise compressor.CompressionError(
-        f"index_bitwidth too small: {compressed} bits needed to "
-        f"enumerate unique values in tensor specified in {tensor_spec}")
-  elif compressed < specified:
-    print(
-        f"warning: index_bitwidth too large: only {compressed} "
-        f"bits needed to enumerate unique values in tensor specified in "
-        f"{tensor_spec}",
-        file=sys.stderr)
+      f"per_channel axis {axis} out of range for a tensor of rank {rank}"
+    )
+  if axis not in (0, rank - 1):
+    raise compressor.CompressionError(
+      f"per_channel axis {axis} unsupported: the kernels support "
+      f"axis 0 and the last axis only"
+    )
+  if axis > 14:
+    raise compressor.CompressionError(
+      f"per_channel axis {axis} does not fit the DCM axis field (0-14)"
+    )
 
 
 def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
@@ -211,12 +190,11 @@ def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
   Returns:
     Packed bytes with indices in big-endian bit order.
   """
-  endianness = "big"
-  bits = bitarray.bitarray(endian=endianness)
-  for i in indices.ravel():
-    bits.extend(
-        bitarray.util.int2ba(int(i), length=bitwidth, endian=endianness))
-  return bits.tobytes()
+  if indices.size == 0:
+    return b""
+  bit_str = "".join(f"{int(i):0{bitwidth}b}" for i in indices.ravel())
+  bit_str += "0" * ((-len(bit_str)) % 8)
+  return int(bit_str, 2).to_bytes(len(bit_str) // 8, byteorder="big")
 
 
 def pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytes:
@@ -250,9 +228,9 @@ class LutCompressor(compressor.Compressor):
     return decode.DecodeType.LUT
 
   def compress(
-      self,
-      tensor: model_editor.Tensor,
-      method: spec.CompressionMethod,
+    self,
+    tensor: model_editor.Tensor,
+    method: spec.CompressionMethod,
   ) -> compressor.CompressionResult:
     """Compress a tensor using LUT compression.
 
@@ -268,51 +246,70 @@ class LutCompressor(compressor.Compressor):
     """
     if not isinstance(method, spec.LookUpTableCompression):
       raise compressor.CompressionError(
-          f"LutCompressor requires LookUpTableCompression, got {type(method)}")
+        f"LutCompressor requires LookUpTableCompression, got {type(method)}"
+      )
 
     if tensor.array is None:
       raise compressor.CompressionError("Tensor has no data to compress")
 
     spec_bitwidth = method.index_bitwidth
-    axis = identify_compression_axis(tensor)
-    compressed = compress_array(tensor.array, axis)
-    # Note: check_bitwidth requires a spec.Tensor but we don't have it here.
-    # We'll do a simpler check.
+
+    match method.mode:
+      case spec.PerTensor():
+        compress_axis = None
+      case spec.PerChannel(axis=axis):
+        check_channel_axis(axis, tensor.shape)
+        compress_axis = axis
+      case _:
+        raise compressor.CompressionError(
+          f"compression mode required: give per_tensor or per_channel, "
+          f"got {method.mode!r}"
+        )
+
+    compressed = compress_array(tensor.array, compress_axis)
     actual_bitwidth = compressed.index_bitwidth
     if actual_bitwidth > spec_bitwidth:
       raise compressor.CompressionError(
-          f"index_bitwidth too small: {actual_bitwidth} bits needed, "
-          f"but only {spec_bitwidth} specified")
+        f"index_bitwidth too small: {actual_bitwidth} bits needed, "
+        f"but only {spec_bitwidth} specified"
+      )
     elif actual_bitwidth < spec_bitwidth:
+      # Allowed, to test with larger bitwidths without re-binning a model.
       print(
-          f"warning: index_bitwidth larger than necessary: only "
-          f"{actual_bitwidth} bits needed, but {spec_bitwidth} specified",
-          file=sys.stderr)
+        f"warning: index_bitwidth larger than necessary: only "
+        f"{actual_bitwidth} bits needed, but {spec_bitwidth} specified",
+        file=sys.stderr,
+      )
 
     # Pack indices into bytes
     encoded_data = pack_indices(compressed.indices, spec_bitwidth)
 
     # Pack value tables
     table_len = max(len(t) for t in compressed.lookup_tables)
-    value_tables_bytes = pack_lookup_tables(compressed.lookup_tables,
-                                            table_len)
+    value_tables_bytes = pack_lookup_tables(compressed.lookup_tables, table_len)
 
     # Build ancillary data
+    dcm_axis = (
+      LutAncillaryData.PER_TENSOR_AXIS
+      if compress_axis is None
+      else compress_axis
+    )
     lut_data = LutAncillaryData(
-        lut_version=1,
-        bitwidth=spec_bitwidth,
-        value_table_stride=table_len,
-        value_tables=value_tables_bytes,
+      lut_version=1,
+      bitwidth=spec_bitwidth,
+      axis=dcm_axis,
+      value_table_stride=table_len,
+      value_tables=value_tables_bytes,
     )
 
     # Build complete ancillary data tensor bytes: DCM header + value tables
     dcm = decode.DecodeCommonMetadata(
-        decode_type=self.decode_type,
-        user_data=lut_data.to_user_data(),
+      decode_type=self.decode_type,
+      user_data=lut_data.to_user_data(),
     )
     ancillary_data = dcm.to_bytes() + lut_data.to_bytes()
 
     return compressor.CompressionResult(
-        encoded_data=encoded_data,
-        ancillary_data=ancillary_data,
+      encoded_data=encoded_data,
+      ancillary_data=ancillary_data,
     )

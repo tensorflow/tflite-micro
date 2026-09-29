@@ -33,14 +33,11 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.s
 TARGET=xtensa
 TARGET_ARCH=hifi3
 OPTIMIZED_KERNEL_DIR=xtensa
-XTENSA_CORE=HIFI_190304_swupgrade
+XTENSA_CORE=P29A_HiFi3z
 
 COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} XTENSA_CORE=${XTENSA_CORE}"
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes config_info
-
-# TODO(b/143904317): first to allow parallel builds
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} third_party_downloads
 
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes build
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes test

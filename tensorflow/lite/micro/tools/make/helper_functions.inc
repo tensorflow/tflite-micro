@@ -30,25 +30,38 @@ define microlite_test
 $(1)_LOCAL_SRCS := $(2)
 
 ifneq ($(4),)
-  # Generate cc files and headers for all models and bitmaps in the test.
-  GEN_RESULT := $$(shell python3 $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+  GEN_RESULT := $$(sort $$(addprefix $$(GENERATED_SRCS_DIR), \
+    $$(patsubst %.tflite,%_model_data.cc, \
+    $$(patsubst %.bmp,%_image_data.cc, \
+    $$(patsubst %.wav,%_audio_data.cc, \
+    $$(patsubst %.csv,%_test_data.cc, \
+    $$(patsubst %.npy,%_test_data.cc,$(4))))))))
+  $(1)_LOCAL_SRCS += $$(GEN_RESULT)
 
-  # The first ifneq is needed to be compatible with make versions prior to 4.2
-  # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
-  # Ubuntu 18.04 only has version 4.1
-  ifneq ($(.SHELLSTATUS),)
-    ifneq ($$(.SHELLSTATUS),0)
-      $$(error Something went wrong: $$(GEN_RESULT))
+  ifneq ($(filter-out all microlite tflm libtflm clean clean_downloads config_info third_party_downloads list_gendir list_library_sources list_library_headers list_third_party_sources list_third_party_headers list_generator_dir,$(MAKECMDGOALS)),)
+    ifneq ($(or $(if $(findstring integration_tests,$(1)),,1),$(filter integration_tests build_integration_tests build_all,$(MAKECMDGOALS)),$(findstring $(1),$(MAKECMDGOALS))),)
+      # Generate cc files and headers for all models and bitmaps in the test.
+      GEN_OUTPUT := $$(shell python3 $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/generate_cc_arrays.py $$(GENERATED_SRCS_DIR) $(4))
+
+      # The first ifneq is needed to be compatible with make versions prior to 4.2
+      # which do not support .SHELLSTATUS. While make 4.2 was released in 2016,
+      # Ubuntu 18.04 only has version 4.1
+      ifneq ($(.SHELLSTATUS),)
+        ifneq ($$(.SHELLSTATUS),0)
+          $$(error Something went wrong: $$(GEN_OUTPUT))
+        endif
+      endif
     endif
   endif
-
-  $(1)_LOCAL_SRCS += $$(GEN_RESULT)
 endif
 
 ALL_SRCS += $$($(1)_LOCAL_SRCS)
 $(1)_LOCAL_HDRS := $(3)
 $(1)_LOCAL_OBJS := $$(addprefix $$(CORE_OBJDIR), \
 $$(patsubst %.S,%.o,$$(patsubst %.cc,%.o,$$(patsubst %.c,%.o,$$($(1)_LOCAL_SRCS)))))
+ifneq ($(4),)
+  $$($(1)_LOCAL_OBJS): | $$(patsubst %.cc,%.h,$$(GEN_RESULT))
+endif
 $(1)_BINARY := $$(BINDIR)$(1)
 $$($(1)_BINARY): $$($(1)_LOCAL_OBJS) $$(MICROLITE_LIB_PATH)
 	$$(Q)$(MKDIR_P) $$(dir $$@)
@@ -58,15 +71,18 @@ $$($(1)_BINARY): $$($(1)_LOCAL_OBJS) $$(MICROLITE_LIB_PATH)
 $(1): $$($(1)_BINARY)
 $(1)_bin: $$($(1)_BINARY).bin
 
-MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
-
 ifneq (,$(findstring _test,$(1)))
 ifneq (,$(findstring integration_tests,$(1)))
   MICROLITE_INTEGRATION_TEST_TARGETS += test_$(1)
+  MICROLITE_INTEGRATION_TEST_BINARIES += $$($(1)_BINARY)
 else ifneq (,$(findstring generated_micro_mutable_op_resolver,$(1)))
   MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS += test_$(1)
+  MICROLITE_GEN_OP_RESOLVER_TEST_BINARIES += $$($(1)_BINARY)
+  MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 else
   MICROLITE_TEST_TARGETS += test_$(1)
+  MICROLITE_TEST_BINARIES += $$($(1)_BINARY)
+  MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 endif
 
 # For bluepill, the CI build is failing due to introduction of the
@@ -81,6 +97,12 @@ test_$(1):$$($(1)_BINARY)
 endif
 
 else
+MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
+ifneq (,$(findstring benchmark,$(1)))
+  MICROLITE_BENCHMARK_BINARIES += $$($(1)_BINARY)
+else
+  MICROLITE_EXAMPLE_BINARIES += $$($(1)_BINARY)
+endif
 run_$(1): $$($(1)_BINARY)
 	$$(TEST_SCRIPT) $$($(1)_BINARY) non_test_binary $$(TARGET)
 endif

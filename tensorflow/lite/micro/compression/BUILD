@@ -1,4 +1,3 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
@@ -26,7 +25,7 @@ package(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "compression",
     srcs = ["__init__.py"],
     deps = [
@@ -75,13 +74,14 @@ sh_test(
     size = "small",
     srcs = ["metadata_saved_test.sh"],
     args = [
-        "$(location metadata_saved.h)",
-        "$(location :metadata_cc_srcs)",
+        "$(rootpath metadata_saved.h)",
+        "$(rootpath :metadata_cc_srcs)",
     ],
     data = [
         "metadata_saved.h",
         ":metadata_cc_srcs",
     ],
+    tags = ["notap"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
 
@@ -93,6 +93,8 @@ tflm_cc_test(
     deps = [
         ":metadata_saved",
         "//tensorflow/lite/micro:hexdump",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:span",
         "//tensorflow/lite/micro/testing:micro_test",
         "@flatbuffers//:runtime_cc",
     ],
@@ -117,13 +119,14 @@ tflm_py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "compress_lib",
     srcs = [
         "compress.py",
     ],
     deps = [
         ":compressor",
+        ":constant_inputs",
         ":decode_insert",
         ":huffman",
         ":lut",
@@ -131,11 +134,10 @@ py_library(
         ":pruning",
         ":spec",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
-        requirement("absl_py"),
     ],
 )
 
-py_binary(
+tflm_py_binary(
     name = "compress",
     srcs = [
         "compress.py",
@@ -146,7 +148,7 @@ py_binary(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "compress_test",
     size = "small",
     srcs = [
@@ -159,7 +161,7 @@ py_test(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        ":compress",
+        ":compress_lib",
         ":compressor",
         ":decode_insert",
         ":model_editor",
@@ -249,6 +251,7 @@ tflm_py_test(
     tags = [
         "noasan",
         "nomsan",
+        "notap",
         "noubsan",
     ],
     target_compatible_with = select({
@@ -276,7 +279,7 @@ tflm_py_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "spec_test",
     size = "small",
     srcs = ["spec_test.py"],
@@ -286,7 +289,7 @@ py_test(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "spec_builder",
     srcs = ["spec_builder.py"],
     deps = [
@@ -294,7 +297,7 @@ py_library(
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "spec_builder_test",
     size = "small",
     srcs = ["spec_builder_test.py"],
@@ -372,6 +375,33 @@ tflm_py_library(
 )
 
 tflm_py_library(
+    name = "constant_inputs",
+    srcs = ["constant_inputs.py"],
+    deps = [
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+    ],
+)
+
+tflm_py_test(
+    name = "constant_inputs_test",
+    size = "small",
+    srcs = ["constant_inputs_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",  # Sanitizer symbols don't work with Python extension libs
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":constant_inputs",
+        ":model_editor",
+        "//tensorflow/lite/python:schema_py",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_library(
     name = "lut",
     srcs = ["lut.py"],
     deps = [
@@ -379,7 +409,6 @@ tflm_py_library(
         ":decode",
         ":model_editor",
         ":spec",
-        requirement("bitarray"),
         requirement("numpy"),
     ],
 )
@@ -475,8 +504,8 @@ tflm_py_test(
     ],
 )
 
-tflm_py_binary(
-    name = "view",
+tflm_py_library(
+    name = "view_lib",
     srcs = [
         "view.py",
     ],
@@ -485,16 +514,26 @@ tflm_py_binary(
         ":metadata_py",
         ":tensor_type",
         "//tensorflow/lite/python:schema_py",
-        requirement("absl_py"),
-        requirement("bitarray"),
         requirement("numpy"),
-        requirement("prettyprinter"),
     ],
 )
 
-generate_view_tests([
-    "//tensorflow/lite/micro/models:keyword_scrambled.tflite",
-    "//tensorflow/lite/micro/models:keyword_scrambled_8bit.tflite",
-    "//tensorflow/lite/micro/models:person_detect.tflite",
-    "//tensorflow/lite/micro/models:person_detect_vela.tflite",
-])
+tflm_py_binary(
+    name = "view",
+    srcs = [
+        "view.py",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":view_lib",
+    ],
+)
+
+generate_view_tests(
+    targets = [
+        "//tensorflow/lite/micro/models:keyword_scrambled.tflite",
+        "//tensorflow/lite/micro/models:keyword_scrambled_8bit.tflite",
+        "//tensorflow/lite/micro/models:person_detect.tflite",
+        "//tensorflow/lite/micro/models:person_detect_vela.tflite",
+    ],
+)

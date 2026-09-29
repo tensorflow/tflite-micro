@@ -27,14 +27,9 @@ EXTERNAL_DIR=${3}
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
-COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=F1_190305_swupgrade TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
+COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_FusionF1 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
-
-readable_run make -f ${MAKEFILE} clean TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
-
-# TODO(b/143904317): downloading first to allow for parallel builds.
-readable_run make -f ${MAKEFILE} third_party_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}
 
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${1} == "INTERNAL" ]]; then
@@ -44,9 +39,8 @@ else
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
-  # run generic benchmark
+  # run person detection benchmark (tflm_benchmark links all ops and exceeds 1 MB SRAM)
   readable_run make -f ${MAKEFILE} \
     ${COMMON_ARGS} \
-    GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \
-    $(get_parallel_jobs) run_tflm_benchmark
+    $(get_parallel_jobs) run_person_detection_benchmark
 fi

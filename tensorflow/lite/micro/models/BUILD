@@ -9,6 +9,8 @@ package(
     licenses = ["notice"],
 )
 
+exports_files(glob(["*.tflite"]))
+
 filegroup(
     name = "models",
     data = glob(["*.tflite"]),

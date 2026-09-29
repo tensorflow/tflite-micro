@@ -44,7 +44,7 @@ from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
-_SHAPE = (4, )
+_SHAPE = (4,)
 _ARENA_SIZE = 65536
 _ALT_MEMORY_SIZE = 1024
 
@@ -56,9 +56,9 @@ def _while_operator(cond_subgraph_idx, body_subgraph_idx, inputs, outputs):
   backing OperatorT directly.
   """
   op = model_editor.Operator(
-      opcode=tflite.BuiltinOperator.WHILE,
-      inputs=inputs,
-      outputs=outputs,
+    opcode=tflite.BuiltinOperator.WHILE,
+    inputs=inputs,
+    outputs=outputs,
   )
   options = tflite.WhileOptionsT()
   options.condSubgraphIndex = cond_subgraph_idx
@@ -70,34 +70,35 @@ def _while_operator(cond_subgraph_idx, body_subgraph_idx, inputs, outputs):
 
 def _float_tensor(name, data=None):
   return model_editor.Tensor(
-      shape=_SHAPE,
-      dtype=tflite.TensorType.FLOAT32,
-      data=data,
-      name=name,
+    shape=_SHAPE,
+    dtype=tflite.TensorType.FLOAT32,
+    data=data,
+    name=name,
   )
 
 
 def _cond_subgraph(threshold_values):
   """Build a cond subgraph computing LESS(input, threshold_constant)."""
   c_in = _float_tensor("cond_in")
-  threshold = _float_tensor("threshold",
-                            np.array(threshold_values, dtype=np.float32))
+  threshold = _float_tensor(
+    "threshold", np.array(threshold_values, dtype=np.float32)
+  )
   cond_out = model_editor.Tensor(
-      shape=_SHAPE,
-      dtype=tflite.TensorType.BOOL,
-      name="cond_out",
+    shape=_SHAPE,
+    dtype=tflite.TensorType.BOOL,
+    name="cond_out",
   )
   return model_editor.Subgraph(
-      tensors=[threshold],
-      operators=[
-          model_editor.Operator(
-              opcode=tflite.BuiltinOperator.LESS,
-              inputs=[c_in, threshold],
-              outputs=[cond_out],
-          )
-      ],
-      inputs=[c_in],
-      outputs=[cond_out],
+    tensors=[threshold],
+    operators=[
+      model_editor.Operator(
+        opcode=tflite.BuiltinOperator.LESS,
+        inputs=[c_in, threshold],
+        outputs=[cond_out],
+      )
+    ],
+    inputs=[c_in],
+    outputs=[cond_out],
   )
 
 
@@ -115,9 +116,9 @@ def _build_body_output_model():
   x0 = _float_tensor("x0")
   y0 = _float_tensor("y0")
   sg0 = model_editor.Subgraph(
-      operators=[_while_operator(1, 2, [x0], [y0])],
-      inputs=[x0],
-      outputs=[y0],
+    operators=[_while_operator(1, 2, [x0], [y0])],
+    inputs=[x0],
+    outputs=[y0],
   )
 
   sg1 = _cond_subgraph([5.0, 6.0, 5.0, 6.0])
@@ -125,10 +126,10 @@ def _build_body_output_model():
   b_in = _float_tensor("body_in")
   k = _float_tensor("k", np.array([7.0, 8.0, 7.0, 8.0], dtype=np.float32))
   sg2 = model_editor.Subgraph(
-      tensors=[k],
-      operators=[],
-      inputs=[b_in],
-      outputs=[k],
+    tensors=[k],
+    operators=[],
+    inputs=[b_in],
+    outputs=[k],
   )
 
   model = model_editor.Model(subgraphs=[sg0, sg1, sg2])
@@ -146,14 +147,15 @@ def _build_while_input_model():
   The tensor at coordinates (0, 0) is INIT, the WHILE input constant. The
   tensor at (1, 0) is the cond threshold.
   """
-  init = _float_tensor("init",
-                       np.array([10.0, 20.0, 10.0, 20.0], dtype=np.float32))
+  init = _float_tensor(
+    "init", np.array([10.0, 20.0, 10.0, 20.0], dtype=np.float32)
+  )
   y0 = _float_tensor("y0")
   sg0 = model_editor.Subgraph(
-      tensors=[init],
-      operators=[_while_operator(1, 2, [init], [y0])],
-      inputs=[],
-      outputs=[y0],
+    tensors=[init],
+    operators=[_while_operator(1, 2, [init], [y0])],
+    inputs=[],
+    outputs=[y0],
   )
 
   sg1 = _cond_subgraph([3.0, 4.0, 3.0, 4.0])
@@ -162,15 +164,15 @@ def _build_while_input_model():
   one = _float_tensor("one", np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32))
   b_out = _float_tensor("body_out")
   sg2 = model_editor.Subgraph(
-      operators=[
-          model_editor.Operator(
-              opcode=tflite.BuiltinOperator.ADD,
-              inputs=[b_in, one],
-              outputs=[b_out],
-          )
-      ],
-      inputs=[b_in],
-      outputs=[b_out],
+    operators=[
+      model_editor.Operator(
+        opcode=tflite.BuiltinOperator.ADD,
+        inputs=[b_in, one],
+        outputs=[b_out],
+      )
+    ],
+    inputs=[b_in],
+    outputs=[b_out],
   )
 
   model = model_editor.Model(subgraphs=[sg0, sg1, sg2])
@@ -182,7 +184,7 @@ def _compress_and_insert(model, coordinates):
   """LUT-compress the tensors at (subgraph, tensor) coordinates and insert
   DECODE operators for them."""
   compressor_plugin = lut.LutCompressor()
-  method = spec.LookUpTableCompression(index_bitwidth=1)
+  method = spec.LookUpTableCompression(index_bitwidth=1, mode=spec.PerTensor())
   results = {}
   for sg_idx, tensor_idx in coordinates:
     tensor = model.subgraphs[sg_idx].tensors[tensor_idx]
@@ -194,10 +196,10 @@ def _run(model, x0=None, alt_memory_size=0):
   """Build the model and run one inference on the TFLM interpreter."""
   flatbuffer = bytes(model.build())
   interpreter = runtime.Interpreter.from_bytes(
-      flatbuffer,
-      custom_op_registerers=[],
-      arena_size=_ARENA_SIZE,
-      alt_decompression_memory_size=alt_memory_size,
+    flatbuffer,
+    custom_op_registerers=[],
+    arena_size=_ARENA_SIZE,
+    alt_decompression_memory_size=alt_memory_size,
   )
   if x0 is not None:
     interpreter.set_input(x0, 0)

@@ -43,9 +43,13 @@ PLATFORM_FLAGS = \
   -mlongcalls
 
 export PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/bin:$(PATH)
+export LD_LIBRARY_PATH := $(XTENSA_BASE)/tools/$(XTENSA_TOOLS_VERSION)/XtensaTools/Tools/tools.lnx86/cdsgcc/gcc/6.3/install/lib64:$(LD_LIBRARY_PATH)
 TARGET_TOOLCHAIN_PREFIX := xt-
 CXX_TOOL := clang++
 CC_TOOL := clang
+# xt-ar (xtensa-elf-ar) in RI-2022.9 hits an LLVM option registration conflict
+# ("Option 'mc-relax-all' registered more than once!"). Standard GNU ar works cleanly.
+AR := ar
 
 # Building with C++17 requires libc++
 ifneq ($(CC_VER11), true)
@@ -91,6 +95,16 @@ EXCLUDED_EXAMPLE_TESTS := \
 MICRO_LITE_EXAMPLE_TESTS := $(filter-out $(EXCLUDED_EXAMPLE_TESTS), $(MICRO_LITE_EXAMPLE_TESTS))
 MICRO_LITE_EXAMPLE_TESTS += $(shell find $(TENSORFLOW_ROOT)third_party/xtensa/examples/ -name Makefile.inc)
 
+ifeq ($(XTENSA_CORE), P29A_FusionF1)
+  # P29A_FusionF1 has 1 MB of SRAM (sram0_seg = 0x100000), which is too small
+  # for the multi-model SeaNet integration tests (~1.4 MB),
+  # layer_by_layer_output_tool (~3 MB tensor arena), and
+  # tflm_benchmark (~5 MB default tensor arena).
+  MICRO_LITE_INTEGRATION_TESTS :=
+  MICRO_LITE_LAYER_BY_LAYER_OUTPUT :=
+  MICRO_LITE_BENCHMARKS :=
+endif
+
 ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
   # Explicitly add kernel sources specific to the Xtensa optimized
   # implementations.
@@ -122,8 +136,8 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
 
   # Needed for LSTM support.
   MICROLITE_CC_KERNEL_SRCS += \
-    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/internal/reference/portable_tensor_utils.cc \
-    $(TENSORFLOW_ROOT)tensorflow/lite/kernels/kernel_util.cc
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/portable_tensor_utils.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/kernel_util.cc
 
   # Additional kernel sources for DECODE operator support
   ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi5))

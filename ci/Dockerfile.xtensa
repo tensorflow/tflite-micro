@@ -1,0 +1,83 @@
+# ==============================================================================
+# Unified Xtensa DSP Toolchain Container for TFLite Micro (RI-2022.9-linux)
+#
+# Supports all 4 TFLM Xtensa targets in a single image:
+#   - Fusion F1 (P29A_FusionF1)
+#   - HiFi 3z   (P29A_HiFi3z)
+#   - Vision P6 (P29A_VP6)
+#   - HiFi 5    (PRD_H5_RDO_07_01_2022)
+#
+# To build and upload this image from a Google workstation:
+#
+# 1. Stage the required archives in the repository root:
+#    cp /google/data/ro/projects/speech/embedded/dsp_tools/tfsm_docker_build_dir/xtensa/RI-2022.9/XtensaTools_RI_2022_9_linux.tgz .
+#    for core in P29A_FusionF1 P29A_HiFi3z P29A_VP6 PRD_H5_RDO_07_01_2022; do
+#      tar --use-compress-program="pigz -1" \
+#        --exclude="*/examples" --exclude="*/src" \
+#        -cf ${core}_linux.tgz \
+#        -C /google/src/files/head/depot/google3/third_party/xtensa/cores/RI_2022_9 \
+#        ${core}
+#    done
+#
+# 2. Build the Docker image:
+#    docker build -t ghcr.io/tflm-bot/xtensa:0.1 -f ci/Dockerfile.xtensa .
+#
+# 3. Authenticate with GitHub Container Registry (requires write:packages PAT):
+#    echo $CR_PAT | docker login ghcr.io -u <GITHUB_USERNAME> --password-stdin
+#
+# 4. Push the image:
+#    docker push ghcr.io/tflm-bot/xtensa:0.1
+# ==============================================================================
+
+FROM python:3.11-bookworm AS installer
+WORKDIR /opt/xtensa
+
+COPY ./XtensaTools_RI_2022_9_linux.tgz .
+COPY ./P29A_FusionF1_linux.tgz .
+COPY ./P29A_HiFi3z_linux.tgz .
+COPY ./P29A_VP6_linux.tgz .
+COPY ./PRD_H5_RDO_07_01_2022_linux.tgz .
+COPY ci/install_xtensa_cores.sh .
+COPY ci/install_bazelisk.sh .
+
+RUN chmod +x install_xtensa_cores.sh && \
+    ./install_xtensa_cores.sh && \
+    chmod -R +x /opt/xtensa/XtDevTools/install/tools/RI-2022.9-linux/XtensaTools/Tools/bin && \
+    ./install_bazelisk.sh && \
+    rm -f XtensaTools_RI_2022_9_linux.tgz \
+          P29A_FusionF1_linux.tgz \
+          P29A_HiFi3z_linux.tgz \
+          P29A_VP6_linux.tgz \
+          PRD_H5_RDO_07_01_2022_linux.tgz \
+          install_xtensa_cores.sh \
+          install_bazelisk.sh
+
+FROM python:3.11-bookworm
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    automake \
+    build-essential \
+    curl \
+    git \
+    unzip \
+    wget && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    numpy \
+    Pillow
+
+WORKDIR /opt/xtensa
+
+COPY --from=installer /opt/xtensa /opt/xtensa
+COPY --from=installer /usr/local/bin/bazel /usr/local/bin/bazel
+
+ENV XTENSA_BASE="/opt/xtensa/XtDevTools/install/"
+ENV LIC_DIR="/opt/xtensa/licenses/RI-2022.9-linux"
+ENV LM_LICENSE_FILE="/opt/xtensa/licenses/RI-2022.9-linux/P29A_FusionF1/misc/license.dat:/opt/xtensa/licenses/RI-2022.9-linux/P29A_HiFi3z/misc/license.dat:/opt/xtensa/licenses/RI-2022.9-linux/P29A_VP6/misc/license.dat:/opt/xtensa/licenses/RI-2022.9-linux/PRD_H5_RDO_07_01_2022/misc/license.dat"
+ENV LD_LIBRARY_PATH="/opt/xtensa/XtDevTools/install/tools/RI-2022.9-linux/XtensaTools/Tools/tools.lnx86/cdsgcc/gcc/6.3/install/lib64"
+
+CMD ["/opt/xtensa/XtDevTools/install/tools/RI-2022.9-linux/XtensaTools/bin/xt-clang++", "--xtensa-core="]

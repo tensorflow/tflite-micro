@@ -24,7 +24,6 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class PcanOpTest(tf.test.TestCase):
-
   _PREFIX_PATH = resource_loader.get_path_to_datafile('')
 
   def GetResource(self, filepath):
@@ -46,23 +45,27 @@ class PcanOpTest(tf.test.TestCase):
     channel_num = len(lines[1].split())
 
     concrete_function = func.get_concrete_function(
-        tf.TensorSpec(channel_num, dtype=tf.uint32),
-        tf.TensorSpec(channel_num, dtype=tf.uint32),
-        strength=strength,
-        offset=offset,
-        gain_bits=gain_bits,
-        smoothing_bits=smoothing_bits,
-        input_correction_bits=input_correction_bits)
+      tf.TensorSpec(channel_num, dtype=tf.uint32),
+      tf.TensorSpec(channel_num, dtype=tf.uint32),
+      strength=strength,
+      offset=offset,
+      gain_bits=gain_bits,
+      smoothing_bits=smoothing_bits,
+      input_correction_bits=input_correction_bits,
+    )
     interpreter = util.get_tflm_interpreter(concrete_function, func)
 
     # Read lines in pairs <input, noise_estimate, expected>
     for i in range(1, len(lines), 3):
-      in_frame = np.array([int(j) for j in lines[i + 0].split()],
-                          dtype='uint32')
-      noise_estimate = np.array([int(j) for j in lines[i + 1].split()],
-                                dtype='uint32')
-      output_expected = np.array([int(j) for j in lines[i + 2].split()],
-                                 dtype='uint32')
+      in_frame = np.array(
+        [int(j) for j in lines[i + 0].split()], dtype='uint32'
+      )
+      noise_estimate = np.array(
+        [int(j) for j in lines[i + 1].split()], dtype='uint32'
+      )
+      output_expected = np.array(
+        [int(j) for j in lines[i + 2].split()], dtype='uint32'
+      )
       # TFLM
       interpreter.set_input(in_frame, 0)
       interpreter.set_input(noise_estimate, 1)
@@ -71,8 +74,16 @@ class PcanOpTest(tf.test.TestCase):
       self.assertAllEqual(output_expected, output)
       # TF
       output = self.evaluate(
-          pcan_op.pcan(in_frame, noise_estimate, strength, offset, gain_bits,
-                       smoothing_bits, input_correction_bits))
+        pcan_op.pcan(
+          in_frame,
+          noise_estimate,
+          strength,
+          offset,
+          gain_bits,
+          smoothing_bits,
+          input_correction_bits,
+        )
+      )
       self.assertAllEqual(output_expected, output)
 
   def testPcanOp(self):

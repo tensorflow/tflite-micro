@@ -84,13 +84,10 @@ download_and_extract() {
   local dir="${3:?${usage}}"
   local action=${4}
   local action_param1=${5}  # optional action parameter
-  local tempdir=$(mktemp -d)
-  local tempdir2=$(mktemp -d)
-  local tempfile=${tempdir}/temp_file
   local curl_retries=5
 
-  # Destionation already downloaded.
-  if [ -d ${dir} ]; then
+  # Destination already downloaded and verified.
+  if [ -d "${dir}" ] && [ -f "${dir}/.download_complete" ]; then
       exit 0
   fi
 
@@ -99,16 +96,29 @@ download_and_extract() {
   }
 
   echo "downloading ${url}" >&2
-  mkdir -p "${dir}"
+  local parent_dir="$(dirname "${dir}")"
+  mkdir -p "${parent_dir}"
+
+  local staging_dir
+  staging_dir="$(mktemp -d "${parent_dir}/.tmp_pkg.XXXXXX")"
+  local tempdir2
+  tempdir2="$(mktemp -d)"
+  local tempfile="${staging_dir}/temp_file"
+
+  cleanup() {
+    rm -rf "${staging_dir}" "${tempdir2}"
+  }
+  trap cleanup EXIT INT TERM
+
   # We've been seeing occasional 56 errors from valid URLs, so set up a retry
   # loop to attempt to recover from them.
   for (( i=1; i<=$curl_retries; ++i )); do
     # We have to use this approach because we normally halt the script when
     # there's an error, and instead we want to catch errors so we can retry.
-    set +ex
+    set +e
     curl -LsS --fail --retry 5 "${url}" > ${tempfile}
     CURL_RESULT=$?
-    set -ex
+    set -e
 
     # Was the command successful? If so, continue.
     if [[ $CURL_RESULT -eq 0 ]]; then
@@ -138,54 +148,69 @@ download_and_extract() {
   elif [[ "${url}" == *tar.xz ]]; then
     tar -C "${tempdir2}" -xf ${tempfile}
   elif [[ "${url}" == *bz2 ]]; then
-    curl -Ls "${url}" > ${tempdir}/tarred.bz2
     tar -C "${tempdir2}" -xjf ${tempfile}
   elif [[ "${url}" == *zip ]]; then
-    unzip ${tempfile} -d ${tempdir2} 2>&1 1>/dev/null
+    unzip -q ${tempfile} -d ${tempdir2}
   else
     echo "Error unsupported archive type. Failed to extract tool after download."
     exit 1
   fi
+
+  rm -f "${tempfile}"
 
   # If the zip file contains nested directories, extract the files from the
   # inner directory.
   if [ $(find $tempdir2/* -maxdepth 0 | wc -l) = 1 ] && [ -d $tempdir2/* ]; then
     # Unzip to a temp dir, and move the files we want from the tempdir to destination.
     # We want this to be dependent on the folder structure of the zipped file, so --strip-components cannot be used.
-    cp -R ${tempdir2}/*/* ${dir}/
+    cp -R ${tempdir2}/*/* "${staging_dir}/"
   else
-    cp -R ${tempdir2}/* ${dir}/
+    cp -R ${tempdir2}/* "${staging_dir}/"
   fi
 
-  rm -rf ${tempdir} ${tempdir2}
+  rm -rf "${tempdir2}"
 
   # Delete any potential BUILD files, which would interfere with Bazel builds.
-  find "${dir}" -type f -name '*BUILD' -delete
+  find "${staging_dir}" -type f \( -name 'BUILD' -o -name 'BUILD.bazel' \) -delete
 
   if [[ ${action} == "patch_am_sdk" ]]; then
-    patch_am_sdk ${dir}
+    patch_am_sdk "${staging_dir}"
   elif [[ ${action} == "patch_from_url" ]]; then
     local patch_url=${action_param1}
     local patch_file=$(mktemp)
     curl -LsS --fail --retry 5 "${patch_url}" > ${patch_file}
-    patch -p1 -d ${dir} < ${patch_file}
+    patch -p1 -d "${staging_dir}" < ${patch_file}
     rm -f ${patch_file}
   elif [[ ${action} == "patch_file" ]]; then
     local patch_file=${action_param1}
-    patch -p1 -d ${dir} < ${patch_file}
+    patch -p1 -d "${staging_dir}" < ${patch_file}
   elif [[ ${action} == "patch_cifar10_dataset" ]]; then
-    patch_cifar10_dataset ${dir}
+    patch_cifar10_dataset "${staging_dir}"
   elif [[ ${action} == "build_embarc_mli" ]]; then
     if [[ "${action_param1}" == *.tcf ]]; then
-      cp ${action_param1} ${dir}/hw/arc.tcf
-      build_embarc_mli ${dir} ../../hw/arc.tcf
+      cp ${action_param1} "${staging_dir}/hw/arc.tcf"
+      build_embarc_mli "${staging_dir}" ../../hw/arc.tcf
     else
-      build_embarc_mli ${dir} ${action_param1}
+      build_embarc_mli "${staging_dir}" ${action_param1}
     fi
   elif [[ ${action} ]]; then
     echo "Unknown action '${action}'"
     exit 1
   fi
+
+  touch "${staging_dir}/.download_complete"
+
+  # Check if another process completed the download in the meantime
+  if [ -d "${dir}" ] && [ -f "${dir}/.download_complete" ]; then
+    rm -rf "${staging_dir}"
+    trap - EXIT INT TERM
+    exit 0
+  fi
+
+  # Atomic promotion
+  rm -rf "${dir}"
+  mv "${staging_dir}" "${dir}"
+  trap - EXIT INT TERM
 }
 
 download_and_extract "$1" "$2" "$3" "$4" "$5"

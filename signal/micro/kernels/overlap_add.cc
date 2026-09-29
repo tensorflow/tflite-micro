@@ -17,13 +17,13 @@ limitations under the License.
 
 #include <stdint.h>
 
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -241,4 +241,11 @@ TFLMRegistration* Register_OVERLAP_ADD_INT16() {
 }
 }  // namespace tflm_signal
 
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_OVERLAP_ADD;
+using micro::tflm_signal::Register_OVERLAP_ADD_FLOAT;
+using micro::tflm_signal::Register_OVERLAP_ADD_INT16;
+}  // namespace tflm_signal
 }  // namespace tflite

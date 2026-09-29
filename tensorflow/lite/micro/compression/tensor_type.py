@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Single source of truth for mapping a TFLite TensorType to a numpy dtype.
+"""Single source of truth for TFLite TensorType mappings.
 
 Compression tooling reads tensor buffer bytes as numpy arrays, so it needs to
 know the element type. Only the TensorTypes with a clean numpy equivalent are
-mapped; anything else raises rather than silently guessing a type.
+mapped; anything else raises rather than silently guessing a type. Every
+TensorType has a name, for reports and error messages.
 """
 
 import numpy as np
@@ -25,25 +26,33 @@ from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 # TFLite buffers are little-endian, so the dtypes are pinned to little-endian
 # byte order to keep np.frombuffer correct on any host.
 _TO_NUMPY = {
-    tflite.TensorType.FLOAT16: np.dtype("<f2"),
-    tflite.TensorType.FLOAT32: np.dtype("<f4"),
-    tflite.TensorType.FLOAT64: np.dtype("<f8"),
-    tflite.TensorType.INT8: np.dtype("<i1"),
-    tflite.TensorType.INT16: np.dtype("<i2"),
-    tflite.TensorType.INT32: np.dtype("<i4"),
-    tflite.TensorType.INT64: np.dtype("<i8"),
-    tflite.TensorType.UINT8: np.dtype("<u1"),
-    tflite.TensorType.UINT16: np.dtype("<u2"),
-    tflite.TensorType.UINT32: np.dtype("<u4"),
-    tflite.TensorType.UINT64: np.dtype("<u8"),
+  tflite.TensorType.FLOAT16: np.dtype("<f2"),
+  tflite.TensorType.FLOAT32: np.dtype("<f4"),
+  tflite.TensorType.FLOAT64: np.dtype("<f8"),
+  tflite.TensorType.INT8: np.dtype("<i1"),
+  tflite.TensorType.INT16: np.dtype("<i2"),
+  tflite.TensorType.INT32: np.dtype("<i4"),
+  tflite.TensorType.INT64: np.dtype("<i8"),
+  tflite.TensorType.UINT8: np.dtype("<u1"),
+  tflite.TensorType.UINT16: np.dtype("<u2"),
+  tflite.TensorType.UINT32: np.dtype("<u4"),
+  tflite.TensorType.UINT64: np.dtype("<u8"),
 }
 
-# TensorType value -> name, for readable error messages.
+# TensorType value -> enumerator name.
 _NAMES = {
-    value: name
-    for name, value in vars(tflite.TensorType).items()
-    if not name.startswith("_")
+  value: name
+  for name, value in vars(tflite.TensorType).items()
+  if not name.startswith("_")
 }
+
+
+def name(tensor_type: int) -> str:
+  """Return the enumerator name of a TFLite TensorType, e.g. "INT8".
+
+  An unknown value comes back as its number in text.
+  """
+  return _NAMES.get(tensor_type, str(tensor_type))
 
 
 def to_numpy(tensor_type: int) -> np.dtype:
@@ -56,6 +65,7 @@ def to_numpy(tensor_type: int) -> np.dtype:
   try:
     return _TO_NUMPY[tensor_type]
   except KeyError:
-    name = _NAMES.get(tensor_type, "?")
     raise ValueError(
-        f"no numpy dtype for TFLite TensorType {name} ({tensor_type})")
+      f"no numpy dtype for TFLite TensorType {name(tensor_type)} "
+      f"({tensor_type})"
+    )

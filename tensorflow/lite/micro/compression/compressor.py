@@ -42,6 +42,7 @@ class CompressionResult:
                     data). This is the full buffer contents for the ancillary
                     tensor.
   """
+
   encoded_data: bytes
   ancillary_data: bytes
 
@@ -59,9 +60,9 @@ class Compressor(Protocol):
     ...
 
   def compress(
-      self,
-      tensor: model_editor.Tensor,
-      method: spec.CompressionMethod,
+    self,
+    tensor: model_editor.Tensor,
+    method: spec.CompressionMethod,
   ) -> CompressionResult:
     """Compress a tensor according to the specified method.
 

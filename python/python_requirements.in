@@ -26,16 +26,9 @@
 # is sensitive to the Python environment (interpreter version, etc.) in which
 # it is run.
 
-absl_py
 ai-edge-litert
-bitarray
+flatbuffers
 mako
-matplotlib
 numpy
 pillow
-prettyprinter
-protobuf
 pyyaml
-tensorflow
-twine
-yapf

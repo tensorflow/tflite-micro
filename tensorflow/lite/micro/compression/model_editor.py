@@ -24,6 +24,11 @@ import flatbuffers
 from tflite_micro.tensorflow.lite.micro.compression import tensor_type
 from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
 
+# The file identifier declared by schema.fbs, at bytes 4-7 of a
+# finished .tflite flatbuffer. Loaders such as the TfLite interpreter
+# verify it before reading the model.
+_TFLITE_FILE_IDENTIFIER = b"TFL3"
+
 
 class _BufferList(list):
   """Custom list that auto-sets buffer.index on append.
@@ -54,6 +59,7 @@ class Buffer:
 
   For append-only workflows (the common case), buffer.index can be trusted.
   """
+
   data: bytes
   index: Optional[int] = None
 
@@ -67,6 +73,7 @@ class Buffer:
 @dataclass
 class Quantization:
   """Quantization parameters helper."""
+
   scales: Union[float, List[float]]
   zero_points: Union[int, List[int]] = 0
   axis: Optional[int] = None
@@ -76,10 +83,14 @@ class Quantization:
     q = tflite.QuantizationParametersT()
 
     # Normalize to lists
-    scales = [self.scales] if isinstance(self.scales,
-                                         (int, float)) else self.scales
-    zeros = [self.zero_points] if isinstance(self.zero_points,
-                                             int) else self.zero_points
+    scales = (
+      [self.scales] if isinstance(self.scales, (int, float)) else self.scales
+    )
+    zeros = (
+      [self.zero_points]
+      if isinstance(self.zero_points, int)
+      else self.zero_points
+    )
 
     q.scale = scales
     q.zeroPoint = zeros
@@ -97,14 +108,16 @@ def _fields_equal(a, b) -> bool:
   unknown to this module still participate.
   """
   if isinstance(a, (list, tuple, np.ndarray)) and isinstance(
-      b, (list, tuple, np.ndarray)):
+    b, (list, tuple, np.ndarray)
+  ):
     return np.array_equal(a, b)
   if hasattr(a, '__dict__') and hasattr(b, '__dict__'):
     if type(a) is not type(b):
       return False
     keys = vars(a).keys() | vars(b).keys()
     return all(
-        _fields_equal(getattr(a, k, None), getattr(b, k, None)) for k in keys)
+      _fields_equal(getattr(a, k, None), getattr(b, k, None)) for k in keys
+    )
   return a == b
 
 
@@ -122,14 +135,16 @@ class Tensor:
   Cannot specify both buffer and data at initialization.
   """
 
-  def __init__(self,
-               shape=None,
-               dtype=None,
-               buffer=None,
-               data=None,
-               quantization=None,
-               name=None,
-               _fb: tflite.TensorT = None):
+  def __init__(
+    self,
+    shape=None,
+    dtype=None,
+    buffer=None,
+    data=None,
+    quantization=None,
+    name=None,
+    _fb: tflite.TensorT = None,
+  ):
     """Initialize Tensor.
 
     Args:
@@ -201,6 +216,15 @@ class Tensor:
     self._fb.name = value
 
   @property
+  def is_variable(self) -> bool:
+    """True when kernels keep state in the tensor across invocations."""
+    return bool(self._fb.isVariable)
+
+  @is_variable.setter
+  def is_variable(self, value: bool):
+    self._fb.isVariable = value
+
+  @property
   def array(self) -> Optional[np.ndarray]:
     """Get tensor data as properly-shaped numpy array.
 
@@ -212,9 +236,9 @@ class Tensor:
     """
     if self.buffer is None:
       return None
-    return np.frombuffer(self.buffer.data,
-                         dtype=tensor_type.to_numpy(self.dtype)).reshape(
-                             self.shape)
+    return np.frombuffer(
+      self.buffer.data, dtype=tensor_type.to_numpy(self.dtype)
+    ).reshape(self.shape)
 
   @array.setter
   def array(self, value: np.ndarray):
@@ -288,8 +312,10 @@ class Tensor:
     excluded = ('buffer', 'quantization')
     keys = vars(self._fb).keys() | vars(other._fb).keys()
     return all(
-        _fields_equal(getattr(self._fb, k, None), getattr(other._fb, k, None))
-        for k in keys if k not in excluded)
+      _fields_equal(getattr(self._fb, k, None), getattr(other._fb, k, None))
+      for k in keys
+      if k not in excluded
+    )
 
   @property
   def index(self) -> Optional[int]:
@@ -317,11 +343,13 @@ class OperatorCode:
   while preserving all other OperatorCodeT fields during read-modify-write.
   """
 
-  def __init__(self,
-               builtin_code: tflite.BuiltinOperator = None,
-               custom_code: Optional[str] = None,
-               version: int = 1,
-               _fb: tflite.OperatorCodeT = None):
+  def __init__(
+    self,
+    builtin_code: tflite.BuiltinOperator = None,
+    custom_code: Optional[str] = None,
+    version: int = 1,
+    _fb: tflite.OperatorCodeT = None,
+  ):
     """Initialize OperatorCode.
 
     Args:
@@ -372,6 +400,25 @@ class OperatorCode:
     self._fb.version = value
 
 
+def describe_operators(indices: List[int]) -> str:
+  """Names operators by index for a message, e.g. "operators 0, 1, 2".
+
+  More than four operators are summarized by their count.
+  """
+  if len(indices) == 1:
+    return f"operator {indices[0]}"
+  if len(indices) <= 4:
+    return "operators " + ", ".join(str(i) for i in indices)
+  return f"{len(indices)} operators"
+
+
+_BUILTIN_OPERATOR_NAMES = {
+  code: name
+  for name, code in vars(tflite.BuiltinOperator).items()
+  if not name.startswith("_")
+}
+
+
 class Operator:
   """Operator specification wrapping an OperatorT flatbuffer object.
 
@@ -380,13 +427,15 @@ class Operator:
   intermediates, mutating_variable_inputs, etc.) during read-modify-write.
   """
 
-  def __init__(self,
-               opcode: Union[tflite.BuiltinOperator, int] = None,
-               inputs: List[Optional[Tensor]] = None,
-               outputs: List[Tensor] = None,
-               custom_code: Optional[str] = None,
-               opcode_index: Optional[int] = None,
-               _fb: tflite.OperatorT = None):
+  def __init__(
+    self,
+    opcode: Union[tflite.BuiltinOperator, int] = None,
+    inputs: List[Optional[Tensor]] = None,
+    outputs: List[Tensor] = None,
+    custom_code: Optional[str] = None,
+    opcode_index: Optional[int] = None,
+    _fb: tflite.OperatorT = None,
+  ):
     """Initialize Operator.
 
     Args:
@@ -429,6 +478,17 @@ class Operator:
     self._custom_code = value
 
   @property
+  def opcode_name(self) -> str:
+    """The operator's kind as text, for display.
+
+    Custom operators go by their custom code, builtins by the name of
+    their enumerator, and an unrecognized code by its number.
+    """
+    if self._custom_code is not None:
+      return self._custom_code
+    return _BUILTIN_OPERATOR_NAMES.get(self._opcode, f"opcode {self._opcode}")
+
+  @property
   def opcode_index(self) -> Optional[int]:
     """Index into operator_codes array (from read or after build)."""
     return self._opcode_index
@@ -439,7 +499,11 @@ class Operator:
 
   @property
   def index(self) -> Optional[int]:
-    """Operator index in the subgraph's operator list."""
+    """Operator index in the subgraph's operator list.
+
+    Returns index after read() or build(). May be None or stale after
+    modifications. Use with caution.
+    """
     return self._index
 
 
@@ -450,13 +514,15 @@ class Subgraph:
   name) while preserving all other SubGraphT fields during read-modify-write.
   """
 
-  def __init__(self,
-               tensors: List[Tensor] = None,
-               operators: List[Operator] = None,
-               inputs: List[Tensor] = None,
-               outputs: List[Tensor] = None,
-               name: Optional[str] = None,
-               _fb: tflite.SubGraphT = None):
+  def __init__(
+    self,
+    tensors: List[Tensor] = None,
+    operators: List[Operator] = None,
+    inputs: List[Tensor] = None,
+    outputs: List[Tensor] = None,
+    name: Optional[str] = None,
+    _fb: tflite.SubGraphT = None,
+  ):
     """Initialize Subgraph.
 
     Args:
@@ -553,13 +619,15 @@ class Model:
   read-modify-write.
   """
 
-  def __init__(self,
-               subgraphs: List[Subgraph] = None,
-               buffers: _BufferList = None,
-               operator_codes: List[OperatorCode] = None,
-               metadata: dict = None,
-               description: Optional[str] = None,
-               _fb: tflite.ModelT = None):
+  def __init__(
+    self,
+    subgraphs: List[Subgraph] = None,
+    buffers: _BufferList = None,
+    operator_codes: List[OperatorCode] = None,
+    metadata: dict = None,
+    description: Optional[str] = None,
+    _fb: tflite.ModelT = None,
+  ):
     """Initialize Model.
 
     Args:
@@ -650,7 +718,7 @@ def dedupe_buffers(model: Model) -> None:
   """
   canonical: dict[bytes, Buffer] = {}
   for tensor in iter_tensors(model):
-    if tensor.buffer is None or tensor._fb.isVariable:
+    if tensor.buffer is None or tensor.is_variable:
       continue
     existing = canonical.get(tensor.buffer.data)
     if existing is None:
@@ -674,8 +742,9 @@ def prune_buffers(model: Model) -> None:
   if not model.buffers:
     return
   referenced = {
-      id(tensor.buffer)
-      for tensor in iter_tensors(model) if tensor.buffer is not None
+    id(tensor.buffer)
+    for tensor in iter_tensors(model)
+    if tensor.buffer is not None
   }
   survivors = _BufferList()
   survivors.append(model.buffers[0])
@@ -723,8 +792,9 @@ def read(buffer: bytes) -> Model:
         if fb_quant.scale is not None and len(fb_quant.scale) > 0:
           scales = list(fb_quant.scale)
           # Copy zero_points as-is, don't expand (per review feedback)
-          zeros = list(
-              fb_quant.zeroPoint) if fb_quant.zeroPoint is not None else [0]
+          zeros = (
+            list(fb_quant.zeroPoint) if fb_quant.zeroPoint is not None else [0]
+          )
           # Copy axis if: (1) it's non-zero, or (2) there are multiple scales.
           # This preserves per-channel quant with 1 channel (axis non-zero, 1 scale)
           # while treating default axis=0 with 1 scale as per-tensor (axis=None).
@@ -740,7 +810,7 @@ def read(buffer: bytes) -> Model:
       sg.tensors.append(tensor)
 
     # Read operators
-    for fb_op in fb_sg.operators:
+    for op_idx, fb_op in enumerate(fb_sg.operators):
       # Get operator code info
       opcode_obj = model.operator_codes[fb_op.opcodeIndex]
 
@@ -758,13 +828,14 @@ def read(buffer: bytes) -> Model:
 
       # Create Operator wrapping the OperatorT; all fields preserved in _fb
       op = Operator(
-          _fb=fb_op,
-          opcode=opcode_obj.builtin_code,
-          inputs=inputs,
-          outputs=outputs,
-          custom_code=opcode_obj.custom_code,
-          opcode_index=fb_op.opcodeIndex,
+        _fb=fb_op,
+        opcode=opcode_obj.builtin_code,
+        inputs=inputs,
+        outputs=outputs,
+        custom_code=opcode_obj.custom_code,
+        opcode_index=fb_op.opcodeIndex,
       )
+      op._index = op_idx
       sg.operators.append(op)
 
     # Read subgraph inputs/outputs
@@ -823,8 +894,14 @@ class _ModelCompiler:
   def compile(self) -> bytearray:
     """Compile model using backing ModelT, preserving all fields."""
     # Use the backing ModelT directly---this preserves all fields we don't
-    # explicitly handle (version, signature_defs, etc.)
+    # explicitly handle (signature_defs, etc.)
     root = self.model._fb
+
+    # A .tflite file declares schema version 3. A model built from
+    # scratch leaves the field at the flatbuffer default of 0; a model
+    # from read() keeps the version it declared.
+    if not root.version:
+      root.version = 3
 
     # Initialize buffers
     # If model.buffers exists (from read()), preserve those buffers
@@ -858,15 +935,14 @@ class _ModelCompiler:
 
     # Pack and return
     builder = flatbuffers.Builder(4 * 2**20)
-    builder.Finish(root.Pack(builder))
+    builder.Finish(root.Pack(builder), file_identifier=_TFLITE_FILE_IDENTIFIER)
     return builder.Output()
 
   def _collect_operator_codes(self):
     """Scan all operators and build operator code table."""
     # Build lookup from existing OperatorCodes (from read()) to reuse their _fb
     existing_opcodes = {
-        (oc.builtin_code, oc.custom_code): oc
-        for oc in self.model.operator_codes
+      (oc.builtin_code, oc.custom_code): oc for oc in self.model.operator_codes
     }
 
     for sg in self.model.subgraphs:
@@ -917,7 +993,8 @@ class _ModelCompiler:
 
     # Compile operators
     sg_t.operators = []
-    for op in sg.operators:
+    for op_idx, op in enumerate(sg.operators):
+      op._index = op_idx
       sg_t.operators.append(self._compile_operator(op, tensor_to_index))
 
     # Set subgraph inputs/outputs
@@ -926,8 +1003,9 @@ class _ModelCompiler:
 
     return sg_t
 
-  def _compile_operator(self, op: Operator,
-                        tensor_to_index: dict) -> tflite.OperatorT:
+  def _compile_operator(
+    self, op: Operator, tensor_to_index: dict
+  ) -> tflite.OperatorT:
     """Compile operator using backing OperatorT, preserving all fields."""
     # Use the backing OperatorT directly---this preserves all fields we don't
     # explicitly handle (builtin_options, custom_options, intermediates, etc.)
@@ -940,7 +1018,7 @@ class _ModelCompiler:
 
     # Resolve tensor references to indices
     op_t.inputs = [
-        -1 if inp is None else tensor_to_index[id(inp)] for inp in op.inputs
+      -1 if inp is None else tensor_to_index[id(inp)] for inp in op.inputs
     ]
     op_t.outputs = [tensor_to_index[id(outp)] for outp in op.outputs]
 
@@ -977,8 +1055,9 @@ class _ModelCompiler:
       # are preserved from the original _fb.quantization
       q = tensor.quantization
       scales = [q.scales] if isinstance(q.scales, (int, float)) else q.scales
-      zeros = [q.zero_points] if isinstance(q.zero_points,
-                                            int) else q.zero_points
+      zeros = (
+        [q.zero_points] if isinstance(q.zero_points, int) else q.zero_points
+      )
       t.quantization.scale = scales
       t.quantization.zeroPoint = zeros
       if q.axis is not None:

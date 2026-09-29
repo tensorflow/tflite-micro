@@ -28,7 +28,9 @@ declare -r MICRO_LOG_PATH=${TEST_TMPDIR}/$1
 declare -r MICRO_LOG_FILENAME=${MICRO_LOG_PATH}/logs.txt
 mkdir -p ${MICRO_LOG_PATH}
 
-xt-run --exit_with_target_code $1 2>&1 | tee ${MICRO_LOG_FILENAME}
+XTENSA_SIM_FLAGS=${XTENSA_SIM_FLAGS:---turbo}
+
+xt-run ${XTENSA_SIM_FLAGS} --exit_with_target_code $1 2>&1 | tee ${MICRO_LOG_FILENAME}
 STATUS=${PIPESTATUS[0]}
 
 if [[ ${2} != "non_test_binary" ]]
