@@ -82,13 +82,21 @@ TfLiteStatus Gather(const TfLiteGatherParams* params,
   for (int batch = 0; batch < batch_size; ++batch) {
     for (int outer = 0; outer < outer_size; ++outer) {
       for (int coord = 0; coord < coord_size; ++coord) {
-        TFLITE_DCHECK_GE(coords_data[coord], 0);
-        TFLITE_DCHECK_LT(coords_data[coord], axis_size);
+        // Bounds check that also holds in release builds: TFLITE_DCHECK
+        // compiles out under NDEBUG, so without this a malicious model can
+        // supply an out-of-bounds coords index and trigger a heap
+        // out-of-bounds read in the memcpy below. Mirrors the release-mode
+        // check in gather_nd.cc.
+        const int coords_index = batch * coord_size + coord;
+        if (coords_data[coords_index] < 0 ||
+            coords_data[coords_index] >= axis_size) {
+          return kTfLiteError;
+        }
         std::memcpy(output_data +
                         (((batch * outer_size) + outer) * coord_size + coord) *
                             inner_size,
                     input_data + (((batch * outer_size) + outer) * axis_size +
-                                  coords_data[batch * coord_size + coord]) *
+                                  coords_data[coords_index]) *
                                      inner_size,
                     sizeof(InputT) * inner_size);
       }
