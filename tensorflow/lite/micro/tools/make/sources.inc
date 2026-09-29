@@ -19,6 +19,7 @@ endif
 MICROLITE_CC_BASE_SRCS := \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/c/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/*.cc) \
@@ -30,6 +31,7 @@ MICROLITE_CC_HDRS := \
   $(wildcard $(TENSORFLOW_ROOT)signal/src/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/benchmarks/*model_data.h) \
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/c/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/optimized/*.h) \

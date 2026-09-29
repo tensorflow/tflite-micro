@@ -21,7 +21,7 @@ limitations under the License.
 #include <type_traits>
 #include <vector>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 namespace tflite {
 namespace micro {

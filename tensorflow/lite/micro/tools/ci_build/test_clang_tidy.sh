@@ -121,6 +121,7 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)*_test_data.h' \
     ':(exclude)tensorflow/lite/micro/examples/*' \
     ':(exclude)tensorflow/lite/micro/integration_tests/*' \
+    ':(exclude)tensorflow/lite/micro/benchmarks/*' \
     ':(exclude)tensorflow/lite/micro/kernels/arc_mli/*' \
     ':(exclude)tensorflow/lite/micro/kernels/ceva/*' \
     ':(exclude)tensorflow/lite/micro/kernels/cmsis_nn/*' \
@@ -128,5 +129,6 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)tensorflow/lite/micro/kernels/ethosu.*' \
     ':(exclude)tensorflow/lite/micro/kernels/xtensa/*' \
     ':(exclude)tensorflow/lite/micro/kernels/internal/*' \
-    ':(exclude)tensorflow/lite/micro/kernels/tflite_kernel_util.*' | \
+    ':(exclude)tensorflow/lite/micro/kernels/tflite_kernel_util.*' \
+    ':(exclude)tensorflow/lite/micro/c/*' | \
   clang-tidy-diff.py -p1 -path . -iregex '.*\.(cpp|cc|c\+\+|cxx|c|h|hpp)$'

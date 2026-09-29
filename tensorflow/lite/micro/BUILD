@@ -36,7 +36,7 @@ tflm_cc_library(
         "array.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -46,7 +46,7 @@ tflm_cc_library(
         "portable_type_to_tflitetype.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -56,7 +56,7 @@ tflm_cc_library(
         "compression.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -77,7 +77,7 @@ tflm_cc_library(
         ":micro_profiler_interface",
         ":op_resolvers",
         ":portable_type_to_tflitetype",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",
@@ -101,7 +101,7 @@ tflm_cc_library(
         ":micro_log",
         ":micro_profiler",
         ":portable_type_to_tflitetype",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:decompress",
     ],
 )
@@ -121,7 +121,7 @@ tflm_cc_library(
         ":micro_interpreter_graph",
         ":micro_log",
         ":micro_profiler_interface",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -131,7 +131,7 @@ tflm_cc_library(
         "micro_common.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -149,8 +149,8 @@ tflm_cc_library(
         ":micro_context",
         ":micro_log",
         ":mock_micro_graph",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -177,7 +177,7 @@ tflm_cc_library(
         ":micro_log",
         ":micro_profiler",
         ":micro_resource_variable",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
@@ -192,7 +192,7 @@ tflm_cc_library(
         ":micro_allocator",
         ":micro_graph",
         ":test_helpers",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )
@@ -244,7 +244,7 @@ tflm_cc_library(
     srcs = ["flatbuffer_utils.cc"],
     hdrs = ["flatbuffer_utils.h"],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
@@ -255,7 +255,7 @@ tflm_cc_library(
     srcs = ["memory_helpers.cc"],
     hdrs = ["memory_helpers.h"],
     deps = [
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/internal:reference",
         "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",
@@ -280,7 +280,7 @@ tflm_cc_library(
         ":micro_utils",
         ":op_resolvers",
         ":portable_type_to_tflitetype",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
         "//tensorflow/lite/micro/kernels/internal:tensor",
@@ -301,8 +301,8 @@ tflm_cc_library(
     deps = [
         ":micro_compatibility",
         ":micro_log",
-        "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:micro_ops",
         "//tensorflow/lite/micro/kernels:op_macros",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
@@ -346,7 +346,7 @@ tflm_cc_library(
         ":micro_allocator",
         ":micro_log",
         ":micro_utils",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )
@@ -360,7 +360,7 @@ tflm_cc_library(
         "micro_time.h",
     ],
     copts = tflm_copts() + ["-DTF_LITE_USE_CTIME"],
-    deps = ["//tensorflow/lite/c:common"],
+    deps = ["//tensorflow/lite/micro/c:common"],
 )
 
 tflm_cc_library(
@@ -398,7 +398,7 @@ tflm_cc_library(
     deps = [
         ":memory_helpers",
         ":micro_log",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:op_macros",
     ],
 )
@@ -552,7 +552,7 @@ tflm_cc_test(
         ":micro_allocator",
         ":micro_arena_constants",
         ":test_helpers",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/memory_planner:memory_plan_struct",
         "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim",
         "//tensorflow/lite/micro/testing:micro_test",

@@ -12,6 +12,7 @@ cc_library(
     deps = [
         "//tensorflow/lite/c:common",
         "//tensorflow/lite/core/c:common",
+        "//tensorflow/lite/micro:array",
     ],
 )
 

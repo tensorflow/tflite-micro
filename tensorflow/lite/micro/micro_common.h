@@ -15,7 +15,7 @@ limitations under the License.
 #ifndef THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_MICRO_COMMON_H_
 #define THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_MICRO_COMMON_H_
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 
 // TFLMRegistration defines the API that TFLM kernels need to implement.
 // This will be replacing the current TfLiteRegistration_V1 struct with

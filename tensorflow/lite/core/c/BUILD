@@ -1,8 +1,5 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load(
-    "//tensorflow/lite:build_def.bzl",
-    "tflite_copts",
-)
+load("//tensorflow/lite:build_def.bzl", "tflite_copts")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -11,7 +8,6 @@ package(
 
 cc_library(
     name = "common",
-    srcs = ["common.cc"],
     hdrs = [
         "builtin_op_data.h",
         "common.h",
@@ -19,7 +15,7 @@ cc_library(
     copts = tflite_copts(),
     deps = [
         ":c_api_types",
-        "//tensorflow/compiler/mlir/lite/core/c:tflite_common",
+        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -28,6 +24,15 @@ cc_library(
     hdrs = ["c_api_types.h"],
     copts = tflite_copts(),
     deps = [
-        "//tensorflow/compiler/mlir/lite/core/c:tflite_common",
+        "//tensorflow/lite/micro/c:c_api_types",
+    ],
+)
+
+cc_library(
+    name = "builtin_op_data",
+    hdrs = ["builtin_op_data.h"],
+    copts = tflite_copts(),
+    deps = [
+        "//tensorflow/lite/micro/c:builtin_op_data",
     ],
 )

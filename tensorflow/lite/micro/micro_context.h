@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstddef>
 #include <utility>
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 

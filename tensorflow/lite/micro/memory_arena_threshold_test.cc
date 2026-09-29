@@ -58,7 +58,7 @@ constexpr int kKeywordModelNodeAndRegistrationCount = 15;
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
 constexpr int kKeywordModelOnlyTotalSize = 14472;
-// Tail size contributed by the kdyword model excluding the
+// Tail size contributed by the keyword model excluding the
 // RecordingMicroAllocator's overhead
 // TODO(b/207157610): replace magic number that depends on OPs
 constexpr int kKeywordModelOnlyTailSize = 13800;
