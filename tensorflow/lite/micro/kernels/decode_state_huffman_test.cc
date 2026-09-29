@@ -269,7 +269,7 @@ TEST(DecodeStateHuffmanTest, DecodeHuffmanTable16BitsInt16Fail) {
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE(),
-      nullptr, kTfLiteError);
+      nullptr, nullptr, kTfLiteError);
 }
 
 TEST(DecodeStateHuffmanTest, DecodeHuffmanTable32BitsInt8) {
