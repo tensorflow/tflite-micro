@@ -33,7 +33,9 @@ namespace tflite {
 // TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
 const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(15);
 
+namespace micro {
 class DecodeState;  // can't use decode_state.h due to circular include
+}  // namespace micro
 
 // MicroContext is eventually going to become the API between TFLM and the
 // kernels, replacing all the functions in TfLiteContext. The end state is code
@@ -172,15 +174,15 @@ class MicroContext {
   }
 
   struct CustomDecodeRegistration {
-    tflite::DecodeState* (*create_state)(const CustomDecodeRegistration&,
-                                         const TfLiteContext&,
-                                         MicroProfilerInterface*);
+    tflite::micro::DecodeState* (*create_state)(const CustomDecodeRegistration&,
+                                                const TfLiteContext&,
+                                                MicroProfilerInterface*);
     uint8_t type;  // custom decode type
   };
 
   // Set the DECODE operator custom registrations.
   // Can only be called during the kInit state.
-  TfLiteStatus SetCustomDecodeRegistrations(
+  virtual TfLiteStatus SetCustomDecodeRegistrations(
       const CustomDecodeRegistration* registrations, size_t count);
 
   // Get the custom DECODE operator registrations.
