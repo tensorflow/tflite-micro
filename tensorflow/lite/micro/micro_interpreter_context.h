@@ -161,7 +161,7 @@ class MicroInterpreterContext : public MicroContext {
 
   // Set the DECODE operator custom registrations.
   // Can only be called during the kInit state.
-  virtual TfLiteStatus SetCustomDecodeRegistrations(
+  TfLiteStatus SetCustomDecodeRegistrations(
       const CustomDecodeRegistration* registrations, size_t count) override;
 
  private:

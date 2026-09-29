@@ -24,6 +24,7 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+
 class DecodeStateHuffman : public DecodeState {
  public:
   DecodeStateHuffman() = delete;

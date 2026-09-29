@@ -97,15 +97,14 @@ class DecodeStateCustom : public tflite::DecodeState {
                     tflite::MicroProfilerInterface* profiler)
       : DecodeState(context, profiler) {}
 
-  virtual TfLiteStatus Setup(const TfLiteTensor& input,
-                             const TfLiteTensor& ancillary,
-                             const TfLiteTensor& output) override {
+  TfLiteStatus Setup(const TfLiteTensor& input, const TfLiteTensor& ancillary,
+                     const TfLiteTensor& output) override {
     return kTfLiteOk;
   }
 
-  virtual TfLiteStatus Decode(const TfLiteEvalTensor& input,
-                              const TfLiteEvalTensor& ancillary,
-                              const TfLiteEvalTensor& output) override {
+  TfLiteStatus Decode(const TfLiteEvalTensor& input,
+                      const TfLiteEvalTensor& ancillary,
+                      const TfLiteEvalTensor& output) override {
     const uint8_t* inp = tflite::micro::GetTensorData<uint8_t>(&input);
     TF_LITE_ENSURE(const_cast<TfLiteContext*>(context_), inp != nullptr);
     uint8_t* outp = tflite::micro::GetTensorData<uint8_t>(
@@ -131,7 +130,7 @@ class DecodeStateCustom : public tflite::DecodeState {
   }
 
  protected:
-  virtual ~DecodeStateCustom() = default;
+  ~DecodeStateCustom() override = default;
 
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE
@@ -363,7 +362,7 @@ TEST(DecodeTest, DecodeWithCustomRegistration) {
               DecodeStateCustom::CreateDecodeStateCustom,
               kDecodeTypeCustom,
           },
-      };
+  };
 
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
@@ -419,7 +418,7 @@ TEST(DecodeTest, DecodeWithCustomMismatchedRegistration) {
               DecodeStateCustom::CreateDecodeStateCustom,
               kDecodeTypeCustom + 1,
           },
-      };
+  };
 
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
