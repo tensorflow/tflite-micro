@@ -282,6 +282,21 @@ enum {
 };
 
 #ifndef TF_LITE_STATIC_MEMORY
+typedef struct TfLiteAllocator {
+  void* data;
+  void* (*allocate)(void* data, size_t bytes, size_t alignment);
+  void* (*reallocate)(void* data, void* ptr, size_t old_bytes, size_t new_bytes,
+                      size_t alignment);
+  void (*deallocate)(void* data, void* ptr, size_t bytes, size_t alignment);
+} TfLiteAllocator;
+
+typedef enum TfLiteCustomAllocationFlags {
+  kTfLiteCustomAllocationFlagsNone = 0,
+  kTfLiteCustomAllocationFlagsSkipAlignCheck = 1,
+} TfLiteCustomAllocationFlags;
+
+enum { kTfLiteNoBufferIdentifier = SIZE_MAX };
+
 typedef struct TfLiteTensor {
   TfLiteType type;
   TfLitePtrUnion data;
@@ -301,6 +316,7 @@ typedef struct TfLiteTensor {
 } TfLiteTensor;
 
 inline void TfLiteTensorDataFree(TfLiteTensor* t) {}
+void TfLiteTensorFree(TfLiteTensor* t);
 
 typedef struct TfLiteEvalTensor {
   TfLitePtrUnion data;
@@ -351,6 +367,9 @@ typedef struct TfLiteNode {
 } TfLiteNode;
 #endif  // TF_LITE_STATIC_MEMORY
 
+typedef struct TfLiteOperator TfLiteOperator;
+typedef TfLiteOperator TfLiteRegistrationExternal;
+
 typedef struct TfLiteRegistration {
   void* (*init)(struct TfLiteContext* context, const char* buffer,
                 size_t length);
@@ -359,10 +378,15 @@ typedef struct TfLiteRegistration {
                           struct TfLiteNode* node);
   TfLiteStatus (*invoke)(struct TfLiteContext* context,
                          struct TfLiteNode* node);
-  void (*reset)(struct TfLiteContext* context, void* buffer);
+  const char* (*profiling_string)(const struct TfLiteContext* context,
+                                  const struct TfLiteNode* node);
   int32_t builtin_code;
   const char* custom_name;
   int version;
+  TfLiteOperator* registration_external;
+  struct TfLiteAsyncKernel* (*async_kernel)(struct TfLiteContext* context,
+                                            struct TfLiteNode* node);
+  uint64_t inplace_operator;
 } TfLiteRegistration;
 
 typedef struct TfLiteRegistration TfLiteRegistration_V1;
@@ -446,9 +470,6 @@ typedef struct TfLiteContext {
   void (*TfLiteIntArrayFree)(TfLiteIntArray* a);  // NOLINT
 #endif                                            // defined(_WIN32)
 } TfLiteContext;
-
-typedef struct TfLiteOperator TfLiteOperator;
-typedef TfLiteOperator TfLiteRegistrationExternal;
 
 #ifdef __cplusplus
 }  // extern "C"
