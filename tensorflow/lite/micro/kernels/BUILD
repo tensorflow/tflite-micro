@@ -162,8 +162,6 @@ tflm_cc_library(
         ":tflite_micro",
     ],
     deps = [
-        "//tensorflow/lite:kernel_api",
-        "//tensorflow/lite/micro:array",
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro/c:common",

@@ -56,8 +56,6 @@ size_t TfLiteIntArrayGetSizeInBytes(int size);
 int TfLiteIntArrayEqual(const TfLiteIntArray* a, const TfLiteIntArray* b);
 int TfLiteIntArrayEqualsArray(const TfLiteIntArray* a, int b_size,
                               const int b_data[]);
-TfLiteIntArray* TfLiteIntArrayCreate(int size);
-void TfLiteIntArrayFree(TfLiteIntArray* a);
 
 typedef struct TfLiteFloatArray {
   int size;
@@ -72,9 +70,6 @@ typedef struct TfLiteFloatArray {
   float data[];
 #endif
 } TfLiteFloatArray;
-
-TfLiteFloatArray* TfLiteFloatArrayCreate(int size);
-void TfLiteFloatArrayFree(TfLiteFloatArray* a);
 
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
 #define TF_LITE_KERNEL_LOG(context, ...)            \
@@ -316,7 +311,14 @@ typedef struct TfLiteTensor {
 } TfLiteTensor;
 
 inline void TfLiteTensorDataFree(TfLiteTensor* t) {}
+// Retained for LiteRT header compatibility in hybrid translation units that
+// include this header before LiteRT headers (until shared header guards are
+// removed).
 void TfLiteTensorFree(TfLiteTensor* t);
+TfLiteIntArray* TfLiteIntArrayCreate(int size);
+void TfLiteIntArrayFree(TfLiteIntArray* a);
+TfLiteFloatArray* TfLiteFloatArrayCreate(int size);
+void TfLiteFloatArrayFree(TfLiteFloatArray* a);
 
 typedef struct TfLiteEvalTensor {
   TfLitePtrUnion data;

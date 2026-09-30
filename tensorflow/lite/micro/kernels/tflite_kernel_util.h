@@ -269,31 +269,10 @@ void CalculateActivationRange(TfLiteFusedActivation activation,
 bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2);
 
 #if !defined(TF_LITE_STATIC_MEMORY)
-// Gets the output shape from the input tensor.
-TfLiteStatus GetOutputShapeFromInput(TfLiteContext* context,
-                                     const TfLiteTensor* input,
-                                     TfLiteIntArray** output_shape);
-
 std::string GetShapeDebugString(const TfLiteIntArray* shape);
 
 std::string GetTensorDebugString(const TfLiteTensor* tensor);
-
 #endif  // !defined(TF_LITE_STATIC_MEMORY)
-
-// Calculates the output_shape that is necessary for element-wise operations
-// with broadcasting involving the two input tensors.
-TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
-                                        const TfLiteTensor* input1,
-                                        const TfLiteTensor* input2,
-                                        TfLiteIntArray** output_shape);
-
-// Calculates the output_shape that is necessary for element-wise operations
-// with broadcasting involving the three input tensors.
-TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
-                                        const TfLiteTensor* input1,
-                                        const TfLiteTensor* input2,
-                                        const TfLiteTensor* input3,
-                                        TfLiteIntArray** output_shape);
 
 // Return the size of given type in bytes. Return 0 in case of string.
 int TfLiteTypeGetSize(TfLiteType type);
@@ -351,7 +330,6 @@ TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
 #define TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 using micro::CalculateActivationRange;
 using micro::CalculateActivationRangeQuantized;
-using micro::CalculateShapeForBroadcast;
 using micro::CheckedShapeProduct;
 using micro::CheckedShapeProductToInt;
 using micro::GetInput;
@@ -380,7 +358,6 @@ using micro::TfLiteTypeGetSizeBits;
 #ifndef TF_LITE_STATIC_MEMORY
 using micro::GetIntermediates;
 using micro::GetIntermediatesSafe;
-using micro::GetOutputShapeFromInput;
 using micro::GetShapeDebugString;
 using micro::GetTensorDebugString;
 using micro::NumIntermediates;
