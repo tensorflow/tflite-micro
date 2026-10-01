@@ -21,7 +21,6 @@ import subprocess
 import sys
 
 TARGET_DIRS = [
-  "tensorflow/lite/kernels/internal/reference",
   "tensorflow/lite/micro",
   "third_party",
 ]

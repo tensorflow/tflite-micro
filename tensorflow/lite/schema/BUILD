@@ -1,4 +1,3 @@
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library")
 
 package(
@@ -8,17 +7,21 @@ package(
     licenses = ["notice"],
 )
 
+exports_files(
+    srcs = ["schema.fbs"],
+)
+
 # Note: when wanting to generate the schema_generated.h, you must build as:
 # bazel build schema_fbs_srcs.
 flatbuffer_cc_library(
     name = "schema_fbs",
-    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
+    srcs = ["schema.fbs"],
 )
 
 # Generic schema for inference on device (but with reflections makes bigger).
 flatbuffer_cc_library(
     name = "schema_fbs_with_reflection",
-    srcs = ["//tensorflow/compiler/mlir/lite/schema:schema.fbs"],
+    srcs = ["schema.fbs"],
     flatc_args = [
         "--reflect-types",
         "--reflect-names",
@@ -26,15 +29,4 @@ flatbuffer_cc_library(
         "--gen-object-api",
     ],
     out_prefix = "reflection/",
-)
-
-cc_library(
-    name = "schema_utils",
-    hdrs = [
-        "schema_generated.h",
-        "schema_utils.h",
-    ],
-    deps = [
-        "//tensorflow/compiler/mlir/lite/schema:schema_utils",
-    ],
 )
