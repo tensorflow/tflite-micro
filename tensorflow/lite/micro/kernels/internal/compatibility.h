@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/core/macros.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
 
 #ifndef TFLITE_DCHECK
@@ -119,6 +118,40 @@ using uint32 = std::uint32_t;
 #ifndef TFLITE_DEPRECATED
 #define TFLITE_DEPRECATED(message)
 #endif
+
+#ifndef TFLITE_NOINLINE
+#ifdef _WIN32
+#define TFLITE_NOINLINE __declspec(noinline)
+#else
+#ifdef __has_attribute
+#if __has_attribute(noinline)
+#define TFLITE_NOINLINE __attribute__((noinline))
+#else
+#define TFLITE_NOINLINE
+#endif  // __has_attribute(noinline)
+#else
+#define TFLITE_NOINLINE
+#endif  // __has_attribute
+#endif  // _WIN32
+#endif  // TFLITE_NOINLINE
+
+#ifndef TFLITE_ATTRIBUTE_WEAK
+#if !(defined(__llvm__) && defined(_WIN32)) && !defined(__MINGW32__)
+#if defined(__GNUC__) && !defined(__clang__)
+#define TFLITE_ATTRIBUTE_WEAK __attribute__((weak))
+#elif defined(__has_attribute)
+#if __has_attribute(weak)
+#define TFLITE_ATTRIBUTE_WEAK __attribute__((weak))
+#else
+#define TFLITE_ATTRIBUTE_WEAK
+#endif  // __has_attribute(weak)
+#else
+#define TFLITE_ATTRIBUTE_WEAK
+#endif
+#else
+#define TFLITE_ATTRIBUTE_WEAK
+#endif
+#endif  // TFLITE_ATTRIBUTE_WEAK
 
 #ifndef TFLITE_NO_SANITIZE_INTEGER_OVERFLOW
 #if defined(__has_attribute)

@@ -226,7 +226,6 @@ tflm_cc_library(
     ],
     hdrs = ["micro_tensor_utils.h"],
     deps = [
-        "//tensorflow/lite/core:macros",
         "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:op_macros",
         "//tensorflow/lite/micro/kernels/internal:common",

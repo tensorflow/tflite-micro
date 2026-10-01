@@ -21,24 +21,10 @@ tflm_cc_library(
         "//tensorflow/lite/micro:__pkg__",
     ],
     deps = [
-        ":micro_error_reporter",
-        "//tensorflow/lite/core/api",
-        "//tensorflow/lite/micro/c:common",
-        "//tensorflow/lite/schema:schema_fbs",
-    ],
-)
-
-tflm_cc_library(
-    name = "micro_error_reporter",
-    srcs = [
-        "micro_error_reporter.cc",
-    ],
-    hdrs = [
-        "micro_error_reporter.h",
-    ],
-    deps = [
-        "//tensorflow/lite/core/api:error_reporter",
-        "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
+        "//tensorflow/lite/schema:schema_fbs",
+        "@flatbuffers//:runtime_cc",
     ],
 )

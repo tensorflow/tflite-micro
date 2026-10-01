@@ -194,10 +194,9 @@ end_group
 # See http://b/175657165 for more context.
 start_group "Disallowed Patterns (ReportError)"
 ERROR_REPORTER_MESSAGE=\
-"TF_LITE_REPORT_ERROR should be used instead, so that log strings can be "\
-"removed to save space, if needed."
+"MicroPrintf should be used instead of ErrorReporter or TF_LITE_REPORT_ERROR."
 
-check_contents "error_reporter.*Report\(|context->ReportError\(" \
+check_contents "TF_LITE_REPORT_ERROR\(|error_reporter.*Report\(|context->ReportError\(" \
   "${CHECK_CONTENTS_PATHSPEC}" "${ERROR_REPORTER_MESSAGE}"
 ERROR_REPORTER_RESULT=$?
 if [[ ${ERROR_REPORTER_RESULT} -eq 0 ]]; then

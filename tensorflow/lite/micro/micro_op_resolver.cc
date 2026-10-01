@@ -16,8 +16,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 
 #include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/micro_log.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
 
@@ -26,7 +26,7 @@ TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
                                        const TFLMRegistration** registration) {
   TfLiteStatus status = kTfLiteOk;
   *registration = nullptr;
-  auto builtin_code = GetBuiltinCode(opcode);
+  auto builtin_code = micro::GetBuiltinCode(opcode);
 
   if (builtin_code > BuiltinOperator_MAX) {
     MicroPrintf("Op builtin_code out of range: %d.", builtin_code);
