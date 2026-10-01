@@ -28,19 +28,6 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
-    name = "array",
-    srcs = [
-        "array.cc",
-    ],
-    hdrs = [
-        "array.h",
-    ],
-    deps = [
-        "//tensorflow/lite/micro/c:common",
-    ],
-)
-
-tflm_cc_library(
     name = "portable_type_to_tflitetype",
     hdrs = [
         "portable_type_to_tflitetype.h",

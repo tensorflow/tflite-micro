@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/c/common.h"
 
-#include <cstdlib>
 #include <cstring>
 
 namespace {
@@ -50,20 +49,6 @@ int TfLiteVarArrayEqual(const T* const a, const T* const b) {
     return 0;
   }
   return TfLiteVarArrayEqualsArray(a, b->size, b->data);
-}
-
-template <class T>
-T* TfLiteVarArrayCreate(const int size) {
-  const size_t alloc_size = TfLiteVarArrayGetSizeInBytes<T>(size);
-  if (alloc_size == 0) {
-    return nullptr;
-  }
-  T* ret = (T*)malloc(alloc_size);
-  if (!ret) {
-    return nullptr;
-  }
-  ret->size = size;
-  return ret;
 }
 
 }  // namespace
@@ -136,29 +121,15 @@ TFLM_ATTRIBUTE_WEAK size_t TfLiteIntArrayGetSizeInBytes(int size) {
   return TfLiteVarArrayGetSizeInBytes<TfLiteIntArray>(size);
 }
 
-TFLM_ATTRIBUTE_WEAK int TfLiteIntArrayEqual(const TfLiteIntArray* a, const TfLiteIntArray* b) {
+TFLM_ATTRIBUTE_WEAK int TfLiteIntArrayEqual(const TfLiteIntArray* a,
+                                            const TfLiteIntArray* b) {
   return TfLiteVarArrayEqual(a, b);
 }
 
-TFLM_ATTRIBUTE_WEAK int TfLiteIntArrayEqualsArray(const TfLiteIntArray* a, int b_size,
-                                                 const int b_data[]) {
+TFLM_ATTRIBUTE_WEAK int TfLiteIntArrayEqualsArray(const TfLiteIntArray* a,
+                                                  int b_size,
+                                                  const int b_data[]) {
   return TfLiteVarArrayEqualsArray(a, b_size, b_data);
-}
-
-TFLM_ATTRIBUTE_WEAK TfLiteIntArray* TfLiteIntArrayCreate(int size) {
-  return TfLiteVarArrayCreate<TfLiteIntArray>(size);
-}
-
-TFLM_ATTRIBUTE_WEAK void TfLiteIntArrayFree(TfLiteIntArray* a) {
-  free(a);
-}
-
-TFLM_ATTRIBUTE_WEAK TfLiteFloatArray* TfLiteFloatArrayCreate(int size) {
-  return TfLiteVarArrayCreate<TfLiteFloatArray>(size);
-}
-
-TFLM_ATTRIBUTE_WEAK void TfLiteFloatArrayFree(TfLiteFloatArray* a) {
-  free(a);
 }
 
 }  // extern "C"

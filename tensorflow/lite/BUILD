@@ -6,17 +6,6 @@ package(
 )
 
 cc_library(
-    name = "array",
-    srcs = ["array.cc"],
-    hdrs = ["array.h"],
-    deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/c:common",
-        "//tensorflow/lite/micro:array",
-    ],
-)
-
-cc_library(
     name = "type_to_tflitetype",
     hdrs = [
         "portable_type_to_tflitetype.h",

@@ -19,17 +19,13 @@ limitations under the License.
 #include <complex>
 #include <initializer_list>
 #include <limits>
-#include <memory>
 
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 #ifndef TF_LITE_STATIC_MEMORY
 #include <string>
-
-#include "tensorflow/lite/micro/array.h"
 #endif  // TF_LITE_STATIC_MEMORY
 
-#include "tensorflow/lite/context_util.h"
 #include "tensorflow/lite/micro/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
@@ -395,24 +391,6 @@ bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2) {
 }
 
 #ifndef TF_LITE_STATIC_MEMORY
-TfLiteStatus GetOutputShapeFromInput(TfLiteContext* context,
-                                     const TfLiteTensor* input,
-                                     TfLiteIntArray** output_shape) {
-  if (NumDimensions(input) != 1) {
-    TF_LITE_KERNEL_LOG(const_cast<TfLiteContext*>(context),
-                       "Invalid %dD input tensor (must be a 1D tensor).",
-                       NumDimensions(input));
-    return kTfLiteError;
-  }
-  const int output_dims = SizeOfDimension(input, 0);
-  IntArrayUniquePtr shape(TfLiteIntArrayCreate(output_dims));
-  for (int i = 0; i < output_dims; i++) {
-    shape->data[i] = input->data.i32[i];
-  }
-  *output_shape = shape.release();
-  return kTfLiteOk;
-}
-
 // TODO(b/172067338): Having this function be part of TF_LITE_STATIC_MEMORY
 // build results in a 6KB size increase, even though the function is unsused for
 // that build. What appears to be happening is that while the linker drops the
@@ -440,69 +418,6 @@ std::string GetTensorDebugString(const TfLiteTensor* tensor) {
   return std::string("{\n  type: ") + TfLiteTypeGetName(tensor->type) +
          "\n  data: {...}\n  dims: " + GetShapeDebugString(tensor->dims) +
          "\n}";
-}
-
-TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
-                                        const TfLiteTensor* input1,
-                                        const TfLiteTensor* input2,
-                                        TfLiteIntArray** output_shape) {
-  const int dims1 = NumDimensions(input1);
-  const int dims2 = NumDimensions(input2);
-  const int out_dims = std::max(dims1, dims2);
-
-  IntArrayUniquePtr shape(TfLiteIntArrayCreate(out_dims));
-  for (int i = 0; i < out_dims; ++i) {
-    const int d1 = i >= dims1 ? 1 : SizeOfDimension(input1, dims1 - i - 1);
-    const int d2 = i >= dims2 ? 1 : SizeOfDimension(input2, dims2 - i - 1);
-    if (!(d1 == d2 || d1 == 1 || d2 == 1)) {
-      TF_LITE_KERNEL_LOG(context,
-                         "Given shapes, %s and %s, are not broadcastable.",
-                         GetShapeDebugString(input1->dims).c_str(),
-                         GetShapeDebugString(input2->dims).c_str());
-      return kTfLiteError;
-    }
-
-    if (d1 == 0 || d2 == 0) {
-      shape->data[out_dims - i - 1] = 0;
-    } else {
-      shape->data[out_dims - i - 1] = std::max(d1, d2);
-    }
-  }
-  *output_shape = shape.release();
-  return kTfLiteOk;
-}
-
-TfLiteStatus CalculateShapeForBroadcast(TfLiteContext* context,
-                                        const TfLiteTensor* input1,
-                                        const TfLiteTensor* input2,
-                                        const TfLiteTensor* input3,
-                                        TfLiteIntArray** output_shape) {
-  const int dims1 = NumDimensions(input1);
-  const int dims2 = NumDimensions(input2);
-  const int dims3 = NumDimensions(input3);
-  const int out_dims = std::max(std::max(dims1, dims2), dims3);
-  IntArrayUniquePtr shape(TfLiteIntArrayCreate(out_dims));
-  for (int i = 0; i < out_dims; ++i) {
-    const int d1 = i >= dims1 ? 1 : SizeOfDimension(input1, dims1 - i - 1);
-    const int d2 = i >= dims2 ? 1 : SizeOfDimension(input2, dims2 - i - 1);
-    const int d3 = i >= dims3 ? 1 : SizeOfDimension(input3, dims3 - i - 1);
-    const int min_value = std::min(std::min(d1, d2), d3);
-    int max_value = std::max(std::max(d1, d2), d3);
-    // If one dimention is 0, others must be 0 or 1.
-    if (min_value == 0) max_value = 0;
-    if (!(d1 == 1 || d1 == max_value) || !(d2 == 1 || d2 == max_value) ||
-        !(d3 == 1 || d3 == max_value)) {
-      TF_LITE_KERNEL_LOG(context,
-                         "Given shapes, %s, %s and %s, are not broadcastable.",
-                         GetShapeDebugString(input1->dims).c_str(),
-                         GetShapeDebugString(input2->dims).c_str(),
-                         GetShapeDebugString(input3->dims).c_str());
-      return kTfLiteError;
-    }
-    shape->data[out_dims - i - 1] = max_value;
-  }
-  *output_shape = shape.release();
-  return kTfLiteOk;
 }
 #endif  // TF_LITE_STATIC_MEMORY
 
