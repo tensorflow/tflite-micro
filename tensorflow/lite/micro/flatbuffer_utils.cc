@@ -15,7 +15,21 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 
+#include <algorithm>
+
+#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+
 namespace tflite {
+namespace micro {
+
+BuiltinOperator GetBuiltinCode(const OperatorCode* op_code) {
+  TFLITE_DCHECK(op_code != nullptr);
+  return std::max(
+      op_code->builtin_code(),
+      static_cast<BuiltinOperator>(op_code->deprecated_builtin_code()));
+}
+
+}  // namespace micro
 
 FlexbufferWrapper::FlexbufferWrapper(const uint8_t* buffer, size_t size)
     : flexbuffers::Vector(flexbuffers::GetRoot(buffer, size).AsVector()) {}

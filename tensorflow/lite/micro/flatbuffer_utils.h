@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
-#define THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
+#ifndef TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
+#define TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
 
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
@@ -22,6 +22,15 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
+
+// Returns the builtin operator code from the OperatorCode flatbuffer table,
+// handling compatibility between v3 (deprecated_builtin_code) and v3a
+// (builtin_code) schemas.
+BuiltinOperator GetBuiltinCode(const OperatorCode* op_code);
+
+}  // namespace micro
+
 // Kernels use flexbuffers::Map to pack their init parameters in a tflite file,
 // with the parameter names as map keys and the parameter values as the
 // corresponding map values.
@@ -62,4 +71,4 @@ TfLiteFloatArray* FlatBufferVectorToTfLiteTypeArray(
 
 }  // namespace tflite
 
-#endif  // THIRD_PARTY_TFLITE_MICRO_TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_
+#endif  // TENSORFLOW_LITE_MICRO_FLATBUFFER_UTILS_H_

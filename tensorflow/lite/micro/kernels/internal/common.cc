@@ -15,8 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 
-#include "tensorflow/lite/core/macros.h"
-
 namespace tflite {
 namespace micro {
 

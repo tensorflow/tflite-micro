@@ -45,8 +45,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HEXAGON_TFLM_TRANSLATION_SVDF_H_
 #define _HEXAGON_TFLM_TRANSLATION_SVDF_H_
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"

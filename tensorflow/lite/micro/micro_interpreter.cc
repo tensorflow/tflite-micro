@@ -30,7 +30,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 
 namespace tflite {
 namespace {
@@ -129,7 +128,7 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
                                           .registration));
       if (status != kTfLiteOk) {
         MicroPrintf("Failed to get registration from op code %s\n ",
-                    EnumNameBuiltinOperator(GetBuiltinCode(opcode)));
+                    EnumNameBuiltinOperator(micro::GetBuiltinCode(opcode)));
         return status;
       }
       const auto* registration = graph_.GetAllocations()[subgraph_idx]

@@ -31,7 +31,6 @@ limitations under the License.
 #include <functional>
 
 #include "fixedpoint/fixedpoint.h"
-#include "tensorflow/lite/core/macros.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/optimized/neon_check.h"

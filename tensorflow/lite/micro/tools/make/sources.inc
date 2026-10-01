@@ -1,11 +1,5 @@
 # Source definitions for TFLM
 
-TFL_CC_SRCS := \
-$(shell find $(TENSORFLOW_ROOT)tensorflow -type d \( -path $(TENSORFLOW_ROOT)tensorflow/lite/experimental -o -path $(TENSORFLOW_ROOT)tensorflow/lite/micro \) -prune -false -o -name "*.cc" -o -name "*.c")
-
-TFL_CC_HDRS := \
-$(shell find $(TENSORFLOW_ROOT)tensorflow -type d \( -path $(TENSORFLOW_ROOT)tensorflow/lite/experimental -o -path $(TENSORFLOW_ROOT)tensorflow/lite/micro \) -prune -false -o -name "*.h")
-
 MICROLITE_CC_BASE_SRCS := \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.cc) \
@@ -13,8 +7,7 @@ MICROLITE_CC_BASE_SRCS := \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.cc) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/*.cc) \
-  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/*.cc) \
-  $(TFL_CC_SRCS)
+  $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/*.cc)
 
 MICROLITE_CC_HDRS := \
   $(wildcard $(TENSORFLOW_ROOT)signal/micro/kernels/*.h) \
@@ -31,8 +24,8 @@ MICROLITE_CC_HDRS := \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/tflite_bridge/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/types/*.h) \
-  $(TENSORFLOW_ROOT)LICENSE \
-  $(TFL_CC_HDRS)
+  $(TENSORFLOW_ROOT)tensorflow/lite/schema/schema_generated.h \
+  $(TENSORFLOW_ROOT)LICENSE
 
 # TODO(b/165940489): Figure out how to avoid including fixed point
 # platform-specific headers.
