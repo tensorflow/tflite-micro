@@ -12,38 +12,48 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
-#define TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_OP_MACROS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_OP_MACROS_H_
 
 #include "tensorflow/lite/micro/micro_log.h"
 
 #if !defined(TF_LITE_MCU_DEBUG_LOG)
 #include <cstdlib>
+#ifndef TFLITE_ABORT
 #define TFLITE_ABORT abort()
+#endif
 #else
 inline void AbortImpl() {
   MicroPrintf("HALTED");
   while (1) {
   }
 }
+#ifndef TFLITE_ABORT
 #define TFLITE_ABORT AbortImpl();
 #endif
+#endif
 
+#ifndef TFLITE_ASSERT_FALSE
 #if defined(NDEBUG)
 #define TFLITE_ASSERT_FALSE (static_cast<void>(0))
 #else
 #define TFLITE_ASSERT_FALSE TFLITE_ABORT
 #endif
+#endif
 
+#ifndef TF_LITE_FATAL
 #define TF_LITE_FATAL(msg)    \
   do {                        \
     MicroPrintf("%s", (msg)); \
     TFLITE_ABORT;             \
   } while (0)
+#endif
 
+#ifndef TF_LITE_ASSERT
 #define TF_LITE_ASSERT(x)        \
   do {                           \
     if (!(x)) TF_LITE_FATAL(#x); \
   } while (0)
+#endif
 
-#endif  // TENSORFLOW_LITE_KERNELS_OP_MACROS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_OP_MACROS_H_

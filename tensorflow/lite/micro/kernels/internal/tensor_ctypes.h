@@ -16,7 +16,6 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 
 #include <cstddef>
-#include <vector>
 
 #include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
@@ -25,10 +24,6 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-#ifdef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
-using ::tflite::GetTensorData;
-using ::tflite::GetTensorShape;
-#else
 template <typename T>
 inline T* GetTensorData(TfLiteTensor* tensor) {
   return tensor != nullptr ? reinterpret_cast<T*>(tensor->data.raw) : nullptr;
@@ -41,18 +36,12 @@ inline const T* GetTensorData(const TfLiteTensor* tensor) {
 }
 
 TFLITE_NOINLINE RuntimeShape GetTensorShape(const TfLiteTensor* tensor);
-RuntimeShape GetTensorShape(std::vector<int32_t> data);
-#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
-
 RuntimeShape GetTensorShape(std::nullptr_t);
 
 }  // namespace micro
 
-#ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
-#define TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 using micro::GetTensorData;
 using micro::GetTensorShape;
-#endif  // TENSORFLOW_LITE_KERNELS_INTERNAL_TENSOR_CTYPES_H_
 
 }  // namespace tflite
 

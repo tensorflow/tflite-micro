@@ -125,5 +125,29 @@ TFLMRegistration Register_SVDF_INT8() {
   return RegisterOp(HexagonSvdfInit, HexagonSvdfPrepare, HexagonSvdfEvalInt8);
 }
 
+const TfLiteEvalTensor*
+HexagonLegacyGetEvalInput(const TfLiteContext* context, const TfLiteNode* node, int index) asm(
+    "_ZN6tflite5micro12GetEvalInputEPK13TfLiteContextPK10TfLiteNodei");
+__attribute__((weak, used)) const TfLiteEvalTensor* HexagonLegacyGetEvalInput(
+    const TfLiteContext* context, const TfLiteNode* node, int index) {
+  return GetEvalInput(context, node, index);
+}
+
+TfLiteEvalTensor*
+HexagonLegacyGetEvalOutput(const TfLiteContext* context, const TfLiteNode* node, int index) asm(
+    "_ZN6tflite5micro13GetEvalOutputEPK13TfLiteContextPK10TfLiteNodei");
+__attribute__((weak, used)) TfLiteEvalTensor* HexagonLegacyGetEvalOutput(
+    const TfLiteContext* context, const TfLiteNode* node, int index) {
+  return GetEvalOutput(context, node, index);
+}
+
+TfLiteEvalTensor*
+HexagonLegacyGetMutableEvalInput(const TfLiteContext* context, const TfLiteNode* node, int index) asm(
+    "_ZN6tflite5micro19GetMutableEvalInputEPK13TfLiteContextPK10TfLiteNodei");
+__attribute__((weak, used)) TfLiteEvalTensor* HexagonLegacyGetMutableEvalInput(
+    const TfLiteContext* context, const TfLiteNode* node, int index) {
+  return GetMutableEvalInput(context, node, index);
+}
+
 }  // namespace micro
 }  // namespace tflite

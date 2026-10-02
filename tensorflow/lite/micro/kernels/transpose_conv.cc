@@ -57,18 +57,6 @@ struct OpData {
   int32_t* per_channel_output_shift;
 };
 
-inline PaddingType RuntimePaddingType(TfLitePadding padding) {
-  switch (padding) {
-    case TfLitePadding::kTfLitePaddingSame:
-      return PaddingType::kSame;
-    case TfLitePadding::kTfLitePaddingValid:
-      return PaddingType::kValid;
-    case TfLitePadding::kTfLitePaddingUnknown:
-    default:
-      return PaddingType::kNone;
-  }
-}
-
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
                              const TfLiteTransposeConvParams* params, int width,
                              int height, int filter_width, int filter_height,

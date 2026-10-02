@@ -198,5 +198,29 @@ TFLMRegistration Register_FULLY_CONNECTED_INT8() {
                     HexagonFullyConnectedEvalInt8);
 }
 
+const TfLiteEvalTensor*
+HexagonLegacyGetEvalInput(const TfLiteContext* context, const TfLiteNode* node, int index) asm(
+    "_ZN6tflite5micro12GetEvalInputEPK13TfLiteContextPK10TfLiteNodei");
+__attribute__((weak, used)) const TfLiteEvalTensor* HexagonLegacyGetEvalInput(
+    const TfLiteContext* context, const TfLiteNode* node, int index) {
+  return GetEvalInput(context, node, index);
+}
+
+TfLiteEvalTensor*
+HexagonLegacyGetEvalOutput(const TfLiteContext* context, const TfLiteNode* node, int index) asm(
+    "_ZN6tflite5micro13GetEvalOutputEPK13TfLiteContextPK10TfLiteNodei");
+__attribute__((weak, used)) TfLiteEvalTensor* HexagonLegacyGetEvalOutput(
+    const TfLiteContext* context, const TfLiteNode* node, int index) {
+  return GetEvalOutput(context, node, index);
+}
+
+const RuntimeShape
+HexagonLegacyGetTensorShape(const TfLiteEvalTensor* tensor) asm(
+    "_ZN6tflite5micro14GetTensorShapeEPK16TfLiteEvalTensor");
+__attribute__((weak, used)) const RuntimeShape
+HexagonLegacyGetTensorShape(const TfLiteEvalTensor* tensor) {
+  return GetTensorShape(tensor);
+}
+
 }  // namespace micro
 }  // namespace tflite

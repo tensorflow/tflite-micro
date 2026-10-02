@@ -76,24 +76,16 @@ limitations under the License.
 #define TFLITE_CHECK_LT(x, y) ((x) < (y)) ? (void)0 : TFLITE_ABORT
 #endif
 
-#ifndef TF_LITE_STATIC_MEMORY
-// TODO(b/162019032): Consider removing these type-aliases.
-using int8 = std::int8_t;
-using uint8 = std::uint8_t;
-using int16 = std::int16_t;
-using uint16 = std::uint16_t;
-using int32 = std::int32_t;
-using uint32 = std::uint32_t;
-#endif  // !defined(TF_LITE_STATIC_MEMORY)
-
 // Allow for cross-compiler usage of function signatures - currently used for
 // specifying named RUY profiler regions in templated methods.
+#ifndef TFLITE_PRETTY_FUNCTION
 #if defined(_MSC_VER)
 #define TFLITE_PRETTY_FUNCTION __FUNCSIG__
 #elif defined(__GNUC__)
 #define TFLITE_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #else
 #define TFLITE_PRETTY_FUNCTION __func__
+#endif
 #endif
 
 // TFLITE_DEPRECATED()

@@ -16,6 +16,8 @@ limitations under the License.
 
 #include <cstring>
 
+namespace tflite {
+namespace micro {
 namespace {
 
 template <class T>
@@ -53,17 +55,7 @@ int TfLiteVarArrayEqual(const T* const a, const T* const b) {
 
 }  // namespace
 
-#ifndef TFLM_ATTRIBUTE_WEAK
-#if (defined(__GNUC__) || defined(__clang__)) && !defined(_WIN32)
-#define TFLM_ATTRIBUTE_WEAK __attribute__((weak))
-#else
-#define TFLM_ATTRIBUTE_WEAK
-#endif
-#endif
-
-extern "C" {
-
-TFLM_ATTRIBUTE_WEAK const char* TfLiteTypeGetName(TfLiteType type) {
+const char* TfLiteTypeGetName(TfLiteType type) {
   switch (type) {
     case kTfLiteNoType:
       return "NOTYPE";
@@ -117,19 +109,18 @@ TFLM_ATTRIBUTE_WEAK const char* TfLiteTypeGetName(TfLiteType type) {
   return "Unknown type";
 }
 
-TFLM_ATTRIBUTE_WEAK size_t TfLiteIntArrayGetSizeInBytes(int size) {
+size_t TfLiteIntArrayGetSizeInBytes(int size) {
   return TfLiteVarArrayGetSizeInBytes<TfLiteIntArray>(size);
 }
 
-TFLM_ATTRIBUTE_WEAK int TfLiteIntArrayEqual(const TfLiteIntArray* a,
-                                            const TfLiteIntArray* b) {
+int TfLiteIntArrayEqual(const TfLiteIntArray* a, const TfLiteIntArray* b) {
   return TfLiteVarArrayEqual(a, b);
 }
 
-TFLM_ATTRIBUTE_WEAK int TfLiteIntArrayEqualsArray(const TfLiteIntArray* a,
-                                                  int b_size,
-                                                  const int b_data[]) {
+int TfLiteIntArrayEqualsArray(const TfLiteIntArray* a, int b_size,
+                              const int b_data[]) {
   return TfLiteVarArrayEqualsArray(a, b_size, b_data);
 }
 
-}  // extern "C"
+}  // namespace micro
+}  // namespace tflite

@@ -47,7 +47,7 @@ def tflm_defines():
     this function directly; however, it may be useful when additively
     overriding the defaults for a particular target.
     """
-    defines = ["TF_LITE_STATIC_MEMORY=1"]
+    defines = []
 
     defines += select({
         # Include code for the compression feature.

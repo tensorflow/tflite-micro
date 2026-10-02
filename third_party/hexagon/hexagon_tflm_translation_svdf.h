@@ -47,33 +47,34 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "tensorflow/lite/micro/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/kernels/activation_utils.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
-#include "tensorflow/lite/micro/kernels/activation_utils.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace hexagon_svdf {
 
-void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length);
+void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length) asm(
+    "_ZN6tflite12hexagon_svdf11HexagonInitEP13TfLiteContextPKcj");
 
-TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node) asm(
+    "_ZN6tflite12hexagon_svdf14HexagonPrepareEP13TfLiteContextP10TfLiteNode");
 
-void HexagonEvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
-                            const TfLiteEvalTensor* input_tensor,
-                            const TfLiteEvalTensor* weights_feature_tensor,
-                            const TfLiteEvalTensor* weights_time_tensor,
-                            const TfLiteEvalTensor* bias_tensor,
-                            const TfLiteSVDFParams* params,
-                            TfLiteEvalTensor* activation_state_tensor,
-                            TfLiteEvalTensor* output_tensor, void* op_data);
+void HexagonEvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input_tensor, const TfLiteEvalTensor* weights_feature_tensor, const TfLiteEvalTensor* weights_time_tensor, const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params, TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor, void* op_data) asm(
+    "_ZN6tflite12hexagon_"
+    "svdf22HexagonEvalIntegerSVDFEP13TfLiteContextP10TfLiteNodePK16TfLiteEvalTe"
+    "nsorS7_S7_S7_PK16TfLiteSVDFParamsPS5_SB_Pv");
 
-void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node);
-bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node);
+void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node) asm(
+    "_ZN6tflite12hexagon_"
+    "svdf29HexagonOptimizationEvaluationEP13TfLiteContextP10TfLiteNode");
+bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node) asm(
+    "_ZN6tflite12hexagon_"
+    "svdf18HexagonOptimizableEP13TfLiteContextP10TfLiteNode");
 
 }  // namespace hexagon_svdf
 }  // namespace tflite

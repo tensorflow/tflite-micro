@@ -13,41 +13,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-/// WARNING: Users of TensorFlow Lite should not include this file directly,
-/// only the TensorFlow Lite implementation itself should.
-
-// IWYU pragma: private, include "third_party/tensorflow/lite/c/builtin_op_data.h"
-
 #ifndef TENSORFLOW_LITE_MICRO_C_BUILTIN_OP_DATA_H_
 #define TENSORFLOW_LITE_MICRO_C_BUILTIN_OP_DATA_H_
 
-#if !defined(TENSORFLOW_COMPILER_MLIR_LITE_CORE_C_BUILTIN_OP_DATA_H_) && \
-    !defined(TENSORFLOW_LITE_CORE_C_BUILTIN_OP_DATA_H_) &&               \
-    !defined(TENSORFLOW_LITE_C_BUILTIN_OP_DATA_H_) &&                    \
-    !defined(TENSORFLOW_LITE_BUILTIN_OP_DATA_H_)
-#define TENSORFLOW_COMPILER_MLIR_LITE_CORE_C_BUILTIN_OP_DATA_H_
-#define TENSORFLOW_LITE_CORE_C_BUILTIN_OP_DATA_H_
-#define TENSORFLOW_LITE_C_BUILTIN_OP_DATA_H_
-#define TENSORFLOW_LITE_BUILTIN_OP_DATA_H_
-
-#include <stdbool.h>  // IWYU pragma: keep
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "tensorflow/lite/micro/c/c_api_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
-
 // TfLiteReshapeParams can't have dynamic data so we fix the maximum possible
 // number of dimensions.
+#ifndef TFLITE_RESHAPE_PARAMS_MAX_DIMENSION_COUNT
 #define TFLITE_RESHAPE_PARAMS_MAX_DIMENSION_COUNT 8
+#endif
+#ifndef TFLITE_STABLEHLO_SCATTER_PARAMS_MAX_DIMENSION_COUNT
 #define TFLITE_STABLEHLO_SCATTER_PARAMS_MAX_DIMENSION_COUNT 8
+#endif
+#ifndef TFLITE_STABLEHLO_GATHER_PARAMS_MAX_DIMENSION_COUNT
 #define TFLITE_STABLEHLO_GATHER_PARAMS_MAX_DIMENSION_COUNT 8
+#endif
+#ifndef TFLITE_STABLEHLO_REDUCE_WINDOW_PARAMS_MAX_DIMENSION_COUNT
 #define TFLITE_STABLEHLO_REDUCE_WINDOW_PARAMS_MAX_DIMENSION_COUNT 8
+#endif
+#ifndef TFLITE_STABLEHLO_PAD_PARAMS_MAX_DIMENSION_COUNT
 #define TFLITE_STABLEHLO_PAD_PARAMS_MAX_DIMENSION_COUNT 8
+#endif
+#ifndef TFLITE_STABLEHLO_CASE_PARAMS_MAX_BRANCHES_COUNT
 #define TFLITE_STABLEHLO_CASE_PARAMS_MAX_BRANCHES_COUNT 20
+#endif
+
+#ifdef __cplusplus
+namespace tflite {
+namespace micro {
+#endif
 
 // TODO(aselle): Consider using "if this then that" for testing.
 
@@ -635,7 +634,7 @@ typedef struct {
   int body_subgraph_index;
 } TfLiteStablehloReduceWindowParams;
 
-enum TfLiteReduceWindowFunction {
+typedef enum TfLiteReduceWindowFunction {
   TfLiteReduceWindowFunctionUnsupported,
   TfLiteReduceWindowFunctionAdd,
   TfLiteReduceWindowFunctionMul,
@@ -643,10 +642,10 @@ enum TfLiteReduceWindowFunction {
   TfLiteReduceWindowFunctionMax,
   TfLiteReduceWindowFunctionAll,
   TfLiteReduceWindowFunctionAny
-};
+} TfLiteReduceWindowFunction;
 
 typedef struct {
-  enum TfLiteReduceWindowFunction reduce_function;
+  TfLiteReduceWindowFunction reduce_function;
 } TfLiteReduceWindowParams;
 
 typedef struct {
@@ -674,9 +673,259 @@ typedef struct {
 } TfLiteStablehloCaseParams;
 
 #ifdef __cplusplus
-}  // extern "C"
-#endif  // __cplusplus
+}  // namespace micro
 
-#endif  // !defined(TENSORFLOW_COMPILER_MLIR_LITE_CORE_C_BUILTIN_OP_DATA_H_)
+using micro::EmptyStructPlaceholder;
+using micro::kTfLiteActNone;
+using micro::kTfLiteActRelu;
+using micro::kTfLiteActRelu6;
+using micro::kTfLiteActReluN1To1;
+using micro::kTfLiteActSigmoid;
+using micro::kTfLiteActSignBit;
+using micro::kTfLiteActTanh;
+using micro::kTfLiteCombinerTypeMean;
+using micro::kTfLiteCombinerTypeSqrtn;
+using micro::kTfLiteCombinerTypeSum;
+using micro::kTfLiteFullyConnectedWeightsFormatDefault;
+using micro::kTfLiteFullyConnectedWeightsFormatShuffled4x16Int8;
+using micro::kTfLiteLshProjectionDense;
+using micro::kTfLiteLshProjectionSparse;
+using micro::kTfLiteLshProjectionUnknown;
+using micro::kTfLiteLSTMBasicKernel;
+using micro::kTfLiteLSTMFullKernel;
+using micro::kTfLiteMirrorPaddingReflect;
+using micro::kTfLiteMirrorPaddingSymmetric;
+using micro::kTfLiteMirrorPaddingUnknown;
+using micro::kTfLitePaddingSame;
+using micro::kTfLitePaddingUnknown;
+using micro::kTfLitePaddingValid;
+using micro::kTfLiteRngAlgorithmDefault;
+using micro::kTfLiteRngAlgorithmPhilox;
+using micro::kTfLiteRngAlgorithmThreefry;
+using micro::kTfLiteRngAlgorithmUnknown;
+using micro::TfLiteAddParams;
+using micro::TfLiteArgMaxParams;
+using micro::TfLiteArgMinParams;
+using micro::TfLiteBatchMatMulParams;
+using micro::TfLiteBatchToSpaceNDParams;
+using micro::TfLiteBidirectionalSequenceLSTMParams;
+using micro::TfLiteBidirectionalSequenceRNNParams;
+using micro::TfLiteBucketizeParams;
+using micro::TfLiteCallOnceParams;
+using micro::TfLiteCastParams;
+using micro::TfLiteCombinerType;
+using micro::TfLiteConcatenationParams;
+using micro::TfLiteConv3DParams;
+using micro::TfLiteConv3DTransposeParams;
+using micro::TfLiteConvParams;
+using micro::TfLiteCumsumParams;
+using micro::TfLiteDepthToSpaceParams;
+using micro::TfLiteDepthwiseConvParams;
+using micro::TfLiteDivParams;
+using micro::TfLiteEmbeddingLookupSparseParams;
+using micro::TfLiteFakeQuantParams;
+using micro::TfLiteFullyConnectedParams;
+using micro::TfLiteFullyConnectedWeightsFormat;
+using micro::TfLiteFusedActivation;
+using micro::TfLiteGatherParams;
+using micro::TfLiteGeluParams;
+using micro::TfLiteHashtableParams;
+using micro::TfLiteIfParams;
+using micro::TfLiteL2NormParams;
+using micro::TfLiteLeakyReluParams;
+using micro::TfLiteLocalResponseNormParams;
+using micro::TfLiteLSHProjectionParams;
+using micro::TfLiteLSHProjectionType;
+using micro::TfLiteLSTMKernelType;
+using micro::TfLiteLSTMParams;
+using micro::TfLiteMatrixDiagParams;
+using micro::TfLiteMatrixSetDiagParams;
+using micro::TfLiteMirrorPaddingMode;
+using micro::TfLiteMirrorPaddingParams;
+using micro::TfLiteMulParams;
+using micro::TfLiteOneHotParams;
+using micro::TfLitePackParams;
+using micro::TfLitePadding;
+using micro::TfLitePaddingValues;
+using micro::TfLitePadParams;
+using micro::TfLitePadV2Params;
+using micro::TfLitePoolParams;
+using micro::TfLiteRandomParams;
+using micro::TfLiteRankParams;
+using micro::TfLiteReducerParams;
+using micro::TfLiteReduceWindowFunction;
+using micro::TfLiteReduceWindowFunctionAdd;
+using micro::TfLiteReduceWindowFunctionAll;
+using micro::TfLiteReduceWindowFunctionAny;
+using micro::TfLiteReduceWindowFunctionMax;
+using micro::TfLiteReduceWindowFunctionMin;
+using micro::TfLiteReduceWindowFunctionMul;
+using micro::TfLiteReduceWindowFunctionUnsupported;
+using micro::TfLiteReduceWindowParams;
+using micro::TfLiteReshapeParams;
+using micro::TfLiteResizeBilinearParams;
+using micro::TfLiteResizeNearestNeighborParams;
+using micro::TfLiteReverseSequenceParams;
+using micro::TfLiteRngAlgorithm;
+using micro::TfLiteRNNParams;
+using micro::TfLiteSequenceRNNParams;
+using micro::TfLiteShapeParams;
+using micro::TfLiteSkipGramParams;
+using micro::TfLiteSoftmaxParams;
+using micro::TfLiteSpaceToBatchNDParams;
+using micro::TfLiteSpaceToDepthParams;
+using micro::TfLiteSparseToDenseParams;
+using micro::TfLiteSplitParams;
+using micro::TfLiteSplitVParams;
+using micro::TfLiteSqueezeParams;
+using micro::TfLiteStablehloCaseParams;
+using micro::TfLiteStablehloCompositeParams;
+using micro::TfLiteStablehloConcatenateParams;
+using micro::TfLiteStablehloGatherParams;
+using micro::TfLiteStablehloPadParams;
+using micro::TfLiteStablehloReduceWindowParams;
+using micro::TfLiteStablehloRngBitGeneratorParams;
+using micro::TfLiteStablehloScatterParams;
+using micro::TfLiteStridedSliceParams;
+using micro::TfLiteSubParams;
+using micro::TfLiteSVDFParams;
+using micro::TfLiteTransposeConvParams;
+using micro::TfLiteTransposeParams;
+using micro::TfLiteUnidirectionalSequenceLSTMParams;
+using micro::TfLiteUniqueParams;
+using micro::TfLiteUnpackParams;
+using micro::TfLiteVarHandleParams;
+using micro::TfLiteWhileParams;
+
+}  // namespace tflite
+
+#if !defined(TFLM_NO_GLOBAL_C_ALIASES) &&                                \
+    !defined(TENSORFLOW_COMPILER_MLIR_LITE_CORE_C_BUILTIN_OP_DATA_H_) && \
+    !defined(TENSORFLOW_LITE_CORE_C_BUILTIN_OP_DATA_H_) &&               \
+    !defined(TENSORFLOW_LITE_C_BUILTIN_OP_DATA_H_) &&                    \
+    !defined(TENSORFLOW_LITE_BUILTIN_OP_DATA_H_)
+using ::tflite::micro::EmptyStructPlaceholder;
+using ::tflite::micro::kTfLiteActNone;
+using ::tflite::micro::kTfLiteActRelu;
+using ::tflite::micro::kTfLiteActRelu6;
+using ::tflite::micro::kTfLiteActReluN1To1;
+using ::tflite::micro::kTfLiteActSigmoid;
+using ::tflite::micro::kTfLiteActSignBit;
+using ::tflite::micro::kTfLiteActTanh;
+using ::tflite::micro::kTfLiteCombinerTypeMean;
+using ::tflite::micro::kTfLiteCombinerTypeSqrtn;
+using ::tflite::micro::kTfLiteCombinerTypeSum;
+using ::tflite::micro::kTfLiteFullyConnectedWeightsFormatDefault;
+using ::tflite::micro::kTfLiteFullyConnectedWeightsFormatShuffled4x16Int8;
+using ::tflite::micro::kTfLiteLshProjectionDense;
+using ::tflite::micro::kTfLiteLshProjectionSparse;
+using ::tflite::micro::kTfLiteLshProjectionUnknown;
+using ::tflite::micro::kTfLiteLSTMBasicKernel;
+using ::tflite::micro::kTfLiteLSTMFullKernel;
+using ::tflite::micro::kTfLiteMirrorPaddingReflect;
+using ::tflite::micro::kTfLiteMirrorPaddingSymmetric;
+using ::tflite::micro::kTfLiteMirrorPaddingUnknown;
+using ::tflite::micro::kTfLitePaddingSame;
+using ::tflite::micro::kTfLitePaddingUnknown;
+using ::tflite::micro::kTfLitePaddingValid;
+using ::tflite::micro::kTfLiteRngAlgorithmDefault;
+using ::tflite::micro::kTfLiteRngAlgorithmPhilox;
+using ::tflite::micro::kTfLiteRngAlgorithmThreefry;
+using ::tflite::micro::kTfLiteRngAlgorithmUnknown;
+using ::tflite::micro::TfLiteAddParams;
+using ::tflite::micro::TfLiteArgMaxParams;
+using ::tflite::micro::TfLiteArgMinParams;
+using ::tflite::micro::TfLiteBatchMatMulParams;
+using ::tflite::micro::TfLiteBatchToSpaceNDParams;
+using ::tflite::micro::TfLiteBidirectionalSequenceLSTMParams;
+using ::tflite::micro::TfLiteBidirectionalSequenceRNNParams;
+using ::tflite::micro::TfLiteBucketizeParams;
+using ::tflite::micro::TfLiteCallOnceParams;
+using ::tflite::micro::TfLiteCastParams;
+using ::tflite::micro::TfLiteCombinerType;
+using ::tflite::micro::TfLiteConcatenationParams;
+using ::tflite::micro::TfLiteConv3DParams;
+using ::tflite::micro::TfLiteConv3DTransposeParams;
+using ::tflite::micro::TfLiteConvParams;
+using ::tflite::micro::TfLiteCumsumParams;
+using ::tflite::micro::TfLiteDepthToSpaceParams;
+using ::tflite::micro::TfLiteDepthwiseConvParams;
+using ::tflite::micro::TfLiteDivParams;
+using ::tflite::micro::TfLiteEmbeddingLookupSparseParams;
+using ::tflite::micro::TfLiteFakeQuantParams;
+using ::tflite::micro::TfLiteFullyConnectedParams;
+using ::tflite::micro::TfLiteFullyConnectedWeightsFormat;
+using ::tflite::micro::TfLiteFusedActivation;
+using ::tflite::micro::TfLiteGatherParams;
+using ::tflite::micro::TfLiteGeluParams;
+using ::tflite::micro::TfLiteHashtableParams;
+using ::tflite::micro::TfLiteIfParams;
+using ::tflite::micro::TfLiteL2NormParams;
+using ::tflite::micro::TfLiteLeakyReluParams;
+using ::tflite::micro::TfLiteLocalResponseNormParams;
+using ::tflite::micro::TfLiteLSHProjectionParams;
+using ::tflite::micro::TfLiteLSHProjectionType;
+using ::tflite::micro::TfLiteLSTMKernelType;
+using ::tflite::micro::TfLiteLSTMParams;
+using ::tflite::micro::TfLiteMatrixDiagParams;
+using ::tflite::micro::TfLiteMatrixSetDiagParams;
+using ::tflite::micro::TfLiteMirrorPaddingMode;
+using ::tflite::micro::TfLiteMirrorPaddingParams;
+using ::tflite::micro::TfLiteMulParams;
+using ::tflite::micro::TfLiteOneHotParams;
+using ::tflite::micro::TfLitePackParams;
+using ::tflite::micro::TfLitePadding;
+using ::tflite::micro::TfLitePaddingValues;
+using ::tflite::micro::TfLitePadParams;
+using ::tflite::micro::TfLitePadV2Params;
+using ::tflite::micro::TfLitePoolParams;
+using ::tflite::micro::TfLiteRandomParams;
+using ::tflite::micro::TfLiteRankParams;
+using ::tflite::micro::TfLiteReducerParams;
+using ::tflite::micro::TfLiteReduceWindowFunction;
+using ::tflite::micro::TfLiteReduceWindowFunctionAdd;
+using ::tflite::micro::TfLiteReduceWindowFunctionAll;
+using ::tflite::micro::TfLiteReduceWindowFunctionAny;
+using ::tflite::micro::TfLiteReduceWindowFunctionMax;
+using ::tflite::micro::TfLiteReduceWindowFunctionMin;
+using ::tflite::micro::TfLiteReduceWindowFunctionMul;
+using ::tflite::micro::TfLiteReduceWindowFunctionUnsupported;
+using ::tflite::micro::TfLiteReduceWindowParams;
+using ::tflite::micro::TfLiteReshapeParams;
+using ::tflite::micro::TfLiteResizeBilinearParams;
+using ::tflite::micro::TfLiteResizeNearestNeighborParams;
+using ::tflite::micro::TfLiteReverseSequenceParams;
+using ::tflite::micro::TfLiteRngAlgorithm;
+using ::tflite::micro::TfLiteRNNParams;
+using ::tflite::micro::TfLiteSequenceRNNParams;
+using ::tflite::micro::TfLiteShapeParams;
+using ::tflite::micro::TfLiteSkipGramParams;
+using ::tflite::micro::TfLiteSoftmaxParams;
+using ::tflite::micro::TfLiteSpaceToBatchNDParams;
+using ::tflite::micro::TfLiteSpaceToDepthParams;
+using ::tflite::micro::TfLiteSparseToDenseParams;
+using ::tflite::micro::TfLiteSplitParams;
+using ::tflite::micro::TfLiteSplitVParams;
+using ::tflite::micro::TfLiteSqueezeParams;
+using ::tflite::micro::TfLiteStablehloCaseParams;
+using ::tflite::micro::TfLiteStablehloCompositeParams;
+using ::tflite::micro::TfLiteStablehloConcatenateParams;
+using ::tflite::micro::TfLiteStablehloGatherParams;
+using ::tflite::micro::TfLiteStablehloPadParams;
+using ::tflite::micro::TfLiteStablehloReduceWindowParams;
+using ::tflite::micro::TfLiteStablehloRngBitGeneratorParams;
+using ::tflite::micro::TfLiteStablehloScatterParams;
+using ::tflite::micro::TfLiteStridedSliceParams;
+using ::tflite::micro::TfLiteSubParams;
+using ::tflite::micro::TfLiteSVDFParams;
+using ::tflite::micro::TfLiteTransposeConvParams;
+using ::tflite::micro::TfLiteTransposeParams;
+using ::tflite::micro::TfLiteUnidirectionalSequenceLSTMParams;
+using ::tflite::micro::TfLiteUniqueParams;
+using ::tflite::micro::TfLiteUnpackParams;
+using ::tflite::micro::TfLiteVarHandleParams;
+using ::tflite::micro::TfLiteWhileParams;
+#endif
+#endif  // __cplusplus
 
 #endif  // TENSORFLOW_LITE_MICRO_C_BUILTIN_OP_DATA_H_

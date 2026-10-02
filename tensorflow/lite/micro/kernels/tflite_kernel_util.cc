@@ -20,16 +20,11 @@ limitations under the License.
 #include <initializer_list>
 #include <limits>
 
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
-
-#ifndef TF_LITE_STATIC_MEMORY
-#include <string>
-#endif  // TF_LITE_STATIC_MEMORY
-
 #include "tensorflow/lite/micro/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 #if defined(__APPLE__)
 #include "TargetConditionals.h"
@@ -146,30 +141,6 @@ const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
                                            const TfLiteNode* node, int index) {
   return GetInput(context, node, index);
 }
-
-#ifndef TF_LITE_STATIC_MEMORY
-
-const TfLiteTensor* GetIntermediates(TfLiteContext* context,
-                                     const TfLiteNode* node, int index) {
-  const int tensor_index = ValidateTensorIndexing(
-      context, index, node->intermediates->size, node->intermediates->data);
-  if (tensor_index < 0) {
-    return nullptr;
-  }
-  return GetTensorAtIndex(context, tensor_index);
-}
-
-TfLiteStatus GetIntermediatesSafe(const TfLiteContext* context,
-                                  const TfLiteNode* node, int index,
-                                  TfLiteTensor** tensor) {
-  int tensor_index;
-  TF_LITE_ENSURE_STATUS(
-      ValidateTensorIndexingSafe(context, index, node->intermediates->size,
-                                 node->intermediates->data, &tensor_index));
-  *tensor = GetTensorAtIndex(context, tensor_index);
-  return kTfLiteOk;
-}
-#endif  // TF_LITE_STATIC_MEMORY
 
 // Per-axis
 TfLiteStatus PopulateConvolutionQuantizationParams(
@@ -389,37 +360,6 @@ TfLiteStatus CalculateActivationRangeQuantized(TfLiteContext* context,
 bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2) {
   return TfLiteIntArrayEqual(input1->dims, input2->dims);
 }
-
-#ifndef TF_LITE_STATIC_MEMORY
-// TODO(b/172067338): Having this function be part of TF_LITE_STATIC_MEMORY
-// build results in a 6KB size increase, even though the function is unsused for
-// that build. What appears to be happening is that while the linker drops the
-// unsused function, the string library that gets pulled in is not dropped,
-// resulting in the increased binary size.
-std::string GetShapeDebugString(const TfLiteIntArray* shape) {
-  std::string str;
-  for (int d = 0; d < shape->size; ++d) {
-    if (str.empty())
-      str = "[" + std::to_string(shape->data[d]);
-    else
-      // Don't add space after "," to make the output consistent with
-      // tensorflow::shape_inference::InferenceContext::DebugString()
-      str += "," + std::to_string(shape->data[d]);
-  }
-  if (str.empty()) {
-    str = "[]";
-  } else {
-    str += "]";
-  }
-  return str;
-}
-
-std::string GetTensorDebugString(const TfLiteTensor* tensor) {
-  return std::string("{\n  type: ") + TfLiteTypeGetName(tensor->type) +
-         "\n  data: {...}\n  dims: " + GetShapeDebugString(tensor->dims) +
-         "\n}";
-}
-#endif  // TF_LITE_STATIC_MEMORY
 
 // Size of string is not constant, return 0 in such case.
 int TfLiteTypeGetSize(TfLiteType type) {

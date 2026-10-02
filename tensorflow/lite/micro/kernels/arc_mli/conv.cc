@@ -89,20 +89,6 @@ struct OpData {
   conv_func_ptr p_mli_krn_conv2d_sa8_sa8_sa32;
 };
 
-#if !defined(TF_LITE_STRIP_REFERENCE_IMPL)
-inline PaddingType RuntimePaddingType(TfLitePadding padding) {
-  switch (padding) {
-    case TfLitePadding::kTfLitePaddingSame:
-      return PaddingType::kSame;
-    case TfLitePadding::kTfLitePaddingValid:
-      return PaddingType::kValid;
-    case TfLitePadding::kTfLitePaddingUnknown:
-    default:
-      return PaddingType::kNone;
-  }
-}
-#endif
-
 bool IsMliApplicable(TfLiteContext* context, const TfLiteTensor* input,
                      const TfLiteTensor* filter, const TfLiteTensor* bias,
                      const TfLiteConvParams* params) {

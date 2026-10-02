@@ -22,11 +22,7 @@ limitations under the License.
 // nothing to avoid linking in ::delete().
 // This macro needs to be included in all subclasses of a virtual base class in
 // the private section.
-#ifdef TF_LITE_STATIC_MEMORY
 #define TF_LITE_REMOVE_VIRTUAL_DELETE \
   void operator delete(void* p) {}
-#else
-#define TF_LITE_REMOVE_VIRTUAL_DELETE
-#endif
 
 #endif  // TENSORFLOW_LITE_MICRO_COMPATIBILITY_H_
