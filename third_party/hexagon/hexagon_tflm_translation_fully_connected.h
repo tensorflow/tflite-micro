@@ -47,31 +47,36 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "tensorflow/lite/micro/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
 
 namespace tflite {
 namespace hexagon_fully_connected {
 
-void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length);
+void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length) asm(
+    "_ZN6tflite23hexagon_fully_connected11HexagonInitEP13TfLiteContextPKcj");
 
-TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node) asm(
+    "_ZN6tflite23hexagon_fully_"
+    "connected14HexagonPrepareEP13TfLiteContextP10TfLiteNode");
 
-TfLiteStatus HexagonEvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
-                                      void* op_data,
-                                      const TfLiteEvalTensor* input,
-                                      const TfLiteEvalTensor* filter,
-                                      const TfLiteEvalTensor* bias,
-                                      TfLiteEvalTensor* output);
+TfLiteStatus
+HexagonEvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node, void* op_data, const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) asm(
+    "_ZN6tflite23hexagon_fully_"
+    "connected24HexagonEvalQuantizedInt8EP13TfLiteContextP10TfLiteNodePvPK16TfL"
+    "iteEvalTensorS8_S8_PS6_");
 
-void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node);
-bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node);
+void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node) asm(
+    "_ZN6tflite23hexagon_fully_"
+    "connected29HexagonOptimizationEvaluationEP13TfLiteContextP10TfLiteNode");
+bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node) asm(
+    "_ZN6tflite23hexagon_fully_"
+    "connected18HexagonOptimizableEP13TfLiteContextP10TfLiteNode");
 
 }  // namespace hexagon_fully_connected
 }  // namespace tflite

@@ -30,9 +30,6 @@ limitations under the License.
 #endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
-// TODO(b/149795762): kTfLiteAbort cannot be part of the tflite TfLiteStatus.
-const TfLiteStatus kTfLiteAbort = static_cast<TfLiteStatus>(15);
-
 namespace micro {
 class DecodeState;  // can't use decode_state.h due to circular include
 }  // namespace micro
@@ -204,7 +201,7 @@ class MicroContext {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
-inline MicroContext* GetMicroContext(const struct TfLiteContext* context) {
+inline MicroContext* GetMicroContext(const TfLiteContext* context) {
   return reinterpret_cast<MicroContext*>(context->impl_);
 }
 
@@ -225,12 +222,12 @@ inline TfLiteStatus MicroContextRequestScratchBufferInArena(TfLiteContext* ctx,
 inline void* MicroContextGetScratchBuffer(TfLiteContext* ctx, int buffer_idx) {
   return GetMicroContext(ctx)->GetScratchBuffer(buffer_idx);
 }
-inline TfLiteTensor* MicroContextGetTensor(const struct TfLiteContext* context,
+inline TfLiteTensor* MicroContextGetTensor(const TfLiteContext* context,
                                            int tensor_idx) {
   return GetMicroContext(context)->AllocateTempTfLiteTensor(tensor_idx);
 }
-inline TfLiteEvalTensor* MicroContextGetEvalTensor(
-    const struct TfLiteContext* context, int tensor_idx) {
+inline TfLiteEvalTensor* MicroContextGetEvalTensor(const TfLiteContext* context,
+                                                   int tensor_idx) {
   return GetMicroContext(context)->GetEvalTensor(tensor_idx);
 }
 inline TfLiteExternalContext* MicroContextGetExternalContext(
@@ -240,8 +237,7 @@ inline TfLiteExternalContext* MicroContextGetExternalContext(
 }
 
 // Requests that an error be reported with format string msg.
-void MicroContextReportOpError(struct TfLiteContext* context,
-                               const char* format, ...);
+void MicroContextReportOpError(TfLiteContext* context, const char* format, ...);
 
 }  // namespace tflite
 

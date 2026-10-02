@@ -71,8 +71,8 @@ TfLiteTensor* MicroContext::AllocateTempIntermediateTensor(
   return AllocateTempTfLiteTensor(tensor_index);
 }
 
-void MicroContextReportOpError(struct TfLiteContext* context,
-                               const char* format, ...) {
+void MicroContextReportOpError(TfLiteContext* context, const char* format,
+                               ...) {
   va_list args;
   va_start(args, format);
   VMicroPrintf(format, args);

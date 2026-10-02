@@ -20,9 +20,6 @@ limitations under the License.
 #include <cstddef>
 #include <initializer_list>
 #include <limits>
-#ifndef TF_LITE_STATIC_MEMORY
-#include <string>
-#endif  // TF_LITE_STATIC_MEMORY
 
 #include "tensorflow/lite/micro/c/builtin_op_data.h"
 #include "tensorflow/lite/micro/c/common.h"
@@ -100,33 +97,6 @@ TfLiteStatus GetOutputSafe(const TfLiteContext* context, const TfLiteNode* node,
 const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
                                            const TfLiteNode* node, int index);
 
-#ifndef TF_LITE_STATIC_MEMORY
-
-// Note: You must check if result is not null:
-//
-//   TfLiteTensor* my_tensor = GetIntermediates(context, node, kMyTensorIdx);
-//   TF_LITE_ENSURE(context, my_tensor != nullptr);
-//
-// This is because the index might point to the optional tensor constant
-// (kTfLiteOptionalTensor) in which case there is no tensor to return.
-const TfLiteTensor* GetIntermediates(TfLiteContext* context,
-                                     const TfLiteNode* node, int index);
-
-// Same as `GetIntermediates` but returns boolean and uses output argument for
-// tensor.
-//
-//   TfLiteTensor* my_tensor;
-//   TF_LITE_ENSURE_OK(context,
-//                     GetIntermediatesSafe(context, node, kMyTensorIdx,
-//                     &my_tensor));
-//   // can use my_tensor directly from here onwards, it is not nullptr
-//
-// Should be used in cases where the binary size is too large.
-TfLiteStatus GetIntermediatesSafe(const TfLiteContext* context,
-                                  const TfLiteNode* node, int index,
-                                  TfLiteTensor** tensor);
-#endif  // TF_LITE_STATIC_MEMORY
-
 inline int NumDimensions(const TfLiteTensor* t) { return t->dims->size; }
 inline int SizeOfDimension(const TfLiteTensor* t, int dim) {
   return t->dims->data[dim];
@@ -138,12 +108,6 @@ inline int NumInputs(const TfLiteNode* node) {
 inline int NumOutputs(const TfLiteNode* node) {
   return node->outputs == nullptr ? 0 : node->outputs->size;
 }
-
-#ifndef TF_LITE_STATIC_MEMORY
-inline int NumIntermediates(const TfLiteNode* node) {
-  return node->intermediates->size;
-}
-#endif  // TF_LITE_STATIC_MEMORY
 
 inline int64_t NumElements(const int* dims, int num_dims) {
   int64_t count = 1;
@@ -180,23 +144,6 @@ inline bool IsConstantOrPersistentTensor(const TfLiteTensor* tensor) {
 inline bool IsDynamicTensor(const TfLiteTensor* tensor) {
   return tensor->allocation_type == kTfLiteDynamic;
 }
-#ifndef TF_LITE_STATIC_MEMORY
-// Sets tensor to dynamic.
-inline void SetTensorToDynamic(TfLiteTensor* tensor) {
-  if (tensor->allocation_type != kTfLiteDynamic) {
-    TfLiteTensorDataFree(tensor);
-    tensor->allocation_type = kTfLiteDynamic;
-  }
-}
-
-// Sets tensor to persistent and read-only.
-inline void SetTensorToPersistentRo(TfLiteTensor* tensor) {
-  if (tensor->allocation_type != kTfLitePersistentRo) {
-    TfLiteTensorDataFree(tensor);
-    tensor->allocation_type = kTfLitePersistentRo;
-  }
-}
-#endif  // TF_LITE_STATIC_MEMORY
 
 // Determines whether it is a hybrid op - one that has float inputs and
 // quantized weights.
@@ -268,12 +215,6 @@ void CalculateActivationRange(TfLiteFusedActivation activation,
 // Return true if the given tensors have the same shape.
 bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2);
 
-#if !defined(TF_LITE_STATIC_MEMORY)
-std::string GetShapeDebugString(const TfLiteIntArray* shape);
-
-std::string GetTensorDebugString(const TfLiteTensor* tensor);
-#endif  // !defined(TF_LITE_STATIC_MEMORY)
-
 // Return the size of given type in bytes. Return 0 in case of string.
 int TfLiteTypeGetSize(TfLiteType type);
 
@@ -326,8 +267,6 @@ TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
 
 }  // namespace micro
 
-#ifndef TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
-#define TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 using micro::CalculateActivationRange;
 using micro::CalculateActivationRangeQuantized;
 using micro::CheckedShapeProduct;
@@ -345,9 +284,7 @@ using micro::IsConstantOrPersistentTensor;
 using micro::IsConstantTensor;
 using micro::IsDynamicTensor;
 using micro::IsHybridOp;
-using micro::IsMobilePlatform;
 using micro::NumDimensions;
-using micro::NumElements;
 using micro::NumInputs;
 using micro::NumOutputs;
 using micro::PopulateConvolutionQuantizationParams;
@@ -355,15 +292,16 @@ using micro::SizeOfDimension;
 using micro::TfLiteTypeGetSize;
 using micro::TfLiteTypeGetSizeBits;
 
-#ifndef TF_LITE_STATIC_MEMORY
-using micro::GetIntermediates;
-using micro::GetIntermediatesSafe;
-using micro::GetShapeDebugString;
-using micro::GetTensorDebugString;
-using micro::NumIntermediates;
-using micro::SetTensorToDynamic;
-using micro::SetTensorToPersistentRo;
-#endif  // !TF_LITE_STATIC_MEMORY
+#ifndef TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
+using micro::IsMobilePlatform;
+using micro::NumElements;
+#else
+inline int64_t NumElements(const micro::TfLiteIntArray* dims) {
+  return micro::NumElements(dims);
+}
+inline int64_t NumElements(const micro::TfLiteTensor* t) {
+  return micro::NumElements(t);
+}
 #endif  // TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 
 }  // namespace tflite

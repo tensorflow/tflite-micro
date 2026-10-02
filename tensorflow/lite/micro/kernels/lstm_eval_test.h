@@ -208,22 +208,7 @@ LSTMKernelContents CreateLSTMKernelContent(
   return kernel_content;
 }
 
-// Deduce the size information (Batch (B), Time Steps (T), Input dimension (I),
-// State dimension (S)) that defines the LSTM using the input and hidden state
-// tensor
-LstmSizeInfo CreateLstmSizeInfo(
-    const bool time_major, const TfLiteIntArray* input_tensor_shape,
-    const TfLiteIntArray* hidden_state_tensor_shape) {
-  LstmSizeInfo size_info;
-  size_info.time_major = time_major;
-  size_info.batch_size =
-      time_major ? input_tensor_shape->data[1] : input_tensor_shape->data[0];
-  size_info.time_steps =
-      time_major ? input_tensor_shape->data[0] : input_tensor_shape->data[1];
-  size_info.input_dimension = input_tensor_shape->data[2];
-  size_info.state_dimension = hidden_state_tensor_shape->data[1];
-  return size_info;
-}
+using tflite::micro::CreateLstmSizeInfo;
 
 // Create the LstmOpData using the LstmNodeContent and
 // NodeQuantizationParameters (defined in test_data/lstm_test_data) During the

@@ -22,7 +22,6 @@
 BUILD_TYPE :=
 
 COMMON_FLAGS := \
-  -DTF_LITE_STATIC_MEMORY \
   -fno-unwind-tables \
   -ffunction-sections \
   -fdata-sections \

@@ -13,33 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-#
-# Called with following arguments:
-# 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
-# 2 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
-# Tests the microcontroller code using native x86 execution.
-#
-# This file is a subset of the tests in test_x86.sh. It is for parallelizing the test
-# suite on github actions.
-
-set -ex
-
-TENSORFLOW_ROOT=${1}
-EXTERNAL_DIR=${2}
-
-source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
-
-MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
-COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
-
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
-
-readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
-
-# Build w/o TF_LITE_STATIC_MEMORY to catch additional errors.
-# TODO(b/160955687): We run the tests w/o TF_LITE_STATIC_MEMORY to make the
-# internal and open source CI consistent. See b/160955687#comment7 for more
-# details.
-readable_run make -f ${MAKEFILE} clean ${COMMON_ARGS}
-readable_run make $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=no_tf_lite_static_memory build ${COMMON_ARGS}
-readable_run make $(get_parallel_jobs) -f ${MAKEFILE} BUILD_TYPE=no_tf_lite_static_memory test ${COMMON_ARGS}
+# Temporary no-op stub kept only until .github/workflows/test_makefile.yml
+# lands on main (since pull_request_target runs main's workflow definition).
+exit 0
