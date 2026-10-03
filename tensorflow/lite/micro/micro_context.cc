@@ -184,4 +184,16 @@ TfLiteStatus MicroContext::SetCustomDecodeRegistrations(
   return kTfLiteOk;
 }
 
+void MicroContext::InitTfLiteContext(TfLiteContext* context) {
+  context->impl_ = static_cast<void*>(this);
+  context->ReportError = MicroContextReportOpError;
+  context->GetTensor = MicroContextGetTensor;
+  context->GetEvalTensor = MicroContextGetEvalTensor;
+  context->RequestScratchBufferInArena =
+      MicroContextRequestScratchBufferInArena;
+  context->GetExternalContext = MicroContextGetExternalContext;
+  context->AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
+  context->GetScratchBuffer = MicroContextGetScratchBuffer;
+}
+
 }  // namespace tflite

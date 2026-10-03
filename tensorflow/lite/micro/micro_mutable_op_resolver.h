@@ -22,6 +22,7 @@ limitations under the License.
 #include "signal/micro/kernels/rfft.h"
 #include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/kernels/add.h"
 #include "tensorflow/lite/micro/kernels/batch_matmul.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
@@ -41,7 +42,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/unidirectional_sequence_lstm.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {

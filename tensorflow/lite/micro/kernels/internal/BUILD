@@ -29,6 +29,7 @@ tflm_cc_library(
     name = "compatibility",
     hdrs = ["compatibility.h"],
     deps = [
+        "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro/kernels:op_macros",
     ],
 )
@@ -75,7 +76,6 @@ tflm_cc_library(
             "reference/*.cc",
         ],
         allow_empty = True,
-        exclude = ["reference/portable_tensor_utils.cc"],
     ),
     hdrs = glob([
         "reference/*.h",
@@ -139,13 +139,10 @@ tflm_cc_library(
     name = "tensor_utils_no_eigen",
     srcs = [
         "portable_tensor_utils.cc",
-        "reference/portable_tensor_utils.cc",
-        "tensor_utils.cc",
     ],
     hdrs = [
         "portable_tensor_utils.h",
         "reference/portable_tensor_utils.h",
-        "reference/portable_tensor_utils_impl.h",
     ],
     deps = [
         ":common",

@@ -189,6 +189,10 @@ class MicroContext {
                           custom_decode_registrations_size_);
   }
 
+  // Initializes the TfLiteContext function pointers and impl_ pointer to bind
+  // to this MicroContext instance.
+  void InitTfLiteContext(TfLiteContext* context);
+
  private:
   const AlternateMemoryRegion* decompress_regions_ = nullptr;
   size_t decompress_regions_size_ = 0;
@@ -204,6 +208,10 @@ class MicroContext {
 inline MicroContext* GetMicroContext(const TfLiteContext* context) {
   return reinterpret_cast<MicroContext*>(context->impl_);
 }
+
+namespace micro {
+using ::tflite::GetMicroContext;
+}  // namespace micro
 
 // Deprecated API. Prefer to using the MicroContext API directly from the
 // kernels.
