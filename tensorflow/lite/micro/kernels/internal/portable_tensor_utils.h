@@ -29,13 +29,218 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-
-// Not all backends support CpuBackendContext usage, so forward declare to avoid
-// pulling in its implementation. Use of CpuBackendContext in method
-// implementations is purely optional.
-class CpuBackendContext;
-
 namespace tensor_utils {
+
+template <typename T>
+bool PortableIsZeroVector(const T* vector, int v_size) {
+  for (int i = 0; i < v_size; ++i) {
+    if (vector[i] != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// LINT.IfChange(portable_symmetric_quantize_floats)
+void PortableSymmetricQuantizeFloats(const float* values, const int size,
+                                     int8_t* quantized_values, float* min_value,
+                                     float* max_value, float* scaling_factor);
+
+void PortableSymmetricQuantizeFloats(const float* values, const int size,
+                                     int8_t* quantized_values, float min_value,
+                                     float max_value, float* scaling_factor);
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/quantization/lite/toco_legacy/portable_tensor_utils.h:portable_symmetric_quantize_floats)
+
+void PortableAsymmetricQuantizeFloats(const float* values, const int size,
+                                      int8_t* quantized_values,
+                                      float* scaling_factor, int32_t* offset);
+
+// Multiply a matrix by a batch vector, and store results in a batch-size
+// vector.
+void PortableMatrixBatchVectorMultiplyAccumulate(const float* matrix,
+                                                 int m_rows, int m_cols,
+                                                 const float* vector,
+                                                 int n_batch, float* result);
+
+void PortableMatrixBatchVectorMultiplyAccumulate(
+    const int8_t* __restrict__ matrix, const int m_rows, const int m_cols,
+    const int8_t* __restrict__ vectors, const float* scaling_factors,
+    int n_batch, float* __restrict__ result);
+
+void PortableMatrixBatchVectorMultiplyAccumulate(
+    const int8_t* __restrict__ matrix, const int m_rows, const int m_cols,
+    const int8_t* __restrict__ vectors, const float* scaling_factors,
+    int n_batch, float* __restrict__ result, const float* per_channel_scale,
+    const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
+    bool* compute_row_sums);
+
+void PortableMatrixBatchVectorMultiplyAccumulate(
+    const int8_t* __restrict__ matrix, const int m_rows, const int m_cols,
+    const int8_t* __restrict__ vector, const float* scaling_factors,
+    int n_batch, int32_t* scratch, float* __restrict__ result);
+
+void PortableSparseMatrixBatchVectorMultiplyAccumulate1x4(
+    const float* __restrict__ matrix, const int32_t* __restrict__ segments,
+    const int32_t* __restrict__ indices, int m_rows, int m_cols,
+    const float* __restrict__ vector, int n_batch, float* __restrict__ result);
+
+void PortableSparseMatrixBatchVectorMultiplyAccumulate(
+    const float* __restrict__ matrix, const uint8_t* __restrict__ ledger,
+    int m_rows, int m_cols, const float* __restrict__ vector, int n_batch,
+    float* __restrict__ result);
+
+void PortableSparseMatrixBatchVectorMultiplyAccumulate1x16(
+    const int8_t* __restrict__ matrix, const int32_t* __restrict__ segments,
+    const int32_t* __restrict__ indices, int m_rows, int m_cols,
+    const int8_t* __restrict__ vector, const int32_t* __restrict__ bias_vector,
+    int n_batch, const int32_t input_offset, const int32_t output_multiplier,
+    int32_t output_shift, const int32_t* per_channel_scale,
+    const int32_t* per_channel_shift, int32_t output_offset,
+    const int32_t output_activation_min, const int32_t output_activation_max,
+    int8_t* __restrict__ result);
+
+void PortableSparseMatrixBatchVectorMultiplyAccumulate(
+    const int8_t* __restrict__ matrix, const uint8_t* ledger, const int m_rows,
+    const int m_cols, const int8_t* __restrict__ vectors,
+    const float* scaling_factors, int n_batch, float* __restrict__ result,
+    const float* per_channel_scale);
+
+// Dot product of two vectors.
+float PortableVectorVectorDotProduct(const float* vector1, const float* vector2,
+                                     int v_size);
+
+void PortableBatchVectorBatchVectorDotProduct(const int16_t* vector1,
+                                              const int16_t* vector2,
+                                              int v_size, int n_batch,
+                                              int32_t* result);
+
+void PortableVectorBatchVectorCwiseProductAccumulate(
+    const int16_t* vector, int v_size, const int16_t* batch_vector, int n_batch,
+    int32_t multiplier, int shift, int16_t* result);
+
+void PortableMatrixBatchVectorMultiplyAccumulate(
+    const int8_t* input, const int32_t* bias,
+    const int8_t* input_to_gate_weights, int32_t multiplier, int32_t shift,
+    int32_t n_batch, int32_t n_input, int32_t n_output, int32_t output_zp,
+    int32_t* scratch, int16_t* output);
+
+void PortableMatrixBatchVectorMultiplyAccumulate(
+    const int8_t* input, const int32_t* bias,
+    const int8_t* input_to_gate_weights, int32_t multiplier, int32_t shift,
+    int32_t n_batch, int32_t n_input, int32_t n_output, int32_t output_zp,
+    int32_t* scratch, int8_t* output);
+
+void PortableMatrixBatchVectorMultiply(const int8_t* input,
+                                       int32_t input_zeropoint,
+                                       const int8_t* input_to_gate_weights,
+                                       int32_t input_to_gate_effective_scale_a,
+                                       int32_t input_to_gate_effective_scale_b,
+                                       int32_t n_batch, int32_t n_input,
+                                       int32_t n_cell, int8_t* gate_output,
+                                       int8_t gate_output_zp);
+
+void PortableMatrixBatchVectorMultiply(
+    const int16_t* hidden, const int8_t* hidden_to_output_weights,
+    int32_t proj_effective_scale_a, int32_t proj_effective_scale_b,
+    const int32_t* gate_bias, int32_t n_batch, int32_t n_hidden,
+    int32_t n_output, int32_t output_zp, int8_t* proj_output);
+
+void PortableMatrixScalarMultiplyAccumulate(const int8_t* matrix,
+                                            int32_t scalar, int32_t n_row,
+                                            int32_t n_col, int32_t* output);
+
+void PortableApplyLayerNorm(const int16_t* input,
+                            const int16_t* layer_norm_weights,
+                            const int32_t* bias, int32_t layer_norm_scale_a,
+                            int32_t layer_norm_scale_b, int32_t variance_limit,
+                            int n_batch, int n_input, int16_t* output);
+
+void PortableApplyLayerNormFloat(const int16_t* input,
+                                 const int16_t* layer_norm_weights,
+                                 int32_t layer_norm_scale_a,
+                                 int32_t layer_norm_scale_b,
+                                 const int32_t* bias, int n_batch, int n_input,
+                                 int16_t* output);
+
+void PortableApplySigmoid(const int16_t* input, int32_t n_batch,
+                          int32_t n_input, int16_t* output);
+
+void PortableApplySigmoidFloat(const int16_t* input, int32_t n_batch,
+                               int32_t n_input, int16_t* output);
+
+void PortableApplyTanh(int32_t integer_bits, const int16_t* input,
+                       int32_t n_batch, int32_t n_input, int16_t* output);
+
+void PortableApplyTanhFloat(const int16_t* input, int32_t n_batch,
+                            int32_t n_input, int32_t integer_bits,
+                            int16_t* output);
+
+void PortableCwiseMul(const int16_t* input_1, const int16_t* input_2,
+                      int n_batch, int n_input, int shift, int16_t* output);
+
+void PortableCwiseMul(const int16_t* input_1, const int16_t* input_2,
+                      int32_t multiplier, int32_t shift, int32_t n_batch,
+                      int32_t n_input, int32_t output_zp, int8_t* output);
+
+void PortableCwiseAdd(const int16_t* input_1, const int16_t* input_2,
+                      int n_batch, int n_input, int16_t* output);
+
+template <typename T>
+void PortableCwiseClipping(T* vector, const int v_size,
+                           const T& clipping_value) {
+  for (int i = 0; i < v_size; i++) {
+    vector[i] = std::max(std::min(clipping_value, vector[i]),
+                         static_cast<T>(-clipping_value));
+  }
+}
+
+// Batch vector initialization with another vector.
+void PortableVectorBatchVectorAssign(const float* vector, int v_size,
+                                     int n_batch, float* batch_vector);
+
+// Compute "1.0f - elements of vector" (used in CIFG).
+void PortableSub1Vector(const float* vector, int v_size, float* result);
+
+void PortableSub1Vector(const int16_t* vector, int v_size, int16_t* result);
+
+// Multiply all elements of vector with a scalar.
+void PortableVectorScalarMultiply(const int8_t* vector, int v_size, float scale,
+                                  float* result);
+
+// Reduce-sum on a vector:
+// input_vector: pointer to input vector.
+// output_vector: pointer to vector.
+// output_size: output vector size.
+// reduction_size: number of consecutive elements from input vector which are
+// added to get one element of output.
+template <typename INPUT, typename OUTPUT>
+void PortableReductionSumVector(const INPUT* input_vector,
+                                OUTPUT* output_vector, int output_size,
+                                int reduction_size) {
+  for (int o = 0; o < output_size; o++) {
+    OUTPUT result = 0;
+    for (int r = 0; r < reduction_size; r++) {
+      result += input_vector[r];
+    }
+    output_vector[o] = result;
+    input_vector += reduction_size;
+  }
+}
+
+// Layer norm for each batch.
+void PortableMeanStddevNormalization(const float* __restrict__ input_vector,
+                                     float* __restrict__ output_vector,
+                                     int v_size, int n_batch);
+
+// Saturate Add.
+void PortableTwoGateSaturatingAdd(const int8_t* input, int8_t input_zp,
+                                  const int8_t* recurrent, int8_t recurrent_zp,
+                                  int32_t input_effective_scale_a,
+                                  int32_t input_effective_scale_b,
+                                  int32_t recurrent_effective_scale_a,
+                                  int32_t recurrent_effective_scale_b,
+                                  int32_t n_batch, int32_t n_cell,
+                                  int16_t* output);
 
 // Multiplies a matrix with a scalar and reduce the result on each row to a
 // scalar.
@@ -485,15 +690,13 @@ void TwoGateSaturatingAdd(const int8_t* input, int8_t input_zp,
                           int32_t recurrent_effective_scale_b, int32_t n_batch,
                           int32_t n_cell, int16_t* output);
 
-// Same as the function above, but provide a scratch buffer for the
-// int8 x int8 -> int32 and a CpuBackendContext for the accumulator
-// computation.
+/// Same as the function above, but provide a scratch buffer for the
+// int8 x int8 -> int32 accumulator computation.
 void MatrixBatchVectorMultiplyAccumulate(
     const int8_t* __restrict__ matrix, const int m_rows, const int m_cols,
     const int8_t* __restrict__ vectors,
     const float* __restrict__ scaling_factors, int n_batch,
-    int32_t* __restrict__ scratch, float* __restrict__ result,
-    CpuBackendContext* __restrict__ context);
+    int32_t* __restrict__ scratch, float* __restrict__ result);
 
 // Same as the function above except that can make use of cached row sums.
 void MatrixBatchVectorMultiplyAccumulate(
@@ -501,7 +704,7 @@ void MatrixBatchVectorMultiplyAccumulate(
     const int8_t* __restrict__ vectors, const float* scaling_factors,
     int n_batch, float* __restrict__ result, const float* per_channel_scale,
     const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
-    bool* compute_row_sums, CpuBackendContext* context);
+    bool* compute_row_sums);
 
 // Same as the function above, but provides separate scaling factor for the
 // matrix and the vectors. The scaling factors are multiplied in the
@@ -512,16 +715,14 @@ inline void MatrixBatchVectorMultiplyAccumulate(
     const float* vector_scaling_factors, int n_batch,
     float* __restrict__ result, const float* per_channel_scale,
     const int32_t* input_offset, int32_t* scratch, int32_t* row_sums,
-    bool* compute_row_sums, float* scaling_factor_scratch,
-    CpuBackendContext* context) {
+    bool* compute_row_sums, float* scaling_factor_scratch) {
   for (int b = 0; b < n_batch; ++b) {
     scaling_factor_scratch[b] =
         vector_scaling_factors[b] * matrix_scaling_factor;
   }
-  MatrixBatchVectorMultiplyAccumulate(matrix, m_rows, m_cols, vectors,
-                                      scaling_factor_scratch, n_batch, result,
-                                      per_channel_scale, input_offset, scratch,
-                                      row_sums, compute_row_sums, context);
+  MatrixBatchVectorMultiplyAccumulate(
+      matrix, m_rows, m_cols, vectors, scaling_factor_scratch, n_batch, result,
+      per_channel_scale, input_offset, scratch, row_sums, compute_row_sums);
 }
 
 // Multiplies a matrix by a "batched" vector (i.e. a matrix with a batch
@@ -550,11 +751,13 @@ inline void MatrixBatchVectorMultiplyAccumulate(
 //     - scratch is created for optimization purpose only.
 // TODO(b/152066492): this can be removed if some future optimization
 // work makes it unnecessary.
-void MatrixBatchVectorMultiplyAccumulate(
-    const int8_t* input, const int32_t* bias,
-    const int8_t* input_to_gate_weights, int32_t multiplier, int32_t shift,
-    int32_t n_batch, int32_t n_input, int32_t n_output, int32_t output_zp,
-    int32_t* scratch, int16_t* output, CpuBackendContext* context);
+void MatrixBatchVectorMultiplyAccumulate(const int8_t* input,
+                                         const int32_t* bias,
+                                         const int8_t* input_to_gate_weights,
+                                         int32_t multiplier, int32_t shift,
+                                         int32_t n_batch, int32_t n_input,
+                                         int32_t n_output, int32_t output_zp,
+                                         int32_t* scratch, int16_t* output);
 
 // Multiplies a matrix by a "batched" vector (i.e. a matrix with a batch
 // dimension composed by input vectors independent from each other). The result
@@ -581,11 +784,13 @@ void MatrixBatchVectorMultiplyAccumulate(
 //     - scratch is created for optimization purpose only.
 // TODO(b/152066492): this can be removed if some future optimization
 // work makes it unnecessary.
-void MatrixBatchVectorMultiplyAccumulate(
-    const int8_t* input, const int32_t* bias,
-    const int8_t* input_to_gate_weights, int32_t multiplier, int32_t shift,
-    int32_t n_batch, int32_t n_input, int32_t n_output, int32_t output_zp,
-    int32_t* scratch, int8_t* output, CpuBackendContext* context);
+void MatrixBatchVectorMultiplyAccumulate(const int8_t* input,
+                                         const int32_t* bias,
+                                         const int8_t* input_to_gate_weights,
+                                         int32_t multiplier, int32_t shift,
+                                         int32_t n_batch, int32_t n_input,
+                                         int32_t n_output, int32_t output_zp,
+                                         int32_t* scratch, int8_t* output);
 
 // Apply Rectified Linear to elements of a vector.
 void ApplyReluToVector(const float* __restrict__ vector, int v_size,
@@ -660,7 +865,6 @@ void PackInt8IntoDenseInt(const int8_t* src_buffer, int num_elements,
 
 #ifndef TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_UTILS_H_
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_PORTABLE_TENSOR_UTILS_H_
-using micro::CpuBackendContext;
 namespace tensor_utils {
 using micro::tensor_utils::ApplyLayerNorm;
 using micro::tensor_utils::ApplyLayerNormFloat;
@@ -684,6 +888,34 @@ using micro::tensor_utils::MatrixBatchVectorMultiplyAccumulate;
 using micro::tensor_utils::MatrixScalarMultiplyAccumulate;
 using micro::tensor_utils::MeanStddevNormalization;
 using micro::tensor_utils::PackInt8IntoDenseInt;
+using micro::tensor_utils::PortableApplyLayerNorm;
+using micro::tensor_utils::PortableApplyLayerNormFloat;
+using micro::tensor_utils::PortableApplySigmoid;
+using micro::tensor_utils::PortableApplySigmoidFloat;
+using micro::tensor_utils::PortableApplyTanh;
+using micro::tensor_utils::PortableApplyTanhFloat;
+using micro::tensor_utils::PortableAsymmetricQuantizeFloats;
+using micro::tensor_utils::PortableBatchVectorBatchVectorDotProduct;
+using micro::tensor_utils::PortableCwiseAdd;
+using micro::tensor_utils::PortableCwiseClipping;
+using micro::tensor_utils::PortableCwiseMul;
+using micro::tensor_utils::PortableIsZeroVector;
+using micro::tensor_utils::PortableMatrixBatchVectorMultiply;
+using micro::tensor_utils::PortableMatrixBatchVectorMultiplyAccumulate;
+using micro::tensor_utils::PortableMatrixScalarMultiplyAccumulate;
+using micro::tensor_utils::PortableMeanStddevNormalization;
+using micro::tensor_utils::PortableReductionSumVector;
+using micro::tensor_utils::PortableSparseMatrixBatchVectorMultiplyAccumulate;
+using micro::tensor_utils::
+    PortableSparseMatrixBatchVectorMultiplyAccumulate1x16;
+using micro::tensor_utils::PortableSparseMatrixBatchVectorMultiplyAccumulate1x4;
+using micro::tensor_utils::PortableSub1Vector;
+using micro::tensor_utils::PortableSymmetricQuantizeFloats;
+using micro::tensor_utils::PortableTwoGateSaturatingAdd;
+using micro::tensor_utils::PortableVectorBatchVectorAssign;
+using micro::tensor_utils::PortableVectorBatchVectorCwiseProductAccumulate;
+using micro::tensor_utils::PortableVectorScalarMultiply;
+using micro::tensor_utils::PortableVectorVectorDotProduct;
 using micro::tensor_utils::ReductionSumVector;
 using micro::tensor_utils::SparseMatrixBatchVectorMultiplyAccumulate;
 using micro::tensor_utils::SparseMatrixBatchVectorMultiplyAccumulate1x16;
