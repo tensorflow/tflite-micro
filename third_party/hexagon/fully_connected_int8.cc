@@ -93,6 +93,8 @@ TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
 
 void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
                                 size_t length) {
+  (void)buffer;
+  (void)length;
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data = nullptr;
   data = context->AllocatePersistentBuffer(context,
@@ -103,8 +105,7 @@ void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
   }
   HexagonOpDataFullyConnected* opdata =
       static_cast<HexagonOpDataFullyConnected*>(data);
-  opdata->hexagon_data =
-      tflite::hexagon_fully_connected::HexagonInit(context, buffer, length);
+  opdata->hexagon_data = context->AllocatePersistentBuffer(context, 0x1c);
 
   return data;
 }
@@ -220,6 +221,57 @@ HexagonLegacyGetTensorShape(const TfLiteEvalTensor* tensor) asm(
 __attribute__((weak, used)) const RuntimeShape
 HexagonLegacyGetTensorShape(const TfLiteEvalTensor* tensor) {
   return GetTensorShape(tensor);
+}
+
+void* HexagonLegacyAllocatePersistent(
+    TfLiteContext* context, unsigned int bytes,
+    unsigned int alignment) asm("_Z18AllocatePersistentP13TfLiteContextjj");
+__attribute__((weak, used)) void* HexagonLegacyAllocatePersistent(
+    TfLiteContext* context, unsigned int bytes, unsigned int alignment) {
+  if (alignment > 16) {
+    void* ptr =
+        context->AllocatePersistentBuffer(context, bytes + alignment - 1);
+    if (ptr == nullptr) {
+      return nullptr;
+    }
+    return reinterpret_cast<void*>(
+        (reinterpret_cast<uintptr_t>(ptr) + alignment - 1) &
+        ~static_cast<uintptr_t>(alignment - 1));
+  }
+  return context->AllocatePersistentBuffer(context, bytes);
+}
+
+int HexagonLegacyAllocateScratch(
+    TfLiteContext* context, unsigned int bytes,
+    unsigned int alignment) asm("_Z15AllocateScratchP13TfLiteContextjj");
+__attribute__((weak, used)) int HexagonLegacyAllocateScratch(
+    TfLiteContext* context, unsigned int bytes, unsigned int alignment) {
+  int buffer_idx = -1;
+  TfLiteStatus status;
+  if (alignment > 16) {
+    status = context->RequestScratchBufferInArena(
+        context, bytes + alignment - 1, &buffer_idx);
+  } else {
+    status = context->RequestScratchBufferInArena(context, bytes, &buffer_idx);
+  }
+  if (status == kTfLiteOk) {
+    return buffer_idx;
+  }
+  return -1;
+}
+
+void* HexagonLegacyGetScratch(
+    TfLiteContext* context, int buffer_idx,
+    unsigned int alignment) asm("_Z10GetScratchP13TfLiteContextij");
+__attribute__((weak, used)) void* HexagonLegacyGetScratch(
+    TfLiteContext* context, int buffer_idx, unsigned int alignment) {
+  void* ptr = context->GetScratchBuffer(context, buffer_idx);
+  if (alignment > 16) {
+    return reinterpret_cast<void*>(
+        (reinterpret_cast<uintptr_t>(ptr) + alignment - 1) &
+        ~static_cast<uintptr_t>(alignment - 1));
+  }
+  return ptr;
 }
 
 }  // namespace micro

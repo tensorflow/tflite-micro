@@ -132,14 +132,8 @@ namespace micro {
 #endif
 
 // Forward declarations
-struct TfLiteAsyncKernel;
-typedef struct TfLiteAsyncKernel TfLiteAsyncKernel;
 struct TfLiteContext;
 typedef struct TfLiteContext TfLiteContext;
-struct TfLiteDelegate;
-typedef struct TfLiteDelegate TfLiteDelegate;
-struct TfLiteRegistration;
-typedef struct TfLiteRegistration TfLiteRegistration;
 struct TfLiteNode;
 typedef struct TfLiteNode TfLiteNode;
 
@@ -259,25 +253,6 @@ typedef enum TfLiteAllocationType {
   kTfLiteNonCpu,
 } TfLiteAllocationType;
 
-typedef struct TfLiteDimensionMetadata {
-  TfLiteDimensionType format;
-  int dense_size;
-  TfLiteIntArray* array_segments;
-  TfLiteIntArray* array_indices;
-} TfLiteDimensionMetadata;
-
-typedef struct TfLiteSparsity {
-  TfLiteIntArray* traversal_order;
-  TfLiteIntArray* block_map;
-  TfLiteDimensionMetadata* dim_metadata;
-  int dim_metadata_size;
-} TfLiteSparsity;
-
-typedef struct TfLiteCustomAllocation {
-  void* data;
-  size_t bytes;
-} TfLiteCustomAllocation;
-
 typedef enum TfLiteExternalContextType {
   kTfLiteEigenContext = 0,
   kTfLiteGemmLowpContext = 1,
@@ -292,11 +267,6 @@ typedef struct TfLiteExternalContext {
   TfLiteStatus (*Refresh)(TfLiteContext* context);
 } TfLiteExternalContext;
 
-typedef int TfLiteBufferHandle;
-enum {
-  kTfLiteNullBufferHandle = -1,
-};
-
 typedef struct TfLiteTensor {
   TfLiteQuantization quantization;
   TfLiteQuantizationParams params;
@@ -307,8 +277,6 @@ typedef struct TfLiteTensor {
   TfLiteAllocationType allocation_type;
   bool is_variable;
 } TfLiteTensor;
-
-static inline void TfLiteTensorDataFree(TfLiteTensor* t) { (void)t; }
 
 typedef struct TfLiteEvalTensor {
   TfLitePtrUnion data;
@@ -326,102 +294,43 @@ typedef struct TfLiteNode {
   int custom_initial_data_size;
 } TfLiteNode;
 
-struct TfLiteOperator;
-typedef struct TfLiteOperator TfLiteOperator;
-typedef TfLiteOperator TfLiteRegistrationExternal;
-
-typedef struct TfLiteRegistration {
+// TFLMRegistration defines the API that TFLM kernels need to implement.
+typedef struct TFLMRegistration {
   void* (*init)(TfLiteContext* context, const char* buffer, size_t length);
   void (*free)(TfLiteContext* context, void* buffer);
   TfLiteStatus (*prepare)(TfLiteContext* context, TfLiteNode* node);
   TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node);
-  const char* (*profiling_string)(const TfLiteContext* context,
-                                  const TfLiteNode* node);
+  void (*reset)(TfLiteContext* context, void* buffer);
   int32_t builtin_code;
   const char* custom_name;
-  int version;
-  TfLiteOperator* registration_external;
-  TfLiteAsyncKernel* (*async_kernel)(TfLiteContext* context, TfLiteNode* node);
-  uint64_t inplace_operator;
-} TfLiteRegistration;
+} TFLMRegistration;
 
-typedef TfLiteRegistration TfLiteRegistration_V1;
-
-struct TfLiteDelegateParams;
-typedef struct TfLiteDelegateParams TfLiteDelegateParams;
+typedef struct TFLMInferenceRegistration {
+  TfLiteStatus (*invoke)(TfLiteContext* context, TfLiteNode* node);
+  void (*reset)(TfLiteContext* context, void* buffer);
+} TFLMInferenceRegistration;
 
 typedef struct TfLiteContext {
   size_t tensors_size;
-
-  TfLiteStatus (*GetExecutionPlan)(TfLiteContext* context,
-                                   TfLiteIntArray** execution_plan);
-
   TfLiteTensor* tensors;
-
   void* impl_;
 
-  TfLiteStatus (*ResizeTensor)(TfLiteContext*, TfLiteTensor* tensor,
-                               TfLiteIntArray* new_size);
   void (*ReportError)(TfLiteContext*, const char* msg, ...);
-
-  TfLiteStatus (*AddTensors)(TfLiteContext*, int tensors_to_add,
-                             int* first_new_tensor_index);
-
-  TfLiteStatus (*GetNodeAndRegistration)(TfLiteContext*, int node_index,
-                                         TfLiteNode** node,
-                                         TfLiteRegistration** registration);
-
-  TfLiteStatus (*ReplaceNodeSubsetsWithDelegateKernels)(
-      TfLiteContext*, TfLiteRegistration registration,
-      const TfLiteIntArray* nodes_to_replace, TfLiteDelegate* delegate);
-
-  int recommended_num_threads;
 
   TfLiteExternalContext* (*GetExternalContext)(TfLiteContext*,
                                                TfLiteExternalContextType);
-  void (*SetExternalContext)(TfLiteContext*, TfLiteExternalContextType,
-                             TfLiteExternalContext*);
-
-  bool allow_fp32_relax_to_fp16;
-
-  void* profiler;
 
   void* (*AllocatePersistentBuffer)(TfLiteContext* ctx, size_t bytes);
-
-  TfLiteStatus (*AllocateBufferForEval)(TfLiteContext* ctx, size_t bytes,
-                                        void** ptr);
 
   TfLiteStatus (*RequestScratchBufferInArena)(TfLiteContext* ctx, size_t bytes,
                                               int* buffer_idx);
 
   void* (*GetScratchBuffer)(TfLiteContext* ctx, int buffer_idx);
 
-  TfLiteStatus (*ResizeTensorExplicit)(TfLiteContext* ctx, TfLiteTensor* tensor,
-                                       int dims, const int* shape);
-
-  TfLiteStatus (*PreviewDelegatePartitioning)(
-      TfLiteContext* context, const TfLiteIntArray* nodes_to_replace,
-      TfLiteDelegateParams** partition_params_array, int* num_partitions);
-
   TfLiteTensor* (*GetTensor)(const TfLiteContext* context, int tensor_idx);
 
   TfLiteEvalTensor* (*GetEvalTensor)(const TfLiteContext* context,
                                      int tensor_idx);
-
-  TfLiteStatus (*GetModelMetadata)(const TfLiteContext* context,
-                                   const char* name, const char** ptr,
-                                   size_t* bytes);
-
-  TfLiteStatus (*AcquireSubgraphContext)(TfLiteContext* context,
-                                         int subgraph_index,
-                                         TfLiteContext** acquired_context);
-  TfLiteStatus (*ReleaseSubgraphContext)(TfLiteContext* context,
-                                         int subgraph_index);
-#if defined(_WIN32)
-  TfLiteIntArray* (*TfLiteIntArrayCreate)(int size);  // NOLINT
-
-  void (*TfLiteIntArrayFree)(TfLiteIntArray* a);  // NOLINT
-#endif                                            // defined(_WIN32)
 } TfLiteContext;
 
 #ifdef __cplusplus
@@ -444,22 +353,15 @@ using micro::kTfLiteMmapRo;
 using micro::kTfLiteMultiAxisQuantization;
 using micro::kTfLiteNonCpu;
 using micro::kTfLiteNoQuantization;
-using micro::kTfLiteNullBufferHandle;
 using micro::kTfLitePersistentRo;
 using micro::kTfLiteVariantObject;
 using micro::TfLiteAffineQuantization;
 using micro::TfLiteAllocationType;
-using micro::TfLiteAsyncKernel;
 using micro::TfLiteBFloat16;
 using micro::TfLiteBlockwiseQuantization;
-using micro::TfLiteBufferHandle;
 using micro::TfLiteComplex128;
 using micro::TfLiteComplex64;
 using micro::TfLiteContext;
-using micro::TfLiteCustomAllocation;
-using micro::TfLiteDelegate;
-using micro::TfLiteDelegateParams;
-using micro::TfLiteDimensionMetadata;
 using micro::TfLiteEvalTensor;
 using micro::TfLiteExternalContext;
 using micro::TfLiteExternalContextType;
@@ -471,19 +373,18 @@ using micro::TfLiteIntArrayEqualsArray;
 using micro::TfLiteIntArrayGetSizeInBytes;
 using micro::TfLiteMultiAxisQuantization;
 using micro::TfLiteNode;
-using micro::TfLiteOperator;
 using micro::TfLitePtrUnion;
 using micro::TfLiteQuantization;
 using micro::TfLiteQuantizationType;
-using micro::TfLiteRegistration;
-using micro::TfLiteRegistration_V1;
-using micro::TfLiteRegistrationExternal;
-using micro::TfLiteSparsity;
 using micro::TfLiteTensor;
-using micro::TfLiteTensorDataFree;
 using micro::TfLiteTypeGetName;
+using micro::TFLMInferenceRegistration;
+using micro::TFLMRegistration;
 
 }  // namespace tflite
+
+using ::tflite::micro::TFLMInferenceRegistration;
+using ::tflite::micro::TFLMRegistration;
 
 #if !defined(TFLM_NO_GLOBAL_C_ALIASES) &&         \
     !defined(TENSORFLOW_LITE_CORE_C_COMMON_H_) && \
@@ -505,22 +406,15 @@ using ::tflite::micro::kTfLiteMmapRo;
 using ::tflite::micro::kTfLiteMultiAxisQuantization;
 using ::tflite::micro::kTfLiteNonCpu;
 using ::tflite::micro::kTfLiteNoQuantization;
-using ::tflite::micro::kTfLiteNullBufferHandle;
 using ::tflite::micro::kTfLitePersistentRo;
 using ::tflite::micro::kTfLiteVariantObject;
 using ::tflite::micro::TfLiteAffineQuantization;
 using ::tflite::micro::TfLiteAllocationType;
-using ::tflite::micro::TfLiteAsyncKernel;
 using ::tflite::micro::TfLiteBFloat16;
 using ::tflite::micro::TfLiteBlockwiseQuantization;
-using ::tflite::micro::TfLiteBufferHandle;
 using ::tflite::micro::TfLiteComplex128;
 using ::tflite::micro::TfLiteComplex64;
 using ::tflite::micro::TfLiteContext;
-using ::tflite::micro::TfLiteCustomAllocation;
-using ::tflite::micro::TfLiteDelegate;
-using ::tflite::micro::TfLiteDelegateParams;
-using ::tflite::micro::TfLiteDimensionMetadata;
 using ::tflite::micro::TfLiteEvalTensor;
 using ::tflite::micro::TfLiteExternalContext;
 using ::tflite::micro::TfLiteExternalContextType;
@@ -532,16 +426,10 @@ using ::tflite::micro::TfLiteIntArrayEqualsArray;
 using ::tflite::micro::TfLiteIntArrayGetSizeInBytes;
 using ::tflite::micro::TfLiteMultiAxisQuantization;
 using ::tflite::micro::TfLiteNode;
-using ::tflite::micro::TfLiteOperator;
 using ::tflite::micro::TfLitePtrUnion;
 using ::tflite::micro::TfLiteQuantization;
 using ::tflite::micro::TfLiteQuantizationType;
-using ::tflite::micro::TfLiteRegistration;
-using ::tflite::micro::TfLiteRegistration_V1;
-using ::tflite::micro::TfLiteRegistrationExternal;
-using ::tflite::micro::TfLiteSparsity;
 using ::tflite::micro::TfLiteTensor;
-using ::tflite::micro::TfLiteTensorDataFree;
 using ::tflite::micro::TfLiteTypeGetName;
 #endif
 #endif  // __cplusplus
