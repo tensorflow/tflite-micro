@@ -54,15 +54,9 @@ KernelRunner::KernelRunner(const TFLMRegistration& registration,
 #endif  // USE_TFLM_COMPRESSION
       ) {
   // Prepare TfLiteContext:
-  context_.impl_ = static_cast<void*>(&fake_micro_context_);
-  context_.ReportError = MicroContextReportOpError;
-  context_.recommended_num_threads = 1;
-  context_.GetTensor = MicroContextGetTensor;
-  context_.GetEvalTensor = MicroContextGetEvalTensor;
+  fake_micro_context_.InitTfLiteContext(&context_);
   tflite::micro::ClearBufferApi(&context_);
   context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
-
-  context_.recommended_num_threads = 0;
 
   // Prepare TfLiteNode:
   node_.inputs = inputs;

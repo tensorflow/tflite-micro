@@ -25,6 +25,26 @@ tflm_cc_library(
     hdrs = [
         "compatibility.h",
     ],
+    deps = [
+        ":micro_log",
+    ],
+)
+
+tflm_cc_library(
+    name = "flatbuffer_conversions",
+    srcs = [
+        "flatbuffer_conversions.cc",
+    ],
+    hdrs = [
+        "flatbuffer_conversions.h",
+    ],
+    deps = [
+        ":micro_compatibility",
+        ":micro_log",
+        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
+        "//tensorflow/lite/schema:schema_fbs",
+    ],
 )
 
 tflm_cc_library(
@@ -57,6 +77,7 @@ tflm_cc_library(
         "micro_interpreter.h",
     ],
     deps = [
+        ":flatbuffer_conversions",
         ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_allocator",
@@ -67,7 +88,6 @@ tflm_cc_library(
         ":portable_type_to_tflitetype",
         "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/internal:tensor",
-        "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
@@ -196,6 +216,7 @@ tflm_cc_library(
     ],
     deps = [
         ":compression",
+        ":flatbuffer_conversions",
         ":flatbuffer_utils",
         ":memory_helpers",
         ":micro_arena_constants",
@@ -211,7 +232,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:linear_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
-        "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
@@ -242,9 +262,9 @@ tflm_cc_library(
     srcs = ["memory_helpers.cc"],
     hdrs = ["memory_helpers.h"],
     deps = [
+        ":flatbuffer_conversions",
         "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/internal:reference",
-        "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
@@ -286,6 +306,7 @@ tflm_cc_library(
         "micro_op_resolver.h",
     ],
     deps = [
+        ":flatbuffer_conversions",
         ":flatbuffer_utils",
         ":micro_compatibility",
         ":micro_log",
@@ -293,7 +314,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/kernels:micro_ops",
         "//tensorflow/lite/micro/kernels:op_macros",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/micro/tflite_bridge:flatbuffer_conversions_bridge",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )

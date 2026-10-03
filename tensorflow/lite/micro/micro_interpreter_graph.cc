@@ -81,13 +81,15 @@ int CheckDynamicTensors(const TfLiteIntArray* const tensor_indices,
 
 MicroInterpreterGraph::MicroInterpreterGraph(
     TfLiteContext* context, const Model* model, MicroAllocator* allocator,
-    MicroResourceVariables* resource_variables)
+    MicroResourceVariables* resource_variables,
+    MicroProfilerInterface* profiler)
     : context_(context),
       model_(model),
       allocator_(allocator),
       current_subgraph_index_(0),
       current_operator_index_(0),
-      resource_variables_(resource_variables) {
+      resource_variables_(resource_variables),
+      profiler_(profiler) {
   if (model != nullptr) {
     subgraphs_ = model->subgraphs();
   }
@@ -268,9 +270,8 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
 // -DTF_LITE_STRIP_ERROR_STRINGS) because the function OpNameFromRegistration is
 // only defined for builds with the error strings.
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-    ScopedMicroProfiler scoped_profiler(
-        OpNameFromRegistration(registration),
-        reinterpret_cast<MicroProfilerInterface*>(context_->profiler));
+    ScopedMicroProfiler scoped_profiler(OpNameFromRegistration(registration),
+                                        profiler_);
 #endif
 
     TFLITE_DCHECK(registration->invoke);

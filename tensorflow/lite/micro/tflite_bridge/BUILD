@@ -11,20 +11,13 @@ package(
 
 tflm_cc_library(
     name = "flatbuffer_conversions_bridge",
-    srcs = [
-        "flatbuffer_conversions_bridge.cc",
-    ],
     hdrs = [
         "flatbuffer_conversions_bridge.h",
     ],
     visibility = [
-        "//tensorflow/lite/micro:__pkg__",
+        "//visibility:public",
     ],
     deps = [
-        "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro/c:common",
-        "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//tensorflow/lite/micro:flatbuffer_conversions",
     ],
 )

@@ -17,24 +17,6 @@ limitations under the License.
 
 #include <stdint.h>
 
-#ifndef TFL_CAPI_EXPORT
-#ifdef SWIG
-#define TFL_CAPI_EXPORT
-#elif defined(TFL_STATIC_LIBRARY_BUILD)
-#define TFL_CAPI_EXPORT
-#else
-#if defined(_WIN32)
-#ifdef TFL_COMPILE_LIBRARY
-#define TFL_CAPI_EXPORT __declspec(dllexport)
-#else
-#define TFL_CAPI_EXPORT
-#endif
-#else
-#define TFL_CAPI_EXPORT __attribute__((visibility("default")))
-#endif
-#endif
-#endif  // TFL_CAPI_EXPORT
-
 #ifdef __cplusplus
 namespace tflite {
 namespace micro {
@@ -72,11 +54,6 @@ typedef struct TfLiteQuantizationParams {
   int32_t zero_point;
 } TfLiteQuantizationParams;
 
-typedef enum TfLiteDimensionType {
-  kTfLiteDimDense = 0,
-  kTfLiteDimSparseCSR,
-} TfLiteDimensionType;
-
 typedef enum TfLiteStatus {
   kTfLiteOk = 0,
   kTfLiteError = 1,
@@ -90,18 +67,6 @@ typedef enum TfLiteStatus {
   kTfLiteOutputShapeNotKnown = 9,
   kTfLiteAbort = 15,
 } TfLiteStatus;
-
-struct TfLiteOpaqueContext;
-typedef struct TfLiteOpaqueContext TfLiteOpaqueContext;
-struct TfLiteOpaqueNode;
-typedef struct TfLiteOpaqueNode TfLiteOpaqueNode;
-struct TfLiteOpaqueTensor;
-typedef struct TfLiteOpaqueTensor TfLiteOpaqueTensor;
-struct TfLiteDelegate;
-typedef struct TfLiteDelegate TfLiteDelegate;
-struct TfLiteOpaqueDelegateStruct;
-typedef struct TfLiteOpaqueDelegateStruct TfLiteOpaqueDelegateStruct;
-typedef TfLiteDelegate TfLiteOpaqueDelegate;
 
 #ifdef __cplusplus
 }  // namespace micro
@@ -117,8 +82,6 @@ using micro::kTfLiteDelegateDataNotFound;
 using micro::kTfLiteDelegateDataReadError;
 using micro::kTfLiteDelegateDataWriteError;
 using micro::kTfLiteDelegateError;
-using micro::kTfLiteDimDense;
-using micro::kTfLiteDimSparseCSR;
 using micro::kTfLiteError;
 using micro::kTfLiteFloat16;
 using micro::kTfLiteFloat32;
@@ -143,13 +106,6 @@ using micro::kTfLiteUInt64;
 using micro::kTfLiteUInt8;
 using micro::kTfLiteUnresolvedOps;
 using micro::kTfLiteVariant;
-using micro::TfLiteDelegate;
-using micro::TfLiteDimensionType;
-using micro::TfLiteOpaqueContext;
-using micro::TfLiteOpaqueDelegate;
-using micro::TfLiteOpaqueDelegateStruct;
-using micro::TfLiteOpaqueNode;
-using micro::TfLiteOpaqueTensor;
 using micro::TfLiteQuantizationParams;
 using micro::TfLiteStatus;
 using micro::TfLiteType;
@@ -171,8 +127,6 @@ using ::tflite::micro::kTfLiteDelegateDataNotFound;
 using ::tflite::micro::kTfLiteDelegateDataReadError;
 using ::tflite::micro::kTfLiteDelegateDataWriteError;
 using ::tflite::micro::kTfLiteDelegateError;
-using ::tflite::micro::kTfLiteDimDense;
-using ::tflite::micro::kTfLiteDimSparseCSR;
 using ::tflite::micro::kTfLiteError;
 using ::tflite::micro::kTfLiteFloat16;
 using ::tflite::micro::kTfLiteFloat32;
@@ -197,13 +151,6 @@ using ::tflite::micro::kTfLiteUInt64;
 using ::tflite::micro::kTfLiteUInt8;
 using ::tflite::micro::kTfLiteUnresolvedOps;
 using ::tflite::micro::kTfLiteVariant;
-using ::tflite::micro::TfLiteDelegate;
-using ::tflite::micro::TfLiteDimensionType;
-using ::tflite::micro::TfLiteOpaqueContext;
-using ::tflite::micro::TfLiteOpaqueDelegate;
-using ::tflite::micro::TfLiteOpaqueDelegateStruct;
-using ::tflite::micro::TfLiteOpaqueNode;
-using ::tflite::micro::TfLiteOpaqueTensor;
 using ::tflite::micro::TfLiteQuantizationParams;
 using ::tflite::micro::TfLiteStatus;
 using ::tflite::micro::TfLiteType;

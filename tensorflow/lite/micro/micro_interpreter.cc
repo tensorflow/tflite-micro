@@ -21,6 +21,7 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/micro/c/c_api_types.h"
 #include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
@@ -28,7 +29,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
-#include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -54,7 +54,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       allocator_(*MicroAllocator::Create(
           tensor_arena, tensor_arena_size,
           FlagToMemoryPlannerType(preserve_all_tensors))),
-      graph_(&context_, model, &allocator_, resource_variables),
+      graph_(&context_, model, &allocator_, resource_variables, profiler),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
@@ -71,7 +71,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
     : model_(model),
       op_resolver_(op_resolver),
       allocator_(*allocator),
-      graph_(&context_, model, allocator, resource_variables),
+      graph_(&context_, model, allocator, resource_variables, profiler),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
@@ -87,18 +87,10 @@ MicroInterpreter::~MicroInterpreter() {
 }
 
 void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
+  (void)profiler;
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kInit);
-  context_.impl_ = static_cast<void*>(&micro_context_);
-  context_.ReportError = MicroContextReportOpError;
-  context_.GetTensor = MicroContextGetTensor;
-  context_.GetEvalTensor = MicroContextGetEvalTensor;
-  context_.profiler = profiler;
-  context_.RequestScratchBufferInArena =
-      MicroContextRequestScratchBufferInArena;
-  context_.GetExternalContext = MicroContextGetExternalContext;
-  context_.AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
-  context_.GetScratchBuffer = MicroContextGetScratchBuffer;
+  micro_context_.InitTfLiteContext(&context_);
 
   initialization_status_ = kTfLiteOk;
 }
