@@ -1695,9 +1695,6 @@ TFLMRegistration* MockCustom::GetMutableRegistration() {
 
 void* MockCustom::Init(TfLiteContext* context, const char* buffer,
                        size_t length) {
-  // We don't support delegate in TFL micro. This is a weak check to test if
-  // context struct being zero-initialized.
-  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
   freed_ = false;
   // Do nothing.
   return nullptr;
@@ -1743,9 +1740,6 @@ TFLMRegistration* MultipleInputs::GetMutableRegistration() {
 
 void* MultipleInputs::Init(TfLiteContext* context, const char* buffer,
                            size_t length) {
-  // We don't support delegate in TFL micro. This is a weak check to test if
-  // context struct being zero-initialized.
-  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
   freed_ = false;
   // Do nothing.
   return nullptr;
@@ -1797,9 +1791,6 @@ TFLMRegistration* NoOp::GetMutableRegistration() {
 }
 
 void* NoOp::Init(TfLiteContext* context, const char* buffer, size_t length) {
-  // We don't support delegate in TFL micro. This is a weak check to test if
-  // context struct being zero-initialized.
-  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
   freed_ = false;
   // Do nothing.
   return nullptr;

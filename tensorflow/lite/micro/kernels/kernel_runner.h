@@ -43,33 +43,6 @@ class KernelRunner {
 #endif  // USE_TFLM_COMPRESSION
   );
 
-  KernelRunner(const TfLiteRegistration& registration, TfLiteTensor* tensors,
-               int tensors_size, TfLiteIntArray* inputs,
-               TfLiteIntArray* outputs, const void* builtin_data,
-               TfLiteIntArray* intermediates = nullptr
-#ifdef USE_TFLM_COMPRESSION
-               ,
-               const CompressedTensorList* compressed_tensors = nullptr
-#endif  // USE_TFLM_COMPRESSION
-               )
-      : KernelRunner(
-            TFLMRegistration{
-                registration.init,
-                registration.free,
-                registration.prepare,
-                registration.invoke,
-                nullptr,
-                registration.builtin_code,
-                registration.custom_name,
-            },
-            tensors, tensors_size, inputs, outputs, builtin_data, intermediates
-#ifdef USE_TFLM_COMPRESSION
-            ,
-            compressed_tensors
-#endif  // USE_TFLM_COMPRESSION
-        ) {
-  }
-
   // Calls init and prepare on the kernel (i.e. TFLMRegistration) struct.
   // Any exceptions will be DebugLog'd and returned as a status code.
   TfLiteStatus InitAndPrepare(const char* init_data = nullptr,
