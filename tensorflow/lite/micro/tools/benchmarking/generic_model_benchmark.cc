@@ -206,6 +206,17 @@ void ShowInputCRC32(tflite::MicroInterpreter* interpreter) {
   }
 }
 
+bool IsOutputValid(tflite::MicroInterpreter& interpreter) {
+  for (size_t i = 0; i < interpreter.outputs_size(); ++i) {
+    TfLiteTensor* output = interpreter.output_tensor(i);
+    // Streaming models expose a 0D scalar bool output_valid tensor
+    if (output->type == kTfLiteBool && output->dims->size == 0) {
+      return tflite::GetTensorData<bool>(output)[0];
+    }
+  }
+  return true;
+}
+
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler;
   static Profiler profiler2;
@@ -299,24 +310,31 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
       return -1;
     }
 
-    profiler.Log();
-    MicroPrintf("");  // null MicroPrintf serves as a newline.
-    profiler.LogTicksPerTagCsv();
-    MicroPrintf("");  // null MicroPrintf serves as a newline.
+    const bool is_complete_inference =
+        (status == kTfLiteOk) && IsOutputValid(interpreter);
+
+    if (is_complete_inference) {
+      profiler.Log();
+      MicroPrintf("");  // null MicroPrintf serves as a newline.
+      profiler.LogTicksPerTagCsv();
+      MicroPrintf("");  // null MicroPrintf serves as a newline.
+    }
     profiler.ClearEvents();
 
     if (using_compression) {
-      profiler2.Log();
-      MicroPrintf("");  // null MicroPrintf serves as a newline.
-      profiler2.LogTicksPerTagCsv();
-      MicroPrintf("");  // null MicroPrintf serves as a newline.
+      if (is_complete_inference) {
+        profiler2.Log();
+        MicroPrintf("");  // null MicroPrintf serves as a newline.
+        profiler2.LogTicksPerTagCsv();
+        MicroPrintf("");  // null MicroPrintf serves as a newline.
+      }
       profiler2.ClearEvents();
     }
 
     ShowOutputCRC32(&interpreter);
     MicroPrintf("");  // null MicroPrintf serves as a newline.
 
-    if (status == kTfLiteOk) {
+    if (is_complete_inference) {
       break;
     }
   }
