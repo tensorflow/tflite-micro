@@ -54,7 +54,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
       allocator_(*MicroAllocator::Create(
           tensor_arena, tensor_arena_size,
           FlagToMemoryPlannerType(preserve_all_tensors))),
-      graph_(&context_, model, &allocator_, resource_variables),
+      graph_(&context_, model, &allocator_, resource_variables, profiler),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
@@ -71,7 +71,7 @@ MicroInterpreter::MicroInterpreter(const Model* model,
     : model_(model),
       op_resolver_(op_resolver),
       allocator_(*allocator),
-      graph_(&context_, model, allocator, resource_variables),
+      graph_(&context_, model, allocator, resource_variables, profiler),
       tensors_allocated_(false),
       initialization_status_(kTfLiteError),
       input_tensors_(nullptr),
@@ -87,13 +87,13 @@ MicroInterpreter::~MicroInterpreter() {
 }
 
 void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
+  (void)profiler;
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kInit);
   context_.impl_ = static_cast<void*>(&micro_context_);
   context_.ReportError = MicroContextReportOpError;
   context_.GetTensor = MicroContextGetTensor;
   context_.GetEvalTensor = MicroContextGetEvalTensor;
-  context_.profiler = profiler;
   context_.RequestScratchBufferInArena =
       MicroContextRequestScratchBufferInArena;
   context_.GetExternalContext = MicroContextGetExternalContext;
