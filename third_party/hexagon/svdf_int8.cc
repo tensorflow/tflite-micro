@@ -59,6 +59,170 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace tflite {
 namespace micro {
 
+namespace {
+
+void HexagonSvdfOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node,
+                                       HexagonOpDataSvdf* data) {
+  const TfLiteEvalTensor* input = GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* weights_feature =
+      GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+  const TfLiteEvalTensor* weights_time =
+      GetEvalInput(context, node, kSvdfWeightsTimeTensor);
+
+  const int n_input = input->dims->data[1];
+  const int n_filter = weights_feature->dims->data[0];
+  const int n_memory = weights_time->dims->data[1];
+
+  if (input->type == kTfLiteInt8 && (n_filter % 4 == 0) && (n_input % 8 == 0) &&
+      (n_memory % 4 == 0)) {
+    data->optimizable = 1;
+  } else {
+    data->optimizable = 0;
+  }
+}
+
+TfLiteStatus HexagonSvdfOptimizedPrepare(TfLiteContext* context,
+                                         TfLiteNode* node,
+                                         HexagonOpDataSvdf* data) {
+  const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
+  const TfLiteEvalTensor* input = GetEvalInput(context, node, kSvdfInputTensor);
+  const TfLiteEvalTensor* weights_feature =
+      GetEvalInput(context, node, kSvdfWeightsFeatureTensor);
+
+  const int n_rank = params->rank;
+  const int n_batch = input->dims->data[0];
+  const int n_input = input->dims->data[1];
+  const int n_filter = weights_feature->dims->data[0];
+  const int n_unit = n_filter / n_rank;
+
+  data->converted_bias = static_cast<int32_t*>(
+      context->AllocatePersistentBuffer(context, n_filter * sizeof(int32_t)));
+  TF_LITE_ENSURE(context, data->converted_bias != nullptr);
+
+  int8_t* weights_feature_data =
+      const_cast<int8_t*>(GetTensorData<int8_t>(weights_feature));
+  HexagonGenerateBias(data->converted_bias, weights_feature_data,
+                      /*bias=*/nullptr,
+                      data->reference_op_data.input_zero_point + 128, n_filter,
+                      1, n_input);
+  HexagonInterleaveWeightInplace(weights_feature_data, n_filter, n_input, 1);
+
+  TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                 context, n_batch * n_input * sizeof(uint8_t),
+                                 &data->input_u8_scratch_index));
+  TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                 context, n_batch * n_filter * sizeof(int32_t),
+                                 &data->feature_s32_scratch_index));
+  TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                 context, n_batch * n_filter * sizeof(int32_t),
+                                 &data->time_s32_scratch_index));
+  TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                 context, n_batch * n_unit * sizeof(int32_t),
+                                 &data->output_s32_scratch_index));
+  return kTfLiteOk;
+}
+
+void HexagonSvdfOptimizedEvalInt8(
+    TfLiteContext* context, const TfLiteEvalTensor* input_tensor,
+    const TfLiteEvalTensor* weights_feature_tensor,
+    const TfLiteEvalTensor* weights_time_tensor,
+    const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params,
+    TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor,
+    const HexagonOpDataSvdf& data) {
+  const int n_rank = params->rank;
+  const int n_batch = input_tensor->dims->data[0];
+  const int n_input = input_tensor->dims->data[1];
+  const int n_filter = weights_feature_tensor->dims->data[0];
+  const int n_unit = n_filter / n_rank;
+  const int n_memory = weights_time_tensor->dims->data[1];
+
+  uint8_t* input_u8_scratch = static_cast<uint8_t*>(
+      context->GetScratchBuffer(context, data.input_u8_scratch_index));
+  int32_t* time_s32_scratch = static_cast<int32_t*>(
+      context->GetScratchBuffer(context, data.time_s32_scratch_index));
+  int32_t* feature_s32_scratch = static_cast<int32_t*>(
+      context->GetScratchBuffer(context, data.feature_s32_scratch_index));
+  int32_t* output_s32_scratch = static_cast<int32_t*>(
+      context->GetScratchBuffer(context, data.output_s32_scratch_index));
+
+  int16_t* const state_ptr = GetTensorData<int16_t>(activation_state_tensor);
+  memmove(state_ptr, state_ptr + 1,
+          (n_batch * n_filter * n_memory - 1) * sizeof(int16_t));
+
+  const int8_t* input_data = GetTensorData<int8_t>(input_tensor);
+  for (int i = 0; i < n_batch * n_input; ++i) {
+    input_u8_scratch[i] = static_cast<uint8_t>(input_data[i] + 128);
+  }
+
+  const int8_t* weights_feature_data =
+      GetTensorData<int8_t>(weights_feature_tensor);
+  const int32_t state_max = std::numeric_limits<int16_t>::max();
+  const int32_t state_min = std::numeric_limits<int16_t>::min();
+  for (int b = 0; b < n_batch; ++b) {
+    gemm_s32_s8xu8_Nany_Mmod4_Kmod8(
+        weights_feature_data, input_u8_scratch + b * n_input,
+        feature_s32_scratch + b * n_filter, n_filter, 1, n_input);
+
+    int16_t* result_in_batch =
+        state_ptr + b * n_memory * n_filter + (n_memory - 1);
+    for (int r = 0; r < n_filter; ++r) {
+      int32_t dot_prod =
+          feature_s32_scratch[b * n_filter + r] + data.converted_bias[r];
+      dot_prod = MultiplyByQuantizedMultiplier(
+          dot_prod, data.reference_op_data.effective_scale_1_a,
+          data.reference_op_data.effective_scale_1_b);
+      dot_prod = std::min(std::max(state_min, dot_prod), state_max);
+      *result_in_batch = static_cast<int16_t>(dot_prod);
+      result_in_batch += n_memory;
+    }
+  }
+
+  const int16_t* weights_time_data =
+      GetTensorData<int16_t>(weights_time_tensor);
+  for (int b = 0; b < n_batch; ++b) {
+    rowinner_s32_s16xs16_Mmod2_Nmod4(
+        weights_time_data, state_ptr + b * n_memory * n_filter,
+        time_s32_scratch + b * n_filter, n_filter, n_memory);
+  }
+
+  if (bias_tensor != nullptr) {
+    const int32_t* bias_data = GetTensorData<int32_t>(bias_tensor);
+    for (int i = 0; i < n_batch; ++i) {
+      int32_t* output_ptr = output_s32_scratch + i * n_unit;
+      for (int j = 0; j < n_unit; ++j) {
+        *output_ptr++ = bias_data[j];
+      }
+    }
+  } else {
+    memset(output_s32_scratch, 0, n_batch * n_unit * sizeof(int32_t));
+  }
+
+  for (int b = 0; b < n_batch; ++b) {
+    int32_t* output_temp_ptr = output_s32_scratch + b * n_unit;
+    int32_t* scratch_ptr_batch = time_s32_scratch + b * n_filter;
+    for (int i = 0; i < n_unit; ++i) {
+      for (int j = 0; j < n_rank; ++j) {
+        output_temp_ptr[i] += *scratch_ptr_batch++;
+      }
+    }
+  }
+
+  const int32_t output_max = std::numeric_limits<int8_t>::max();
+  const int32_t output_min = std::numeric_limits<int8_t>::min();
+  int8_t* output_data = GetTensorData<int8_t>(output_tensor);
+  for (int i = 0; i < n_batch * n_unit; ++i) {
+    int32_t x1 = output_s32_scratch[i];
+    int32_t x2 = MultiplyByQuantizedMultiplier(
+        x1, data.reference_op_data.effective_scale_2_a,
+        data.reference_op_data.effective_scale_2_b);
+    int32_t x3 = x2 + data.reference_op_data.output_zero_point;
+    int32_t x4 = std::min(std::max(output_min, x3), output_max);
+    output_data[i] = static_cast<int8_t>(x4);
+  }
+}
+
+}  // namespace
+
 TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   auto* params = reinterpret_cast<TfLiteSVDFParams*>(node->builtin_data);
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -77,10 +241,9 @@ TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
       GetMutableEvalInput(context, node, kSvdfInputActivationStateTensor);
   TfLiteEvalTensor* output = GetEvalOutput(context, node, kSvdfOutputTensor);
 
-  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
-    tflite::hexagon_svdf::HexagonEvalIntegerSVDF(
-        context, node, input, weights_feature, weights_time, bias, params,
-        activation_state, output, node->user_data);
+  if (data.optimizable != 0) {
+    HexagonSvdfOptimizedEvalInt8(context, input, weights_feature, weights_time,
+                                 bias, params, activation_state, output, data);
   } else {
     EvalInt16SvdfReference(context, node, input, weights_feature, weights_time,
                            bias, params, activation_state, output,
@@ -92,17 +255,7 @@ TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node) {
 void* HexagonSvdfInit(TfLiteContext* context, const char* buffer,
                       size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataSvdf));
-
-  if (data == nullptr) {
-    return nullptr;
-  }
-
-  HexagonOpDataSvdf* opdata = static_cast<HexagonOpDataSvdf*>(data);
-  opdata->hexagon_data =
-      tflite::hexagon_svdf::HexagonInit(context, buffer, length);
-
-  return data;
+  return context->AllocatePersistentBuffer(context, sizeof(HexagonOpDataSvdf));
 }
 
 TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
@@ -111,11 +264,12 @@ TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node) {
     return prepare_status;
   }
 
-  tflite::hexagon_svdf::HexagonOptimizationEvaluation(context, node);
+  HexagonOpDataSvdf* data = static_cast<HexagonOpDataSvdf*>(node->user_data);
+  HexagonSvdfOptimizationEvaluation(context, node, data);
 
-  if (tflite::hexagon_svdf::HexagonOptimizable(context, node)) {
+  if (data->optimizable != 0) {
     TF_LITE_ENSURE_OK(context,
-                      tflite::hexagon_svdf::HexagonPrepare(context, node));
+                      HexagonSvdfOptimizedPrepare(context, node, data));
   }
 
   return kTfLiteOk;

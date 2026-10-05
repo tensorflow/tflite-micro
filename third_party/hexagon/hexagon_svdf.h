@@ -25,7 +25,12 @@ namespace micro {
 
 struct HexagonOpDataSvdf {
   struct OpDataSvdf reference_op_data;
-  void* hexagon_data;
+  int32_t* converted_bias;
+  int input_u8_scratch_index;
+  int feature_s32_scratch_index;
+  int time_s32_scratch_index;
+  int output_s32_scratch_index;
+  int optimizable;
 };
 
 void* HexagonSvdfInit(TfLiteContext* context, const char* buffer,

@@ -45,40 +45,24 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
 #define _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
-#include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include <cstdint>
 
-namespace tflite {
-namespace hexagon_fully_connected {
+extern "C" {
+void gemm_s32_s8xu8_Nany_Mmod4_Kmod8(const int8_t* weights,
+                                     const uint8_t* input, int32_t* output,
+                                     int num_rows, int num_cols, int depth);
+void gemm_s32_s8xu8_Nany_Mmod2_Kmod8(const int8_t* weights,
+                                     const uint8_t* input, int32_t* output,
+                                     int num_rows, int num_cols, int depth);
+}  // extern "C"
 
-void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length) asm(
-    "_ZN6tflite23hexagon_fully_connected11HexagonInitEP13TfLiteContextPKcj");
+void HexagonGenerateBias(
+    int32_t* generated_bias, const int8_t* weights, const int32_t* bias,
+    int32_t zero_point, int num_rows, int repeat,
+    int num_cols) asm("_Z19HexagonGenerateBiasPlPKaPKlliii");
 
-TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node) asm(
-    "_ZN6tflite23hexagon_fully_"
-    "connected14HexagonPrepareEP13TfLiteContextP10TfLiteNode");
-
-TfLiteStatus
-HexagonEvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node, void* op_data, const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter, const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) asm(
-    "_ZN6tflite23hexagon_fully_"
-    "connected24HexagonEvalQuantizedInt8EP13TfLiteContextP10TfLiteNodePvPK16TfL"
-    "iteEvalTensorS8_S8_PS6_");
-
-void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node) asm(
-    "_ZN6tflite23hexagon_fully_"
-    "connected29HexagonOptimizationEvaluationEP13TfLiteContextP10TfLiteNode");
-bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node) asm(
-    "_ZN6tflite23hexagon_fully_"
-    "connected18HexagonOptimizableEP13TfLiteContextP10TfLiteNode");
-
-}  // namespace hexagon_fully_connected
-}  // namespace tflite
+void HexagonInterleaveWeightInplace(
+    int8_t* weights, int num_rows, int num_cols,
+    int factor) asm("_Z30HexagonInterleaveWeightInplacePaiii");
 
 #endif  // _HEXAGON_TFLM_TRANSLATION_FULLY_CONNECTED_H_
