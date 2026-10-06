@@ -62,12 +62,6 @@ DEPENDENCIES = {
     md5="7e8191b24853d75de2af87622ad293ba",
     dep_type="archive",
   ),
-  "ruy": Dependency(
-    name="ruy",
-    url="https://github.com/google/ruy/archive/d37128311b445e758136b8602d1bbd2a755e115d.zip",
-    md5="abf7a91eb90d195f016ebe0be885bb6e",
-    dep_type="archive",
-  ),
   "flatbuffers": Dependency(
     name="flatbuffers",
     url="https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.zip",
@@ -92,7 +86,6 @@ DEPENDENCIES = {
 
 DEFAULT_DEPENDENCIES = [
   "gemmlowp",
-  "ruy",
   "flatbuffers",
   "kissfft",
   "eyalroz_printf",

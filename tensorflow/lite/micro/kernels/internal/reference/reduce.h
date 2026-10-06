@@ -21,7 +21,6 @@ limitations under the License.
 #include <functional>
 #include <limits>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/max.h"
@@ -272,7 +271,6 @@ inline bool Mean(const T* input_data, const int* input_dims,
                  const int* output_dims, const int output_num_dims,
                  const int* axis, const int num_axis_dimensions, bool keep_dims,
                  int* temp_index, int* resolved_axis, U* temp_sum) {
-  ruy::profiler::ScopeLabel label("Mean");
   // Reset output data.
   if (output_num_dims < 0 || (output_dims == nullptr && output_num_dims != 0)) {
     return false;
@@ -326,8 +324,6 @@ inline void Mean(const tflite::micro::MeanParams& op_params,
                  const float* input_data,
                  const RuntimeShape& unextended_output_shape,
                  float* output_data) {
-  ruy::profiler::ScopeLabel label("Mean4D");
-
   // Current implementation only supports dimension equals 4 and simultaneous
   // reduction over width and height.
   TFLITE_CHECK_EQ(unextended_input_shape.DimensionsCount(), 4);
@@ -380,15 +376,6 @@ inline bool QuantizedMeanOrSum(const T* input_data, int32_t input_zero_point,
                                bool compute_sum) {
   const int32_t kMinValue = std::numeric_limits<T>::min();
   const int32_t kMaxValue = std::numeric_limits<T>::max();
-  const bool uint8_case = std::is_same<T, uint8_t>::value;
-  const bool int16_case = std::is_same<T, int16_t>::value;
-  if (uint8_case) {
-    ruy::profiler::ScopeLabel label(compute_sum ? "Sum/Uint8" : "Mean/Uint8");
-  } else if (int16_case) {
-    ruy::profiler::ScopeLabel label(compute_sum ? "Sum/Int16" : "Mean/Int16");
-  } else {
-    ruy::profiler::ScopeLabel label(compute_sum ? "Sum/Int8" : "Mean/Int8");
-  }
   // Reset output data.
   if (output_num_dims < 0 || (output_dims == nullptr && output_num_dims != 0)) {
     return false;

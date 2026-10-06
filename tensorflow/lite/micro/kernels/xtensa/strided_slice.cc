@@ -38,8 +38,6 @@ void StridedSlice_int16_hifi4opt(
   using ::tflite::micro::strided_slice::StartForAxis;
   using ::tflite::micro::strided_slice::StopForAxis;
 
-  ruy::profiler::ScopeLabel label("StridedSlice");
-
   // Note that the output_shape is not used herein.
   tflite::micro::StridedSliceParams params_copy = op_params;
 
