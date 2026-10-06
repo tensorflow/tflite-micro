@@ -77,6 +77,8 @@ readable_run ls ${FILES} >/dev/null
 readable_run cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR}"
 pushd "${TEST_OUTPUT_DIR}" >/dev/null
 readable_run make $(get_parallel_jobs) examples TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
+readable_run make clean
+readable_run make $(get_parallel_jobs) examples CXX=g++ CC=gcc DISABLE_EXCEPTIONS=false TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
 popd >/dev/null
 
 rm -rf "${TEST_OUTPUT_DIR}"
