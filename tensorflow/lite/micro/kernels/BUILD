@@ -151,7 +151,6 @@ tflm_cc_library(
     name = "kernel_util",
     srcs = [
         "kernel_util.cc",
-        "tflite_kernel_util.cc",
     ],
     hdrs = [
         "kernel_util.h",
@@ -180,6 +179,7 @@ tflm_cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro/c:common",
     ],
@@ -216,22 +216,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels/testdata:lstm_test_data",
-    ],
-)
-
-tflm_cc_library(
-    name = "micro_tensor_utils",
-    srcs = [
-        "micro_tensor_utils.cc",
-    ],
-    hdrs = ["micro_tensor_utils.h"],
-    deps = [
-        "//tensorflow/lite/micro/c:common",
-        "//tensorflow/lite/micro/kernels:op_macros",
-        "//tensorflow/lite/micro/kernels/internal:common",
-        "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/micro/kernels/internal:cppmath",
-        "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
     ],
 )
 
@@ -439,7 +423,6 @@ tflm_kernel_cc_library(
     deps = [
         ":activation_utils",
         ":kernel_util",
-        ":micro_tensor_utils",
         "//signal/micro/kernels:register_signal_ops",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
