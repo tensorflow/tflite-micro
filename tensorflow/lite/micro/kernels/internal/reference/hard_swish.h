@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <algorithm>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 
@@ -47,7 +46,6 @@ inline std::int16_t SaturatingDoublingHighMul(std::int16_t a, std::int16_t b) {
 template <typename T>
 inline void HardSwish(const RuntimeShape& input_shape, const T* input_data,
                       const RuntimeShape& output_shape, T* output_data) {
-  ruy::profiler::ScopeLabel label("ReferenceHardSwish/Float");
   auto matching_size = MatchingFlatSize(input_shape, output_shape);
   const T* in_end = input_data + matching_size;
   for (; input_data < in_end; input_data++, output_data++) {
@@ -62,8 +60,6 @@ template <typename T>
 inline void HardSwish(const HardSwishParams& params,
                       const RuntimeShape& input_shape, const T* input_data,
                       const RuntimeShape& output_shape, T* output_data) {
-  ruy::profiler::ScopeLabel label("ReferenceHardSwish/Quantized");
-
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
 
   for (int i = 0; i < flat_size; i++) {

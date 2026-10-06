@@ -18,7 +18,6 @@ limitations under the License.
 #include <functional>
 #include <vector>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/portable_tensor.h"
@@ -94,7 +93,6 @@ inline void StridedSlice(const DynamicStridedSliceParams& op_params,
                          const RuntimeShape& input_shape,
                          const RuntimeShape& output_shape,
                          SequentialTensorWriter<T>* writer) {
-  ruy::profiler::ScopeLabel label("StridedSlice");
   const int dims = input_shape.DimensionsCount();
   std::vector<int> starts(dims);
   std::vector<int> stops(dims);
@@ -152,8 +150,6 @@ inline void StridedSlice(const tflite::micro::StridedSliceParams& op_params,
                          const RuntimeShape& unextended_input_shape,
                          const RuntimeShape& unextended_output_shape,
                          SequentialTensorWriter<T>* writer) {
-  ruy::profiler::ScopeLabel label("StridedSlice");
-
   // Note that the output_shape is not used herein.
   tflite::micro::StridedSliceParams params_copy = op_params;
 

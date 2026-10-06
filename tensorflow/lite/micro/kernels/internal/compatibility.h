@@ -76,18 +76,6 @@ limitations under the License.
 #define TFLITE_CHECK_LT(x, y) ((x) < (y)) ? (void)0 : TFLITE_ABORT
 #endif
 
-// Allow for cross-compiler usage of function signatures - currently used for
-// specifying named RUY profiler regions in templated methods.
-#ifndef TFLITE_PRETTY_FUNCTION
-#if defined(_MSC_VER)
-#define TFLITE_PRETTY_FUNCTION __FUNCSIG__
-#elif defined(__GNUC__)
-#define TFLITE_PRETTY_FUNCTION __PRETTY_FUNCTION__
-#else
-#define TFLITE_PRETTY_FUNCTION __func__
-#endif
-#endif
-
 // TFLITE_DEPRECATED()
 //
 // Duplicated from absl/base/macros.h to avoid pulling in that library.

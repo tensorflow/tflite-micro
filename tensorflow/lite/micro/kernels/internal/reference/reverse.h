@@ -19,7 +19,6 @@ limitations under the License.
 #include <array>
 #include <cstdint>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/micro/kernels/internal/runtime_shape.h"
 
 namespace tflite {
@@ -30,7 +29,6 @@ template <typename Scalar>
 void Reverse(std::array<int32_t, 8>& axes, int num_axes,
              const RuntimeShape& input_shape, const Scalar* input_data,
              Scalar* output_data) {
-  ruy::profiler::ScopeLabel label("Reverse");
   bool is_upper = (axes[num_axes - 1] == input_shape.DimensionsCount() - 1);
   bool is_lower = (axes[0] == 0);
   int rank = input_shape.DimensionsCount();

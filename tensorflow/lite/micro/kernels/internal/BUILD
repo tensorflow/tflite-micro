@@ -94,7 +94,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels:op_macros",
         "@gemmlowp//:fixedpoint",
-        "@ruy//ruy/profiler:instrumentation",
     ],
 )
 

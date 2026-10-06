@@ -37,8 +37,7 @@ INCLUDES := \
   -I./third_party/gemmlowp \
   -I./third_party/flatbuffers/include \
   -I./third_party/kissfft \
-  -I./third_party/kissfft/tools \
-  -I./third_party/ruy
+  -I./third_party/kissfft/tools
 
 ifneq ($(TENSORFLOW_ROOT),)
   INCLUDES += -I$(TENSORFLOW_ROOT)

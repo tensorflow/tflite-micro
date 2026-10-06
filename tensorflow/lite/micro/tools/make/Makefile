@@ -112,8 +112,7 @@ INCLUDES := \
 -I$(DOWNLOADS_DIR) \
 -I$(DOWNLOADS_DIR)/gemmlowp \
 -I$(DOWNLOADS_DIR)/flatbuffers/include \
--I$(DOWNLOADS_DIR)/kissfft \
--I$(DOWNLOADS_DIR)/ruy
+-I$(DOWNLOADS_DIR)/kissfft
 
 ifneq ($(TENSORFLOW_ROOT),)
   INCLUDES += -I$(TENSORFLOW_ROOT)

@@ -17,7 +17,6 @@ limitations under the License.
 
 #include <cmath>
 
-#include "ruy/profiler/instrumentation.h"  // from @ruy
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
@@ -45,7 +44,6 @@ inline void BatchToSpaceND(const RuntimeShape& unextended_input1_shape,
                            const int32_t* crops_data,
                            const RuntimeShape& unextended_output_shape,
                            T* output_data) {
-  ruy::profiler::ScopeLabel label("BatchToSpaceND");
   TFLITE_DCHECK_GE(unextended_input1_shape.DimensionsCount(), 3);
   TFLITE_DCHECK_LE(unextended_input1_shape.DimensionsCount(), 4);
   TFLITE_DCHECK_EQ(unextended_input1_shape.DimensionsCount(),

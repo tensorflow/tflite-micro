@@ -22,9 +22,6 @@ else
   RISCV_TOOLCHAIN_MD5="2366b7afe36a54dc94fb0ff8a0830934"
 endif
 
-RUY_URL="https://github.com/google/ruy/archive/d37128311b445e758136b8602d1bbd2a755e115d.zip"
-RUY_MD5="abf7a91eb90d195f016ebe0be885bb6e"
-
 PERSON_MODEL_INT8_URL := "https://storage.googleapis.com/download.tensorflow.org/data/tf_lite_micro_person_data_int8_grayscale_2020_12_1.zip"
 PERSON_MODEL_INT8_MD5 := "e765cc76889db8640cfe876a37e4ec00"
 
