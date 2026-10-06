@@ -73,7 +73,7 @@ def setup_external_symlink(repo_root):
   """Symlinks 'external' to Bazel's execution_root/external.
 
   In Bazel 8 (bzlmod), external headers are referenced via paths like
-  '-iquote external/+_repo_rules+gemmlowp'. Bazel creates this external/
+  '-iquote external/flatbuffers+'. Bazel creates this external/
   directory in execution_root, not the workspace root. Creating this symlink
   allows Clang tooling running from workspace root to resolve external headers.
   """

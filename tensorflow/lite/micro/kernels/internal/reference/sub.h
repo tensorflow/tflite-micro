@@ -73,9 +73,9 @@ inline void BroadcastSub16POTSlow(const ArithmeticParams& params,
       [](int16_t input1_val, int16_t input2_val,
          const ArithmeticParams& params) {
         const int32_t scaled_input1_val =
-            gemmlowp::RoundingDivideByPOT(input1_val, -params.input1_shift);
+            RoundingDivideByPOT(input1_val, -params.input1_shift);
         const int32_t scaled_input2_val =
-            gemmlowp::RoundingDivideByPOT(input2_val, -params.input2_shift);
+            RoundingDivideByPOT(input2_val, -params.input2_shift);
         const int32_t raw_output = scaled_input1_val - scaled_input2_val;
         const int32_t clamped_output =
             std::min(params.quantized_activation_max,

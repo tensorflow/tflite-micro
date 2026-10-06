@@ -355,43 +355,43 @@ inline void LstmCell(const LstmCellParams& params,
       // F0 uses 0 integer bits, range [-1, 1].
       // This is the return type of math functions such as tanh, logistic,
       // whose range is in [-1, 1].
-      using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+      using F0 = FixedPoint<std::int16_t, 0>;
       // F3 uses 3 integer bits, range [-8, 8].
       // This is the range of the previous fully-connected node's output,
       // which is our input here.
-      using F3 = gemmlowp::FixedPoint<std::int16_t, 3>;
+      using F3 = FixedPoint<std::int16_t, 3>;
       // FS uses StateIntegerBits integer bits, range [-2^StateIntegerBits,
       // 2^StateIntegerBits]. It's used to represent the internal state, whose
       // number of integer bits is currently dictated by the model. See comment
       // on the StateIntegerBits template parameter above.
-      using FS = gemmlowp::FixedPoint<std::int16_t, StateIntegerBits>;
+      using FS = FixedPoint<std::int16_t, StateIntegerBits>;
       // Implementation of input gate, using fixed-point logistic function.
       F3 input_gate_input = F3::FromRaw(
           activ_temp_data_int16[b * fc_output_depth + 0 * output_depth + c]);
-      F0 input_gate_output = gemmlowp::logistic(input_gate_input);
+      F0 input_gate_output = ::tflite::micro::logistic(input_gate_input);
       // Implementation of input modulation gate, using fixed-point tanh
       // function.
       F3 input_modulation_gate_input = F3::FromRaw(
           activ_temp_data_int16[b * fc_output_depth + 1 * output_depth + c]);
       F0 input_modulation_gate_output =
-          gemmlowp::tanh(input_modulation_gate_input);
+          ::tflite::micro::tanh(input_modulation_gate_input);
       // Implementation of forget gate, using fixed-point logistic function.
       F3 forget_gate_input = F3::FromRaw(
           activ_temp_data_int16[b * fc_output_depth + 2 * output_depth + c]);
-      F0 forget_gate_output = gemmlowp::logistic(forget_gate_input);
+      F0 forget_gate_output = ::tflite::micro::logistic(forget_gate_input);
       // Implementation of output gate, using fixed-point logistic function.
       F3 output_gate_input = F3::FromRaw(
           activ_temp_data_int16[b * fc_output_depth + 3 * output_depth + c]);
-      F0 output_gate_output = gemmlowp::logistic(output_gate_input);
+      F0 output_gate_output = ::tflite::micro::logistic(output_gate_input);
       // Implementation of internal multiplication nodes, still in fixed-point.
       F0 input_times_input_modulation =
           input_gate_output * input_modulation_gate_output;
       FS prev_state = FS::FromRaw(prev_state_data_int16[b * output_depth + c]);
       FS prev_state_times_forget_state = forget_gate_output * prev_state;
       // Implementation of internal addition node, saturating.
-      FS new_state = gemmlowp::SaturatingAdd(
-          gemmlowp::Rescale<StateIntegerBits>(input_times_input_modulation),
-          prev_state_times_forget_state);
+      FS new_state =
+          SaturatingAdd(Rescale<StateIntegerBits>(input_times_input_modulation),
+                        prev_state_times_forget_state);
       // Implementation of last internal Tanh node, still in fixed-point.
       // Since a Tanh fixed-point implementation is specialized for a given
       // number or integer bits, and each specialization can have a substantial
@@ -400,8 +400,9 @@ inline void LstmCell(const LstmCellParams& params,
       // significant accuracy to be lost by clamping to [-8, +8] for a
       // 3-integer-bits representation, let us just do that. This helps people
       // porting this to targets where code footprint must be minimized.
-      F3 new_state_f3 = gemmlowp::Rescale<3>(new_state);
-      F0 output_activ_int16 = output_gate_output * gemmlowp::tanh(new_state_f3);
+      F3 new_state_f3 = Rescale<3>(new_state);
+      F0 output_activ_int16 =
+          output_gate_output * ::tflite::micro::tanh(new_state_f3);
       // Store the new internal state back to memory, as 16-bit integers.
       // Note: here we store the original value with StateIntegerBits, not
       // the rescaled 3-integer-bits value fed to tanh.
@@ -409,7 +410,7 @@ inline void LstmCell(const LstmCellParams& params,
       // Down-scale the output activations to 8-bit integers, saturating,
       // and store back to memory.
       int16_t rescaled_output_activ =
-          gemmlowp::RoundingDivideByPOT(output_activ_int16.raw(), 8);
+          RoundingDivideByPOT(output_activ_int16.raw(), 8);
       int16_t clamped_output_activ = std::max<int16_t>(
           -128, std::min<int16_t>(127, rescaled_output_activ));
       output_activ_data_uint8[b * output_depth + c] =

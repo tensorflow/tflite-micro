@@ -17,9 +17,9 @@ limitations under the License.
 
 #include <cmath>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
@@ -76,12 +76,12 @@ inline void Logistic(const LogisticParams& params,
     // F0 uses 0 integer bits, range [-1, 1].
     // This is the return type of math functions such as tanh, logistic,
     // whose range is in [-1, 1].
-    using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+    using F0 = FixedPoint<std::int16_t, 0>;
     // F3 uses 3 integer bits, range [-8, 8], the input range expected here.
-    using F3 = gemmlowp::FixedPoint<std::int16_t, 3>;
+    using F3 = FixedPoint<std::int16_t, 3>;
 
     const F3 input = F3::FromRaw(input_data[i]);
-    F0 output = gemmlowp::logistic(input);
+    F0 output = ::tflite::micro::logistic(input);
     output_data[i] = output.raw();
   }
 }

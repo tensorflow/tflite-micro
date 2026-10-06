@@ -15,13 +15,13 @@ tflm_cc_library(
     srcs = ["common.cc"],
     hdrs = [
         "common.h",
+        "fixedpoint.h",
         "optimized/neon_check.h",
     ],
     deps = [
         ":compatibility",
         ":cppmath",
         ":types",
-        "@gemmlowp//:fixedpoint",
     ],
 )
 
@@ -93,7 +93,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels:op_macros",
-        "@gemmlowp//:fixedpoint",
     ],
 )
 
@@ -152,6 +151,5 @@ tflm_cc_library(
         ":cppmath",
         "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:op_macros",
-        "@gemmlowp//:fixedpoint",
     ],
 )

@@ -17,9 +17,9 @@ limitations under the License.
 
 #include <algorithm>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {
@@ -74,8 +74,6 @@ inline int32_t DepthwiseConvRound(int32_t x, int32_t quantized_multiplier,
 template <>
 inline int32_t DepthwiseConvRound<DepthwiseConvOutputRounding::kAwayFromZero>(
     int32_t x, int32_t quantized_multiplier, int shift) {
-  using gemmlowp::RoundingDivideByPOT;
-  using gemmlowp::SaturatingRoundingDoublingHighMul;
   int left_shift = shift > 0 ? shift : 0;
   int right_shift = shift > 0 ? 0 : -shift;
   return RoundingDivideByPOT(SaturatingRoundingDoublingHighMul(
@@ -99,7 +97,6 @@ inline int32_t DepthwiseConvRound<DepthwiseConvOutputRounding::kAwayFromZero>(
 template <>
 inline int32_t DepthwiseConvRound<DepthwiseConvOutputRounding::kUpward>(
     int32_t x, int32_t quantized_multiplier, int shift) {
-  using gemmlowp::SaturatingRoundingDoublingHighMul;
   const int left_shift = shift > 0 ? shift : 0;
   const int right_shift = shift > 0 ? 0 : -shift;
   const int rounding_offset = right_shift > 0 ? 1 << (right_shift - 1) : 0;

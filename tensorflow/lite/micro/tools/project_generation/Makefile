@@ -34,7 +34,6 @@ AR := ar
 
 INCLUDES := \
   -I. \
-  -I./third_party/gemmlowp \
   -I./third_party/flatbuffers/include \
   -I./third_party/kissfft \
   -I./third_party/kissfft/tools

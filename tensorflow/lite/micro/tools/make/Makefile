@@ -110,7 +110,6 @@ DOWNLOADS_DIR := $(MAKEFILE_DIR)/downloads
 INCLUDES := \
 -I. \
 -I$(DOWNLOADS_DIR) \
--I$(DOWNLOADS_DIR)/gemmlowp \
 -I$(DOWNLOADS_DIR)/flatbuffers/include \
 -I$(DOWNLOADS_DIR)/kissfft
 

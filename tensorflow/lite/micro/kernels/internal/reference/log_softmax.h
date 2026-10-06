@@ -19,8 +19,8 @@ limitations under the License.
 #include <cstddef>
 #include <limits>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 
 namespace tflite {
 namespace micro {
@@ -76,10 +76,8 @@ inline void LogSoftmax(const SoftmaxParams& params,
   static constexpr int kScaledDiffIntegerBits = 5;
   static constexpr int kAccumulationIntegerBits = 12;
   static constexpr int kOutputIntegerBits = 4;
-  using FixedPointScaledDiff =
-      gemmlowp::FixedPoint<int32_t, kScaledDiffIntegerBits>;
-  using FixedPointAccum =
-      gemmlowp::FixedPoint<int32_t, kAccumulationIntegerBits>;
+  using FixedPointScaledDiff = FixedPoint<int32_t, kScaledDiffIntegerBits>;
+  using FixedPointAccum = FixedPoint<int32_t, kAccumulationIntegerBits>;
 
   const int trailing_dim = input_shape.DimensionsCount() - 1;
   const int outer_size =
@@ -103,7 +101,7 @@ inline void LogSoftmax(const SoftmaxParams& params,
                 input_diff, input_multiplier, input_left_shift);
         const FixedPointScaledDiff scaled_diff_f8 =
             FixedPointScaledDiff::FromRaw(input_diff_rescaled);
-        sum_of_exps = sum_of_exps + gemmlowp::Rescale<kAccumulationIntegerBits>(
+        sum_of_exps = sum_of_exps + Rescale<kAccumulationIntegerBits>(
                                         exp_on_negative_values(scaled_diff_f8));
       }
     }
@@ -135,7 +133,7 @@ inline void LogSoftmax(const SoftmaxParams& params,
             MultiplyByQuantizedMultiplierGreaterThanOne(
                 input_diff, input_multiplier, input_left_shift);
         int32_t unsat_output =
-            gemmlowp::RoundingDivideByPOT(
+            RoundingDivideByPOT(
                 (input_diff_rescaled - fixed_log_sum_of_exps),
                 31 - kScaledDiffIntegerBits - kOutputIntegerBits) +
             255;
@@ -174,8 +172,8 @@ inline void LogSoftmaxQuantized(const SoftmaxParams& params,
   static constexpr int kInputIntegerBits = 5;
   static constexpr int kAccumulationIntegerBits = 12;
   static constexpr int kOutputIntegerBits = 4;
-  using F5 = gemmlowp::FixedPoint<int32_t, kInputIntegerBits>;
-  using F12 = gemmlowp::FixedPoint<int32_t, kAccumulationIntegerBits>;
+  using F5 = FixedPoint<int32_t, kInputIntegerBits>;
+  using F12 = FixedPoint<int32_t, kAccumulationIntegerBits>;
 
   for (size_t outer_index = 0; outer_index < outer_size; ++outer_index) {
     T max_in_row = kMinT8;
@@ -195,7 +193,7 @@ inline void LogSoftmaxQuantized(const SoftmaxParams& params,
             input_diff, input_multiplier, input_left_shift);
         sum_of_exps_in_q12 =
             sum_of_exps_in_q12 +
-            gemmlowp::Rescale<kAccumulationIntegerBits>(
+            Rescale<kAccumulationIntegerBits>(
                 exp_on_negative_values(F5::FromRaw(input_diff_in_q5)));
       }
     }
@@ -226,9 +224,8 @@ inline void LogSoftmaxQuantized(const SoftmaxParams& params,
 
         // Rescale and downcast.
         int32_t output_in_q27 =
-            gemmlowp::RoundingDivideByPOT(
-                (input_diff_in_q5 - log_sum_of_exps_in_q5),
-                31 - kInputIntegerBits - kOutputIntegerBits) +
+            RoundingDivideByPOT((input_diff_in_q5 - log_sum_of_exps_in_q5),
+                                31 - kInputIntegerBits - kOutputIntegerBits) +
             kMaxT8;
 
         output_in_q27 =
