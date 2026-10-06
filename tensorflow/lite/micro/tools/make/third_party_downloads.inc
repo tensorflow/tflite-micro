@@ -5,9 +5,6 @@
 # in a pull request and we'll periodically copy them and update
 # the URL.
 
-GEMMLOWP_URL := "https://github.com/google/gemmlowp/archive/719139ce755a0f31cbf1c37f7f98adcc7fc9f425.zip"
-GEMMLOWP_MD5 := "7e8191b24853d75de2af87622ad293ba"
-
 LEON_BCC2_URL := "http://mirror.tensorflow.org/www.gaisler.com/anonftp/bcc2/bin/bcc-2.0.7-gcc-linux64.tar.xz"
 LEON_BCC2_MD5 := "cdf78082be4882da2a92c9baa82fe765"
 

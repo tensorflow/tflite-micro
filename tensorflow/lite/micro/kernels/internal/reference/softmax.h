@@ -19,9 +19,9 @@ limitations under the License.
 #include <limits>
 #include <type_traits>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
@@ -80,11 +80,9 @@ inline void Softmax(const SoftmaxParams& params,
   // accumulation, but exp(-16) definitely is.
   static const int kScaledDiffIntegerBits = 5;
   static const int kAccumulationIntegerBits = 12;
-  using FixedPointScaledDiff =
-      gemmlowp::FixedPoint<int32_t, kScaledDiffIntegerBits>;
-  using FixedPointAccum =
-      gemmlowp::FixedPoint<int32_t, kAccumulationIntegerBits>;
-  using FixedPoint0 = gemmlowp::FixedPoint<int32_t, 0>;
+  using FixedPointScaledDiff = FixedPoint<int32_t, kScaledDiffIntegerBits>;
+  using FixedPointAccum = FixedPoint<int32_t, kAccumulationIntegerBits>;
+  using FixedPoint0 = FixedPoint<int32_t, 0>;
 
   const int trailing_dim = input_shape.DimensionsCount() - 1;
   const int outer_size =
@@ -108,7 +106,7 @@ inline void Softmax(const SoftmaxParams& params,
                 input_diff, input_beta_multiplier, input_beta_left_shift);
         const FixedPointScaledDiff scaled_diff_f8 =
             FixedPointScaledDiff::FromRaw(input_diff_rescaled);
-        sum_of_exps = sum_of_exps + gemmlowp::Rescale<kAccumulationIntegerBits>(
+        sum_of_exps = sum_of_exps + Rescale<kAccumulationIntegerBits>(
                                         exp_on_negative_values(scaled_diff_f8));
       }
     }
@@ -131,8 +129,8 @@ inline void Softmax(const SoftmaxParams& params,
             FixedPointScaledDiff::FromRaw(input_diff_rescaled);
 
         FixedPoint0 exp_in_0 = exp_on_negative_values(scaled_diff_f8);
-        int32_t unsat_output = gemmlowp::RoundingDivideByPOT(
-            (shifted_scale * exp_in_0).raw(), exponent);
+        int32_t unsat_output =
+            RoundingDivideByPOT((shifted_scale * exp_in_0).raw(), exponent);
 
         const int32_t shifted_output =
             unsat_output +

@@ -79,8 +79,6 @@ int32_t MultiplyByQuantizedMultiplier(int64_t x, int32_t quantized_multiplier,
 TFLITE_NO_SANITIZE_INTEGER_OVERFLOW
 int32_t MultiplyByQuantizedMultiplier(int32_t x, int32_t quantized_multiplier,
                                       int shift) {
-  using gemmlowp::RoundingDivideByPOT;
-  using gemmlowp::SaturatingRoundingDoublingHighMul;
   int left_shift = shift > 0 ? shift : 0;
   int right_shift = shift > 0 ? 0 : -shift;
   return RoundingDivideByPOT(SaturatingRoundingDoublingHighMul(

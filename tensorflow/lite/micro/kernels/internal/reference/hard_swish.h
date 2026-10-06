@@ -74,7 +74,7 @@ inline void HardSwish(const HardSwishParams& params,
     // case, and that in the general case we'll multiply against the "relu-ish"
     // fixed-point multiplier in [0, 1].
     const int16_t input_value_on_preshift_output_scale =
-        gemmlowp::SaturatingRoundingDoublingHighMul(
+        SaturatingRoundingDoublingHighMul(
             input_value_on_hires_input_scale,
             params.output_multiplier_fixedpoint_int16);
     // Now compute the "relu-ish multiplier". In the (-3 <= x <= +3) case, that
@@ -111,7 +111,7 @@ inline void HardSwish(const HardSwishParams& params,
     }
     // Apply the fixed-point multiplier, dividing the value by a divisor
     // ranging in [1, 2].
-    reluish_value = gemmlowp::SaturatingRoundingDoublingHighMul(
+    reluish_value = SaturatingRoundingDoublingHighMul(
         reluish_value, params.reluish_multiplier_fixedpoint_int16);
     // Apply the last bit of left-shift. Thus, in the left-shifting case, if
     // any saturation affects the result, it is happening here --- any
@@ -122,8 +122,8 @@ inline void HardSwish(const HardSwishParams& params,
     }
     // Shift right, in the right-shifting case.
     if (params.reluish_multiplier_exponent < 0) {
-      reluish_value = gemmlowp::RoundingDivideByPOT(
-          reluish_value, -params.reluish_multiplier_exponent);
+      reluish_value = RoundingDivideByPOT(reluish_value,
+                                          -params.reluish_multiplier_exponent);
     }
     // At this point we have rescaled the value into a 16bit fixedpoint
     // reluish_value in [-1, 1].
@@ -148,7 +148,7 @@ inline void HardSwish(const HardSwishParams& params,
         reluish_value, input_value_on_preshift_output_scale);
     // We were so far operating on the pre-shift output scale. Now we finally
     // apply that output shift, arriving at the final output scale.
-    int16_t output_value = gemmlowp::RoundingDivideByPOT(
+    int16_t output_value = RoundingDivideByPOT(
         preshift_output_value, -params.output_multiplier_exponent);
     output_value += params.output_zero_point;
     output_value =

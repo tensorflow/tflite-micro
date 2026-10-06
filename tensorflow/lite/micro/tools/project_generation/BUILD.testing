@@ -10,7 +10,6 @@ tflm_cc_library(
   srcs = glob(["tensorflow/**/*.cc", "tensorflow/**/*.c", "third_party/**/*.cc", "third_party/**/*.c"]),
   hdrs = glob(["tensorflow/**/*.h", "third_party/**/*.h"]),
   copts = tflm_copts() + [
-    "-Ithird_party/gemmlowp",
     "-Ithird_party/flatbuffers/include",
     "-Ithird_party/kissfft",
     "-Ithird_party/kissfft/tools",

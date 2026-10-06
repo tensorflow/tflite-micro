@@ -27,8 +27,6 @@ MICROLITE_CC_HDRS := \
   $(TENSORFLOW_ROOT)tensorflow/lite/schema/schema_generated.h \
   $(TENSORFLOW_ROOT)LICENSE
 
-# TODO(b/165940489): Figure out how to avoid including fixed point
-# platform-specific headers.
 # some kiss fft source file has to be included in header sections because
 # the implemenation of three different resolution fft from one single c file.
 # See http://b/201319430 for additional context.
@@ -63,11 +61,6 @@ $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector_downward.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/verifier.h \
 $(DOWNLOADS_DIR)/flatbuffers/LICENSE \
-$(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint.h \
-$(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_neon.h \
-$(DOWNLOADS_DIR)/gemmlowp/fixedpoint/fixedpoint_sse.h \
-$(DOWNLOADS_DIR)/gemmlowp/internal/detect_platform.h \
-$(DOWNLOADS_DIR)/gemmlowp/LICENSE \
 $(DOWNLOADS_DIR)/kissfft/COPYING \
 $(DOWNLOADS_DIR)/kissfft/kiss_fft.c \
 $(DOWNLOADS_DIR)/kissfft/kiss_fft.h \

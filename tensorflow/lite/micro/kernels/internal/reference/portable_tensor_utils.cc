@@ -19,10 +19,10 @@ limitations under the License.
 #include <limits>
 #include <utility>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/portable_tensor_utils_impl.h"
 
 #if defined(_MSC_VER)
@@ -564,11 +564,11 @@ void PortableApplySigmoid(const int16_t* input, int32_t n_batch,
                           int32_t n_input, int16_t* output) {
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int c = 0; c < n_input; c++) {
-      using F3 = gemmlowp::FixedPoint<std::int16_t, 3>;
-      using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+      using F3 = FixedPoint<std::int16_t, 3>;
+      using F0 = FixedPoint<std::int16_t, 0>;
       const int index = batch * n_input + c;
       F3 sigmoid_input = F3::FromRaw(input[index]);
-      F0 sigmoid_output = gemmlowp::logistic(sigmoid_input);
+      F0 sigmoid_output = ::tflite::micro::logistic(sigmoid_input);
       output[index] = sigmoid_output.raw();
     }
   }
@@ -596,13 +596,13 @@ void PortableApplySigmoidFloat(const int16_t* input, int32_t n_batch,
 template <int IntegerBits>
 void PortableApplyTanhImpl(const int16_t* input, int32_t n_batch,
                            int32_t n_input, int16_t* output) {
-  using FX = gemmlowp::FixedPoint<std::int16_t, IntegerBits>;
-  using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+  using FX = FixedPoint<std::int16_t, IntegerBits>;
+  using F0 = FixedPoint<std::int16_t, 0>;
   for (int batch = 0; batch < n_batch; ++batch) {
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
       FX tanh_input = FX::FromRaw(input[index]);
-      F0 tanh_output = gemmlowp::tanh(tanh_input);
+      F0 tanh_output = ::tflite::micro::tanh(tanh_input);
       output[index] = tanh_output.raw();
     }
   }
@@ -658,8 +658,7 @@ void PortableCwiseMul(const int16_t* input_1, const int16_t* input_2,
       const int16_t a = input_1[index];
       const int16_t b = input_2[index];
       const int32_t value = static_cast<int32_t>(a) * static_cast<int32_t>(b);
-      output[index] =
-          static_cast<int16_t>(gemmlowp::RoundingDivideByPOT(value, shift));
+      output[index] = static_cast<int16_t>(RoundingDivideByPOT(value, shift));
     }
   }
 }

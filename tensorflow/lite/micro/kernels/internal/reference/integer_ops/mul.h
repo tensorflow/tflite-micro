@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <algorithm>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/broadcast_loop.h"
 
 namespace tflite {
@@ -75,12 +75,11 @@ inline void Mul(const ArithmeticParams& params,
 
   for (int i = 0; i < flat_size; i++) {
     // F0 uses 0 integer bits, range [-1, 1].
-    using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+    using F0 = FixedPoint<std::int16_t, 0>;
 
     F0 unclamped_result =
         F0::FromRaw(input1_data[i]) * F0::FromRaw(input2_data[i]);
-    int16_t rescaled_result =
-        gemmlowp::RoundingDivideByPOT(unclamped_result.raw(), 8);
+    int16_t rescaled_result = RoundingDivideByPOT(unclamped_result.raw(), 8);
     int16_t clamped_result = std::min<int16_t>(
         output_activation_max - output_offset, rescaled_result);
     clamped_result = std::max<int16_t>(output_activation_min - output_offset,

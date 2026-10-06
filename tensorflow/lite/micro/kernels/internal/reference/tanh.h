@@ -17,9 +17,9 @@ limitations under the License.
 
 #include <cmath>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
 
@@ -60,21 +60,20 @@ inline void Tanh(const TanhParams& params, const RuntimeShape& input_shape,
   // F0 uses 0 integer bits, range [-1, 1].
   // This is the return type of math functions such as tanh, logistic,
   // whose range is in [-1, 1].
-  using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+  using F0 = FixedPoint<std::int16_t, 0>;
   // F3 uses 3 integer bits, range [-8, 8], the input range expected here.
-  using F3 = gemmlowp::FixedPoint<std::int16_t, 3>;
+  using F3 = FixedPoint<std::int16_t, 3>;
 
   if (input_left_shift == 0) {
     for (int i = 0; i < flat_size; i++) {
       F3 input = F3::FromRaw(input_data[i]);
-      F0 output = gemmlowp::tanh(input);
+      F0 output = ::tflite::micro::tanh(input);
       output_data[i] = output.raw();
     }
   } else {
     for (int i = 0; i < flat_size; i++) {
-      F3 input = F3::FromRaw(
-          gemmlowp::SaturatingRoundingMultiplyByPOT<1>(input_data[i]));
-      F0 output = gemmlowp::tanh(input);
+      F3 input = F3::FromRaw(SaturatingRoundingMultiplyByPOT<1>(input_data[i]));
+      F0 output = ::tflite::micro::tanh(input);
       output_data[i] = output.raw();
     }
   }
@@ -103,12 +102,11 @@ inline void Tanh(const TanhParams& params, const RuntimeShape& input_shape,
       const int32_t input_val_rescaled =
           MultiplyByQuantizedMultiplierGreaterThanOne(
               input_val_centered, input_multiplier, input_left_shift);
-      using FixedPoint4 = gemmlowp::FixedPoint<int32_t, 4>;
-      using FixedPoint0 = gemmlowp::FixedPoint<int32_t, 0>;
+      using FixedPoint4 = FixedPoint<int32_t, 4>;
+      using FixedPoint0 = FixedPoint<int32_t, 0>;
       const FixedPoint4 input_val_f4 = FixedPoint4::FromRaw(input_val_rescaled);
-      const FixedPoint0 output_val_f0 = gemmlowp::tanh(input_val_f4);
+      const FixedPoint0 output_val_f0 = ::tflite::micro::tanh(input_val_f4);
       // Convert from Q0.31 to Q24.7.
-      using gemmlowp::RoundingDivideByPOT;
       int32_t output_val_s32 = RoundingDivideByPOT(output_val_f0.raw(), 24);
       output_val_s32 += output_zero_point;
       if (output_val_s32 == 256) {

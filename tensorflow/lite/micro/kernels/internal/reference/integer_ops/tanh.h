@@ -18,8 +18,8 @@ limitations under the License.
 #include <algorithm>
 #include <limits>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 
 namespace tflite {
 namespace micro {
@@ -34,7 +34,7 @@ inline void Tanh(int32_t input_zero_point, int32_t input_range_radius,
   static constexpr int32_t kOutputScale = 7;
   static constexpr int32_t kMinInt8 = std::numeric_limits<int8_t>::min();
   static constexpr int32_t kMaxInt8 = std::numeric_limits<int8_t>::max();
-  using F4 = gemmlowp::FixedPoint<int32_t, kInputIntegerBits>;
+  using F4 = FixedPoint<int32_t, kInputIntegerBits>;
 
   const int flat_size = MatchingFlatSize(input_shape, output_shape);
 
@@ -49,10 +49,9 @@ inline void Tanh(int32_t input_zero_point, int32_t input_range_radius,
       const int32_t input_in_q4 =
           MultiplyByQuantizedMultiplier(input, input_multiplier, input_shift);
       const int32_t output_in_q0 =
-          gemmlowp::tanh(F4::FromRaw(input_in_q4)).raw();
+          ::tflite::micro::tanh(F4::FromRaw(input_in_q4)).raw();
 
       // Rescale and downcast.
-      using gemmlowp::RoundingDivideByPOT;
       int32_t output_in_q24 =
           RoundingDivideByPOT(output_in_q0, 31 - kOutputScale);
       output_in_q24 = std::min(std::max(output_in_q24, kMinInt8), kMaxInt8);

@@ -56,12 +56,6 @@ class Dependency:
 
 
 DEPENDENCIES = {
-  "gemmlowp": Dependency(
-    name="gemmlowp",
-    url="https://github.com/google/gemmlowp/archive/719139ce755a0f31cbf1c37f7f98adcc7fc9f425.zip",
-    md5="7e8191b24853d75de2af87622ad293ba",
-    dep_type="archive",
-  ),
   "flatbuffers": Dependency(
     name="flatbuffers",
     url="https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.zip",
@@ -85,7 +79,6 @@ DEPENDENCIES = {
 }
 
 DEFAULT_DEPENDENCIES = [
-  "gemmlowp",
   "flatbuffers",
   "kissfft",
   "eyalroz_printf",

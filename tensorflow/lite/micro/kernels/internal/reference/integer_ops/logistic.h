@@ -45,12 +45,11 @@ inline void Logistic(int32_t input_zero_point, int32_t input_range_radius,
     } else {
       const int32_t input_in_q4 = MultiplyByQuantizedMultiplier(
           input, input_multiplier, input_left_shift);
-      using FixedPoint4 = gemmlowp::FixedPoint<int32_t, kInputIntegerBits>;
+      using FixedPoint4 = FixedPoint<int32_t, kInputIntegerBits>;
       const int32_t output_in_q0 =
-          gemmlowp::logistic(FixedPoint4::FromRaw(input_in_q4)).raw();
+          ::tflite::micro::logistic(FixedPoint4::FromRaw(input_in_q4)).raw();
 
       // Rescale and downcast.
-      using gemmlowp::RoundingDivideByPOT;
       int32_t output_in_q23 =
           RoundingDivideByPOT(output_in_q0, 31 - kOutputIntegerBits);
       output_in_q23 = std::min(std::max(output_in_q23 + kOutputZeroPoint,

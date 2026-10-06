@@ -20,9 +20,9 @@ limitations under the License.
 #include <cstdint>
 #include <type_traits>
 
-#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/broadcast_loop.h"
 
 namespace tflite {
@@ -186,12 +186,12 @@ inline void Add(const ArithmeticParams& params,
 
   for (int i = 0; i < flat_size; i++) {
     // F0 uses 0 integer bits, range [-1, 1].
-    using F0 = gemmlowp::FixedPoint<std::int16_t, 0>;
+    using F0 = FixedPoint<std::int16_t, 0>;
 
     F0 input_ready_scaled = F0::FromRaw(not_shift_input[i]);
-    F0 scaled_input = F0::FromRaw(
-        gemmlowp::RoundingDivideByPOT(shift_input[i], input_right_shift));
-    F0 result = gemmlowp::SaturatingAdd(scaled_input, input_ready_scaled);
+    F0 scaled_input =
+        F0::FromRaw(RoundingDivideByPOT(shift_input[i], input_right_shift));
+    F0 result = SaturatingAdd(scaled_input, input_ready_scaled);
     const int16_t raw_output = result.raw();
     const int16_t clamped_output = std::min(
         output_activation_max, std::max(output_activation_min, raw_output));
