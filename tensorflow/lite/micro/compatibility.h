@@ -15,6 +15,8 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_COMPATIBILITY_H_
 #define TENSORFLOW_LITE_MICRO_COMPATIBILITY_H_
 
+#include <cstddef>
+
 // C++ will automatically create class-specific delete operators for virtual
 // objects, which by default call the global delete function. For embedded
 // applications we want to avoid this, and won't be calling new/delete on these
@@ -23,6 +25,7 @@ limitations under the License.
 // This macro needs to be included in all subclasses of a virtual base class in
 // the private section.
 #define TF_LITE_REMOVE_VIRTUAL_DELETE \
-  void operator delete(void* p) {}
+  void operator delete(void* p) {}    \
+  void operator delete(void* p, size_t) {}
 
 #endif  // TENSORFLOW_LITE_MICRO_COMPATIBILITY_H_

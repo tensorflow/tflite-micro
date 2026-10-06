@@ -20,6 +20,7 @@
 # make -j8 examples
 
 BUILD_TYPE :=
+DISABLE_EXCEPTIONS := true
 
 COMMON_FLAGS := \
   -fno-unwind-tables \
@@ -73,9 +74,12 @@ endif
 CXXFLAGS := \
   -std=c++17 \
   -fno-rtti \
-  -fno-exceptions \
   -fno-threadsafe-statics \
   $(COMMON_FLAGS)
+
+ifeq ($(DISABLE_EXCEPTIONS), true)
+  CXXFLAGS += -fno-exceptions
+endif
 
 CCFLAGS := \
   -std=c17 \
