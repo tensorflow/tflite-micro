@@ -45,38 +45,24 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _HEXAGON_TFLM_TRANSLATION_SVDF_H_
 #define _HEXAGON_TFLM_TRANSLATION_SVDF_H_
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
-#include "tensorflow/lite/micro/kernels/activation_utils.h"
-#include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/op_macros.h"
-#include "tensorflow/lite/micro/micro_utils.h"
+#include <cstdint>
 
-namespace tflite {
-namespace hexagon_svdf {
+extern "C" {
+void gemm_s32_s8xu8_Nany_Mmod4_Kmod8(const int8_t* weights,
+                                     const uint8_t* input, int32_t* output,
+                                     int num_rows, int num_cols, int depth);
+void rowinner_s32_s16xs16_Mmod2_Nmod4(const int16_t* weights_time,
+                                      const int16_t* state, int32_t* scratch,
+                                      int num_filters, int memory_size);
+}  // extern "C"
 
-void* HexagonInit(TfLiteContext* context, const char* buffer, size_t length) asm(
-    "_ZN6tflite12hexagon_svdf11HexagonInitEP13TfLiteContextPKcj");
+void HexagonGenerateBias(
+    int32_t* generated_bias, const int8_t* weights, const int32_t* bias,
+    int32_t zero_point, int num_rows, int repeat,
+    int num_cols) asm("_Z19HexagonGenerateBiasPlPKaPKlliii");
 
-TfLiteStatus HexagonPrepare(TfLiteContext* context, TfLiteNode* node) asm(
-    "_ZN6tflite12hexagon_svdf14HexagonPrepareEP13TfLiteContextP10TfLiteNode");
-
-void HexagonEvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input_tensor, const TfLiteEvalTensor* weights_feature_tensor, const TfLiteEvalTensor* weights_time_tensor, const TfLiteEvalTensor* bias_tensor, const TfLiteSVDFParams* params, TfLiteEvalTensor* activation_state_tensor, TfLiteEvalTensor* output_tensor, void* op_data) asm(
-    "_ZN6tflite12hexagon_"
-    "svdf22HexagonEvalIntegerSVDFEP13TfLiteContextP10TfLiteNodePK16TfLiteEvalTe"
-    "nsorS7_S7_S7_PK16TfLiteSVDFParamsPS5_SB_Pv");
-
-void HexagonOptimizationEvaluation(TfLiteContext* context, TfLiteNode* node) asm(
-    "_ZN6tflite12hexagon_"
-    "svdf29HexagonOptimizationEvaluationEP13TfLiteContextP10TfLiteNode");
-bool HexagonOptimizable(TfLiteContext* context, TfLiteNode* node) asm(
-    "_ZN6tflite12hexagon_"
-    "svdf18HexagonOptimizableEP13TfLiteContextP10TfLiteNode");
-
-}  // namespace hexagon_svdf
-}  // namespace tflite
+void HexagonInterleaveWeightInplace(
+    int8_t* weights, int num_rows, int num_cols,
+    int factor) asm("_Z30HexagonInterleaveWeightInplacePaiii");
 
 #endif  // _HEXAGON_TFLM_TRANSLATION_SVDF_H_
