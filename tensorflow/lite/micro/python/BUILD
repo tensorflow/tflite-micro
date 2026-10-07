@@ -1,5 +1,5 @@
-load("@rules_python//python:defs.bzl", "py_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_library")
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_py_library")
 
 package(
@@ -14,7 +14,7 @@ flatbuffer_py_library(
     srcs = ["//tensorflow/lite/schema:schema.fbs"],
 )
 
-py_library(
+tflm_py_library(
     name = "schema_util",
     srcs = ["schema_util.py"],
     visibility = ["//:__subpackages__"],

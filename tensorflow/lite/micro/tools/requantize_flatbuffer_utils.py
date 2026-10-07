@@ -14,7 +14,9 @@
 # =============================================================================
 import numpy as np
 import logging
-from tflite_micro.tensorflow.lite.python.schema_py_generated import TensorType
+from tflite_micro.tensorflow.lite.micro.python.schema_py_generated import (
+  TensorType,
+)
 
 # Map flatbuffer tensor type code to numpy data type. see Table TensorType in tensorflow/lite/schema/schema.fbs
 # TODO(b/269487423): use a common util function instead

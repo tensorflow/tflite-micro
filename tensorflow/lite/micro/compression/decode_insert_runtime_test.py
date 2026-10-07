@@ -42,7 +42,9 @@ from tflite_micro.tensorflow.lite.micro.compression import decode_insert
 from tflite_micro.tensorflow.lite.micro.compression import lut
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as tflite,
+)
 
 _SHAPE = (4,)
 _ARENA_SIZE = 65536

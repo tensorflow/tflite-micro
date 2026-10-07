@@ -27,7 +27,9 @@ import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import verify
-from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as tflite,
+)
 
 
 class VerifyTest(unittest.TestCase):

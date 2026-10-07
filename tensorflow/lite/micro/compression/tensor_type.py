@@ -21,7 +21,9 @@ TensorType has a name, for reports and error messages.
 
 import numpy as np
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as tflite,
+)
 
 # TFLite buffers are little-endian, so the dtypes are pinned to little-endian
 # byte order to keep np.frombuffer correct on any host.

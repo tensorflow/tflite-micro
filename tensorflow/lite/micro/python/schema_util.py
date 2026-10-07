@@ -15,7 +15,6 @@
 """Schema utilities to get builtin code from operator code."""
 
 
-
 def get_builtin_code_from_operator_code(opcode):
   """Return the builtin code of the given operator code.
 
@@ -38,6 +37,5 @@ def get_builtin_code_from_operator_code(opcode):
 
 
 __all__ = [
-    'get_builtin_code_from_operator_code',
+  'get_builtin_code_from_operator_code',
 ]
-

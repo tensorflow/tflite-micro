@@ -24,10 +24,10 @@ build.
 
 Some example commands:
 ```sh
-bazel test tensorflow/lite/tools:flatbuffer_utils_test
-bazel build tensorflow/lite/tools:visualize
+bazel test tensorflow/lite/micro/tools:flatbuffer_utils_test
+bazel build tensorflow/lite/micro/tools:visualize
 
-bazel-bin/tensorflow/lite/tools/visualize tensorflow/lite/micro/models/person_detect.tflite tensorflow/lite/micro/models/person_detect.tflite.html
+bazel-bin/tensorflow/lite/micro/tools/visualize tensorflow/lite/micro/models/person_detect.tflite tensorflow/lite/micro/models/person_detect.tflite.html
 ```
 
 # Manual Setup Illustration
@@ -56,7 +56,7 @@ pip install ipython
 
 Run some tests and binaries:
 ```sh
-python tensorflow/lite/tools/flatbuffer_utils_test.py
-python tensorflow/lite/tools/visualize.py tensorflow/lite/micro/models/person_detect.tflite tensorflow/lite/micro/models/person_detect.tflite.html
+python tensorflow/lite/micro/tools/flatbuffer_utils_test.py
+python tensorflow/lite/micro/tools/visualize.py tensorflow/lite/micro/models/person_detect.tflite tensorflow/lite/micro/models/person_detect.tflite.html
 ```
 

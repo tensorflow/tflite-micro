@@ -37,7 +37,7 @@ from tflite_micro.tensorflow.lite.micro.compression import (
   metadata_py_generated as compression_schema,
 )
 from tflite_micro.tensorflow.lite.micro.compression import tensor_type
-from tflite_micro.tensorflow.lite.python import (
+from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite_schema,
 )
 

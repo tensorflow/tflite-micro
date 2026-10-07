@@ -24,8 +24,10 @@ go/tflm-flatbuffer-reduction-breakdown
 
 import numpy as np
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
-from tflite_micro.tensorflow.lite.python import schema_util
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema_fb,
+)
+from tflite_micro.tensorflow.lite.micro.python import schema_util
 from tflite_micro.tensorflow.lite.micro.tools import (
   tflite_flatbuffer_align_wrapper,
 )

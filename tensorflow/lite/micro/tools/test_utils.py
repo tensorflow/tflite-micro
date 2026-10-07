@@ -18,7 +18,9 @@ All functions that can be commonly used by various tests.
 """
 
 import flatbuffers
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema_fb,
+)
 
 TFLITE_SCHEMA_VERSION = 3
 
@@ -106,8 +108,9 @@ def build_mock_flatbuffer_model():
   schema_fb.QuantizationParametersAddMin(builder, quant1_min_offset)
   schema_fb.QuantizationParametersAddMax(builder, quant1_max_offset)
   schema_fb.QuantizationParametersAddScale(builder, quant1_scale_offset)
-  schema_fb.QuantizationParametersAddZeroPoint(builder,
-                                               quant1_zero_point_offset)
+  schema_fb.QuantizationParametersAddZeroPoint(
+    builder, quant1_zero_point_offset
+  )
   quantization1_offset = schema_fb.QuantizationParametersEnd(builder)
 
   string1_offset = builder.CreateString('constant_tensor')
@@ -153,16 +156,19 @@ def build_mock_flatbuffer_model():
 
   schema_fb.OperatorCodeStart(builder)
   schema_fb.OperatorCodeAddBuiltinCode(builder, schema_fb.BuiltinOperator.ADD)
-  schema_fb.OperatorCodeAddDeprecatedBuiltinCode(builder,
-                                                 schema_fb.BuiltinOperator.ADD)
+  schema_fb.OperatorCodeAddDeprecatedBuiltinCode(
+    builder, schema_fb.BuiltinOperator.ADD
+  )
   schema_fb.OperatorCodeAddVersion(builder, 1)
   code0_offset = schema_fb.OperatorCodeEnd(builder)
 
   schema_fb.OperatorCodeStart(builder)
-  schema_fb.OperatorCodeAddBuiltinCode(builder,
-                                       schema_fb.BuiltinOperator.VAR_HANDLE)
+  schema_fb.OperatorCodeAddBuiltinCode(
+    builder, schema_fb.BuiltinOperator.VAR_HANDLE
+  )
   schema_fb.OperatorCodeAddDeprecatedBuiltinCode(
-      builder, schema_fb.BuiltinOperator.PLACEHOLDER_FOR_GREATER_OP_CODES)
+    builder, schema_fb.BuiltinOperator.PLACEHOLDER_FOR_GREATER_OP_CODES
+  )
   schema_fb.OperatorCodeAddVersion(builder, 1)
   code1_offset = schema_fb.OperatorCodeEnd(builder)
 
@@ -194,13 +200,15 @@ def build_mock_flatbuffer_model():
   schema_fb.OperatorStart(builder)
   schema_fb.OperatorAddOpcodeIndex(builder, 1)
   schema_fb.OperatorAddBuiltinOptionsType(
-      builder, schema_fb.BuiltinOptions.VarHandleOptions)
+    builder, schema_fb.BuiltinOptions.VarHandleOptions
+  )
   schema_fb.OperatorAddBuiltinOptions(builder, var_handle_options_offset)
   op1_offset = schema_fb.OperatorEnd(builder)
 
   schema_fb.OperatorStart(builder)
   schema_fb.OperatorAddBuiltinOptionsType(
-      builder, schema_fb.BuiltinOptions.VarHandleOptions)
+    builder, schema_fb.BuiltinOptions.VarHandleOptions
+  )
   schema_fb.OperatorAddBuiltinOptions(builder, var_handle_options_offset)
   op2_offset = schema_fb.OperatorEnd(builder)
 
@@ -279,7 +287,7 @@ def build_operator_with_options() -> schema_fb.Operator:
   schema_fb.OperatorStart(builder)
   schema_fb.OperatorAddBuiltinOptions2(builder, opts)
   schema_fb.OperatorAddBuiltinOptions2Type(
-      builder, schema_fb.BuiltinOptions2.StableHLOCompositeOptions
+    builder, schema_fb.BuiltinOptions2.StableHLOCompositeOptions
   )
   op_offset = schema_fb.OperatorEnd(builder)
   builder.Finish(op_offset)
