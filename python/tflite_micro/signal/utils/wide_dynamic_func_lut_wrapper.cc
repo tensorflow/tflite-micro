@@ -22,6 +22,8 @@ limitations under the License.
 
 namespace py = pybind11;
 
+namespace {
+
 constexpr size_t kWideDynamicFunctionBits = 32;
 constexpr size_t kWideDynamicFunctionLUTSize =
     (4 * kWideDynamicFunctionBits - 3);
@@ -81,6 +83,8 @@ py::list WideDynamicFuncLut(float strength, float offset, int input_bits,
 
   return lut_list;
 }
+
+}  // namespace
 
 PYBIND11_MODULE(wide_dynamic_func_lut_wrapper, m) {
   m.doc() = "wide_dynamic_func_lut";

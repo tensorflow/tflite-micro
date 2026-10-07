@@ -140,7 +140,6 @@ tflm_cc_library(
     ],
     hdrs = [
         "portable_tensor_utils.h",
-        "reference/portable_tensor_utils.h",
     ],
     deps = [
         ":common",

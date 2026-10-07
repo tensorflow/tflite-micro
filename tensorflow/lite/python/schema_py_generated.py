@@ -1004,8 +1004,35 @@ class BlockwiseQuantization(object):
             return self._tab.Get(flatbuffers.number_types.Int32Flags, o + self._tab.Pos)
         return 0
 
+    # BlockwiseQuantization
+    def BlockShape(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Int32Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 4))
+        return 0
+
+    # BlockwiseQuantization
+    def BlockShapeAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Int32Flags, o)
+        return 0
+
+    # BlockwiseQuantization
+    def BlockShapeLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # BlockwiseQuantization
+    def BlockShapeIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        return o == 0
+
 def BlockwiseQuantizationStart(builder):
-    builder.StartObject(3)
+    builder.StartObject(4)
 
 def BlockwiseQuantizationAddScales(builder, scales):
     builder.PrependInt32Slot(0, scales, 0)
@@ -1016,10 +1043,20 @@ def BlockwiseQuantizationAddZeroPoints(builder, zeroPoints):
 def BlockwiseQuantizationAddBlockSize(builder, blockSize):
     builder.PrependInt32Slot(2, blockSize, 0)
 
+def BlockwiseQuantizationAddBlockShape(builder, blockShape):
+    builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(blockShape), 0)
+
+def BlockwiseQuantizationStartBlockShapeVector(builder, numElems):
+    return builder.StartVector(4, numElems, 4)
+
 def BlockwiseQuantizationEnd(builder):
     return builder.EndObject()
 
 
+try:
+    from typing import List
+except:
+    pass
 
 class BlockwiseQuantizationT(object):
 
@@ -1029,10 +1066,12 @@ class BlockwiseQuantizationT(object):
         scales = 0,
         zeroPoints = 0,
         blockSize = 0,
+        blockShape = None,
     ):
         self.scales = scales  # type: int
         self.zeroPoints = zeroPoints  # type: int
         self.blockSize = blockSize  # type: int
+        self.blockShape = blockShape  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -1058,13 +1097,30 @@ class BlockwiseQuantizationT(object):
         self.scales = blockwiseQuantization.Scales()
         self.zeroPoints = blockwiseQuantization.ZeroPoints()
         self.blockSize = blockwiseQuantization.BlockSize()
+        if not blockwiseQuantization.BlockShapeIsNone():
+            if np is None:
+                self.blockShape = []
+                for i in range(blockwiseQuantization.BlockShapeLength()):
+                    self.blockShape.append(blockwiseQuantization.BlockShape(i))
+            else:
+                self.blockShape = blockwiseQuantization.BlockShapeAsNumpy()
 
     # BlockwiseQuantizationT
     def Pack(self, builder):
+        if self.blockShape is not None:
+            if np is not None and type(self.blockShape) is np.ndarray:
+                blockShape = builder.CreateNumpyVector(self.blockShape)
+            else:
+                BlockwiseQuantizationStartBlockShapeVector(builder, len(self.blockShape))
+                for i in reversed(range(len(self.blockShape))):
+                    builder.PrependInt32(self.blockShape[i])
+                blockShape = builder.EndVector()
         BlockwiseQuantizationStart(builder)
         BlockwiseQuantizationAddScales(builder, self.scales)
         BlockwiseQuantizationAddZeroPoints(builder, self.zeroPoints)
         BlockwiseQuantizationAddBlockSize(builder, self.blockSize)
+        if self.blockShape is not None:
+            BlockwiseQuantizationAddBlockShape(builder, blockShape)
         blockwiseQuantization = BlockwiseQuantizationEnd(builder)
         return blockwiseQuantization
 
@@ -7991,8 +8047,35 @@ class FullyConnectedOptions(object):
             return self._tab.Get(flatbuffers.number_types.Int8Flags, o + self._tab.Pos)
         return 0
 
+    # FullyConnectedOptions
+    def QuantSpec(self, j):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            a = self._tab.Vector(o)
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, a + flatbuffers.number_types.UOffsetTFlags.py_type(j * 1))
+        return 0
+
+    # FullyConnectedOptions
+    def QuantSpecAsNumpy(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.GetVectorAsNumpy(flatbuffers.number_types.Uint8Flags, o)
+        return 0
+
+    # FullyConnectedOptions
+    def QuantSpecLength(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        if o != 0:
+            return self._tab.VectorLen(o)
+        return 0
+
+    # FullyConnectedOptions
+    def QuantSpecIsNone(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
+        return o == 0
+
 def FullyConnectedOptionsStart(builder):
-    builder.StartObject(5)
+    builder.StartObject(6)
 
 def FullyConnectedOptionsAddFusedActivationFunction(builder, fusedActivationFunction):
     builder.PrependInt8Slot(0, fusedActivationFunction, 0)
@@ -8009,10 +8092,20 @@ def FullyConnectedOptionsAddAsymmetricQuantizeInputs(builder, asymmetricQuantize
 def FullyConnectedOptionsAddQuantizedBiasType(builder, quantizedBiasType):
     builder.PrependInt8Slot(4, quantizedBiasType, 0)
 
+def FullyConnectedOptionsAddQuantSpec(builder, quantSpec):
+    builder.PrependUOffsetTRelativeSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(quantSpec), 0)
+
+def FullyConnectedOptionsStartQuantSpecVector(builder, numElems):
+    return builder.StartVector(1, numElems, 1)
+
 def FullyConnectedOptionsEnd(builder):
     return builder.EndObject()
 
 
+try:
+    from typing import List
+except:
+    pass
 
 class FullyConnectedOptionsT(object):
 
@@ -8024,12 +8117,14 @@ class FullyConnectedOptionsT(object):
         keepNumDims = False,
         asymmetricQuantizeInputs = False,
         quantizedBiasType = 0,
+        quantSpec = None,
     ):
         self.fusedActivationFunction = fusedActivationFunction  # type: int
         self.weightsFormat = weightsFormat  # type: int
         self.keepNumDims = keepNumDims  # type: bool
         self.asymmetricQuantizeInputs = asymmetricQuantizeInputs  # type: bool
         self.quantizedBiasType = quantizedBiasType  # type: int
+        self.quantSpec = quantSpec  # type: Optional[List[int]]
 
     @classmethod
     def InitFromBuf(cls, buf, pos):
@@ -8057,15 +8152,32 @@ class FullyConnectedOptionsT(object):
         self.keepNumDims = fullyConnectedOptions.KeepNumDims()
         self.asymmetricQuantizeInputs = fullyConnectedOptions.AsymmetricQuantizeInputs()
         self.quantizedBiasType = fullyConnectedOptions.QuantizedBiasType()
+        if not fullyConnectedOptions.QuantSpecIsNone():
+            if np is None:
+                self.quantSpec = []
+                for i in range(fullyConnectedOptions.QuantSpecLength()):
+                    self.quantSpec.append(fullyConnectedOptions.QuantSpec(i))
+            else:
+                self.quantSpec = fullyConnectedOptions.QuantSpecAsNumpy()
 
     # FullyConnectedOptionsT
     def Pack(self, builder):
+        if self.quantSpec is not None:
+            if np is not None and type(self.quantSpec) is np.ndarray:
+                quantSpec = builder.CreateNumpyVector(self.quantSpec)
+            else:
+                FullyConnectedOptionsStartQuantSpecVector(builder, len(self.quantSpec))
+                for i in reversed(range(len(self.quantSpec))):
+                    builder.PrependUint8(self.quantSpec[i])
+                quantSpec = builder.EndVector()
         FullyConnectedOptionsStart(builder)
         FullyConnectedOptionsAddFusedActivationFunction(builder, self.fusedActivationFunction)
         FullyConnectedOptionsAddWeightsFormat(builder, self.weightsFormat)
         FullyConnectedOptionsAddKeepNumDims(builder, self.keepNumDims)
         FullyConnectedOptionsAddAsymmetricQuantizeInputs(builder, self.asymmetricQuantizeInputs)
         FullyConnectedOptionsAddQuantizedBiasType(builder, self.quantizedBiasType)
+        if self.quantSpec is not None:
+            FullyConnectedOptionsAddQuantSpec(builder, quantSpec)
         fullyConnectedOptions = FullyConnectedOptionsEnd(builder)
         return fullyConnectedOptions
 

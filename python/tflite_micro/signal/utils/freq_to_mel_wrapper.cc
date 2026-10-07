@@ -20,6 +20,7 @@ limitations under the License.
 namespace py = pybind11;
 
 namespace tflite {
+namespace {
 
 // Convert a `freq` in Hz to its value on the Mel scale.
 // See: https://en.wikipedia.org/wiki/Mel_scale
@@ -32,6 +33,7 @@ namespace tflite {
 // while recognizing the slight loss in precision.
 float FreqToMel(float freq) { return 1127.0f * log1pf(freq / 700.0f); }
 
+}  // namespace
 }  // namespace tflite
 
 PYBIND11_MODULE(freq_to_mel_wrapper, m) {
