@@ -26,6 +26,7 @@ build --workspace_status_command=./tools/workspace_status.sh
 
 # Automatically enable the config matching the host OS
 common --enable_platform_specific_config
+build --features=system_include_paths
 
 # Use the following C++ standard
 build:linux --cxxopt=-std=c++17
@@ -51,6 +52,8 @@ build:_ci_base --keep_going
 build:ci --config=_ci_base
 build:ci --action_env=CC=clang
 build:ci --action_env=CXX=clang++
+build:ci --repo_env=CC=clang
+build:ci --repo_env=CXX=clang++
 
 # Windows CI options
 build:windows_ci --config=_ci_base
@@ -66,6 +69,8 @@ build:windows_ci --build_python_zip=false
 # Common options for sanitizers
 build:_sanitizer_base --action_env=CC=clang
 build:_sanitizer_base --action_env=CXX=clang++
+build:_sanitizer_base --repo_env=CC=clang
+build:_sanitizer_base --repo_env=CXX=clang++
 build:_sanitizer_base --strip=never
 build:_sanitizer_base --copt=-g
 build:_sanitizer_base --copt=-O3

@@ -4,17 +4,26 @@ module(
     repo_name = "tflite_micro",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.9.0")
-bazel_dep(name = "flatbuffers", version = "25.9.23")
+bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "pybind11_bazel", version = "3.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.17")
-bazel_dep(name = "rules_python", version = "1.8.3")
-bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_python", version = "1.9.2")
+bazel_dep(name = "rules_shell", version = "0.8.0")
 
 # TFLM Dependencies
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Use http_archive instead of BCR bazel_dep because the BCR flatbuffers module
+# pulls in heavy, unused transitive dependencies (grpc, rules_go, rules_nodejs,
+# rules_swift, aspect_rules_js, etc.).
+http_archive(
+    name = "flatbuffers",
+    sha256 = "9102253214dea6ae10c2ac966ea1ed2155d22202390b532d1dea64935c518ada",
+    strip_prefix = "flatbuffers-25.9.23",
+    urls = ["https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.tar.gz"],
+)
 
 http_archive(
     name = "kissfft",
@@ -82,10 +91,5 @@ use_repo(
 use_repo(
     pip,
     "tflm_pip_deps",
-    "tflm_pip_deps_310_numpy",
-    "tflm_pip_deps_311_numpy",
-    "tflm_pip_deps_312_numpy",
-    "tflm_pip_deps_313_numpy",
-    "tflm_pip_deps_314_numpy",
     "tflm_pip_deps_whl_mods",
 )
