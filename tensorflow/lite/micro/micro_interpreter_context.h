@@ -19,13 +19,14 @@ limitations under the License.
 #include <cstddef>
 #include <initializer_list>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 // A full implementation of the MicroContext, to be used by the
 // MicroInterpreter. Kernels should not depend on this directly. Instead they
@@ -176,6 +177,10 @@ class MicroInterpreterContext : public MicroContext {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::MicroInterpreterContext;
 
 }  // namespace tflite
 

@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <limits>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 TEST(ImageProviderTest, TestImageProvider) {

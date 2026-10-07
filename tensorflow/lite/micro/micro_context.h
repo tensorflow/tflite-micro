@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstddef>
 #include <utility>
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 
@@ -31,15 +31,10 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-class DecodeState;  // can't use decode_state.h due to circular include
-}  // namespace micro
 
-// MicroContext is eventually going to become the API between TFLM and the
-// kernels, replacing all the functions in TfLiteContext. The end state is code
-// kernels to have code like:
-//
-// MicroContext* micro_context = GetMicroContext(context);
-// micro_context-><TFLM kernel API>
+class DecodeState;  // can't use decode_state.h due to circular include
+
+// MicroContext is the API between TFLM and the kernels.
 class MicroContext {
  public:
   virtual ~MicroContext() = default;
@@ -189,8 +184,8 @@ class MicroContext {
                           custom_decode_registrations_size_);
   }
 
-  // Initializes the TfLiteContext function pointers and impl_ pointer to bind
-  // to this MicroContext instance.
+  // Initializes the TfLiteContext impl_ pointer to bind to this MicroContext
+  // instance.
   void InitTfLiteContext(TfLiteContext* context);
 
  private:
@@ -209,43 +204,10 @@ inline MicroContext* GetMicroContext(const TfLiteContext* context) {
   return reinterpret_cast<MicroContext*>(context->impl_);
 }
 
-namespace micro {
-using ::tflite::GetMicroContext;
 }  // namespace micro
 
-// Deprecated API. Prefer to using the MicroContext API directly from the
-// kernels.
-// TODO(b/213010668): migrate all existing kernels to use MicroContext, delete
-// these functions, and remove corresponding members from the TfLiteContext
-// struct for TFLM.
-inline void* MicroContextAllocatePersistentBuffer(TfLiteContext* ctx,
-                                                  size_t bytes) {
-  return GetMicroContext(ctx)->AllocatePersistentBuffer(bytes);
-}
-inline TfLiteStatus MicroContextRequestScratchBufferInArena(TfLiteContext* ctx,
-                                                            size_t bytes,
-                                                            int* buffer_idx) {
-  return GetMicroContext(ctx)->RequestScratchBufferInArena(bytes, buffer_idx);
-}
-inline void* MicroContextGetScratchBuffer(TfLiteContext* ctx, int buffer_idx) {
-  return GetMicroContext(ctx)->GetScratchBuffer(buffer_idx);
-}
-inline TfLiteTensor* MicroContextGetTensor(const TfLiteContext* context,
-                                           int tensor_idx) {
-  return GetMicroContext(context)->AllocateTempTfLiteTensor(tensor_idx);
-}
-inline TfLiteEvalTensor* MicroContextGetEvalTensor(const TfLiteContext* context,
-                                                   int tensor_idx) {
-  return GetMicroContext(context)->GetEvalTensor(tensor_idx);
-}
-inline TfLiteExternalContext* MicroContextGetExternalContext(
-    TfLiteContext* context, TfLiteExternalContextType unused) {
-  return reinterpret_cast<TfLiteExternalContext*>(
-      GetMicroContext(context)->external_context());
-}
-
-// Requests that an error be reported with format string msg.
-void MicroContextReportOpError(TfLiteContext* context, const char* format, ...);
+using micro::GetMicroContext;
+using micro::MicroContext;
 
 }  // namespace tflite
 

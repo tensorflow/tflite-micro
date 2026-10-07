@@ -19,10 +19,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 // Implement INonPersistentBufferAllocator on an arena that is dedicated for
 // non-persistent buffers.
@@ -98,6 +99,10 @@ class NonPersistentArenaBufferAllocator : public INonPersistentBufferAllocator {
   int temp_buffer_count_ = 0;
   bool resizable_buffer_allocated_ = false;
 };
+
+}  // namespace micro
+
+using micro::NonPersistentArenaBufferAllocator;
 
 }  // namespace tflite
 

@@ -17,7 +17,7 @@ tflm_cc_library(
         "ibuffer_allocator.h",
     ],
     deps = [
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
     ],
 )
 
@@ -29,9 +29,9 @@ tflm_cc_library(
         ":ibuffer_allocator",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -53,9 +53,9 @@ tflm_cc_library(
         ":ibuffer_allocator",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -81,9 +81,9 @@ tflm_cc_library(
         ":ibuffer_allocator",
         "//tensorflow/lite/micro:memory_helpers",
         "//tensorflow/lite/micro:micro_arena_constants",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 

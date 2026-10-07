@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/memory_helpers.h"
 
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
@@ -30,9 +31,48 @@ alignas(tflite::MicroArenaBufferAlignment()) char global_persistent_buffer
 
 // Only need to handle a single allocation at a time for output dimensions
 // in TestAllocateOutputDimensionsFromInput.
-void* FakeAllocatePersistentBuffer(TfLiteContext* context, size_t bytes) {
-  return reinterpret_cast<void*>(global_persistent_buffer);
-}
+class MockMicroContext : public tflite::MicroContext {
+ public:
+  void* AllocatePersistentBuffer(size_t bytes) override {
+    return reinterpret_cast<void*>(global_persistent_buffer);
+  }
+  TfLiteStatus RequestScratchBufferInArena(size_t bytes,
+                                           int* buffer_idx) override {
+    return kTfLiteError;
+  }
+  void* GetScratchBuffer(int buffer_idx) override { return nullptr; }
+  TfLiteTensor* AllocateTempTfLiteTensor(int tensor_idx) override {
+    return nullptr;
+  }
+  void DeallocateTempTfLiteTensor(TfLiteTensor* tensor) override {}
+  uint8_t* AllocateTempBuffer(size_t size, size_t alignment) override {
+    return nullptr;
+  }
+  void DeallocateTempBuffer(uint8_t* buffer) override {}
+  TfLiteEvalTensor* GetEvalTensor(int tensor_idx) override { return nullptr; }
+  TfLiteStatus set_external_context(void* external_context_payload) override {
+    return kTfLiteError;
+  }
+  void* external_context() override { return nullptr; }
+  tflite::MicroGraph& graph() override { return *graph_; }
+#ifdef USE_TFLM_COMPRESSION
+  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override {
+    return false;
+  }
+  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
+                                         int tensor_idx) override {
+    return -1;
+  }
+  const tflite::CompressionTensorData* GetTensorCompressionData(
+      const TfLiteNode* node, int tensor_idx) override {
+    return nullptr;
+  }
+#endif  // USE_TFLM_COMPRESSION
+
+ private:
+  tflite::MicroGraph* graph_ = nullptr;
+  TF_LITE_REMOVE_VIRTUAL_DELETE
+};
 
 }  // namespace
 
@@ -199,9 +239,8 @@ TEST(MemoryHelpersTest, TestAllocateOutputDimensionsFromInput) {
   TfLiteTensor output_tensor = tflite::testing::CreateTensor<int32_t>(
       nullptr, tflite::testing::IntArrayFromInts(output_dims));
   TfLiteContext context;
-  // Only need to allocate space for output_tensor.dims.  Use a simple
-  // fake allocator.
-  context.AllocatePersistentBuffer = FakeAllocatePersistentBuffer;
+  MockMicroContext mock_micro_context;
+  mock_micro_context.InitTfLiteContext(&context);
 
   EXPECT_EQ(kTfLiteOk,
             tflite::AllocateOutputDimensionsFromInput(

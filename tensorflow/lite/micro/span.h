@@ -20,6 +20,7 @@ limitations under the License.
 #include <cstddef>
 
 namespace tflite {
+namespace micro {
 
 // A poor man's std::span, we should consider using the Pigweed span instead.
 template <typename T>
@@ -64,6 +65,10 @@ bool operator!=(const Span<A>& a, const Span<B>& b) {
   return !(a == b);
 }
 
-}  // end namespace tflite
+}  // namespace micro
+
+using micro::Span;
+
+}  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_SPAN_H_

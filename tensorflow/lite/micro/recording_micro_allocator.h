@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_allocator.h"
 
 namespace tflite {
+namespace micro {
 
 // List of buckets currently recorded by this class. Each type keeps a list of
 // allocated information during model initialization.
@@ -134,6 +135,12 @@ class RecordingMicroAllocator : public MicroAllocator {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::RecordedAllocation;
+using micro::RecordedAllocationType;
+using micro::RecordingMicroAllocator;
 
 }  // namespace tflite
 

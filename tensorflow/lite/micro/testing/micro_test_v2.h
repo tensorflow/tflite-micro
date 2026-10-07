@@ -39,15 +39,20 @@ limitations under the License.
 #include <limits>
 #include <type_traits>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/debug_log.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/system_setup.h"
 
 namespace tflite {
+namespace micro {
 // Initializes the target system for testing. This must be called in main()
 // before running any tests.
 inline void InitializeTest() { InitializeTarget(); }
+}  // namespace micro
+
+using micro::InitializeTest;
+
 }  // namespace tflite
 
 namespace micro_test {

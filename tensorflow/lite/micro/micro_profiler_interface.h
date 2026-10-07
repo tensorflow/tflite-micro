@@ -19,6 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 namespace tflite {
+namespace micro {
 
 // Interface class that the TFLM framework relies on for profiling.
 class MicroProfilerInterface {
@@ -32,6 +33,10 @@ class MicroProfilerInterface {
   // Marks the end of an event associated with event_handle.
   virtual void EndEvent(uint32_t event_handle) = 0;
 };
+
+}  // namespace micro
+
+using micro::MicroProfilerInterface;
 
 }  // namespace tflite
 

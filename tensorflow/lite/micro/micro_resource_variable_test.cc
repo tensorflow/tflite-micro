@@ -15,7 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_resource_variable.h"
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
@@ -27,14 +28,54 @@ constexpr int kMaxBufferSize = 1024;
 uint8_t buffer_[kMaxBufferSize];
 int last_allocation_size_;
 
-void* AllocateMockBuffer(TfLiteContext* context, size_t size) {
-  last_allocation_size_ = size;
-  return buffer_;
-}
+class MockMicroContext : public MicroContext {
+ public:
+  void* AllocatePersistentBuffer(size_t size) override {
+    last_allocation_size_ = size;
+    return buffer_;
+  }
+  TfLiteStatus RequestScratchBufferInArena(size_t bytes,
+                                           int* buffer_idx) override {
+    return kTfLiteError;
+  }
+  void* GetScratchBuffer(int buffer_idx) override { return nullptr; }
+  TfLiteTensor* AllocateTempTfLiteTensor(int tensor_idx) override {
+    return nullptr;
+  }
+  void DeallocateTempTfLiteTensor(TfLiteTensor* tensor) override {}
+  uint8_t* AllocateTempBuffer(size_t size, size_t alignment) override {
+    return nullptr;
+  }
+  void DeallocateTempBuffer(uint8_t* buffer) override {}
+  TfLiteEvalTensor* GetEvalTensor(int tensor_idx) override { return nullptr; }
+  TfLiteStatus set_external_context(void* external_context_payload) override {
+    return kTfLiteError;
+  }
+  void* external_context() override { return nullptr; }
+  MicroGraph& graph() override { return *graph_; }
+#ifdef USE_TFLM_COMPRESSION
+  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override {
+    return false;
+  }
+  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
+                                         int tensor_idx) override {
+    return -1;
+  }
+  const CompressionTensorData* GetTensorCompressionData(
+      const TfLiteNode* node, int tensor_idx) override {
+    return nullptr;
+  }
+#endif  // USE_TFLM_COMPRESSION
+
+ private:
+  MicroGraph* graph_ = nullptr;
+  TF_LITE_REMOVE_VIRTUAL_DELETE
+};
 
 TfLiteContext* GetMockContext() {
   static TfLiteContext mock_context = {};
-  mock_context.AllocatePersistentBuffer = AllocateMockBuffer;
+  static MockMicroContext mock_micro_context;
+  mock_micro_context.InitTfLiteContext(&mock_context);
   return &mock_context;
 }
 

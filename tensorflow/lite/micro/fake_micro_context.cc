@@ -16,12 +16,13 @@ limitations under the License.
 #include "tensorflow/lite/micro/fake_micro_context.h"
 
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
-#include "tensorflow/lite/micro/c/c_api_types.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 FakeMicroContext::FakeMicroContext(
     TfLiteTensor* tensors, SingleArenaBufferAllocator* allocator,
@@ -181,4 +182,5 @@ const CompressionTensorData* FakeMicroContext::GetTensorCompressionData(
 
 #endif  // USE_TFLM_COMPRESSION
 
+}  // namespace micro
 }  // namespace tflite

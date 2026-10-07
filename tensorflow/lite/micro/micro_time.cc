@@ -31,6 +31,7 @@ limitations under the License.
 #endif
 
 namespace tflite {
+namespace micro {
 
 #if !defined(TF_LITE_USE_CTIME)
 
@@ -55,4 +56,5 @@ uint32_t ticks_per_second() { return CLOCKS_PER_SEC; }
 uint32_t GetCurrentTimeTicks() { return clock(); }
 #endif
 
+}  // namespace micro
 }  // namespace tflite

@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SLICERS_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SLICERS_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_SLICERS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_SLICERS_H_
 
 #include "mli_api.h"  // NOLINT
 namespace tflite {
@@ -55,4 +55,4 @@ class TensorSlicer {
 using micro::TensorSlicer;
 }  // namespace ops
 }  // namespace tflite
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SLICERS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_SLICERS_H_

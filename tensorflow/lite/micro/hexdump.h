@@ -21,6 +21,7 @@
 #include "tensorflow/lite/micro/span.h"
 
 namespace tflite {
+namespace micro {
 
 // Displays the contents of a memory region, formatted in hexadecimal and ASCII
 // in a style matching Python's hexdump module, using DebugLog().
@@ -31,6 +32,10 @@ void hexdump(Span<const uint8_t> region);
 // of the buffer written.
 Span<char> hexdump(Span<const uint8_t> region, Span<char> buffer);
 
-}  // end namespace tflite
+}  // namespace micro
+
+using micro::hexdump;
+
+}  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_HEXDUMP_H_

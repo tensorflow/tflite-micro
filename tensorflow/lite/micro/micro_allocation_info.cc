@@ -17,14 +17,15 @@ limitations under the License.
 
 #include <algorithm>
 
-#include "tensorflow/lite/micro/c/c_api_types.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 namespace {
 constexpr char kOfflineMemAllocMetadata[] = "OfflineMemoryAllocation";
@@ -372,4 +373,5 @@ TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

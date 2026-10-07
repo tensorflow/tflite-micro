@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 NonPersistentMemoryPlannerShim::NonPersistentMemoryPlannerShim(
     const BufferPlan* buffer_plan)
@@ -63,4 +64,5 @@ TfLiteStatus NonPersistentMemoryPlannerShim::GetOffsetForBuffer(
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

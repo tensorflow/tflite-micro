@@ -20,10 +20,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 // TODO(petewarden): This allocator never frees up or reuses  any memory, even
 // though we have enough information about lifetimes of the tensors to do so.
@@ -135,6 +136,10 @@ class SingleArenaBufferAllocator : public INonPersistentBufferAllocator,
   // Count of outstanding temp buffers.
   int temp_buffer_count_ = 0;
 };
+
+}  // namespace micro
+
+using micro::SingleArenaBufferAllocator;
 
 }  // namespace tflite
 

@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
+#include "tensorflow/lite/micro/micro_common.h"
 namespace tflite {
 namespace micro {
 struct OpDataPad {

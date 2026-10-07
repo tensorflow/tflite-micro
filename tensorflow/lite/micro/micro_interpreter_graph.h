@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 // Abstracts the details of interacting with the tflite::Model.
 //
@@ -122,6 +123,10 @@ class MicroInterpreterGraph : public MicroGraph {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::MicroInterpreterGraph;
 
 }  // namespace tflite
 

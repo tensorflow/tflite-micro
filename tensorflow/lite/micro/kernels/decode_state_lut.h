@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_LUT_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_LUT_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_LUT_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_LUT_H_
 
 #include <cstdint>
 
@@ -94,4 +94,4 @@ class DecodeStateLut : public DecodeState {
 using micro::DecodeStateLut;
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_LUT_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_LUT_H_

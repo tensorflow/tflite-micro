@@ -18,10 +18,10 @@ limitations under the License.
 #include <algorithm>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -29,11 +29,10 @@ limitations under the License.
 
 #ifdef USE_TFLM_COMPRESSION
 
-#include "tensorflow/lite/micro/micro_context.h"
-
 #endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
+namespace micro {
 namespace {
 
 const char* OpNameFromRegistration(const TFLMRegistration* registration) {
@@ -399,4 +398,5 @@ TfLiteEvalTensor* MicroInterpreterGraph::GetSubgraphOutput(int subgraph_idx,
   return &subgraph_allocations_[subgraph_idx].tensors[tensor_idx];
 }
 
+}  // namespace micro
 }  // namespace tflite

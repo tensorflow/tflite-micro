@@ -15,12 +15,12 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_OP_RESOLVER_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_OP_RESOLVER_H_
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 // This is an interface for the OpResolver for TFLiteMicro. The differences from
 // the TFLite OpResolver base class are to:
@@ -56,6 +56,11 @@ class MicroOpResolver {
 TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
                                        const MicroOpResolver& op_resolver,
                                        const TFLMRegistration** registration);
+
+}  // namespace micro
+
+using micro::GetRegistrationFromOpCode;
+using micro::MicroOpResolver;
 
 }  // namespace tflite
 

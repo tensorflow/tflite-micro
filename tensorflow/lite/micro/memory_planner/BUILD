@@ -17,7 +17,7 @@ tflm_cc_library(
         "micro_memory_planner.h",
     ],
     deps = [
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
     ],
 )
 
@@ -31,9 +31,9 @@ tflm_cc_library(
     ],
     deps = [
         ":micro_memory_planner",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -80,9 +80,9 @@ tflm_cc_library(
         "memory_plan_struct.h",
     ],
     deps = [
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_utils",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -95,8 +95,8 @@ tflm_cc_library(
     deps = [
         ":memory_plan_struct",
         ":micro_memory_planner",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 

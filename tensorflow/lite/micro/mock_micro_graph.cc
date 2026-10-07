@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/test_helpers.h"
 
 namespace tflite {
+namespace micro {
 
 MockMicroGraph::MockMicroGraph(SingleArenaBufferAllocator* allocator)
     : allocator_(allocator), init_count_(0), prepare_count_(0), free_count_(0) {
@@ -61,4 +62,5 @@ MicroResourceVariables* MockMicroGraph::GetResourceVariables() {
   return nullptr;
 }
 
+}  // namespace micro
 }  // namespace tflite

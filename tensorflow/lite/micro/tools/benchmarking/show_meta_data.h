@@ -13,7 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#ifndef TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_SHOW_META_DATA_H_
+#define TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_SHOW_META_DATA_H_
+
 namespace tflite {
+namespace micro {
 
 #if !defined(GENERIC_BENCHMARK_NO_META_DATA)
 void GenericBenchmarkShowMetaData();
@@ -21,4 +25,10 @@ void GenericBenchmarkShowMetaData();
 inline void GenericBenchmarkShowMetaData() {}
 #endif  // defined(GENERIC_BENCHMARK_NO_META_DATA)
 
+}  // namespace micro
+
+using micro::GenericBenchmarkShowMetaData;
+
 }  // namespace tflite
+
+#endif  // TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_SHOW_META_DATA_H_

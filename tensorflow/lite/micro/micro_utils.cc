@@ -19,13 +19,14 @@ limitations under the License.
 #include <cstdint>
 #include <limits>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 int ElementCount(const TfLiteIntArray& dims) {
   int result = 1;
@@ -87,4 +88,5 @@ void SignedSymmetricPerChannelQuantize(
   }
 }
 
+}  // namespace micro
 }  // namespace tflite

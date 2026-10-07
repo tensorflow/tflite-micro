@@ -16,7 +16,6 @@ limitations under the License.
 #include <string.h>
 
 #include "python/tflite_micro/python_ops_resolver.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu0_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu0_model_data.h"
@@ -86,6 +85,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu9_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu9_input0_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/leaky_relu/leaky_relu9_model_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"

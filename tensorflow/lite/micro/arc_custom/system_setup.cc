@@ -18,8 +18,10 @@ limitations under the License.
 #include <arc/arc_timer.h>
 
 namespace tflite {
+namespace micro {
 
 // Only the timer need to be reset for the custom arc platform
 void InitializeTarget() { _timer_default_reset(); }
 
+}  // namespace micro
 }  // namespace tflite

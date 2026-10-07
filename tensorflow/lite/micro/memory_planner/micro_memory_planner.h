@@ -13,12 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#ifndef TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MICRO_MEMORY_PLANNER_H_
+#define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MICRO_MEMORY_PLANNER_H_
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 // Interface class for planning the layout of memory buffers during the
 // execution of a graph.
@@ -90,6 +91,10 @@ class MicroMemoryPlanner {
   }
 };
 
+}  // namespace micro
+
+using micro::MicroMemoryPlanner;
+
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_MEMORY_PLANNER_MEMORY_PLANNER_H_
+#endif  // TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_MICRO_MEMORY_PLANNER_H_

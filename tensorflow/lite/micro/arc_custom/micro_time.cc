@@ -24,6 +24,7 @@ limitations under the License.
 #include <limits>
 
 namespace tflite {
+namespace micro {
 
 uint32_t ticks_per_second() {
   const unsigned long clocs_per_sec_real = _timer_clocks_per_sec();
@@ -39,4 +40,5 @@ uint32_t GetCurrentTimeTicks() {
   return ticks_real;
 }
 
+}  // namespace micro
 }  // namespace tflite

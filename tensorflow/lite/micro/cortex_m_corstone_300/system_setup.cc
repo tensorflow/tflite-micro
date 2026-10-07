@@ -61,6 +61,7 @@ void ethosu_inference_end(struct ethosu_driver* drv, void* userArg) {
 #endif
 
 namespace tflite {
+namespace micro {
 
 namespace {
 #ifdef ETHOS_U
@@ -159,4 +160,5 @@ void InitializeTarget() {
 #endif
 }
 
+}  // namespace micro
 }  // namespace tflite

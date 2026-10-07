@@ -15,11 +15,12 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
                                        const MicroOpResolver& op_resolver,
@@ -52,4 +53,5 @@ TfLiteStatus GetRegistrationFromOpCode(const OperatorCode* opcode,
   }
   return status;
 }
+}  // namespace micro
 }  // namespace tflite

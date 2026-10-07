@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/reflection/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 FlatbufferSizeWrapper::~FlatbufferSizeWrapper() {}
 
@@ -35,4 +36,5 @@ std::string FlatbufferSizeWrapper::ConvertToJsonString(
   return output;
 }
 
+}  // namespace micro
 }  // namespace tflite

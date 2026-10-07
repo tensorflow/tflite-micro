@@ -17,15 +17,14 @@ limitations under the License.
 
 #include <cstring>
 
-#include "tensorflow/lite/micro/c/common.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
-namespace {}  // namespace
+namespace micro {
 
 MicroResourceVariables* MicroResourceVariables::Create(
     MicroAllocator* allocator, int max_num_variables) {
@@ -156,4 +155,5 @@ int MicroResourceVariables::FindId(const char* container,
   return -1;
 }
 
+}  // namespace micro
 }  // namespace tflite

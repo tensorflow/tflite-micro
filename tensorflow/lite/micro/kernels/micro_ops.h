@@ -17,7 +17,7 @@ limitations under the License.
 
 #include "signal/micro/kernels/irfft.h"
 #include "signal/micro/kernels/rfft.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 // Forward declaration of all micro op kernel registration methods. These
 // registrations are included with the standard `BuiltinOpResolver`.
@@ -29,9 +29,6 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-// TFLM is incrementally moving towards a flat tflite namespace
-// (https://abseil.io/tips/130). Any new ops (or cleanup of existing ops should
-// have their Register function declarations in the tflite namespace.
 
 TFLMRegistration Register_ABS();
 TFLMRegistration Register_ADD();

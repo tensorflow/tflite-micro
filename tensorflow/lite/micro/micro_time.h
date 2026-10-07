@@ -18,6 +18,7 @@ limitations under the License.
 #include <cstdint>
 
 namespace tflite {
+namespace micro {
 
 // These functions should be implemented by each target platform, and provide an
 // accurate tick count along with how many ticks there are per second.
@@ -33,6 +34,12 @@ inline uint32_t TicksToMs(int32_t ticks) {
   return static_cast<uint32_t>(1000.0f * static_cast<float>(ticks) /
                                static_cast<float>(_ticks_per_second));
 }
+
+}  // namespace micro
+
+using micro::GetCurrentTimeTicks;
+using micro::ticks_per_second;
+using micro::TicksToMs;
 
 }  // namespace tflite
 

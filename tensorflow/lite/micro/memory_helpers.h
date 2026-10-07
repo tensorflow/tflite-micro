@@ -18,10 +18,11 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 // Returns the next pointer address aligned to the given alignment.
 uint8_t* AlignPointerUp(uint8_t* data, size_t alignment);
@@ -58,6 +59,16 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
                                                const TfLiteTensor* input1,
                                                const TfLiteTensor* input2,
                                                TfLiteTensor* output);
+
+}  // namespace micro
+
+using micro::AlignPointerDown;
+using micro::AlignPointerUp;
+using micro::AlignSizeUp;
+using micro::AllocateOutputDimensionsFromInput;
+using micro::BytesRequiredForTensor;
+using micro::TfLiteEvalTensorByteLength;
+using micro::TfLiteTypeSizeOf;
 
 }  // namespace tflite
 

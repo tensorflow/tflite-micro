@@ -16,17 +16,17 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_context.h"
 
 #include <algorithm>
-#include <cstdarg>
 #include <cstddef>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/decompress.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 int GetTensorIndex(int index, int max_size, const int* tensor_indices) {
@@ -69,14 +69,6 @@ TfLiteTensor* MicroContext::AllocateTempIntermediateTensor(
     return nullptr;
   }
   return AllocateTempTfLiteTensor(tensor_index);
-}
-
-void MicroContextReportOpError(TfLiteContext* context, const char* format,
-                               ...) {
-  va_list args;
-  va_start(args, format);
-  VMicroPrintf(format, args);
-  va_end(args);
 }
 
 #ifdef USE_TFLM_COMPRESSION
@@ -186,14 +178,7 @@ TfLiteStatus MicroContext::SetCustomDecodeRegistrations(
 
 void MicroContext::InitTfLiteContext(TfLiteContext* context) {
   context->impl_ = static_cast<void*>(this);
-  context->ReportError = MicroContextReportOpError;
-  context->GetTensor = MicroContextGetTensor;
-  context->GetEvalTensor = MicroContextGetEvalTensor;
-  context->RequestScratchBufferInArena =
-      MicroContextRequestScratchBufferInArena;
-  context->GetExternalContext = MicroContextGetExternalContext;
-  context->AllocatePersistentBuffer = MicroContextAllocatePersistentBuffer;
-  context->GetScratchBuffer = MicroContextGetScratchBuffer;
 }
 
+}  // namespace micro
 }  // namespace tflite

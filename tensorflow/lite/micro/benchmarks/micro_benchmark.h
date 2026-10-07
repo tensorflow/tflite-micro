@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 
 namespace tflite {
+namespace micro {
 
 template <typename inputT>
 class MicroBenchmarkRunner {
@@ -89,6 +90,10 @@ class MicroBenchmarkRunner {
   tflite::RecordingMicroAllocator* allocator_;
   tflite::RecordingMicroInterpreter interpreter_;
 };
+
+}  // namespace micro
+
+using micro::MicroBenchmarkRunner;
 
 }  // namespace tflite
 

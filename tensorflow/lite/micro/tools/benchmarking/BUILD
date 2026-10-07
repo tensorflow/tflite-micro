@@ -32,14 +32,13 @@ tflm_cc_library(
     deps = [
         ":metrics",
         ":op_resolver",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro:system_setup",
-        "//tensorflow/lite/micro/c:c_api_types",
-        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/schema:schema_fbs",
     ],
 )

@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef CEVA_TYPES_H_
-#define CEVA_TYPES_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_CEVA_TYPES_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_CEVA_TYPES_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -1323,4 +1323,4 @@ using micro::TransposeParams;
 using micro::UnpackParams;
 }  // namespace tflite
 #endif
-#endif  // CEVA_TYPES_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CEVA_TYPES_H_
