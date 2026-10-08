@@ -12,14 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 

@@ -19,7 +19,7 @@ limitations under the License.
 #include <algorithm>
 #include <cmath>
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/max.h"
 #include "tensorflow/lite/micro/kernels/internal/min.h"

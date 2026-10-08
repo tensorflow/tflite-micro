@@ -16,8 +16,6 @@ limitations under the License.
 #include <cstdint>
 #include <cstring>
 
-#include "tensorflow/lite/micro/c/c_api_types.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_common.h"

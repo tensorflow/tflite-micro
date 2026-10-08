@@ -16,7 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/reference/add.h"
 
 #include "Include/arm_nnfunctions.h"
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/add.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"

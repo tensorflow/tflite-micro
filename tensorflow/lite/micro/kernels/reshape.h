@@ -13,8 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_RESHAPE_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_RESHAPE_H_
+
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace micro {
@@ -28,3 +31,5 @@ TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node);
 using micro::kReshapeInputTensor;
 using micro::kReshapeOutputTensor;
 }  // namespace tflite
+
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_RESHAPE_H_

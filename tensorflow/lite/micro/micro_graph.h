@@ -18,9 +18,11 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/micro/micro_resource_variable.h"
 
 namespace tflite {
+namespace micro {
+
+class MicroResourceVariables;
 
 // Abstracts the details of interacting with the graph from the kernels
 //
@@ -56,6 +58,11 @@ class MicroGraph {
  private:
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::MicroGraph;
+using micro::MicroResourceVariables;
 
 }  // namespace tflite
 

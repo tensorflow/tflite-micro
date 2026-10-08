@@ -13,15 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TFLITE_MICRO_TENSORFLOW_LITE_MICRO_MICRO_RESOURCE_H_
-#define TFLITE_MICRO_TENSORFLOW_LITE_MICRO_MICRO_RESOURCE_H_
+#ifndef TENSORFLOW_LITE_MICRO_MICRO_RESOURCE_VARIABLE_H_
+#define TENSORFLOW_LITE_MICRO_MICRO_RESOURCE_VARIABLE_H_
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 class MicroResourceVariables {
  public:
@@ -85,6 +86,10 @@ class MicroResourceVariables {
   int num_resource_variables_;
 };
 
+}  // namespace micro
+
+using micro::MicroResourceVariables;
+
 }  // namespace tflite
 
-#endif  // TFLITE_MICRO_TENSORFLOW_LITE_MICRO_MICRO_RESOURCE_H_
+#endif  // TENSORFLOW_LITE_MICRO_MICRO_RESOURCE_VARIABLE_H_

@@ -65,7 +65,7 @@ tflm_cc_library(
     deps = [
         ":compatibility",
         ":types",
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
     ],
 )
 
@@ -90,7 +90,7 @@ tflm_cc_library(
         ":strided_slice_logic",
         ":tensor",
         ":types",
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels:op_macros",
     ],
@@ -117,7 +117,7 @@ tflm_cc_library(
     deps = [
         ":compatibility",
         ":types",
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
     ],
 )
 
@@ -129,7 +129,6 @@ tflm_cc_library(
     ],
     deps = [
         ":compatibility",
-        "//tensorflow/lite/micro/types:half",
     ],
 )
 
@@ -146,7 +145,7 @@ tflm_cc_library(
         ":common",
         ":compatibility",
         ":cppmath",
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro/kernels:op_macros",
     ],
 )

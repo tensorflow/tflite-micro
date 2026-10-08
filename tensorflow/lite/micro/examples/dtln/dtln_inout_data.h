@@ -13,7 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/c/common.h"
+#ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_DTLN_DTLN_INOUT_DATA_H_
+#define TENSORFLOW_LITE_MICRO_EXAMPLES_DTLN_DTLN_INOUT_DATA_H_
+
+#include "tensorflow/lite/micro/micro_common.h"
 
 extern int8_t feature_data[];
 extern int8_t golden_ref[];
+
+#endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_DTLN_DTLN_INOUT_DATA_H_

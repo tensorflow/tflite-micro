@@ -13,15 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_TEST_HELPERS_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_TEST_HELPERS_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DECODE_TEST_HELPERS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DECODE_TEST_HELPERS_H_
 
 #include <algorithm>
 #include <array>
 #include <cstdint>
 #include <initializer_list>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
@@ -200,4 +199,4 @@ void TestDecode(
 }  // namespace testing
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_TEST_HELPERS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DECODE_TEST_HELPERS_H_

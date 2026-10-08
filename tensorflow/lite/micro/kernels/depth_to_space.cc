@@ -16,9 +16,9 @@ limitations under the License.
 
 #include <stdint.h>
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {

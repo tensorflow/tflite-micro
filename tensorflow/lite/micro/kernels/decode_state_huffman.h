@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -156,4 +156,4 @@ class DecodeStateHuffman : public DecodeState {
 using micro::DecodeStateHuffman;
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_

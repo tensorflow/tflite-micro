@@ -17,10 +17,10 @@ limitations under the License.
 #include <cstdlib>
 
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
   uint32_t event_handle = profiler.BeginEvent("InitializeKeywordRunner");
   tflite::KeywordBenchmarkRunner* benchmark_runner =
-      CreateBenchmarkRunner(&profiler);
+      tflite::CreateBenchmarkRunner(&profiler);
   profiler.EndEvent(event_handle);
   profiler.Log();
   MicroPrintf("");  // null MicroPrintf serves as a newline.

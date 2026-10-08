@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 
 // This is an experimental feature and subjected to change.
 // More description is available at
@@ -67,6 +68,12 @@ constexpr size_t SizeOfBufferPlan(int32_t buffer_count) {
   return sizeof(BufferPlan) +
          sizeof(BufferDescriptor) * Max(buffer_count - 1, 0);
 }
+
+}  // namespace micro
+
+using micro::BufferDescriptor;
+using micro::BufferPlan;
+using micro::SizeOfBufferPlan;
 
 }  // namespace tflite
 

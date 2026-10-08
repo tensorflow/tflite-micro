@@ -24,10 +24,10 @@ limitations under the License.
 #include <type_traits>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/portable_type_to_tflitetype.h"

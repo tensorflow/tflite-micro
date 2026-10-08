@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_time.h"
 
 namespace tflite {
+namespace micro {
 
 uint32_t MicroProfiler::BeginEvent(const char* tag) {
   if (num_events_ == kMaxEvents) {
@@ -129,4 +130,5 @@ void MicroProfiler::ClearEvents() {
   num_events_ = 0;
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -19,12 +19,11 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/micro/c/c_api_types.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_interpreter_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
@@ -32,6 +31,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 MemoryPlannerType FlagToMemoryPlannerType(bool preserve_all_tensors) {
   if (preserve_all_tensors) {
@@ -345,4 +345,5 @@ TfLiteStatus MicroInterpreter::SetCustomDecodeRegistrations(
   return micro_context_.SetCustomDecodeRegistrations(registrations, count);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -23,7 +23,7 @@ limitations under the License.
 
 #include <numpy/arrayobject.h>
 
-#include "tensorflow/lite/micro/c/c_api_types.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 

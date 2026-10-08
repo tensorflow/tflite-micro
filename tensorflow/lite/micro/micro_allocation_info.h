@@ -15,13 +15,14 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_MICRO_ALLOCATION_INFO_H_
 #define TENSORFLOW_LITE_MICRO_MICRO_ALLOCATION_INFO_H_
 
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 // Used to hold information used during allocation calculations.
 struct AllocationInfo {
@@ -133,6 +134,12 @@ class AllocationInfoBuilder {
       {};  // Prevents problems caused by accessing uninitialized memory.
   int allocation_scope_count_ = 0;
 };
+
+}  // namespace micro
+
+using micro::AllocationInfo;
+using micro::AllocationInfoBuilder;
+using micro::GraphAllocationInfo;
 
 }  // namespace tflite
 

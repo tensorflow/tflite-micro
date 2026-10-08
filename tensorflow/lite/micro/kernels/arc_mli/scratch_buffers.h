@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_ARC_SCRATCH_BUFFERS_H_
-#define TENSORFLOW_LITE_MICRO_ARC_SCRATCH_BUFFERS_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SCRATCH_BUFFERS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SCRATCH_BUFFERS_H_
 
 #include "mli_api.h"  // NOLINT
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace ops {
@@ -75,4 +75,4 @@ static inline bool inside_arc_ccm(void* p) {
 }  // namespace ops
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_ARC_SCRATCH_BUFFERS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SCRATCH_BUFFERS_H_

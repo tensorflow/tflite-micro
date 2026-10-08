@@ -13,10 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_FLEXBUFFERS_GENERATED_DATA_H
-#define TENSORFLOW_LITE_MICRO_KERNELS_FLEXBUFFERS_GENERATED_DATA_H
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_CIRCULAR_BUFFER_FLEXBUFFERS_GENERATED_DATA_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_CIRCULAR_BUFFER_FLEXBUFFERS_GENERATED_DATA_H_
 
 extern const int g_gen_data_size_circular_buffer_config;
 extern const unsigned char g_gen_data_circular_buffer_config[];
 
-#endif
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CIRCULAR_BUFFER_FLEXBUFFERS_GENERATED_DATA_H_

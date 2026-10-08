@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 PersistentArenaBufferAllocator::PersistentArenaBufferAllocator(
     uint8_t* buffer, size_t buffer_size)
@@ -49,4 +50,5 @@ size_t PersistentArenaBufferAllocator::GetPersistentUsedBytes() const {
   return buffer_tail_ - tail_temp_;
 }
 
+}  // namespace micro
 }  // namespace tflite

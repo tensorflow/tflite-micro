@@ -28,11 +28,10 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/util.h"
-#include "tensorflow/lite/micro/c/c_api_types.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"

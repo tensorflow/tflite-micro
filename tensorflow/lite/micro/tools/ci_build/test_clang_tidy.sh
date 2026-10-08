@@ -119,6 +119,16 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)*/downloads/*' \
     ':(exclude)*_model_data.h' \
     ':(exclude)*_test_data.h' \
+    ':(exclude)tensorflow/lite/micro/arc_custom/*' \
+    ':(exclude)tensorflow/lite/micro/arc_emsdp/*' \
+    ':(exclude)tensorflow/lite/micro/bluepill/*' \
+    ':(exclude)tensorflow/lite/micro/ceva/*' \
+    ':(exclude)tensorflow/lite/micro/chre/*' \
+    ':(exclude)tensorflow/lite/micro/cortex_m_corstone_300/*' \
+    ':(exclude)tensorflow/lite/micro/cortex_m_generic/*' \
+    ':(exclude)tensorflow/lite/micro/hexagon/*' \
+    ':(exclude)tensorflow/lite/micro/riscv32_generic/*' \
+    ':(exclude)tensorflow/lite/micro/python/*' \
     ':(exclude)tensorflow/lite/micro/examples/*' \
     ':(exclude)tensorflow/lite/micro/integration_tests/*' \
     ':(exclude)tensorflow/lite/micro/benchmarks/*' \
@@ -129,5 +139,7 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)tensorflow/lite/micro/kernels/ethosu.*' \
     ':(exclude)tensorflow/lite/micro/kernels/xtensa/*' \
     ':(exclude)tensorflow/lite/micro/kernels/internal/*' \
-    ':(exclude)tensorflow/lite/micro/c/*' | \
+    ':(exclude)tensorflow/lite/micro/c/*' \
+    ':(exclude)tensorflow/lite/micro/micro_common.*' \
+    ':(exclude)tensorflow/lite/micro/builtin_op_data.h' | \
   clang-tidy-diff.py -p1 -path . -iregex '.*\.(cpp|cc|c\+\+|cxx|c|h|hpp)$'

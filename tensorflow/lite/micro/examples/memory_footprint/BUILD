@@ -35,8 +35,8 @@ cc_binary(
     name = "baseline_memory_footprint",
     srcs = ["baseline_memory_footprint.cc"],
     deps = [
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:system_setup",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 
@@ -45,10 +45,10 @@ cc_binary(
     srcs = ["interpreter_memory_footprint.cc"],
     deps = [
         ":simple_add_model_data",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro/benchmarks:micro_benchmark",
-        "//tensorflow/lite/micro/c:common",
     ],
 )

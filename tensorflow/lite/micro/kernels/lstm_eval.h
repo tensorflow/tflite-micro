@@ -17,15 +17,15 @@ limitations under the License.
 // the keras lstm layer, no peephole etc.). Currently used by the 16 bits
 // activation case only
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_GENERAL_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_GENERAL_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_H_
 #include <algorithm>
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -544,4 +544,4 @@ using micro::LstmTensors;
 using micro::lstm_internal::LstmStepManager;
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_16ACT_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_LSTM_EVAL_H_

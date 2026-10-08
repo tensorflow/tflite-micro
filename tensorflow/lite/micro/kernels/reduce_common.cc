@@ -13,8 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mean.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/reduce.h"
@@ -22,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/reduce.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 

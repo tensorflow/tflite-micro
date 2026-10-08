@@ -13,14 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_COMPRESSION_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_COMPRESSION_H_
+#ifndef TENSORFLOW_LITE_MICRO_COMPRESSION_H_
+#define TENSORFLOW_LITE_MICRO_COMPRESSION_H_
 
 #ifdef USE_TFLM_COMPRESSION
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 //
 // Compressed tensors
@@ -62,7 +63,16 @@ struct CompressedTensorList {
   const CompressionTensorData** tensors;
 };
 
+}  // namespace micro
+
+using micro::CompressedTensorList;
+using micro::CompressionData;
+using micro::CompressionScheme;
+using micro::CompressionTensorData;
+using micro::kCompressionMetadataString;
+using micro::LookupTableData;
+
 }  // namespace tflite
 
 #endif  // USE_TFLM_COMPRESSION
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_COMPRESSION_H_
+#endif  // TENSORFLOW_LITE_MICRO_COMPRESSION_H_

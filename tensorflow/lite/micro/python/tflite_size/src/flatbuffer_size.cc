@@ -568,6 +568,7 @@ struct ToJsonWithSizeInfoVisitor : public IterationVisitor {
 }  // namespace
 
 namespace tflite {
+namespace micro {
 std::string FlatBufferSizeToJsonString(
     const uint8_t* buffer, const flatbuffers::TypeTable* type_table) {
   ToJsonWithSizeInfoVisitor tostring_visitor;
@@ -575,4 +576,5 @@ std::string FlatBufferSizeToJsonString(
   return tostring_visitor.s;
 }
 
+}  // namespace micro
 }  // namespace tflite

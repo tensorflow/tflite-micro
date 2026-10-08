@@ -33,6 +33,7 @@ limitations under the License.
 #endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
+namespace micro {
 
 // TODO(b/199402574): rename to tflite_internal or just remove internal
 // namespace.
@@ -362,6 +363,19 @@ class MicroAllocator {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+namespace internal {
+using micro::internal::InitializeTfLiteTensorFromFlatbuffer;
+using micro::internal::ScratchBufferRequest;
+}  // namespace internal
+
+using micro::MemoryPlannerType;
+using micro::MicroAllocator;
+using micro::NodeAndRegistration;
+using micro::ScratchBufferHandle;
+using micro::SubgraphAllocations;
 
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_MICRO_ALLOCATOR_H_

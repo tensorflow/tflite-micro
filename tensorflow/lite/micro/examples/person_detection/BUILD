@@ -81,10 +81,10 @@ tflm_cc_test(
         ":model_settings",
         ":person_detect_model_data",
         ":simple_images_test_data",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/testing:micro_test",
         "//tensorflow/lite/schema:schema_fbs",
     ],
@@ -100,7 +100,7 @@ tflm_cc_library(
     ],
     deps = [
         ":model_settings",
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
     ],
 )
 
@@ -112,7 +112,7 @@ tflm_cc_test(
     deps = [
         ":image_provider",
         ":model_settings",
-        "//tensorflow/lite/micro/c:common",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
@@ -126,8 +126,8 @@ tflm_cc_library(
         "detection_responder.h",
     ],
     deps = [
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro/c:common",
     ],
 )
 

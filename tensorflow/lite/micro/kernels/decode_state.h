@@ -13,15 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_H_
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/c_api_types.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 
 namespace tflite {
@@ -95,4 +94,4 @@ class DecodeState {
 using micro::DecodeState;
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_H_

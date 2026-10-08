@@ -20,7 +20,7 @@ tflm_cc_library(
     name = "conv_test_data",
     srcs = ["conv_test_data.cc"],
     hdrs = ["conv_test_data.h"],
-    deps = ["//tensorflow/lite/micro/c:common"],
+    deps = ["//tensorflow/lite/micro:micro_common"],
 )
 
 tflm_cc_library(
@@ -30,8 +30,8 @@ tflm_cc_library(
         "lstm_test_data.h",
     ],
     deps = [
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/c:common",
         "//tensorflow/lite/micro/kernels:lstm_shared",
     ],
 )

@@ -22,12 +22,12 @@ limitations under the License.
 #include <initializer_list>
 #include <limits>
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -38,11 +38,7 @@ namespace {
 // Assumes tensor_index is a valid index (in bounds)
 inline TfLiteTensor* GetTensorAtIndex(const TfLiteContext* context,
                                       int tensor_index) {
-  if (context->tensors != nullptr) {
-    return &context->tensors[tensor_index];
-  } else {
-    return context->GetTensor(context, tensor_index);
-  }
+  return context->GetTensor(context, tensor_index);
 }
 
 // Validate in a single place to reduce binary size

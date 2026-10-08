@@ -13,12 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_CONV_TEST_DATA_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_CONV_TEST_DATA_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_TESTDATA_CONV_TEST_DATA_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_TESTDATA_CONV_TEST_DATA_H_
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 extern const int8_t kConvInput1x32x32x3[];
 extern const int8_t kConvFilter8x3x3x3[];
 extern const int32_t kConvBiasQuantized8[];
@@ -32,6 +33,19 @@ extern const int32_t kConvZeroBias[];
 extern const int8_t kConvGoldenOutput4x4InputPaddingSame2x2[];
 extern const int8_t kConvGoldenOutput5x5InputPaddingSame3x3[];
 
+}  // namespace micro
+
+using micro::kConvBiasQuantized8;
+using micro::kConvFilter1x3x3x1;
+using micro::kConvFilter8x3x3x3;
+using micro::kConvGoldenOutput1x16x16x8;
+using micro::kConvGoldenOutput4x4InputPaddingSame2x2;
+using micro::kConvGoldenOutput5x5InputPaddingSame3x3;
+using micro::kConvInput1x32x32x3;
+using micro::kConvInput1x4x4x1;
+using micro::kConvInput1x5x5x1;
+using micro::kConvZeroBias;
+
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CONV_TEST_DATA_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_TESTDATA_CONV_TEST_DATA_H_

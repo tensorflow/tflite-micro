@@ -19,12 +19,13 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 uint8_t* AlignPointerUp(uint8_t* data, size_t alignment) {
   std::uintptr_t data_as_uintptr_t = reinterpret_cast<std::uintptr_t>(data);
@@ -170,4 +171,5 @@ TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

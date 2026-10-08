@@ -25,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 namespace {
 
@@ -325,4 +326,5 @@ void LogAllocatorEvents(const tflite::RecordingMicroAllocator& allocator,
   LogAllocations(allocator, type);
 }
 
+}  // namespace micro
 }  // namespace tflite

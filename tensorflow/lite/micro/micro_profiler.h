@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 
 namespace tflite {
+namespace micro {
 
 // MicroProfiler creates a common way to gain fine-grained insight into runtime
 // performance. Bottleck operators can be identified along with slow code
@@ -134,6 +135,11 @@ class ScopedMicroProfiler {
   MicroProfilerInterface* profiler_ = nullptr;
 };
 #endif  // !defined(TF_LITE_STRIP_ERROR_STRINGS)
+
+}  // namespace micro
+
+using micro::MicroProfiler;
+using micro::ScopedMicroProfiler;
 
 }  // namespace tflite
 

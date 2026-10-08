@@ -12,9 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
+#include <cstdarg>
 #include <cstring>
+
+#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
 namespace micro {
@@ -120,6 +124,38 @@ int TfLiteIntArrayEqual(const TfLiteIntArray* a, const TfLiteIntArray* b) {
 int TfLiteIntArrayEqualsArray(const TfLiteIntArray* a, int b_size,
                               const int b_data[]) {
   return TfLiteVarArrayEqualsArray(a, b_size, b_data);
+}
+
+void* MicroContextAllocatePersistentBuffer(TfLiteContext* ctx, size_t bytes) {
+  return GetMicroContext(ctx)->AllocatePersistentBuffer(bytes);
+}
+
+TfLiteStatus MicroContextRequestScratchBufferInArena(TfLiteContext* ctx,
+                                                     size_t bytes,
+                                                     int* buffer_idx) {
+  return GetMicroContext(ctx)->RequestScratchBufferInArena(bytes, buffer_idx);
+}
+
+void* MicroContextGetScratchBuffer(TfLiteContext* ctx, int buffer_idx) {
+  return GetMicroContext(ctx)->GetScratchBuffer(buffer_idx);
+}
+
+TfLiteTensor* MicroContextGetTensor(const TfLiteContext* context,
+                                    int tensor_idx) {
+  return GetMicroContext(context)->AllocateTempTfLiteTensor(tensor_idx);
+}
+
+TfLiteEvalTensor* MicroContextGetEvalTensor(const TfLiteContext* context,
+                                            int tensor_idx) {
+  return GetMicroContext(context)->GetEvalTensor(tensor_idx);
+}
+
+void MicroContextReportOpError(TfLiteContext* context, const char* format,
+                               ...) {
+  va_list args;
+  va_start(args, format);
+  VMicroPrintf(format, args);
+  va_end(args);
 }
 
 }  // namespace micro

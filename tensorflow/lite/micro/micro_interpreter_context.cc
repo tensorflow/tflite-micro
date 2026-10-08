@@ -24,6 +24,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 
 namespace {
 
@@ -255,4 +256,5 @@ TfLiteStatus MicroInterpreterContext::SetCustomDecodeRegistrations(
   return MicroContext::SetCustomDecodeRegistrations(registrations, count);
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -18,9 +18,10 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/c_api_types.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 // Interface classes that the TFLM framework relies on to get buffers it needs.
 // There are two types of buffers that the TFLM framework requires: persistent
 // and non-persistent. Persistent buffers, once allocated, are never freed by
@@ -94,6 +95,11 @@ class INonPersistentBufferAllocator {
   // takes in account any temporary allocations.
   virtual size_t GetAvailableMemory(size_t alignment) const = 0;
 };
+
+}  // namespace micro
+
+using micro::INonPersistentBufferAllocator;
+using micro::IPersistentBufferAllocator;
 
 }  // namespace tflite
 

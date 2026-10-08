@@ -25,10 +25,9 @@ limitations under the License.
 #endif  // USE_TFLM_COMPRESSION
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/micro/c/c_api_types.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_interpreter_context.h"
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
@@ -41,6 +40,7 @@ limitations under the License.
 #define TFLITE_SCHEMA_VERSION (3)
 
 namespace tflite {
+namespace micro {
 
 class MicroInterpreter {
  public:
@@ -215,6 +215,10 @@ class MicroInterpreter {
 
   MicroInterpreterContext micro_context_;
 };
+
+}  // namespace micro
+
+using micro::MicroInterpreter;
 
 }  // namespace tflite
 

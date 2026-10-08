@@ -19,11 +19,11 @@ limitations under the License.
 #include <memory>
 #include <utility>
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 #include "tensorflow/lite/micro/kernels/lstm_shared.h"
 #include "tensorflow/lite/micro/kernels/testdata/lstm_test_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 

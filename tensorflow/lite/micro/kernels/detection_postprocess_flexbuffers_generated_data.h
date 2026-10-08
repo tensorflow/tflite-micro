@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_FLEXBUFFERS_GENERATED_DATA_H
-#define TENSORFLOW_LITE_MICRO_KERNELS_FLEXBUFFERS_GENERATED_DATA_H
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DETECTION_POSTPROCESS_FLEXBUFFERS_GENERATED_DATA_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DETECTION_POSTPROCESS_FLEXBUFFERS_GENERATED_DATA_H_
 
 extern const int g_gen_data_size_none_regular_nms;
 extern const unsigned char g_gen_data_none_regular_nms[];
@@ -22,4 +22,4 @@ extern const unsigned char g_gen_data_none_regular_nms[];
 extern const int g_gen_data_size_regular_nms;
 extern const unsigned char g_gen_data_regular_nms[];
 
-#endif
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DETECTION_POSTPROCESS_FLEXBUFFERS_GENERATED_DATA_H_

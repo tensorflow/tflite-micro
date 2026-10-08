@@ -14,12 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/benchmarks/micro_benchmark.h"
-#include "tensorflow/lite/micro/c/common.h"
 #include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
 #include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 
   uint32_t event_handle = profiler.BeginEvent("InitializeBenchmarkRunner");
   tflite::PersonDetectionBenchmarkRunner* benchmark_runner =
-      CreateBenchmarkRunner(&profiler);
+      tflite::CreateBenchmarkRunner(&profiler);
   profiler.EndEvent(event_handle);
   profiler.Log();
   MicroPrintf("");  // null MicroPrintf serves as a newline.

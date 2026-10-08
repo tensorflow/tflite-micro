@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 // C++11 requires defining a constexpr static class member in a .cc file
 constexpr int tflite::LinearMemoryPlanner::kMaxBufferCount;
@@ -53,4 +54,5 @@ TfLiteStatus LinearMemoryPlanner::GetOffsetForBuffer(int buffer_index,
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -12,14 +12,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef TENSORFLOW_LITE_MICRO_PYTHON_TFLITE_SIZE_SRC_FLATBUFFERS_SIZE_WRAPPER_H_
-#define TENSORFLOW_LITE_MICRO_PYTHON_TFLITE_SIZE_SRC_FLATBUFFERS_SIZE_WRAPPER_H_
+#ifndef TENSORFLOW_LITE_MICRO_PYTHON_TFLITE_SIZE_SRC_FLATBUFFER_SIZE_WRAPPER_H_
+#define TENSORFLOW_LITE_MICRO_PYTHON_TFLITE_SIZE_SRC_FLATBUFFER_SIZE_WRAPPER_H_
 
 #include <Python.h>
 
 #include <string>
 
 namespace tflite {
+namespace micro {
 
 class FlatbufferSizeWrapper {
  public:
@@ -29,5 +30,9 @@ class FlatbufferSizeWrapper {
   std::string ConvertToJsonString(const char* in_flatbuffer);
 };
 
+}  // namespace micro
+
+using micro::FlatbufferSizeWrapper;
+
 }  // namespace tflite
-#endif  // TENSORFLOW_LITE_MICRO_PYTHON_TFLITE_SIZE_SRC_FLATBUFFERS_SIZE_WRAPPER_H_
+#endif  // TENSORFLOW_LITE_MICRO_PYTHON_TFLITE_SIZE_SRC_FLATBUFFER_SIZE_WRAPPER_H_

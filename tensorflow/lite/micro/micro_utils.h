@@ -21,9 +21,10 @@ limitations under the License.
 #include <cstdint>
 #include <limits>
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 // Returns number of elements in the shape array.
 
@@ -163,6 +164,22 @@ inline int QMaxFromTfLiteType(TfLiteType type) {
     return std::numeric_limits<int8_t>::max();
   }
 }
+
+}  // namespace micro
+
+using micro::Dequantize;
+using micro::ElementCount;
+using micro::EvalTensorBytes;
+using micro::FloatToQuantizedType;
+using micro::FloatToSymmetricQuantizedType;
+using micro::Max;
+using micro::QMaxFromTfLiteType;
+using micro::QMinFromTfLiteType;
+using micro::Quantize;
+using micro::SignedSymmetricPerChannelQuantize;
+using micro::SymmetricPerChannelQuantize;
+using micro::SymmetricQuantize;
+using micro::SymmetricQuantizeCalculateScales;
 
 }  // namespace tflite
 

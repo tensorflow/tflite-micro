@@ -15,7 +15,7 @@ limitations under the License.
 #ifndef SIGNAL_MICRO_KERNELS_FILTER_BANK_SQUARE_ROOT_H_
 #define SIGNAL_MICRO_KERNELS_FILTER_BANK_SQUARE_ROOT_H_
 
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace micro {

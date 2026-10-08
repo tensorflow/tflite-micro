@@ -15,8 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/reference/conv.h"
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_common.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/conv.h"
@@ -26,6 +25,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/padding.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 #ifdef MCPS_MEASUREMENT

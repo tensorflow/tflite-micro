@@ -16,10 +16,12 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_FAKE_MICRO_CONTEXT_H_
 #define TENSORFLOW_LITE_MICRO_FAKE_MICRO_CONTEXT_H_
 
+#include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_graph.h"
 
 namespace tflite {
+namespace micro {
 // A fake of MicroContext for kernel util tests.
 // TODO(b/272759060): FakeMicroContext currently inherits from MicroContext.
 // Which allow tests to use functions from MicroContext that weren't added to
@@ -96,6 +98,10 @@ class FakeMicroContext : public MicroContext {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::FakeMicroContext;
 
 }  // namespace tflite
 

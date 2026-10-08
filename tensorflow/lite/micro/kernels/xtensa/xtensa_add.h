@@ -18,9 +18,9 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/micro/c/builtin_op_data.h"
-#include "tensorflow/lite/micro/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/add.h"
+#include "tensorflow/lite/micro/micro_common.h"
 namespace tflite {
 namespace micro {
 struct XtensaAddOpData {
