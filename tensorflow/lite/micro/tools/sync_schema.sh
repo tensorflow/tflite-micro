@@ -23,7 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${SCRIPT_DIR}/../../../.."
 cd "${ROOT_DIR}"
 
-SCHEMA_URL="https://raw.githubusercontent.com/tensorflow/tensorflow/master/tensorflow/compiler/mlir/lite/schema/schema.fbs"
+SCHEMA_URL="https://raw.githubusercontent.com/google-ai-edge/LiteRT/main/tflite/converter/schema/schema.fbs"
 TARGET_FBS="tensorflow/lite/schema/schema.fbs"
 
 echo "Downloading schema.fbs from ${SCHEMA_URL}..."
