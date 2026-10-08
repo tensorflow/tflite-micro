@@ -101,6 +101,7 @@ docker run \
             bazel \
                 --output_user_root=$OUTDIR/$PY_TAG-out \
                 "\$@" \
+                --repo_contents_cache= `# OUTDIR defaults to inside SRCDIR` \
                 --action_env=HOME `# help setuptools find HOME in container` \
                 --action_env=USER `# bazel reads USER via whoami` \
                 --action_env=XDG_CACHE_HOME `# locate pip's cache inside OUTDIR`
