@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#if defined(HIFI5)
+
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_lut.h"
 
 #include <cstddef>
@@ -615,3 +617,5 @@ TfLiteStatus XtensaDecodeStateLut::Decode(const TfLiteEvalTensor& input,
 
 }  // namespace micro
 }  // namespace tflite
+
+#endif  // defined(HIFI5)

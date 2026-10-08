@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#if defined(HIFI5)
+
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_huffman.h"
 
 #include <cstddef>
@@ -120,3 +122,5 @@ template void XtensaDecodeStateHuffman::Decompress32BitTable_Xtensa<int16_t>(
 
 }  // namespace micro
 }  // namespace tflite
+
+#endif  // defined(HIFI5)
