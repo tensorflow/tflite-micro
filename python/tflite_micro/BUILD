@@ -82,7 +82,6 @@ tflm_py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),
-        "//tensorflow/lite/micro/tools:generate_test_for_model",
         "//tensorflow/lite/python:schema_py",
     ],
 )
@@ -162,7 +161,6 @@ py_package(
         "python.tflite_micro",
         "tensorflow.lite.micro.compression",
         "tensorflow.lite.micro.tools",
-        "tensorflow.lite.micro.tools.generate_test_for_model",
         "tensorflow.lite.python",
     ],
     deps = [

@@ -1,8 +1,14 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_binary")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "tflm_cc_library",
+    "tflm_cc_test",
+)
 
 package(
     default_visibility = ["//:__subpackages__"],
+    # Disabling layering_check because of http://b/177257332
+    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -11,11 +17,7 @@ tflm_py_binary(
     srcs = [
         "generate_micro_mutable_op_resolver_from_model.py",
     ],
-    data = [
-        "templates/micro_mutable_op_resolver.h.mako",
-    ],
     deps = [
-        requirement("mako"),
         "//tensorflow/lite/python:schema_py",
         "//tensorflow/lite/python:schema_util",
         "//tensorflow/lite/tools:flatbuffer_utils",
@@ -23,21 +25,46 @@ tflm_py_binary(
     ],
 )
 
-tflm_py_binary(
-    name = "generate_micro_mutable_op_resolver_from_model_test",
+genrule(
+    name = "generate_person_detect_op_resolver_hdr",
     srcs = [
-        "generate_micro_mutable_op_resolver_from_model_test.py",
+        "//tensorflow/lite/micro/models:person_detect.tflite",
     ],
-    data = [
-        "templates/BUILD.mako",
-        "templates/micro_mutable_op_resolver.h.mako",
-        "templates/micro_mutable_op_resolver_test.cc.mako",
+    outs = [
+        "person_detect/gen_micro_mutable_op_resolver.h",
+    ],
+    cmd = """
+        $(execpath :generate_micro_mutable_op_resolver_from_model) \
+            --common_tflite_path=$$(dirname $(execpath //tensorflow/lite/micro/models:person_detect.tflite)) \
+            --input_tflite_files=$$(basename $(execpath //tensorflow/lite/micro/models:person_detect.tflite)) \
+            --output_dir=$$(dirname $@)
+    """,
+    tools = [
+        ":generate_micro_mutable_op_resolver_from_model",
+    ],
+)
+
+tflm_cc_library(
+    name = "person_detect_op_resolver",
+    hdrs = [
+        ":generate_person_detect_op_resolver_hdr",
     ],
     deps = [
-        requirement("mako"),
-        "//tensorflow/lite/micro/tools:generate_test_for_model",
-        "//tensorflow/lite/python:schema_py",
-        "//tensorflow/lite/python:schema_util",
-        "//tensorflow/lite/tools:flatbuffer_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+    ],
+)
+
+tflm_cc_test(
+    name = "micro_mutable_op_resolver_test",
+    srcs = [
+        "micro_mutable_op_resolver_test.cc",
+    ],
+    deps = [
+        ":person_detect_op_resolver",
+        "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:system_setup",
+        "//tensorflow/lite/micro/examples/person_detection:person_detect_model_data",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

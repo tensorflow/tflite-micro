@@ -35,16 +35,6 @@ tflm_py_library(
     ],
 )
 
-tflm_py_library(
-    name = "generate_test_for_model",
-    srcs = ["generate_test_for_model.py"],
-    visibility = ["//:__subpackages__"],
-    deps = [
-        "//tensorflow/lite/python:schema_py",
-        requirement("ai-edge-litert"),
-    ],
-)
-
 tflm_py_binary(
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],

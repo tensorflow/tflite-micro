@@ -6,9 +6,6 @@ include $(MICRO_LITE_EXAMPLE_TESTS)
 # Load the integration tests.
 include $(MICRO_LITE_INTEGRATION_TESTS)
 
-# Load generated micro mutable op resolver test.
-include $(MICRO_LITE_GEN_MUTABLE_OP_RESOLVER_TEST)
-
 # Load layer_by_layer_output_tool
 ifneq ($(TARGET), $(filter $(TARGET), \
   bluepill cortex_m_corstone_300 riscv32_generic hexagon))
