@@ -289,8 +289,13 @@ void ValidateFullyConnectedGoldens(
 #endif  // USE_TFLM_COMPRESSION
 ) {
   TfLiteFullyConnectedParams builtin_data = {
-      activation, kTfLiteFullyConnectedWeightsFormatDefault, false, false,
-      kTfLiteNoType};
+      activation,
+      kTfLiteFullyConnectedWeightsFormatDefault,
+      false,
+      false,
+      kTfLiteNoType,
+      nullptr,
+      0};
 
   // Avoid variable length array warning.
   constexpr int inputs_array_len = 4;

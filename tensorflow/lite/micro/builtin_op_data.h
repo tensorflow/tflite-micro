@@ -16,6 +16,14 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_BUILTIN_OP_DATA_H_
 #define TENSORFLOW_LITE_MICRO_BUILTIN_OP_DATA_H_
 
+// Synced with LiteRT:
+// https://github.com/google-ai-edge/LiteRT/blob/main/tflite/converter/core/c/builtin_op_data.h
+//
+// Keep all upstream op definitions (even if unused in TFLM) for future usage,
+// while adapting freely as needed for TFLM.
+// - Definitions live in `namespace tflite::micro` (not `extern "C"`).
+// - Add `using` aliases at the bottom of this file for any new types/enums.
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -216,6 +224,18 @@ typedef struct {
   // Parameters for FullyConnected version 10 or above.
   // Used to determine the default value for the quantized bias.
   TfLiteType quantized_bias_type;
+
+  // Parameters for FullyConnected version 15 or above.
+  //
+  // Opaque, flexbuffers-encoded description of a non-standard quantization
+  // contract; see `FullyConnectedOptions.quant_spec` in schema.fbs. Null when
+  // the op uses standard FullyConnected quantization semantics.
+  //
+  // This points into the model's buffer and is only valid for as long as the
+  // model is, in the same way as `TfLiteNode::custom_initial_data`. It is not
+  // owned by this struct.
+  const uint8_t* quant_spec;
+  int quant_spec_size;
 } TfLiteFullyConnectedParams;
 
 typedef enum {
