@@ -36,6 +36,7 @@ import argparse
 import os
 import os.path
 import re
+import struct
 
 import numpy as np
 
@@ -57,31 +58,57 @@ def check_file_existence(x):
   return x
 
 
+def _save_bmp(outputfile, bitmap, channels):
+  height, width = bitmap.shape[:2]
+  row_bytes = width * channels
+  stride = (row_bytes + 3) & ~3
+  pad = b'\x00' * (stride - row_bytes)
+  palette = (
+    b''.join(struct.pack('<BBBB', i, i, i, 0) for i in range(256))
+    if channels == 1
+    else b''
+  )
+  offset = 14 + 40 + len(palette)
+  image_size = stride * height
+  file_header = struct.pack('<2sIHHI', b'BM', offset + image_size, 0, 0, offset)
+  dib_header = struct.pack(
+    '<IiiHHIIiiII',
+    40,
+    width,
+    height,
+    1,
+    8 * channels,
+    0,
+    image_size,
+    0,
+    0,
+    256 if channels == 1 else 0,
+    0,
+  )
+  with open(outputfile, 'wb') as f:
+    f.write(file_header)
+    f.write(dib_header)
+    f.write(palette)
+    for y in range(height - 1, -1, -1):
+      row = bitmap[y]
+      if channels == 3:
+        row = row[:, ::-1]
+      f.write(np.ascontiguousarray(row, dtype=np.uint8).tobytes() + pad)
+
+
 def show_and_save_bitmaps(input_file, bitmap_list, channels):
-  """Display and save a list of bitmaps.
+  """Save a list of bitmaps.
 
   Args:
     input_file: input file name
     bitmap_list: list of numpy arrays to represent bitmap images
     channels: color channel count
   """
-  try:
-    from PIL import Image  # pylint: disable=g-import-not-at-top
-  except ImportError:
-    raise NotImplementedError('Image display and save not implemented.')
-
   for idx, bitmap in enumerate(bitmap_list):
     path = os.path.dirname(os.path.abspath(input_file))
     basename = os.path.split(os.path.splitext(input_file)[0])[-1]
     outputfile = os.path.join(path, basename + '_' + str(idx) + '.bmp')
-
-    if channels == 3:
-      img = Image.fromarray(bitmap, 'RGB')
-    else:
-      img = Image.fromarray(bitmap, 'L')
-
-    img.save(outputfile)
-    img.show()
+    _save_bmp(outputfile, bitmap, channels)
 
 
 def reshape_bitmaps(frame_list, width, height, channels):

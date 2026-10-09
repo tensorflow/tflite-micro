@@ -24,11 +24,64 @@ bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate
 import argparse
 import logging
 import os
+import struct
+import zlib
 
 import numpy as np
-from PIL import Image
 
 from tflite_micro.python.tflite_micro import runtime
+
+
+def _read_png(img_path):
+  """Decode an 8-bit non-interlaced PNG image into a float32 numpy array."""
+  with open(img_path, "rb") as f:
+    data = f.read()
+  if data[:8] != b"\x89PNG\r\n\x1a\n":
+    raise ValueError("Invalid PNG file")
+  pos = 8
+  width = height = bit_depth = color_type = 0
+  idat = bytearray()
+  while pos < len(data):
+    length = struct.unpack_from(">I", data, pos)[0]
+    chunk_type = data[pos + 4 : pos + 8]
+    chunk_data = data[pos + 8 : pos + 8 + length]
+    pos += 12 + length
+    if chunk_type == b"IHDR":
+      width, height, bit_depth, color_type = struct.unpack_from(
+        ">IIBB", chunk_data, 0
+      )
+    elif chunk_type == b"IDAT":
+      idat.extend(chunk_data)
+    elif chunk_type == b"IEND":
+      break
+  channels = {0: 1, 2: 3, 4: 2, 6: 4}.get(color_type, 1)
+  bpp = max(1, (bit_depth * channels) // 8)
+  stride = width * bpp
+  raw = zlib.decompress(idat)
+  recon = bytearray(height * stride)
+  for y in range(height):
+    row_start = y * (1 + stride)
+    filt = raw[row_start]
+    out_start = y * stride
+    for x in range(stride):
+      val = raw[row_start + 1 + x]
+      a = recon[out_start + x - bpp] if x >= bpp else 0
+      b = recon[out_start - stride + x] if y > 0 else 0
+      c = recon[out_start - stride + x - bpp] if (x >= bpp and y > 0) else 0
+      if filt == 1:
+        val = (val + a) & 0xFF
+      elif filt == 2:
+        val = (val + b) & 0xFF
+      elif filt == 3:
+        val = (val + ((a + b) >> 1)) & 0xFF
+      elif filt == 4:
+        p = a + b - c
+        pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+        pr = a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
+        val = (val + pr) & 0xFF
+      recon[out_start + x] = val
+  shape = (height, width) if channels == 1 else (height, width, channels)
+  return np.frombuffer(recon, dtype=np.uint8).reshape(shape).astype(np.float32)
 
 
 def read_img(img_path):
@@ -40,8 +93,7 @@ def read_img(img_path):
   Returns:
       np.array : image in the correct np.array format
   """
-  image = Image.open(img_path)
-  data = np.asarray(image, dtype=np.float32)
+  data = _read_png(img_path)
   if data.shape not in [(28, 28), (28, 28, 1)]:
     raise ValueError(
       "Invalid input image shape (MNIST image should have shape 28*28 or 28*28*1)"

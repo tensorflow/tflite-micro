@@ -58,6 +58,40 @@ def bytes_to_hexstring(buffer):
   return ",".join([hex(b) for b in buffer])
 
 
+def _read_bmp_bytes(fname):
+  """Read uncompressed 8-bit or 24-bit BMP pixel bytes in top-to-bottom order."""
+  with open(fname, "rb") as f:
+    data = f.read()
+  if data[:2] != b"BM":
+    raise ValueError("Not a valid BMP file: {}".format(fname))
+  bf_off_bits = struct.unpack_from("<I", data, 10)[0]
+  _, width, height, _, bpp, compression = struct.unpack_from(
+    "<IiiHHI", data, 14
+  )
+  if compression != 0 or bpp not in (8, 24):
+    raise ValueError(
+      "Unsupported BMP format (bpp={}, compression={})".format(bpp, compression)
+    )
+  top_down = height < 0
+  height = abs(height)
+  row_bytes = width * (bpp // 8)
+  stride = (row_bytes + 3) & ~3
+  rows = []
+  for y in range(height):
+    offset = bf_off_bits + y * stride
+    row = data[offset : offset + row_bytes]
+    if bpp == 24:
+      row = bytes(
+        b
+        for i in range(0, len(row), 3)
+        for b in (row[i + 2], row[i + 1], row[i])
+      )
+    rows.append(row)
+  if not top_down:
+    rows.reverse()
+  return b"".join(rows)
+
+
 def generate_array(input_fname):
   """Return array size and array of data from the input file."""
   if input_fname.endswith(".tflite"):
@@ -67,10 +101,7 @@ def generate_array(input_fname):
     out_string = bytes_to_hexstring(buffer)
     return [size, out_string]
   elif input_fname.endswith(".bmp"):
-    from PIL import Image
-
-    img = Image.open(input_fname, mode="r")
-    image_bytes = img.tobytes()
+    image_bytes = _read_bmp_bytes(input_fname)
     size = len(image_bytes)
     out_string = bytes_to_hexstring(image_bytes)
     return [size, out_string]

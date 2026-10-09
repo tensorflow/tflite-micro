@@ -7,7 +7,6 @@ tflm_py_binary(
     srcs = ["evaluate.py"],
     deps = [
         "//python/tflite_micro:runtime",
-        requirement("pillow"),
     ],
 )
 

@@ -30,7 +30,6 @@ tflm_py_library(
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
     deps = [
-        requirement("pillow"),
         requirement("numpy"),
     ],
 )
@@ -49,7 +48,6 @@ tflm_py_binary(
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],
     deps = [
-        requirement("pillow"),
         requirement("numpy"),
     ],
 )
