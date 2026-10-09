@@ -35,7 +35,6 @@ namespace micro {
 namespace {
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data = context->AllocatePersistentBuffer(
       context, sizeof(XtensaDepthwiseConvOpData));
 #if defined(VISION_P6)

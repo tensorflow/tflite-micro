@@ -59,8 +59,6 @@ void FilterBankSpectralSubtractionResetState(
 
 void* FilterBankSpectralSubtractionInit(TfLiteContext* context,
                                         const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-
   auto* params = static_cast<TFLMSignalSpectralSubtractionParams*>(
       context->AllocatePersistentBuffer(
           context, sizeof(TFLMSignalSpectralSubtractionParams)));

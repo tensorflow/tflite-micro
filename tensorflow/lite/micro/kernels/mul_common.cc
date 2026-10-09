@@ -30,7 +30,6 @@ const int kMulInput2Tensor = 1;
 const int kMulOutputTensor = 0;
 
 void* MulInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataMul));
 }
 

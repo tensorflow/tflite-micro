@@ -52,7 +52,6 @@ struct CmsisNnOpDataSvdf {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(CmsisNnOpDataSvdf));
 }
 
@@ -172,8 +171,6 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     data->output_zero_point = output->params.zero_point;
     data->activation_state_zero_point = activation_state->params.zero_point;
 
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-
     const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
         context, batch_size * num_filters * sizeof(int32_t),
         &(data->scratch_tensor_index));
@@ -229,7 +226,6 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     }
     TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteFloat32);
 
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
         context, batch_size * num_filters * sizeof(float),
         &(data->scratch_tensor_index));
@@ -298,7 +294,6 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
   out_quant_params.shift = data.effective_scale_2_b;
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   cmsis_nn_context scratch_ctx;
   scratch_ctx.buf = static_cast<int32_t*>(

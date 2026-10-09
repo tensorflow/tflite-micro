@@ -138,7 +138,6 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 }
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
@@ -191,8 +190,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
           context, num_channels * sizeof(int32_t)));
 
   if (input->type == kTfLiteInt8) {
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-
     RuntimeShape input_shape = GetTensorShape(input);
     RuntimeShape output_shape = GetTensorShape(output);
     RuntimeShape filter_shape = GetTensorShape(filter);
@@ -242,7 +239,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Quantized 16x8 kernels use an int64 scratch buffer.
   if (input->type == kTfLiteInt16) {
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,
                       GetTensorShape(output).FlatSize() * sizeof(std::int64_t),

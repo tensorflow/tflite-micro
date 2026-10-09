@@ -26,7 +26,6 @@ namespace tflite {
 namespace micro {
 void* ConvInitXtensa(TfLiteContext* context, const char* buffer,
                      size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(XtensaConvOpData));
 #if defined(VISION_P6)

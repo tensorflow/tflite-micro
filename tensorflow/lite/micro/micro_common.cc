@@ -113,6 +113,55 @@ const char* TfLiteTypeGetName(TfLiteType type) {
   return "Unknown type";
 }
 
+int TfLiteTypeGetSize(TfLiteType type) {
+  int size_bits = TfLiteTypeGetSizeBits(type);
+  if (size_bits % 8 == 0) {
+    return size_bits / 8;
+  } else {
+    // For non-byte sized types, return 0.
+    return 0;
+  }
+}
+
+int TfLiteTypeGetSizeBits(TfLiteType type) {
+  switch (type) {
+    case kTfLiteInt2:
+      return 2;
+    case kTfLiteInt4:
+    case kTfLiteUInt4:
+      return 4;
+    case kTfLiteUInt8:
+    case kTfLiteInt8:
+    case kTfLiteFloat8E4M3FN:
+    case kTfLiteFloat8E5M2:
+      return 8;
+    case kTfLiteUInt16:
+    case kTfLiteInt16:
+    case kTfLiteFloat16:
+    case kTfLiteBFloat16:
+      return 16;
+    case kTfLiteFloat32:
+    case kTfLiteInt32:
+    case kTfLiteUInt32:
+      return 32;
+    case kTfLiteInt64:
+    case kTfLiteUInt64:
+    case kTfLiteFloat64:
+    case kTfLiteComplex64:
+      return 64;
+    case kTfLiteComplex128:
+      return 128;
+    case kTfLiteBool:
+      return sizeof(bool) * 8;
+    case kTfLiteString:
+    case kTfLiteNoType:
+    case kTfLiteResource:
+    case kTfLiteVariant:
+      break;
+  }
+  return 0;
+}
+
 size_t TfLiteIntArrayGetSizeInBytes(int size) {
   return TfLiteVarArrayGetSizeInBytes<TfLiteIntArray>(size);
 }
@@ -138,11 +187,6 @@ TfLiteStatus MicroContextRequestScratchBufferInArena(TfLiteContext* ctx,
 
 void* MicroContextGetScratchBuffer(TfLiteContext* ctx, int buffer_idx) {
   return GetMicroContext(ctx)->GetScratchBuffer(buffer_idx);
-}
-
-TfLiteTensor* MicroContextGetTensor(const TfLiteContext* context,
-                                    int tensor_idx) {
-  return GetMicroContext(context)->AllocateTempTfLiteTensor(tensor_idx);
 }
 
 TfLiteEvalTensor* MicroContextGetEvalTensor(const TfLiteContext* context,

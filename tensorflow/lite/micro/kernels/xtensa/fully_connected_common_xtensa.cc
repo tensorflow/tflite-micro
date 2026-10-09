@@ -25,7 +25,6 @@ namespace tflite {
 namespace micro {
 void* XtensaInitFullyConnected(TfLiteContext* context, const char* buffer,
                                size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if !defined(VISION_P6)
   return context->AllocatePersistentBuffer(context,
                                            sizeof(OpDataFullyConnected));

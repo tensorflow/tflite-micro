@@ -65,7 +65,6 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
   const int n_memory = weights_time_tensor->dims->data[1];
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   int32_t* scratch_tensor = static_cast<int32_t*>(
       context->GetScratchBuffer(context, data.scratch_tensor_index));
@@ -309,7 +308,6 @@ void EvalFloatSvdfReference(
   float* state_ptr = tflite::micro::GetTensorData<float>(activation_state);
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   float* scratch_ptr = static_cast<float*>(
       context->GetScratchBuffer(context, scratch_tensor_index));
@@ -475,8 +473,6 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     data->output_zero_point = output->params.zero_point;
     data->activation_state_zero_point = activation_state->params.zero_point;
 
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
-
     const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
         context, batch_size * num_filters * sizeof(int32_t),
         &(data->scratch_tensor_index));
@@ -496,7 +492,6 @@ TfLiteStatus PrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     }
     TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteFloat32);
 
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
         context, batch_size * num_filters * sizeof(float),
         &(data->scratch_tensor_index));

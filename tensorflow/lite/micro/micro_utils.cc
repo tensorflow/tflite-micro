@@ -37,10 +37,9 @@ int ElementCount(const TfLiteIntArray& dims) {
 }
 
 size_t EvalTensorBytes(const TfLiteEvalTensor* tensor) {
-  size_t bytes_per_element;
-  TFLITE_DCHECK(kTfLiteOk ==
-                TfLiteTypeSizeOf(tensor->type, &bytes_per_element));
-  return ElementCount(*tensor->dims) * bytes_per_element;
+  size_t bytes;
+  TFLITE_DCHECK(kTfLiteOk == TfLiteEvalTensorByteLength(tensor, &bytes));
+  return bytes;
 }
 
 void SignedSymmetricPerChannelQuantize(

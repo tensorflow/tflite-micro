@@ -33,7 +33,6 @@ namespace {
 
 #if defined(VISION_P6)
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(XtensaReshapeData));
   if (InitXtensaContext()) {

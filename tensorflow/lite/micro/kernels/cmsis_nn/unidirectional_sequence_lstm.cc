@@ -316,7 +316,6 @@ TfLiteStatus CMSIS_NN_EvalInteger16x8_16Lstm(
 /*Kernel functions*/
 void* UnidirectionalSequenceLstmInit(TfLiteContext* context, const char* buffer,
                                      size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 

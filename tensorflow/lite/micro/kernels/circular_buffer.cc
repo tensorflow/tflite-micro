@@ -50,7 +50,6 @@ namespace tflite {
 namespace micro {
 void* CircularBufferInit(TfLiteContext* context, const char* buffer,
                          size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpDataCircularBuffer* op_data = static_cast<OpDataCircularBuffer*>(
       context->AllocatePersistentBuffer(context, sizeof(OpDataCircularBuffer)));
 
