@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """Tests for flatbuffer_utils.py."""
+
 import copy
 import os
 import subprocess
@@ -20,15 +21,16 @@ import sys
 import tempfile
 import unittest
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
-from tflite_micro.tensorflow.lite.tools import test_utils
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema,
+)
+from tflite_micro.tensorflow.lite.micro.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite.micro.tools import test_utils
 
 _SKIPPED_BUFFER_INDEX = 1
 
 
 class WriteReadModelTest(unittest.TestCase):
-
   def testWriteReadModel(self):
     # 1. SETUP
     # Define the initial model
@@ -55,8 +57,10 @@ class WriteReadModelTest(unittest.TestCase):
     for i in range(len(initial_subgraph.outputs)):
       self.assertEqual(initial_subgraph.outputs[i], final_subgraph.outputs[i])
     for i in range(len(initial_subgraph.operators)):
-      self.assertEqual(initial_subgraph.operators[i].opcodeIndex,
-                       final_subgraph.operators[i].opcodeIndex)
+      self.assertEqual(
+        initial_subgraph.operators[i].opcodeIndex,
+        final_subgraph.operators[i].opcodeIndex,
+      )
     initial_tensors = initial_subgraph.tensors
     final_tensors = final_subgraph.tensors
     for i in range(len(initial_tensors)):
@@ -73,7 +77,6 @@ class WriteReadModelTest(unittest.TestCase):
 
 
 class StripStringsTest(unittest.TestCase):
-
   def testStripStrings(self):
     # 1. SETUP
     # Define the initial model
@@ -102,8 +105,10 @@ class StripStringsTest(unittest.TestCase):
     for i in range(len(initial_subgraph.outputs)):
       self.assertEqual(initial_subgraph.outputs[i], final_subgraph.outputs[i])
     for i in range(len(initial_subgraph.operators)):
-      self.assertEqual(initial_subgraph.operators[i].opcodeIndex,
-                       final_subgraph.operators[i].opcodeIndex)
+      self.assertEqual(
+        initial_subgraph.operators[i].opcodeIndex,
+        final_subgraph.operators[i].opcodeIndex,
+      )
     initial_tensors = initial_subgraph.tensors
     final_tensors = final_subgraph.tensors
     for i in range(len(initial_tensors)):
@@ -121,7 +126,6 @@ class StripStringsTest(unittest.TestCase):
 
 
 class RandomizeWeightsTest(unittest.TestCase):
-
   def testRandomizeWeights(self):
     # 1. SETUP
     # Define the initial model
@@ -146,8 +150,10 @@ class RandomizeWeightsTest(unittest.TestCase):
     for i in range(len(initial_subgraph.outputs)):
       self.assertEqual(initial_subgraph.outputs[i], final_subgraph.outputs[i])
     for i in range(len(initial_subgraph.operators)):
-      self.assertEqual(initial_subgraph.operators[i].opcodeIndex,
-                       final_subgraph.operators[i].opcodeIndex)
+      self.assertEqual(
+        initial_subgraph.operators[i].opcodeIndex,
+        final_subgraph.operators[i].opcodeIndex,
+      )
     initial_tensors = initial_subgraph.tensors
     final_tensors = final_subgraph.tensors
     for i in range(len(initial_tensors)):
@@ -171,7 +177,8 @@ class RandomizeWeightsTest(unittest.TestCase):
     # 2. INVOKE
     # Invoke the randomize_weights function, but skip the first buffer
     flatbuffer_utils.randomize_weights(
-        final_model, buffers_to_skip=[_SKIPPED_BUFFER_INDEX])
+      final_model, buffers_to_skip=[_SKIPPED_BUFFER_INDEX]
+    )
 
     # 3. VALIDATE
     # Validate that the initial and final models are the same, except that
@@ -187,8 +194,10 @@ class RandomizeWeightsTest(unittest.TestCase):
     for i, _ in enumerate(initial_subgraph.outputs):
       self.assertEqual(initial_subgraph.outputs[i], final_subgraph.outputs[i])
     for i, _ in enumerate(initial_subgraph.operators):
-      self.assertEqual(initial_subgraph.operators[i].opcodeIndex,
-                       final_subgraph.operators[i].opcodeIndex)
+      self.assertEqual(
+        initial_subgraph.operators[i].opcodeIndex,
+        final_subgraph.operators[i].opcodeIndex,
+      )
     initial_tensors = initial_subgraph.tensors
     final_tensors = final_subgraph.tensors
     for i, _ in enumerate(initial_tensors):
@@ -205,7 +214,6 @@ class RandomizeWeightsTest(unittest.TestCase):
 
 
 class XxdOutputToBytesTest(unittest.TestCase):
-
   def testXxdOutputToBytes(self):
     # 1. SETUP
     # Define the initial model
@@ -229,7 +237,7 @@ class XxdOutputToBytesTest(unittest.TestCase):
     final_bytes = flatbuffer_utils.xxd_output_to_bytes(input_cc_file)
     if sys.byteorder == 'big':
       final_bytes = flatbuffer_utils.byte_swap_tflite_buffer(
-          final_bytes, 'little', 'big'
+        final_bytes, 'little', 'big'
       )
 
     # Validate that the initial and final bytearray are the same
@@ -237,7 +245,6 @@ class XxdOutputToBytesTest(unittest.TestCase):
 
 
 class CountResourceVariablesTest(unittest.TestCase):
-
   def testCountResourceVariables(self):
     # 1. SETUP
     # Define the initial model
@@ -247,11 +254,11 @@ class CountResourceVariablesTest(unittest.TestCase):
     # The mock model is created with two VAR HANDLE ops, but with the same
     # shared name.
     self.assertEqual(
-        flatbuffer_utils.count_resource_variables(initial_model), 1)
+      flatbuffer_utils.count_resource_variables(initial_model), 1
+    )
 
 
 class GetOptionsTest(unittest.TestCase):
-
   op: schema.Operator
   op_t: schema.OperatorT
 

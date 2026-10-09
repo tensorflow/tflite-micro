@@ -30,16 +30,16 @@ echo "Downloading schema.fbs from ${SCHEMA_URL}..."
 curl -fsSL "${SCHEMA_URL}" -o "${TARGET_FBS}"
 
 echo "Generating C++ and Python FlatBuffers bindings..."
-bazel build //tensorflow/lite/schema:schema_fbs_srcs //tensorflow/lite/python:schema_py
+bazel build //tensorflow/lite/schema:schema_fbs_srcs //tensorflow/lite/micro/python:schema_py
 
 if [ -f "bazel-bin/tensorflow/lite/schema/schema_generated.h" ]; then
   cp bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
   echo "Updated tensorflow/lite/schema/schema_generated.h"
 fi
 
-if [ -f "bazel-bin/tensorflow/lite/python/schema_py_generated.py" ]; then
-  cp bazel-bin/tensorflow/lite/python/schema_py_generated.py tensorflow/lite/python/schema_py_generated.py
-  echo "Updated tensorflow/lite/python/schema_py_generated.py"
+if [ -f "bazel-bin/tensorflow/lite/micro/python/schema_py_generated.py" ]; then
+  cp bazel-bin/tensorflow/lite/micro/python/schema_py_generated.py tensorflow/lite/micro/python/schema_py_generated.py
+  echo "Updated tensorflow/lite/micro/python/schema_py_generated.py"
 fi
 
 echo "Schema sync completed successfully."

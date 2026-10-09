@@ -17,7 +17,9 @@
 import enum
 import os
 from tflite_micro.python.tflite_micro import _runtime
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema_fb,
+)
 
 
 def convert_bytearray_to_object(model_bytearray):

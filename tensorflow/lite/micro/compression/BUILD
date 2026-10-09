@@ -166,7 +166,7 @@ tflm_py_test(
         ":decode_insert",
         ":model_editor",
         ":spec",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -194,7 +194,7 @@ tflm_py_test(
     deps = [
         ":model_editor",
         ":verify",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -216,7 +216,7 @@ tflm_py_test(
         ":spec",
         ":verify",
         "//python/tflite_micro:runtime",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -265,7 +265,7 @@ tflm_py_test(
         ":spec",
         ":verify",
         "//python/tflite_micro:runtime",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
         requirement("pyyaml"),
     ],
@@ -312,7 +312,7 @@ tflm_py_library(
     name = "tensor_type",
     srcs = ["tensor_type.py"],
     deps = [
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -323,7 +323,7 @@ tflm_py_test(
     srcs = ["tensor_type_test.py"],
     deps = [
         ":tensor_type",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -333,7 +333,7 @@ tflm_py_library(
     srcs = ["model_editor.py"],
     deps = [
         ":tensor_type",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("flatbuffers"),
         requirement("numpy"),
     ],
@@ -345,7 +345,7 @@ tflm_py_test(
     srcs = ["model_editor_test.py"],
     deps = [
         ":model_editor",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -379,7 +379,7 @@ tflm_py_library(
     srcs = ["constant_inputs.py"],
     deps = [
         ":model_editor",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
     ],
 )
 
@@ -396,7 +396,7 @@ tflm_py_test(
     deps = [
         ":constant_inputs",
         ":model_editor",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -428,7 +428,7 @@ tflm_py_test(
         ":lut",
         ":model_editor",
         ":spec",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -461,7 +461,7 @@ tflm_py_library(
     deps = [
         ":compressor",
         ":model_editor",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
     ],
 )
 
@@ -479,7 +479,7 @@ tflm_py_test(
         ":decode",
         ":decode_insert",
         ":model_editor",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -499,7 +499,7 @@ tflm_py_test(
         ":model_editor",
         ":spec",
         "//python/tflite_micro:runtime",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -515,7 +515,7 @@ tflm_py_library(
         ":model_editor",
         ":spec",
         ":tensor_type",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -544,7 +544,7 @@ tflm_py_test(
         ":model_editor",
         ":propose_spec_lib",
         ":spec",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )
@@ -558,7 +558,7 @@ tflm_py_library(
     deps = [
         ":metadata_py",
         ":tensor_type",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
         requirement("numpy"),
     ],
 )

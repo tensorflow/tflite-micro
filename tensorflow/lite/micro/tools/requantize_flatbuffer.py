@@ -41,9 +41,9 @@ import os
 
 import numpy as np
 
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite.micro.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer_utils
-from tflite_micro.tensorflow.lite.python import schema_py_generated
+from tflite_micro.tensorflow.lite.micro.python import schema_py_generated
 
 # key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
 # Val: the requantize function defined in requantize_flatbuffer_utils.py

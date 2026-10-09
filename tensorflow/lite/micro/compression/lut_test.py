@@ -21,7 +21,9 @@ from tflite_micro.tensorflow.lite.micro.compression import decode
 from tflite_micro.tensorflow.lite.micro.compression import lut
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as tflite,
+)
 
 
 class TestCompressArray(unittest.TestCase):

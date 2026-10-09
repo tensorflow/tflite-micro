@@ -31,8 +31,10 @@ import os
 
 import flatbuffers
 
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
-from tflite_micro.tensorflow.lite.python import schema_util
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema_fb,
+)
+from tflite_micro.tensorflow.lite.micro.python import schema_util
 
 _TFLITE_FILE_IDENTIFIER = b'TFL3'
 
@@ -86,8 +88,8 @@ def read_model_from_bytearray(model_bytearray):
     for op in subgraph.operators:
       if op.largeCustomOptionsOffset:
         op.customOptions = model_bytearray[
-            op.largeCustomOptionsOffset : op.largeCustomOptionsOffset
-            + op.largeCustomOptionsSize
+          op.largeCustomOptionsOffset : op.largeCustomOptionsOffset
+          + op.largeCustomOptionsSize
         ]
         op.largeCustomOptionsOffset = 0
         op.largeCustomOptionsSize = 0
@@ -322,13 +324,15 @@ def xxd_output_to_object(input_cc_file):
 def byte_swap_buffer_content(buffer, chunksize, from_endiness, to_endiness):
   """Helper function for byte-swapping the buffers field."""
   to_swap = [
-      buffer.data[i : i + chunksize]
-      for i in range(0, len(buffer.data), chunksize)
+    buffer.data[i : i + chunksize]
+    for i in range(0, len(buffer.data), chunksize)
   ]
-  buffer.data = b''.join([
+  buffer.data = b''.join(
+    [
       int.from_bytes(byteswap, from_endiness).to_bytes(chunksize, to_endiness)
       for byteswap in to_swap
-  ])
+    ]
+  )
 
 
 def byte_swap_string_content(buffer, from_endiness, to_endiness):
@@ -341,12 +345,14 @@ def byte_swap_string_content(buffer, from_endiness, to_endiness):
   """
   num_of_strings = int.from_bytes(buffer.data[0:4], from_endiness)
   string_content = bytearray(buffer.data[4 * (num_of_strings + 2) :])
-  prefix_data = b''.join([
+  prefix_data = b''.join(
+    [
       int.from_bytes(buffer.data[i : i + 4], from_endiness).to_bytes(
-          4, to_endiness
+        4, to_endiness
       )
       for i in range(0, (num_of_strings + 1) * 4 + 1, 4)
-  ])
+    ]
+  )
   buffer.data = prefix_data + string_content
 
 
@@ -363,45 +369,45 @@ def byte_swap_tflite_model_obj(model, from_endiness, to_endiness):
   # Get all the constant buffers, byte swapping them as per their data types
   buffer_swapped = []
   types_of_16_bits = [
-      schema_fb.TensorType.FLOAT16,
-      schema_fb.TensorType.INT16,
-      schema_fb.TensorType.UINT16,
+    schema_fb.TensorType.FLOAT16,
+    schema_fb.TensorType.INT16,
+    schema_fb.TensorType.UINT16,
   ]
   types_of_32_bits = [
-      schema_fb.TensorType.FLOAT32,
-      schema_fb.TensorType.INT32,
-      schema_fb.TensorType.COMPLEX64,
-      schema_fb.TensorType.UINT32,
+    schema_fb.TensorType.FLOAT32,
+    schema_fb.TensorType.INT32,
+    schema_fb.TensorType.COMPLEX64,
+    schema_fb.TensorType.UINT32,
   ]
   types_of_64_bits = [
-      schema_fb.TensorType.INT64,
-      schema_fb.TensorType.FLOAT64,
-      schema_fb.TensorType.COMPLEX128,
-      schema_fb.TensorType.UINT64,
+    schema_fb.TensorType.INT64,
+    schema_fb.TensorType.FLOAT64,
+    schema_fb.TensorType.COMPLEX128,
+    schema_fb.TensorType.UINT64,
   ]
   for subgraph in model.subgraphs:
     for tensor in subgraph.tensors:
       if (
-          tensor.buffer > 0
-          and tensor.buffer < len(model.buffers)
-          and tensor.buffer not in buffer_swapped
-          and model.buffers[tensor.buffer].data is not None
+        tensor.buffer > 0
+        and tensor.buffer < len(model.buffers)
+        and tensor.buffer not in buffer_swapped
+        and model.buffers[tensor.buffer].data is not None
       ):
         if tensor.type == schema_fb.TensorType.STRING:
           byte_swap_string_content(
-              model.buffers[tensor.buffer], from_endiness, to_endiness
+            model.buffers[tensor.buffer], from_endiness, to_endiness
           )
         elif tensor.type in types_of_16_bits:
           byte_swap_buffer_content(
-              model.buffers[tensor.buffer], 2, from_endiness, to_endiness
+            model.buffers[tensor.buffer], 2, from_endiness, to_endiness
           )
         elif tensor.type in types_of_32_bits:
           byte_swap_buffer_content(
-              model.buffers[tensor.buffer], 4, from_endiness, to_endiness
+            model.buffers[tensor.buffer], 4, from_endiness, to_endiness
           )
         elif tensor.type in types_of_64_bits:
           byte_swap_buffer_content(
-              model.buffers[tensor.buffer], 8, from_endiness, to_endiness
+            model.buffers[tensor.buffer], 8, from_endiness, to_endiness
           )
         else:
           continue
@@ -450,7 +456,7 @@ def count_resource_variables(model):
       continue
     for op in subgraph.operators:
       builtin_code = schema_util.get_builtin_code_from_operator_code(
-          model.operatorCodes[op.opcodeIndex]
+        model.operatorCodes[op.opcodeIndex]
       )
       if builtin_code == schema_fb.BuiltinOperator.VAR_HANDLE:
         unique_shared_names.add(op.builtinOptions.sharedName)
@@ -461,7 +467,7 @@ OptsT = TypeVar('OptsT')
 
 
 def get_options_as(
-    op: Union[schema_fb.Operator, schema_fb.OperatorT], opts_type: Type[OptsT]
+  op: Union[schema_fb.Operator, schema_fb.OperatorT], opts_type: Type[OptsT]
 ) -> Optional[OptsT]:
   """Get the options of an operator as the specified type.
 
@@ -486,7 +492,7 @@ def get_options_as(
   base_type_name = type_name.removesuffix('T')
   is_opt_1_type = hasattr(schema_fb.BuiltinOptions, base_type_name)
   if not is_opt_1_type and not hasattr(
-      schema_fb.BuiltinOptions2, base_type_name
+    schema_fb.BuiltinOptions2, base_type_name
   ):
     raise err
 

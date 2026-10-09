@@ -26,14 +26,9 @@ import re
 import sys
 import numpy as np
 
-# pylint: disable=g-import-not-at-top
-if not os.path.splitext(__file__)[0].endswith(
-    os.path.join("tflite_runtime", "visualize")):
-  # This file is part of tensorflow package.
-  from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
-else:
-  # This file is part of tflite_runtime package.
-  from tflite_micro.tensorflow.lite_runtime import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema_fb,
+)
 
 # A CSS description for making the visualizer
 _CSS = """
@@ -285,9 +280,10 @@ class TensorMapper:
       html += str(i) + " "
       html += NameListToString(tensor["name"]) + " "
       html += TensorTypeToName(tensor["type"]) + " "
-      html += (repr(tensor["shape"]) if "shape" in tensor else "[]")
-      html += (repr(tensor["shape_signature"])
-               if "shape_signature" in tensor else "[]") + "<br>"
+      html += repr(tensor["shape"]) if "shape" in tensor else "[]"
+      html += (
+        repr(tensor["shape_signature"]) if "shape_signature" in tensor else "[]"
+      ) + "<br>"
     html += "</span>"
     html += repr(x)
     html += "</span>"
@@ -306,8 +302,9 @@ def QuantizationMapper(q):
     if isinstance(value, list) and len(value) > 20:
       head = value[:10]
       tail = value[-10:]
-      value_str = (f"[{', '.join(map(repr, head))}, ..., "
-                   f"{', '.join(map(repr, tail))}]")
+      value_str = (
+        f"[{', '.join(map(repr, head))}, ..., {', '.join(map(repr, tail))}]"
+      )
     else:
       value_str = repr(value)
     items_str.append(f"{key_str}: {value_str}")
@@ -334,41 +331,51 @@ def GenerateGraph(subgraph_idx, g, opcode_mapper):
     if op["inputs"] is not None:
       for tensor_input_position, tensor_index in enumerate(op["inputs"]):
         if tensor_index not in first:
-          first[tensor_index] = ((op_index - 0.5 + 1) * pixel_mult,
-                                 (tensor_input_position + 1) * width_mult)
-        edges.append({
-            "source": TensorName(tensor_index),
-            "target": OpName(op_index)
-        })
+          first[tensor_index] = (
+            (op_index - 0.5 + 1) * pixel_mult,
+            (tensor_input_position + 1) * width_mult,
+          )
+        edges.append(
+          {"source": TensorName(tensor_index), "target": OpName(op_index)}
+        )
     if op["outputs"] is not None:
       for tensor_output_position, tensor_index in enumerate(op["outputs"]):
         if tensor_index not in second:
-          second[tensor_index] = ((op_index + 0.5 + 1) * pixel_mult,
-                                  (tensor_output_position + 1) * width_mult)
-        edges.append({
-            "target": TensorName(tensor_index),
-            "source": OpName(op_index)
-        })
+          second[tensor_index] = (
+            (op_index + 0.5 + 1) * pixel_mult,
+            (tensor_output_position + 1) * width_mult,
+          )
+        edges.append(
+          {"target": TensorName(tensor_index), "source": OpName(op_index)}
+        )
 
-    nodes.append({
+    nodes.append(
+      {
         "id": OpName(op_index),
         "name": opcode_mapper(op["opcode_index"]),
         "group": 2,
         "x": pixel_mult,
-        "y": (op_index + 1) * pixel_mult
-    })
+        "y": (op_index + 1) * pixel_mult,
+      }
+    )
   for tensor_index, tensor in enumerate(g["tensors"]):
     initial_y = (
-        first[tensor_index] if tensor_index in first else
-        second[tensor_index] if tensor_index in second else (0, 0))
+      first[tensor_index]
+      if tensor_index in first
+      else second[tensor_index]
+      if tensor_index in second
+      else (0, 0)
+    )
 
-    nodes.append({
+    nodes.append(
+      {
         "id": TensorName(tensor_index),
         "name": "%r (%d)" % (getattr(tensor, "shape", []), tensor_index),
         "group": 1,
         "x": initial_y[1],
-        "y": initial_y[0]
-    })
+        "y": initial_y[0],
+      }
+    )
   graph_str = json.dumps({"nodes": nodes, "edges": edges})
 
   html = _D3_HTML_TEMPLATE % (graph_str, subgraph_idx)
@@ -395,7 +402,7 @@ def GenerateTableHtml(items, keys_to_print, display_index=True):
   html += "<tr>\n"
   if display_index:
     html += "<th>index</th>"
-  for h, mapper in keys_to_print:
+  for h, _mapper in keys_to_print:
     html += "<th>%s</th>" % h
   html += "</tr>\n"
   for idx, tensor in enumerate(items):
@@ -490,26 +497,32 @@ def create_html(tflite_input, input_is_filepath=True):  # pylint: disable=invali
   html += _CSS
   html += "<h1>TensorFlow Lite Model</h2>"
 
-  data["filename"] = tflite_input if input_is_filepath else (
-      "Null (used model object)")  # Avoid special case
+  data["filename"] = (
+    tflite_input if input_is_filepath else ("Null (used model object)")
+  )  # Avoid special case
 
-  toplevel_stuff = [("filename", None), ("version", None),
-                    ("description", None)]
+  toplevel_stuff = [
+    ("filename", None),
+    ("version", None),
+    ("description", None),
+  ]
 
   html += "<table class='data-table'>\n"
   for key, mapping in toplevel_stuff:
-    if not mapping:
-      mapping = lambda x: x
-    val = mapping(data.get(key))
-    html += ("<tr><th>%s</th><td><div class='cell-content'>%s</div></td></tr>\n"
-             % (key, val))
+    val = mapping(data.get(key)) if mapping else data.get(key)
+    html += (
+      "<tr><th>%s</th><td><div class='cell-content'>%s</div></td></tr>\n"
+      % (key, val)
+    )
   html += "</table>\n"
 
   # Spec on what keys to display
   buffer_keys_to_display = [("data", DataSizeMapper())]
-  operator_keys_to_display = [("builtin_code", BuiltinCodeToName),
-                              ("custom_code", NameListToString),
-                              ("version", None)]
+  operator_keys_to_display = [
+    ("builtin_code", BuiltinCodeToName),
+    ("custom_code", NameListToString),
+    ("version", None),
+  ]
 
   # Update builtin code fields.
   for d in data["operator_codes"]:
@@ -520,23 +533,30 @@ def create_html(tflite_input, input_is_filepath=True):  # pylint: disable=invali
     html += "<div class='subgraph'>"
     tensor_mapper = TensorMapper(g)
     opcode_mapper = OpCodeMapper(data)
-    op_keys_to_display = [("inputs", tensor_mapper), ("outputs", tensor_mapper),
-                          ("builtin_options", None),
-                          ("opcode_index", opcode_mapper)]
-    tensor_keys_to_display = [("name", NameListToString),
-                              ("type", TensorTypeToName), ("shape", None),
-                              ("shape_signature", None), ("buffer", None),
-                              ("quantization", QuantizationMapper)]
+    op_keys_to_display = [
+      ("inputs", tensor_mapper),
+      ("outputs", tensor_mapper),
+      ("builtin_options", None),
+      ("opcode_index", opcode_mapper),
+    ]
+    tensor_keys_to_display = [
+      ("name", NameListToString),
+      ("type", TensorTypeToName),
+      ("shape", None),
+      ("shape_signature", None),
+      ("buffer", None),
+      ("quantization", QuantizationMapper),
+    ]
 
     html += "<h2>Subgraph %d</h2>\n" % subgraph_idx
 
     # Inputs and outputs.
     html += "<h3>Inputs/Outputs</h3>\n"
-    html += GenerateTableHtml([{
-        "inputs": g["inputs"],
-        "outputs": g["outputs"]
-    }], [("inputs", tensor_mapper), ("outputs", tensor_mapper)],
-                              display_index=False)
+    html += GenerateTableHtml(
+      [{"inputs": g["inputs"], "outputs": g["outputs"]}],
+      [("inputs", tensor_mapper), ("outputs", tensor_mapper)],
+      display_index=False,
+    )
 
     # Print the tensors.
     html += "<h3>Tensors</h3>\n"
@@ -549,7 +569,8 @@ def create_html(tflite_input, input_is_filepath=True):  # pylint: disable=invali
 
     # Visual graph.
     html += "<svg id='subgraph%d' width='1600' height='900'></svg>\n" % (
-        subgraph_idx,)
+      subgraph_idx,
+    )
     html += GenerateGraph(subgraph_idx, g, opcode_mapper)
     html += "</div>"
 

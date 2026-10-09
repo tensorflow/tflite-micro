@@ -26,7 +26,7 @@ from tflite_micro.tensorflow.lite.micro.tools import tflm_model_transforms_lib
 from tflite_micro.tensorflow.lite.micro.examples.recipes import (
   resource_variables_lib,
 )
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite.micro.tools import flatbuffer_utils
 
 
 class TflmModelTransformsTest(unittest.TestCase):

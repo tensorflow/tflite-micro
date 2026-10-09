@@ -18,10 +18,10 @@ tflm_py_binary(
         "generate_micro_mutable_op_resolver_from_model.py",
     ],
     deps = [
-        "//tensorflow/lite/python:schema_py",
-        "//tensorflow/lite/python:schema_util",
-        "//tensorflow/lite/tools:flatbuffer_utils",
-        "//tensorflow/lite/tools:visualize",
+        "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_util",
+        "//tensorflow/lite/micro/tools:flatbuffer_utils",
+        "//tensorflow/lite/micro/tools:visualize",
     ],
 )
 

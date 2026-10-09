@@ -20,7 +20,7 @@ import argparse
 import os
 import re
 
-from tflite_micro.tensorflow.lite.tools import visualize
+from tflite_micro.tensorflow.lite.micro.tools import visualize
 
 HEADER_TEMPLATE = """\
 /* Copyright 2023 The TensorFlow Authors. All Rights Reserved.

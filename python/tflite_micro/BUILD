@@ -82,7 +82,7 @@ tflm_py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
     ],
 )
 
@@ -160,8 +160,8 @@ py_package(
     packages = [
         "python.tflite_micro",
         "tensorflow.lite.micro.compression",
+        "tensorflow.lite.micro.python",
         "tensorflow.lite.micro.tools",
-        "tensorflow.lite.python",
     ],
     deps = [
         ":postinstall_check",
