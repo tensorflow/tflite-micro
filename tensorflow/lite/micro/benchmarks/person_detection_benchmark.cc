@@ -27,7 +27,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 /*
  * Person Detection benchmark.  Evaluates runtime performance of the visual

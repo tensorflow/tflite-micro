@@ -18,7 +18,7 @@ limitations under the License.
 
 #include <cstring>
 
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"
 
 namespace tflite {
 

@@ -30,6 +30,7 @@ EXCLUDES = (
   "kernels/internal/reference/reference_ops.h",
   "python/schema_py_generated.py",
   "python_requirements.in",
+  "schema/schema_generated.h",
   "tensorflow/lite/micro/compression/metadata_saved.h",
   "tools/make/downloads",
   "tools/make/targets/ecm3531",

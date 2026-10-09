@@ -39,7 +39,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/mobilenet_v2_quantized_1x3x224x224_model_data.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_images_dog_jpg.h"
 #include "third_party/xtensa/examples/pytorch_to_tflite/pytorch_op_resolver.h"

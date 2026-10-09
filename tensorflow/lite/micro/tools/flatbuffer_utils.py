@@ -17,7 +17,7 @@
 All functions that are commonly used to work with FlatBuffers.
 
 Refer to the tensorflow lite flatbuffer schema here:
-tensorflow/lite/schema/schema.fbs
+tensorflow/lite/micro/schema/schema.fbs
 """
 
 import copy

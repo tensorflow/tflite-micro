@@ -17,7 +17,7 @@ limitations under the License.
 #include <pybind11/pytypes.h>
 
 #include "flatbuffers/util.h"
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"
 
 namespace py = pybind11;
 

@@ -24,17 +24,17 @@ ROOT_DIR="${SCRIPT_DIR}/../../../.."
 cd "${ROOT_DIR}"
 
 SCHEMA_URL="https://raw.githubusercontent.com/google-ai-edge/LiteRT/main/tflite/converter/schema/schema.fbs"
-TARGET_FBS="tensorflow/lite/schema/schema.fbs"
+TARGET_FBS="tensorflow/lite/micro/schema/schema.fbs"
 
 echo "Downloading schema.fbs from ${SCHEMA_URL}..."
 curl -fsSL "${SCHEMA_URL}" -o "${TARGET_FBS}"
 
 echo "Generating C++ and Python FlatBuffers bindings..."
-bazel build //tensorflow/lite/schema:schema_fbs_srcs //tensorflow/lite/micro/python:schema_py
+bazel build //tensorflow/lite/micro/schema:schema_fbs_srcs //tensorflow/lite/micro/python:schema_py
 
-if [ -f "bazel-bin/tensorflow/lite/schema/schema_generated.h" ]; then
-  cp bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
-  echo "Updated tensorflow/lite/schema/schema_generated.h"
+if [ -f "bazel-bin/tensorflow/lite/micro/schema/schema_generated.h" ]; then
+  cp bazel-bin/tensorflow/lite/micro/schema/schema_generated.h tensorflow/lite/micro/schema/schema_generated.h
+  echo "Updated tensorflow/lite/micro/schema/schema_generated.h"
 fi
 
 if [ -f "bazel-bin/tensorflow/lite/micro/python/schema_py_generated.py" ]; then

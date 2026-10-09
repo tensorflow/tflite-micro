@@ -1,20 +1,20 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load(
-    "//tensorflow:extra_rules.bzl",
-    "tflm_kernel_friends",
-    "xtensa_fusion_f1_config",
-    "xtensa_hifi_3_config",
-    "xtensa_hifi_3z_config",
-    "xtensa_hifi_5_config",
-    "xtensa_vision_p6_config",
-)
-load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
     "tflm_cc_test",
     "tflm_copts",
     "tflm_kernel_cc_library",
+)
+load(
+    "//tensorflow/lite/micro:extra_rules.bzl",
+    "tflm_kernel_friends",
+    "xtensa_fusion_f1_config",
+    "xtensa_hifi_3_config",
+    "xtensa_hifi_3z_config",
+    "xtensa_hifi_5_config",
+    "xtensa_vision_p6_config",
 )
 
 package(
@@ -440,7 +440,6 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/micro/kernels/internal:types",
-        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ] + select({
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],

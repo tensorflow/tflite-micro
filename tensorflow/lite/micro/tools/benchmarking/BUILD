@@ -39,7 +39,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro:system_setup",
-        "//tensorflow/lite/schema:schema_fbs",
     ],
 )
 

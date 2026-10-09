@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_interpreter.h"
 #include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace {
 using HelloWorldOpResolver = tflite::MicroMutableOpResolver<1>;
