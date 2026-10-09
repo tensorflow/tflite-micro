@@ -20,12 +20,40 @@ import argparse
 import os
 import re
 
-from mako import template
-
 from tflite_micro.tensorflow.lite.tools import visualize
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
-TEMPLATE_DIR = os.path.abspath(TEMPLATE_DIR)
+HEADER_TEMPLATE = """\
+/* Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
+
+// Generated based on {model}.
+
+#pragma once
+
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+
+constexpr int kNumberOperators = {number_of_ops};
+
+inline tflite::MicroMutableOpResolver<kNumberOperators> get_resolver() {{
+  tflite::MicroMutableOpResolver<kNumberOperators> micro_op_resolver;
+
+{operators}
+
+  return micro_op_resolver;
+}}
+"""
 
 
 def ParseString(word):
@@ -57,20 +85,17 @@ def ParseString(word):
 def GenerateMicroMutableOpsResolverHeaderFile(
   operators, name_of_model, output_dir
 ):
-  """Generates Micro Mutable Op Resolver code based on a template."""
+  """Generates Micro Mutable Op Resolver header file."""
 
-  number_of_ops = len(operators)
-  outfile = 'micro_mutable_op_resolver.h'
-
-  template_file_path = os.path.join(TEMPLATE_DIR, outfile + '.mako')
-  build_template = template.Template(filename=template_file_path)
-  with open(output_dir + '/gen_' + outfile, 'w') as file_obj:
-    key_values_in_template = {
-      'model': name_of_model,
-      'number_of_ops': number_of_ops,
-      'operators': operators,
-    }
-    file_obj.write(build_template.render(**key_values_in_template))
+  outfile = os.path.join(output_dir, 'gen_micro_mutable_op_resolver.h')
+  with open(outfile, 'w') as file_obj:
+    file_obj.write(
+      HEADER_TEMPLATE.format(
+        model=name_of_model,
+        number_of_ops=len(operators),
+        operators='\n'.join(f'  micro_op_resolver.{op}();' for op in operators),
+      )
+    )
 
 
 def GetModelOperatorsAndActivation(model_path):

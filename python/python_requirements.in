@@ -28,7 +28,6 @@
 
 ai-edge-litert
 flatbuffers
-mako
 numpy
 pillow
 pyyaml

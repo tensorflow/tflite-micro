@@ -462,7 +462,7 @@ ALL_SRCS := \
 
 .PHONY: all microlite tflm libtflm \
         build build_all build_tests build_examples build_benchmarks build_integration_tests \
-        test integration_tests generated_micro_mutable_op_resolver \
+        test integration_tests \
         clean clean_downloads list_gendir list_library_sources list_library_headers \
         list_third_party_sources list_third_party_headers list_generator_dir \
         third_party_downloads
@@ -608,7 +608,6 @@ include $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/ci_build/binary_size_test/
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
 test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
-generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
 
 # Build targets for each tier
