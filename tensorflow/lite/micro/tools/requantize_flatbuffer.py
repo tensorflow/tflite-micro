@@ -45,7 +45,7 @@ from tflite_micro.tensorflow.lite.micro.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import requantize_flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.python import schema_py_generated
 
-# key: BuiltinOperator (see tensorflow/lite/schema/schema.fbs)
+# key: BuiltinOperator (see tensorflow/lite/micro/schema/schema.fbs)
 # Val: the requantize function defined in requantize_flatbuffer_utils.py
 # FULLY_CONNECTED, CONV_2D, DEPTHWISE_CONV_2D share the same requantize function
 # since they all share the same input/weight/bias configuration.
@@ -58,7 +58,7 @@ _COMPLEX_OP_REQUANTIZE_REGISTRATION = {
   schema_py_generated.BuiltinOperator.TRANSPOSE_CONV: requantize_flatbuffer_utils.requantize_transpose_conv,
 }
 
-# List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/schema/schema.fbs for op code names
+# List of tested simple operators (no weight and bias, e.g., reshape) see tensorflow/lite/micro/schema/schema.fbs for op code names
 _TESTED_SIMPLE_OPS = [
   schema_py_generated.BuiltinOperator.ADD,
   schema_py_generated.BuiltinOperator.CONCATENATION,

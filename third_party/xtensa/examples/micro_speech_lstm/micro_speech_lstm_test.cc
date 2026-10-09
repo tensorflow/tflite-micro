@@ -39,7 +39,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 #include "third_party/xtensa/examples/micro_speech_lstm/micro_speech_lstm_model_data.h"
 #include "third_party/xtensa/examples/micro_speech_lstm/no_micro_features_data.h"
 #include "third_party/xtensa/examples/micro_speech_lstm/yes_micro_features_data.h"

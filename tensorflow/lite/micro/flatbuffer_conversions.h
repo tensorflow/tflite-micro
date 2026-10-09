@@ -24,7 +24,7 @@ limitations under the License.
 #include <type_traits>
 
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"
 
 namespace tflite {
 namespace micro {

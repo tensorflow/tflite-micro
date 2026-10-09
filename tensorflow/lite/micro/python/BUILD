@@ -11,7 +11,7 @@ package(
 
 flatbuffer_py_library(
     name = "schema_py",
-    srcs = ["//tensorflow/lite/schema:schema.fbs"],
+    srcs = ["//tensorflow/lite/micro/schema:schema.fbs"],
 )
 
 tflm_py_library(

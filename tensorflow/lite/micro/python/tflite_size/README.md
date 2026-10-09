@@ -22,6 +22,6 @@ collapsibly list so that you can zoom in/out individual structure based on need.
 ## How to update `schema_generated_with_reflective_type.h`
 
 We generate our own schema_generated_with_reflective, using the build target in 
-tensorflow/lite/schema:schema_fbs_with_reflection (call with: 
+tensorflow/lite/micro/schema:schema_fbs_with_reflection (call with: 
 bazel build schema_fbs_with_reflection_srcs). 
 

@@ -103,6 +103,5 @@ tflm_cc_binary(
         "//tensorflow/lite/micro/examples/person_detection:model_settings",
         "//tensorflow/lite/micro/examples/person_detection:person_detect_model_data",
         "//tensorflow/lite/micro/examples/person_detection:simple_images_test_data",
-        "//tensorflow/lite/schema:schema_fbs",
     ],
 )

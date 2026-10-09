@@ -28,7 +28,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 // TODO(b/170464050): Use TFLM test only version of schema_utils.
 

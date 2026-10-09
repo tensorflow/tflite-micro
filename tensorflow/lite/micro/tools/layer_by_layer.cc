@@ -38,9 +38,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 
