@@ -33,7 +33,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 namespace micro {

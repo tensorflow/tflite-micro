@@ -19,7 +19,7 @@ limitations under the License.
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"
 
 namespace tflite {
 namespace micro {

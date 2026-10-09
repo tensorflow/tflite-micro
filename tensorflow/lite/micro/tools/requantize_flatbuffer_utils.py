@@ -18,7 +18,7 @@ from tflite_micro.tensorflow.lite.micro.python.schema_py_generated import (
   TensorType,
 )
 
-# Map flatbuffer tensor type code to numpy data type. see Table TensorType in tensorflow/lite/schema/schema.fbs
+# Map flatbuffer tensor type code to numpy data type. see Table TensorType in tensorflow/lite/micro/schema/schema.fbs
 # TODO(b/269487423): use a common util function instead
 TENSOR_CODE_TYPE = {
   TensorType.FLOAT32: np.float32,

@@ -19,7 +19,7 @@ MICROLITE_CC_HDRS := \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/internal/reference/integer_ops/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/arena_allocator/*.h) \
   $(wildcard $(TENSORFLOW_ROOT)tensorflow/lite/micro/memory_planner/*.h) \
-  $(TENSORFLOW_ROOT)tensorflow/lite/schema/schema_generated.h \
+  $(TENSORFLOW_ROOT)tensorflow/lite/micro/schema/schema_generated.h \
   $(TENSORFLOW_ROOT)LICENSE
 
 # some kiss fft source file has to be included in header sections because

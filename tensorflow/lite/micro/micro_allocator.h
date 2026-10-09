@@ -24,7 +24,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
 
