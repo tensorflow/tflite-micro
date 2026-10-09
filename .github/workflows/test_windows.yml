@@ -56,7 +56,7 @@ jobs:
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
         with:
           msystem: MINGW64
           update: true
@@ -70,7 +70,6 @@ jobs:
             mingw-w64-x86_64-python-pip
             mingw-w64-x86_64-python-pillow
             mingw-w64-x86_64-python-numpy
-            mingw-w64-x86_64-python-absl-py
             openssl
             tar
             unzip
