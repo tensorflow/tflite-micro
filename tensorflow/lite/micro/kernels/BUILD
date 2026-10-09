@@ -167,6 +167,7 @@ tflm_cc_library(
         "//tensorflow/lite/micro/kernels/internal:compatibility",
         "//tensorflow/lite/micro/kernels/internal:cppmath",
         "//tensorflow/lite/micro/kernels/internal:quantization_util",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/micro/kernels/internal:types",
     ],

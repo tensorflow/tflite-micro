@@ -16,7 +16,6 @@ tflm_cc_library(
     hdrs = [
         "common.h",
         "fixedpoint.h",
-        "optimized/neon_check.h",
     ],
     deps = [
         ":compatibility",
@@ -55,18 +54,9 @@ tflm_cc_library(
     ],
 )
 
-tflm_cc_library(
+alias(
     name = "reference",
-    srcs = ["tensor_ctypes.cc"],
-    hdrs = [
-        "portable_tensor.h",
-        "tensor_ctypes.h",
-    ],
-    deps = [
-        ":compatibility",
-        ":types",
-        "//tensorflow/lite/micro:micro_common",
-    ],
+    actual = ":tensor",
 )
 
 tflm_cc_library(
@@ -110,6 +100,7 @@ tflm_cc_library(
 
 tflm_cc_library(
     name = "tensor",
+    srcs = ["tensor_ctypes.cc"],
     hdrs = [
         "portable_tensor.h",
         "tensor_ctypes.h",

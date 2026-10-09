@@ -299,7 +299,6 @@ the `tflite::MicroInterpreter` instance.
 An example code snippet looks like ([leaky_relu.cc](../kernels/leaky_relu.cc)):
 ```C++
 void* LeakyReluInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(LeakyReluOpData));
 }
 ```

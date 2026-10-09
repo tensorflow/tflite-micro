@@ -22,7 +22,6 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 void* PadInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 

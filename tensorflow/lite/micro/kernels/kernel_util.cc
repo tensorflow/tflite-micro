@@ -35,38 +35,8 @@ namespace micro {
 
 namespace {
 
-// Assumes tensor_index is a valid index (in bounds)
-inline TfLiteTensor* GetTensorAtIndex(const TfLiteContext* context,
-                                      int tensor_index) {
-  return context->GetTensor(context, tensor_index);
-}
-
-// Validate in a single place to reduce binary size
-inline TfLiteStatus ValidateTensorIndexingSafe(const TfLiteContext* context,
-                                               int index, int max_size,
-                                               const int* tensor_indices,
-                                               int* tensor_index) {
-  if (index < 0 || index >= max_size) {
-    TF_LITE_KERNEL_LOG(const_cast<TfLiteContext*>(context),
-                       "Invalid tensor index %d (not in [0, %d))\n", index,
-                       max_size);
-    return kTfLiteError;
-  }
-  if (tensor_indices[index] == kTfLiteOptionalTensor) {
-    TF_LITE_KERNEL_LOG(const_cast<TfLiteContext*>(context),
-                       "Tensor at index %d was optional but was expected\n",
-                       index);
-    return kTfLiteError;
-  }
-
-  *tensor_index = tensor_indices[index];
-  return kTfLiteOk;
-}
-
-// Same as above but returns -1 for invalid inputs instead of status + logging
-// error.
-inline int ValidateTensorIndexing(const TfLiteContext* context, int index,
-                                  int max_size, const int* tensor_indices) {
+int ValidateTensorIndexing(const TfLiteContext* context, int index,
+                           int max_size, const int* tensor_indices) {
   if (index >= 0 && index < max_size) {
     const int tensor_index = tensor_indices[index];
     if (tensor_index != kTfLiteOptionalTensor) {
@@ -74,26 +44,6 @@ inline int ValidateTensorIndexing(const TfLiteContext* context, int index,
     }
   }
   return -1;
-}
-
-inline TfLiteTensor* GetMutableInput(const TfLiteContext* context,
-                                     const TfLiteNode* node, int index) {
-  const int tensor_index = ValidateTensorIndexing(
-      context, index, node->inputs->size, node->inputs->data);
-  if (tensor_index < 0) {
-    return nullptr;
-  }
-  return GetTensorAtIndex(context, tensor_index);
-}
-
-inline TfLiteStatus GetMutableInputSafe(const TfLiteContext* context,
-                                        const TfLiteNode* node, int index,
-                                        const TfLiteTensor** tensor) {
-  int tensor_index;
-  TF_LITE_ENSURE_STATUS(ValidateTensorIndexingSafe(
-      context, index, node->inputs->size, node->inputs->data, &tensor_index));
-  *tensor = GetTensorAtIndex(context, tensor_index);
-  return kTfLiteOk;
 }
 
 inline TfLiteStatus Quantize(TfLiteContext* context, float scale,
@@ -234,7 +184,6 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
                                               TfLiteEvalTensor* eval_tensor) {
   TF_LITE_ENSURE(context, tensor != nullptr);
   TF_LITE_ENSURE(context, eval_tensor != nullptr);
-  TF_LITE_ENSURE(context, context->AllocatePersistentBuffer != nullptr);
   int ranks = tensor->dims->size;
   size_t alloc_size = TfLiteIntArrayGetSizeInBytes(ranks);
   TfLiteIntArray* new_dims = static_cast<TfLiteIntArray*>(
@@ -399,47 +348,6 @@ TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
       tflite::micro::GetTensorShape(tensor).FlatSize(),
       tflite::micro::GetTensorData<int8_t>(&new_tensor));
   return new_tensor;
-}
-
-const TfLiteTensor* GetInput(const TfLiteContext* context,
-                             const TfLiteNode* node, int index) {
-  return GetMutableInput(context, node, index);
-}
-
-TfLiteStatus GetInputSafe(const TfLiteContext* context, const TfLiteNode* node,
-                          int index, const TfLiteTensor** tensor) {
-  return GetMutableInputSafe(context, node, index, tensor);
-}
-
-TfLiteTensor* GetVariableInput(TfLiteContext* context, const TfLiteNode* node,
-                               int index) {
-  TfLiteTensor* tensor = GetMutableInput(context, node, index);
-  if (tensor == nullptr) return nullptr;
-  return tensor->is_variable ? tensor : nullptr;
-}
-
-TfLiteTensor* GetOutput(TfLiteContext* context, const TfLiteNode* node,
-                        int index) {
-  const int tensor_index = ValidateTensorIndexing(
-      context, index, node->outputs->size, node->outputs->data);
-  if (tensor_index < 0) {
-    return nullptr;
-  }
-  return GetTensorAtIndex(context, tensor_index);
-}
-
-TfLiteStatus GetOutputSafe(const TfLiteContext* context, const TfLiteNode* node,
-                           int index, TfLiteTensor** tensor) {
-  int tensor_index;
-  TF_LITE_ENSURE_STATUS(ValidateTensorIndexingSafe(
-      context, index, node->outputs->size, node->outputs->data, &tensor_index));
-  *tensor = GetTensorAtIndex(context, tensor_index);
-  return kTfLiteOk;
-}
-
-const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
-                                           const TfLiteNode* node, int index) {
-  return GetInput(context, node, index);
 }
 
 // Per-axis
@@ -614,56 +522,6 @@ TfLiteStatus CalculateActivationRangeQuantized(TfLiteContext* context,
 
 bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2) {
   return TfLiteIntArrayEqual(input1->dims, input2->dims);
-}
-
-// Size of string is not constant, return 0 in such case.
-int TfLiteTypeGetSize(TfLiteType type) {
-  int size_bits = TfLiteTypeGetSizeBits(type);
-  if (size_bits % 8 == 0) {
-    return size_bits / 8;
-  } else {
-    // For non-byte sized types, return 0.
-    return 0;
-  }
-}
-
-int TfLiteTypeGetSizeBits(TfLiteType type) {
-  switch (type) {
-    case kTfLiteInt2:
-      return 2;
-    case kTfLiteInt4:
-    case kTfLiteUInt4:
-      return 4;
-    case kTfLiteUInt8:
-    case kTfLiteInt8:
-    case kTfLiteFloat8E4M3FN:
-    case kTfLiteFloat8E5M2:
-      return 8;
-    case kTfLiteUInt16:
-    case kTfLiteInt16:
-    case kTfLiteFloat16:
-    case kTfLiteBFloat16:
-      return 16;
-    case kTfLiteFloat32:
-    case kTfLiteInt32:
-    case kTfLiteUInt32:
-      return 32;
-    case kTfLiteInt64:
-    case kTfLiteUInt64:
-    case kTfLiteFloat64:
-    case kTfLiteComplex64:
-      return 64;
-    case kTfLiteComplex128:
-      return 128;
-    case kTfLiteBool:
-      return sizeof(bool) * 8;
-    case kTfLiteString:
-    case kTfLiteNoType:
-    case kTfLiteResource:
-    case kTfLiteVariant:
-      break;
-  }
-  return 0;
 }
 
 TfLiteStatus CheckedShapeProduct(TfLiteContext* context,

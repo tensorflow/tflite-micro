@@ -55,7 +55,6 @@ TfLiteStatus EvalIntegerSvdfHifimini(
   const int n_memory = weights_time_tensor->dims->data[1];
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   int32_t* scratch_tensor = static_cast<int32_t*>(
       context->GetScratchBuffer(context, data.scratch_tensor_index));

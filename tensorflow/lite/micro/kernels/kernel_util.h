@@ -199,70 +199,6 @@ TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
                                         int scratch_buffer_index,
                                         const TfLiteEvalTensor* tensor);
 
-// Note: You must check if result is not null:
-//
-//   TfLiteTensor* my_tensor = GetInput(context, node, kMyTensorIdx);
-//   TF_LITE_ENSURE(context, my_tensor != nullptr);
-//
-// This is because the index might point to the optional tensor constant
-// (kTfLiteOptionalTensor) in which case there is no tensor to return.
-const TfLiteTensor* GetInput(const TfLiteContext* context,
-                             const TfLiteNode* node, int index);
-
-// Same as `GetInput` but returns boolean and uses output argument for tensor.
-//
-//   TfLiteTensor* my_tensor;
-//   TF_LITE_ENSURE_OK(context,
-//                     GetInputSafe(context, node, kMyTensorIdx, &my_tensor));
-//   // can use my_tensor directly from here onwards, it is not nullptr
-//
-// Should be used in cases where the binary size is too large.
-TfLiteStatus GetInputSafe(const TfLiteContext* context, const TfLiteNode* node,
-                          int index, const TfLiteTensor** tensor);
-
-// Note: You must check if result is not null:
-//
-//   TfLiteTensor* my_tensor = GetVariableInput(context, node, kMyTensorIdx);
-//   TF_LITE_ENSURE(context, my_tensor != nullptr);
-//
-// This is because the index might point to the optional tensor constant
-// (kTfLiteOptionalTensor) in which case there is no tensor to return.
-TfLiteTensor* GetVariableInput(TfLiteContext* context, const TfLiteNode* node,
-                               int index);
-
-// Note: You must check if result is not null:
-//
-//   TfLiteTensor* my_tensor = GetOutput(context, node, kMyTensorIdx);
-//   TF_LITE_ENSURE(context, my_tensor != nullptr);
-//
-// This is because the index might point to the optional tensor constant
-// (kTfLiteOptionalTensor) in which case there is no tensor to return.
-TfLiteTensor* GetOutput(TfLiteContext* context, const TfLiteNode* node,
-                        int index);
-
-// Same as `GetOutput` but returns boolean and uses output argument for tensor.
-//
-//   TfLiteTensor* my_tensor;
-//   TF_LITE_ENSURE_OK(context,
-//                     GetOutputSafe(context, node, kMyTensorIdx, &my_tensor));
-//   // can use my_tensor directly from here onwards, it is not nullptr
-//
-// Should be used in cases where the binary size is too large.
-TfLiteStatus GetOutputSafe(const TfLiteContext* context, const TfLiteNode* node,
-                           int index, TfLiteTensor** tensor);
-
-// Note: You must check if result is not null:
-//
-//   TfLiteTensor* my_tensor = GetOptionalInputTensor(context, node, kIdx);
-//   TF_LITE_ENSURE(context, my_tensor != nullptr);
-//
-// This is because the index might point to the optional tensor constant
-// (kTfLiteOptionalTensor) in which case there is no tensor to return.
-//
-// Deprecated. GetInput has the same functionality.
-const TfLiteTensor* GetOptionalInputTensor(const TfLiteContext* context,
-                                           const TfLiteNode* node, int index);
-
 inline int NumDimensions(const TfLiteTensor* t) { return t->dims->size; }
 inline int SizeOfDimension(const TfLiteTensor* t, int dim) {
   return t->dims->data[dim];
@@ -288,6 +224,10 @@ inline int64_t NumElements(const TfLiteIntArray* dims) {
 }
 
 inline int64_t NumElements(const TfLiteTensor* t) {
+  return NumElements(t->dims);
+}
+
+inline int64_t NumElements(const TfLiteEvalTensor* t) {
   return NumElements(t->dims);
 }
 
@@ -375,12 +315,6 @@ void CalculateActivationRange(TfLiteFusedActivation activation,
 // Return true if the given tensors have the same shape.
 bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2);
 
-// Return the size of given type in bytes. Return 0 in case of string.
-int TfLiteTypeGetSize(TfLiteType type);
-
-// Return the size of given type in bits. Returns 0 in case of string.
-int TfLiteTypeGetSizeBits(TfLiteType type);
-
 /**
  * Calculates the product of the given dimensions. Returns an error if any of
  * the dimensions is negative or if the product overflows.
@@ -425,13 +359,7 @@ using micro::CalculateActivationRange;
 using micro::CalculateActivationRangeQuantized;
 using micro::CheckedShapeProduct;
 using micro::CheckedShapeProductToInt;
-using micro::GetInput;
-using micro::GetInputSafe;
-using micro::GetOptionalInputTensor;
-using micro::GetOutput;
-using micro::GetOutputSafe;
 using micro::GetQuantizedConvolutionMultipler;
-using micro::GetVariableInput;
 using micro::HaveSameShapes;
 using micro::IsConstantOrPersistentTensor;
 using micro::IsConstantTensor;
@@ -441,8 +369,6 @@ using micro::NumInputs;
 using micro::NumOutputs;
 using micro::PopulateConvolutionQuantizationParams;
 using micro::SizeOfDimension;
-using micro::TfLiteTypeGetSize;
-using micro::TfLiteTypeGetSizeBits;
 
 #ifndef TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_
 using micro::NumElements;
@@ -451,6 +377,9 @@ inline int64_t NumElements(const micro::TfLiteIntArray* dims) {
   return micro::NumElements(dims);
 }
 inline int64_t NumElements(const micro::TfLiteTensor* t) {
+  return micro::NumElements(t);
+}
+inline int64_t NumElements(const micro::TfLiteEvalTensor* t) {
   return micro::NumElements(t);
 }
 #endif  // TENSORFLOW_LITE_KERNELS_KERNEL_UTIL_H_

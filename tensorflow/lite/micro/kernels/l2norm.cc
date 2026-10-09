@@ -72,7 +72,6 @@ TfLiteStatus L2NormPrepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void* L2NormInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(L2NormalizationParams));
 }

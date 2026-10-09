@@ -15,66 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/memory_helpers.h"
 
-#include "tensorflow/lite/micro/micro_arena_constants.h"
-#include "tensorflow/lite/micro/micro_context.h"
-#include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
-
-namespace {
-
-// This just needs to be big enough to handle the array of 5 ints allocated
-// in TestAllocateOutputDimensionsFromInput below.
-const int kGlobalPersistentBufferLength = 100;
-alignas(tflite::MicroArenaBufferAlignment()) char global_persistent_buffer
-    [kGlobalPersistentBufferLength];
-
-// Only need to handle a single allocation at a time for output dimensions
-// in TestAllocateOutputDimensionsFromInput.
-class MockMicroContext : public tflite::MicroContext {
- public:
-  void* AllocatePersistentBuffer(size_t bytes) override {
-    return reinterpret_cast<void*>(global_persistent_buffer);
-  }
-  TfLiteStatus RequestScratchBufferInArena(size_t bytes,
-                                           int* buffer_idx) override {
-    return kTfLiteError;
-  }
-  void* GetScratchBuffer(int buffer_idx) override { return nullptr; }
-  TfLiteTensor* AllocateTempTfLiteTensor(int tensor_idx) override {
-    return nullptr;
-  }
-  void DeallocateTempTfLiteTensor(TfLiteTensor* tensor) override {}
-  uint8_t* AllocateTempBuffer(size_t size, size_t alignment) override {
-    return nullptr;
-  }
-  void DeallocateTempBuffer(uint8_t* buffer) override {}
-  TfLiteEvalTensor* GetEvalTensor(int tensor_idx) override { return nullptr; }
-  TfLiteStatus set_external_context(void* external_context_payload) override {
-    return kTfLiteError;
-  }
-  void* external_context() override { return nullptr; }
-  tflite::MicroGraph& graph() override { return *graph_; }
-#ifdef USE_TFLM_COMPRESSION
-  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override {
-    return false;
-  }
-  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
-                                         int tensor_idx) override {
-    return -1;
-  }
-  const tflite::CompressionTensorData* GetTensorCompressionData(
-      const TfLiteNode* node, int tensor_idx) override {
-    return nullptr;
-  }
-#endif  // USE_TFLM_COMPRESSION
-
- private:
-  tflite::MicroGraph* graph_ = nullptr;
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-};
-
-}  // namespace
 
 TEST(MemoryHelpersTest, TestAlignPointerUp) {
   uint8_t* input0 = reinterpret_cast<uint8_t*>(0);
@@ -225,41 +167,5 @@ TEST(MemoryHelpersTest, TestBytesRequiredForTensor) {
             tflite::BytesRequiredForTensor(*tensor200, &bytes, &type_size));
   EXPECT_EQ(static_cast<size_t>(800), bytes);
   EXPECT_EQ(static_cast<size_t>(4), type_size);
-}
-
-TEST(MemoryHelpersTest, TestAllocateOutputDimensionsFromInput) {
-  constexpr int kDimsLen = 4;
-  int input1_dims[] = {1, 1};
-  int input2_dims[] = {kDimsLen, 5, 5, 5, 5};
-  int output_dims[] = {0, 0, 0, 0, 0};
-  TfLiteTensor input_tensor1 = tflite::testing::CreateTensor<int32_t>(
-      nullptr, tflite::testing::IntArrayFromInts(input1_dims));
-  TfLiteTensor input_tensor2 = tflite::testing::CreateTensor<int32_t>(
-      nullptr, tflite::testing::IntArrayFromInts(input2_dims));
-  TfLiteTensor output_tensor = tflite::testing::CreateTensor<int32_t>(
-      nullptr, tflite::testing::IntArrayFromInts(output_dims));
-  TfLiteContext context;
-  MockMicroContext mock_micro_context;
-  mock_micro_context.InitTfLiteContext(&context);
-
-  EXPECT_EQ(kTfLiteOk,
-            tflite::AllocateOutputDimensionsFromInput(
-                &context, &input_tensor1, &input_tensor2, &output_tensor));
-
-  EXPECT_EQ(output_tensor.bytes, input_tensor2.bytes);
-  for (int i = 0; i < kDimsLen; i++) {
-    EXPECT_EQ(input_tensor2.dims->data[i], output_tensor.dims->data[i]);
-    // Reset output dims for next iteration.
-    output_tensor.dims->data[i] = 0;
-  }
-  // Output tensor size must be 0 to allocate output dimensions from input.
-  output_tensor.dims->size = 0;
-  EXPECT_EQ(kTfLiteOk,
-            tflite::AllocateOutputDimensionsFromInput(
-                &context, &input_tensor2, &input_tensor1, &output_tensor));
-  for (int i = 0; i < kDimsLen; i++) {
-    EXPECT_EQ(input_tensor2.dims->data[i], output_tensor.dims->data[i]);
-  }
-  EXPECT_EQ(output_tensor.bytes, input_tensor2.bytes);
 }
 TF_LITE_MICRO_TESTS_MAIN

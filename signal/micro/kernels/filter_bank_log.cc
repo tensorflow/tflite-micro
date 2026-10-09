@@ -44,8 +44,6 @@ struct TFLMSignalLogParams {
 
 void* FilterBankLogInit(TfLiteContext* context, const char* buffer,
                         size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-
   auto* params = static_cast<TFLMSignalLogParams*>(
       context->AllocatePersistentBuffer(context, sizeof(TFLMSignalLogParams)));
 

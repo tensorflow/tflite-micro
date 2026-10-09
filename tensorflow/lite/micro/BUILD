@@ -285,7 +285,8 @@ tflm_cc_library(
     deps = [
         ":flatbuffer_conversions",
         ":micro_common",
-        "//tensorflow/lite/micro/kernels/internal:reference",
+        "//tensorflow/lite/micro/kernels/internal:compatibility",
+        "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],

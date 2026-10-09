@@ -25,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
-#include "tensorflow/lite/micro/kernels/internal/optimized/neon_check.h"
 #include "tensorflow/lite/micro/kernels/internal/runtime_shape.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 

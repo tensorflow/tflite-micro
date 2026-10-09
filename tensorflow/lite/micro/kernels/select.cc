@@ -36,7 +36,6 @@ struct OpData {
 };
 
 void* SelectInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   auto* data = static_cast<OpData*>(
       context->AllocatePersistentBuffer(context, sizeof(OpData)));
   data->requires_broadcast = false;
