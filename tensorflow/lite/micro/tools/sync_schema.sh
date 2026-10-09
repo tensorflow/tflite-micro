@@ -16,6 +16,7 @@
 
 # On-demand schema sync script for standalone TFLM.
 # Downloads the canonical schema.fbs and regenerates schema_generated.h and schema_py_generated.py.
+# See header comments in builtin_op_data.h and flatbuffer_conversions.h for syncing C++ files.
 
 set -e
 
@@ -33,12 +34,12 @@ echo "Generating C++ and Python FlatBuffers bindings..."
 bazel build //tensorflow/lite/schema:schema_fbs_srcs //tensorflow/lite/micro/python:schema_py
 
 if [ -f "bazel-bin/tensorflow/lite/schema/schema_generated.h" ]; then
-  cp bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
+  cp -f bazel-bin/tensorflow/lite/schema/schema_generated.h tensorflow/lite/schema/schema_generated.h
   echo "Updated tensorflow/lite/schema/schema_generated.h"
 fi
 
 if [ -f "bazel-bin/tensorflow/lite/micro/python/schema_py_generated.py" ]; then
-  cp bazel-bin/tensorflow/lite/micro/python/schema_py_generated.py tensorflow/lite/micro/python/schema_py_generated.py
+  cp -f bazel-bin/tensorflow/lite/micro/python/schema_py_generated.py tensorflow/lite/micro/python/schema_py_generated.py
   echo "Updated tensorflow/lite/micro/python/schema_py_generated.py"
 fi
 
