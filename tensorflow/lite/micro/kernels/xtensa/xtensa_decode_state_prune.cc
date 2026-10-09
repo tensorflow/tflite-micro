@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#if defined(HIFI5)
+
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_prune.h"
 
 #include <cstddef>
@@ -489,3 +491,5 @@ void XtensaDecodeStatePrune::DecompressToBufferInt16_Xtensa(void* buffer) {
 
 }  // namespace micro
 }  // namespace tflite
+
+#endif  // defined(HIFI5)
