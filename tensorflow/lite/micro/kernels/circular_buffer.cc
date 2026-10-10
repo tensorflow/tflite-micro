@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/circular_buffer.h"
 
+#include <limits>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
@@ -84,7 +86,14 @@ TfLiteStatus CircularBufferEval(TfLiteContext* context, TfLiteNode* node) {
       reinterpret_cast<OpDataCircularBuffer*>(node->user_data);
 
   int num_slots = output->dims->data[1];
-  int depth = output->dims->data[2] * output->dims->data[3];
+  // Check for integer overflow: dims are attacker-controlled from the model.
+  const int dim2 = output->dims->data[2];
+  const int dim3 = output->dims->data[3];
+  if (dim2 < 0 || dim3 < 0 ||
+      (dim2 > 0 && dim3 > std::numeric_limits<int>::max() / dim2)) {
+    return kTfLiteError;
+  }
+  int depth = dim2 * dim3;
 
   if (input->type == kTfLiteInt8) {
     EvalInt8(tflite::micro::GetTensorData<int8_t>(input), num_slots, depth,
