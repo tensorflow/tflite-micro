@@ -42,6 +42,141 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
+#if ARM_NN_ENABLE_F32
+bool IsCmsisFloat32ConvSupported(const TfLiteIntArray* input_dims,
+                                 const TfLiteIntArray* filter_dims,
+                                 const TfLiteIntArray* output_dims,
+                                 const TfLiteIntArray* bias_dims,
+                                 TfLiteType bias_type) {
+  if (input_dims == nullptr || filter_dims == nullptr ||
+      output_dims == nullptr || input_dims->size != 4 ||
+      filter_dims->size != 4 || output_dims->size != 4) {
+    return false;
+  }
+
+  const int output_channels = output_dims->data[3];
+  return input_dims->data[3] == filter_dims->data[3] &&
+         filter_dims->data[0] == output_channels &&
+         (bias_dims == nullptr || (bias_type == kTfLiteFloat32 &&
+                                   NumElements(bias_dims) == output_channels));
+}
+
+void PopulateCmsisFloat32ConvParams(const TfLiteConvParams& params,
+                                    const OpDataConv& reference_op_data,
+                                    cmsis_nn_conv_params_f32* conv_params) {
+  conv_params->stride.h = params.stride_height;
+  conv_params->stride.w = params.stride_width;
+  conv_params->padding.h = reference_op_data.padding.height;
+  conv_params->padding.w = reference_op_data.padding.width;
+  conv_params->dilation.h = params.dilation_height_factor;
+  conv_params->dilation.w = params.dilation_width_factor;
+  CalculateActivationRange(params.activation, &conv_params->activation.min,
+                           &conv_params->activation.max);
+  conv_params->weight_format = ARM_NN_WEIGHT_FORMAT_STANDARD;
+}
+
+void PopulateCmsisFloat32ConvDims(const TfLiteIntArray* input_tensor_dims,
+                                  const TfLiteIntArray* filter_tensor_dims,
+                                  const TfLiteIntArray* output_tensor_dims,
+                                  cmsis_nn_dims* input_dims,
+                                  cmsis_nn_dims* filter_dims,
+                                  cmsis_nn_dims* output_dims) {
+  const int output_channels = output_tensor_dims->data[3];
+  input_dims->n = input_tensor_dims->data[0];
+  input_dims->h = input_tensor_dims->data[1];
+  input_dims->w = input_tensor_dims->data[2];
+  input_dims->c = input_tensor_dims->data[3];
+  filter_dims->n = output_channels;
+  filter_dims->h = filter_tensor_dims->data[1];
+  filter_dims->w = filter_tensor_dims->data[2];
+  filter_dims->c = filter_tensor_dims->data[3];
+  output_dims->n = output_tensor_dims->data[0];
+  output_dims->h = output_tensor_dims->data[1];
+  output_dims->w = output_tensor_dims->data[2];
+  output_dims->c = output_channels;
+}
+
+TfLiteStatus PrepareFloat32(TfLiteContext* context, TfLiteNode* node,
+                            const TfLiteConvParams& params,
+                            const TfLiteTensor* input,
+                            const TfLiteTensor* filter,
+                            const TfLiteTensor* output, OpData* data) {
+  data->buffer_idx = -1;
+
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* bias =
+      micro_context->AllocateTempInputTensor(node, kConvBiasTensor);
+  const bool has_present_bias =
+      NumInputs(node) > kConvBiasTensor &&
+      node->inputs->data[kConvBiasTensor] != kTfLiteOptionalTensor;
+  if (bias == nullptr && has_present_bias) {
+    return kTfLiteError;
+  }
+  const TfLiteIntArray* bias_dims = bias == nullptr ? nullptr : bias->dims;
+  const TfLiteType bias_type = bias == nullptr ? kTfLiteNoType : bias->type;
+  const bool supported = IsCmsisFloat32ConvSupported(
+      input->dims, filter->dims, output->dims, bias_dims, bias_type);
+  if (bias != nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(bias);
+  }
+  if (!supported) {
+    return kTfLiteOk;
+  }
+
+  cmsis_nn_conv_params_f32 conv_params;
+  PopulateCmsisFloat32ConvParams(params, data->reference_op_data, &conv_params);
+  cmsis_nn_dims input_dims;
+  cmsis_nn_dims filter_dims;
+  cmsis_nn_dims output_dims;
+  PopulateCmsisFloat32ConvDims(input->dims, filter->dims, output->dims,
+                               &input_dims, &filter_dims, &output_dims);
+  const int32_t buf_size = arm_convolve_wrapper_f32_get_buffer_size(
+      &conv_params, &input_dims, &filter_dims, &output_dims);
+  if (buf_size > 0) {
+    TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
+        context, buf_size, &data->buffer_idx));
+  }
+  return kTfLiteOk;
+}
+
+arm_cmsis_nn_status EvalFloat32(
+    TfLiteContext* context, const TfLiteConvParams& params, const OpData& data,
+    const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
+    const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
+  const TfLiteIntArray* bias_dims = bias == nullptr ? nullptr : bias->dims;
+  const TfLiteType bias_type = bias == nullptr ? kTfLiteNoType : bias->type;
+  if (!IsCmsisFloat32ConvSupported(input->dims, filter->dims, output->dims,
+                                   bias_dims, bias_type)) {
+    return ARM_CMSIS_NN_ARG_ERROR;
+  }
+
+  cmsis_nn_conv_params_f32 conv_params;
+  PopulateCmsisFloat32ConvParams(params, data.reference_op_data, &conv_params);
+  cmsis_nn_dims input_dims;
+  cmsis_nn_dims filter_dims;
+  cmsis_nn_dims output_dims;
+  PopulateCmsisFloat32ConvDims(input->dims, filter->dims, output->dims,
+                               &input_dims, &filter_dims, &output_dims);
+  const int32_t buf_size = arm_convolve_wrapper_f32_get_buffer_size(
+      &conv_params, &input_dims, &filter_dims, &output_dims);
+
+  cmsis_nn_dims cmsis_bias_dims = {1, 1, 1, output_dims.c};
+  cmsis_nn_context ctx;
+  ctx.buf = nullptr;
+  ctx.size = buf_size;
+  if (data.buffer_idx >= 0) {
+    ctx.buf = context->GetScratchBuffer(context, data.buffer_idx);
+  }
+
+  return arm_convolve_wrapper_f32(
+      &ctx, &conv_params, &input_dims,
+      tflite::micro::GetTensorData<float>(input), &filter_dims,
+      tflite::micro::GetTensorData<float>(filter), &cmsis_bias_dims,
+      tflite::micro::GetOptionalTensorData<float>(bias), &output_dims,
+      tflite::micro::GetTensorData<float>(output));
+}
+#endif  // ARM_NN_ENABLE_F32
+
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
@@ -133,6 +268,22 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       context, node, params, input_dims.w, input_dims.h, filter_dims.w,
       filter_dims.h, output_dims.w, output_dims.h, input->type,
       &data->reference_op_data));
+
+#if ARM_NN_ENABLE_F32
+  if (input->type == kTfLiteFloat32) {
+    const TfLiteStatus status =
+        PrepareFloat32(context, node, params, input, filter, output, data);
+    if (status != kTfLiteOk) {
+      micro_context->DeallocateTempTfLiteTensor(output);
+      micro_context->DeallocateTempTfLiteTensor(input);
+      micro_context->DeallocateTempTfLiteTensor(filter);
+      if (bias != nullptr) {
+        micro_context->DeallocateTempTfLiteTensor(bias);
+      }
+      return status;
+    }
+  }
+#endif  // ARM_NN_ENABLE_F32
 
   // CMSIS_NN allows INT64 or nullptr bias data pointer
   if (input->type == kTfLiteInt8 ||
@@ -430,6 +581,13 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32: {
+#if ARM_NN_ENABLE_F32
+      if (EvalFloat32(context, params, data, input, filter, bias, output) ==
+          ARM_CMSIS_NN_SUCCESS) {
+        break;
+      }
+      // Fall back to the reference kernel if CMSIS-NN rejected the arguments.
+#endif  // ARM_NN_ENABLE_F32
       tflite::micro::reference_ops::Conv(
           ConvParamsFloat(params, data.reference_op_data),
           tflite::micro::GetTensorShape(input),
