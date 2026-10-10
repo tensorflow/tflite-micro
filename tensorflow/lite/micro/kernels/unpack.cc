@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <climits>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
@@ -43,11 +45,19 @@ TfLiteStatus UnpackImpl(TfLiteContext* context, TfLiteNode* node,
 
   int outer_size = 1;
   for (int i = 0; i < axis; ++i) {
-    outer_size *= input_dims->data[i];
+    const int dim = input_dims->data[i];
+    if (dim < 0 || (outer_size > 0 && dim > INT_MAX / outer_size)) {
+      return kTfLiteError;
+    }
+    outer_size *= dim;
   }
   int copy_size = 1;
   for (int i = axis + 1; i < dimensions; ++i) {
-    copy_size *= input_dims->data[i];
+    const int dim = input_dims->data[i];
+    if (dim < 0 || (copy_size > 0 && dim > INT_MAX / copy_size)) {
+      return kTfLiteError;
+    }
+    copy_size *= dim;
   }
   int output_size = 1;
   for (int i = 0; i < output_dims->size; ++i) {
