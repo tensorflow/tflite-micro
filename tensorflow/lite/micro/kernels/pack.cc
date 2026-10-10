@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <climits>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
@@ -38,18 +40,34 @@ TfLiteStatus PackImpl(TfLiteContext* context, TfLiteNode* node,
   if (axis < 0) {
     axis += dimensions;
   }
+  // Axis bounds check: TFLITE_DCHECK would compile out in release.
+  if (axis < 0 || axis >= dimensions) {
+    return kTfLiteError;
+  }
 
   int outer_size = 1;
   for (int i = 0; i < axis; ++i) {
-    outer_size *= output_dims->data[i];
+    const int dim = output_dims->data[i];
+    if (dim < 0 || (outer_size > 0 && dim > INT_MAX / outer_size)) {
+      return kTfLiteError;
+    }
+    outer_size *= dim;
   }
   int copy_size = 1;
   for (int i = axis + 1; i < dimensions; ++i) {
-    copy_size *= output_dims->data[i];
+    const int dim = output_dims->data[i];
+    if (dim < 0 || (copy_size > 0 && dim > INT_MAX / copy_size)) {
+      return kTfLiteError;
+    }
+    copy_size *= dim;
   }
   int input_size = 1;
   for (int i = 0; i < input_dims->size; ++i) {
-    input_size *= input_dims->data[i];
+    const int dim = input_dims->data[i];
+    if (dim < 0 || (input_size > 0 && dim > INT_MAX / input_size)) {
+      return kTfLiteError;
+    }
+    input_size *= dim;
   }
   TFLITE_DCHECK_EQ(input_size, copy_size * outer_size);
 
