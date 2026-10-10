@@ -125,14 +125,22 @@ TfLiteStatus GatherNd(const TfLiteEvalTensor* params,
 
   int n_slices = 1;
   for (int i = 0; i < indices_dims - 1; ++i) {
-    n_slices *= indices->dims->data[i];
+    const int dim = indices->dims->data[i];
+    if (dim < 0 || (n_slices > 0 && dim > INT_MAX / n_slices)) {
+      return kTfLiteError;
+    }
+    n_slices *= dim;
   }
 
   // If indices[-1] == params.rank, fetch single elements.
   // If indices[-1] < params.rank, fetch slices.
   int slice_size = 1;
   for (int i = indices_nd; i < params_dims; ++i) {
-    slice_size *= params->dims->data[i];
+    const int dim = params->dims->data[i];
+    if (dim < 0 || (slice_size > 0 && dim > INT_MAX / slice_size)) {
+      return kTfLiteError;
+    }
+    slice_size *= dim;
   }
 
   int params_flat_size = ElementCount(*params->dims);
