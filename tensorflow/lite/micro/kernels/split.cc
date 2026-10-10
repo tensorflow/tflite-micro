@@ -35,7 +35,12 @@ TfLiteStatus SplitImpl(TfLiteContext* context, TfLiteNode* node,
   const int split_dimensions = input_dims->size;
   int axis = axis_value < 0 ? axis_value + split_dimensions : axis_value;
 
-  TFLITE_DCHECK_LT(axis, split_dimensions);
+  // Bounds check that also holds in release builds: TFLITE_DCHECK compiles
+  // out under NDEBUG, so without this a malicious model can supply an
+  // out-of-bounds axis and trigger a heap out-of-bounds read below.
+  if (axis < 0 || axis >= split_dimensions) {
+    return kTfLiteError;
+  }
   TFLITE_DCHECK_EQ(output_dims->size, split_dimensions);
 
   int64_t split_size = output_dims->data[axis] * output_count;
