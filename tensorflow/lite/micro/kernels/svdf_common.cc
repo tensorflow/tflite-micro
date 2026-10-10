@@ -22,6 +22,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/op_macros.h"
+#include <climits>
+
 #include "tensorflow/lite/micro/kernels/svdf.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_utils.h"
@@ -75,6 +77,15 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
   // Shift states.
   T* const state_ptr = tflite::micro::GetTensorData<T>(activation_state_tensor);
 
+  // Check for integer overflow: dims are attacker-controlled.
+  if (n_batch < 0 || n_filter < 0 || n_memory < 0) {
+    return;
+  }
+  const int64_t state_size =
+      static_cast<int64_t>(n_batch) * n_filter * n_memory;
+  if (state_size > INT_MAX) {
+    return;
+  }
   // Left shift the activation_state.
   {
     T* new_state_start = state_ptr;
