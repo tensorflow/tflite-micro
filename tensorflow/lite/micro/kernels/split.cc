@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <climits>
+
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
@@ -52,11 +54,17 @@ TfLiteStatus SplitImpl(TfLiteContext* context, TfLiteNode* node,
   }
 
   const T* input_ptr = tflite::micro::GetTensorData<T>(input);
+  // Check for integer overflow: dimension values are attacker-controlled.
+  const int axis_dim = output_dims->data[axis];
+  if (axis_dim < 0 || base_inner_size < 0 ||
+      (axis_dim > 0 && base_inner_size > INT_MAX / axis_dim)) {
+    return kTfLiteError;
+  }
   for (int k = 0; k < outer_size; ++k) {
     for (int i = 0; i < output_count; ++i) {
       TfLiteEvalTensor* t = tflite::micro::GetEvalOutput(context, node, i);
       T* output_data = tflite::micro::GetTensorData<T>(t);
-      const int copy_size = output_dims->data[axis] * base_inner_size;
+      const int copy_size = axis_dim * base_inner_size;
       T* output_ptr = output_data + k * copy_size;
       for (int j = 0; j < copy_size; ++j) output_ptr[j] = input_ptr[j];
       input_ptr += copy_size;
