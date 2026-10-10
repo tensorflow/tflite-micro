@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include <algorithm>
+#include <climits>
 #include <numeric>
 #include <tuple>
 
@@ -172,6 +173,12 @@ TfLiteStatus DetectionPostProcessPrepare(TfLiteContext* context,
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 4);
   const int num_boxes = input_box_encodings->dims->data[1];
   const int num_classes = op_data->num_classes;
+  // Check for integer overflow in box index calculation: dims are
+  // attacker-controlled from the model.
+  const int box_dim = input_box_encodings->dims->data[2];
+  TF_LITE_ENSURE(context, num_boxes >= 0 && box_dim >= 0);
+  TF_LITE_ENSURE(context, num_boxes == 0 ||
+                            box_dim <= INT_MAX / num_boxes);
 
   op_data->input_box_encodings.scale = input_box_encodings->params.scale;
   op_data->input_box_encodings.zero_point =
