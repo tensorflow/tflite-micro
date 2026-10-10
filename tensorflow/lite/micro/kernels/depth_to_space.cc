@@ -62,6 +62,12 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node) {
   const int input_height = input->dims->data[kHeightRank];
   const int input_width = input->dims->data[kWidthRank];
   const int input_channels = input->dims->data[kDepthRank];
+  // Check for integer overflow: dims and block_size are attacker-controlled.
+  if (input_height < 0 || input_width < 0 ||
+      (input_height > 0 && block_size > INT_MAX / input_height) ||
+      (input_width > 0 && block_size > INT_MAX / input_width)) {
+    return kTfLiteError;
+  }
   int output_height = input_height * block_size;
   int output_width = input_width * block_size;
   int output_channels = input_channels / block_size / block_size;
