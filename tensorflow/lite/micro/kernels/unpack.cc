@@ -39,7 +39,12 @@ TfLiteStatus UnpackImpl(TfLiteContext* context, TfLiteNode* node,
     axis += input->dims->size;
   }
 
-  TFLITE_DCHECK_LT(axis, dimensions);
+  // Bounds check that also holds in release builds: TFLITE_DCHECK compiles
+  // out under NDEBUG, so without this a malicious model can supply an
+  // out-of-bounds axis and trigger a heap out-of-bounds read below.
+  if (axis < 0 || axis >= dimensions) {
+    return kTfLiteError;
+  }
 
   int outer_size = 1;
   for (int i = 0; i < axis; ++i) {
