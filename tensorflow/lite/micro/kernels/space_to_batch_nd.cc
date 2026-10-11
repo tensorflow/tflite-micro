@@ -81,6 +81,19 @@ TfLiteStatus SpaceToBatchNDEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
+  // Validate block_shape: values come from the model file. Zero values cause
+  // division by zero in the reference op; negative values cause OOB access.
+  {
+    const int32_t* block_shape_data =
+        tflite::micro::GetTensorData<int32_t>(block_shape);
+    const int block_shape_size = block_shape->dims->data[0];
+    for (int i = 0; i < block_shape_size; ++i) {
+      if (block_shape_data[i] <= 0) {
+        return kTfLiteError;
+      }
+    }
+  }
+
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32:
       reference_ops::SpaceToBatchND(
