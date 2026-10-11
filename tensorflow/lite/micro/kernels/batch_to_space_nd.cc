@@ -71,6 +71,26 @@ TfLiteStatus BatchToSpaceNDEval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
+  // Validate block_shape: values come from the model file. Zero or negative
+  // values cause division by zero or out-of-bounds access in the reference op.
+  {
+    const int32_t* block_shape_data =
+        tflite::micro::GetTensorData<int32_t>(block_shape);
+    const int block_shape_size = block_shape->dims->data[0];
+    for (int i = 0; i < block_shape_size; ++i) {
+      if (block_shape_data[i] <= 0) {
+        return kTfLiteError;
+      }
+    }
+    const int32_t* crops_data = tflite::micro::GetTensorData<int32_t>(crops);
+    const int crops_size = crops->dims->data[0] * crops->dims->data[1];
+    for (int i = 0; i < crops_size; ++i) {
+      if (crops_data[i] < 0) {
+        return kTfLiteError;
+      }
+    }
+  }
+
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteFloat32:
       reference_ops::BatchToSpaceND(
