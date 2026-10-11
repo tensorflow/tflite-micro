@@ -212,6 +212,11 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt32:
     case kTfLiteInt64: {
       data->params.axis = CalculatePositiveAxis(params->axis, output_tensor);
+      // Validate: a very negative axis param stays negative after wrapping,
+      // causing out-of-bounds access in the reference op.
+      TF_LITE_ENSURE(context, data->params.axis >= 0 &&
+                                  data->params.axis <
+                                      NumDimensions(output_tensor));
       data->params.inputs_count = node->inputs->size;
       break;
     }
