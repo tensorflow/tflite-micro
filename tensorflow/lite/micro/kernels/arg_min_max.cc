@@ -57,6 +57,17 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node, bool is_arg_max) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kOutputTensor);
 
+  // Validate axis: it comes from the model file. An out-of-range axis causes
+  // out-of-bounds read in the reference op (Dims() has no release check).
+  {
+    const int32_t axis_val = tflite::micro::GetTensorData<int32_t>(axis)[0];
+    const int dims = tflite::micro::GetTensorShape(input).DimensionsCount();
+    const int norm_axis = axis_val < 0 ? axis_val + dims : axis_val;
+    if (norm_axis < 0 || norm_axis >= dims) {
+      return kTfLiteError;
+    }
+  }
+
 #define TF_LITE_ARG_MIN_MAX(data_type, axis_type, output_type)       \
   ArgMinMaxHelper(tflite::micro::GetTensorShape(input),              \
                   tflite::micro::GetTensorData<data_type>(input),    \
