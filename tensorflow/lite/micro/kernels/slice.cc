@@ -110,6 +110,27 @@ TfLiteStatus SliceEval(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
+  // Validate begin/size bounds: values come from the model file and can
+  // cause out-of-bounds read in reference_ops::Slice if not checked.
+  // (TFLITE_DCHECK would compile out in release builds.)
+  {
+    const int dims = input->dims->size;
+    const int offset = kMaxDim - dims;
+    for (int i = 0; i < dims; ++i) {
+      const int begin_val = op_params.begin[offset + i];
+      const int size_val = op_params.size[offset + i];
+      const int dim_val = input->dims->data[i];
+      if (begin_val < 0 || begin_val > dim_val) {
+        return kTfLiteError;
+      }
+      if (size_val != -1) {
+        if (size_val < 0 || begin_val + size_val > dim_val) {
+          return kTfLiteError;
+        }
+      }
+    }
+  }
+
   switch (input->type) {
     case kTfLiteFloat32:
       reference_ops::Slice<float>(op_params,
