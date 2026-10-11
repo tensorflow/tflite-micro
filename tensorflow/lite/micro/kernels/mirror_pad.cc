@@ -134,6 +134,31 @@ TfLiteStatus MirrorPadEval(TfLiteContext* context, TfLiteNode* node) {
         input_dims_num_elements[i + 1] * input_tensor->dims->data[i + 1];
   }
 
+  // Validate padding values: they come from the model file. Unchecked,
+  // oversized paddings cause out-of-bounds read in GetInputDimension.
+  // (offset == 1 for REFLECT mode, 0 for SYMMETRIC.)
+  {
+    const int64_t max_pad = data->offset == 1 ? 0 : 1;
+    for (int i = 0; i < input_dims; ++i) {
+      int64_t left_pad = 0, right_pad = 0;
+      switch (padding_matrix->type) {
+        case kTfLiteInt32:
+          GetPadding(padding_matrix->data.i32, i, &left_pad, &right_pad);
+          break;
+        case kTfLiteInt64:
+          GetPadding(padding_matrix->data.i64, i, &left_pad, &right_pad);
+          break;
+        default:
+          return kTfLiteError;
+      }
+      const int64_t dim = input_tensor->dims->data[i];
+      if (left_pad < 0 || right_pad < 0 ||
+          left_pad > dim + max_pad - 1 || right_pad > dim + max_pad - 1) {
+        return kTfLiteError;
+      }
+    }
+  }
+
   switch (output_tensor->type) {
     case kTfLiteFloat32: {
       MirrorPad(padding_matrix, input_tensor->dims, output_dims_num_elements,
