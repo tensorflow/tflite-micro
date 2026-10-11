@@ -28,17 +28,28 @@ TfLiteStatus TransposeEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalInput(context, node, kTransposePermTensor);
   const int32_t* perm_data = perm_tensor->data.i32;
   const int size = perm_tensor->dims->data[0];
+  // Validate perm tensor: size must match input dimensions and fit in buffer.
+  // Values come from the model file; unchecked they cause stack buffer
+  // overflow and out-of-bounds access.
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kTransposeInputTensor);
+  const int input_dims = input->dims->size;
+  if (size != input_dims || size > kTransposeMaxDimensions || size < 0) {
+    return kTfLiteError;
+  }
   TransposeParams params;
   params.perm_count = size;
   for (int i = 0; i < size; ++i) {
-    params.perm[i] = perm_data[i];
+    const int32_t perm_val = perm_data[i];
+    if (perm_val < 0 || perm_val >= input_dims) {
+      return kTfLiteError;
+    }
+    params.perm[i] = perm_val;
   }
 
   // Transpose kernel only does rearranging values not numeric evaluations
   // on each cell. It's safe to implement per size of scalar type and this
   // trick keeps the total code size in a reasonable range.
-  const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kTransposeInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kTransposeOutputTensor);
   switch (input->type) {
