@@ -66,6 +66,30 @@ TfLiteStatus BroadcastArgsEval(TfLiteContext* context, TfLiteNode* node) {
       micro::GetEvalInput(context, node, kShape2Tensor);
   TfLiteEvalTensor* output = micro::GetEvalOutput(context, node, kOutputTensor);
 
+  // Validate broadcast compatibility: shape values come from the model file.
+  // Incompatible shapes would hit TFLITE_CHECK_EQ (abort) in the reference op.
+  {
+    const int shape1_size = micro::GetTensorShape(shape1).FlatSize();
+    const int shape2_size = micro::GetTensorShape(shape2).FlatSize();
+    const int out_size = micro::GetTensorShape(output).FlatSize();
+    // Check trailing dimensions for broadcast compatibility.
+    for (int i = 0; i < out_size; ++i) {
+      int64_t s1 = 1, s2 = 1;
+      const int idx1 = shape1_size - 1 - i;
+      const int idx2 = shape2_size - 1 - i;
+      if (shape1->type == kTfLiteInt32) {
+        if (idx1 >= 0) s1 = micro::GetTensorData<int32_t>(shape1)[idx1];
+        if (idx2 >= 0) s2 = micro::GetTensorData<int32_t>(shape2)[idx2];
+      } else {
+        if (idx1 >= 0) s1 = micro::GetTensorData<int64_t>(shape1)[idx1];
+        if (idx2 >= 0) s2 = micro::GetTensorData<int64_t>(shape2)[idx2];
+      }
+      if (!(s1 == s2 || s1 == 1 || s2 == 1)) {
+        return kTfLiteError;
+      }
+    }
+  }
+
   if (output->type == kTfLiteInt32) {
     reference_ops::BroadcastArgs(
         micro::GetTensorShape(shape1), micro::GetTensorData<int32_t>(shape1),
