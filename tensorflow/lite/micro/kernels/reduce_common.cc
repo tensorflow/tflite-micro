@@ -151,6 +151,11 @@ TfLiteStatus EvalMinMaxHelper(TfLiteContext* context, TfLiteNode* node,
 
   // Interpret an axis tensor with null dimensions as a scalar
   int num_axis = static_cast<int>(ElementCount(*axis->dims));
+  // Validate axis count: values come from the model file. ResolveAxis writes
+  // into a fixed-size MeanParams::axis[4] array; more axes would overflow it.
+  if (num_axis < 0 || num_axis > 4) {
+    return kTfLiteError;
+  }
   int* input_iter = static_cast<int*>(
       context->GetScratchBuffer(context, op_data->scratch_input_iter_idx));
   int* resolved_axis = static_cast<int*>(
