@@ -69,6 +69,8 @@ TfLiteStatus ReshapeOutput(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
         context, output, output_eval));
     output_shape = output->dims;  // output tensor dims were moved
+    // A zero dimension (from the model file) would cause division by zero.
+    TF_LITE_ENSURE(context, num_output_elements != 0);
     output_shape->data[stretch_dim] = num_input_elements / num_output_elements;
     num_output_elements *= output_shape->data[stretch_dim];
   }
