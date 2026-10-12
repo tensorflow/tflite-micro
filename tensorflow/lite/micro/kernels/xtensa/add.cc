@@ -226,7 +226,6 @@ TfLiteStatus EvalAddQuantized(TfLiteContext* context, TfLiteNode* node,
 }
 
 void* AddInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data;
 #if defined(VISION_P6)
   data = context->AllocatePersistentBuffer(context, sizeof(XtensaAddOpData));

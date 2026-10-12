@@ -40,7 +40,6 @@ T SquaredDifference(T input1, T input2) {
 
 void* SquaredDifferenceInit(TfLiteContext* context, const char* buffer,
                             size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 

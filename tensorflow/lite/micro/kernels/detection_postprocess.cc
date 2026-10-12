@@ -119,7 +119,6 @@ struct OpData {
 
 void* DetectionPostProcessInit(TfLiteContext* context, const char* buffer,
                                size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   OpData* op_data = nullptr;
 
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);

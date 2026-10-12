@@ -31,7 +31,6 @@ namespace micro {
 namespace {
 
 void* ReluInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(ReluOpData));
 }
 
@@ -76,7 +75,6 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(Relu6OpData));
 }
 

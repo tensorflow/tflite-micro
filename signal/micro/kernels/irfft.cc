@@ -51,8 +51,6 @@ struct TfLiteAudioFrontendIrfftParams {
 template <typename T, size_t (*get_needed_memory_func)(int32_t),
           void* (*init_func)(int32_t, void*, size_t)>
 void* IrfftInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-
   auto* params = static_cast<TfLiteAudioFrontendIrfftParams*>(
       context->AllocatePersistentBuffer(
           context, sizeof(TfLiteAudioFrontendIrfftParams)));

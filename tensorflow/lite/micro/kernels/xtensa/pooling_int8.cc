@@ -293,7 +293,6 @@ TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
 
 void* XtensaPoolingInit(TfLiteContext* context, const char* buffer,
                         size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if defined(HIFI5)
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaOpDataPooling));

@@ -171,7 +171,6 @@ void* BatchMatMulInit(TfLiteContext* context, const char* buffer,
   // This is a builtin op, so we don't use the contents in 'buffer', if any.
   // Instead, we allocate a new object to carry information from Prepare() to
   // Eval().
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   MicroContext* micro_context = GetMicroContext(context);
   return micro_context->AllocatePersistentBuffer(sizeof(OpDataBatchMatmul));
 }

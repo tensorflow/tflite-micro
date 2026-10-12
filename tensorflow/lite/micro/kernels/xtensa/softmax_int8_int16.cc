@@ -93,11 +93,9 @@ TfLiteStatus EvalHifi(const XtensaSoftmaxOpData* op_data,
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length) {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaSoftmaxOpData));
 #elif defined(VISION_P6)
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   if (InitXtensaContext()) {
     return nullptr;
   }

@@ -133,7 +133,6 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 
 void* TransposeConvInit(TfLiteContext* context, const char* buffer,
                         size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
@@ -180,7 +179,6 @@ TfLiteStatus TransposeConvPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Quantized kernels use an int32 scratch buffer.
   if (input->type == kTfLiteInt8) {
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,
                       GetTensorShape(output).FlatSize() * sizeof(int32_t),
@@ -189,7 +187,6 @@ TfLiteStatus TransposeConvPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Quantized 16x8 kernels use an int64 scratch buffer.
   if (input->type == kTfLiteInt16) {
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     TFLITE_DCHECK(context->RequestScratchBufferInArena(
                       context,
                       GetTensorShape(output).FlatSize() * sizeof(std::int64_t),

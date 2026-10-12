@@ -55,8 +55,6 @@ struct TfLiteAudioFrontendRfftParams {
 template <typename T, size_t (*get_needed_memory_func)(int32_t),
           void* (*init_func)(int32_t, void*, size_t)>
 void* RfftInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-
   const uint8_t* buffer_t = reinterpret_cast<const uint8_t*>(buffer);
   auto* params = static_cast<TfLiteAudioFrontendRfftParams<T>*>(
       context->AllocatePersistentBuffer(
