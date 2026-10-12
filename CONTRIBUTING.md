@@ -127,6 +127,14 @@ fixing a bug needs a bigger architectural change.
 1.  Bugfix PRs should be accompanied by a test case that fails prior to the fix
     and passes with the fix. This validates that the fix works as expected, and
     helps prevent future regressions.
+1.  **Error Handling & Security PRs:** We only accept changes that solve real
+    problems encountered in actual TFLM usage. Before adding input validation or
+    defensive checks, read our
+    [Error Handling & Defensive Programming Guide](tensorflow/lite/micro/docs/error_handling_guide.md)
+    and [Security Policy](SECURITY.md). Please do not submit mass-generated,
+    fuzzer-derived, or AI-scanned speculative PRs (such as adding runtime
+    `Eval` checks or integer-overflow checks for mutated `.tflite` model files);
+    such PRs will be closed without review.
 
 ### Reference Kernel Implementations
 
