@@ -33,6 +33,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"  // IWYU pragma: export
 
 /// Copied from tensorflow/lite/version.h to avoid a dependency chain into
 // tensorflow/core.

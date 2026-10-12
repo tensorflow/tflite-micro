@@ -19,7 +19,7 @@ limitations under the License.
 #include <cstdint>
 
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/micro/schema/schema_generated.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"  // IWYU pragma: export
 
 namespace tflite {
 namespace micro {

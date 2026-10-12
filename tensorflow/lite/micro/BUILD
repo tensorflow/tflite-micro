@@ -88,6 +88,7 @@ tflm_cc_library(
         ":op_resolvers",
         ":portable_type_to_tflitetype",
         "//tensorflow/lite/micro/kernels/internal:tensor",
+        "//tensorflow/lite/micro/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
