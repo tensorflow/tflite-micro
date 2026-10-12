@@ -15,6 +15,14 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_FLATBUFFER_CONVERSIONS_H_
 #define TENSORFLOW_LITE_MICRO_FLATBUFFER_CONVERSIONS_H_
 
+// Synced with LiteRT:
+// https://github.com/google-ai-edge/LiteRT/blob/main/tflite/core/api/flatbuffer_conversions.h
+//
+// Keep all upstream `Parse*` declarations (even if unused in TFLM) for future
+// usage, while adapting freely as needed for TFLM.
+// - Omit `ErrorReporter*` parameters and `TFLITE_EXPORT` macros.
+// - Add `using micro::Parse*;` aliases at the bottom for any new functions.
+
 // These functions transform codes and data structures that are defined in the
 // flatbuffer serialization format into in-memory values that are used by the
 // runtime API and interpreter.

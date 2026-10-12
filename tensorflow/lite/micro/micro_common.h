@@ -129,6 +129,8 @@ namespace tflite {
 namespace micro {
 #endif
 
+// Synced with LiteRT (also update `TfLiteTypeGetName` in `micro_common.cc`):
+// https://github.com/google-ai-edge/LiteRT/blob/main/tflite/converter/core/c/tflite_types.h
 typedef enum {
   kTfLiteNoType = 0,
   kTfLiteFloat32 = 1,

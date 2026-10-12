@@ -59,6 +59,8 @@ int TfLiteVarArrayEqual(const T* const a, const T* const b) {
 
 }  // namespace
 
+// Synced with LiteRT:
+// https://github.com/google-ai-edge/LiteRT/blob/main/tflite/core/c/common.cc
 const char* TfLiteTypeGetName(TfLiteType type) {
   switch (type) {
     case kTfLiteNoType:
@@ -91,6 +93,8 @@ const char* TfLiteTypeGetName(TfLiteType type) {
       return "STRING";
     case kTfLiteFloat16:
       return "FLOAT16";
+    case kTfLiteBFloat16:
+      return "BFLOAT16";
     case kTfLiteFloat64:
       return "FLOAT64";
     case kTfLiteResource:
@@ -99,16 +103,14 @@ const char* TfLiteTypeGetName(TfLiteType type) {
       return "VARIANT";
     case kTfLiteInt4:
       return "INT4";
-    case kTfLiteBFloat16:
-      return "BFLOAT16";
     case kTfLiteInt2:
       return "INT2";
     case kTfLiteUInt4:
       return "UINT4";
     case kTfLiteFloat8E4M3FN:
-      return "FLOAT8E4M3FN";
+      return "FLOAT8_E4M3FN";
     case kTfLiteFloat8E5M2:
-      return "FLOAT8E5M2";
+      return "FLOAT8_E5M2";
   }
   return "Unknown type";
 }
