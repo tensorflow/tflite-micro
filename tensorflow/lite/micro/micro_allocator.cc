@@ -34,7 +34,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
 

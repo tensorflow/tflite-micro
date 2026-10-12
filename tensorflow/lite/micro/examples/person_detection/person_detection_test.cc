@@ -22,7 +22,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/models/person_detect_model_data.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 // Create an area of memory to use for input, output, and intermediate arrays.
 #if defined(XTENSA) && defined(VISION_P6)

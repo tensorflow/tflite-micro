@@ -43,7 +43,7 @@ tflm_cc_library(
         ":micro_compatibility",
         ":micro_log",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/schema:schema_fbs",
+        "//tensorflow/lite/micro/schema:schema_fbs",
     ],
 )
 
@@ -88,7 +88,6 @@ tflm_cc_library(
         ":op_resolvers",
         ":portable_type_to_tflitetype",
         "//tensorflow/lite/micro/kernels/internal:tensor",
-        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -207,7 +206,6 @@ tflm_cc_library(
         ":micro_profiler",
         ":micro_resource_variable",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -221,7 +219,6 @@ tflm_cc_library(
         ":micro_common",
         ":micro_graph",
         ":test_helpers",
-        "//tensorflow/lite/schema:schema_fbs",
     ],
 )
 
@@ -253,7 +250,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:linear_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
-        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -273,7 +269,7 @@ tflm_cc_library(
     deps = [
         ":micro_common",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/schema:schema_fbs",
+        "//tensorflow/lite/micro/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -287,7 +283,7 @@ tflm_cc_library(
         ":micro_common",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
         "//tensorflow/lite/micro/kernels/internal:tensor",
-        "//tensorflow/lite/schema:schema_fbs",
+        "//tensorflow/lite/micro/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -313,7 +309,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
         "//tensorflow/lite/micro/kernels/internal:tensor",
-        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers//:runtime_cc",
     ],
 )
@@ -336,7 +331,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/kernels:micro_ops",
         "//tensorflow/lite/micro/kernels:op_macros",
         "//tensorflow/lite/micro/kernels/internal:compatibility",
-        "//tensorflow/lite/schema:schema_fbs",
     ],
 )
 

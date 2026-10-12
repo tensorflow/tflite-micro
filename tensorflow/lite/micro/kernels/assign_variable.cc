@@ -26,7 +26,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
 #include "tensorflow/lite/micro/micro_utils.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 namespace micro {

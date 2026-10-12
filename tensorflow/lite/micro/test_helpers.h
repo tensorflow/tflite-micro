@@ -31,7 +31,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
 

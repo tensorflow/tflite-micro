@@ -20,7 +20,7 @@ pybind_library(
         "flatbuffer_size_wrapper.h",
     ],
     deps = [
-        "//tensorflow/lite/schema:schema_fbs_with_reflection",
+        "//tensorflow/lite/micro/schema:schema_fbs_with_reflection",
         "@flatbuffers",
     ],
 )

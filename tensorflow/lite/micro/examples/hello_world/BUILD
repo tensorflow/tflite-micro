@@ -37,7 +37,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro/testing:micro_test",
-        "//tensorflow/lite/schema:schema_fbs",
     ],
 )
 

@@ -1,12 +1,12 @@
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library")
 load(
-    "//tensorflow:extra_rules.bzl",
-    "tflm_kernel_friends",
-)
-load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
     "tflm_cc_test",
+)
+load(
+    "//tensorflow/lite/micro:extra_rules.bzl",
+    "tflm_kernel_friends",
 )
 
 package(

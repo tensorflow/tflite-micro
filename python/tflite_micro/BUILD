@@ -5,13 +5,13 @@ load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
 load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test", "tflm_whl_test")
 load(
-    "//tensorflow:extra_rules.bzl",
-    "tflm_python_op_resolver_friends",
-)
-load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
+)
+load(
+    "//tensorflow/lite/micro:extra_rules.bzl",
+    "tflm_python_op_resolver_friends",
 )
 load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 

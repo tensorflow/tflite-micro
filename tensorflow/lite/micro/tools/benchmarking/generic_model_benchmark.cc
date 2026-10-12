@@ -37,7 +37,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/tools/benchmarking/metrics.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/micro/tools/benchmarking/show_meta_data.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #if defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
 #if !defined(GENERIC_BENCHMARK_MODEL_HEADER_PATH)

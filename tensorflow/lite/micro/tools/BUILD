@@ -7,8 +7,8 @@ load(
     "tflm_py_library",
     "tflm_py_test",
 )
-load("//tensorflow:extra_rules.bzl", "tflm_application_friends")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
+load("//tensorflow/lite/micro:extra_rules.bzl", "tflm_application_friends")
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
 
 package(
@@ -151,7 +151,7 @@ pybind_extension(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        "//tensorflow/lite/schema:schema_fbs",
+        "//tensorflow/lite/micro/schema:schema_fbs",
         "@flatbuffers",
     ],
 )
@@ -222,8 +222,8 @@ cc_binary(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels:op_macros",
+        "//tensorflow/lite/micro/schema:schema_fbs",
         "//tensorflow/lite/micro/tools/benchmarking:op_resolver",
-        "//tensorflow/lite/schema:schema_fbs",
         "@flatbuffers",
     ],
 )

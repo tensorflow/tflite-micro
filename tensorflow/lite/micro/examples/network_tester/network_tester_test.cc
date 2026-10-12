@@ -21,7 +21,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef ETHOS_U
 #include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
