@@ -223,8 +223,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
       MicroInterpreterContext::InterpreterState::kMemoryPlanning);
 
   TF_LITE_ENSURE_STATUS(allocator_.FinishModelAllocation(
-      model_, graph_.GetAllocations(),
-      &scratch_buffer_handles_));
+      model_, graph_.GetAllocations(), &scratch_buffer_handles_));
 
   micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
 
