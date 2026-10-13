@@ -16,8 +16,17 @@ every target. Prefer them over the native py_library/py_test/py_binary for any
 target under the tflite_micro namespace.
 """
 
+load("@pybind11_bazel//:build_defs.bzl", _pybind_extension = "pybind_extension", _pybind_library = "pybind_library")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_python//python:packaging.bzl", _py_package = "py_package", _py_wheel = "py_wheel")
+load("@rules_python//python:pip.bzl", _compile_pip_requirements = "compile_pip_requirements")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+compile_pip_requirements = _compile_pip_requirements
+py_package = _py_package
+py_wheel = _py_wheel
+pybind_extension = _pybind_extension
+pybind_library = _pybind_library
 
 def tflm_py_library(deps = [], **kwargs):
     py_library(
