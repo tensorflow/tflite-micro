@@ -24,10 +24,10 @@ jobs:
     timeout-minutes: 60
     name: Cortex-M Bluepill
     steps:
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -47,10 +47,10 @@ jobs:
 
     name: Cortex-M QEMU Unit Tests
     steps:
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -67,7 +67,7 @@ jobs:
     timeout-minutes: 60
     name: Cortex-M Corstone 300 (GCC)
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -82,11 +82,11 @@ jobs:
     timeout-minutes: 60
     name: Cortex-M Corstone 300 (Arm Clang)
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
       - name: Install dependencies
@@ -94,18 +94,18 @@ jobs:
           pip3 install Pillow
           pip3 install numpy
       - name: Install Arm tools
-        uses: ARM-software/cmsis-actions/vcpkg@8a50b77681a484568e08f31fb7c2285c4735f682 # v1
+        uses: ARM-software/cmsis-actions/vcpkg@8a50b77681a484568e08f31fb7c2285c4735f682 # v1.3
         with:
           config: "tensorflow/lite/micro/tools/github/arm/vcpkg-configuration.json"
       - name: Activate Arm tool license
-        uses: ARM-software/cmsis-actions/armlm@8a50b77681a484568e08f31fb7c2285c4735f682 # v1
+        uses: ARM-software/cmsis-actions/armlm@8a50b77681a484568e08f31fb7c2285c4735f682 # v1.3
       - name: Print License Logs on Failure
         if: failure()
         run: cat /home/runner/.armlm/logs/*.log
       - name: Test
         run: |
           tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh armclang
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: my-artifact
           path: |

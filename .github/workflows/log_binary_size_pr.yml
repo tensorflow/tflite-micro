@@ -41,7 +41,7 @@ jobs:
       (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:test')) ||
       github.event_name == 'schedule'
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
         git checkout $LOG_BRANCH -- data/continuous_builds/size_profiling/ 
     - name: Create Logs PR Request
       id: create-pr
-      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
          branch: binary_size_profiling_update
          delete-branch: true
