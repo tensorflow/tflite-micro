@@ -152,7 +152,7 @@ TfLiteStatus GatherNd(const TfLiteEvalTensor* params,
       IndicesT index = index_data[offset];
       from_pos += index * dims_to_count[j];
     }
-    if (from_pos < 0 || from_pos + slice_size > params_flat_size) {
+    if (from_pos < 0 || from_pos > params_flat_size - slice_size) {
       return kTfLiteError;
     }
     std::memcpy(output_data + i * slice_size, param_data + from_pos,

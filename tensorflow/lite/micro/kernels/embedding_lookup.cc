@@ -60,7 +60,9 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     op_data->scale = tensor_1->params.scale;
   }
 
-  op_data->num_columns = NumElements(tensor_1) / tensor_1->dims->data[0];
+  op_data->num_columns = tensor_1->dims->data[0] > 0
+                             ? NumElements(tensor_1) / tensor_1->dims->data[0]
+                             : 0;
 
   return kTfLiteOk;
 }

@@ -80,7 +80,10 @@ TfLiteStatus SqueezePrepare(TfLiteContext* context, TfLiteNode* node) {
   // Ensure output dimensions are big enough.
   for (int in_idx = 0, out_idx = 0; in_idx < input_num_dims; ++in_idx) {
     if (!should_squeeze[in_idx]) {
-      TFLITE_CHECK_GE(output_dims->data[out_idx++], input_dims->data[in_idx]);
+      TF_LITE_ENSURE(
+          context, out_idx < output_dims->size &&
+                       output_dims->data[out_idx] >= input_dims->data[in_idx]);
+      ++out_idx;
     }
   }
 

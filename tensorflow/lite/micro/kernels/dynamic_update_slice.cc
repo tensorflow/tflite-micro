@@ -152,6 +152,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumDimensions(start_indices), 1);
   TF_LITE_ENSURE_EQ(context, SizeOfDimension(start_indices, 0),
                     NumDimensions(operand));
+  TF_LITE_ENSURE(context, NumDimensions(operand) >= 1 &&
+                              NumDimensions(operand) <= kMaxDimensions);
 
   TF_LITE_ENSURE_EQ(context, NumDimensions(update), NumDimensions(operand));
   // Check that update dimensions are not larger than operand dimensions
