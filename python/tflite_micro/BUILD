@@ -1,9 +1,15 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
-load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test", "tflm_whl_test")
+load(
+    "//python:py_rules.bzl",
+    "py_package",
+    "py_wheel",
+    "pybind_extension",
+    "tflm_py_library",
+    "tflm_py_test",
+    "tflm_whl_test",
+)
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",

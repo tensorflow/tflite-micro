@@ -1,5 +1,4 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
+load("//python:py_rules.bzl", "pybind_extension", "tflm_py_library", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(

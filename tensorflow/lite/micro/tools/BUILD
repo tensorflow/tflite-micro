@@ -1,8 +1,8 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//python:py_rules.bzl",
+    "pybind_extension",
     "tflm_py_binary",
     "tflm_py_library",
     "tflm_py_test",

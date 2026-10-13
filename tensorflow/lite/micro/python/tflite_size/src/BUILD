@@ -1,5 +1,10 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension", "pybind_library")
-load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library")
+load(
+    "//python:py_rules.bzl",
+    "pybind_extension",
+    "pybind_library",
+    "tflm_py_binary",
+    "tflm_py_library",
+)
 
 package(
     default_visibility = ["//visibility:public"],

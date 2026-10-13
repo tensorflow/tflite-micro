@@ -1,4 +1,4 @@
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("//python:py_rules.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
 

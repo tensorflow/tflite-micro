@@ -24,6 +24,7 @@ def tflm_copts():
         "//conditions:default": [
             "-fno-asynchronous-unwind-tables",
             "-fno-exceptions",
+            "-fno-sanitize=alignment",
             "-Wall",
             "-Wno-unused-parameter",
             "-Wnon-virtual-dtor",
