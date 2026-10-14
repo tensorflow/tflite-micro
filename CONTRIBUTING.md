@@ -76,7 +76,7 @@ We also recommend that contributors take a look at the
 We strongly recommend that contributors:
 
 1.  Initiate a conversation with the TFLM team via a
-    [TF Lite Micro Github issue](https://github.com/tensorflow/tensorflow/issues/new?labels=comp%3Amicro&template=70-tflite-micro-issue.md)
+    [TF Lite Micro Github issue](https://github.com/tensorflow/tflite-micro/issues/new)
     as early as possible.
 
     *   This enables us to give guidance on how to proceed, prevent duplicated
@@ -183,25 +183,16 @@ Below are some tips that might be useful and improve the development experience.
 * Install the latest clang and clang-format. For example, [here](ci/Dockerfile.micro)
   is what we do for the TFLM continuous integration Docker container.
 
-* Get a copy of [cpplint](https://github.com/google/styleguide/tree/gh-pages/cpplint)
-  or install it:
-
-  ```
-  pip install cpplint
-  ```
-
-* Install Pillow.  For example, [here](ci/Dockerfile.micro) is what we do for
-  the TFLM continuous integration Docker container.
-
-* [ruff](https://github.com/astral-sh/ruff) should be used for formatting Python
+* [ruff](https://github.com/astral-sh/ruff) should be used for formatting and linting Python
   code. For example:
 
   ```
   pip install ruff
-  ruff format log_parser.py
+  ruff format <file>.py
+  ruff check --fix <file>.py
   ```
 
-* Add a git hook to check for code style etc. prior to creating a pull request:
+* Add a git hook to check for code style prior to pushing changes:
   ```
   cp tensorflow/lite/micro/tools/dev_setup/pre-push.tflm .git/hooks/pre-push
   ```
@@ -210,19 +201,13 @@ Below are some tips that might be useful and improve the development experience.
 
 ## Before submitting your PR
 
-1.  Run in-place clang-format on all the files that are modified in your git
-    tree with
+1.  Check and format your code using the code style script:
 
     ```
-    clang-format -i -style=google `git ls-files -m | grep "\.cc"`
-    clang-format -i -style=google `git ls-files -m | grep "\.h"`
+    tensorflow/lite/micro/tools/ci_build/test_code_style.sh --fix
     ```
 
-1.  Make sure your code is lint-free.
-
-    ```
-    cpplint `git ls-files -m`
-    ```
+    This runs `clang-format` on C/C++ files, `ruff` on Python files, and `buildifier` on Bazel BUILD/.bzl files.
 
 1.  Run all the tests for x86, and any other platform that you are modifying.
 
