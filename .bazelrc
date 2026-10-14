@@ -87,7 +87,7 @@ build:asan --linkopt=-fsanitize=address
 # E.g., bazel build --config msan
 build:msan --config=_sanitizer_base
 build:msan --copt=-fsanitize=memory
-build:msan --copt=-DADDRESS_SANITIZER
+build:msan --copt=-DMEMORY_SANITIZER
 build:msan --linkopt=-fsanitize=memory
 
 # When building with the undefined behavior sanitizer
