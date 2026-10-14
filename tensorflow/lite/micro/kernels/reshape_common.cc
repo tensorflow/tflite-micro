@@ -64,6 +64,7 @@ TfLiteStatus ReshapeOutput(TfLiteContext* context, TfLiteNode* node) {
     }
   }
   if (stretch_dim != -1) {
+    TF_LITE_ENSURE(context, num_output_elements != 0);
     TfLiteEvalTensor* output_eval =
         tflite::micro::GetEvalOutput(context, node, kReshapeOutputTensor);
     TF_LITE_ENSURE_STATUS(tflite::micro::CreateWritableTensorDimsWithCopy(
@@ -86,7 +87,7 @@ TfLiteStatus ReshapeOutput(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus PrepareReshapeReference(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumInputs(node) == 1 || NumInputs(node) == 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  TF_LITE_ENSURE_EQ(context, ReshapeOutput(context, node), kTfLiteOk);
+  TF_LITE_ENSURE_STATUS(ReshapeOutput(context, node));
   return kTfLiteOk;
 }
 

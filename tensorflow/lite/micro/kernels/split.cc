@@ -90,8 +90,9 @@ TfLiteStatus SplitEval(TfLiteContext* context, TfLiteNode* node) {
     axis_value += input->dims->size;
   }
 
-  TF_LITE_ENSURE(context, axis_value >= 0);
-  TF_LITE_ENSURE(context, axis_value < input->dims->size);
+  if (axis_value < 0 || axis_value >= input->dims->size) {
+    return kTfLiteError;
+  }
 
   switch (input->type) {
     case kTfLiteFloat32: {

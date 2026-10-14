@@ -102,7 +102,9 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
     if (axes_data[i] < 0) {
       axes_data[i] += rank;
     }
-    TF_LITE_ENSURE(context, axes_data[i] >= 0 && axes_data[i] < rank);
+    if (axes_data[i] < 0 || axes_data[i] >= rank) {
+      return kTfLiteError;
+    }
   }
   std::qsort(axes_data.data(), num_axes, sizeof(int32_t), comp);
 

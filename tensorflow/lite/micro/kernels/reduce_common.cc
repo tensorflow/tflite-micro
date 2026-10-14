@@ -65,7 +65,7 @@ TfLiteStatus PrepareSimple(TfLiteContext* context, TfLiteNode* node,
 void ResolveAxis(const int* axis_data, int axis_count,
                  tflite::micro::MeanParams* op_params) {
   int i = 0;
-  for (; i < axis_count; ++i) {
+  for (; i < axis_count && i < 4; ++i) {
     op_params->axis[i] = static_cast<int16_t>(axis_data[i]);
   }
   for (; i < 4; ++i) {
