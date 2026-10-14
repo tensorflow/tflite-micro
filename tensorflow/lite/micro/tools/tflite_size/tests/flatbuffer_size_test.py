@@ -15,7 +15,7 @@
 import os
 
 import unittest
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
   flatbuffer_size,
 )
 

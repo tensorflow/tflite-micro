@@ -15,13 +15,13 @@
 import json
 import sys
 
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
   flatbuffer_size_wrapper_pybind,
 )
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
   flatbuffer_size_graph,
 )
-from tflite_micro.tensorflow.lite.micro.python.tflite_size.src import (
+from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
   flatbuffer_size_graph_html_converter,
 )
 
