@@ -34,7 +34,7 @@ limitations under the License.
 
 #ifdef USE_TFLM_COMPRESSION
 
-#include "tensorflow/lite/micro/compression/metadata_saved.h"
+#include "tensorflow/lite/micro/compression/metadata_generated.h"
 
 #endif  // USE_TFLM_COMPRESSION
 
