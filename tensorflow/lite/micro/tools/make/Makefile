@@ -191,6 +191,7 @@ COMMON_FLAGS := \
   -ffunction-sections \
   -fdata-sections \
   -fmessage-length=0 \
+  -DTFLM_REMOVE_VIRTUAL_DELETE \
   -DTF_LITE_DISABLE_X86_NEON \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)

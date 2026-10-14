@@ -26,7 +26,8 @@ COMMON_FLAGS := \
   -fno-unwind-tables \
   -ffunction-sections \
   -fdata-sections \
-  -fmessage-length=0
+  -fmessage-length=0 \
+  -DTFLM_REMOVE_VIRTUAL_DELETE
 
 CXX := clang++
 CC := clang
