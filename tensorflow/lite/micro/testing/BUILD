@@ -51,6 +51,32 @@ tflm_cc_library(
     ],
 )
 
+tflm_cc_library(
+    name = "test_all_op_resolver",
+    hdrs = [
+        "test_all_op_resolver.h",
+    ],
+    visibility = [
+        ":kernel_test_friends",
+        ":tflite_micro",
+    ],
+    deps = [
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:op_resolvers",
+    ],
+)
+
+tflm_cc_test(
+    name = "test_all_op_resolver_test",
+    srcs = [
+        "test_all_op_resolver_test.cc",
+    ],
+    deps = [
+        ":micro_test",
+        ":test_all_op_resolver",
+    ],
+)
+
 tflm_cc_test(
     name = "util_test",
     srcs = [
