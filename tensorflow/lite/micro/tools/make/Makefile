@@ -601,9 +601,6 @@ endif
 # Create kernel test targets.
 include $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/Makefile.inc
 
-# Create binary size test target.
-include $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
-
 
 
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
