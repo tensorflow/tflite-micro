@@ -68,7 +68,9 @@ def build_generated_headers(repo_root):
     "//tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_person_detect_op_resolver_hdr",
   ]
   print(f"Building targets for headers: {' '.join(targets)}...")
-  subprocess.run(["bazel", "build"] + targets, cwd=repo_root, check=True)
+  subprocess.run(
+    ["bazel", "build", "--config=ci"] + targets, cwd=repo_root, check=True
+  )
 
 
 def setup_external_symlink(repo_root):
@@ -115,7 +117,7 @@ def setup_external_symlink(repo_root):
 def generate_compilation_database(output_path, targets, repo_root):
   """Queries Bazel aquery and outputs compile_commands.json."""
   query = f"mnemonic(CppCompile, {targets})"
-  cmd = ["bazel", "aquery", query, "--output=jsonproto"]
+  cmd = ["bazel", "aquery", "--config=ci", query, "--output=jsonproto"]
   print(f"Running bazel aquery: {' '.join(cmd)}...")
   result = subprocess.run(
     cmd, stdout=subprocess.PIPE, cwd=repo_root, check=True
