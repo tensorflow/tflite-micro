@@ -28,9 +28,13 @@ limitations under the License.
 // This macro needs to be included in all subclasses of a virtual base class in
 // the private section.
 #ifndef TF_LITE_REMOVE_VIRTUAL_DELETE
+#ifdef TFLM_REMOVE_VIRTUAL_DELETE
 #define TF_LITE_REMOVE_VIRTUAL_DELETE \
   void operator delete(void* p) {}    \
   void operator delete(void* p, size_t) {}
+#else
+#define TF_LITE_REMOVE_VIRTUAL_DELETE
+#endif
 #endif
 
 #if !defined(TF_LITE_MCU_DEBUG_LOG)
