@@ -285,3 +285,17 @@ tflm_py_binary(
     main = "ci_build/generate_compile_commands.py",
     visibility = ["//visibility:public"],
 )
+
+tflm_py_binary(
+    name = "expand_stamp_vars",
+    srcs = ["expand_stamp_vars.py"],
+    visibility = ["//visibility:public"],
+)
+
+tflm_py_test(
+    name = "expand_stamp_vars_test",
+    srcs = ["expand_stamp_vars_test.py"],
+    deps = [
+        ":expand_stamp_vars",
+    ],
+)

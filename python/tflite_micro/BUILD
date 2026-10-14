@@ -19,7 +19,7 @@ load(
     "//tensorflow/lite/micro:extra_rules.bzl",
     "tflm_python_op_resolver_friends",
 )
-load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
+load("//tensorflow/lite/micro/tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 
 package(
     features = ["-layering_check"],
