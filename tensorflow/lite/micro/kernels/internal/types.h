@@ -22,7 +22,7 @@ limitations under the License.
 #include <limits>
 #include <type_traits>
 
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/runtime_shape.h"
 
 namespace tflite {

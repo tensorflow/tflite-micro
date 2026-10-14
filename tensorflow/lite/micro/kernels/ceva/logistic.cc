@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_common.h"
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
@@ -24,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logistic.h"
-#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 

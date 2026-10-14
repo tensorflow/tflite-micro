@@ -13,8 +13,6 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -180,6 +178,7 @@ tflm_cc_test(
         ":audio_sample_test_data_30ms",
         ":micro_model_settings",
         ":micro_speech_model_data",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",

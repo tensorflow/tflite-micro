@@ -19,7 +19,7 @@ limitations under the License.
 #include <limits>
 #include <vector>
 
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 
 namespace tflite {

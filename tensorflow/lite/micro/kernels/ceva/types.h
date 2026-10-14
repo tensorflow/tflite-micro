@@ -207,7 +207,7 @@ inline bool NextIndex(const int num_dims, const int* dims, int* current) {
 #include <cstring>
 #include <initializer_list>
 
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
 namespace micro {

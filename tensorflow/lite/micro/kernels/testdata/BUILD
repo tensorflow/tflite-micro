@@ -7,8 +7,6 @@ load(
 
 package(
     default_visibility = ["//tensorflow/lite/micro/kernels:__pkg__"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -33,6 +31,7 @@ tflm_cc_library(
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels:lstm_shared",
+        "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
     ],
 )
 

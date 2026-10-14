@@ -6,8 +6,6 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -97,6 +95,7 @@ tflm_cc_library(
         ":micro_memory_planner",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 

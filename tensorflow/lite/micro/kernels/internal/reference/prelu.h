@@ -17,8 +17,8 @@ limitations under the License.
 
 #include <algorithm>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/broadcast_loop.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 

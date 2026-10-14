@@ -25,7 +25,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/memory_planner/greedy_memory_planner.h"
 #include "tensorflow/lite/micro/memory_planner/linear_memory_planner.h"

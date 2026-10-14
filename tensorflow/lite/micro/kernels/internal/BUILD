@@ -18,19 +18,16 @@ tflm_cc_library(
         "fixedpoint.h",
     ],
     deps = [
-        ":compatibility",
         ":cppmath",
         ":types",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )
 
 tflm_cc_library(
     name = "compatibility",
     hdrs = ["compatibility.h"],
-    deps = [
-        "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro/kernels:op_macros",
-    ],
+    deps = ["//tensorflow/lite/micro:micro_compatibility"],
 )
 
 tflm_cc_library(
@@ -48,9 +45,9 @@ tflm_cc_library(
     srcs = ["quantization_util.cc"],
     hdrs = ["quantization_util.h"],
     deps = [
-        ":compatibility",
         ":cppmath",
         ":types",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )
 
@@ -74,15 +71,14 @@ tflm_cc_library(
     features = ["-parse_headers"],
     deps = [
         ":common",
-        ":compatibility",
         ":cppmath",
         ":quantization_util",
         ":strided_slice_logic",
         ":tensor",
         ":types",
         "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro/kernels:kernel_util",
-        "//tensorflow/lite/micro/kernels:op_macros",
     ],
 )
 
@@ -93,8 +89,8 @@ tflm_cc_library(
         "strided_slice_logic.h",
     ],
     deps = [
-        ":compatibility",
         ":types",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )
 
@@ -106,9 +102,9 @@ tflm_cc_library(
         "tensor_ctypes.h",
     ],
     deps = [
-        ":compatibility",
         ":types",
         "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )
 
@@ -119,7 +115,7 @@ tflm_cc_library(
         "types.h",
     ],
     deps = [
-        ":compatibility",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )
 
@@ -133,9 +129,8 @@ tflm_cc_library(
     ],
     deps = [
         ":common",
-        ":compatibility",
         ":cppmath",
         "//tensorflow/lite/micro:micro_common",
-        "//tensorflow/lite/micro/kernels:op_macros",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )

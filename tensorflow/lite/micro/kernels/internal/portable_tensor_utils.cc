@@ -23,8 +23,8 @@ limitations under the License.
 #include <utility>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 

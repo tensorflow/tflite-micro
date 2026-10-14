@@ -19,7 +19,7 @@
 #include <cassert>
 #include <cstddef>
 
-#include "tensorflow/lite/micro/kernels/op_macros.h"  // for TF_LITE_ASSERT
+#include "tensorflow/lite/micro/compatibility.h"  // for TF_LITE_ASSERT
 
 namespace tflite {
 namespace micro {

@@ -7,8 +7,6 @@ load(
 )
 
 package(
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -31,11 +29,13 @@ tflm_cc_test(
     ],
     deps = [
         ":model",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

@@ -19,8 +19,8 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_conversions.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {

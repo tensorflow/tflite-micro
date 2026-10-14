@@ -19,7 +19,7 @@ limitations under the License.
 #include <cmath>
 #include <limits>
 
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 
 namespace tflite {
