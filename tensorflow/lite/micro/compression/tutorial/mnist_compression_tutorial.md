@@ -848,19 +848,19 @@ This decouples the compression specification from the compression execution:
 ```yaml
 tensors:
   - subgraph: 0
-    tensor: 7  # conv2d_1 weights
+    tensor: 9  # conv2d_1 weights
     compression:
-      lut:
-        index_bitwidth: 4
-        per_channel:
-          axis: 0
+      - lut:
+          index_bitwidth: 4
+          per_channel:
+            axis: 0
   - subgraph: 0
-    tensor: 9  # dense weights
+    tensor: 7  # dense weights
     compression:
-      lut:
-        index_bitwidth: 4
-        per_channel:
-          axis: 0
+      - lut:
+          index_bitwidth: 4
+          per_channel:
+            axis: 0
 ```
 
 ### Compression Impact
@@ -908,32 +908,26 @@ print("  Index bitwidth: 4 bits (supports up to 16 unique values)")
 
 # Apply TFLM compression
 print("\nApplying TFLM compression...")
-try:
-    compressed_model = compression.compress(clustered_quantized_model, compression_spec)
-    
-    # Save the compressed model
-    with open('mnist_model_tflm_compressed.tflite', 'wb') as f:
-        f.write(compressed_model)
-    
-    print(f"\nTFLM compressed model size: {len(compressed_model):,} bytes ({len(compressed_model)/1024:.2f} KB)")
-    print(f"Additional compression from TFLM: {(1 - len(compressed_model)/len(clustered_quantized_model))*100:.1f}%")
-    print(f"Total compression vs original: {len(tflite_model) / len(compressed_model):.2f}x")
-    
-    # Update the size summary
-    print("\n" + "="*50)
-    print("UPDATED MODEL SIZE SUMMARY:")
-    print("="*50)
-    print(f"Original float32 model:         {len(tflite_model):,} bytes")
-    print(f"Clustered float32 model:        {len(tflite_clustered_model):,} bytes")
-    print(f"Quantized int8 model:           {len(quantized_model):,} bytes")
-    print(f"Clustered + Quantized model:    {len(clustered_quantized_model):,} bytes")
-    print(f"TFLM Compressed model:          {len(compressed_model):,} bytes")
-    print(f"\nBest compression ratio: {len(tflite_model) / len(compressed_model):.2f}x")
-    
-except Exception as e:
-    print(f"Compression failed: {e}")
-    print("This might happen if the tensor doesn't have enough unique values for effective compression")
-    compressed_model = None
+compressed_model = compression.compress(clustered_quantized_model, compression_spec)
+
+# Save the compressed model
+with open('mnist_model_tflm_compressed.tflite', 'wb') as f:
+    f.write(compressed_model)
+
+print(f"\nTFLM compressed model size: {len(compressed_model):,} bytes ({len(compressed_model)/1024:.2f} KB)")
+print(f"Additional compression from TFLM: {(1 - len(compressed_model)/len(clustered_quantized_model))*100:.1f}%")
+print(f"Total compression vs original: {len(tflite_model) / len(compressed_model):.2f}x")
+
+# Update the size summary
+print("\n" + "="*50)
+print("UPDATED MODEL SIZE SUMMARY:")
+print("="*50)
+print(f"Original float32 model:         {len(tflite_model):,} bytes")
+print(f"Clustered float32 model:        {len(tflite_clustered_model):,} bytes")
+print(f"Quantized int8 model:           {len(quantized_model):,} bytes")
+print(f"Clustered + Quantized model:    {len(clustered_quantized_model):,} bytes")
+print(f"TFLM Compressed model:          {len(compressed_model):,} bytes")
+print(f"\nBest compression ratio: {len(tflite_model) / len(compressed_model):.2f}x")
 ```
 
 ## Verify TFLM Compressed Model Performance
