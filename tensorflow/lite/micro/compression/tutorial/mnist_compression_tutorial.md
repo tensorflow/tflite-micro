@@ -834,6 +834,9 @@ The SpecBuilder API allows us to programmatically define compression:
 - `add_tensor()`: Specifies which tensor to compress
 - `with_lut()`: Configures Look-Up Table compression
 - `index_bitwidth=4`: Uses 4-bit indices (perfect for our 16 clusters)
+- `mode=compression.spec.PerChannel(axis=0)`: Builds one lookup table per
+  output channel. Quantization scales each output channel separately, so
+  the 16 clusters become 16 different integer values in each channel.
 
 ### YAML Configuration (Alternative)
 
@@ -849,11 +852,15 @@ tensors:
     compression:
       lut:
         index_bitwidth: 4
+        per_channel:
+          axis: 0
   - subgraph: 0
     tensor: 9  # dense weights
     compression:
       lut:
         index_bitwidth: 4
+        per_channel:
+          axis: 0
 ```
 
 ### Compression Impact
@@ -869,9 +876,9 @@ The overall compression ratio depends on several factors:
    compression. Compressing this tutorial's first dense layer, with about 100,000
    weights, has more impact than compressing a small convolutional layer.
 
-3. **Lookup table overhead**: Each compressed tensor needs a lookup table (16 × 8 
-   bits = 128 bits for 16 clusters). This overhead is negligible for large tensors 
-   but can be significant for very small ones.
+3. **Lookup table overhead**: Each output channel of a compressed tensor needs a
+   lookup table (16 × 8 bits = 128 bits for 16 clusters). This overhead is
+   negligible for large tensors but can be significant for very small ones.
 
 4. **Model architecture**: Models with many large fully-connected or convolutional 
    layers benefit more from compression than models dominated by small layers or 
@@ -889,7 +896,8 @@ spec_builder = compression.SpecBuilder()
 for tensor_info in tensors_to_compress:
     (spec_builder
          .add_tensor(subgraph=0, tensor=tensor_info['index'])
-             .with_lut(index_bitwidth=4))
+             .with_lut(index_bitwidth=4,
+                       mode=compression.spec.PerChannel(axis=0)))
     print(f"Added tensor {tensor_info['index']} ({tensor_info['name']}) to compression spec")
 
 compression_spec = spec_builder.build()
