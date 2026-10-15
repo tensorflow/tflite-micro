@@ -203,7 +203,8 @@ void* GetFlatbufferTensorBuffer(
   // First see if there's any buffer information in the serialized tensor.
   // TODO(b/170379532): Add better unit tests to validate flatbuffer values.
   void* out_buffer = nullptr;
-  if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
+  if (buffers != nullptr && flatbuffer_tensor.buffer() < buffers->size()) {
+    if (auto* buffer = (*buffers)[flatbuffer_tensor.buffer()]) {
     // If we've found a buffer, does it have any data?
     if (auto* array = buffer->data()) {
       // If it has any data, is the data size larger than zero?
@@ -218,6 +219,7 @@ void* GetFlatbufferTensorBuffer(
     // that a validly-generated file, and if so what does it mean, or is it an
     // error condition? It would be good to tighten up the specification to make
     // it less ambiguous.
+    }
   }
   return out_buffer;
 }
@@ -645,6 +647,11 @@ SubgraphAllocations* MicroAllocator::StartModelAllocation(const Model* model) {
     return nullptr;
   }
 
+  if (model->subgraphs() == nullptr || model->subgraphs()->size() == 0) {
+    MicroPrintf("Model must have at least one subgraph.");
+    return nullptr;
+  }
+
   // Allocate struct to store eval tensors, nodes and registrations.
   SubgraphAllocations* output = reinterpret_cast<SubgraphAllocations*>(
       persistent_buffer_allocator_->AllocatePersistentBuffer(
@@ -1042,6 +1049,11 @@ TfLiteStatus MicroAllocator::AllocateTfLiteEvalTensors(
        subgraph_idx++) {
     const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
     TFLITE_DCHECK(subgraph != nullptr);
+
+    if (subgraph->tensors() == nullptr) {
+      MicroPrintf("Subgraph %d has no tensors.", subgraph_idx);
+      return kTfLiteError;
+    }
 
     size_t alloc_count = subgraph->tensors()->size();
     TfLiteEvalTensor* tensors = reinterpret_cast<TfLiteEvalTensor*>(

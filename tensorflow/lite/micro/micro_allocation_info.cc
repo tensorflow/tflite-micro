@@ -85,6 +85,11 @@ TfLiteStatus AllocationInfoBuilder::MarkSubgraphLifetimesIfNecessary(
     }
   }
   if (first_subgraph_index != -1) {
+    if (first_subgraph_index < 0 ||
+        static_cast<size_t>(first_subgraph_index) >= model_->subgraphs()->size()) {
+      MicroPrintf("Invalid first_subgraph_index: %d", first_subgraph_index);
+      return kTfLiteError;
+    }
     // Enter a new allocation scope for each subgraph.
     allocation_scope_count_++;
     TF_LITE_ENSURE_STATUS(
@@ -92,6 +97,11 @@ TfLiteStatus AllocationInfoBuilder::MarkSubgraphLifetimesIfNecessary(
                                 scratch_buffer_handles, allocations));
   }
   if (second_subgraph_index != -1) {
+    if (second_subgraph_index < 0 ||
+        static_cast<size_t>(second_subgraph_index) >= model_->subgraphs()->size()) {
+      MicroPrintf("Invalid second_subgraph_index: %d", second_subgraph_index);
+      return kTfLiteError;
+    }
     // Enter a new allocation scope for each subgraph.
     allocation_scope_count_++;
     TF_LITE_ENSURE_STATUS(
