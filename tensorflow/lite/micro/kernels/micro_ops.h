@@ -143,15 +143,23 @@ TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED();
 // TODO(b/160234179): Change custom OPs to also return by value.
 namespace tflm_signal {
 TFLMRegistration* Register_DELAY();
+TFLMRegistration* Register_ENERGY();
 TFLMRegistration* Register_FFT_AUTO_SCALE();
 TFLMRegistration* Register_FILTER_BANK();
 TFLMRegistration* Register_FILTER_BANK_LOG();
 TFLMRegistration* Register_FILTER_BANK_SPECTRAL_SUBTRACTION();
 TFLMRegistration* Register_FILTER_BANK_SQUARE_ROOT();
-TFLMRegistration* Register_ENERGY();
 TFLMRegistration* Register_FRAMER();
+TFLMRegistration* Register_IRFFT();
+TFLMRegistration* Register_IRFFT_FLOAT();
+TFLMRegistration* Register_IRFFT_INT16();
+TFLMRegistration* Register_IRFFT_INT32();
 TFLMRegistration* Register_OVERLAP_ADD();
 TFLMRegistration* Register_PCAN();
+TFLMRegistration* Register_RFFT();
+TFLMRegistration* Register_RFFT_FLOAT();
+TFLMRegistration* Register_RFFT_INT16();
+TFLMRegistration* Register_RFFT_INT32();
 TFLMRegistration* Register_STACKER();
 TFLMRegistration* Register_WINDOW();
 }  // namespace tflm_signal
@@ -167,8 +175,16 @@ using micro::tflm_signal::Register_FILTER_BANK_LOG;
 using micro::tflm_signal::Register_FILTER_BANK_SPECTRAL_SUBTRACTION;
 using micro::tflm_signal::Register_FILTER_BANK_SQUARE_ROOT;
 using micro::tflm_signal::Register_FRAMER;
+using micro::tflm_signal::Register_IRFFT;
+using micro::tflm_signal::Register_IRFFT_FLOAT;
+using micro::tflm_signal::Register_IRFFT_INT16;
+using micro::tflm_signal::Register_IRFFT_INT32;
 using micro::tflm_signal::Register_OVERLAP_ADD;
 using micro::tflm_signal::Register_PCAN;
+using micro::tflm_signal::Register_RFFT;
+using micro::tflm_signal::Register_RFFT_FLOAT;
+using micro::tflm_signal::Register_RFFT_INT16;
+using micro::tflm_signal::Register_RFFT_INT32;
 using micro::tflm_signal::Register_STACKER;
 using micro::tflm_signal::Register_WINDOW;
 }  // namespace tflm_signal
