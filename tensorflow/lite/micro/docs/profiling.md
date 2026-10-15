@@ -24,9 +24,9 @@ from within operator kernels and other TFLite Micro routines.
 ## API
 
 The MicroInterpreter class constructor contains an optional profiler argument.
-This profiler must be an instance of the tflite::Profiler class, and should
-implement the BeginEvent and EndEvent methods. There is a default implementation
-in tensorflow/lite/micro/micro_profiler.cc which can be used for most purposes.
+This profiler must be an instance of the `tflite::MicroProfilerInterface` class, and should
+implement the `BeginEvent` and `EndEvent` methods. There is a default implementation
+in `tensorflow/lite/micro/micro_profiler.cc` which can be used for most purposes.
 
 The best practice for profiling across multiple invocations is to reset or call
 `ClearEvents()` in between invocations.
@@ -34,14 +34,14 @@ The best practice for profiling across multiple invocations is to reset or call
 ## Per-Op Profiling
 
 There is a feature in the MicroInterpreter to enable per-op profiling. To enable
-this, provide a MicroProfiler to the MicroInterpreter's constructor then build
-with a non-release build to disable the NDEBUG define surrounding the
-ScopedOperatorProfile within the MicroInterpreter.
+this, provide a MicroProfiler to the MicroInterpreter's constructor. When building
+with error strings enabled (i.e. `TF_LITE_STRIP_ERROR_STRINGS` is not defined),
+the interpreter automatically profiles each operator invocation using `ScopedMicroProfiler`.
 
 ## Subroutine Profiling
 
 In order to further dig into performance of specific routines, the MicroProfiler
 can be used directly from the TFLiteContext or a new MicroProfiler can be
 created if the TFLiteContext is not available where the profiling needs to
-happen. The MicroProfiler's BeginEvent and EndEvent can be called directly, or
-wrapped using a [ScopedProfile](../../lite/core/api/profiler.h).
+happen. The MicroProfiler's `BeginEvent` and `EndEvent` can be called directly, or
+wrapped using a [ScopedMicroProfiler](../micro_profiler.h).
