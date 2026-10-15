@@ -1,4 +1,4 @@
-name: Run-Cortex-M
+name: Cortex-M
 
 # Entry point for Cortex-M tests. Triggered by schedule or workflow_dispatch.
 

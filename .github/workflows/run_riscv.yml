@@ -1,4 +1,4 @@
-name: Run-RISCV
+name: RISC-V
 
 # Entry point for RISC-V tests. Triggered by schedule or workflow_dispatch.
 

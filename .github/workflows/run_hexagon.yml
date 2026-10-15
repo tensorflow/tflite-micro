@@ -1,4 +1,4 @@
-name: Run-Hexagon
+name: Hexagon
 
 # Entry point for Hexagon tests. Triggered by schedule or workflow_dispatch.
 

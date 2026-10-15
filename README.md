@@ -1,7 +1,7 @@
 # TensorFlow Lite for Microcontrollers (TFLM)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Linux](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml)
+[![Core (Linux)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml)
 [![Windows](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml)
 [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml)
 [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml)
