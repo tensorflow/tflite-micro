@@ -15,8 +15,8 @@ permissions:
   issues: write
 
 jobs:
-  call-test-windows:
-    uses: ./.github/workflows/test_windows.yml
+  call-suite-windows:
+    uses: ./.github/workflows/suite_windows.yml
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tensorflow/tflite-micro')
@@ -24,7 +24,7 @@ jobs:
       trigger-sha: ${{ github.sha }}
 
   issue-on-error:
-    needs: [call-test-windows]
+    needs: [call-suite-windows]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     uses: ./.github/workflows/issue_on_error.yml
     with:

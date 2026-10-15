@@ -1,4 +1,4 @@
-name: Linux
+name: Core (Linux)
 
 # Entry point for Core tests. Triggered by schedule or workflow_dispatch.
 
