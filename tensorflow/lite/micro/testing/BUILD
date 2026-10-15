@@ -21,11 +21,6 @@ package_group(
 )
 
 package_group(
-    name = "microfrontend",
-    packages = ["//tensorflow/lite/experimental/microfrontend/..."],
-)
-
-package_group(
     name = "kernel_test_friends",
     packages = tflm_kernel_friends(),
 )
