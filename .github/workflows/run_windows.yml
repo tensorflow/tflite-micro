@@ -1,4 +1,4 @@
-name: Run-Windows
+name: Windows
 
 # Entry point for Windows tests. Triggered by schedule or workflow_dispatch.
 

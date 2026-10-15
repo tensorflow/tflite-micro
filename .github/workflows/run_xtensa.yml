@@ -1,4 +1,4 @@
-name: Run-Xtensa
+name: Xtensa
 
 # Entry point for Xtensa tests. Triggered by schedule or workflow_dispatch.
 

@@ -5,7 +5,7 @@
 # https://yaml-online-parser.appspot.com/
 #
 
-name: PyPI Build
+name: PyPI
 
 on:
   schedule:
