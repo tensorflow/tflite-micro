@@ -1,13 +1,13 @@
 # TensorFlow Lite for Microcontrollers (TFLM)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Core CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml)
-[![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml)
-[![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml)
-[![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml)
-[![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml)
-[![Windows](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml)
-[![PyPI](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml)
+[![Linux](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml)
+[![Windows](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml)
+[![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml)
+[![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml)
+[![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml)
+[![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml)
+[![PyPI](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml)
 
 TensorFlow Lite for Microcontrollers is designed to run deep learning models on bare-metal systems, DSPs, and microcontrollers with limited memory (tens to hundreds of kilobytes). It runs models converted via [LiteRT](https://github.com/google-ai-edge/LiteRT) and [TensorFlow](https://github.com/tensorflow/tensorflow/).
 

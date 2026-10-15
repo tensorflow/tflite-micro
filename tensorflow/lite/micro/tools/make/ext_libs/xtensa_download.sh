@@ -41,15 +41,15 @@ DOWNLOADS_DIR=${1}
 PATCH=""
 
 if [[ ${2} == "hifi3" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_03_2026.zip"
+  LIBRARY_URL="https://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_03_2026.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
   LIBRARY_MD5="69537cd86952b02aa6ed566d4a6f0c08"
 elif [[ ${2} == "hifi4" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_03_2026.zip"
+  LIBRARY_URL="https://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_03_2026.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi4"
   LIBRARY_MD5="69537cd86952b02aa6ed566d4a6f0c08"
 elif [[ ${2} == "hifi5" ]]; then
-  LIBRARY_URL="http://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_09_03_2026.zip"
+  LIBRARY_URL="https://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_09_03_2026.zip"
   LIBRARY_DIRNAME="xa_nnlib_hifi5"
   LIBRARY_MD5="2fbe7a4459609f257b43fb1d2cdc2339"
 elif [[ ${2} == "vision_p6" ]]; then
