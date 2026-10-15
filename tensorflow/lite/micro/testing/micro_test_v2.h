@@ -99,16 +99,12 @@ inline void PrintValue(std::nullptr_t) {
 }
 
 template <typename T>
-inline typename std::enable_if<std::is_enum<T>::value>::type PrintValue(
-    const T& v) {
-  PrintValue(static_cast<typename std::underlying_type<T>::type>(v));
-}
-
-// Fallback for types that don't match the overloads above.
-template <typename T>
-inline typename std::enable_if<!std::is_enum<T>::value>::type PrintValue(
-    const T&) {
-  Printf("?");
+inline void PrintValue(const T& v) {
+  if constexpr (std::is_enum_v<T>) {
+    PrintValue(static_cast<std::underlying_type_t<T>>(v));
+  } else {
+    Printf("?");
+  }
 }
 
 // Helper to report a failure with the file, line, and comparison details.

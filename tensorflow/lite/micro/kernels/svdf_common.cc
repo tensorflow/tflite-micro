@@ -106,7 +106,7 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
         }
         dot_prod = MultiplyByQuantizedMultiplier(
             dot_prod, data.effective_scale_1_a, data.effective_scale_1_b);
-        dot_prod = std::min(std::max(output_min, dot_prod), output_max);
+        dot_prod = std::clamp(dot_prod, output_min, output_max);
         // The int16 version of the op assumes a zero_point of 0.  This
         // code accounts for the potentially non-zero zero_point for the int8
         // version of the op.
@@ -182,7 +182,7 @@ void EvalIntegerSvdfReference(TfLiteContext* context, TfLiteNode* node,
       int32_t x2 = MultiplyByQuantizedMultiplier(x1, data.effective_scale_2_a,
                                                  data.effective_scale_2_b);
       int32_t x3 = x2 + data.output_zero_point;
-      int32_t x4 = std::min(std::max(output_min, x3), output_max);
+      int32_t x4 = std::clamp(x3, output_min, output_max);
       tflite::micro::GetTensorData<int8_t>(output_tensor)[i] =
           static_cast<int8_t>(x4);
     }

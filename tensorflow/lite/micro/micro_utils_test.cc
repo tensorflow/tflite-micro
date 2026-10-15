@@ -110,13 +110,4 @@ TEST(MicroUtilsTest, SymmetricQuantizeInt32) {
   }
 }
 
-// Verify Max function works as expected.
-TEST(MicroUtilsTest, Max) {
-  using tflite::Max;
-  // [0, 127.5] -> zero_point=0, scale=0.5
-  EXPECT_EQ(3, Max(2, 3));
-  EXPECT_EQ(2, Max(2, 2));
-  EXPECT_EQ(4, Max(3, Max(4, 2)));
-}
-
 TF_LITE_MICRO_TESTS_MAIN

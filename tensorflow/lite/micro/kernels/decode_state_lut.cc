@@ -101,18 +101,21 @@ T* DecodeStateLut::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
-  if (std::is_same<T, int8_t>::value && compressed_bit_width_ == 4 &&
-      !use_alternate_axis_) {
-    DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value && compressed_bit_width_ == 3 &&
-             !use_alternate_axis_) {
-    DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value && compressed_bit_width_ == 2 &&
-             !use_alternate_axis_) {
-    DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
-  } else {
-    DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
+  if constexpr (std::is_same_v<T, int8_t>) {
+    if (!use_alternate_axis_) {
+      if (compressed_bit_width_ == 4) {
+        DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      } else if (compressed_bit_width_ == 3) {
+        DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      } else if (compressed_bit_width_ == 2) {
+        DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      }
+    }
   }
+  DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
 
   return static_cast<T*>(buffer);
 }
@@ -126,7 +129,6 @@ template int64_t* DecodeStateLut::DecompressToBuffer<int64_t>(void*);
 
 void DecodeStateLut::DecompressToBufferWidth4_16(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const size_t stride = value_table_channel_stride_;
   const uint8_t* value_table = static_cast<const uint8_t*>(value_table_);
@@ -203,7 +205,6 @@ void DecodeStateLut::DecompressToBufferWidth4_16(int8_t* buffer) {
 
 void DecodeStateLut::DecompressToBufferWidth2_16(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const size_t stride = value_table_channel_stride_;
   const uint8_t* value_table = static_cast<const uint8_t*>(value_table_);
@@ -280,7 +281,6 @@ void DecodeStateLut::DecompressToBufferWidth2_16(int8_t* buffer) {
 
 void DecodeStateLut::DecompressToBufferWidth3_32(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const size_t stride = value_table_channel_stride_;
   const uint8_t* value_table = static_cast<const uint8_t*>(value_table_);
@@ -414,7 +414,6 @@ void DecodeStateLut::DecompressToBufferWidth3_32(int8_t* buffer) {
 template <typename T>
 void DecodeStateLut::DecompressToBufferWidthAny(T* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   if (use_alternate_axis_) {
     const size_t stride = value_table_channel_stride_;

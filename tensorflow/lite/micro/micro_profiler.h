@@ -96,7 +96,7 @@ class MicroProfiler : public MicroProfilerInterface {
 //
 // This is done because the ScipedProfiler is used as part of the
 // MicroInterpreter and we want to ensure zero overhead for the release builds.
-class ScopedMicroProfiler {
+class [[maybe_unused]] ScopedMicroProfiler {
  public:
   explicit ScopedMicroProfiler(const char* tag,
                                MicroProfilerInterface* profiler) {}
@@ -114,7 +114,7 @@ class ScopedMicroProfiler {
 //   ScopedMicroProfiler scoped_profiler("custom_tag", profiler);
 //   work_to_profile();
 // }
-class ScopedMicroProfiler {
+class [[maybe_unused]] ScopedMicroProfiler {
  public:
   explicit ScopedMicroProfiler(const char* tag,
                                MicroProfilerInterface* profiler)

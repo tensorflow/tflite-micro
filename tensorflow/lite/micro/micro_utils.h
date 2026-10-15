@@ -32,20 +32,14 @@ int ElementCount(const TfLiteIntArray& dims);
 
 size_t EvalTensorBytes(const TfLiteEvalTensor* tensor);
 
-// C++11 does not support constexpr max; hence, use ternary conditional to
-// create our own constexpr Max function.
-constexpr int Max(int a, int b) { return a >= b ? a : b; }
-
 // Converts a float value into a quantized value.  Note that large values (close
 // to max int and min int) may see significant error due to a lack of floating
 // point granularity for large values.
 template <typename T>
 T FloatToQuantizedType(const float value, const float scale, int zero_point) {
   int32_t result = round(value / scale) + zero_point;
-  result =
-      std::max(static_cast<int32_t>(std::numeric_limits<T>::min()), result);
-  result =
-      std::min(static_cast<int32_t>(std::numeric_limits<T>::max()), result);
+  result = std::clamp<int32_t>(result, std::numeric_limits<T>::min(),
+                               std::numeric_limits<T>::max());
   return result;
 }
 
@@ -54,10 +48,9 @@ T FloatToSymmetricQuantizedType(const float value, const float scale) {
   // 64-bit values are required since 8x16 conv accumulates to int64, meaning
   // an int64 bias is required.
   std::int64_t result = round(value / scale);
-  result = std::max(
-      static_cast<std::int64_t>(std::numeric_limits<T>::min() + 1), result);
-  result = std::min(static_cast<std::int64_t>(std::numeric_limits<T>::max()),
-                    result);
+  result = std::clamp<std::int64_t>(
+      result, static_cast<std::int64_t>(std::numeric_limits<T>::min()) + 1,
+      std::numeric_limits<T>::max());
   return result;
 }
 
@@ -133,9 +126,10 @@ void SymmetricQuantizeCalculateScales(const float* values, TfLiteIntArray* dims,
     const int32_t quantized_value =
         static_cast<int32_t>(roundf(values[i] / *scale));
     // Clamp: just in case some odd numeric offset.
-    quantized_value = fminf(std::numeric_limits<T>::max(), quantized_value);
-    quantized_value = fmaxf(std::numeric_limits<T>::min() + 1, quantized_value);
-    output[i] = quantized_value;
+    output[i] = std::clamp<int32_t>(
+        quantized_value,
+        static_cast<int32_t>(std::numeric_limits<T>::min()) + 1,
+        std::numeric_limits<T>::max());
   }
 }
 
@@ -172,7 +166,6 @@ using micro::ElementCount;
 using micro::EvalTensorBytes;
 using micro::FloatToQuantizedType;
 using micro::FloatToSymmetricQuantizedType;
-using micro::Max;
 using micro::QMaxFromTfLiteType;
 using micro::QMinFromTfLiteType;
 using micro::Quantize;

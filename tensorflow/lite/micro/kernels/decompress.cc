@@ -30,21 +30,21 @@ T* DecompressionState::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
-  if (std::is_same<T, int8_t>::value &&
-      comp_data_.data.lut_data->compressed_bit_width == 4 &&
-      !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value &&
-             comp_data_.data.lut_data->compressed_bit_width == 3 &&
-             !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value &&
-             comp_data_.data.lut_data->compressed_bit_width == 2 &&
-             !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
-  } else {
-    DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
+  if constexpr (std::is_same_v<T, int8_t>) {
+    if (!comp_data_.data.lut_data->use_alternate_axis) {
+      if (comp_data_.data.lut_data->compressed_bit_width == 4) {
+        DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      } else if (comp_data_.data.lut_data->compressed_bit_width == 3) {
+        DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      } else if (comp_data_.data.lut_data->compressed_bit_width == 2) {
+        DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      }
+    }
   }
+  DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
 
   return static_cast<T*>(buffer);
 }

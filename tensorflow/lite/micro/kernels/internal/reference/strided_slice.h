@@ -15,6 +15,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_REFERENCE_STRIDED_SLICE_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_REFERENCE_STRIDED_SLICE_H_
 
+#include <algorithm>
 #include <functional>
 #include <vector>
 
@@ -52,9 +53,9 @@ inline int StartForAxis(const DynamicStridedSliceParams& params,
     start += axis_size;
   }
   if (stride > 0) {
-    start = strided_slice::Clamp(start, 0, axis_size);
+    start = std::clamp(start, 0, axis_size);
   } else {
-    start = strided_slice::Clamp(start, -1, axis_size - 1);
+    start = std::clamp(start, -1, axis_size - 1);
   }
   if (AxisMask(params.begin_mask, axis)) {
     start = stride > 0 ? 0 : axis_size - 1;
@@ -78,9 +79,9 @@ inline int EndForAxis(const DynamicStridedSliceParams& params,
     end += axis_size;
   }
   if (stride > 0) {
-    end = strided_slice::Clamp(end, 0, axis_size);
+    end = std::clamp(end, 0, axis_size);
   } else {
-    end = strided_slice::Clamp(end, -1, axis_size - 1);
+    end = std::clamp(end, -1, axis_size - 1);
   }
   if (AxisMask(params.end_mask, axis)) {
     end = stride > 0 ? axis_size : -1;

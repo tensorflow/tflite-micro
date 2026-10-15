@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_
 
+#include <algorithm>
 #include <limits>
 #include <vector>
 
@@ -25,14 +26,6 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 namespace strided_slice {
-
-// Use until std::clamp() is available from C++17.
-inline int Clamp(const int v, const int lo, const int hi) {
-  TFLITE_DCHECK(!(hi < lo));
-  if (hi < v) return hi;
-  if (v < lo) return lo;
-  return v;
-}
 
 inline void StridedSlicePadIndices(StridedSliceParams* p, int dim_count) {
   // Add indices and mask bits to fully include extra dimensions
@@ -83,9 +76,9 @@ inline int StridedSliceStartForAxis(const StridedSliceParams& params,
     start += axis_size;
   }
   if (stride > 0) {
-    start = Clamp(start, 0, axis_size);
+    start = std::clamp<int32_t>(start, 0, axis_size);
   } else {
-    start = Clamp(start, -1, axis_size - 1);
+    start = std::clamp<int32_t>(start, -1, axis_size - 1);
   }
   if (begin_mask) {
     if (stride > 0) {
@@ -122,9 +115,9 @@ inline int StridedSliceEndForAxis(const StridedSliceParams& params,
     end += axis_size;
   }
   if (stride > 0) {
-    end = Clamp(end, 0, axis_size);
+    end = std::clamp(end, 0, axis_size);
   } else {
-    end = Clamp(end, -1, axis_size - 1);
+    end = std::clamp(end, -1, axis_size - 1);
   }
   if (end_mask) {
     if (stride > 0) {
@@ -172,10 +165,10 @@ inline int StartForAxis(const StridedSliceParams& params,
   // Clamping
   if (strides[axis] > 0) {
     // Forward iteration
-    start = Clamp(start, 0, axis_size);
+    start = std::clamp(start, 0, axis_size);
   } else {
     // Backward iteration
-    start = Clamp(start, -1, axis_size - 1);
+    start = std::clamp(start, -1, axis_size - 1);
   }
 
   return start;
@@ -232,10 +225,10 @@ inline int StopForAxis(const StridedSliceParams& params,
   // different clamping ranges depending on the direction.
   if (strides[axis] > 0) {
     // Forward iteration
-    stop = Clamp(stop, 0, axis_size);
+    stop = std::clamp(stop, 0, axis_size);
   } else {
     // Backward iteration
-    stop = Clamp(stop, -1, axis_size - 1);
+    stop = std::clamp(stop, -1, axis_size - 1);
   }
 
   return stop;
@@ -278,7 +271,6 @@ inline StridedSliceParams BuildStridedSliceParams(
 #define TENSORFLOW_LITE_KERNELS_INTERNAL_STRIDED_SLICE_LOGIC_H_
 namespace strided_slice {
 using micro::strided_slice::BuildStridedSliceParams;
-using micro::strided_slice::Clamp;
 using micro::strided_slice::LoopCondition;
 using micro::strided_slice::StartForAxis;
 using micro::strided_slice::StopForAxis;
