@@ -35,6 +35,7 @@ TensorFlow Lite for Microcontrollers is designed to run deep learning models on 
 * **Tooling, Compression & Python:**
   * [Model Compression Guide](tensorflow/lite/micro/docs/compression.md) & [Tutorial](tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.md)
   * [Python Interpreter & Dev Guide](python/tflite_micro/README.md)
+  * [Layer-by-Layer Debugging Tool](docs/debugging_output.md)
   * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md) and [Profiling](tensorflow/lite/micro/docs/profiling.md)
 
 ---

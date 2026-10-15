@@ -31,13 +31,6 @@ We use [GitHub Merge Queue](https://docs.github.com/en/repositories/configuring-
 *   **Process**: Once a PR is approved and all required checks pass, maintainers click **"Merge when ready"** to add it to the queue.
 *   **Validation**: The [merge_group.yml](../.github/workflows/merge_group.yml) workflow runs the full test suite on a temporary merge branch. This ensures that the combination of multiple PRs doesn't break `main` before they are merged.
 
-## Sync From TensorFlow
-
-TFLite Micro shares code with the main TensorFlow repository.
-
-*   **Source of Truth**: The [TensorFlow repo](https://github.com/tensorflow/tensorflow) is the source for shared code.
-*   **Process**: Any changes to shared code **must** be made in the TensorFlow repo first. They are automatically synced to TFLite Micro via the scheduled [sync.yml](../.github/workflows/sync.yml) workflow.
-
 ## Manually Running Tests (Docker)
 
 You can reproduce CI environments locally using the TFLM CI Docker container.
