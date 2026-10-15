@@ -403,6 +403,11 @@ tflm_kernel_cc_library(
         "//conditions:default": [],
     }),
     accelerated_srcs = {
+        ":cmsis_nn_default": glob(["cmsis_nn/**/*.cc"]),
+        ":cmsis_nn_ethos_u_default": glob([
+            "cmsis_nn/**/*.cc",
+            "ethos_u/**/*.cc",
+        ]),
         xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3_config(): glob(["xtensa/**/*.cc"]),
         xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
@@ -410,6 +415,15 @@ tflm_kernel_cc_library(
         xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
     },
     copts = tflm_copts() + select({
+        ":cmsis_nn_default": [
+            "-DCMSIS_NN",
+            "-DKERNELS_OPTIMIZED_FOR_SPEED",
+        ],
+        ":cmsis_nn_ethos_u_default": [
+            "-DCMSIS_NN",
+            "-DETHOSU",
+            "-DKERNELS_OPTIMIZED_FOR_SPEED",
+        ],
         xtensa_fusion_f1_config(): HIFI4_COPTS,
         xtensa_hifi_3_config(): HIFI3_COPTS,
         xtensa_hifi_3z_config(): HIFI4_COPTS,
@@ -443,6 +457,11 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro/kernels/internal:types",
         "@flatbuffers//:runtime_cc",
     ] + select({
+        ":cmsis_nn_default": [":cmsis_nn_dep"],
+        ":cmsis_nn_ethos_u_default": [
+            ":cmsis_nn_dep",
+            ":ethos_u_dep",
+        ],
         xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_3_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
         xtensa_hifi_3z_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
@@ -1674,12 +1693,46 @@ string_flag(
     build_setting_default = "",
     values = [
         "",
+        "cmsis_nn",
+        "cmsis_nn_ethos_u",
         "xtensa_fusion_f1",
         "xtensa_hifi_3",
         "xtensa_hifi_3z",
         "xtensa_hifi_5",
         "xtensa_vision_p6",
     ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "cmsis_nn_default",
+    flag_values = {
+        ":optimized_kernels": "cmsis_nn",
+    },
+)
+
+config_setting(
+    name = "cmsis_nn_ethos_u_default",
+    flag_values = {
+        ":optimized_kernels": "cmsis_nn_ethos_u",
+    },
+)
+
+label_flag(
+    name = "cmsis_nn_dep",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "ethos_u_dep",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+tflm_cc_library(
+    name = "empty",
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
