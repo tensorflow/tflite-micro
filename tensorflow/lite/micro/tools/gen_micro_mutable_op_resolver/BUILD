@@ -7,8 +7,6 @@ load(
 
 package(
     default_visibility = ["//:__subpackages__"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 

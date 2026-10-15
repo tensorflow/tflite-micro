@@ -143,12 +143,33 @@ def generate_compilation_database(output_path, targets, repo_root):
       continue
     seen_sources.add(source)
 
-    # Filter out GCC-specific flags that Clang doesn't recognize
+    # Filter out GCC-specific flags and Bazel sandbox module-map flags
     unsupported_flags = {
       "-fno-canonical-system-headers",
       "-Wno-free-nonheap-object",
+      "-fmodules-strict-decluse",
+      "-Wprivate-header",
     }
-    filtered_args = [a for a in args[1:] if a not in unsupported_flags]
+    filtered_args = []
+    skip_next = False
+    for i, a in enumerate(args[1:]):
+      if skip_next:
+        skip_next = False
+        continue
+      if (
+        a == "-Xclang"
+        and i + 2 < len(args)
+        and args[i + 2] == "-fno-cxx-modules"
+      ):
+        skip_next = True
+        continue
+      if (
+        a in unsupported_flags
+        or a.startswith("-fmodule-name=")
+        or a.startswith("-fmodule-map-file=")
+      ):
+        continue
+      filtered_args.append(a)
 
     # Select compiler based on file type and add warning suppression flag
     compiler = "clang" if source.endswith(".c") else "clang++"

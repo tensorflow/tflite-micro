@@ -6,8 +6,6 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -93,6 +91,7 @@ tflm_cc_test(
         "single_arena_buffer_allocator_test.cc",
     ],
     deps = [
+        ":simple_memory_allocator",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
@@ -111,7 +110,6 @@ tflm_cc_library(
         ":simple_memory_allocator",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_framework",
-        "//tensorflow/lite/micro/kernels/internal:compatibility",
     ],
 )
 

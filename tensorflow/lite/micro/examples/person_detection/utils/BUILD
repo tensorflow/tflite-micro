@@ -2,7 +2,6 @@ load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library", "tflm_py_test")
 
 package(
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 

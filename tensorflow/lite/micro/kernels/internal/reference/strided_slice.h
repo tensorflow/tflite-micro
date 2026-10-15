@@ -18,8 +18,8 @@ limitations under the License.
 #include <functional>
 #include <vector>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/portable_tensor.h"
 #include "tensorflow/lite/micro/kernels/internal/strided_slice_logic.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"

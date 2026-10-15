@@ -20,8 +20,8 @@ limitations under the License.
 #include <cstdint>
 #include <type_traits>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/broadcast_loop.h"
 

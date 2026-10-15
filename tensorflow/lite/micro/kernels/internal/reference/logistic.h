@@ -17,12 +17,12 @@ limitations under the License.
 
 #include <cmath>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/cppmath.h"
 #include "tensorflow/lite/micro/kernels/internal/fixedpoint.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
-#include "tensorflow/lite/micro/kernels/op_macros.h"
 
 namespace tflite {
 namespace micro {

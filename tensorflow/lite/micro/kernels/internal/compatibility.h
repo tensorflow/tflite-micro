@@ -15,6 +15,6 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_COMPATIBILITY_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_COMPATIBILITY_H_
 
-#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"  // IWYU pragma: export
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_COMPATIBILITY_H_
