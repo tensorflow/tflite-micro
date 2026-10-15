@@ -62,6 +62,7 @@ def build_generated_headers(repo_root):
   """Build generated targets needed by Clang tooling."""
   targets = [
     "//tensorflow/lite/micro:micro_framework",
+    "//tensorflow/lite/micro/compression:metadata_cc",
     "//tensorflow/lite/micro/tools:layer_by_layer_schema",
     "//tensorflow/lite/micro/benchmarks:keyword_scrambled_model_data",
     "//tensorflow/lite/micro/examples/person_detection:person_detect_model_data",

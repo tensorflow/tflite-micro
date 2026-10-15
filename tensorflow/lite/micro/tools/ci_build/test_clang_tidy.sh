@@ -114,8 +114,7 @@ echo "Running clang-tidy diff against ${BASE_REF} (merge-base: ${MERGE_BASE})...
 git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     tensorflow/lite/micro signal \
     ':(exclude)*.inc' \
-    ':(exclude)*schema_generated.h' \
-    ':(exclude)*metadata_saved.h' \
+    ':(exclude)*_generated.h' \
     ':(exclude)*/downloads/*' \
     ':(exclude)*_model_data.h' \
     ':(exclude)*_test_data.h' \
