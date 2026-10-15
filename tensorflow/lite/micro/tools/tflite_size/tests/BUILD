@@ -26,6 +26,6 @@ tflm_py_test(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        "//tensorflow/lite/micro/python/tflite_size/src:flatbuffer_size",
+        "//tensorflow/lite/micro/tools/tflite_size/src:flatbuffer_size",
     ],
 )
