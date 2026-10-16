@@ -16,7 +16,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_C_C_API_OPAQUE_H_
 
 /// For documentation, see
-/// tensorflow/lite/core/c/c_api_opaque.h
+/// third_party/tensorflow/lite/core/c/c_api_opaque.h
 
 #include "tensorflow/lite/core/c/c_api_opaque.h"
 

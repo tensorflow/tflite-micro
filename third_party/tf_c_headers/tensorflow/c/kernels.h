@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/c/tf_tensor.h"
 
 // Required for IS_MOBILE_PLATFORM definition
-#include "tensorflow/tsl/platform/platform.h"  // IWYU pragma: keep
+#include "tsl/platform/platform.h"  // IWYU pragma: keep
 
 #if !defined(IS_MOBILE_PLATFORM) && !defined(IS_SLIM_BUILD)
 #include "tensorflow/core/common_runtime/next_pluggable_device/c/tf_rendezvous_c_api.h"

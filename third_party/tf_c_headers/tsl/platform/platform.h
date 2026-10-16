@@ -25,17 +25,17 @@ limitations under the License.
 
 // Choose which platform we are on.
 #if defined(ANDROID) || defined(__ANDROID__)
-#define PLATFORM_GOOGLE_ANDROID
+#define PLATFORM_POSIX_ANDROID
 #define IS_MOBILE_PLATFORM
 
 #elif defined(__APPLE__)
 #include "TargetConditionals.h"
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
-#define PLATFORM_GOOGLE_IOS
+#define PLATFORM_POSIX_IOS
 #define IS_MOBILE_PLATFORM
 #else
 // If no platform specified, use:
-#define PLATFORM_GOOGLE
+#define PLATFORM_POSIX
 #endif
 
 #elif defined(_WIN32)
@@ -47,7 +47,7 @@ limitations under the License.
 // EMSCRIPTEN builds are considered "mobile" for the sake of portability.
 #define IS_MOBILE_PLATFORM
 
-#elif defined(GOOGLE_UNSUPPORTED_OS_LOONIX)
+#elif defined(__TF_CHROMIUMOS__)
 #define PLATFORM_PORTABLE_GOOGLE
 #define PLATFORM_POSIX
 #define PLATFORM_CHROMIUMOS
@@ -64,7 +64,7 @@ limitations under the License.
 
 #else
 // If no platform specified, use:
-#define PLATFORM_GOOGLE
+#define PLATFORM_POSIX
 
 #endif
 #endif
@@ -86,18 +86,12 @@ limitations under the License.
 #endif
 #endif
 
-#define TSL_IS_IN_OSS 0
+#define TSL_IS_IN_OSS 1
 
 #ifdef __cplusplus
 namespace tsl {
 // Constant which is false internally and true in open source.
 inline constexpr bool kIsOpenSource = TSL_IS_IN_OSS;
-
-#ifdef NDEBUG
-inline constexpr bool kIsDebugBuild = false;
-#else
-inline constexpr bool kIsDebugBuild = true;
-#endif
 }  // namespace tsl
 #endif
 

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 /// \warning Users of TensorFlow Lite should not include this file directly,
-/// but should instead include "tensorflow/lite/c/c_api.h".
+/// but should instead include "third_party/tensorflow/lite/c/c_api.h".
 /// Only the TensorFlow Lite implementation itself should include this
 /// file directly.
 ///

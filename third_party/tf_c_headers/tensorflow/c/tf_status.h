@@ -17,7 +17,7 @@ limitations under the License.
 #define TENSORFLOW_C_TF_STATUS_H_
 
 #include "tensorflow/c/c_api_macros.h"
-#include "tensorflow/compiler/xla/tsl/c/tsl_status.h"
+#include "xla/tsl/c/tsl_status.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,7 +47,7 @@ typedef TSL_Code TF_Code;
 #define TF_INTERNAL TSL_INTERNAL
 #define TF_UNAVAILABLE TSL_UNAVAILABLE
 #define TF_DATA_LOSS TSL_DATA_LOSS
-// LINT.ThenChange(//depot/google3/third_party/tensorflow/python/py_exception_registry_wrapper.cc)
+// LINT.ThenChange(//tensorflow/python/py_exception_registry_wrapper.cc)
 
 // --------------------------------------------------------------------------
 
