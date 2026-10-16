@@ -16,7 +16,7 @@ limitations under the License.
 // Compiler.
 
 // WARNING: Users of TensorFlow Lite should not include this file directly, but
-// should instead include "tensorflow/lite/c/c_api_types.h".
+// should instead include "third_party/tensorflow/lite/c/c_api_types.h".
 // Only the TensorFlow Lite implementation itself should include this file
 // directly.
 
@@ -30,7 +30,7 @@ limitations under the License.
 // NOLINTEND(whitespace/line_length)
 // clang-format on
 
-// IWYU pragma: private, include "tensorflow/lite/c/c_api_types.h"
+// IWYU pragma: private, include "third_party/tensorflow/lite/c/c_api_types.h"
 
 #ifndef TENSORFLOW_COMPILER_MLIR_LITE_CORE_C_TFLITE_TYPES_H_
 #define TENSORFLOW_COMPILER_MLIR_LITE_CORE_C_TFLITE_TYPES_H_
@@ -64,12 +64,8 @@ typedef enum {
   kTfLiteUInt16 = 17,
   kTfLiteInt4 = 18,
   kTfLiteBFloat16 = 19,
-  kTfLiteInt2 = 20,
-  kTfLiteUInt4 = 21,
-  kTfLiteFloat8E4M3FN = 22,
-  kTfLiteFloat8E5M2 = 23,
 } TfLiteType;
-// LINT.ThenChange(//depot/google3/tensorflow/lite/profiling/proto/model_runtime_info.proto:EdgeDataType)
+// LINT.ThenChange(//tensorflow/lite/profiling/proto/model_runtime_info.proto:EdgeDataType)
 
 /// Legacy. Will be deprecated in favor of `TfLiteAffineQuantization`.
 /// If per-layer quantization is specified this field will still be populated in

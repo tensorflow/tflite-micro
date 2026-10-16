@@ -989,7 +989,7 @@ TF_CAPI_EXPORT extern void TF_AbortWhile(const TF_WhileParams* params);
 //
 // WARNING: This function does not yet support all the gradients that python
 // supports. See
-// https://cs.corp.google.com/#piper///depot/google3/third_party/tensorflow/cc/gradients/README.md
+// https://www.tensorflow.org/code/tensorflow/cc/gradients/README.md
 // for instructions on how to add C++ more gradients.
 TF_CAPI_EXPORT void TF_AddGradients(TF_Graph* g, TF_Output* y, int ny,
                                     TF_Output* x, int nx, TF_Output* dx,
@@ -1014,7 +1014,7 @@ TF_CAPI_EXPORT void TF_AddGradients(TF_Graph* g, TF_Output* y, int ny,
 //
 // WARNING: This function does not yet support all the gradients that python
 // supports. See
-// https://cs.corp.google.com/#piper///depot/google3/third_party/tensorflow/cc/gradients/README.md
+// https://www.tensorflow.org/code/tensorflow/cc/gradients/README.md
 // for instructions on how to add C++ more gradients.
 TF_CAPI_EXPORT void TF_AddGradientsWithPrefix(TF_Graph* g, const char* prefix,
                                               TF_Output* y, int ny,
@@ -1195,7 +1195,7 @@ TF_CAPI_EXPORT extern unsigned char TF_TryEvaluateConstant(TF_Graph* graph,
                                                            TF_Tensor** result,
                                                            TF_Status* status);
 
-// TODO(joshl): Register OpDef, available to all operations added
+// TODO(josh11b): Register OpDef, available to all operations added
 // to this graph.
 
 // --------------------------------------------------------------------------
@@ -1474,7 +1474,7 @@ TF_CAPI_EXPORT extern TF_Buffer* TF_GetAllOpList(void);
 //
 // This object maps the name of a TensorFlow operation to a description of the
 // API to generate for it, as defined by the ApiDef protocol buffer (
-// https://cs.corp.google.com/#piper///depot/google3/third_party/tensorflow/core/framework/api_def.proto)
+// https://www.tensorflow.org/code/tensorflow/core/framework/api_def.proto)
 //
 // The ApiDef messages are typically used to generate convenience wrapper
 // functions for TensorFlow operations in various language bindings.
@@ -1485,7 +1485,7 @@ typedef struct TF_ApiDefMap TF_ApiDefMap;
 // Params:
 //  op_list_buffer - TF_Buffer instance containing serialized OpList
 //    protocol buffer. (See
-//    https://cs.corp.google.com/#piper///depot/google3/third_party/tensorflow/core/framework/op_def.proto
+//    https://www.tensorflow.org/code/tensorflow/core/framework/op_def.proto
 //    for the OpList proto definition).
 //  status - Set to OK on success and an appropriate error on failure.
 TF_CAPI_EXPORT extern TF_ApiDefMap* TF_NewApiDefMap(TF_Buffer* op_list_buffer,
@@ -1497,7 +1497,7 @@ TF_CAPI_EXPORT extern void TF_DeleteApiDefMap(TF_ApiDefMap* apimap);
 // Add ApiDefs to the map.
 //
 // `text` corresponds to a text representation of an ApiDefs protocol message.
-// (https://cs.corp.google.com/#piper///depot/google3/third_party/tensorflow/core/framework/api_def.proto).
+// (https://www.tensorflow.org/code/tensorflow/core/framework/api_def.proto).
 //
 // The provided ApiDefs will be merged with existing ones in the map, with
 // precedence given to the newly added version in case of conflicts with

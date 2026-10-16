@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // WARNING: Users of TensorFlow Lite should not include this file directly, but
-// should instead include "tensorflow/lite/c/common.h".
+// should instead include "third_party/tensorflow/lite/c/common.h".
 // Only the TensorFlow Lite implementation itself should include this file
 // directly.
 
@@ -47,7 +47,7 @@ limitations under the License.
 // NOLINTEND(whitespace/line_length)
 // clang-format on
 
-// IWYU pragma: private, include "tensorflow/lite/c/common.h"
+// IWYU pragma: private, include "third_party/tensorflow/lite/c/common.h"
 
 #ifndef TENSORFLOW_LITE_CORE_C_COMMON_H_
 #define TENSORFLOW_LITE_CORE_C_COMMON_H_
@@ -56,7 +56,6 @@ limitations under the License.
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include "tensorflow/lite/core/c/c_api_types.h"  // IWYU pragma: export
 
@@ -105,7 +104,7 @@ typedef struct TfLiteExternalContext {
 
 // LINT.IfChange(optional_tensor)
 #define kTfLiteOptionalTensor (-1)
-// LINT.ThenChange(//depot/google3/tensorflow/compiler/mlir/lite/flatbuffer_export.cc:optional_tensor)
+// LINT.ThenChange(//tensorflow/compiler/mlir/lite/flatbuffer_export.cc:optional_tensor)
 
 /// Fixed size list of integers. Used for dimensions and inputs/outputs tensor
 /// indices
@@ -269,46 +268,22 @@ void TfLiteFloatArrayFree(TfLiteFloatArray* a);
 
 #define TF_LITE_ENSURE_NEAR(context, a, b, epsilon)                          \
   do {                                                                       \
-    const auto _val_a = (a);                                                 \
-    const auto _val_b = (b);                                                 \
-    const auto _eps = (epsilon);                                             \
-    const auto _delta = _val_a - _val_b;                                     \
-    if (_delta > _eps || _delta < -_eps) {                                   \
-      TF_LITE_KERNEL_LOG(                                                    \
-          (context), "%s:%d %s not near %s (%f != %f)", __FILE__, __LINE__,  \
-          #a, #b, static_cast<double>(_val_a), static_cast<double>(_val_b)); \
+    auto delta = ((a) > (b)) ? ((a) - (b)) : ((b) - (a));                    \
+    if (delta > epsilon) {                                                   \
+      TF_LITE_KERNEL_LOG((context), "%s:%d %s not near %s (%f != %f)",       \
+                         __FILE__, __LINE__, #a, #b, static_cast<double>(a), \
+                         static_cast<double>(b));                            \
       return kTfLiteError;                                                   \
     }                                                                        \
   } while (0)
 
-#ifndef TF_LITE_STRIP_ERROR_STRINGS
-#define TF_LITE_VAR_ARG_HEAD(FIRST, ...) FIRST
-#define TF_LITE_STRINGIFY_HELPER(x) #x
-#define TF_LITE_STRINGIFY(x) TF_LITE_STRINGIFY_HELPER(x)
-// Checks that `status` evaluates to `kTfLiteOk`.
-//
-// Can take a printf style log message and its parameters after the status. The
-// message will be printed using `TF_LITE_KERNEL_LOG` in case of error.
-#define TF_LITE_ENSURE_OK(context, status, ...)                              \
-  do {                                                                       \
-    const TfLiteStatus s = (status);                                         \
-    if (s != kTfLiteOk) {                                                    \
-      if (sizeof(TF_LITE_VAR_ARG_HEAD("" __VA_ARGS__)) > sizeof("")) {       \
-        TF_LITE_MAYBE_KERNEL_LOG((context), __FILE__ ":" TF_LITE_STRINGIFY(  \
-                                                __LINE__) ": " __VA_ARGS__); \
-      }                                                                      \
-      return s;                                                              \
-    }                                                                        \
+#define TF_LITE_ENSURE_OK(context, status) \
+  do {                                     \
+    const TfLiteStatus s = (status);       \
+    if ((s) != kTfLiteOk) {                \
+      return s;                            \
+    }                                      \
   } while (0)
-#else
-#define TF_LITE_ENSURE_OK(context, status, ...) \
-  do {                                          \
-    const TfLiteStatus s = (status);            \
-    if ((s) != kTfLiteOk) {                     \
-      return s;                                 \
-    }                                           \
-  } while (0)
-#endif
 
 // `std::unreachable` not available until CC23.
 #ifdef __GNUC__  // GCC, Clang, ICC
@@ -359,11 +334,6 @@ typedef enum TfLiteQuantizationType {
   kTfLiteAffineQuantization = 1,
   /// Blockwise quantization.
   kTfLiteBlockwiseQuantization = 2,
-  /// Multi-axis quantization.
-  kTfLiteMultiAxisQuantization = 3,
-  /// N-D blockwise quantization.
-  /// Corresponds to TfLiteBlockwiseQuantizationV2.
-  kTfLiteBlockwiseQuantizationV2 = 4,
 } TfLiteQuantizationType;
 
 /// Structure specifying the quantization used by the tensor, if-any.
@@ -402,34 +372,6 @@ typedef struct TfLiteBlockwiseQuantization {
   int32_t blocksize;
   int32_t quantized_dimension;
 } TfLiteBlockwiseQuantization;
-
-/// Parameters for N-D blockwise quantization.
-/// `block_shape->data[d]` is the extent of a single block along dimension `d`,
-/// so the scale and zero point tensors have shape
-/// `ceil(tensor_shape / block_shape)`. `block_shape` is owned by this struct.
-typedef struct TfLiteBlockwiseQuantizationV2 {
-  // Index of the tensor containing the scales.
-  int32_t scale;
-  // Index of the tensor containing the zero points.
-  int32_t zero_point;
-  // Quantization blocksize. Only expresses blocking along the last dimension.
-  // Ignored when `block_shape` is non-null.
-  int32_t blocksize;
-  int32_t quantized_dimension;
-  // N-D block shape, with one entry per dimension of the quantized tensor.
-  // Owned by this struct.
-  TfLiteIntArray* block_shape;
-} TfLiteBlockwiseQuantizationV2;
-
-/// Parameters for multi-axis quantization. The scales and zero_points fields
-/// refer to tensor indices in the same subgraph. If zero_points is -1, zero
-/// point is assumed to be 0. For per-channel quantization, blocksize is 0.
-typedef struct TfLiteMultiAxisQuantization {
-  int32_t scales;
-  int32_t zero_points;
-  int32_t blocksize;
-  TfLiteIntArray* quantized_dimensions;
-} TfLiteMultiAxisQuantization;
 
 /// A union of pointers that points to memory for a given tensor.
 ///
@@ -552,23 +494,6 @@ typedef struct TfLiteCustomAllocation {
   void* data;
   size_t bytes;
 } TfLiteCustomAllocation;
-
-/// Defines a custom allocator used by the runtime for TFLite-owned CPU
-/// buffers. The runtime does not take ownership of this object, and it must
-/// outlive every interpreter that uses it.
-///
-/// `alignment` is the minimum byte alignment requested for the returned
-/// pointer. `reallocate` may be null; in that case the runtime allocates a new
-/// buffer, copies the preserved bytes when needed, and deallocates the old
-/// buffer. If `reallocate` is provided and returns null, the original
-/// allocation must remain valid.
-typedef struct TfLiteAllocator {
-  void* data;
-  void* (*allocate)(void* data, size_t bytes, size_t alignment);
-  void* (*reallocate)(void* data, void* ptr, size_t old_bytes, size_t new_bytes,
-                      size_t alignment);
-  void (*deallocate)(void* data, void* ptr, size_t bytes, size_t alignment);
-} TfLiteAllocator;
 
 /// The flags used in `Interpreter::SetCustomAllocationForTensor`.
 /// Note that this is a bitmask, so the values should be 1, 2, 4, 8, ...etc.
@@ -809,11 +734,6 @@ typedef struct TfLiteEvalTensor {
 /// Free data memory of tensor `t`.
 void TfLiteTensorDataFree(TfLiteTensor* t);
 
-/// Same as `TfLiteTensorDataFree`, but uses `allocator` for runtime-owned
-/// buffers when non-null.
-void TfLiteTensorDataFreeWithAllocator(TfLiteTensor* t,
-                                       TfLiteAllocator* allocator);
-
 /// Free quantization data.
 void TfLiteQuantizationFree(TfLiteQuantization* quantization);
 
@@ -854,12 +774,6 @@ TfLiteTensor TfLiteTensorClone(TfLiteTensor src);
 TfLiteStatus TfLiteTensorResizeMaybeCopy(size_t num_bytes, TfLiteTensor* tensor,
                                          bool preserve_data);
 
-/// Same as `TfLiteTensorResizeMaybeCopy`, but uses `allocator` for
-/// runtime-owned buffers when non-null.
-TfLiteStatus TfLiteTensorResizeMaybeCopyWithAllocator(
-    size_t num_bytes, TfLiteTensor* tensor, bool preserve_data,
-    TfLiteAllocator* allocator);
-
 /// Change the size of the memory block owned by `tensor` to `num_bytes`.
 /// Tensors with allocation types other than `kTfLiteDynamic` will be ignored
 /// and a `kTfLiteOk` will be returned. `tensor`'s internal data buffer will be
@@ -868,12 +782,6 @@ TfLiteStatus TfLiteTensorResizeMaybeCopyWithAllocator(
 /// start of the region up to the minimum of the old and new sizes. In the case
 /// of NULL tensor, or an error allocating new memory, returns `kTfLiteError`.
 TfLiteStatus TfLiteTensorRealloc(size_t num_bytes, TfLiteTensor* tensor);
-
-/// Same as `TfLiteTensorRealloc`, but uses `allocator` for runtime-owned
-/// buffers when non-null.
-TfLiteStatus TfLiteTensorReallocWithAllocator(size_t num_bytes,
-                                              TfLiteTensor* tensor,
-                                              TfLiteAllocator* allocator);
 
 /// Returns the shape of the tensor, with -1 for any unknown dimension sizes.
 /// If any dimension is unknown, this is the same as `t->dims_signature`.
@@ -1152,13 +1060,6 @@ typedef struct TfLiteContext {
   /// WARNING: This is an experimental interface that is subject to change.
   TfLiteStatus (*ReleaseSubgraphContext)(struct TfLiteContext* context,
                                          int subgraph_index);
-#if defined(_WIN32)
-  /// Create a array of a given `size` (uninitialized entries).
-  TfLiteIntArray* (*TfLiteIntArrayCreate)(int size);  // NOLINT
-
-  /// Free memory of array `a`.
-  void (*TfLiteIntArrayFree)(TfLiteIntArray* a);  // NOLINT
-#endif                                            // defined(_WIN32)
 } TfLiteContext;
 
 /// `TfLiteOperator` is an external version of `TfLiteRegistration`
@@ -1451,15 +1352,7 @@ typedef enum TfLiteDelegateFlags {
   /// operator information using `Profiler::EventType::OPERATOR_INVOKE_EVENT`
   /// and the results will appear in the operator-wise Profiling section and not
   /// in the Delegate internal section.
-  kTfLiteDelegateFlagsPerOperatorProfiling = 4,
-
-  // This flag can be used by callers to hint that the delegate is likely to
-  // delegate the entire graph to a single delegate so certain allocations can
-  // be skipped.
-  // This is an ADVANCED feature and should only be used if the caller has
-  // prior knowledge that the delegate will fully delegate all subgraphs
-  // to a single delegate.
-  kTfLiteDelegateFlagsHintFullyDelegatedToSingleDelegate = 8,
+  kTfLiteDelegateFlagsPerOperatorProfiling = 4
 } TfLiteDelegateFlags;
 
 /// WARNING: This is an experimental interface that is subject to change.

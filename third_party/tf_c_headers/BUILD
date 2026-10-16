@@ -7,7 +7,11 @@ package(
 
 cc_library(
     name = "tf_c_headers",
-    hdrs = glob(["tensorflow/**/*.h"]),
+    hdrs = glob([
+        "tensorflow/**/*.h",
+        "tsl/**/*.h",
+        "xla/**/*.h",
+    ]),
     defines = ["IS_SLIM_BUILD=1"],
     includes = ["."],
 )
