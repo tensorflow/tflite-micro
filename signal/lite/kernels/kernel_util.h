@@ -41,24 +41,10 @@ inline const T* GetTensorData(const TfLiteOpaqueTensor* tensor) {
   return reinterpret_cast<const T*>(TfLiteOpaqueTensorData(tensor));
 }
 
-inline int GetFlatSize(const TfLiteOpaqueTensor* tensor) {
-  int flat_size = 1;
-  int num_dims = TfLiteOpaqueTensorNumDims(tensor);
-  for (int i = 0; i < num_dims; ++i) {
-    flat_size *= TfLiteOpaqueTensorDim(tensor, i);
-  }
-  return flat_size;
-}
+int GetFlatSize(const TfLiteOpaqueTensor* tensor);
 
-inline ::TfLiteRegistration MakeRegistration(const char* custom_name,
-                                             TfLiteOperator* op) {
-  ::TfLiteRegistration reg{};
-  reg.builtin_code = kTfLiteBuiltinCustom;
-  reg.custom_name = custom_name;
-  reg.version = 1;
-  reg.registration_external = op;
-  return reg;
-}
+::TfLiteRegistration MakeRegistration(const char* custom_name,
+                                      TfLiteOperator* op);
 
 }  // namespace lite
 }  // namespace tflm_signal

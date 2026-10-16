@@ -122,18 +122,13 @@ void DelayOpCompute(void* kernel, TF_OpKernelContext* ctx) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalDelayKernel() {
+__attribute__((constructor)) void RegisterSignalDelayKernel() {
   TF_Status* status = TF_NewStatus();
   auto* builder = TF_NewKernelBuilder("SignalDelay", "CPU", &DelayOpCreate,
                                       &DelayOpCompute, &DelayOpDelete);
   TF_RegisterKernelBuilder("SignalDelay", builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalDelayKernelRegistered = []() {
-  RegisterSignalDelayKernel();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

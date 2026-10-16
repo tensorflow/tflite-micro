@@ -58,9 +58,10 @@ void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
   params->stacker_step = m["stacker_step"].AsInt32();
 
   params->buffer_size =
-      params->num_channels *
+      static_cast<size_t>(params->num_channels) *
       (params->stacker_left_context + params->stacker_right_context + 1);
-  params->step_size = params->num_channels * params->stacker_step;
+  params->step_size =
+      static_cast<size_t>(params->num_channels) * params->stacker_step;
   params->stacker_has_first_frame = false;
 
   size_t state_size =

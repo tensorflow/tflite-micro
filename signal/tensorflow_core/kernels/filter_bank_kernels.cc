@@ -312,7 +312,7 @@ void FilterBankLogOpCompute(void* kernel, TF_OpKernelContext* ctx) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalFilterBankKernels() {
+__attribute__((constructor)) void RegisterSignalFilterBankKernels() {
   TF_Status* status = TF_NewStatus();
 
   auto* fb_builder =
@@ -340,11 +340,6 @@ void RegisterSignalFilterBankKernels() {
 
   TF_DeleteStatus(status);
 }
-
-const bool kSignalFilterBankKernelsRegistered = []() {
-  RegisterSignalFilterBankKernels();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

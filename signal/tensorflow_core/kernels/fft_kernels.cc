@@ -262,7 +262,7 @@ void RegisterTypedKernel(const char* op_name, TF_DataType type) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalFftKernels() {
+__attribute__((constructor)) void RegisterSignalFftKernels() {
   TF_Status* status = TF_NewStatus();
   auto* auto_scale_builder =
       TF_NewKernelBuilder("SignalFftAutoScale", "CPU", &FftAutoScaleOpCreate,
@@ -296,11 +296,6 @@ void RegisterSignalFftKernels() {
               tflite::tflm_signal::IrfftInt32Init,
               tflite::tflm_signal::IrfftInt32Apply>>("SignalIrfft", TF_INT32);
 }
-
-const bool kSignalFftKernelsRegistered = []() {
-  RegisterSignalFftKernels();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

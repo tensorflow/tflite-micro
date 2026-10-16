@@ -7,6 +7,7 @@ package(
 
 cc_library(
     name = "kernel_util",
+    srcs = ["kernel_util.cc"],
     hdrs = ["kernel_util.h"],
     deps = [
         "//third_party/tflite_c_headers:c_api_opaque",

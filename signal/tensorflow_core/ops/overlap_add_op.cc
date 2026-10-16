@@ -74,7 +74,7 @@ void OverlapAddShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // frame_step: The number of output samples to progress the 'current'
 // sample on each invocation. Also the number of samples in each output frame.
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalOverlapAddOp() {
+__attribute__((constructor)) void RegisterSignalOverlapAddOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder =
       TF_NewOpDefinitionBuilder("SignalOverlapAdd");
@@ -86,11 +86,6 @@ void RegisterSignalOverlapAddOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalOverlapAddOpRegistered = []() {
-  RegisterSignalOverlapAddOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

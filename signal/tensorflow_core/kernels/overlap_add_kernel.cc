@@ -132,15 +132,10 @@ void RegisterTypedOverlapAddKernel(TF_DataType type) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalOverlapAddKernels() {
+__attribute__((constructor)) void RegisterSignalOverlapAddKernels() {
   RegisterTypedOverlapAddKernel<OverlapAddOp<float, TF_FLOAT>>(TF_FLOAT);
   RegisterTypedOverlapAddKernel<OverlapAddOp<int16_t, TF_INT16>>(TF_INT16);
 }
-
-const bool kSignalOverlapAddKernelsRegistered = []() {
-  RegisterSignalOverlapAddKernels();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

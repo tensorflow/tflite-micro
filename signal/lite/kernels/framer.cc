@@ -107,8 +107,10 @@ TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
   params->circular_buffers.resize(params->outer_dims, nullptr);
   for (int i = 0; i < params->outer_dims; ++i) {
     if (params->state_buffers[i] == nullptr) {
-      size_t capacity = (params->frame_size + params->frame_step - 1) /
-                        params->frame_step * params->frame_step;
+      size_t capacity =
+          static_cast<size_t>((params->frame_size + params->frame_step - 1) /
+                              params->frame_step) *
+          params->frame_step;
       size_t state_size = tflm_signal::CircularBufferGetNeededMemory(capacity);
       params->state_buffers[i] = new int8_t[state_size];
       params->circular_buffers[i] = tflm_signal::CircularBufferInit(

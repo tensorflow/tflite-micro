@@ -48,7 +48,7 @@ void StackerShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
   }
   if (TF_GetCode(status) == TF_OK) {
     TF_ShapeHandle* out = TF_ShapeInferenceContextVectorFromSize(
-        ctx, static_cast<size_t>(num_channels * output_frames));
+        ctx, static_cast<size_t>(num_channels) * output_frames);
     TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
     TF_DeleteShapeHandle(out);
   }
@@ -67,7 +67,7 @@ void StackerShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // becomes the input to the neural network. The stacker then moves forward in a
 // step of one or more input frames.
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalStackerOp() {
+__attribute__((constructor)) void RegisterSignalStackerOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalStacker");
   TF_OpDefinitionBuilderAddAttr(builder, "num_channels: int >= 1");
@@ -81,11 +81,6 @@ void RegisterSignalStackerOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalStackerOpRegistered = []() {
-  RegisterSignalStackerOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

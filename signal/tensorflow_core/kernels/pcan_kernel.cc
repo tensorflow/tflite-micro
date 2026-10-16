@@ -101,18 +101,13 @@ void PcanOpCompute(void* kernel, TF_OpKernelContext* ctx) {
   TF_DeleteStatus(status);
 }
 
-void RegisterSignalPcanKernel() {
+__attribute__((constructor)) void RegisterSignalPcanKernel() {
   TF_Status* status = TF_NewStatus();
   auto* builder = TF_NewKernelBuilder("SignalPCAN", "CPU", &PcanOpCreate,
                                       &PcanOpCompute, &PcanOpDelete);
   TF_RegisterKernelBuilder("SignalPCAN", builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalPcanKernelRegistered = []() {
-  RegisterSignalPcanKernel();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

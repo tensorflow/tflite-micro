@@ -99,18 +99,13 @@ void WindowOpCompute(void* kernel, TF_OpKernelContext* ctx) {
 }
 
 // TODO(b/286250473): change back name to "Window" after name clash resolved
-void RegisterSignalWindowKernel() {
+__attribute__((constructor)) void RegisterSignalWindowKernel() {
   TF_Status* status = TF_NewStatus();
   auto* builder = TF_NewKernelBuilder("SignalWindow", "CPU", &WindowOpCreate,
                                       &WindowOpCompute, &WindowOpDelete);
   TF_RegisterKernelBuilder("SignalWindow", builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalWindowKernelRegistered = []() {
-  RegisterSignalWindowKernel();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal
