@@ -18,9 +18,6 @@ load(
 )
 
 package(
-    features = [
-        "-parse_headers",  # buildozer: disable=no-parse-headers, paser_headers is unavailable with bazel (http://b/175817117#comment4)
-    ],
     licenses = ["notice"],
 )
 
@@ -86,6 +83,7 @@ tflm_cc_library(
     ],
     deps = [
         ":kernel_runner",
+        ":kernel_util",
         ":micro_ops",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:test_helpers",
@@ -209,6 +207,10 @@ tflm_cc_library(
         "lstm_shared.h",
     ],
     visibility = ["//tensorflow/lite/micro/kernels/testdata:__pkg__"],
+    deps = [
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro/kernels/internal:types",
+    ],
 )
 
 tflm_cc_library(
@@ -222,6 +224,7 @@ tflm_cc_library(
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels/testdata:lstm_test_data",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )
 

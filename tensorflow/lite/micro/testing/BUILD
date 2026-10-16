@@ -55,6 +55,7 @@ tflm_cc_library(
     ],
     deps = [
         "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:op_resolvers",
     ],
 )

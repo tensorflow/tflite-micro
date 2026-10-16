@@ -5,6 +5,7 @@ package(
         "//signal:__subpackages__",
         "//tensorflow/lite/micro:__subpackages__",
     ],
+    features = ["parse_headers"],
     licenses = ["notice"],
 )
 
