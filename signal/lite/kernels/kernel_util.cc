@@ -15,6 +15,10 @@ limitations under the License.
 
 #include "signal/lite/kernels/kernel_util.h"
 
+#include <stddef.h>
+#include <stdint.h>
+
+#include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/c_api_opaque.h"
 #include "tensorflow/lite/c/common.h"
 
@@ -29,6 +33,34 @@ int GetFlatSize(const TfLiteOpaqueTensor* tensor) {
     flat_size *= TfLiteOpaqueTensorDim(tensor, i);
   }
   return flat_size;
+}
+
+flexbuffers::Map GetFlexbufferMap(const char* buffer, size_t length) {
+  if (buffer == nullptr || length == 0) {
+    return flexbuffers::Map::EmptyMap();
+  }
+  return flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
+      .AsMap();
+}
+
+TfLiteOperator* MakeOperator(
+    const char* custom_name,
+    void* (*init)(void*, TfLiteOpaqueContext*, const char*, size_t),
+    void (*free_fn)(void*, TfLiteOpaqueContext*, void*),
+    TfLiteStatus (*prepare)(void*, TfLiteOpaqueContext*, TfLiteOpaqueNode*),
+    TfLiteStatus (*invoke)(void*, TfLiteOpaqueContext*, TfLiteOpaqueNode*)) {
+  TfLiteOperator* op =
+      TfLiteOperatorCreate(kTfLiteBuiltinCustom, custom_name, /*version=*/1,
+                           /*user_data=*/nullptr);
+  if (init != nullptr) {
+    TfLiteOperatorSetInitWithData(op, init);
+  }
+  if (free_fn != nullptr) {
+    TfLiteOperatorSetFreeWithData(op, free_fn);
+  }
+  TfLiteOperatorSetPrepareWithData(op, prepare);
+  TfLiteOperatorSetInvokeWithData(op, invoke);
+  return op;
 }
 
 ::TfLiteRegistration MakeRegistration(const char* custom_name,

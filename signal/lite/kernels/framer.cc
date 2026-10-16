@@ -41,31 +41,18 @@ struct FramerParams {
   int32_t n_frames = 0;
   bool prefill = false;
 
-  std::vector<int8_t*> state_buffers;
+  std::vector<std::vector<int8_t>> state_buffers;
   std::vector<tflm_signal::CircularBuffer*> circular_buffers;
 };
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new FramerParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->frame_size = m["frame_size"].AsInt32();
   params->frame_step = m["frame_step"].AsInt32();
   params->prefill = m["prefill"].AsBool();
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<FramerParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  for (int8_t* state_buffer : params->state_buffers) {
-    delete[] state_buffer;
-  }
-  delete params;
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -103,18 +90,18 @@ TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
   params->outer_dims = GetFlatSize(input) / innermost_dim;
   params->n_frames = innermost_dim / params->frame_step;
 
-  params->state_buffers.resize(params->outer_dims, nullptr);
+  params->state_buffers.resize(params->outer_dims);
   params->circular_buffers.resize(params->outer_dims, nullptr);
   for (int i = 0; i < params->outer_dims; ++i) {
-    if (params->state_buffers[i] == nullptr) {
+    if (params->state_buffers[i].empty()) {
       size_t capacity =
           static_cast<size_t>((params->frame_size + params->frame_step - 1) /
                               params->frame_step) *
           params->frame_step;
       size_t state_size = tflm_signal::CircularBufferGetNeededMemory(capacity);
-      params->state_buffers[i] = new int8_t[state_size];
+      params->state_buffers[i].resize(state_size);
       params->circular_buffers[i] = tflm_signal::CircularBufferInit(
-          capacity, params->state_buffers[i], state_size);
+          capacity, params->state_buffers[i].data(), state_size);
       if (params->prefill) {
         tflm_signal::CircularBufferWriteZeros(
             params->circular_buffers[i],
@@ -166,16 +153,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateFramerOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(kTfLiteBuiltinCustom,
-                                             "SignalFramer", /*version=*/1,
-                                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalFramer", Init, DeleteParams<FramerParams>, Prepare, Eval);
   return op;
 }
 

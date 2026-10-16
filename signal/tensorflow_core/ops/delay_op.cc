@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "signal/tensorflow_core/ops/shape_inference_utils.h"
 #include "tensorflow/c/ops.h"
 #include "tensorflow/c/tf_status.h"
 
@@ -20,18 +21,10 @@ namespace tensorflow {
 namespace signal {
 namespace {
 
-void DelayShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
-  TF_ShapeHandle* in0 = TF_NewShapeHandle();
-  TF_ShapeHandle* out = TF_NewShapeHandle();
-  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextWithRankAtLeast(ctx, in0, 1, out, status);
-  }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
-  }
-  TF_DeleteShapeHandle(out);
-  TF_DeleteShapeHandle(in0);
+void DelayShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
+  ShapeInferenceContext ctx(raw_ctx, status);
+  ShapeHandle out = ctx.WithRankAtLeast(ctx.Input(0), 1);
+  ctx.SetOutput(0, out);
 }
 
 // Delay the innermost dimension of input signal by delay_length samples.
@@ -52,14 +45,12 @@ void DelayShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 //         dimension is delayed by delay_length samples.
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalDelayOp() {
-  TF_Status* status = TF_NewStatus();
-  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalDelay");
-  TF_OpDefinitionBuilderAddAttr(builder, "delay_length: int >= 0");
-  TF_OpDefinitionBuilderAddInput(builder, "input: int16");
-  TF_OpDefinitionBuilderAddOutput(builder, "output: int16");
-  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &DelayShape);
-  TF_RegisterOpDefinition(builder, status);
-  TF_DeleteStatus(status);
+  OpDefBuilder("SignalDelay")
+      .Attr("delay_length: int >= 0")
+      .Input("input: int16")
+      .Output("output: int16")
+      .SetShapeFn(&DelayShape)
+      .Register();
 }
 
 }  // namespace

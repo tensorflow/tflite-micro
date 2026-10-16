@@ -19,6 +19,7 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
+#include "flatbuffers/flexbuffers.h"
 #include "tensorflow/lite/c/c_api_opaque.h"
 #include "tensorflow/lite/c/common.h"
 
@@ -41,7 +42,22 @@ inline const T* GetTensorData(const TfLiteOpaqueTensor* tensor) {
   return reinterpret_cast<const T*>(TfLiteOpaqueTensorData(tensor));
 }
 
+template <typename Params>
+inline void DeleteParams(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
+                         void* data) {
+  delete static_cast<Params*>(data);
+}
+
 int GetFlatSize(const TfLiteOpaqueTensor* tensor);
+
+flexbuffers::Map GetFlexbufferMap(const char* buffer, size_t length);
+
+TfLiteOperator* MakeOperator(
+    const char* custom_name,
+    void* (*init)(void*, TfLiteOpaqueContext*, const char*, size_t),
+    void (*free_fn)(void*, TfLiteOpaqueContext*, void*),
+    TfLiteStatus (*prepare)(void*, TfLiteOpaqueContext*, TfLiteOpaqueNode*),
+    TfLiteStatus (*invoke)(void*, TfLiteOpaqueContext*, TfLiteOpaqueNode*));
 
 ::TfLiteRegistration MakeRegistration(const char* custom_name,
                                       TfLiteOperator* op);

@@ -38,29 +38,16 @@ struct DelayParams {
   int32_t delay_length = 0;
   int32_t outer_dims = 0;
 
-  std::vector<int8_t*> state_buffers;
+  std::vector<std::vector<int8_t>> state_buffers;
   std::vector<tflm_signal::CircularBuffer*> circular_buffers;
 };
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new DelayParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->delay_length = m["delay_length"].AsInt32();
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<DelayParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  for (int8_t* state_buffer : params->state_buffers) {
-    delete[] state_buffer;
-  }
-  delete params;
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -89,15 +76,15 @@ TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
   params->outer_dims = GetFlatSize(input) / innermost_dim;
   params->frame_size = innermost_dim;
 
-  params->state_buffers.resize(params->outer_dims, nullptr);
+  params->state_buffers.resize(params->outer_dims);
   params->circular_buffers.resize(params->outer_dims, nullptr);
   for (int i = 0; i < params->outer_dims; ++i) {
-    if (params->state_buffers[i] == nullptr) {
+    if (params->state_buffers[i].empty()) {
       size_t capacity = params->frame_size + params->delay_length;
       size_t state_size = tflm_signal::CircularBufferGetNeededMemory(capacity);
-      params->state_buffers[i] = new int8_t[state_size];
+      params->state_buffers[i].resize(state_size);
       params->circular_buffers[i] = tflm_signal::CircularBufferInit(
-          capacity, params->state_buffers[i], state_size);
+          capacity, params->state_buffers[i].data(), state_size);
       tflm_signal::CircularBufferWriteZeros(params->circular_buffers[i],
                                             params->delay_length);
     }
@@ -133,16 +120,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateDelayOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r =
-        TfLiteOperatorCreate(kTfLiteBuiltinCustom, "SignalDelay", /*version=*/1,
-                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalDelay", Init, DeleteParams<DelayParams>, Prepare, Eval);
   return op;
 }
 

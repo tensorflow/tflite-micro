@@ -125,10 +125,10 @@ bool GetAttrInt(TF_ShapeInferenceContext* ctx, const char* attr_name,
 
 bool CheckDimValue(TF_ShapeInferenceContext* ctx, TF_ShapeHandle* shape,
                    int64_t dim_index, int64_t expected, TF_Status* status) {
-  TF_DimensionHandle* dim = TF_NewDimensionHandle();
-  TF_ShapeInferenceContextDim(ctx, shape, dim_index, dim);
-  if (TF_DimensionHandleValueKnown(dim)) {
-    const int64_t actual = TF_DimensionHandleValue(dim);
+  DimensionHandle dim;
+  TF_ShapeInferenceContextDim(ctx, shape, dim_index, dim.get());
+  if (TF_DimensionHandleValueKnown(dim.get())) {
+    const int64_t actual = TF_DimensionHandleValue(dim.get());
     if (actual != expected) {
       char msg[128];
       std::snprintf(msg, sizeof(msg),
@@ -137,24 +137,110 @@ bool CheckDimValue(TF_ShapeInferenceContext* ctx, TF_ShapeHandle* shape,
       TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
     }
   }
-  TF_DeleteDimensionHandle(dim);
   return TF_GetCode(status) == TF_OK;
 }
 
 bool ReplaceLastDim(TF_ShapeInferenceContext* ctx, TF_ShapeHandle* shape,
                     int64_t new_dim, TF_ShapeHandle* result,
                     TF_Status* status) {
-  TF_ShapeHandle* prefix = TF_NewShapeHandle();
-  TF_ShapeInferenceContextSubshape(ctx, shape, 0, -1, prefix, status);
+  ShapeHandle prefix;
+  TF_ShapeInferenceContextSubshape(ctx, shape, 0, -1, prefix.get(), status);
   if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeHandle* suffix = TF_ShapeInferenceContextVectorFromSize(
-        ctx, static_cast<size_t>(new_dim));
-    TF_ShapeInferenceContextConcatenateShapes(ctx, prefix, suffix, result,
-                                              status);
-    TF_DeleteShapeHandle(suffix);
+    ShapeHandle suffix(TF_ShapeInferenceContextVectorFromSize(
+        ctx, static_cast<size_t>(new_dim)));
+    TF_ShapeInferenceContextConcatenateShapes(ctx, prefix.get(), suffix.get(),
+                                              result, status);
   }
-  TF_DeleteShapeHandle(prefix);
   return TF_GetCode(status) == TF_OK;
+}
+
+ShapeHandle ShapeInferenceContext::Input(int index) {
+  ShapeHandle out;
+  if (ok()) {
+    TF_ShapeInferenceContextGetInput(ctx_, index, out.get(), status_);
+  }
+  return out;
+}
+
+ShapeHandle ShapeInferenceContext::WithRank(const ShapeHandle& shape,
+                                            int64_t rank) {
+  ShapeHandle out;
+  if (ok()) {
+    TF_ShapeInferenceContextWithRank(ctx_, shape.get(), rank, out.get(),
+                                     status_);
+  }
+  return out;
+}
+
+ShapeHandle ShapeInferenceContext::WithRankAtLeast(const ShapeHandle& shape,
+                                                   int64_t rank) {
+  ShapeHandle out;
+  if (ok()) {
+    TF_ShapeInferenceContextWithRankAtLeast(ctx_, shape.get(), rank, out.get(),
+                                            status_);
+  }
+  return out;
+}
+
+DimensionHandle ShapeInferenceContext::Dim(const ShapeHandle& shape,
+                                           int64_t index) {
+  DimensionHandle dim;
+  if (ok()) {
+    TF_ShapeInferenceContextDim(ctx_, shape.get(), index, dim.get());
+  }
+  return dim;
+}
+
+bool ShapeInferenceContext::ValueKnown(const DimensionHandle& dim) const {
+  return ok() && TF_DimensionHandleValueKnown(dim.get()) != 0;
+}
+
+int64_t ShapeInferenceContext::Value(const DimensionHandle& dim) const {
+  return TF_DimensionHandleValue(dim.get());
+}
+
+bool ShapeInferenceContext::CheckDim(const ShapeHandle& shape,
+                                     int64_t dim_index, int64_t expected) {
+  if (!ok()) {
+    return false;
+  }
+  return CheckDimValue(ctx_, shape.get(), dim_index, expected, status_);
+}
+
+ShapeHandle ShapeInferenceContext::Subshape(const ShapeHandle& shape,
+                                            int64_t start, int64_t end) {
+  ShapeHandle out;
+  if (ok()) {
+    TF_ShapeInferenceContextSubshape(ctx_, shape.get(), start, end, out.get(),
+                                     status_);
+  }
+  return out;
+}
+
+ShapeHandle ShapeInferenceContext::Concatenate(const ShapeHandle& first,
+                                               const ShapeHandle& second) {
+  ShapeHandle out;
+  if (ok()) {
+    TF_ShapeInferenceContextConcatenateShapes(ctx_, first.get(), second.get(),
+                                              out.get(), status_);
+  }
+  return out;
+}
+
+ShapeHandle ShapeInferenceContext::ReplaceLastDim(const ShapeHandle& shape,
+                                                  int64_t new_dim) {
+  ShapeHandle out;
+  if (ok()) {
+    ::tensorflow::signal::ReplaceLastDim(ctx_, shape.get(), new_dim, out.get(),
+                                         status_);
+  }
+  return out;
+}
+
+void ShapeInferenceContext::SetOutput(int index, const ShapeHandle& shape) {
+  if (ok()) {
+    TF_ShapeInferenceContextSetOutput(ctx_, index, shape.get(), status_);
+  }
 }
 
 }  // namespace signal

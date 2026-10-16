@@ -18,6 +18,9 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
+#include <memory>
+#include <vector>
+
 #include "flatbuffers/flexbuffers.h"
 #include "signal/lite/kernels/kernel_util.h"
 #include "signal/lite/kernels/signal_ops.h"
@@ -39,58 +42,64 @@ struct IrfftParams {
   int32_t input_length = 0;
   int32_t output_length = 0;
   TfLiteType fft_type = kTfLiteNoType;
-  int8_t* state = nullptr;
+  std::vector<int8_t> state;
 };
+
+template <typename T>
+void EvalIrfft(IrfftParams* params, const TfLiteOpaqueTensor* input,
+               TfLiteOpaqueTensor* output,
+               void (*apply_fn)(void*, const Complex<T>*, T*)) {
+  const Complex<T>* input_data = GetTensorData<Complex<T>>(input);
+  T* output_data = GetTensorData<T>(output);
+  for (int input_idx = 0, output_idx = 0; input_idx < params->input_size;
+       input_idx += params->input_length, output_idx += params->output_length) {
+    apply_fn(params->state.data(), &input_data[input_idx],
+             &output_data[output_idx]);
+  }
+}
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* context,
            const char* buffer, size_t length) {
-  auto* params = new IrfftParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  std::unique_ptr<IrfftParams> params(new IrfftParams);
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->fft_length = m["fft_length"].AsInt32();
   int32_t tensor_type = m["T"].AsInt32();
-  size_t state_size = 0;
 
   switch (tensor_type) {
-    case kTensorTypeFloat32:
+    case kTensorTypeFloat32: {
       params->fft_type = kTfLiteFloat32;
-      state_size = tflm_signal::IrfftFloatGetNeededMemory(params->fft_length);
-      params->state = new int8_t[state_size];
-      tflm_signal::IrfftFloatInit(params->fft_length, params->state,
+      size_t state_size =
+          tflm_signal::IrfftFloatGetNeededMemory(params->fft_length);
+      params->state.resize(state_size);
+      tflm_signal::IrfftFloatInit(params->fft_length, params->state.data(),
                                   state_size);
       break;
-    case kTensorTypeInt16:
+    }
+    case kTensorTypeInt16: {
       params->fft_type = kTfLiteInt16;
-      state_size = tflm_signal::IrfftInt16GetNeededMemory(params->fft_length);
-      params->state = new int8_t[state_size];
-      tflm_signal::IrfftInt16Init(params->fft_length, params->state,
+      size_t state_size =
+          tflm_signal::IrfftInt16GetNeededMemory(params->fft_length);
+      params->state.resize(state_size);
+      tflm_signal::IrfftInt16Init(params->fft_length, params->state.data(),
                                   state_size);
       break;
-    case kTensorTypeInt32:
+    }
+    case kTensorTypeInt32: {
       params->fft_type = kTfLiteInt32;
-      state_size = tflm_signal::IrfftInt32GetNeededMemory(params->fft_length);
-      params->state = new int8_t[state_size];
-      tflm_signal::IrfftInt32Init(params->fft_length, params->state,
+      size_t state_size =
+          tflm_signal::IrfftInt32GetNeededMemory(params->fft_length);
+      params->state.resize(state_size);
+      tflm_signal::IrfftInt32Init(params->fft_length, params->state.data(),
                                   state_size);
       break;
+    }
     default:
       TF_LITE_OPAQUE_KERNEL_LOG(
           context, "Type %d is currently not supported by SignalIrfft.",
           tensor_type);
-      delete params;
       return nullptr;
   }
-  return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<IrfftParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  delete[] params->state;
-  delete params;
+  return params.release();
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -134,29 +143,20 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
   TfLiteOpaqueTensor* output =
       TfLiteOpaqueNodeGetOutput(context, node, kOutputTensor);
 
-  for (int input_idx = 0, output_idx = 0; input_idx < params->input_size;
-       input_idx += params->input_length, output_idx += params->output_length) {
-    switch (params->fft_type) {
-      case kTfLiteFloat32:
-        tflm_signal::IrfftFloatApply(
-            params->state, &GetTensorData<Complex<float>>(input)[input_idx],
-            &GetTensorData<float>(output)[output_idx]);
-        break;
-      case kTfLiteInt16:
-        tflm_signal::IrfftInt16Apply(
-            params->state, &GetTensorData<Complex<int16_t>>(input)[input_idx],
-            &GetTensorData<int16_t>(output)[output_idx]);
-        break;
-      case kTfLiteInt32:
-        tflm_signal::IrfftInt32Apply(
-            params->state, &GetTensorData<Complex<int32_t>>(input)[input_idx],
-            &GetTensorData<int32_t>(output)[output_idx]);
-        break;
-      default:
-        TF_LITE_OPAQUE_KERNEL_LOG(context, "Invalid Irfft Type %d.",
-                                  params->fft_type);
-        return kTfLiteError;
-    }
+  switch (params->fft_type) {
+    case kTfLiteFloat32:
+      EvalIrfft<float>(params, input, output, tflm_signal::IrfftFloatApply);
+      break;
+    case kTfLiteInt16:
+      EvalIrfft<int16_t>(params, input, output, tflm_signal::IrfftInt16Apply);
+      break;
+    case kTfLiteInt32:
+      EvalIrfft<int32_t>(params, input, output, tflm_signal::IrfftInt32Apply);
+      break;
+    default:
+      TF_LITE_OPAQUE_KERNEL_LOG(context, "Invalid Irfft Type %d.",
+                                params->fft_type);
+      return kTfLiteError;
   }
   return kTfLiteOk;
 }
@@ -164,16 +164,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateIrfftOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r =
-        TfLiteOperatorCreate(kTfLiteBuiltinCustom, "SignalIrfft", /*version=*/1,
-                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalIrfft", Init, DeleteParams<IrfftParams>, Prepare, Eval);
   return op;
 }
 

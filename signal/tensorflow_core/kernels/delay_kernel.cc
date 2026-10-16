@@ -18,116 +18,79 @@ limitations under the License.
 #include <vector>
 
 #include "signal/src/circular_buffer.h"
-#include "tensorflow/c/kernels.h"
-#include "tensorflow/c/tf_datatype.h"
-#include "tensorflow/c/tf_status.h"
-#include "tensorflow/c/tf_tensor.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
 
 namespace tensorflow {
 namespace signal {
 namespace {
 
-struct DelayOp {
-  bool initialized = false;
-  int64_t frame_size = 0;
-  int32_t delay_length = 0;
-  int64_t outer_dims = 0;
-  std::vector<std::vector<int8_t>> state_buffers;
-  std::vector<struct tflite::tflm_signal::CircularBuffer*> circular_buffers;
-};
-
-void* DelayOpCreate(TF_OpKernelConstruction* ctx) {
-  auto* op = new DelayOp{};
-  TF_Status* status = TF_NewStatus();
-  TF_OpKernelConstruction_GetAttrInt32(ctx, "delay_length", &op->delay_length,
-                                       status);
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelConstruction_Failure(ctx, status);
-    delete op;
-    op = nullptr;
+class DelayOp {
+ public:
+  explicit DelayOp(KernelConstruction* ctx) {
+    ctx->GetAttr("delay_length", &delay_length_);
   }
-  TF_DeleteStatus(status);
-  return op;
-}
 
-void DelayOpDelete(void* kernel) { delete static_cast<DelayOp*>(kernel); }
-
-void DelayOpCompute(void* kernel, TF_OpKernelContext* ctx) {
-  auto* op = static_cast<DelayOp*>(kernel);
-  TF_Status* status = TF_NewStatus();
-  TF_Tensor* input_tensor = nullptr;
-
-  TF_GetInput(ctx, 0, &input_tensor, status);
-  if (TF_GetCode(status) == TF_OK) {
-    const int num_dims = TF_NumDims(input_tensor);
-    std::vector<int64_t> dims(num_dims);
-    for (int i = 0; i < num_dims; ++i) {
-      dims[i] = TF_Dim(input_tensor, i);
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
     }
 
-    const int64_t total_elements = TF_TensorElementCount(input_tensor);
-    if (!op->initialized) {
-      op->frame_size = (num_dims > 0) ? dims[num_dims - 1] : 1;
-      op->outer_dims =
-          (op->frame_size > 0) ? (total_elements / op->frame_size) : 0;
+    const std::vector<int64_t> dims = input_tensor.Shape();
+    const int64_t total_elements = input_tensor.NumElements();
+    if (!initialized_) {
+      frame_size_ = dims.empty() ? 1 : dims.back();
+      outer_dims_ = (frame_size_ > 0) ? (total_elements / frame_size_) : 0;
 
-      op->state_buffers.resize(static_cast<size_t>(op->outer_dims));
-      op->circular_buffers.resize(static_cast<size_t>(op->outer_dims));
+      state_buffers_.resize(static_cast<size_t>(outer_dims_));
+      circular_buffers_.resize(static_cast<size_t>(outer_dims_));
 
-      // Calculate the capacity of the circular buffer.
-      size_t capacity = static_cast<size_t>(op->frame_size + op->delay_length);
+      size_t capacity = static_cast<size_t>(frame_size_ + delay_length_);
       size_t state_size =
           tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
-      for (int64_t i = 0; i < op->outer_dims; i++) {
-        op->state_buffers[static_cast<size_t>(i)].resize(state_size);
-        int8_t* state = op->state_buffers[static_cast<size_t>(i)].data();
-        op->circular_buffers[static_cast<size_t>(i)] =
-            tflite::tflm_signal::CircularBufferInit(capacity, state,
-                                                    state_size);
-        tflite::tflm_signal::CircularBufferWriteZeros(
-            op->circular_buffers[static_cast<size_t>(i)], op->delay_length);
+      for (int64_t i = 0; i < outer_dims_; ++i) {
+        auto idx = static_cast<size_t>(i);
+        state_buffers_[idx].resize(state_size);
+        circular_buffers_[idx] = tflite::tflm_signal::CircularBufferInit(
+            capacity, state_buffers_[idx].data(), state_size);
+        tflite::tflm_signal::CircularBufferWriteZeros(circular_buffers_[idx],
+                                                      delay_length_);
       }
-      op->initialized = true;
+      initialized_ = true;
     }
 
-    TF_Tensor* output_tensor = TF_AllocateOutput(
-        ctx, 0, TF_INT16, dims.data(), num_dims,
-        static_cast<size_t>(total_elements) * sizeof(int16_t), status);
-    if (TF_GetCode(status) == TF_OK) {
-      const auto* input =
-          static_cast<const int16_t*>(TF_TensorData(input_tensor));
-      auto* output = static_cast<int16_t*>(TF_TensorData(output_tensor));
+    TensorHandle output_tensor = ctx->AllocateOutput<int16_t>(0, dims);
+    if (!ctx->ok()) {
+      return;
+    }
 
-      for (int64_t dim_index = 0, sample_index = 0; dim_index < op->outer_dims;
-           dim_index++, sample_index += op->frame_size) {
-        auto* cb = op->circular_buffers[static_cast<size_t>(dim_index)];
-        tflite::tflm_signal::CircularBufferWrite(
-            cb, &input[sample_index], static_cast<size_t>(op->frame_size));
-        tflite::tflm_signal::CircularBufferGet(
-            cb, static_cast<size_t>(op->frame_size), &output[sample_index]);
-        tflite::tflm_signal::CircularBufferDiscard(
-            cb, static_cast<size_t>(op->frame_size));
-      }
-      TF_DeleteTensor(output_tensor);
+    const int16_t* input = input_tensor.Data<int16_t>();
+    int16_t* output = output_tensor.Data<int16_t>();
+    const auto frame_size = static_cast<size_t>(frame_size_);
+
+    for (int64_t dim_index = 0, sample_index = 0; dim_index < outer_dims_;
+         ++dim_index, sample_index += frame_size_) {
+      auto* cb = circular_buffers_[static_cast<size_t>(dim_index)];
+      tflite::tflm_signal::CircularBufferWrite(cb, &input[sample_index],
+                                               frame_size);
+      tflite::tflm_signal::CircularBufferGet(cb, frame_size,
+                                             &output[sample_index]);
+      tflite::tflm_signal::CircularBufferDiscard(cb, frame_size);
     }
   }
 
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelContext_Failure(ctx, status);
-  }
-  if (input_tensor != nullptr) {
-    TF_DeleteTensor(input_tensor);
-  }
-  TF_DeleteStatus(status);
-}
+ private:
+  bool initialized_ = false;
+  int64_t frame_size_ = 0;
+  int32_t delay_length_ = 0;
+  int64_t outer_dims_ = 0;
+  std::vector<std::vector<int8_t>> state_buffers_;
+  std::vector<tflite::tflm_signal::CircularBuffer*> circular_buffers_;
+};
 
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalDelayKernel() {
-  TF_Status* status = TF_NewStatus();
-  auto* builder = TF_NewKernelBuilder("SignalDelay", "CPU", &DelayOpCreate,
-                                      &DelayOpCompute, &DelayOpDelete);
-  TF_RegisterKernelBuilder("SignalDelay", builder, status);
-  TF_DeleteStatus(status);
+  RegisterKernel<DelayOp>("SignalDelay");
 }
 
 }  // namespace

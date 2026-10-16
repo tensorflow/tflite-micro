@@ -16,6 +16,8 @@ limitations under the License.
 #include <stddef.h>
 #include <stdint.h>
 
+#include <vector>
+
 #include "flatbuffers/flexbuffers.h"
 #include "signal/lite/kernels/kernel_util.h"
 #include "signal/lite/kernels/signal_ops.h"
@@ -42,16 +44,14 @@ struct StackerParams {
   size_t step_size = 0;
   bool stacker_has_first_frame = false;
 
-  int8_t* state = nullptr;
+  std::vector<int8_t> state;
   tflm_signal::CircularBuffer* circular_buffer = nullptr;
 };
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new StackerParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->num_channels = m["num_channels"].AsInt32();
   params->stacker_left_context = m["stacker_left_context"].AsInt32();
   params->stacker_right_context = m["stacker_right_context"].AsInt32();
@@ -66,19 +66,10 @@ void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
 
   size_t state_size =
       tflm_signal::CircularBufferGetNeededMemory(params->buffer_size);
-  params->state = new int8_t[state_size];
+  params->state.resize(state_size);
   params->circular_buffer = tflm_signal::CircularBufferInit(
-      params->buffer_size, params->state, state_size);
+      params->buffer_size, params->state.data(), state_size);
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<StackerParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  delete[] params->state;
-  delete params;
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -151,16 +142,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateStackerOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(kTfLiteBuiltinCustom,
-                                             "SignalStacker", /*version=*/1,
-                                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalStacker", Init, DeleteParams<StackerParams>, Prepare, Eval);
   return op;
 }
 

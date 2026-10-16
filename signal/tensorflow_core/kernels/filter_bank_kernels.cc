@@ -22,323 +22,164 @@ limitations under the License.
 #include "signal/src/filter_bank_log.h"
 #include "signal/src/filter_bank_spectral_subtraction.h"
 #include "signal/src/filter_bank_square_root.h"
-#include "tensorflow/c/kernels.h"
-#include "tensorflow/c/tf_datatype.h"
-#include "tensorflow/c/tf_status.h"
-#include "tensorflow/c/tf_tensor.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
 
 namespace tensorflow {
 namespace signal {
 namespace {
 
-struct FilterBankOp {
-  tflite::tflm_signal::FilterbankConfig config{};
-  std::vector<uint64_t> work_area;
+class FilterBankOp {
+ public:
+  explicit FilterBankOp(KernelConstruction* ctx) {
+    int32_t num_channels = 0;
+    if (ctx->GetAttr("num_channels", &num_channels)) {
+      config_.num_channels = num_channels;
+      work_area_.resize(static_cast<size_t>(num_channels) + 1);
+    }
+  }
+
+  void Compute(KernelContext* ctx) {
+    TensorHandle input = ctx->Input(0);
+    TensorHandle weights = ctx->Input(1);
+    TensorHandle unweights = ctx->Input(2);
+    TensorHandle freq_starts = ctx->Input(3);
+    TensorHandle weight_starts = ctx->Input(4);
+    TensorHandle widths = ctx->Input(5);
+    TensorHandle output =
+        ctx->AllocateOutput<uint64_t>(0, {config_.num_channels});
+    if (!ctx->ok()) {
+      return;
+    }
+
+    config_.weights = weights.Data<int16_t>();
+    config_.unweights = unweights.Data<int16_t>();
+    config_.channel_frequency_starts = freq_starts.Data<int16_t>();
+    config_.channel_weight_starts = weight_starts.Data<int16_t>();
+    config_.channel_widths = widths.Data<int16_t>();
+
+    tflite::tflm_signal::FilterbankAccumulateChannels(
+        &config_, input.Data<uint32_t>(), work_area_.data());
+
+    // Discard channel 0, which is scratch space.
+    std::memcpy(output.Data<uint64_t>(), work_area_.data() + 1,
+                sizeof(uint64_t) * static_cast<size_t>(config_.num_channels));
+  }
+
+ private:
+  tflite::tflm_signal::FilterbankConfig config_{};
+  std::vector<uint64_t> work_area_;
 };
 
-void* FilterBankOpCreate(TF_OpKernelConstruction* ctx) {
-  auto* op = new FilterBankOp{};
-  TF_Status* status = TF_NewStatus();
-  int32_t num_channels = 0;
-  TF_OpKernelConstruction_GetAttrInt32(ctx, "num_channels", &num_channels,
-                                       status);
-  if (TF_GetCode(status) == TF_OK) {
-    op->config.num_channels = num_channels;
-    op->work_area.resize(static_cast<size_t>(num_channels) + 1);
-  } else {
-    TF_OpKernelConstruction_Failure(ctx, status);
-    delete op;
-    op = nullptr;
-  }
-  TF_DeleteStatus(status);
-  return op;
-}
+class FilterBankSquareRootOp {
+ public:
+  explicit FilterBankSquareRootOp(KernelConstruction* /*ctx*/) {}
 
-void FilterBankOpDelete(void* kernel) {
-  delete static_cast<FilterBankOp*>(kernel);
-}
-
-void FilterBankOpCompute(void* kernel, TF_OpKernelContext* ctx) {
-  auto* op = static_cast<FilterBankOp*>(kernel);
-  TF_Status* status = TF_NewStatus();
-  TF_Tensor* in_tensors[6] = {nullptr, nullptr, nullptr,
-                              nullptr, nullptr, nullptr};
-
-  for (int i = 0; i < 6 && TF_GetCode(status) == TF_OK; ++i) {
-    TF_GetInput(ctx, i, &in_tensors[i], status);
-  }
-
-  if (TF_GetCode(status) == TF_OK) {
-    const auto* input =
-        static_cast<const uint32_t*>(TF_TensorData(in_tensors[0]));
-    op->config.weights =
-        static_cast<const int16_t*>(TF_TensorData(in_tensors[1]));
-    op->config.unweights =
-        static_cast<const int16_t*>(TF_TensorData(in_tensors[2]));
-    op->config.channel_frequency_starts =
-        static_cast<const int16_t*>(TF_TensorData(in_tensors[3]));
-    op->config.channel_weight_starts =
-        static_cast<const int16_t*>(TF_TensorData(in_tensors[4]));
-    op->config.channel_widths =
-        static_cast<const int16_t*>(TF_TensorData(in_tensors[5]));
-
-    int64_t out_dims[1] = {op->config.num_channels};
-    TF_Tensor* output_tensor = TF_AllocateOutput(
-        ctx, 0, TF_UINT64, out_dims, 1,
-        static_cast<size_t>(op->config.num_channels) * sizeof(uint64_t),
-        status);
-    if (TF_GetCode(status) == TF_OK) {
-      tflite::tflm_signal::FilterbankAccumulateChannels(&op->config, input,
-                                                        op->work_area.data());
-      auto* output = static_cast<uint64_t*>(TF_TensorData(output_tensor));
-      // Discard channel 0, which is just scratch.
-      std::memcpy(
-          output, op->work_area.data() + 1,
-          sizeof(*output) * static_cast<size_t>(op->config.num_channels));
-      TF_DeleteTensor(output_tensor);
+  void Compute(KernelContext* ctx) {
+    TensorHandle input = ctx->Input(0);
+    TensorHandle scale_bits = ctx->Input(1);
+    if (!ctx->ok()) {
+      return;
     }
-  }
 
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelContext_Failure(ctx, status);
-  }
-  for (int i = 0; i < 6; ++i) {
-    if (in_tensors[i] != nullptr) {
-      TF_DeleteTensor(in_tensors[i]);
+    int64_t num_channels = input.NumElements();
+    TensorHandle output = ctx->AllocateOutput<uint32_t>(0, {num_channels});
+    if (!ctx->ok()) {
+      return;
     }
-  }
-  TF_DeleteStatus(status);
-}
 
-void* FilterBankSquareRootOpCreate(TF_OpKernelConstruction* /*ctx*/) {
-  return nullptr;
-}
-void FilterBankSquareRootOpDelete(void* /*kernel*/) {}
-
-void FilterBankSquareRootOpCompute(void* /*kernel*/, TF_OpKernelContext* ctx) {
-  TF_Status* status = TF_NewStatus();
-  TF_Tensor* input_tensor = nullptr;
-  TF_Tensor* scale_bits_tensor = nullptr;
-
-  TF_GetInput(ctx, 0, &input_tensor, status);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_GetInput(ctx, 1, &scale_bits_tensor, status);
+    tflite::tflm_signal::FilterbankSqrt(
+        input.Data<uint64_t>(), static_cast<int32_t>(num_channels),
+        *scale_bits.Data<int32_t>(), output.Data<uint32_t>());
   }
-
-  if (TF_GetCode(status) == TF_OK) {
-    int64_t num_channels = TF_TensorElementCount(input_tensor);
-    int64_t out_dims[1] = {num_channels};
-    TF_Tensor* output_tensor = TF_AllocateOutput(
-        ctx, 0, TF_UINT32, out_dims, 1,
-        static_cast<size_t>(num_channels) * sizeof(uint32_t), status);
-    if (TF_GetCode(status) == TF_OK) {
-      const auto* input =
-          static_cast<const uint64_t*>(TF_TensorData(input_tensor));
-      int32_t scale_bits =
-          *static_cast<const int32_t*>(TF_TensorData(scale_bits_tensor));
-      auto* output = static_cast<uint32_t*>(TF_TensorData(output_tensor));
-      tflite::tflm_signal::FilterbankSqrt(
-          input, static_cast<int32_t>(num_channels), scale_bits, output);
-      TF_DeleteTensor(output_tensor);
-    }
-  }
-
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelContext_Failure(ctx, status);
-  }
-  if (input_tensor != nullptr) {
-    TF_DeleteTensor(input_tensor);
-  }
-  if (scale_bits_tensor != nullptr) {
-    TF_DeleteTensor(scale_bits_tensor);
-  }
-  TF_DeleteStatus(status);
-}
-
-struct FilterBankSpectralSubtractionOp {
-  tflite::tflm_signal::SpectralSubtractionConfig config{};
-  std::vector<uint32_t> noise_estimate;
 };
 
-void* FilterBankSpectralSubtractionOpCreate(TF_OpKernelConstruction* ctx) {
-  auto* op = new FilterBankSpectralSubtractionOp{};
-  TF_Status* status = TF_NewStatus();
-  int32_t attr_int = 0;
-  TF_Bool attr_bool = 0;
-
-  auto get_int = [&](const char* name, auto* field) {
-    if (TF_GetCode(status) == TF_OK) {
-      TF_OpKernelConstruction_GetAttrInt32(ctx, name, &attr_int, status);
-      if (TF_GetCode(status) == TF_OK) {
-        *field = attr_int;
+class FilterBankSpectralSubtractionOp {
+ public:
+  explicit FilterBankSpectralSubtractionOp(KernelConstruction* ctx) {
+    auto get_int = [ctx](const char* name, auto* field) {
+      int32_t val = 0;
+      if (ctx->GetAttr(name, &val)) {
+        *field = val;
       }
+    };
+
+    get_int("smoothing", &config_.smoothing);
+    get_int("one_minus_smoothing", &config_.one_minus_smoothing);
+    get_int("alternate_smoothing", &config_.alternate_smoothing);
+    get_int("alternate_one_minus_smoothing",
+            &config_.alternate_one_minus_smoothing);
+    get_int("smoothing_bits", &config_.smoothing_bits);
+    get_int("min_signal_remaining", &config_.min_signal_remaining);
+    bool clamping = false;
+    if (ctx->GetAttr("clamping", &clamping)) {
+      config_.clamping = clamping;
     }
-  };
+    get_int("num_channels", &config_.num_channels);
+    get_int("spectral_subtraction_bits", &config_.spectral_subtraction_bits);
 
-  get_int("smoothing", &op->config.smoothing);
-  get_int("one_minus_smoothing", &op->config.one_minus_smoothing);
-  get_int("alternate_smoothing", &op->config.alternate_smoothing);
-  get_int("alternate_one_minus_smoothing",
-          &op->config.alternate_one_minus_smoothing);
-  get_int("smoothing_bits", &op->config.smoothing_bits);
-  get_int("min_signal_remaining", &op->config.min_signal_remaining);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_OpKernelConstruction_GetAttrBool(ctx, "clamping", &attr_bool, status);
-    if (TF_GetCode(status) == TF_OK) {
-      op->config.clamping = (attr_bool != 0);
-    }
-  }
-  get_int("num_channels", &op->config.num_channels);
-  get_int("spectral_subtraction_bits", &op->config.spectral_subtraction_bits);
-
-  if (TF_GetCode(status) == TF_OK) {
-    op->noise_estimate.assign(static_cast<size_t>(op->config.num_channels), 0);
-  } else {
-    TF_OpKernelConstruction_Failure(ctx, status);
-    delete op;
-    op = nullptr;
-  }
-  TF_DeleteStatus(status);
-  return op;
-}
-
-void FilterBankSpectralSubtractionOpDelete(void* kernel) {
-  delete static_cast<FilterBankSpectralSubtractionOp*>(kernel);
-}
-
-void FilterBankSpectralSubtractionOpCompute(void* kernel,
-                                            TF_OpKernelContext* ctx) {
-  auto* op = static_cast<FilterBankSpectralSubtractionOp*>(kernel);
-  TF_Status* status = TF_NewStatus();
-  TF_Tensor* input_tensor = nullptr;
-
-  TF_GetInput(ctx, 0, &input_tensor, status);
-  if (TF_GetCode(status) == TF_OK) {
-    int64_t out_dims[1] = {op->config.num_channels};
-    size_t byte_len =
-        static_cast<size_t>(op->config.num_channels) * sizeof(uint32_t);
-    TF_Tensor* output_tensor =
-        TF_AllocateOutput(ctx, 0, TF_UINT32, out_dims, 1, byte_len, status);
-    TF_Tensor* noise_tensor = nullptr;
-    if (TF_GetCode(status) == TF_OK) {
-      noise_tensor =
-          TF_AllocateOutput(ctx, 1, TF_UINT32, out_dims, 1, byte_len, status);
-    }
-    if (TF_GetCode(status) == TF_OK) {
-      const auto* input =
-          static_cast<const uint32_t*>(TF_TensorData(input_tensor));
-      auto* output = static_cast<uint32_t*>(TF_TensorData(output_tensor));
-      auto* noise_estimate =
-          static_cast<uint32_t*>(TF_TensorData(noise_tensor));
-
-      tflite::tflm_signal::FilterbankSpectralSubtraction(
-          &op->config, input, output, op->noise_estimate.data());
-      std::memcpy(noise_estimate, op->noise_estimate.data(), byte_len);
-    }
-    if (output_tensor != nullptr) {
-      TF_DeleteTensor(output_tensor);
-    }
-    if (noise_tensor != nullptr) {
-      TF_DeleteTensor(noise_tensor);
+    if (ctx->ok()) {
+      noise_estimate_.assign(static_cast<size_t>(config_.num_channels), 0);
     }
   }
 
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelContext_Failure(ctx, status);
-  }
-  if (input_tensor != nullptr) {
-    TF_DeleteTensor(input_tensor);
-  }
-  TF_DeleteStatus(status);
-}
+  void Compute(KernelContext* ctx) {
+    TensorHandle input = ctx->Input(0);
+    TensorHandle output =
+        ctx->AllocateOutput<uint32_t>(0, {config_.num_channels});
+    TensorHandle noise_out =
+        ctx->AllocateOutput<uint32_t>(1, {config_.num_channels});
+    if (!ctx->ok()) {
+      return;
+    }
 
-struct FilterBankLogOp {
-  int32_t output_scale = 0;
-  int32_t input_correction_bits = 0;
+    tflite::tflm_signal::FilterbankSpectralSubtraction(
+        &config_, input.Data<uint32_t>(), output.Data<uint32_t>(),
+        noise_estimate_.data());
+    std::memcpy(noise_out.Data<uint32_t>(), noise_estimate_.data(),
+                sizeof(uint32_t) * static_cast<size_t>(config_.num_channels));
+  }
+
+ private:
+  tflite::tflm_signal::SpectralSubtractionConfig config_{};
+  std::vector<uint32_t> noise_estimate_;
 };
 
-void* FilterBankLogOpCreate(TF_OpKernelConstruction* ctx) {
-  auto* op = new FilterBankLogOp{};
-  TF_Status* status = TF_NewStatus();
-  TF_OpKernelConstruction_GetAttrInt32(ctx, "output_scale", &op->output_scale,
-                                       status);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_OpKernelConstruction_GetAttrInt32(ctx, "input_correction_bits",
-                                         &op->input_correction_bits, status);
+class FilterBankLogOp {
+ public:
+  explicit FilterBankLogOp(KernelConstruction* ctx) {
+    ctx->GetAttr("output_scale", &output_scale_);
+    ctx->GetAttr("input_correction_bits", &input_correction_bits_);
   }
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelConstruction_Failure(ctx, status);
-    delete op;
-    op = nullptr;
-  }
-  TF_DeleteStatus(status);
-  return op;
-}
 
-void FilterBankLogOpDelete(void* kernel) {
-  delete static_cast<FilterBankLogOp*>(kernel);
-}
-
-void FilterBankLogOpCompute(void* kernel, TF_OpKernelContext* ctx) {
-  auto* op = static_cast<FilterBankLogOp*>(kernel);
-  TF_Status* status = TF_NewStatus();
-  TF_Tensor* input_tensor = nullptr;
-
-  TF_GetInput(ctx, 0, &input_tensor, status);
-  if (TF_GetCode(status) == TF_OK) {
-    int64_t num_channels = TF_TensorElementCount(input_tensor);
-    int64_t out_dims[1] = {num_channels};
-    TF_Tensor* output_tensor = TF_AllocateOutput(
-        ctx, 0, TF_INT16, out_dims, 1,
-        static_cast<size_t>(num_channels) * sizeof(int16_t), status);
-    if (TF_GetCode(status) == TF_OK) {
-      const auto* input =
-          static_cast<const uint32_t*>(TF_TensorData(input_tensor));
-      auto* output = static_cast<int16_t*>(TF_TensorData(output_tensor));
-      tflite::tflm_signal::FilterbankLog(
-          input, static_cast<int32_t>(num_channels), op->output_scale,
-          op->input_correction_bits, output);
-      TF_DeleteTensor(output_tensor);
+  void Compute(KernelContext* ctx) {
+    TensorHandle input = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
     }
+
+    int64_t num_channels = input.NumElements();
+    TensorHandle output = ctx->AllocateOutput<int16_t>(0, {num_channels});
+    if (!ctx->ok()) {
+      return;
+    }
+
+    tflite::tflm_signal::FilterbankLog(
+        input.Data<uint32_t>(), static_cast<int32_t>(num_channels),
+        output_scale_, input_correction_bits_, output.Data<int16_t>());
   }
 
-  if (TF_GetCode(status) != TF_OK) {
-    TF_OpKernelContext_Failure(ctx, status);
-  }
-  if (input_tensor != nullptr) {
-    TF_DeleteTensor(input_tensor);
-  }
-  TF_DeleteStatus(status);
-}
+ private:
+  int32_t output_scale_ = 0;
+  int32_t input_correction_bits_ = 0;
+};
 
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalFilterBankKernels() {
-  TF_Status* status = TF_NewStatus();
-
-  auto* fb_builder =
-      TF_NewKernelBuilder("SignalFilterBank", "CPU", &FilterBankOpCreate,
-                          &FilterBankOpCompute, &FilterBankOpDelete);
-  TF_RegisterKernelBuilder("SignalFilterBank", fb_builder, status);
-
-  auto* sqrt_builder = TF_NewKernelBuilder(
-      "SignalFilterBankSquareRoot", "CPU", &FilterBankSquareRootOpCreate,
-      &FilterBankSquareRootOpCompute, &FilterBankSquareRootOpDelete);
-  TF_RegisterKernelBuilder("SignalFilterBankSquareRoot", sqrt_builder, status);
-
-  auto* sub_builder =
-      TF_NewKernelBuilder("SignalFilterBankSpectralSubtraction", "CPU",
-                          &FilterBankSpectralSubtractionOpCreate,
-                          &FilterBankSpectralSubtractionOpCompute,
-                          &FilterBankSpectralSubtractionOpDelete);
-  TF_RegisterKernelBuilder("SignalFilterBankSpectralSubtraction", sub_builder,
-                           status);
-
-  auto* log_builder =
-      TF_NewKernelBuilder("SignalFilterBankLog", "CPU", &FilterBankLogOpCreate,
-                          &FilterBankLogOpCompute, &FilterBankLogOpDelete);
-  TF_RegisterKernelBuilder("SignalFilterBankLog", log_builder, status);
-
-  TF_DeleteStatus(status);
+  RegisterKernel<FilterBankOp>("SignalFilterBank");
+  RegisterKernel<FilterBankSquareRootOp>("SignalFilterBankSquareRoot");
+  RegisterKernel<FilterBankSpectralSubtractionOp>(
+      "SignalFilterBankSpectralSubtraction");
+  RegisterKernel<FilterBankLogOp>("SignalFilterBankLog");
 }
 
 }  // namespace

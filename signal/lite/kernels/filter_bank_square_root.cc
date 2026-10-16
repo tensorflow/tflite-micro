@@ -82,14 +82,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateFilterBankSquareRootOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(
-        kTfLiteBuiltinCustom, "SignalFilterBankSquareRoot", /*version=*/1,
-        /*user_data=*/nullptr);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator("SignalFilterBankSquareRoot",
+                                           nullptr, nullptr, Prepare, Eval);
   return op;
 }
 

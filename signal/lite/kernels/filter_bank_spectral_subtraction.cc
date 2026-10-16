@@ -19,6 +19,8 @@ limitations under the License.
 #include <stdint.h>
 #include <string.h>
 
+#include <vector>
+
 #include "flatbuffers/flexbuffers.h"
 #include "signal/lite/kernels/kernel_util.h"
 #include "signal/lite/kernels/signal_ops.h"
@@ -36,15 +38,13 @@ constexpr int kNoiseEstimateTensor = 1;
 
 struct FilterBankSpectralSubtractionParams {
   tflm_signal::SpectralSubtractionConfig config{};
-  uint32_t* noise_estimate = nullptr;
+  std::vector<uint32_t> noise_estimate;
 };
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new FilterBankSpectralSubtractionParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->config.smoothing = m["smoothing"].AsInt32();
   params->config.one_minus_smoothing = m["one_minus_smoothing"].AsInt32();
   params->config.alternate_smoothing = m["alternate_smoothing"].AsInt32();
@@ -57,19 +57,8 @@ void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
   params->config.spectral_subtraction_bits =
       m["spectral_subtraction_bits"].AsInt32();
 
-  params->noise_estimate = new uint32_t[params->config.num_channels];
-  memset(params->noise_estimate, 0,
-         sizeof(uint32_t) * params->config.num_channels);
+  params->noise_estimate.assign(params->config.num_channels, 0);
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<FilterBankSpectralSubtractionParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  delete[] params->noise_estimate;
-  delete params;
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -118,9 +107,9 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
   uint32_t* noise_estimate_data = GetTensorData<uint32_t>(noise_estimate);
 
   tflm_signal::FilterbankSpectralSubtraction(
-      &params->config, input_data, output_data, params->noise_estimate);
+      &params->config, input_data, output_data, params->noise_estimate.data());
 
-  memcpy(noise_estimate_data, params->noise_estimate,
+  memcpy(noise_estimate_data, params->noise_estimate.data(),
          TfLiteOpaqueTensorByteSize(noise_estimate));
   return kTfLiteOk;
 }
@@ -128,16 +117,9 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateFilterBankSpectralSubtractionOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(
-        kTfLiteBuiltinCustom, "SignalFilterBankSpectralSubtraction",
-        /*version=*/1, /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalFilterBankSpectralSubtraction", Init,
+      DeleteParams<FilterBankSpectralSubtractionParams>, Prepare, Eval);
   return op;
 }
 
