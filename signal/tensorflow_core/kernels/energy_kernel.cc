@@ -13,44 +13,92 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstddef>
+#include <cstdint>
+
 #include "signal/src/complex.h"
 #include "signal/src/energy.h"
-#include "tensorflow/core/framework/op_kernel.h"
+#include "tensorflow/c/kernels.h"
+#include "tensorflow/c/tf_datatype.h"
+#include "tensorflow/c/tf_status.h"
+#include "tensorflow/c/tf_tensor.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-class EnergyOp : public tensorflow::OpKernel {
- public:
-  explicit EnergyOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("start_index", &start_index_));
-    OP_REQUIRES_OK(context, context->GetAttr("end_index", &end_index_));
-  }
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
-    const int16_t* input = input_tensor.flat<int16_t>().data();
-    tensorflow::Tensor* output_tensor = nullptr;
-    // The input is complex. The output is real.
-    int output_size = input_tensor.flat<int16>().size() >> 1;
-
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0, {output_size}, &output_tensor));
-    uint32* output = output_tensor->flat<uint32>().data();
-
-    tflite::tflm_signal::SpectrumToEnergy(
-        reinterpret_cast<const Complex<int16_t>*>(input), start_index_,
-        end_index_, output);
-  }
-
- private:
-  int start_index_;
-  int end_index_;
+struct EnergyOp {
+  int32_t start_index = 0;
+  int32_t end_index = 0;
 };
 
-// TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalEnergy").Device(tensorflow::DEVICE_CPU),
-                        EnergyOp);
+void* EnergyOpCreate(TF_OpKernelConstruction* ctx) {
+  auto* op = new EnergyOp{};
+  TF_Status* status = TF_NewStatus();
+  TF_OpKernelConstruction_GetAttrInt32(ctx, "start_index", &op->start_index,
+                                       status);
+  if (TF_GetCode(status) == TF_OK) {
+    TF_OpKernelConstruction_GetAttrInt32(ctx, "end_index", &op->end_index,
+                                         status);
+  }
+  if (TF_GetCode(status) != TF_OK) {
+    TF_OpKernelConstruction_Failure(ctx, status);
+    delete op;
+    op = nullptr;
+  }
+  TF_DeleteStatus(status);
+  return op;
+}
 
+void EnergyOpDelete(void* kernel) { delete static_cast<EnergyOp*>(kernel); }
+
+void EnergyOpCompute(void* kernel, TF_OpKernelContext* ctx) {
+  auto* op = static_cast<EnergyOp*>(kernel);
+  TF_Status* status = TF_NewStatus();
+  TF_Tensor* input_tensor = nullptr;
+
+  TF_GetInput(ctx, 0, &input_tensor, status);
+  if (TF_GetCode(status) == TF_OK) {
+    // The input is complex. The output is real.
+    int64_t output_size = TF_TensorElementCount(input_tensor) >> 1;
+    int64_t out_dims[1] = {output_size};
+    TF_Tensor* output_tensor = TF_AllocateOutput(
+        ctx, 0, TF_UINT32, out_dims, 1,
+        static_cast<size_t>(output_size) * sizeof(uint32_t), status);
+    if (TF_GetCode(status) == TF_OK) {
+      const auto* input =
+          static_cast<const int16_t*>(TF_TensorData(input_tensor));
+      auto* output = static_cast<uint32_t*>(TF_TensorData(output_tensor));
+      tflite::tflm_signal::SpectrumToEnergy(
+          reinterpret_cast<const Complex<int16_t>*>(input), op->start_index,
+          op->end_index, output);
+      TF_DeleteTensor(output_tensor);
+    }
+  }
+
+  if (TF_GetCode(status) != TF_OK) {
+    TF_OpKernelContext_Failure(ctx, status);
+  }
+  if (input_tensor != nullptr) {
+    TF_DeleteTensor(input_tensor);
+  }
+  TF_DeleteStatus(status);
+}
+
+// TODO(b/286250473): change back name after name clash resolved
+void RegisterSignalEnergyKernel() {
+  TF_Status* status = TF_NewStatus();
+  auto* builder = TF_NewKernelBuilder("SignalEnergy", "CPU", &EnergyOpCreate,
+                                      &EnergyOpCompute, &EnergyOpDelete);
+  TF_RegisterKernelBuilder("SignalEnergy", builder, status);
+  TF_DeleteStatus(status);
+}
+
+const bool kSignalEnergyKernelRegistered = []() {
+  RegisterSignalEnergyKernel();
+  return true;
+}();
+
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

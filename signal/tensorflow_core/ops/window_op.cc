@@ -13,46 +13,81 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
+#include <cstdint>
+#include <cstdio>
 
-using tensorflow::shape_inference::InferenceContext;
-using tensorflow::shape_inference::ShapeHandle;
+#include "tensorflow/c/ops.h"
+#include "tensorflow/c/tf_status.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-absl::Status WindowShape(InferenceContext* c) {
-  ShapeHandle out;
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(1), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithRankAtLeast(c->input(0), 1, &out));
+void WindowShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
+  TF_ShapeHandle* in0 = TF_NewShapeHandle();
+  TF_ShapeHandle* in1 = TF_NewShapeHandle();
+  TF_ShapeHandle* out = TF_NewShapeHandle();
+  TF_DimensionHandle* dim_in = TF_NewDimensionHandle();
+  TF_DimensionHandle* dim_weights = TF_NewDimensionHandle();
 
-  shape_inference::DimensionHandle dim_in;
-  dim_in = c->Dim(c->input(0), -1);
+  TF_ShapeInferenceContextGetInput(ctx, 1, in1, status);
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRank(ctx, in1, 1, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRankAtLeast(ctx, in0, 1, out, status);
+  }
 
-  TF_RETURN_IF_ERROR(c->WithValue(c->Dim(c->input(1), 0),
-                                  InferenceContext::Value(dim_in), &dim_in));
-  c->set_output(0, out);
-  return absl::OkStatus();
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextDim(ctx, out, -1, dim_in);
+    TF_ShapeInferenceContextDim(ctx, in1, 0, dim_weights);
+    if (TF_DimensionHandleValueKnown(dim_weights)) {
+      int64_t w_val = TF_DimensionHandleValue(dim_weights);
+      int64_t in_val = TF_DimensionHandleValueKnown(dim_in)
+                           ? TF_DimensionHandleValue(dim_in)
+                           : -1;
+      if (w_val != in_val) {
+        char msg[128];
+        std::snprintf(msg, sizeof(msg), "Dimension must be %lld but is %lld",
+                      static_cast<long long>(in_val),
+                      static_cast<long long>(w_val));
+        TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
+      }
+    }
+  }
+
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
+  }
+
+  TF_DeleteDimensionHandle(dim_weights);
+  TF_DeleteDimensionHandle(dim_in);
+  TF_DeleteShapeHandle(out);
+  TF_DeleteShapeHandle(in1);
+  TF_DeleteShapeHandle(in0);
 }
 
 // TODO(b/286250473): change back name to "Window" after name clash resolved
-REGISTER_OP("SignalWindow")
-    .Attr("shift: int")
-    .Input("input: int16")
-    .Input("weights: int16")
-    .Output("output: int16")
-    .SetShapeFn([](InferenceContext* c) { return WindowShape(c); })
-    .Doc(R"doc(
-Apply a window to an input signal with a right shift to each element
+void RegisterSignalWindowOp() {
+  TF_Status* status = TF_NewStatus();
+  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalWindow");
+  TF_OpDefinitionBuilderAddAttr(builder, "shift: int");
+  TF_OpDefinitionBuilderAddInput(builder, "input: int16");
+  TF_OpDefinitionBuilderAddInput(builder, "weights: int16");
+  TF_OpDefinitionBuilderAddOutput(builder, "output: int16");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &WindowShape);
+  TF_RegisterOpDefinition(builder, status);
+  TF_DeleteStatus(status);
+}
 
-input: An N-D time domain input signal
-weights: Constant 1-D window weights. Size must match innermost input dimension.
-output: An N-D time domain output signal. Size must match input.
+const bool kSignalWindowOpRegistered = []() {
+  RegisterSignalWindowOp();
+  return true;
+}();
 
-shift: An amount of right shifts to perform on each element before writing
-to the output
-)doc");
-
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

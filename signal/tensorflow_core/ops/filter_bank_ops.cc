@@ -13,159 +13,197 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
 
-using tensorflow::shape_inference::InferenceContext;
-using tensorflow::shape_inference::ShapeHandle;
+#include "signal/tensorflow_core/ops/shape_inference_utils.h"
+#include "tensorflow/c/ops.h"
+#include "tensorflow/c/tf_status.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-absl::Status FilterBankShape(InferenceContext* c) {
-  ShapeHandle out;
-  shape_inference::DimensionHandle unused;
-  int num_channels;
-  TF_RETURN_IF_ERROR(c->GetAttr<int>("num_channels", &num_channels));
-
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-
-  // Inputs 1,2 must have the same shape
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(1), 1, &out));
-  auto num_weights = InferenceContext::Value(c->Dim(out, 0));
-
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(2), 1, &out));
-  TF_RETURN_IF_ERROR(
-      c->WithValue(c->Dim(c->input(2), 0), num_weights, &unused));
-  // Inputs 3,4,5 must have the same shape
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(3), 1, &out));
-  TF_RETURN_IF_ERROR(
-      c->WithValue(c->Dim(c->input(3), 0), num_channels + 1, &unused));
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(4), 1, &out));
-  TF_RETURN_IF_ERROR(
-      c->WithValue(c->Dim(c->input(4), 0), num_channels + 1, &unused));
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(5), 1, &out));
-  TF_RETURN_IF_ERROR(
-      c->WithValue(c->Dim(c->input(5), 0), num_channels + 1, &unused));
-  TF_RETURN_IF_ERROR(c->ReplaceDim(out, 0, c->MakeDim(num_channels), &out));
-  c->set_output(0, out);
-  return absl::OkStatus();
+bool CheckSame1DDim(TF_ShapeInferenceContext* ctx, TF_ShapeHandle* first,
+                    TF_ShapeHandle* second, TF_Status* status) {
+  TF_DimensionHandle* dim0 = TF_NewDimensionHandle();
+  TF_DimensionHandle* dim1 = TF_NewDimensionHandle();
+  TF_ShapeInferenceContextDim(ctx, first, 0, dim0);
+  TF_ShapeInferenceContextDim(ctx, second, 0, dim1);
+  if (TF_DimensionHandleValueKnown(dim0) &&
+      TF_DimensionHandleValueKnown(dim1)) {
+    int64_t v0 = TF_DimensionHandleValue(dim0);
+    int64_t v1 = TF_DimensionHandleValue(dim1);
+    if (v0 != v1) {
+      char msg[128];
+      std::snprintf(msg, sizeof(msg), "Dimension must be %lld but is %lld",
+                    static_cast<long long>(v0), static_cast<long long>(v1));
+      TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
+    }
+  }
+  TF_DeleteDimensionHandle(dim1);
+  TF_DeleteDimensionHandle(dim0);
+  return TF_GetCode(status) == TF_OK;
 }
 
+void FilterBankShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
+  int num_channels = 0;
+  if (!GetAttrInt(ctx, "num_channels", &num_channels, status)) {
+    return;
+  }
+
+  TF_ShapeHandle* inputs[6];
+  TF_ShapeHandle* ranked[6];
+  for (int i = 0; i < 6; ++i) {
+    inputs[i] = TF_NewShapeHandle();
+    ranked[i] = TF_NewShapeHandle();
+  }
+
+  for (int i = 0; i < 6 && TF_GetCode(status) == TF_OK; ++i) {
+    TF_ShapeInferenceContextGetInput(ctx, i, inputs[i], status);
+    if (TF_GetCode(status) == TF_OK) {
+      TF_ShapeInferenceContextWithRank(ctx, inputs[i], 1, ranked[i], status);
+    }
+  }
+
+  if (TF_GetCode(status) == TF_OK) {
+    // Inputs 1,2 must have the same shape.
+    CheckSame1DDim(ctx, ranked[1], ranked[2], status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    // Inputs 3,4,5 must have the same shape (num_channels + 1).
+    CheckDimValue(ctx, ranked[3], 0, num_channels + 1, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    CheckDimValue(ctx, ranked[4], 0, num_channels + 1, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    CheckDimValue(ctx, ranked[5], 0, num_channels + 1, status);
+  }
+
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeHandle* out = TF_ShapeInferenceContextVectorFromSize(
+        ctx, static_cast<size_t>(num_channels));
+    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
+    TF_DeleteShapeHandle(out);
+  }
+
+  for (int i = 0; i < 6; ++i) {
+    TF_DeleteShapeHandle(ranked[i]);
+    TF_DeleteShapeHandle(inputs[i]);
+  }
+}
+
+void FilterBank1DIdentityShape(TF_ShapeInferenceContext* ctx,
+                               TF_Status* status) {
+  TF_ShapeHandle* in0 = TF_NewShapeHandle();
+  TF_ShapeHandle* out = TF_NewShapeHandle();
+  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRank(ctx, in0, 1, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
+  }
+  TF_DeleteShapeHandle(out);
+  TF_DeleteShapeHandle(in0);
+}
+
+void FilterBankSpectralSubtractionShape(TF_ShapeInferenceContext* ctx,
+                                        TF_Status* status) {
+  TF_ShapeHandle* in0 = TF_NewShapeHandle();
+  TF_ShapeHandle* out = TF_NewShapeHandle();
+  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRank(ctx, in0, 1, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextSetOutput(ctx, 1, out, status);
+  }
+  TF_DeleteShapeHandle(out);
+  TF_DeleteShapeHandle(in0);
+}
+
+// Applies a mel filter bank of size num_channels to an input spectral energy
+// array See filter_bank_ops.py for how weights, unweights,
+// channel_frequency_start, channel_weight_start, channel_widths are
+// pre-calculated.
+//
+// Applies a square root to each element in the input then shift right by
+// scale_bits before writing the result to output.
+//
+// Applies spectral subtraction to a filter bank output of size num_channels.
+// Outputs the clean filter bank channels and the noise estimate for each
+// channel.
+//
+// Applies natural log to each element in input with pre-shift and post scaling.
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_OP("SignalFilterBank")
-    .Attr("num_channels: int >= 0")
-    .Input("input: uint32")
-    .Input("weights: int16")
-    .Input("unweights: int16")
-    .Input("channel_frequency_starts: int16")
-    .Input("channel_weight_starts: int16")
-    .Input("channel_widths: int16")
-    .Output("output: uint64")
-    .SetShapeFn([](InferenceContext* c) { return FilterBankShape(c); })
-    .Doc(R"doc(
-Applies a mel filter bank of size num_channels to an input spectral energy array
-See filter_bank_ops.py for how weights, unweights, channel_frequency_start,
-channel_weight_start, channel_widths are pre-calculated.
+void RegisterSignalFilterBankOps() {
+  TF_Status* status = TF_NewStatus();
 
-input: A 1-D spectral energy array.
-weights: A 1-D filter weight array of num_channels + 1 elements.
-unweights: A 1-D filter unweights array of num_channels + 1 elements.
-channel_frequency_starts: A 1-D array of size num_channels + 1 elements.
-                          Start index in input for each channel.
-channel_weight_starts:  A 1-D array of size num_channels + 1 elements.
-                        Start index in (un)weights array for each channel.
-channel_widths: A 1-D array of num_channels + 1 elements.
-                Number of bins for each channels.
-output: A 1-D array of num_channels elements. Each elements
-        contains the output of a single channel/filter in the bank.
+  TF_OpDefinitionBuilder* fb_builder =
+      TF_NewOpDefinitionBuilder("SignalFilterBank");
+  TF_OpDefinitionBuilderAddAttr(fb_builder, "num_channels: int >= 0");
+  TF_OpDefinitionBuilderAddInput(fb_builder, "input: uint32");
+  TF_OpDefinitionBuilderAddInput(fb_builder, "weights: int16");
+  TF_OpDefinitionBuilderAddInput(fb_builder, "unweights: int16");
+  TF_OpDefinitionBuilderAddInput(fb_builder, "channel_frequency_starts: int16");
+  TF_OpDefinitionBuilderAddInput(fb_builder, "channel_weight_starts: int16");
+  TF_OpDefinitionBuilderAddInput(fb_builder, "channel_widths: int16");
+  TF_OpDefinitionBuilderAddOutput(fb_builder, "output: uint64");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(fb_builder, &FilterBankShape);
+  TF_RegisterOpDefinition(fb_builder, status);
 
-num_channels: Number of channels in filter bank
-)doc");
+  TF_OpDefinitionBuilder* sqrt_builder =
+      TF_NewOpDefinitionBuilder("SignalFilterBankSquareRoot");
+  TF_OpDefinitionBuilderAddInput(sqrt_builder, "input: uint64");
+  TF_OpDefinitionBuilderAddInput(sqrt_builder, "scale_bits: int32");
+  TF_OpDefinitionBuilderAddOutput(sqrt_builder, "output: uint32");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(sqrt_builder,
+                                                  &FilterBank1DIdentityShape);
+  TF_RegisterOpDefinition(sqrt_builder, status);
 
-// TODO(b/286250473): change back name after name clash resolved
-REGISTER_OP("SignalFilterBankSquareRoot")
-    .Input("input: uint64")
-    .Input("scale_bits: int32")
-    .Output("output: uint32")
-    .SetShapeFn([](InferenceContext* c) {
-      ShapeHandle out;
-      TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-      c->set_output(0, out);
-      return absl::OkStatus();
-    })
-    .Doc(R"doc(
-Applies a square root to each element in the input then shift right by
-scale_bits before writing the result to output
+  TF_OpDefinitionBuilder* sub_builder =
+      TF_NewOpDefinitionBuilder("SignalFilterBankSpectralSubtraction");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "num_channels: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "smoothing: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "one_minus_smoothing: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "alternate_smoothing: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder,
+                                "alternate_one_minus_smoothing: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "smoothing_bits: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "min_signal_remaining: int >= 0");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "clamping: bool");
+  TF_OpDefinitionBuilderAddAttr(sub_builder, "spectral_subtraction_bits: int");
+  TF_OpDefinitionBuilderAddInput(sub_builder, "input: uint32");
+  TF_OpDefinitionBuilderAddOutput(sub_builder, "output: uint32");
+  TF_OpDefinitionBuilderAddOutput(sub_builder, "noise_estimate: uint32");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(
+      sub_builder, &FilterBankSpectralSubtractionShape);
+  TF_RegisterOpDefinition(sub_builder, status);
 
-input: A 1-D array of filter bank channels.
-scale_bits: A scaler. Number of bits to shift right
-output: A 1-D array of num_channels elements.
-)doc");
+  TF_OpDefinitionBuilder* log_builder =
+      TF_NewOpDefinitionBuilder("SignalFilterBankLog");
+  TF_OpDefinitionBuilderAddAttr(log_builder, "output_scale: int >= 1");
+  TF_OpDefinitionBuilderAddAttr(log_builder, "input_correction_bits: int >= 0");
+  TF_OpDefinitionBuilderAddInput(log_builder, "input: uint32");
+  TF_OpDefinitionBuilderAddOutput(log_builder, "output: int16");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(log_builder,
+                                                  &FilterBank1DIdentityShape);
+  TF_RegisterOpDefinition(log_builder, status);
 
-// TODO(b/286250473): change back name after name clash resolved
-REGISTER_OP("SignalFilterBankSpectralSubtraction")
-    .Attr("num_channels: int >= 0")
-    .Attr("smoothing: int >= 0")
-    .Attr("one_minus_smoothing: int >= 0")
-    .Attr("alternate_smoothing: int >= 0")
-    .Attr("alternate_one_minus_smoothing: int >= 0")
-    .Attr("smoothing_bits: int >= 0")
-    .Attr("min_signal_remaining: int >= 0")
-    .Attr("clamping: bool")
-    .Attr("spectral_subtraction_bits: int")
-    .Input("input: uint32")
-    .Output("output: uint32")
-    .Output("noise_estimate: uint32")
-    .SetShapeFn([](InferenceContext* c) {
-      ShapeHandle out;
-      TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-      c->set_output(0, out);
-      c->set_output(1, out);
-      return absl::OkStatus();
-    })
-    .Doc(R"doc(
-Applies spectral subtraction to a filter bank output of size num_channels
-Outputs the clean filter bank channels and the noise estimate for each channel.
+  TF_DeleteStatus(status);
+}
 
-input: A 1-D array of filter bank channels
-output: A 1-D array of clean filter bank channels
-noise_estimate: A 1-D array per-channel noise estimate
+const bool kSignalFilterBankOpsRegistered = []() {
+  RegisterSignalFilterBankOps();
+  return true;
+}();
 
-num_channels: Number of filter bank channels in input, output, noise_estimate
-smoothing: Smoothing constant for noise LPF
-one_minus_smoothing: (1 - smoothing) for noise LPF
-min_signal_remaining: minimum amount of signal after subtraction
-alternate_smoothing: if positive, noise LPF for odd-index channels, else ignored
-alternate_one_minus_smoothing: (1 - alernate_smoothing), if in use
-smoothing_bits: extra fractional bits for the noise_estimate smoothing filter
-spectral_subtraction_bits: scaling bits for smoothing and min_signal_remaining
-)doc");
-
-// TODO(b/286250473): change back name after name clash resolved
-REGISTER_OP("SignalFilterBankLog")
-    .Attr("output_scale: int >= 1")
-    .Attr("input_correction_bits: int >= 0")
-    .Input("input: uint32")
-    .Output("output: int16")
-    .SetShapeFn([](InferenceContext* c) {
-      ShapeHandle out;
-      TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-      c->set_output(0, out);
-      return absl::OkStatus();
-    })
-    .Doc(R"doc(
-Applies natural log to each element in input with pre-shift and post scaling.
-The operation is roughly equivalent to:
-output = min(Log(input << input_correction_bits) * output_scale, int16max)
-         If (input << input_correction_bits) is 1 or 0, the function returns 0
-
-input: A 1-D array of filter bank channels.
-output: A 1-D array of filter bank channels.
-
-output_scale: A scaler.
-input_correction_bits: A scalar
-)doc");
-
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow
