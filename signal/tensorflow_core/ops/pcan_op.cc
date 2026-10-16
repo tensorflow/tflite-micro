@@ -13,48 +13,75 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
-
-using ::tensorflow::shape_inference::InferenceContext;
-using ::tensorflow::shape_inference::ShapeHandle;
+#include "tensorflow/c/ops.h"
+#include "tensorflow/c/tf_status.h"
 
 namespace tensorflow {
 namespace signal {
-
 namespace {
 
-absl::Status PcanShape(InferenceContext* c) {
-  ShapeHandle out, lut;
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(1), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(2), 1, &lut));
+void PcanShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
+  TF_ShapeHandle* in0 = TF_NewShapeHandle();
+  TF_ShapeHandle* in1 = TF_NewShapeHandle();
+  TF_ShapeHandle* in2 = TF_NewShapeHandle();
+  TF_ShapeHandle* out = TF_NewShapeHandle();
+  TF_ShapeHandle* lut = TF_NewShapeHandle();
 
-  c->set_output(0, out);
-  return absl::OkStatus();
+  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRank(ctx, in0, 1, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextGetInput(ctx, 1, in1, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRank(ctx, in1, 1, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextGetInput(ctx, 2, in2, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRank(ctx, in2, 1, lut, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
+  }
+
+  TF_DeleteShapeHandle(lut);
+  TF_DeleteShapeHandle(out);
+  TF_DeleteShapeHandle(in2);
+  TF_DeleteShapeHandle(in1);
+  TF_DeleteShapeHandle(in0);
 }
 
+// Determines whether per-channel amplitude-normalized (PCAN) auto gain control
+// is applied, using either floating-point or fixed-point computation. If
+// enabled, the dynamic range of the filterbank output is compressed by dividing
+// by a power of the noise estimate.
+//
+// input: A 1-D array of mel-spectrum subband filter bank outputs.
+// noise_estimate: A 1-D array of mel-spectrun subbabd noise estimates.
+// gain_lut: A 1-D lookup table for gain calculation.
+// output: A 1-D array of processed subband filter bank.
+// snr_shift: Amount of right shift when calculating the SNR.
+void RegisterSignalPcanOp() {
+  TF_Status* status = TF_NewStatus();
+  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalPCAN");
+  TF_OpDefinitionBuilderAddAttr(builder, "snr_shift: int");
+  TF_OpDefinitionBuilderAddInput(builder, "input: uint32");
+  TF_OpDefinitionBuilderAddInput(builder, "noise_estimate: uint32");
+  TF_OpDefinitionBuilderAddInput(builder, "gain_lut: int16");
+  TF_OpDefinitionBuilderAddOutput(builder, "output: uint32");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &PcanShape);
+  TF_RegisterOpDefinition(builder, status);
+  TF_DeleteStatus(status);
+}
+
+const bool kSignalPcanOpRegistered = []() {
+  RegisterSignalPcanOp();
+  return true;
+}();
+
 }  // namespace
-
-REGISTER_OP("SignalPCAN")
-    .Attr("snr_shift: int")
-    .Input("input: uint32")
-    .Input("noise_estimate: uint32")
-    .Input("gain_lut: int16")
-    .Output("output: uint32")
-    .SetShapeFn(PcanShape)
-    .Doc(R"doc(
-Determines whether per-channel amplitude-normalized (PCAN) auto gain control is
-applied, using either floating-point or fixed-point computation. If enabled,
-the dynamic range of the filterbank output is compressed by dividing by a power
-of the noise estimate.
-
-input: A 1-D array of mel-spectrum subband filter bank outputs.
-noise_estimate: A 1-D array of mel-spectrun subbabd noise estimates.
-gain_lut: A 1-D lookup table for gain calculation.
-output: A 1-D array of processed subband filter bank.
-snr_shift: Amount of right shift when calculating the SNR.
-)doc");
-
 }  // namespace signal
 }  // namespace tensorflow

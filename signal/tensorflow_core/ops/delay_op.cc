@@ -13,46 +13,60 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
-
-using tensorflow::shape_inference::InferenceContext;
-using tensorflow::shape_inference::ShapeHandle;
+#include "tensorflow/c/ops.h"
+#include "tensorflow/c/tf_status.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-absl::Status DelayShape(InferenceContext* c) {
-  ShapeHandle out;
-  TF_RETURN_IF_ERROR(c->WithRankAtLeast(c->input(0), 1, &out));
-  c->set_output(0, out);
-  return absl::OkStatus();
+void DelayShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
+  TF_ShapeHandle* in0 = TF_NewShapeHandle();
+  TF_ShapeHandle* out = TF_NewShapeHandle();
+  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextWithRankAtLeast(ctx, in0, 1, out, status);
+  }
+  if (TF_GetCode(status) == TF_OK) {
+    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
+  }
+  TF_DeleteShapeHandle(out);
+  TF_DeleteShapeHandle(in0);
 }
 
+// Delay the innermost dimension of input signal by delay_length samples.
+//
+// For example, assuming an input signal of 10 samples,
+// [1 2 3 4 5 6 7 8 9 0]
+// If we input the signal to a delay op configured with delay_length=3, the op
+// will produce the following output:
+// [0 0 0 1 2 3 4 5 6 7]
+// To retrieve the remainder of the input signal, call the delay op again with
+// zeros as input:
+// [0 0 0 0 0 0 0 0 0 0]
+// to get the output:
+// [8 9 0 0 0 0 0 0 0 0]
+//
+// input: A multidimensional input signal.
+// output: An output signal of the same shape as the input signal. The innermost
+//         dimension is delayed by delay_length samples.
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_OP("SignalDelay")
-    .Attr("delay_length: int >= 0")
-    .Input("input: int16")
-    .Output("output: int16")
-    .SetShapeFn(DelayShape)
-    .Doc(R"doc(
-Delay the innermost dimension of input signal by delay_length samples.
+void RegisterSignalDelayOp() {
+  TF_Status* status = TF_NewStatus();
+  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalDelay");
+  TF_OpDefinitionBuilderAddAttr(builder, "delay_length: int >= 0");
+  TF_OpDefinitionBuilderAddInput(builder, "input: int16");
+  TF_OpDefinitionBuilderAddOutput(builder, "output: int16");
+  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &DelayShape);
+  TF_RegisterOpDefinition(builder, status);
+  TF_DeleteStatus(status);
+}
 
-For example, assuming an input signal of 10 samples,
-[1 2 3 4 5 6 7 8 9 0]
-If we input the signal to a delay op configured with delay_length=3, the op
-will produce the following output:
-[0 0 0 1 2 3 4 5 6 7]
-To retrieve the remainder of the input signal, call the delay op again with
-zeros as input:
-[0 0 0 0 0 0 0 0 0 0]
-to get the output:
-[8 9 0 0 0 0 0 0 0 0]
+const bool kSignalDelayOpRegistered = []() {
+  RegisterSignalDelayOp();
+  return true;
+}();
 
-input: A multidimensional input signal.
-output: An output signal of the same shape as the input signal. The innermost
-        dimension is delayed by delay_length samples.
-)doc");
-
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow
