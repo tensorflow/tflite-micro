@@ -64,7 +64,7 @@ void PcanShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // gain_lut: A 1-D lookup table for gain calculation.
 // output: A 1-D array of processed subband filter bank.
 // snr_shift: Amount of right shift when calculating the SNR.
-void RegisterSignalPcanOp() {
+__attribute__((constructor)) void RegisterSignalPcanOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalPCAN");
   TF_OpDefinitionBuilderAddAttr(builder, "snr_shift: int");
@@ -76,11 +76,6 @@ void RegisterSignalPcanOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalPcanOpRegistered = []() {
-  RegisterSignalPcanOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

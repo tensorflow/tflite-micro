@@ -15,6 +15,7 @@ limitations under the License.
 
 #include "signal/tensorflow_core/ops/shape_inference_utils.h"
 
+#include <cinttypes>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -75,7 +76,7 @@ bool GetAttrInt(TF_ShapeInferenceContext* ctx, const char* attr_name,
       if (std::strncmp(p, attr_name, name_len) == 0 && p[name_len] == '=') {
         const char* val_start = p + name_len + 1;
         char* val_end = nullptr;
-        const long long parsed = std::strtoll(val_start, &val_end, 10);
+        const int64_t parsed = std::strtoll(val_start, &val_end, 10);
         if (val_end != val_start && (*val_end == ',' || *val_end == ']')) {
           *value = static_cast<int>(parsed);
           TF_SetStatus(status, TF_OK, "");
@@ -130,9 +131,9 @@ bool CheckDimValue(TF_ShapeInferenceContext* ctx, TF_ShapeHandle* shape,
     const int64_t actual = TF_DimensionHandleValue(dim);
     if (actual != expected) {
       char msg[128];
-      std::snprintf(msg, sizeof(msg), "Dimension must be %lld but is %lld",
-                    static_cast<long long>(expected),
-                    static_cast<long long>(actual));
+      std::snprintf(msg, sizeof(msg),
+                    "Dimension must be %" PRId64 " but is %" PRId64, expected,
+                    actual);
       TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
     }
   }

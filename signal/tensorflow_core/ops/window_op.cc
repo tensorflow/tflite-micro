@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 
@@ -51,9 +52,9 @@ void WindowShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
                            : -1;
       if (w_val != in_val) {
         char msg[128];
-        std::snprintf(msg, sizeof(msg), "Dimension must be %lld but is %lld",
-                      static_cast<long long>(in_val),
-                      static_cast<long long>(w_val));
+        std::snprintf(msg, sizeof(msg),
+                      "Dimension must be %" PRId64 " but is %" PRId64, in_val,
+                      w_val);
         TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
       }
     }
@@ -71,7 +72,7 @@ void WindowShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 }
 
 // TODO(b/286250473): change back name to "Window" after name clash resolved
-void RegisterSignalWindowOp() {
+__attribute__((constructor)) void RegisterSignalWindowOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalWindow");
   TF_OpDefinitionBuilderAddAttr(builder, "shift: int");
@@ -82,11 +83,6 @@ void RegisterSignalWindowOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalWindowOpRegistered = []() {
-  RegisterSignalWindowOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

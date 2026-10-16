@@ -60,9 +60,9 @@ void* StackerOpCreate(TF_OpKernelConstruction* ctx) {
 
   if (TF_GetCode(status) == TF_OK) {
     op->buffer_size =
-        static_cast<size_t>(op->num_channels * (op->stacker_left_context +
-                                                op->stacker_right_context + 1));
-    op->step_size = static_cast<size_t>(op->num_channels * op->stacker_step);
+        static_cast<size_t>(op->num_channels) *
+        (op->stacker_left_context + op->stacker_right_context + 1);
+    op->step_size = static_cast<size_t>(op->num_channels) * op->stacker_step;
     op->stacker_has_first_frame = false;
 
     size_t state_size =
@@ -148,18 +148,13 @@ void StackerOpCompute(void* kernel, TF_OpKernelContext* ctx) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalStackerKernel() {
+__attribute__((constructor)) void RegisterSignalStackerKernel() {
   TF_Status* status = TF_NewStatus();
   auto* builder = TF_NewKernelBuilder("SignalStacker", "CPU", &StackerOpCreate,
                                       &StackerOpCompute, &StackerOpDelete);
   TF_RegisterKernelBuilder("SignalStacker", builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalStackerKernelRegistered = []() {
-  RegisterSignalStackerKernel();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

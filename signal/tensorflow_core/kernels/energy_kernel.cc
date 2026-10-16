@@ -60,7 +60,7 @@ void EnergyOpCompute(void* kernel, TF_OpKernelContext* ctx) {
   TF_GetInput(ctx, 0, &input_tensor, status);
   if (TF_GetCode(status) == TF_OK) {
     // The input is complex. The output is real.
-    int64_t output_size = TF_TensorElementCount(input_tensor) >> 1;
+    int64_t output_size = TF_TensorElementCount(input_tensor) / 2;
     int64_t out_dims[1] = {output_size};
     TF_Tensor* output_tensor = TF_AllocateOutput(
         ctx, 0, TF_UINT32, out_dims, 1,
@@ -86,18 +86,13 @@ void EnergyOpCompute(void* kernel, TF_OpKernelContext* ctx) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalEnergyKernel() {
+__attribute__((constructor)) void RegisterSignalEnergyKernel() {
   TF_Status* status = TF_NewStatus();
   auto* builder = TF_NewKernelBuilder("SignalEnergy", "CPU", &EnergyOpCreate,
                                       &EnergyOpCompute, &EnergyOpDelete);
   TF_RegisterKernelBuilder("SignalEnergy", builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalEnergyKernelRegistered = []() {
-  RegisterSignalEnergyKernel();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

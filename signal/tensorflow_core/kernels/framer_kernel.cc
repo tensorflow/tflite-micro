@@ -92,7 +92,8 @@ void FramerOpCompute(void* kernel, TF_OpKernelContext* ctx) {
       // capacity = 480 vs. step_size + frame_size = 560
       size_t capacity =
           static_cast<size_t>((op->frame_size + op->frame_step - 1) /
-                              op->frame_step * op->frame_step);
+                              op->frame_step) *
+          op->frame_step;
       size_t state_size =
           tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
       for (int64_t i = 0; i < op->outer_dims; i++) {
@@ -174,18 +175,13 @@ void FramerOpCompute(void* kernel, TF_OpKernelContext* ctx) {
 }
 
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalFramerKernel() {
+__attribute__((constructor)) void RegisterSignalFramerKernel() {
   TF_Status* status = TF_NewStatus();
   auto* builder = TF_NewKernelBuilder("SignalFramer", "CPU", &FramerOpCreate,
                                       &FramerOpCompute, &FramerOpDelete);
   TF_RegisterKernelBuilder("SignalFramer", builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalFramerKernelRegistered = []() {
-  RegisterSignalFramerKernel();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

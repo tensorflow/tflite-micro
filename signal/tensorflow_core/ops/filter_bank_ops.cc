@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cinttypes>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -37,8 +38,8 @@ bool CheckSame1DDim(TF_ShapeInferenceContext* ctx, TF_ShapeHandle* first,
     int64_t v1 = TF_DimensionHandleValue(dim1);
     if (v0 != v1) {
       char msg[128];
-      std::snprintf(msg, sizeof(msg), "Dimension must be %lld but is %lld",
-                    static_cast<long long>(v0), static_cast<long long>(v1));
+      std::snprintf(msg, sizeof(msg),
+                    "Dimension must be %" PRId64 " but is %" PRId64, v0, v1);
       TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
     }
   }
@@ -142,7 +143,7 @@ void FilterBankSpectralSubtractionShape(TF_ShapeInferenceContext* ctx,
 //
 // Applies natural log to each element in input with pre-shift and post scaling.
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalFilterBankOps() {
+__attribute__((constructor)) void RegisterSignalFilterBankOps() {
   TF_Status* status = TF_NewStatus();
 
   TF_OpDefinitionBuilder* fb_builder =
@@ -198,11 +199,6 @@ void RegisterSignalFilterBankOps() {
 
   TF_DeleteStatus(status);
 }
-
-const bool kSignalFilterBankOpsRegistered = []() {
-  RegisterSignalFilterBankOps();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

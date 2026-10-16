@@ -83,7 +83,7 @@ void FramerShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // initialize the contents of the output tensor and sets the output_valid
 // boolean to False.
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalFramerOp() {
+__attribute__((constructor)) void RegisterSignalFramerOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalFramer");
   TF_OpDefinitionBuilderAddAttr(builder, "frame_size: int >= 1");
@@ -96,11 +96,6 @@ void RegisterSignalFramerOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalFramerOpRegistered = []() {
-  RegisterSignalFramerOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

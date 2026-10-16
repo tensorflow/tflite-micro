@@ -61,7 +61,7 @@ void EnergyShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // end_index: last index in the input to calculate. Default: last element of
 // input
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalEnergyOp() {
+__attribute__((constructor)) void RegisterSignalEnergyOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalEnergy");
   TF_OpDefinitionBuilderAddAttr(builder, "start_index: int");
@@ -72,11 +72,6 @@ void RegisterSignalEnergyOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalEnergyOpRegistered = []() {
-  RegisterSignalEnergyOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

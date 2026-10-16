@@ -36,7 +36,8 @@ void RfftShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
     TF_ShapeInferenceContextWithRankAtLeast(ctx, in0, 1, ranked, status);
   }
   if (TF_GetCode(status) == TF_OK) {
-    int64_t dim = ((fft_length / 2) + 1) * 2;  // * 2 for complex
+    int64_t dim =
+        static_cast<int64_t>((fft_length / 2) + 1) * 2;  // * 2 for complex
     if (ReplaceLastDim(ctx, ranked, dim, out, status)) {
       TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
     }
@@ -135,7 +136,7 @@ void FftAutoScaleShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // output: A 1-D time domain signal after auto scaling.
 // scale_bits: Scalar. The number of left shifts applied to the input signal.
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalFftOps() {
+__attribute__((constructor)) void RegisterSignalFftOps() {
   TF_Status* status = TF_NewStatus();
 
   TF_OpDefinitionBuilder* rfft_builder =
@@ -167,11 +168,6 @@ void RegisterSignalFftOps() {
 
   TF_DeleteStatus(status);
 }
-
-const bool kSignalFftOpsRegistered = []() {
-  RegisterSignalFftOps();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal

@@ -51,7 +51,7 @@ void DelayShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // output: An output signal of the same shape as the input signal. The innermost
 //         dimension is delayed by delay_length samples.
 // TODO(b/286250473): change back name after name clash resolved
-void RegisterSignalDelayOp() {
+__attribute__((constructor)) void RegisterSignalDelayOp() {
   TF_Status* status = TF_NewStatus();
   TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalDelay");
   TF_OpDefinitionBuilderAddAttr(builder, "delay_length: int >= 0");
@@ -61,11 +61,6 @@ void RegisterSignalDelayOp() {
   TF_RegisterOpDefinition(builder, status);
   TF_DeleteStatus(status);
 }
-
-const bool kSignalDelayOpRegistered = []() {
-  RegisterSignalDelayOp();
-  return true;
-}();
 
 }  // namespace
 }  // namespace signal
