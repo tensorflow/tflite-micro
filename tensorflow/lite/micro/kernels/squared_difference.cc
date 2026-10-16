@@ -173,8 +173,8 @@ T SquaredDifference(T x, T y, const ArithmeticParams& params) {
                                     params.output_shift) +
       params.output_offset;
   const int32_t clamped_output =
-      std::min(params.quantized_activation_max,
-               std::max(params.quantized_activation_min, raw_output));
+      std::clamp(raw_output, params.quantized_activation_min,
+                 params.quantized_activation_max);
   return static_cast<T>(clamped_output);
 }
 

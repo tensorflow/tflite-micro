@@ -658,14 +658,14 @@ LUTPopulate(double input_scale, int32_t input_zero_point, double output_scale,
 // to interpolate the last value.
 template <typename T>
 constexpr int LUTSize() {
-  static_assert(std::is_same<T, uint8_t>::value ||
-                    std::is_same<T, int8_t>::value ||
-                    std::is_same<T, int16_t>::value,
+  static_assert(std::is_same_v<T, uint8_t> || std::is_same_v<T, int8_t> ||
+                    std::is_same_v<T, int16_t>,
                 "Only LUTs with uint8, int8 or int16 inputs are supported.");
-  // As per c++11: constexpr methods cannot have more than one return statement.
-  return (std::is_same<T, uint8_t>::value || std::is_same<T, int8_t>::value)
-             ? 256
-             : 513;
+  if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, int8_t>) {
+    return 256;
+  } else {
+    return 513;
+  }
 }
 
 // int16_t -> int16_t table lookup with interpolation
@@ -1345,32 +1345,26 @@ inline int LegacyHowManyThreads(int max_num_threads, int rows, int cols,
 }
 
 template <typename T>
-void optimized_ops_preload_l1_stream(const T* ptr) {
+void optimized_ops_preload_l1_stream([[maybe_unused]] const T* ptr) {
 #ifdef __GNUC__
   // builtin offered by GCC-compatible compilers including clang
   __builtin_prefetch(ptr, /* 0 means read */ 0, /* 0 means no locality */ 0);
-#else
-  (void)ptr;
 #endif
 }
 
 template <typename T>
-void optimized_ops_preload_l1_keep(const T* ptr) {
+void optimized_ops_preload_l1_keep([[maybe_unused]] const T* ptr) {
 #ifdef __GNUC__
   // builtin offered by GCC-compatible compilers including clang
   __builtin_prefetch(ptr, /* 0 means read */ 0, /* 3 means high locality */ 3);
-#else
-  (void)ptr;
 #endif
 }
 
 template <typename T>
-void optimized_ops_prefetch_write_l1_keep(const T* ptr) {
+void optimized_ops_prefetch_write_l1_keep([[maybe_unused]] const T* ptr) {
 #ifdef __GNUC__
   // builtin offered by GCC-compatible compilers including clang
   __builtin_prefetch(ptr, /* 1 means write */ 1, /* 3 means high locality */ 3);
-#else
-  (void)ptr;
 #endif
 }
 

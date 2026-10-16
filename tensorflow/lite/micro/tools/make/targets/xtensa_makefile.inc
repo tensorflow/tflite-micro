@@ -52,9 +52,7 @@ CC_TOOL := clang
 AR := ar
 
 # Building with C++17 requires libc++
-ifneq ($(CC_VER11), true)
-  PLATFORM_FLAGS += -stdlib=libc++
-endif
+PLATFORM_FLAGS += -stdlib=libc++
 
 # Unused exception related symbols make their way into a binary that links
 # against TFLM as described in https://github.com/tensorflow/tensorflow/issues/47575.
