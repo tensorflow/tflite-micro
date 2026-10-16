@@ -8,9 +8,6 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
-    features = [
-        "-parse_headers",  # buildozer: disable=no-parse-headers, paser_headers is unavailable with bazel (http://b/175817117#comment4)
-    ],
     licenses = ["notice"],
 )
 
@@ -336,6 +333,7 @@ tflm_cc_library(
         ":micro_common",
         ":micro_compatibility",
         ":micro_log",
+        "//signal/micro/kernels:register_signal_ops",
         "//tensorflow/lite/micro/kernels:micro_ops",
     ],
 )
@@ -447,6 +445,7 @@ tflm_cc_library(
         ":micro_compatibility",
         ":micro_framework",
         ":micro_log",
+        ":micro_profiler_interface",
         "//tensorflow/lite/micro/arena_allocator:recording_simple_memory_allocator",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
     ],

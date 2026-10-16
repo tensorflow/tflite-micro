@@ -55,6 +55,7 @@ build:ci --action_env=CXX=clang++
 build:ci --repo_env=CC=clang
 build:ci --repo_env=CXX=clang++
 build:ci --features=layering_check
+build:ci --process_headers_in_dependencies
 
 # Windows CI options
 build:windows_ci --config=_ci_base

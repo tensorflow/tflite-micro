@@ -5,7 +5,10 @@ load(
     "tflm_cc_library",
 )
 
-package(licenses = ["notice"])
+package(
+    features = ["parse_headers"],
+    licenses = ["notice"],
+)
 
 tflm_cc_library(
     name = "register_signal_ops",

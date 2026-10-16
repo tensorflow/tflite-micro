@@ -67,10 +67,11 @@ def tflm_cc_binary(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
         **kwargs
     )
 
-def tflm_cc_library(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
+def tflm_cc_library(copts = tflm_copts(), defines = tflm_defines(), features = [], **kwargs):
     cc_library(
         copts = copts,
         defines = defines,
+        features = ["parse_headers"] + features,
         **kwargs
     )
 
