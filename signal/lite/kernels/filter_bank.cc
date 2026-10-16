@@ -19,6 +19,8 @@ limitations under the License.
 #include <stdint.h>
 #include <string.h>
 
+#include <vector>
+
 #include "flatbuffers/flexbuffers.h"
 #include "signal/lite/kernels/kernel_util.h"
 #include "signal/lite/kernels/signal_ops.h"
@@ -40,27 +42,16 @@ constexpr int kOutputTensor = 0;
 
 struct FilterBankParams {
   tflm_signal::FilterbankConfig config{};
-  uint64_t* work_area = nullptr;
+  std::vector<uint64_t> work_area;
 };
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new FilterBankParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->config.num_channels = m["num_channels"].AsInt32();
-  params->work_area = new uint64_t[params->config.num_channels + 1];
+  params->work_area.resize(params->config.num_channels + 1);
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<FilterBankParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  delete[] params->work_area;
-  delete params;
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -122,10 +113,10 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
   const uint32_t* input_data = GetTensorData<uint32_t>(input0);
   uint64_t* output_data = GetTensorData<uint64_t>(output);
   tflm_signal::FilterbankAccumulateChannels(&params->config, input_data,
-                                            params->work_area);
+                                            params->work_area.data());
 
   // Discard channel 0, which is scratch space.
-  memcpy(output_data, params->work_area + 1,
+  memcpy(output_data, params->work_area.data() + 1,
          TfLiteOpaqueTensorByteSize(output));
   return kTfLiteOk;
 }
@@ -133,16 +124,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateFilterBankOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(kTfLiteBuiltinCustom,
-                                             "SignalFilterBank", /*version=*/1,
-                                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalFilterBank", Init, DeleteParams<FilterBankParams>, Prepare, Eval);
   return op;
 }
 

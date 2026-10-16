@@ -12,6 +12,7 @@ cc_library(
     deps = [
         "//third_party/tflite_c_headers:c_api_opaque",
         "//third_party/tflite_c_headers:common",
+        "@flatbuffers//:runtime_cc",
     ],
 )
 

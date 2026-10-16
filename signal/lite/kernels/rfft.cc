@@ -19,6 +19,9 @@ limitations under the License.
 #include <stdint.h>
 #include <string.h>
 
+#include <memory>
+#include <vector>
+
 #include "flatbuffers/flexbuffers.h"
 #include "signal/lite/kernels/kernel_util.h"
 #include "signal/lite/kernels/signal_ops.h"
@@ -40,63 +43,73 @@ struct RfftParams {
   int32_t input_length = 0;
   int32_t output_length = 0;
   TfLiteType fft_type = kTfLiteNoType;
-  int8_t* work_area = nullptr;
-  int8_t* state = nullptr;
+  std::vector<int8_t> work_area;
+  std::vector<int8_t> state;
 };
+
+template <typename T>
+void EvalRfft(RfftParams* params, const TfLiteOpaqueTensor* input,
+              TfLiteOpaqueTensor* output,
+              void (*apply_fn)(void*, const T*, Complex<T>*)) {
+  const T* input_data = GetTensorData<T>(input);
+  Complex<T>* output_data = GetTensorData<Complex<T>>(output);
+  T* work_area = reinterpret_cast<T*>(params->work_area.data());
+
+  for (int input_idx = 0, output_idx = 0; input_idx < params->input_size;
+       input_idx += params->input_length, output_idx += params->output_length) {
+    memcpy(work_area, &input_data[input_idx], sizeof(T) * params->input_length);
+    // Zero-pad input to FFT length.
+    memset(&work_area[params->input_length], 0,
+           sizeof(T) * (params->fft_length - params->input_length));
+    apply_fn(params->state.data(), work_area, &output_data[output_idx]);
+  }
+}
 
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* context,
            const char* buffer, size_t length) {
-  auto* params = new RfftParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  std::unique_ptr<RfftParams> params(new RfftParams);
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->fft_length = m["fft_length"].AsInt32();
   int32_t tensor_type = m["T"].AsInt32();
-  size_t state_size = 0;
 
   switch (tensor_type) {
-    case kTensorTypeFloat32:
+    case kTensorTypeFloat32: {
       params->fft_type = kTfLiteFloat32;
-      state_size = ::tflm_signal::RfftFloatGetNeededMemory(params->fft_length);
-      params->work_area = new int8_t[sizeof(float) * params->fft_length];
-      params->state = new int8_t[state_size];
-      ::tflm_signal::RfftFloatInit(params->fft_length, params->state,
+      size_t state_size =
+          ::tflm_signal::RfftFloatGetNeededMemory(params->fft_length);
+      params->work_area.resize(sizeof(float) * params->fft_length);
+      params->state.resize(state_size);
+      ::tflm_signal::RfftFloatInit(params->fft_length, params->state.data(),
                                    state_size);
       break;
-    case kTensorTypeInt16:
+    }
+    case kTensorTypeInt16: {
       params->fft_type = kTfLiteInt16;
-      state_size = ::tflm_signal::RfftInt16GetNeededMemory(params->fft_length);
-      params->work_area = new int8_t[sizeof(int16_t) * params->fft_length];
-      params->state = new int8_t[state_size];
-      ::tflm_signal::RfftInt16Init(params->fft_length, params->state,
+      size_t state_size =
+          ::tflm_signal::RfftInt16GetNeededMemory(params->fft_length);
+      params->work_area.resize(sizeof(int16_t) * params->fft_length);
+      params->state.resize(state_size);
+      ::tflm_signal::RfftInt16Init(params->fft_length, params->state.data(),
                                    state_size);
       break;
-    case kTensorTypeInt32:
+    }
+    case kTensorTypeInt32: {
       params->fft_type = kTfLiteInt32;
-      state_size = ::tflm_signal::RfftInt32GetNeededMemory(params->fft_length);
-      params->work_area = new int8_t[sizeof(int32_t) * params->fft_length];
-      params->state = new int8_t[state_size];
-      ::tflm_signal::RfftInt32Init(params->fft_length, params->state,
+      size_t state_size =
+          ::tflm_signal::RfftInt32GetNeededMemory(params->fft_length);
+      params->work_area.resize(sizeof(int32_t) * params->fft_length);
+      params->state.resize(state_size);
+      ::tflm_signal::RfftInt32Init(params->fft_length, params->state.data(),
                                    state_size);
       break;
+    }
     default:
       TF_LITE_OPAQUE_KERNEL_LOG(
           context, "Type %d is currently not supported by SignalRfft.",
           tensor_type);
-      delete params;
       return nullptr;
   }
-  return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  auto* params = static_cast<RfftParams*>(data);
-  if (params == nullptr) {
-    return;
-  }
-  delete[] params->state;
-  delete[] params->work_area;
-  delete params;
+  return params.release();
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -142,54 +155,20 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
   TfLiteOpaqueTensor* output =
       TfLiteOpaqueNodeGetOutput(context, node, kOutputTensor);
 
-  const void* input_data = TfLiteOpaqueTensorData(input);
-  size_t elem_size = 0;
   switch (params->fft_type) {
     case kTfLiteFloat32:
-      elem_size = sizeof(float);
+      EvalRfft<float>(params, input, output, ::tflm_signal::RfftFloatApply);
       break;
     case kTfLiteInt16:
-      elem_size = sizeof(int16_t);
+      EvalRfft<int16_t>(params, input, output, ::tflm_signal::RfftInt16Apply);
       break;
     case kTfLiteInt32:
-      elem_size = sizeof(int32_t);
+      EvalRfft<int32_t>(params, input, output, ::tflm_signal::RfftInt32Apply);
       break;
     default:
       TF_LITE_OPAQUE_KERNEL_LOG(context, "Invalid Rfft Type %d.",
                                 params->fft_type);
       return kTfLiteError;
-  }
-
-  for (int input_idx = 0, output_idx = 0; input_idx < params->input_size;
-       input_idx += params->input_length, output_idx += params->output_length) {
-    memcpy(params->work_area,
-           static_cast<const int8_t*>(input_data) + input_idx * elem_size,
-           elem_size * params->input_length);
-    // Zero-pad input to FFT length.
-    memset(params->work_area + elem_size * params->input_length, 0,
-           elem_size * (params->fft_length - params->input_length));
-
-    switch (params->fft_type) {
-      case kTfLiteFloat32:
-        ::tflm_signal::RfftFloatApply(
-            params->state, reinterpret_cast<const float*>(params->work_area),
-            &GetTensorData<Complex<float>>(output)[output_idx]);
-        break;
-      case kTfLiteInt16:
-        ::tflm_signal::RfftInt16Apply(
-            params->state, reinterpret_cast<const int16_t*>(params->work_area),
-            &GetTensorData<Complex<int16_t>>(output)[output_idx]);
-        break;
-      case kTfLiteInt32:
-        ::tflm_signal::RfftInt32Apply(
-            params->state, reinterpret_cast<const int32_t*>(params->work_area),
-            &GetTensorData<Complex<int32_t>>(output)[output_idx]);
-        break;
-      default:
-        TF_LITE_OPAQUE_KERNEL_LOG(context, "Invalid Rfft Type %d.",
-                                  params->fft_type);
-        return kTfLiteError;
-    }
   }
   return kTfLiteOk;
 }
@@ -197,16 +176,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateRfftOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r =
-        TfLiteOperatorCreate(kTfLiteBuiltinCustom, "SignalRfft", /*version=*/1,
-                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op =
+      MakeOperator("SignalRfft", Init, DeleteParams<RfftParams>, Prepare, Eval);
   return op;
 }
 

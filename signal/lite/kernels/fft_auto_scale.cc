@@ -81,14 +81,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateFftAutoScaleOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(
-        kTfLiteBuiltinCustom, "SignalFftAutoScale", /*version=*/1,
-        /*user_data=*/nullptr);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op =
+      MakeOperator("SignalFftAutoScale", nullptr, nullptr, Prepare, Eval);
   return op;
 }
 

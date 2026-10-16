@@ -41,16 +41,10 @@ struct EnergyParams {
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new EnergyParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->start_index = m["start_index"].AsInt32();
   params->end_index = m["end_index"].AsInt32();
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  delete static_cast<EnergyParams*>(data);
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -94,16 +88,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateEnergyOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(kTfLiteBuiltinCustom,
-                                             "SignalEnergy", /*version=*/1,
-                                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalEnergy", Init, DeleteParams<EnergyParams>, Prepare, Eval);
   return op;
 }
 

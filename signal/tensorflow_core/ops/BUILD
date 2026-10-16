@@ -20,6 +20,7 @@ tflm_signal_kernel_library(
     name = "delay_op",
     srcs = ["delay_op.cc"],
     deps = [
+        ":shape_inference_utils",
         "//third_party/tf_c_headers:ops",
         "//third_party/tf_c_headers:tf_status",
     ],
@@ -29,6 +30,7 @@ tflm_signal_kernel_library(
     name = "energy_op",
     srcs = ["energy_op.cc"],
     deps = [
+        ":shape_inference_utils",
         "//third_party/tf_c_headers:ops",
         "//third_party/tf_c_headers:tf_status",
     ],
@@ -78,6 +80,7 @@ tflm_signal_kernel_library(
     name = "pcan_op",
     srcs = ["pcan_op.cc"],
     deps = [
+        ":shape_inference_utils",
         "//third_party/tf_c_headers:ops",
         "//third_party/tf_c_headers:tf_status",
     ],
@@ -97,6 +100,7 @@ tflm_signal_kernel_library(
     name = "window_op",
     srcs = ["window_op.cc"],
     deps = [
+        ":shape_inference_utils",
         "//third_party/tf_c_headers:ops",
         "//third_party/tf_c_headers:tf_status",
     ],

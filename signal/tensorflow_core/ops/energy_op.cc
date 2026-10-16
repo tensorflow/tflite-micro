@@ -13,9 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <cstddef>
-#include <cstdint>
-
+#include "signal/tensorflow_core/ops/shape_inference_utils.h"
 #include "tensorflow/c/ops.h"
 #include "tensorflow/c/tf_status.h"
 
@@ -23,31 +21,15 @@ namespace tensorflow {
 namespace signal {
 namespace {
 
-void EnergyShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
-  TF_ShapeHandle* in0 = TF_NewShapeHandle();
-  TF_ShapeHandle* ranked = TF_NewShapeHandle();
-  TF_DimensionHandle* dim0 = TF_NewDimensionHandle();
-
-  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextWithRank(ctx, in0, 1, ranked, status);
+void EnergyShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
+  ShapeInferenceContext ctx(raw_ctx, status);
+  ShapeHandle in = ctx.WithRank(ctx.Input(0), 1);
+  DimensionHandle dim0 = ctx.Dim(in, 0);
+  if (ctx.ValueKnown(dim0)) {
+    ctx.SetOutput(0, ctx.VectorFromSize(ctx.Value(dim0) / 2));
+  } else {
+    ctx.SetOutput(0, in);
   }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextDim(ctx, ranked, 0, dim0);
-    if (TF_DimensionHandleValueKnown(dim0)) {
-      int64_t length = TF_DimensionHandleValue(dim0) / 2;
-      TF_ShapeHandle* out = TF_ShapeInferenceContextVectorFromSize(
-          ctx, static_cast<size_t>(length));
-      TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
-      TF_DeleteShapeHandle(out);
-    } else {
-      TF_ShapeInferenceContextSetUnknownShape(ctx, status);
-    }
-  }
-
-  TF_DeleteDimensionHandle(dim0);
-  TF_DeleteShapeHandle(ranked);
-  TF_DeleteShapeHandle(in0);
 }
 
 // Calculate the energy of a spectral array. Only elements in the index range
@@ -62,15 +44,13 @@ void EnergyShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // input
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalEnergyOp() {
-  TF_Status* status = TF_NewStatus();
-  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalEnergy");
-  TF_OpDefinitionBuilderAddAttr(builder, "start_index: int");
-  TF_OpDefinitionBuilderAddAttr(builder, "end_index: int");
-  TF_OpDefinitionBuilderAddInput(builder, "input: int16");
-  TF_OpDefinitionBuilderAddOutput(builder, "output: uint32");
-  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &EnergyShape);
-  TF_RegisterOpDefinition(builder, status);
-  TF_DeleteStatus(status);
+  OpDefBuilder("SignalEnergy")
+      .Attr("start_index: int")
+      .Attr("end_index: int")
+      .Input("input: int16")
+      .Output("output: uint32")
+      .SetShapeFn(&EnergyShape)
+      .Register();
 }
 
 }  // namespace

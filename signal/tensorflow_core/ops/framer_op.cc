@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <cstddef>
 #include <cstdint>
 
 #include "signal/tensorflow_core/ops/shape_inference_utils.h"
@@ -24,55 +23,27 @@ namespace tensorflow {
 namespace signal {
 namespace {
 
-void FramerShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
+void FramerShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
+  ShapeInferenceContext ctx(raw_ctx, status);
   int frame_step = 0;
   int frame_size = 0;
-  if (!GetAttrInt(ctx, "frame_step", &frame_step, status) ||
-      !GetAttrInt(ctx, "frame_size", &frame_size, status)) {
+  if (!ctx.GetAttr("frame_step", &frame_step) ||
+      !ctx.GetAttr("frame_size", &frame_size)) {
     return;
   }
 
-  TF_ShapeHandle* in0 = TF_NewShapeHandle();
-  TF_ShapeHandle* in = TF_NewShapeHandle();
-  TF_ShapeHandle* prefix_with_frames = TF_NewShapeHandle();
-  TF_ShapeHandle* out = TF_NewShapeHandle();
-  TF_ShapeHandle* scalar = TF_ShapeInferenceContextScalar(ctx);
-
-  TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextWithRankAtLeast(ctx, in0, 1, in, status);
+  ShapeHandle in = ctx.WithRankAtLeast(ctx.Input(0), 1);
+  DimensionHandle last_dim = ctx.Dim(in, -1);
+  ShapeHandle frame_size_vec = ctx.VectorFromSize(frame_size);
+  ShapeHandle out;
+  if (ctx.ValueKnown(last_dim)) {
+    int64_t n_frames = ctx.Value(last_dim) / frame_step;
+    out = ctx.Concatenate(ctx.ReplaceLastDim(in, n_frames), frame_size_vec);
+  } else {
+    out = ctx.Concatenate(in, frame_size_vec);
   }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_DimensionHandle* last_dim = TF_NewDimensionHandle();
-    TF_ShapeInferenceContextDim(ctx, in, -1, last_dim);
-    TF_ShapeHandle* frame_size_vec = TF_ShapeInferenceContextVectorFromSize(
-        ctx, static_cast<size_t>(frame_size));
-    if (TF_DimensionHandleValueKnown(last_dim)) {
-      int64_t n_frames = TF_DimensionHandleValue(last_dim) / frame_step;
-      if (ReplaceLastDim(ctx, in, n_frames, prefix_with_frames, status)) {
-        TF_ShapeInferenceContextConcatenateShapes(ctx, prefix_with_frames,
-                                                  frame_size_vec, out, status);
-      }
-    } else {
-      // `in` already has an unknown last dimension (or unknown rank).
-      TF_ShapeInferenceContextConcatenateShapes(ctx, in, frame_size_vec, out,
-                                                status);
-    }
-    TF_DeleteShapeHandle(frame_size_vec);
-    TF_DeleteDimensionHandle(last_dim);
-  }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
-  }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextSetOutput(ctx, 1, scalar, status);
-  }
-
-  TF_DeleteShapeHandle(scalar);
-  TF_DeleteShapeHandle(out);
-  TF_DeleteShapeHandle(prefix_with_frames);
-  TF_DeleteShapeHandle(in);
-  TF_DeleteShapeHandle(in0);
+  ctx.SetOutput(0, out);
+  ctx.SetOutput(1, ctx.Scalar());
 }
 
 // Transform an input signal into a series of overlapping frames, each of
@@ -84,17 +55,15 @@ void FramerShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
 // boolean to False.
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalFramerOp() {
-  TF_Status* status = TF_NewStatus();
-  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalFramer");
-  TF_OpDefinitionBuilderAddAttr(builder, "frame_size: int >= 1");
-  TF_OpDefinitionBuilderAddAttr(builder, "frame_step: int >= 1");
-  TF_OpDefinitionBuilderAddAttr(builder, "prefill: bool");
-  TF_OpDefinitionBuilderAddInput(builder, "input: int16");
-  TF_OpDefinitionBuilderAddOutput(builder, "output: int16");
-  TF_OpDefinitionBuilderAddOutput(builder, "output_valid: bool");
-  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &FramerShape);
-  TF_RegisterOpDefinition(builder, status);
-  TF_DeleteStatus(status);
+  OpDefBuilder("SignalFramer")
+      .Attr("frame_size: int >= 1")
+      .Attr("frame_step: int >= 1")
+      .Attr("prefill: bool")
+      .Input("input: int16")
+      .Output("output: int16")
+      .Output("output_valid: bool")
+      .SetShapeFn(&FramerShape)
+      .Register();
 }
 
 }  // namespace

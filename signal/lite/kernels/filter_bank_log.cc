@@ -40,16 +40,10 @@ struct FilterBankLogParams {
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new FilterBankLogParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->output_scale = m["output_scale"].AsInt32();
   params->input_correction_bits = m["input_correction_bits"].AsInt32();
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  delete static_cast<FilterBankLogParams*>(data);
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -95,16 +89,9 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateFilterBankLogOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(
-        kTfLiteBuiltinCustom, "SignalFilterBankLog", /*version=*/1,
-        /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op =
+      MakeOperator("SignalFilterBankLog", Init,
+                   DeleteParams<FilterBankLogParams>, Prepare, Eval);
   return op;
 }
 

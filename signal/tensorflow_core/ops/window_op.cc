@@ -13,10 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include <cinttypes>
 #include <cstdint>
-#include <cstdio>
 
+#include "signal/tensorflow_core/ops/shape_inference_utils.h"
 #include "tensorflow/c/ops.h"
 #include "tensorflow/c/tf_status.h"
 
@@ -24,64 +23,27 @@ namespace tensorflow {
 namespace signal {
 namespace {
 
-void WindowShape(TF_ShapeInferenceContext* ctx, TF_Status* status) {
-  TF_ShapeHandle* in0 = TF_NewShapeHandle();
-  TF_ShapeHandle* in1 = TF_NewShapeHandle();
-  TF_ShapeHandle* out = TF_NewShapeHandle();
-  TF_DimensionHandle* dim_in = TF_NewDimensionHandle();
-  TF_DimensionHandle* dim_weights = TF_NewDimensionHandle();
-
-  TF_ShapeInferenceContextGetInput(ctx, 1, in1, status);
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextWithRank(ctx, in1, 1, out, status);
+void WindowShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
+  ShapeInferenceContext ctx(raw_ctx, status);
+  ShapeHandle weights = ctx.WithRank(ctx.Input(1), 1);
+  ShapeHandle out = ctx.WithRankAtLeast(ctx.Input(0), 1);
+  DimensionHandle dim_in = ctx.Dim(out, -1);
+  if (ctx.ValueKnown(ctx.Dim(weights, 0))) {
+    int64_t expected = ctx.ValueKnown(dim_in) ? ctx.Value(dim_in) : -1;
+    ctx.CheckDim(weights, 0, expected);
   }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextGetInput(ctx, 0, in0, status);
-  }
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextWithRankAtLeast(ctx, in0, 1, out, status);
-  }
-
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextDim(ctx, out, -1, dim_in);
-    TF_ShapeInferenceContextDim(ctx, in1, 0, dim_weights);
-    if (TF_DimensionHandleValueKnown(dim_weights)) {
-      int64_t w_val = TF_DimensionHandleValue(dim_weights);
-      int64_t in_val = TF_DimensionHandleValueKnown(dim_in)
-                           ? TF_DimensionHandleValue(dim_in)
-                           : -1;
-      if (w_val != in_val) {
-        char msg[128];
-        std::snprintf(msg, sizeof(msg),
-                      "Dimension must be %" PRId64 " but is %" PRId64, in_val,
-                      w_val);
-        TF_SetStatus(status, TF_INVALID_ARGUMENT, msg);
-      }
-    }
-  }
-
-  if (TF_GetCode(status) == TF_OK) {
-    TF_ShapeInferenceContextSetOutput(ctx, 0, out, status);
-  }
-
-  TF_DeleteDimensionHandle(dim_weights);
-  TF_DeleteDimensionHandle(dim_in);
-  TF_DeleteShapeHandle(out);
-  TF_DeleteShapeHandle(in1);
-  TF_DeleteShapeHandle(in0);
+  ctx.SetOutput(0, out);
 }
 
 // TODO(b/286250473): change back name to "Window" after name clash resolved
 __attribute__((constructor)) void RegisterSignalWindowOp() {
-  TF_Status* status = TF_NewStatus();
-  TF_OpDefinitionBuilder* builder = TF_NewOpDefinitionBuilder("SignalWindow");
-  TF_OpDefinitionBuilderAddAttr(builder, "shift: int");
-  TF_OpDefinitionBuilderAddInput(builder, "input: int16");
-  TF_OpDefinitionBuilderAddInput(builder, "weights: int16");
-  TF_OpDefinitionBuilderAddOutput(builder, "output: int16");
-  TF_OpDefinitionBuilderSetShapeInferenceFunction(builder, &WindowShape);
-  TF_RegisterOpDefinition(builder, status);
-  TF_DeleteStatus(status);
+  OpDefBuilder("SignalWindow")
+      .Attr("shift: int")
+      .Input("input: int16")
+      .Input("weights: int16")
+      .Output("output: int16")
+      .SetShapeFn(&WindowShape)
+      .Register();
 }
 
 }  // namespace

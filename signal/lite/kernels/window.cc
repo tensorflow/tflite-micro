@@ -41,15 +41,9 @@ struct WindowParams {
 void* Init(void* /*user_data*/, TfLiteOpaqueContext* /*context*/,
            const char* buffer, size_t length) {
   auto* params = new WindowParams;
-  const flexbuffers::Map& m =
-      flexbuffers::GetRoot(reinterpret_cast<const uint8_t*>(buffer), length)
-          .AsMap();
+  const flexbuffers::Map m = GetFlexbufferMap(buffer, length);
   params->shift = m["shift"].AsInt32();
   return params;
-}
-
-void Free(void* /*user_data*/, TfLiteOpaqueContext* /*context*/, void* data) {
-  delete static_cast<WindowParams*>(data);
 }
 
 TfLiteStatus Prepare(void* /*user_data*/, TfLiteOpaqueContext* context,
@@ -110,16 +104,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
 }  // namespace
 
 TfLiteOperator* CreateWindowOperator() {
-  static TfLiteOperator* op = []() {
-    TfLiteOperator* r = TfLiteOperatorCreate(kTfLiteBuiltinCustom,
-                                             "SignalWindow", /*version=*/1,
-                                             /*user_data=*/nullptr);
-    TfLiteOperatorSetInitWithData(r, Init);
-    TfLiteOperatorSetFreeWithData(r, Free);
-    TfLiteOperatorSetPrepareWithData(r, Prepare);
-    TfLiteOperatorSetInvokeWithData(r, Eval);
-    return r;
-  }();
+  static TfLiteOperator* op = MakeOperator(
+      "SignalWindow", Init, DeleteParams<WindowParams>, Prepare, Eval);
   return op;
 }
 
