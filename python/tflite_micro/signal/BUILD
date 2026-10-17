@@ -1,18 +1,24 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("//python:py_rules.bzl", "tflm_py_library", "tflm_py_test")
-load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library")
+load("//python:py_rules.bzl", "tflm_py_library")
+load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library", "tflm_signal_op_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
+load("//tensorflow/lite/micro:extra_rules.bzl", "tflm_signal_friends")
 
 package(
     default_visibility = [":__subpackages__"],
     licenses = ["notice"],
 )
 
+package_group(
+    name = "signal_friends",
+    packages = tflm_signal_friends(),
+)
+
 cc_library(
     name = "ops_lib",
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    visibility = ["//visibility:public"],
+    visibility = [":signal_friends"],
     deps = [
         ":delay_op_cc",
         ":energy_op_cc",
@@ -59,17 +65,10 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "delay_op_test",
     size = "small",
     srcs = ["ops/delay_op_test.py"],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":delay_op",
         requirement("numpy"),
@@ -88,20 +87,13 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "energy_op_test",
     size = "small",
     srcs = ["ops/energy_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:energy_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":energy_op",
         requirement("numpy"),
@@ -120,20 +112,13 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "fft_ops_test",
     srcs = ["ops/fft_ops_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:fft_auto_scale_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:rfft_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":fft_ops",
         requirement("numpy"),
@@ -153,7 +138,7 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "filter_bank_ops_test",
     size = "small",
     srcs = ["ops/filter_bank_ops_test.py"],
@@ -165,13 +150,6 @@ tflm_py_test(
         "//python/tflite_micro/signal/ops/testdata:filter_bank_square_root_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:filter_bank_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":filter_bank_ops",
         requirement("numpy"),
@@ -190,20 +168,13 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "framer_op_test",
     size = "small",
     srcs = ["ops/framer_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:framer_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":framer_op",
         requirement("numpy"),
@@ -222,17 +193,10 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "overlap_add_op_test",
     size = "small",
     srcs = ["ops/overlap_add_op_test.py"],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":overlap_add_op",
         requirement("numpy"),
@@ -252,19 +216,12 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "pcan_op_test",
     srcs = ["ops/pcan_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:pcan_op_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":pcan_op",
         requirement("numpy"),
@@ -283,20 +240,13 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "stacker_op_test",
     size = "small",
     srcs = ["ops/stacker_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:stacker_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":stacker_op",
         requirement("numpy"),
@@ -315,21 +265,28 @@ py_tflm_signal_library(
     ],
 )
 
-tflm_py_test(
+tflm_signal_op_test(
     name = "window_op_test",
     srcs = ["ops/window_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:window_test1.txt",
     ],
-    tags = [
-        "manual",
-        "noasan",
-        "nomsan",
-        "noubsan",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":window_op",
+        requirement("numpy"),
+    ],
+)
+
+tflm_signal_op_test(
+    name = "stft_test",
+    size = "small",
+    srcs = ["ops/stft_test.py"],
+    deps = [
+        ":fft_ops",
+        ":framer_op",
+        ":overlap_add_op",
+        ":window_op",
+        "//python/tflite_micro/signal/utils:util",
         requirement("numpy"),
     ],
 )

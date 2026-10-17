@@ -118,6 +118,7 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)*/downloads/*' \
     ':(exclude)*_model_data.h' \
     ':(exclude)*_test_data.h' \
+    ':(exclude)signal/lite/register/*' \
     ':(exclude)tensorflow/lite/micro/arc_custom/*' \
     ':(exclude)tensorflow/lite/micro/arc_emsdp/*' \
     ':(exclude)tensorflow/lite/micro/bluepill/*' \
