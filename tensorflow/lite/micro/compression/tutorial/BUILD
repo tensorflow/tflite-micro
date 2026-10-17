@@ -81,3 +81,22 @@ sh_test(
     tags = ["notap"],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
 )
+
+py_binary(
+    # Starts JupyterLab on the tutorial.
+    name = "lab",
+    srcs = ["notebook_tool.py"],
+    args = ["lab"],
+    main = "notebook_tool.py",
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+)
+
+py_binary(
+    # Runs the tutorial end to end.
+    name = "run",
+    srcs = ["notebook_tool.py"],
+    args = ["execute"],
+    data = ["notebook_execute.py"],
+    main = "notebook_tool.py",
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+)
