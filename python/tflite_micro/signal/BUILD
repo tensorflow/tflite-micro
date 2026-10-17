@@ -63,6 +63,9 @@ tflm_py_test(
     name = "delay_op_test",
     size = "small",
     srcs = ["ops/delay_op_test.py"],
+    data = [
+        "//signal/lite/register:pywrap_signal_ops.so",
+    ],
     tags = [
         "manual",
         "noasan",
@@ -94,6 +97,7 @@ tflm_py_test(
     srcs = ["ops/energy_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:energy_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -126,6 +130,7 @@ tflm_py_test(
     data = [
         "//python/tflite_micro/signal/ops/testdata:fft_auto_scale_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:rfft_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -164,6 +169,7 @@ tflm_py_test(
         "//python/tflite_micro/signal/ops/testdata:filter_bank_spectral_subtraction_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:filter_bank_square_root_test1.txt",
         "//python/tflite_micro/signal/ops/testdata:filter_bank_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -196,6 +202,7 @@ tflm_py_test(
     srcs = ["ops/framer_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:framer_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -226,6 +233,9 @@ tflm_py_test(
     name = "overlap_add_op_test",
     size = "small",
     srcs = ["ops/overlap_add_op_test.py"],
+    data = [
+        "//signal/lite/register:pywrap_signal_ops.so",
+    ],
     tags = [
         "manual",
         "noasan",
@@ -257,6 +267,7 @@ tflm_py_test(
     srcs = ["ops/pcan_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:pcan_op_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -289,6 +300,7 @@ tflm_py_test(
     srcs = ["ops/stacker_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:stacker_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -320,6 +332,7 @@ tflm_py_test(
     srcs = ["ops/window_op_test.py"],
     data = [
         "//python/tflite_micro/signal/ops/testdata:window_test1.txt",
+        "//signal/lite/register:pywrap_signal_ops.so",
     ],
     tags = [
         "manual",
@@ -330,6 +343,30 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":window_op",
+        requirement("numpy"),
+    ],
+)
+
+tflm_py_test(
+    name = "stft_test",
+    size = "small",
+    srcs = ["ops/stft_test.py"],
+    data = [
+        "//signal/lite/register:pywrap_signal_ops.so",
+    ],
+    tags = [
+        "manual",
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    deps = [
+        ":fft_ops",
+        ":framer_op",
+        ":overlap_add_op",
+        ":window_op",
+        "//python/tflite_micro/signal/utils:util",
         requirement("numpy"),
     ],
 )

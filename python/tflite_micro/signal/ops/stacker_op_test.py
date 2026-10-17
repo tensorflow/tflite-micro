@@ -49,7 +49,8 @@ class StackerOpTest(tf.test.TestCase):
       stacker_right_context,
       stacker_step,
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in triplets <input, expected output, expected valid>
     i = 1
@@ -58,10 +59,18 @@ class StackerOpTest(tf.test.TestCase):
       output_array_exp = [int(j) for j in lines[i + 1].split()]
       output_valid_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
-      interpreter.set_input(input_array, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
-      out_valid = interpreter.get_output(1)
+      interpreter_tflm.set_input(input_array, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      out_valid = interpreter_tflm.get_output(1)
+      self.assertEqual(out_valid, output_valid_exp)
+      if out_valid:
+        self.assertAllEqual(out_frame, output_array_exp)
+      # TFLite
+      interpreter_tflite.set_input(input_array, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
+      out_valid = interpreter_tflite.get_output(1)
       self.assertEqual(out_valid, output_valid_exp)
       if out_valid:
         self.assertAllEqual(out_frame, output_array_exp)

@@ -46,7 +46,8 @@ class EnergyOpTest(tf.test.TestCase):
       start_index=start_index,
       end_index=end_index,
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
     i = 1
@@ -54,9 +55,15 @@ class EnergyOpTest(tf.test.TestCase):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype='int16')
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      for j in range(start_index, end_index):
+        self.assertEqual(out_frame_exp[j], out_frame[j])
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
       for j in range(start_index, end_index):
         self.assertEqual(out_frame_exp[j], out_frame[j])
       # TF

@@ -44,7 +44,8 @@ class FramerOpTest(tf.test.TestCase):
     concrete_function = func.get_concrete_function(
       tf.TensorSpec(input_size, dtype=tf.int16), frame_size, frame_step, prefill
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in triplets <input, expected output, expected valid>
     i = 1
@@ -53,10 +54,18 @@ class FramerOpTest(tf.test.TestCase):
       out_frame_exp = [[int(j) for j in lines[i + 1].split()]]
       out_valid_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
-      interpreter.set_input(in_block, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
-      out_valid = interpreter.get_output(1)
+      interpreter_tflm.set_input(in_block, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      out_valid = interpreter_tflm.get_output(1)
+      self.assertEqual(out_valid, out_valid_exp)
+      if out_valid:
+        self.assertAllEqual(out_frame, out_frame_exp)
+      # TFLite
+      interpreter_tflite.set_input(in_block, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
+      out_valid = interpreter_tflite.get_output(1)
       self.assertEqual(out_valid, out_valid_exp)
       if out_valid:
         self.assertAllEqual(out_frame, out_frame_exp)
@@ -90,7 +99,8 @@ class FramerOpTest(tf.test.TestCase):
     concrete_function = func.get_concrete_function(
       tf.TensorSpec(block_size, dtype=tf.int16), frame_size, frame_step, prefill
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     block_index = 0
     frame_index = 0
     while block_index < block_num:
@@ -107,10 +117,18 @@ class FramerOpTest(tf.test.TestCase):
         for i in range(n_frames)
       ]
       # TFLM
-      interpreter.set_input(in_block, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
-      out_valid = interpreter.get_output(1)
+      interpreter_tflm.set_input(in_block, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      out_valid = interpreter_tflm.get_output(1)
+      self.assertEqual(out_valid, expected_valid)
+      if out_valid:
+        self.assertAllEqual(out_frame, expected_frame)
+      # TFLite
+      interpreter_tflite.set_input(in_block, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
+      out_valid = interpreter_tflite.get_output(1)
       self.assertEqual(out_valid, expected_valid)
       if out_valid:
         self.assertAllEqual(out_frame, expected_frame)

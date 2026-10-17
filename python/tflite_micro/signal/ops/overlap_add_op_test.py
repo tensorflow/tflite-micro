@@ -23,20 +23,33 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 
 class OverlapAddOpTest(tf.test.TestCase):
   def RunOverlapAdd(
-    self, interpreter, input_frames, frame_step, expected_output_frames, dtype
+    self, interpreters, input_frames, frame_step, expected_output_frames, dtype
   ):
     input_frames = tf.convert_to_tensor(input_frames, dtype=dtype)
-    # TFLM
-    interpreter.set_input(input_frames, 0)
-    interpreter.invoke()
-    output_frame = interpreter.get_output(0)
-    self.assertAllEqual(output_frame, expected_output_frames)
+    # TFLM and TFLite
+    for interpreter in interpreters:
+      interpreter.set_input(input_frames, 0)
+      interpreter.invoke()
+      output_frame = interpreter.get_output(0)
+      self.assertAllEqual(output_frame, expected_output_frames)
 
     # TF
     output_frame = self.evaluate(
       overlap_add_op.overlap_add(input_frames, frame_step)
     )
     self.assertAllEqual(output_frame, expected_output_frames)
+
+  def _makeInterpreters(self, func, input_shape, dtype):
+    interpreters = [None] * 6
+    for i in range(5):
+      concrete_fn = func.get_concrete_function(
+        tf.TensorSpec(input_shape, dtype=dtype), i + 1
+      )
+      interpreters[i] = (
+        util.get_tflm_interpreter(concrete_fn, func),
+        util.get_tflite_interpreter(concrete_fn, func),
+      )
+    return interpreters
 
   def _checkOverlapAddValidInput(self, dtype):
     input_frames = np.array(
@@ -76,14 +89,9 @@ class OverlapAddOpTest(tf.test.TestCase):
     func = tf.function(overlap_add_op.overlap_add)
     # Initialize an interpreter for each step size
     # TODO(b/263020764): use a parameterized test instead
-    interpreters = [None] * 6
-    for i in range(5):
-      interpreters[i] = util.get_tflm_interpreter(
-        func.get_concrete_function(
-          tf.TensorSpec(np.shape([input_frames[0]]), dtype=dtype), i + 1
-        ),
-        func,
-      )
+    interpreters = self._makeInterpreters(
+      func, np.shape([input_frames[0]]), dtype
+    )
 
     frame_num = input_frames.shape[0]
     frame_index = 0
@@ -203,14 +211,7 @@ class OverlapAddOpTest(tf.test.TestCase):
     func = tf.function(overlap_add_op.overlap_add)
     # Initialize an interpreter for each step size
     # TODO(b/263020764): use a parameterized test instead
-    interpreters = [None] * 6
-    for i in range(5):
-      interpreters[i] = util.get_tflm_interpreter(
-        func.get_concrete_function(
-          tf.TensorSpec(np.shape(input_frames), dtype=dtype), i + 1
-        ),
-        func,
-      )
+    interpreters = self._makeInterpreters(func, np.shape(input_frames), dtype)
     self.RunOverlapAdd(
       interpreters[0],
       input_frames,
@@ -395,14 +396,7 @@ class OverlapAddOpTest(tf.test.TestCase):
     func = tf.function(overlap_add_op.overlap_add)
     # Initialize an interpreter for each step size
     # TODO(b/263020764): use a parameterized test instead
-    interpreters = [None] * 6
-    for i in range(5):
-      interpreters[i] = util.get_tflm_interpreter(
-        func.get_concrete_function(
-          tf.TensorSpec(np.shape(input_frames), dtype=dtype), i + 1
-        ),
-        func,
-      )
+    interpreters = self._makeInterpreters(func, np.shape(input_frames), dtype)
     self.RunOverlapAdd(
       interpreters[0],
       input_frames,

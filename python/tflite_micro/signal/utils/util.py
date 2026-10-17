@@ -14,19 +14,45 @@
 # ==============================================================================
 """Python utility functions."""
 
+import ai_edge_litert.interpreter as tflite_interp
+import numpy as np
 import tensorflow as tf
 from tflite_micro.python.tflite_micro import runtime
 
 
+class _TfLiteInterpreterWrapper:
+  """Wraps TFLite InterpreterWithCustomOps with set_input/get_output helpers."""
+
+  def __init__(self, interpreter):
+    self._interpreter = interpreter
+    self._input_details = interpreter.get_input_details()
+    self._output_details = interpreter.get_output_details()
+
+  def set_input(self, input_data, index):
+    self._interpreter.set_tensor(
+      self._input_details[index]['index'], np.asarray(input_data)
+    )
+
+  def invoke(self):
+    self._interpreter.invoke()
+
+  def get_output(self, index):
+    return self._interpreter.get_tensor(self._output_details[index]['index'])
+
+  def __getattr__(self, name):
+    return getattr(self._interpreter, name)
+
+
 # TODO(b/286889497): find better name and place for this function.
 def get_tflm_interpreter(concrete_function, trackable_obj):
-  """Initialize a TFLite interpreter with a concrete function.
+  """Initialize a TFLM interpreter with a concrete function.
 
   Args:
     concrete_function: A concrete function
+    trackable_obj: Trackable object passed to TFLiteConverter.
 
   Returns:
-    TFLite interpreter object
+    TFLM interpreter object
   """
   converter = tf.lite.TFLiteConverter.from_concrete_functions(
     [concrete_function], trackable_obj
@@ -35,6 +61,41 @@ def get_tflm_interpreter(concrete_function, trackable_obj):
   tflite_model = converter.convert()
 
   return runtime.Interpreter.from_bytes(tflite_model, arena_size=500000)
+
+
+def get_tflite_interpreter(
+  concrete_function, trackable_obj, custom_op_registerers=None
+):
+  """Initialize a TFLite interpreter with SignalOpsRegisterer.
+
+  Args:
+    concrete_function: A concrete function
+    trackable_obj: Trackable object passed to TFLiteConverter.
+    custom_op_registerers: Additional custom op registerer names or functions.
+
+  Returns:
+    Wrapped TFLite InterpreterWithCustomOps object.
+  """
+  from tflite_micro.signal.lite.register import pywrap_signal_ops
+
+  converter = tf.lite.TFLiteConverter.from_concrete_functions(
+    [concrete_function], trackable_obj
+  )
+  converter.allow_custom_ops = True
+  tflite_model = converter.convert()
+
+  registerers = list(custom_op_registerers or [])
+  if (
+    'SignalOpsRegisterer' not in registerers
+    and pywrap_signal_ops.SignalOpsRegisterer not in registerers
+  ):
+    registerers.append(pywrap_signal_ops.SignalOpsRegisterer)
+  interpreter = tflite_interp.InterpreterWithCustomOps(
+    model_content=tflite_model,
+    custom_op_registerers=registerers,
+  )
+  interpreter.allocate_tensors()
+  return _TfLiteInterpreterWrapper(interpreter)
 
 
 def load_custom_op(name):

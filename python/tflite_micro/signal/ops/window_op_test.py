@@ -718,18 +718,25 @@ class WindowOpTest(tf.test.TestCase):
       shift=shift,
     )
     # TODO(b/286252893): make test more robust (vs scipy)
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
     i = 1
     while i < len(lines):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype='int16')
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
+      # TFLM
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.set_input(weights, 1)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      self.assertAllEqual(out_frame_exp, out_frame)
       # TFLite
-      interpreter.set_input(in_frame, 0)
-      interpreter.set_input(weights, 1)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.set_input(weights, 1)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
       self.assertAllEqual(out_frame_exp, out_frame)
       # TF
       out_frame = self.evaluate(
@@ -740,18 +747,21 @@ class WindowOpTest(tf.test.TestCase):
 
   def RunMultiDimWindow(self, shift, dtype, in_frames, weights, out_frames_exp):
     func = tf.function(window_op.window)
-    # TFLite
     concrete_function = func.get_concrete_function(
       tf.TensorSpec(np.shape(in_frames), dtype=dtype),
       tf.TensorSpec(np.shape(weights), dtype=dtype),
       shift=shift,
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
-    interpreter.set_input(in_frames, 0)
-    interpreter.set_input(weights, 1)
-    interpreter.invoke()
-    out_frame = interpreter.get_output(0)
-    self.assertAllEqual(out_frames_exp, out_frame)
+    for get_interpreter in (
+      util.get_tflm_interpreter,
+      util.get_tflite_interpreter,
+    ):
+      interpreter = get_interpreter(concrete_function, func)
+      interpreter.set_input(in_frames, 0)
+      interpreter.set_input(weights, 1)
+      interpreter.invoke()
+      out_frame = interpreter.get_output(0)
+      self.assertAllEqual(out_frames_exp, out_frame)
     # TF
     out_frame = self.evaluate(window_op.window(in_frames, weights, shift=shift))
     self.assertAllEqual(out_frames_exp, out_frame)

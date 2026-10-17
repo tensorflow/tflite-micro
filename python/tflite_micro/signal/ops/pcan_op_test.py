@@ -53,7 +53,8 @@ class PcanOpTest(tf.test.TestCase):
       smoothing_bits=smoothing_bits,
       input_correction_bits=input_correction_bits,
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
 
     # Read lines in pairs <input, noise_estimate, expected>
     for i in range(1, len(lines), 3):
@@ -67,10 +68,16 @@ class PcanOpTest(tf.test.TestCase):
         [int(j) for j in lines[i + 2].split()], dtype='uint32'
       )
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.set_input(noise_estimate, 1)
-      interpreter.invoke()
-      output = interpreter.get_output(0)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.set_input(noise_estimate, 1)
+      interpreter_tflm.invoke()
+      output = interpreter_tflm.get_output(0)
+      self.assertAllEqual(output_expected, output)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.set_input(noise_estimate, 1)
+      interpreter_tflite.invoke()
+      output = interpreter_tflite.get_output(0)
       self.assertAllEqual(output_expected, output)
       # TF
       output = self.evaluate(
