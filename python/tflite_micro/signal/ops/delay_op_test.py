@@ -45,20 +45,26 @@ class DelayOpTest(tf.test.TestCase):
     concrete_function = func.get_concrete_function(
       tf.TensorSpec(in_frame_shape, dtype=tf.int16), delay_length=delay_length
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
 
     for i in range(frame_num):
       in_frame = input_signal_padded[..., i * frame_size : (i + 1) * frame_size]
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.invoke()
-      out_frame_tflm = interpreter.get_output(0)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.invoke()
+      out_frame_tflm = interpreter_tflm.get_output(0)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.invoke()
+      out_frame_tflite = interpreter_tflite.get_output(0)
       # TF
       out_frame = self.evaluate(
         delay_op.delay(in_frame, delay_length=delay_length)
       )
       delay_out[..., i * frame_size : (i + 1) * frame_size] = out_frame
       self.assertAllEqual(out_frame, out_frame_tflm)
+      self.assertAllEqual(out_frame, out_frame_tflite)
     self.assertAllEqual(delay_out, delay_exp)
 
   def testFrameLargerThanDelay(self):

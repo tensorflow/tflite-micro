@@ -13,46 +13,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
+#include <cstdint>
 
-using tensorflow::shape_inference::InferenceContext;
-using tensorflow::shape_inference::ShapeHandle;
+#include "signal/tensorflow_core/ops/shape_inference_utils.h"
+#include "tensorflow/c/ops.h"
+#include "tensorflow/c/tf_status.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-absl::Status WindowShape(InferenceContext* c) {
-  ShapeHandle out;
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(1), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithRankAtLeast(c->input(0), 1, &out));
-
-  shape_inference::DimensionHandle dim_in;
-  dim_in = c->Dim(c->input(0), -1);
-
-  TF_RETURN_IF_ERROR(c->WithValue(c->Dim(c->input(1), 0),
-                                  InferenceContext::Value(dim_in), &dim_in));
-  c->set_output(0, out);
-  return absl::OkStatus();
+void WindowShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
+  ShapeInferenceContext ctx(raw_ctx, status);
+  ShapeHandle weights = ctx.WithRank(ctx.Input(1), 1);
+  ShapeHandle out = ctx.WithRankAtLeast(ctx.Input(0), 1);
+  DimensionHandle dim_in = ctx.Dim(out, -1);
+  if (ctx.ValueKnown(ctx.Dim(weights, 0))) {
+    int64_t expected = ctx.ValueKnown(dim_in) ? ctx.Value(dim_in) : -1;
+    ctx.CheckDim(weights, 0, expected);
+  }
+  ctx.SetOutput(0, out);
 }
 
 // TODO(b/286250473): change back name to "Window" after name clash resolved
-REGISTER_OP("SignalWindow")
-    .Attr("shift: int")
-    .Input("input: int16")
-    .Input("weights: int16")
-    .Output("output: int16")
-    .SetShapeFn([](InferenceContext* c) { return WindowShape(c); })
-    .Doc(R"doc(
-Apply a window to an input signal with a right shift to each element
+__attribute__((constructor)) void RegisterSignalWindowOp() {
+  OpDefBuilder("SignalWindow")
+      .Attr("shift: int")
+      .Input("input: int16")
+      .Input("weights: int16")
+      .Output("output: int16")
+      .SetShapeFn(&WindowShape)
+      .Register();
+}
 
-input: An N-D time domain input signal
-weights: Constant 1-D window weights. Size must match innermost input dimension.
-output: An N-D time domain output signal. Size must match input.
-
-shift: An amount of right shifts to perform on each element before writing
-to the output
-)doc");
-
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

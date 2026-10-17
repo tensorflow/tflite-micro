@@ -13,44 +13,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstdint>
+
 #include "signal/src/complex.h"
 #include "signal/src/energy.h"
-#include "tensorflow/core/framework/op_kernel.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-class EnergyOp : public tensorflow::OpKernel {
+class EnergyOp {
  public:
-  explicit EnergyOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("start_index", &start_index_));
-    OP_REQUIRES_OK(context, context->GetAttr("end_index", &end_index_));
+  explicit EnergyOp(KernelConstruction* ctx) {
+    ctx->GetAttr("start_index", &start_index_);
+    ctx->GetAttr("end_index", &end_index_);
   }
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
-    const int16_t* input = input_tensor.flat<int16_t>().data();
-    tensorflow::Tensor* output_tensor = nullptr;
-    // The input is complex. The output is real.
-    int output_size = input_tensor.flat<int16>().size() >> 1;
 
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0, {output_size}, &output_tensor));
-    uint32* output = output_tensor->flat<uint32>().data();
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    tflite::tflm_signal::SpectrumToEnergy(
-        reinterpret_cast<const Complex<int16_t>*>(input), start_index_,
-        end_index_, output);
+    // The input is complex (interleaved real/imag pairs); the output is real.
+    int64_t output_size = input_tensor.NumElements() / 2;
+    TensorHandle output_tensor =
+        ctx->AllocateOutput<uint32_t>(0, {output_size});
+    if (!ctx->ok()) {
+      return;
+    }
+
+    const auto* input =
+        reinterpret_cast<const Complex<int16_t>*>(input_tensor.Data<int16_t>());
+    uint32_t* output = output_tensor.Data<uint32_t>();
+    tflite::tflm_signal::SpectrumToEnergy(input, start_index_, end_index_,
+                                          output);
   }
 
  private:
-  int start_index_;
-  int end_index_;
+  int32_t start_index_ = 0;
+  int32_t end_index_ = 0;
 };
 
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalEnergy").Device(tensorflow::DEVICE_CPU),
-                        EnergyOp);
+__attribute__((constructor)) void RegisterSignalEnergyKernel() {
+  RegisterKernel<EnergyOp>("SignalEnergy");
+}
 
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

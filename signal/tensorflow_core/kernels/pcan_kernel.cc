@@ -13,41 +13,53 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+
 #include "signal/src/pcan_argc_fixed.h"
-#include "tensorflow/core/framework/op_kernel.h"
-#include "tensorflow/core/framework/types.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-class PcanOp : public tensorflow::OpKernel {
+class PcanOp {
  public:
-  explicit PcanOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("snr_shift", &snr_shift_));
+  explicit PcanOp(KernelConstruction* ctx) {
+    ctx->GetAttr("snr_shift", &snr_shift_);
   }
 
-  void Compute(tensorflow::OpKernelContext* context) override {
-    tensorflow::Tensor* output_tensor = nullptr;
-    const uint32_t* input = context->input(0).flat<uint32_t>().data();
-    const uint32_t* noise_estimate = context->input(1).flat<uint32_t>().data();
-    const int16_t* gain_lut = context->input(2).flat<int16_t>().data();
-    int32_t num_channels = context->input(0).NumElements();
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0, {num_channels}, &output_tensor));
-    uint32_t* output = output_tensor->flat<uint32_t>().data();
+  void Compute(KernelContext* ctx) {
+    TensorHandle input = ctx->Input(0);
+    TensorHandle noise_estimate = ctx->Input(1);
+    TensorHandle gain_lut = ctx->Input(2);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    memcpy(output, input, sizeof(uint32_t) * num_channels);
+    int64_t num_channels = input.NumElements();
+    TensorHandle output = ctx->AllocateOutput<uint32_t>(0, {num_channels});
+    if (!ctx->ok()) {
+      return;
+    }
+
+    uint32_t* output_data = output.Data<uint32_t>();
+    std::memcpy(output_data, input.Data<uint32_t>(),
+                sizeof(uint32_t) * static_cast<size_t>(num_channels));
     tflite::tflm_signal::ApplyPcanAutoGainControlFixed(
-        gain_lut, snr_shift_, noise_estimate, output, num_channels);
+        gain_lut.Data<int16_t>(), snr_shift_, noise_estimate.Data<uint32_t>(),
+        output_data, static_cast<int32_t>(num_channels));
   }
 
  private:
-  int snr_shift_;
+  int32_t snr_shift_ = 0;
 };
 
-REGISTER_KERNEL_BUILDER(Name("SignalPCAN").Device(tensorflow::DEVICE_CPU),
-                        PcanOp);
+__attribute__((constructor)) void RegisterSignalPcanKernel() {
+  RegisterKernel<PcanOp>("SignalPCAN");
+}
 
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

@@ -2522,7 +2522,8 @@ class FilterBankOpTest(tf.test.TestCase):
       min_signal_remaining,
       clamping,
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in triplets <input, expected output, expected noise estimate>
     i = 1
@@ -2531,10 +2532,17 @@ class FilterBankOpTest(tf.test.TestCase):
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       noise_estimate_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
-      noise_estimate = interpreter.get_output(1)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      noise_estimate = interpreter_tflm.get_output(1)
+      self.assertAllEqual(out_frame, out_frame_exp)
+      self.assertAllEqual(noise_estimate, noise_estimate_exp)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
+      noise_estimate = interpreter_tflite.get_output(1)
       self.assertAllEqual(out_frame, out_frame_exp)
       self.assertAllEqual(noise_estimate, noise_estimate_exp)
       # TF
@@ -2561,7 +2569,8 @@ class FilterBankOpTest(tf.test.TestCase):
       tf.TensorSpec(input_size, dtype=tf.uint64),
       tf.TensorSpec([], dtype=tf.int32),
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Read lines in triplets <input, scale bits, expected output>
     i = 0
     while i < len(lines):
@@ -2569,10 +2578,16 @@ class FilterBankOpTest(tf.test.TestCase):
       scale_bits = np.array(int(lines[i + 1]), dtype=np.int32)
       out_frame_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.set_input(scale_bits, 1)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.set_input(scale_bits, 1)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      self.assertAllEqual(out_frame, out_frame_exp)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.set_input(scale_bits, 1)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
       self.assertAllEqual(out_frame, out_frame_exp)
       # TF
       out_frame = self.evaluate(
@@ -2597,7 +2612,8 @@ class FilterBankOpTest(tf.test.TestCase):
       lower_band_limit,
       upper_band_limit,
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected output>
     i = 1
@@ -2605,9 +2621,14 @@ class FilterBankOpTest(tf.test.TestCase):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype=np.uint32)
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      self.assertAllEqual(out_frame_exp, out_frame)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
       self.assertAllEqual(out_frame_exp, out_frame)
       # TF
       out_frame = self.evaluate(

@@ -40,17 +40,25 @@ class RfftOpTest(tf.test.TestCase):
     concrete_function = func.get_concrete_function(
       tf.TensorSpec(input_size, dtype=tf.int16)
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     i = 0
     while i < len(lines):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype=np.int16)
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       scale_exp = [int(j) for j in lines[i + 2].split()]
       # TFLM
-      interpreter.set_input(in_frame, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
-      scale = interpreter.get_output(1)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      scale = interpreter_tflm.get_output(1)
+      self.assertAllEqual(out_frame_exp, out_frame)
+      self.assertEqual(scale_exp, scale)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
+      scale = interpreter_tflite.get_output(1)
       self.assertAllEqual(out_frame_exp, out_frame)
       self.assertEqual(scale_exp, scale)
       # TF
@@ -69,7 +77,8 @@ class RfftOpTest(tf.test.TestCase):
       tf.TensorSpec(input_size, dtype=tf.int16), fft_length
     )
     # TODO(b/286252893): make test more robust (vs scipy)
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflm = util.get_tflm_interpreter(concrete_function, func)
+    interpreter_tflite = util.get_tflite_interpreter(concrete_function, func)
     # Skip line 0, which contains the configuration params.
     # Read lines in pairs <input, expected>
     i = 1
@@ -78,9 +87,14 @@ class RfftOpTest(tf.test.TestCase):
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
       # Compare TFLM inference against the expected golden values
       # TODO(b/286252893): validate usage of testing vs interpreter here
-      interpreter.set_input(in_frame, 0)
-      interpreter.invoke()
-      out_frame = interpreter.get_output(0)
+      interpreter_tflm.set_input(in_frame, 0)
+      interpreter_tflm.invoke()
+      out_frame = interpreter_tflm.get_output(0)
+      self.assertAllEqual(out_frame_exp, out_frame)
+      # TFLite
+      interpreter_tflite.set_input(in_frame, 0)
+      interpreter_tflite.invoke()
+      out_frame = interpreter_tflite.get_output(0)
       self.assertAllEqual(out_frame_exp, out_frame)
       # TF
       out_frame = self.evaluate(fft_ops.rfft(in_frame, fft_length))
@@ -109,16 +123,20 @@ class RfftOpTest(tf.test.TestCase):
       [int(j) for j in lines[i + 1].split()]
       for i in range(1, len_lines_multiple_of_eight, 2)
     ]
-    # Compare TFLM inference against the expected golden values
+    # Compare TFLM and TFLite inference against the expected golden values
     # TODO(b/286252893): validate usage of testing vs interpreter here
     concrete_function = func.get_concrete_function(
       tf.TensorSpec(np.shape(in_frames), dtype=tf.int16), fft_length
     )
-    interpreter = util.get_tflm_interpreter(concrete_function, func)
-    interpreter.set_input(in_frames, 0)
-    interpreter.invoke()
-    out_frame = interpreter.get_output(0)
-    self.assertAllEqual(out_frames_exp, out_frame)
+    for get_interpreter in (
+      util.get_tflm_interpreter,
+      util.get_tflite_interpreter,
+    ):
+      interpreter = get_interpreter(concrete_function, func)
+      interpreter.set_input(in_frames, 0)
+      interpreter.invoke()
+      out_frame = interpreter.get_output(0)
+      self.assertAllEqual(out_frames_exp, out_frame)
     # TF
     out_frames = self.evaluate(fft_ops.rfft(in_frames, fft_length))
     self.assertAllEqual(out_frames_exp, out_frames)
