@@ -16,10 +16,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_context.h"
 
 #include <algorithm>
-#include <cstdarg>
 #include <cstddef>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/decompress.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_common.h"
@@ -27,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 int GetTensorIndex(int index, int max_size, const int* tensor_indices) {
@@ -69,14 +69,6 @@ TfLiteTensor* MicroContext::AllocateTempIntermediateTensor(
     return nullptr;
   }
   return AllocateTempTfLiteTensor(tensor_index);
-}
-
-void MicroContextReportOpError(struct TfLiteContext* context,
-                               const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  VMicroPrintf(format, args);
-  va_end(args);
 }
 
 #ifdef USE_TFLM_COMPRESSION
@@ -174,4 +166,19 @@ void MicroContext::ResetDecompressionMemoryAllocations() {
   std::fill_n(decompress_regions_allocations_, decompress_regions_size_, 0);
 }
 
+TfLiteStatus MicroContext::SetCustomDecodeRegistrations(
+    const CustomDecodeRegistration* registrations, size_t count) {
+  if (custom_decode_registrations_ != nullptr) {
+    return kTfLiteError;
+  }
+  custom_decode_registrations_ = registrations;
+  custom_decode_registrations_size_ = count;
+  return kTfLiteOk;
+}
+
+void MicroContext::InitTfLiteContext(TfLiteContext* context) {
+  context->impl_ = static_cast<void*>(this);
+}
+
+}  // namespace micro
 }  // namespace tflite

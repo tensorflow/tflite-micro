@@ -21,6 +21,10 @@ config_setting(
     },
 )
 
+licenses(["notice"])
+
+exports_files(["LICENSE"])
+
 # Synthesizes the "tflite_micro" top-level package namespace at import time, so
 # that `from tflite_micro...` imports resolve (see tflite_micro.py). Necessary
 # because Bzlmod fixes the main repo's runfiles root to "_main" rather than the

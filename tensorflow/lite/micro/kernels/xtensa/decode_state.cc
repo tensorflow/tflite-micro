@@ -27,7 +27,7 @@ limitations under the License.
 #endif  // HIFI5
 
 namespace tflite {
-
+namespace micro {
 DecodeState* DecodeState::CreateDecodeStateLUT(
     const TfLiteContext* context, MicroProfilerInterface* profiler) {
   MicroContext* const micro_context = GetMicroContext(context);
@@ -89,4 +89,5 @@ DecodeState* DecodeState::CreateDecodeStateHuffman(
   return dsp;
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
+namespace micro {
 
 // Utility class used to log allocations of a SingleArenaBufferAllocator. Should
 // only be used in debug/evaluation settings or unit tests to evaluate
@@ -57,6 +58,10 @@ class RecordingSingleArenaBufferAllocator : public SingleArenaBufferAllocator {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::RecordingSingleArenaBufferAllocator;
 
 }  // namespace tflite
 

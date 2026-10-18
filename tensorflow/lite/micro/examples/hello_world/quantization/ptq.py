@@ -30,25 +30,13 @@ The quant model (named hello_world_int8.tflite) will be created inside the targe
 `bazel-bin/tensorflow/lite/micro/examples/hello_world/quantization/ptq  --source_model_dir=/tmp/float_model --target_dir=/tmp/quant_model/`
 """
 
+import argparse
+import logging
 import math
 import os
 
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
 import tensorflow as tf
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_string(
-  "source_model_dir",
-  "/tmp/float_model/",
-  "the directory where the trained model can be found.",
-)
-flags.DEFINE_string(
-  "target_dir", "/tmp/quant_model", "the directory to save the quant model."
-)
 
 
 def get_data():
@@ -109,17 +97,30 @@ def convert_quantized_tflite_model(source_model_dir, x_values):
   return tflite_model
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--source_model_dir",
+    default="/tmp/float_model/",
+    help="the directory where the trained model can be found.",
+  )
+  parser.add_argument(
+    "--target_dir",
+    default="/tmp/quant_model",
+    help="the directory to save the quant model.",
+  )
+  args, _ = parser.parse_known_args()
+
   x_values = get_data()
   quantized_tflite_model = convert_quantized_tflite_model(
-    FLAGS.source_model_dir, x_values
+    args.source_model_dir, x_values
   )
   save_tflite_model(
     quantized_tflite_model,
-    FLAGS.target_dir,
+    args.target_dir,
     model_name="hello_world_int8.tflite",
   )
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()

@@ -17,7 +17,7 @@ tflm_cc_library(
     srcs = ["metrics.cc"],
     hdrs = ["metrics.h"],
     deps = [
-        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:recording_allocators",
@@ -32,15 +32,13 @@ tflm_cc_library(
     deps = [
         ":metrics",
         ":op_resolver",
-        "//tensorflow/lite/c:c_api_types",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro:system_setup",
-        "//tensorflow/lite/schema:schema_fbs",
     ],
 )
 

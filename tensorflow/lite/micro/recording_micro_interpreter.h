@@ -21,6 +21,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
+namespace micro {
 
 // Utility subclass that enables internal recordings of the MicroInterpreter.
 // This class should be used to audit and analyze memory arena usage for a given
@@ -63,6 +64,10 @@ class RecordingMicroInterpreter : public MicroInterpreter {
  private:
   const RecordingMicroAllocator& recording_micro_allocator_;
 };
+
+}  // namespace micro
+
+using micro::RecordingMicroInterpreter;
 
 }  // namespace tflite
 

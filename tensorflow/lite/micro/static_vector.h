@@ -19,9 +19,10 @@
 #include <cassert>
 #include <cstddef>
 
-#include "tensorflow/lite/kernels/op_macros.h"  // for TF_LITE_ASSERT
+#include "tensorflow/lite/micro/compatibility.h"  // for TF_LITE_ASSERT
 
 namespace tflite {
+namespace micro {
 
 template <typename T, std::size_t MaxSize>
 class StaticVector {
@@ -78,6 +79,10 @@ class StaticVector {
 template <typename T, typename... U>
 StaticVector(T, U...) -> StaticVector<T, 1 + sizeof...(U)>;
 
-}  // end namespace tflite
+}  // namespace micro
+
+using micro::StaticVector;
+
+}  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_STATIC_VECTOR_H_

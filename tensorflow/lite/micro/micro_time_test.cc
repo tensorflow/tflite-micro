@@ -32,7 +32,7 @@ TEST(MicroTimeTest, TestBasicTimerFunctionality) {
   // the loop exceeds the duration of a single tick.
   constexpr int kMaxRetries = 100000000;
 
-  for (volatile int i = 0; i < kMaxRetries; i++) {
+  for (int i = 0; i < kMaxRetries; i++) {
     if (tflite::GetCurrentTimeTicks() != start_time) {
       break;
     }

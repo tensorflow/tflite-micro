@@ -19,12 +19,12 @@ limitations under the License.
 #include <cstdint>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/flatbuffer_conversions.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 uint8_t* AlignPointerUp(uint8_t* data, size_t alignment) {
   std::uintptr_t data_as_uintptr_t = reinterpret_cast<std::uintptr_t>(data);
@@ -46,61 +46,18 @@ size_t AlignSizeUp(size_t size, size_t alignment) {
 }
 
 TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size) {
-  switch (type) {
-    case kTfLiteFloat16:
-      *size = sizeof(int16_t);
-      break;
-    case kTfLiteBFloat16:
-      *size = sizeof(int16_t);
-      break;
-    case kTfLiteFloat32:
-      *size = sizeof(float);
-      break;
-    case kTfLiteFloat64:
-      *size = sizeof(double);
-      break;
-    case kTfLiteInt16:
-      *size = sizeof(int16_t);
-      break;
-    case kTfLiteInt32:
-      *size = sizeof(int32_t);
-      break;
-    case kTfLiteUInt32:
-      *size = sizeof(uint32_t);
-      break;
-    case kTfLiteUInt8:
-      *size = sizeof(uint8_t);
-      break;
-    case kTfLiteUInt16:
-      *size = sizeof(uint16_t);
-      break;
-    case kTfLiteInt8:
-      *size = sizeof(int8_t);
-      break;
-    case kTfLiteInt64:
-      *size = sizeof(int64_t);
-      break;
-    case kTfLiteUInt64:
-      *size = sizeof(uint64_t);
-      break;
-    case kTfLiteBool:
-      *size = sizeof(bool);
-      break;
-    case kTfLiteResource:
-      *size = sizeof(int32_t);
-      break;
-    case kTfLiteComplex64:
-      *size = sizeof(float) * 2;
-      break;
-    case kTfLiteComplex128:
-      *size = sizeof(double) * 2;
-      break;
-    case kTfLiteInt4:
-      *size = sizeof(int8_t);
-      break;
-    default:
-      return kTfLiteError;
+  if (type == kTfLiteResource) {
+    *size = sizeof(int32_t);
+    return kTfLiteOk;
+  } else if (type == kTfLiteInt4) {
+    *size = sizeof(int8_t);
+    return kTfLiteOk;
   }
+  int bytes = TfLiteTypeGetSize(type);
+  if (bytes == 0) {
+    return kTfLiteError;
+  }
+  *size = bytes;
   return kTfLiteOk;
 }
 
@@ -140,33 +97,5 @@ TfLiteStatus TfLiteEvalTensorByteLength(const TfLiteEvalTensor* eval_tensor,
   return kTfLiteOk;
 }
 
-TfLiteStatus AllocateOutputDimensionsFromInput(TfLiteContext* context,
-                                               const TfLiteTensor* input1,
-                                               const TfLiteTensor* input2,
-                                               TfLiteTensor* output) {
-  const TfLiteTensor* input = nullptr;
-  TF_LITE_ENSURE(context, input1->dims != nullptr);
-  TF_LITE_ENSURE(context, input2->dims != nullptr);
-  TF_LITE_ENSURE(context, output->dims->size == 0);
-
-  input = input1->dims->size > input2->dims->size ? input1 : input2;
-  TF_LITE_ENSURE(context, output->type == input->type);
-  size_t size = 0;
-  TfLiteTypeSizeOf(input->type, &size);
-  const int dimensions_count = tflite::GetTensorShape(input).DimensionsCount();
-  for (int i = 0; i < dimensions_count; i++) {
-    size *= input->dims->data[i];
-  }
-  output->bytes = size;
-
-  output->dims =
-      reinterpret_cast<TfLiteIntArray*>(context->AllocatePersistentBuffer(
-          context, TfLiteIntArrayGetSizeInBytes(size)));
-  output->dims->size = input->dims->size;
-  for (int i = 0; i < dimensions_count; i++) {
-    output->dims->data[i] = input->dims->data[i];
-  }
-  return kTfLiteOk;
-}
-
+}  // namespace micro
 }  // namespace tflite

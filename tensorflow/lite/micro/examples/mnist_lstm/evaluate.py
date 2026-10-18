@@ -21,24 +21,14 @@ bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/evaluate
 
 """
 
+import argparse
+import logging
 import os
 
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
 from PIL import Image
 
 from tflite_micro.python.tflite_micro import runtime
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_string(
-  "model_path", "/tmp/lstm_trained_model/lstm.tflite", "the trained model path."
-)
-flags.DEFINE_string(
-  "img_path", "/tmp/samples/sample0.jpg", "path for the image to be predicted."
-)
 
 
 def read_img(img_path):
@@ -158,16 +148,29 @@ def predict_image(interpreter, image_path):
   return predict(interpreter, data)
 
 
-def main(_):
-  if not os.path.exists(FLAGS.model_path):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--model_path",
+    default="/tmp/lstm_trained_model/lstm.tflite",
+    help="the trained model path.",
+  )
+  parser.add_argument(
+    "--img_path",
+    default="/tmp/samples/sample0.jpg",
+    help="path for the image to be predicted.",
+  )
+  args, _ = parser.parse_known_args()
+
+  if not os.path.exists(args.model_path):
     raise ValueError(
       "Model file does not exist. Please check the .tflite model path."
     )
-  if not os.path.exists(FLAGS.img_path):
+  if not os.path.exists(args.img_path):
     raise ValueError("Image file does not exist. Please check the image path.")
 
-  tflm_interpreter = runtime.Interpreter.from_file(FLAGS.model_path)
-  category_probabilities = predict_image(tflm_interpreter, FLAGS.img_path)
+  tflm_interpreter = runtime.Interpreter.from_file(args.model_path)
+  category_probabilities = predict_image(tflm_interpreter, args.img_path)
   predicted_category = np.argmax(category_probabilities)
   logging.info(
     "Model predicts the image as %i with probability %.2f",
@@ -177,4 +180,4 @@ def main(_):
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()

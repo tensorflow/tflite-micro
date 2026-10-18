@@ -16,10 +16,10 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
@@ -27,6 +27,11 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
+
+using micro::kFullyConnectedBiasTensor;
+using micro::kFullyConnectedInputTensor;
+using micro::kFullyConnectedOutputTensor;
+using micro::kFullyConnectedWeightsTensor;
 
 // Simple test data for 2x2x10 input 2x3x10 weights.
 const int simple_input_size = 20;
@@ -284,8 +289,13 @@ void ValidateFullyConnectedGoldens(
 #endif  // USE_TFLM_COMPRESSION
 ) {
   TfLiteFullyConnectedParams builtin_data = {
-      activation, kTfLiteFullyConnectedWeightsFormatDefault, false, false,
-      kTfLiteNoType};
+      activation,
+      kTfLiteFullyConnectedWeightsFormatDefault,
+      false,
+      false,
+      kTfLiteNoType,
+      nullptr,
+      0};
 
   // Avoid variable length array warning.
   constexpr int inputs_array_len = 4;

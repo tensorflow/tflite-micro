@@ -202,5 +202,5 @@ up having a high associated cost on the latency.
 We strongly encourage optimized kernel implementations to have an associated
 continuous build that runs through all the unit tests and publishes a build
 badge to the
-[TFLM community supported builds](../README.md#community-supported-builds)
+[TFLM community supported platforms](../../../../README.md#community--contributing)
 table. Running the units tests once a day is often a good place to start.

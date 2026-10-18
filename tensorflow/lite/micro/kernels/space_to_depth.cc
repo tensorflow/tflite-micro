@@ -12,18 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/space_to_depth.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/space_to_depth.h"
 
 #include <stdint.h>
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -44,10 +43,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
+  TF_LITE_ENSURE(context, input != nullptr && output != nullptr);
 
   TF_LITE_ENSURE_EQ(context, NumDimensions(input), 4);
 
@@ -57,6 +55,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
   const int block_size = params->block_size;
+  TF_LITE_ENSURE(context, block_size > 0);
   const int input_height = input->dims->data[kHeightRank];
   const int input_width = input->dims->data[kWidthRank];
   int output_height = input_height / block_size;
@@ -124,4 +123,5 @@ TFLMRegistration Register_SPACE_TO_DEPTH() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

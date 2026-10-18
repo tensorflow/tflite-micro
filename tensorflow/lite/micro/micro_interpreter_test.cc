@@ -192,8 +192,8 @@ TEST(MicroInterpreterTest, TestInterpreterCompressionAltMemoryTooSmall) {
   constexpr size_t kAllocatorBufferSize = 2000;
   uint8_t allocator_buffer[kAllocatorBufferSize];
   constexpr size_t kAltMemSize = 10;
-  int16_t alt_mem_1[kAltMemSize] = {};
-  int16_t alt_mem_2[kAltMemSize] = {};
+  alignas(16) int16_t alt_mem_1[kAltMemSize] = {};
+  alignas(16) int16_t alt_mem_2[kAltMemSize] = {};
   std::initializer_list<tflite::MicroContext::AlternateMemoryRegion> alt_mem = {
       {alt_mem_1, sizeof(alt_mem_1)},
       {alt_mem_2, sizeof(alt_mem_2)},
@@ -252,8 +252,8 @@ TEST(MicroInterpreterTest, TestInterpreterCompressionAltMemory) {
   constexpr size_t kAllocatorBufferSize = 2000;
   uint8_t allocator_buffer[kAllocatorBufferSize];
   constexpr size_t kAltMemSize = 10;
-  int16_t alt_mem_1[kAltMemSize] = {};
-  int16_t alt_mem_2[kAltMemSize * 2] = {};
+  alignas(16) int16_t alt_mem_1[kAltMemSize] = {};
+  alignas(16) int16_t alt_mem_2[kAltMemSize * 2] = {};
   std::initializer_list<tflite::MicroContext::AlternateMemoryRegion> alt_mem = {
       {alt_mem_1, sizeof(alt_mem_1)},
       {alt_mem_2, sizeof(alt_mem_2)},

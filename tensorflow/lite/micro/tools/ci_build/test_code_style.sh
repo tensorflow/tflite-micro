@@ -79,6 +79,7 @@ function end_group() {
 # License Check
 ############################################################
 
+
 start_group "License Check"
 python3 tensorflow/lite/micro/tools/ci_build/check_license.py
 LICENSE_CHECK_RESULT=$?
@@ -88,11 +89,11 @@ end_group
 # File Exclusions for Formatting
 ############################################################
 
-EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/xtensa|ci/|c/common\.c|core/api/error_reporter\.cc|kernels/internal/reference/integer_ops/|kernels/internal/reference/reference_ops\.h|kernels/internal/types\.h|lite/python|lite/tools|experimental|schema/schema_generated\.h|schema/schema_utils\.h|tensorflow/lite/micro/compression/metadata_saved\.h|tensorflow/lite/micro/tools/layer_by_layer_schema_generated\.h|\.inc$|\.md$)"
+EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/xtensa|ci/|kernels/internal/reference/integer_ops/|kernels/internal/reference/reference_ops\.h|kernels/internal/types\.h|experimental|_generated\.(h|py)$|\.inc$|\.md$)"
 
-CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
-PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
-BUILD_FILES=$(git ls-files "*BUILD" "*BUILD.bazel" "*.bzl" | grep -v -E "${EXCLUDES_REGEX}" | grep -v -F -f ci/tflite_files.txt)
+CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${EXCLUDES_REGEX}")
+PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}")
+BUILD_FILES=$(git ls-files "*BUILD" "*BUILD.bazel" "*.bzl" | grep -v -E "${EXCLUDES_REGEX}")
 
 ############################################################
 # C/C++ Formatting Check (clang-format)
@@ -193,10 +194,9 @@ end_group
 # See http://b/175657165 for more context.
 start_group "Disallowed Patterns (ReportError)"
 ERROR_REPORTER_MESSAGE=\
-"TF_LITE_REPORT_ERROR should be used instead, so that log strings can be "\
-"removed to save space, if needed."
+"MicroPrintf should be used instead of ErrorReporter or TF_LITE_REPORT_ERROR."
 
-check_contents "error_reporter.*Report\(|context->ReportError\(" \
+check_contents "TF_LITE_REPORT_ERROR\(|error_reporter.*Report\(|context->ReportError\(" \
   "${CHECK_CONTENTS_PATHSPEC}" "${ERROR_REPORTER_MESSAGE}"
 ERROR_REPORTER_RESULT=$?
 if [[ ${ERROR_REPORTER_RESULT} -eq 0 ]]; then
@@ -209,6 +209,8 @@ start_group "Disallowed Patterns (<assert>)"
 ASSERT_PATHSPEC=\
 "${CHECK_CONTENTS_PATHSPEC}"\
 " :(exclude)micro/examples/micro_speech/esp/ringbuf.c"\
+" :(exclude)micro/experimental/*"\
+" :(exclude)micro/kernels/internal/*"\
 " :(exclude)*\.ipynb"\
 " :(exclude)*\.py"\
 

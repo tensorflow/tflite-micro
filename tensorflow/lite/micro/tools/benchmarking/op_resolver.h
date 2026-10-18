@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TFLM_BENCHMARK_OP_RESOLVER_H_
-#define TFLM_BENCHMARK_OP_RESOLVER_H_
+#ifndef TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_OP_RESOLVER_H_
+#define TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_OP_RESOLVER_H_
 
 #include <memory>
 
@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_op_resolver.h"
 
 namespace tflite {
+namespace micro {
 
 using TflmOpResolver = MicroMutableOpResolver<118>;
 
@@ -149,5 +150,10 @@ inline TfLiteStatus CreateOpResolver(TflmOpResolver& op_resolver) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
+
+using micro::CreateOpResolver;
+using micro::TflmOpResolver;
+
 }  // namespace tflite
-#endif  // TFLM_BENCHMARK_OP_RESOLVER_H_
+#endif  // TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_OP_RESOLVER_H_

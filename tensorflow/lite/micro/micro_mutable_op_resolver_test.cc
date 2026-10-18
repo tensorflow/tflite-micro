@@ -37,23 +37,6 @@ TfLiteStatus MockInvoke(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-class MockErrorReporter : public ErrorReporter {
- public:
-  MockErrorReporter() : has_been_called_(false) {}
-  int Report(const char* format, va_list args) override {
-    has_been_called_ = true;
-    return 0;
-  };
-
-  bool HasBeenCalled() { return has_been_called_; }
-
-  void ResetState() { has_been_called_ = false; }
-
- private:
-  bool has_been_called_;
-  TF_LITE_REMOVE_VIRTUAL_DELETE
-};
-
 }  // namespace
 }  // namespace tflite
 

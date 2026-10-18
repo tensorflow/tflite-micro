@@ -33,6 +33,7 @@ limitations under the License.
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
 namespace tflite {
+namespace micro {
 namespace {
 
 #if defined(GENERIC_BENCHMARK_USING_BUILTIN_MODEL)
@@ -181,4 +182,5 @@ void GenericBenchmarkShowMetaData() {
   ShowSeparator();
 }
 
+}  // namespace micro
 }  // namespace tflite

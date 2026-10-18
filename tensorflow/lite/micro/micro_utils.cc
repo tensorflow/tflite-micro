@@ -19,13 +19,13 @@ limitations under the License.
 #include <cstdint>
 #include <limits>
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 int ElementCount(const TfLiteIntArray& dims) {
   int result = 1;
@@ -36,10 +36,9 @@ int ElementCount(const TfLiteIntArray& dims) {
 }
 
 size_t EvalTensorBytes(const TfLiteEvalTensor* tensor) {
-  size_t bytes_per_element;
-  TFLITE_DCHECK(kTfLiteOk ==
-                TfLiteTypeSizeOf(tensor->type, &bytes_per_element));
-  return ElementCount(*tensor->dims) * bytes_per_element;
+  size_t bytes;
+  TFLITE_DCHECK(kTfLiteOk == TfLiteEvalTensorByteLength(tensor, &bytes));
+  return bytes;
 }
 
 void SignedSymmetricPerChannelQuantize(
@@ -87,4 +86,5 @@ void SignedSymmetricPerChannelQuantize(
   }
 }
 
+}  // namespace micro
 }  // namespace tflite

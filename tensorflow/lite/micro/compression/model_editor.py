@@ -22,7 +22,9 @@ from typing import Optional, Union, List
 import numpy as np
 import flatbuffers
 from tflite_micro.tensorflow.lite.micro.compression import tensor_type
-from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as tflite,
+)
 
 # The file identifier declared by schema.fbs, at bytes 4-7 of a
 # finished .tflite flatbuffer. Loaders such as the TfLite interpreter
@@ -216,6 +218,15 @@ class Tensor:
     self._fb.name = value
 
   @property
+  def is_variable(self) -> bool:
+    """True when kernels keep state in the tensor across invocations."""
+    return bool(self._fb.isVariable)
+
+  @is_variable.setter
+  def is_variable(self, value: bool):
+    self._fb.isVariable = value
+
+  @property
   def array(self) -> Optional[np.ndarray]:
     """Get tensor data as properly-shaped numpy array.
 
@@ -391,6 +402,25 @@ class OperatorCode:
     self._fb.version = value
 
 
+def describe_operators(indices: List[int]) -> str:
+  """Names operators by index for a message, e.g. "operators 0, 1, 2".
+
+  More than four operators are summarized by their count.
+  """
+  if len(indices) == 1:
+    return f"operator {indices[0]}"
+  if len(indices) <= 4:
+    return "operators " + ", ".join(str(i) for i in indices)
+  return f"{len(indices)} operators"
+
+
+_BUILTIN_OPERATOR_NAMES = {
+  code: name
+  for name, code in vars(tflite.BuiltinOperator).items()
+  if not name.startswith("_")
+}
+
+
 class Operator:
   """Operator specification wrapping an OperatorT flatbuffer object.
 
@@ -448,6 +478,17 @@ class Operator:
   @custom_code.setter
   def custom_code(self, value: Optional[str]):
     self._custom_code = value
+
+  @property
+  def opcode_name(self) -> str:
+    """The operator's kind as text, for display.
+
+    Custom operators go by their custom code, builtins by the name of
+    their enumerator, and an unrecognized code by its number.
+    """
+    if self._custom_code is not None:
+      return self._custom_code
+    return _BUILTIN_OPERATOR_NAMES.get(self._opcode, f"opcode {self._opcode}")
 
   @property
   def opcode_index(self) -> Optional[int]:
@@ -679,7 +720,7 @@ def dedupe_buffers(model: Model) -> None:
   """
   canonical: dict[bytes, Buffer] = {}
   for tensor in iter_tensors(model):
-    if tensor.buffer is None or tensor._fb.isVariable:
+    if tensor.buffer is None or tensor.is_variable:
       continue
     existing = canonical.get(tensor.buffer.data)
     if existing is None:

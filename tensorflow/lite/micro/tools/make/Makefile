@@ -110,10 +110,8 @@ DOWNLOADS_DIR := $(MAKEFILE_DIR)/downloads
 INCLUDES := \
 -I. \
 -I$(DOWNLOADS_DIR) \
--I$(DOWNLOADS_DIR)/gemmlowp \
 -I$(DOWNLOADS_DIR)/flatbuffers/include \
--I$(DOWNLOADS_DIR)/kissfft \
--I$(DOWNLOADS_DIR)/ruy
+-I$(DOWNLOADS_DIR)/kissfft
 
 ifneq ($(TENSORFLOW_ROOT),)
   INCLUDES += -I$(TENSORFLOW_ROOT)
@@ -161,6 +159,7 @@ endif
 
 
 CC_WARNINGS := \
+  -Werror \
   -Wsign-compare \
   -Wdouble-promotion \
   -Wunused-variable \
@@ -192,7 +191,7 @@ COMMON_FLAGS := \
   -ffunction-sections \
   -fdata-sections \
   -fmessage-length=0 \
-  -DTF_LITE_STATIC_MEMORY \
+  -DTFLM_REMOVE_VIRTUAL_DELETE \
   -DTF_LITE_DISABLE_X86_NEON \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
@@ -266,17 +265,6 @@ else ifeq ($(BUILD_TYPE), release_with_logs)
   # for profiling and benchmarking.
   CXXFLAGS += -DNDEBUG
   CCFLAGS  += -DNDEBUG
-else ifeq ($(BUILD_TYPE), no_tf_lite_static_memory)
-  # TODO(b/287320282): remove the no_tf_lite_static_memory build.
-  #
-  # This build should not be used to run any binaries/tests since
-  # TF_LITE_STATIC_MEMORY should be defined for all micro builds. However,
-  # having a build without TF_LITE_STATIC_MEMORY is useful to catch errors in
-  # code that is shared between TfLite Mobile and TfLite Micro. See this issue
-  # for more details:
-  # https://github.com/tensorflow/tensorflow/issues/43076
-  CXXFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CXXFLAGS))
-  CCFLAGS := $(filter-out -DTF_LITE_STATIC_MEMORY, $(CCFLAGS))
 endif
 
 ifeq ($(CC_VER11), true)
@@ -475,7 +463,7 @@ ALL_SRCS := \
 
 .PHONY: all microlite tflm libtflm \
         build build_all build_tests build_examples build_benchmarks build_integration_tests \
-        test integration_tests generated_micro_mutable_op_resolver \
+        test integration_tests \
         clean clean_downloads list_gendir list_library_sources list_library_headers \
         list_third_party_sources list_third_party_headers list_generator_dir \
         third_party_downloads
@@ -613,15 +601,11 @@ endif
 # Create kernel test targets.
 include $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/Makefile.inc
 
-# Create binary size test target.
-include $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/ci_build/binary_size_test/Makefile.inc
-
 
 
 ifeq ($(TARGET_SPECIFIC_MAKE_TEST),0)
 test: $(MICROLITE_TEST_TARGETS)
 integration_tests: $(MICROLITE_INTEGRATION_TEST_TARGETS)
-generated_micro_mutable_op_resolver: $(MICROLITE_GEN_OP_RESOLVER_TEST_TARGETS)
 endif
 
 # Build targets for each tier

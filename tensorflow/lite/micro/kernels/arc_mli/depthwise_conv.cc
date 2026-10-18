@@ -13,27 +13,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/depthwise_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/depthwise_conv.h"
 
 #include "mli_api.h"  // NOLINT
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/depthwiseconv_float.h"
-#include "tensorflow/lite/kernels/internal/reference/depthwiseconv_uint8.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_function_specializations.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_slicers.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/mli_tf_utils.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buf_mgr.h"
 #include "tensorflow/lite/micro/kernels/arc_mli/scratch_buffers.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depthwiseconv_float.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/depthwiseconv_uint8.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -147,7 +147,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
   if (data_type != kTfLiteFloat32 && !data->is_mli_applicable) {
     int num_channels = filter->dims->data[kDepthwiseConvQuantizedDimension];
 
-    return tflite::PopulateConvolutionQuantizationParams(
+    return PopulateConvolutionQuantizationParams(
         context, input, filter, bias, output, params->activation,
         &data->output_multiplier, &data->output_shift,
         &data->output_activation_min, &data->output_activation_max,
@@ -164,7 +164,6 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 }
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
@@ -363,7 +362,7 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
   CalculateActivationRange(params->activation, &output_activation_min,
                            &output_activation_max);
 
-  tflite::DepthwiseParams op_params;
+  tflite::micro::DepthwiseParams op_params;
   // Padding type is ignored, but still set.
   op_params.padding_type = PaddingType::kSame;
   op_params.padding_values.width = data.padding.width;
@@ -376,7 +375,7 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
   op_params.float_activation_min = output_activation_min;
   op_params.float_activation_max = output_activation_max;
 
-  tflite::reference_ops::DepthwiseConv(
+  tflite::micro::reference_ops::DepthwiseConv(
       op_params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<float>(input),
       tflite::micro::GetTensorShape(filter),
@@ -698,4 +697,5 @@ TFLMRegistration Register_DEPTHWISE_CONV_2D() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

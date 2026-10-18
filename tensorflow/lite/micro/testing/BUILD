@@ -1,29 +1,21 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load(
-    "//tensorflow:extra_rules.bzl",
-    "tflm_kernel_friends",
-)
+load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_library",
     "tflm_cc_test",
 )
+load(
+    "//tensorflow/lite/micro:extra_rules.bzl",
+    "tflm_kernel_friends",
+)
 
 package(
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
 package_group(
     name = "tflite_micro",
     packages = ["//..."],
-)
-
-package_group(
-    name = "microfrontend",
-    packages = ["//tensorflow/lite/experimental/microfrontend/..."],
 )
 
 package_group(
@@ -42,14 +34,40 @@ tflm_cc_library(
         ":tflite_micro",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
         "//tensorflow/lite/micro:debug_log",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro:test_helpers",
+    ],
+)
+
+tflm_cc_library(
+    name = "test_all_op_resolver",
+    hdrs = [
+        "test_all_op_resolver.h",
+    ],
+    visibility = [
+        ":kernel_test_friends",
+        ":tflite_micro",
+    ],
+    deps = [
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:op_resolvers",
+    ],
+)
+
+tflm_cc_test(
+    name = "test_all_op_resolver_test",
+    srcs = [
+        "test_all_op_resolver_test.cc",
+    ],
+    deps = [
+        ":micro_test",
+        ":test_all_op_resolver",
     ],
 )
 
@@ -86,28 +104,22 @@ tflm_cc_library(
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "generate_test_models_lib",
     srcs = ["generate_test_models.py"],
+    data = ["conv_test_model.tflite"],
     visibility = [
         ":tflite_micro",
     ],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
+    deps = [],
 )
 
-py_binary(
+tflm_py_binary(
     name = "generate_test_models",
     srcs = ["generate_test_models.py"],
+    data = ["conv_test_model.tflite"],
     tags = [
-        "nomicro_static",  # TF dep incompatible w/ TF_LITE_STATIC_MEMORY.
         "noubsan",  # TODO(b/144512025): Fix raw_to_bitmap_test to fix ubsan failure.
     ],
-    deps = [
-        requirement("absl_py"),
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
+    deps = [],
 )

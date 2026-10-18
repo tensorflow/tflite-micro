@@ -19,14 +19,13 @@ limitations under the License.
 #include <cstdint>
 #include <new>
 
-#include "tensorflow/lite/c/c_api_types.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 SingleArenaBufferAllocator::SingleArenaBufferAllocator(uint8_t* buffer_head,
                                                        uint8_t* buffer_tail)
@@ -196,4 +195,5 @@ uint8_t* SingleArenaBufferAllocator::head() const { return head_; }
 
 uint8_t* SingleArenaBufferAllocator::tail() const { return tail_; }
 
+}  // namespace micro
 }  // namespace tflite

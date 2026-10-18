@@ -42,7 +42,9 @@ from tflite_micro.tensorflow.lite.micro.compression import decode_insert
 from tflite_micro.tensorflow.lite.micro.compression import lut
 from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.python import schema_py_generated as tflite
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as tflite,
+)
 
 _SHAPE = (4,)
 _ARENA_SIZE = 65536
@@ -184,7 +186,7 @@ def _compress_and_insert(model, coordinates):
   """LUT-compress the tensors at (subgraph, tensor) coordinates and insert
   DECODE operators for them."""
   compressor_plugin = lut.LutCompressor()
-  method = spec.LookUpTableCompression(index_bitwidth=1)
+  method = spec.LookUpTableCompression(index_bitwidth=1, mode=spec.PerTensor())
   results = {}
   for sg_idx, tensor_idx in coordinates:
     tensor = model.subgraphs[sg_idx].tensors[tensor_idx]

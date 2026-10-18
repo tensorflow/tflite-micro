@@ -75,4 +75,45 @@ TEST(FlatbufferUtilsTest, TestFlexbufferWrapper) {
   }
 }
 
+TEST(FlatbufferUtilsTest, TestGetBuiltinCode) {
+  flatbuffers::DefaultAllocator allocator;
+  {
+    flatbuffers::FlatBufferBuilder builder(256, &allocator);
+    auto offset = tflite::CreateOperatorCode(
+        builder, /*deprecated_builtin_code=*/0, /*custom_code=*/0,
+        /*version=*/1, tflite::BuiltinOperator_CONV_2D);
+    builder.Finish(offset);
+    const tflite::OperatorCode* op_code =
+        flatbuffers::GetRoot<tflite::OperatorCode>(builder.GetBufferPointer());
+    EXPECT_EQ(tflite::micro::GetBuiltinCode(op_code),
+              tflite::BuiltinOperator_CONV_2D);
+  }
+
+  {
+    flatbuffers::FlatBufferBuilder builder(256, &allocator);
+    auto offset = tflite::CreateOperatorCode(
+        builder, static_cast<int8_t>(tflite::BuiltinOperator_FULLY_CONNECTED),
+        /*custom_code=*/0, /*version=*/1, tflite::BuiltinOperator_ADD);
+    builder.Finish(offset);
+    const tflite::OperatorCode* op_code =
+        flatbuffers::GetRoot<tflite::OperatorCode>(builder.GetBufferPointer());
+    EXPECT_EQ(tflite::micro::GetBuiltinCode(op_code),
+              tflite::BuiltinOperator_FULLY_CONNECTED);
+  }
+
+  {
+    flatbuffers::FlatBufferBuilder builder(256, &allocator);
+    auto offset = tflite::CreateOperatorCode(
+        builder,
+        static_cast<int8_t>(
+            tflite::BuiltinOperator_PLACEHOLDER_FOR_GREATER_OP_CODES),
+        /*custom_code=*/0, /*version=*/1, tflite::BuiltinOperator_BROADCAST_TO);
+    builder.Finish(offset);
+    const tflite::OperatorCode* op_code =
+        flatbuffers::GetRoot<tflite::OperatorCode>(builder.GetBufferPointer());
+    EXPECT_EQ(tflite::micro::GetBuiltinCode(op_code),
+              tflite::BuiltinOperator_BROADCAST_TO);
+  }
+}
+
 TF_LITE_MICRO_TESTS_MAIN

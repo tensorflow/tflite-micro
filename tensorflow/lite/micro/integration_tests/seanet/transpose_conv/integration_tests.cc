@@ -16,7 +16,6 @@ limitations under the License.
 #include <string.h>
 
 #include "python/tflite_micro/python_ops_resolver.h"
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv0_golden_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv0_input0_int32_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv0_input1_int16_test_data.h"
@@ -37,6 +36,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv4_input0_int32_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv4_input1_int16_test_data.h"
 #include "tensorflow/lite/micro/integration_tests/seanet/transpose_conv/transpose_conv4_model_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
@@ -80,7 +80,7 @@ void RunModel(const uint8_t* model, const int32_t* input0,
 
   TfLiteTensor* output_tensor = interpreter.output(0);
   EXPECT_EQ(output_tensor->bytes, golden_size * sizeof(int16_t));
-  int16_t* output = ::tflite::GetTensorData<int16_t>(output_tensor);
+  int16_t* output = ::tflite::micro::GetTensorData<int16_t>(output_tensor);
   for (uint32_t i = 0; i < golden_size; i++) {
     // TODO(b/205046520): Better understand why TfLite and TFLM can sometimes be
     // off by 1.

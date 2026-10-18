@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
 #include "tensorflow/lite/micro/arena_allocator/recording_single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
@@ -24,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 
 size_t RecordingMicroAllocator::GetDefaultTailUsage() {
   // RecordingMicroAllocator inherits from MicroAllocator and its tail usage is
@@ -276,4 +276,5 @@ void RecordingMicroAllocator::RecordAllocationUsage(
       snapshotted_allocation.count;
 }
 
+}  // namespace micro
 }  // namespace tflite

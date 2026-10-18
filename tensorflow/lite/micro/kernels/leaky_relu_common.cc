@@ -13,17 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/leaky_relu.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/leaky_relu.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/leaky_relu.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 // Input/output tensor index.
 const int kInputTensor = 0;
 const int kOutputTensor = 0;
@@ -51,15 +50,16 @@ TfLiteStatus CalculateOpDataLeakyRelu(TfLiteContext* context,
     data->output_zero_point = output->params.zero_point;
 
     int output_shift_alpha;
-    double alpha_multiplier = static_cast<double>(
-        input->params.scale * params->alpha / output->params.scale);
+    double alpha_multiplier = static_cast<double>(input->params.scale) *
+                              static_cast<double>(params->alpha) /
+                              static_cast<double>(output->params.scale);
     QuantizeMultiplier(alpha_multiplier, &data->output_multiplier_alpha,
                        &output_shift_alpha);
     data->output_shift_alpha = static_cast<int32_t>(output_shift_alpha);
 
     int output_shift_identity;
-    double identity_multiplier =
-        static_cast<double>(input->params.scale / output->params.scale);
+    double identity_multiplier = static_cast<double>(input->params.scale) /
+                                 static_cast<double>(output->params.scale);
     QuantizeMultiplier(identity_multiplier, &data->output_multiplier_identity,
                        &output_shift_identity);
     data->output_shift_identity = static_cast<int32_t>(output_shift_identity);
@@ -75,4 +75,5 @@ TfLiteStatus LeakyReluPrepare(TfLiteContext* context, TfLiteNode* node) {
   return CalculateOpDataLeakyRelu(context, node);
 }
 
+}  // namespace micro
 }  // namespace tflite

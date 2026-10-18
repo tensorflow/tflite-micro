@@ -29,7 +29,7 @@ Note:
 No fixed point math is implemented here. The purpose is to illustrate the computation procedure and possible quantization error accumulation, not for bit exactness.
 """
 
-from absl import app
+import sys
 import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.kernels.testdata import (
@@ -194,4 +194,4 @@ def main(_):
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main(sys.argv)

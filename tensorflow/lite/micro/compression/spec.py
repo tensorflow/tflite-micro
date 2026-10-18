@@ -82,8 +82,8 @@ class LookUpTableCompression(CompressionMethod):
 
   Attributes:
     index_bitwidth: Number of bits per index (1-7).
-    mode: PerTensor or PerChannel. None means the compressor infers the
-      mode from the tensor's quantization.
+    mode: PerTensor or PerChannel. Exactly one is required per lut
+      entry.
   """
 
   index_bitwidth: int
@@ -124,14 +124,16 @@ def _parse_lut(lut: dict) -> LookUpTableCompression:
   has_per_channel = "per_channel" in lut
   if has_per_tensor and has_per_channel:
     raise ParseError(
-      "lut: per_tensor and per_channel are contradictory; give at most one"
+      "lut: per_tensor and per_channel are contradictory; give exactly one"
     )
+  if not has_per_tensor and not has_per_channel:
+    raise ParseError("lut: one of per_tensor or per_channel is required")
 
   if has_per_tensor:
     if lut["per_tensor"] is not None:
       raise ParseError("lut: per_tensor takes no value")
     mode = PerTensor()
-  elif has_per_channel:
+  else:
     per_channel = lut["per_channel"]
     if not isinstance(per_channel, dict) or "axis" not in per_channel:
       raise ParseError("lut: per_channel requires an axis")
@@ -139,8 +141,6 @@ def _parse_lut(lut: dict) -> LookUpTableCompression:
     if not isinstance(axis, int) or isinstance(axis, bool) or axis < 0:
       raise ParseError("lut: per_channel axis must be a non-negative integer")
     mode = PerChannel(axis=axis)
-  else:
-    mode = None
 
   return LookUpTableCompression(index_bitwidth=lut["index_bitwidth"], mode=mode)
 

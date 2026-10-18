@@ -13,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_INTERFACE_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_INTERFACE_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_INTERFACE_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_INTERFACE_H_
 
 #include "mli_api.h"  // NOLINT
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 namespace tflite {
 namespace ops {
 namespace micro {
@@ -69,7 +69,9 @@ class MliTensorInterface {
 };
 
 }  // namespace micro
+
+using micro::MliTensorInterface;
 }  // namespace ops
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_SLICERS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_INTERFACE_H_

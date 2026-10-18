@@ -13,22 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/add.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/reference/sub.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/add.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/sub.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/sub.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 const int kSubInputTensor1 = 0;
 const int kSubInputTensor2 = 1;
 const int kSubOutputTensor = 0;
@@ -49,15 +48,16 @@ TfLiteStatus CalculateOpDataSub(TfLiteContext* context, TfLiteSubParams* params,
     // accordingly. In case of 16-bit we have 65535 << 15 which is less than 1
     // << 31, therefore the addition will still fit in a 32 bit accumulator.
     data->left_shift = output->type == kTfLiteInt16 ? 15 : 20;
-    const float twice_max_input_scale =
-        2 * std::max(input1->params.scale, input2->params.scale);
+    const double twice_max_input_scale =
+        2 * static_cast<double>(
+                std::max(input1->params.scale, input2->params.scale));
     const double real_input1_multiplier =
-        static_cast<double>(input1->params.scale / twice_max_input_scale);
+        static_cast<double>(input1->params.scale) / twice_max_input_scale;
     const double real_input2_multiplier =
-        static_cast<double>(input2->params.scale / twice_max_input_scale);
+        static_cast<double>(input2->params.scale) / twice_max_input_scale;
     const double real_output_multiplier =
-        static_cast<double>(twice_max_input_scale /
-                            ((1 << data->left_shift) * output->params.scale));
+        twice_max_input_scale / (static_cast<double>(1 << data->left_shift) *
+                                 static_cast<double>(output->params.scale));
 
     QuantizeMultiplierSmallerThanOneExp(
         real_input1_multiplier, &data->input1_multiplier, &data->input1_shift);
@@ -114,4 +114,5 @@ TfLiteStatus SubPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+}  // namespace micro
 }  // namespace tflite

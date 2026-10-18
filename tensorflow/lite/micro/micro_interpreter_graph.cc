@@ -18,22 +18,20 @@ limitations under the License.
 #include <algorithm>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/micro/micro_context.h"
 
 #endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
+namespace micro {
 namespace {
 
 const char* OpNameFromRegistration(const TFLMRegistration* registration) {
@@ -81,13 +79,15 @@ int CheckDynamicTensors(const TfLiteIntArray* const tensor_indices,
 
 MicroInterpreterGraph::MicroInterpreterGraph(
     TfLiteContext* context, const Model* model, MicroAllocator* allocator,
-    MicroResourceVariables* resource_variables)
+    MicroResourceVariables* resource_variables,
+    MicroProfilerInterface* profiler)
     : context_(context),
       model_(model),
       allocator_(allocator),
       current_subgraph_index_(0),
       current_operator_index_(0),
-      resource_variables_(resource_variables) {
+      resource_variables_(resource_variables),
+      profiler_(profiler) {
   if (model != nullptr) {
     subgraphs_ = model->subgraphs();
   }
@@ -268,9 +268,8 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
 // -DTF_LITE_STRIP_ERROR_STRINGS) because the function OpNameFromRegistration is
 // only defined for builds with the error strings.
 #if !defined(TF_LITE_STRIP_ERROR_STRINGS)
-    ScopedMicroProfiler scoped_profiler(
-        OpNameFromRegistration(registration),
-        reinterpret_cast<MicroProfilerInterface*>(context_->profiler));
+    ScopedMicroProfiler scoped_profiler(OpNameFromRegistration(registration),
+                                        profiler_);
 #endif
 
     TFLITE_DCHECK(registration->invoke);
@@ -398,4 +397,5 @@ TfLiteEvalTensor* MicroInterpreterGraph::GetSubgraphOutput(int subgraph_idx,
   return &subgraph_allocations_[subgraph_idx].tensors[tensor_idx];
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -15,13 +15,18 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_ETHOSU_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_ETHOSU_H_
 
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 TFLMRegistration* Register_ETHOSU();
 
 const char* GetString_ETHOSU();
+
+}  // namespace micro
+
+using micro::GetString_ETHOSU;
+using micro::Register_ETHOSU;
 
 }  // namespace tflite
 

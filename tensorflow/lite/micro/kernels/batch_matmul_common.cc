@@ -15,14 +15,13 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/kernels/internal/reference/transpose.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/batch_matmul.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/transpose.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 const int kBatchMatmulInputLhsTensor = 0;
 const int kBatchMatmulInputRhsTensor = 1;
 const int kBatchMatmulOutputTensor = 0;
@@ -116,4 +115,5 @@ RuntimeShape SwapRowColumnDims(const RuntimeShape& shape) {
   return swapped_shape;
 }
 
+}  // namespace micro
 }  // namespace tflite

@@ -20,11 +20,10 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/arena_allocator/single_arena_buffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/flatbuffer_conversions.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/micro/tflite_bridge/flatbuffer_conversions_bridge.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
 
@@ -33,6 +32,7 @@ limitations under the License.
 #endif  // USE_TFLM_COMPRESSION
 
 namespace tflite {
+namespace micro {
 
 // TODO(b/199402574): rename to tflite_internal or just remove internal
 // namespace.
@@ -362,6 +362,19 @@ class MicroAllocator {
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+namespace internal {
+using micro::internal::InitializeTfLiteTensorFromFlatbuffer;
+using micro::internal::ScratchBufferRequest;
+}  // namespace internal
+
+using micro::MemoryPlannerType;
+using micro::MicroAllocator;
+using micro::NodeAndRegistration;
+using micro::ScratchBufferHandle;
+using micro::SubgraphAllocations;
 
 }  // namespace tflite
 #endif  // TENSORFLOW_LITE_MICRO_MICRO_ALLOCATOR_H_

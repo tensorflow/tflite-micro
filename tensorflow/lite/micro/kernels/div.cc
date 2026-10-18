@@ -13,17 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/div.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/div.h"
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor1 = 0;
@@ -53,8 +53,9 @@ TfLiteStatus CalculateOpDataDiv(TfLiteContext* context, TfLiteTensor* input1,
     TF_LITE_ENSURE_STATUS(CalculateActivationRangeQuantized(
         context, params->activation, output, &data->output_activation_min,
         &data->output_activation_max));
-    const double real_multiplier = static_cast<double>(
-        input1->params.scale / (input2->params.scale * output->params.scale));
+    const double real_multiplier = static_cast<double>(input1->params.scale) /
+                                   (static_cast<double>(input2->params.scale) *
+                                    static_cast<double>(output->params.scale));
     QuantizeMultiplier(real_multiplier, &data->output_multiplier,
                        &data->output_shift);
     data->input1_zero_point = input1->params.zero_point;
@@ -66,7 +67,6 @@ TfLiteStatus CalculateOpDataDiv(TfLiteContext* context, TfLiteTensor* input1,
 }
 
 void* DivInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataDiv));
 }
 
@@ -109,7 +109,7 @@ template <typename T>
 void EvalDiv(TfLiteContext* context, TfLiteNode* node, TfLiteDivParams* params,
              const OpDataDiv* data, const TfLiteEvalTensor* input1,
              const TfLiteEvalTensor* input2, TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params = {};
+  tflite::micro::ArithmeticParams op_params = {};
 
 #define TF_LITE_DIV(type, opname, data_type)                           \
   data_type output_activation_min, output_activation_max;              \
@@ -141,7 +141,7 @@ TfLiteStatus EvalQuantized(TfLiteContext* context, TfLiteNode* node,
                            const TfLiteEvalTensor* input1,
                            const TfLiteEvalTensor* input2,
                            TfLiteEvalTensor* output) {
-  tflite::ArithmeticParams op_params = {};
+  tflite::micro::ArithmeticParams op_params = {};
 
 #define TF_LITE_DIV(type, opname, dtype)                         \
   type::opname(op_params, tflite::micro::GetTensorShape(input1), \
@@ -195,6 +195,14 @@ TfLiteStatus DivEval(TfLiteContext* context, TfLiteNode* node) {
   if (output->type == kTfLiteFloat32) {
     EvalDiv<float>(context, node, params, data, input1, input2, output);
   } else if (output->type == kTfLiteInt32) {
+    const int32_t* denominator_data =
+        tflite::micro::GetTensorData<int32_t>(input2);
+    const int num_elements = tflite::micro::GetTensorShape(input2).FlatSize();
+    for (int i = 0; i < num_elements; ++i) {
+      if (denominator_data[i] == 0) {
+        return kTfLiteError;
+      }
+    }
     EvalDiv<int32_t>(context, node, params, data, input1, input2, output);
   } else if (output->type == kTfLiteInt8) {
     TF_LITE_ENSURE_OK(context, EvalQuantized(context, node, params, data,
@@ -216,4 +224,5 @@ TFLMRegistration Register_DIV() {
   return tflite::micro::RegisterOp(DivInit, DivPrepare, DivEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

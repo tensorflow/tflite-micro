@@ -18,9 +18,12 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
+namespace micro {
 // We don't declare this in the header since it's not a public interface, but we
 // need to call it to test it, so declare it here instead.
 void ReverseSortInPlace(int* values, int* ids, int size);
+}  // namespace micro
+using micro::ReverseSortInPlace;
 }  // namespace tflite
 
 namespace {

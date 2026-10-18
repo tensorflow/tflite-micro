@@ -18,11 +18,11 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
+#include "tensorflow/lite/micro/micro_common.h"
 namespace tflite {
-
+namespace micro {
 struct XtensaOpDataPooling {
   OpDataPooling reference_op_data;
 
@@ -71,6 +71,9 @@ TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
 void* XtensaPoolingInit(TfLiteContext* context, const char* buffer,
                         size_t length);
 
+}  // namespace micro
+
+using micro::XtensaOpDataPooling;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_POOLING_H_

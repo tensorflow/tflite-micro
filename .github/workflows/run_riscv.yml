@@ -1,4 +1,4 @@
-name: Run-RISCV
+name: RISC-V
 
 # Entry point for RISC-V tests. Triggered by schedule or workflow_dispatch.
 
@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   call-suite-riscv:
@@ -28,6 +27,8 @@ jobs:
   issue-on-error:
     needs: [call-suite-riscv]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
+    permissions:
+      issues: write
     uses: ./.github/workflows/issue_on_error.yml
     with:
       repo: ${{ github.repository }}

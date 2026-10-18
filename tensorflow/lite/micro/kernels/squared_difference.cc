@@ -12,16 +12,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/binary_function.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/add.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/binary_function.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/add.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 constexpr int kInputTensor1 = 0;
 constexpr int kInputTensor2 = 1;
@@ -40,7 +40,6 @@ T SquaredDifference(T input1, T input2) {
 
 void* SquaredDifferenceInit(TfLiteContext* context, const char* buffer,
                             size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
@@ -67,8 +66,8 @@ void PrepareQuantized(
       twice_max_input_scale;
   const double real_output_multiplier =
       (twice_max_input_scale * twice_max_input_scale) /
-      static_cast<double>((1 << data->arithmetic_params.left_shift * 2) *
-                          output_quantization_params.scale);
+      (static_cast<double>(1 << data->arithmetic_params.left_shift * 2) *
+       static_cast<double>(output_quantization_params.scale));
   QuantizeMultiplierSmallerThanOneExp(
       real_input1_multiplier, &data->arithmetic_params.input1_multiplier,
       &data->arithmetic_params.input1_shift);
@@ -267,4 +266,5 @@ TFLMRegistration Register_SQUARED_DIFFERENCE() {
       SquaredDifferenceInit, SquaredDifferencePrepare, SquaredDifferenceEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

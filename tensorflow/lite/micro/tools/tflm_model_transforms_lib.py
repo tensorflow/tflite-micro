@@ -23,10 +23,10 @@ properly work.
 
 import os
 import tempfile
-from absl import logging
+import logging
 import numpy as np
 
-from tflite_micro.tensorflow.lite.tools import flatbuffer_utils
+from tflite_micro.tensorflow.lite.micro.tools import flatbuffer_utils
 from tflite_micro.tensorflow.lite.micro.tools import model_transforms_utils
 from tflite_micro.python.tflite_micro import runtime
 

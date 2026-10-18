@@ -19,10 +19,11 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_allocator.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_graph.h"
+#include "tensorflow/lite/micro/micro_profiler_interface.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
+namespace micro {
 
 // Abstracts the details of interacting with the tflite::Model.
 //
@@ -36,7 +37,8 @@ class MicroInterpreterGraph : public MicroGraph {
   // GetResourceVariables will return a nullptr.
   MicroInterpreterGraph(TfLiteContext* context, const Model* model,
                         MicroAllocator* allocator,
-                        MicroResourceVariables* resource_variables);
+                        MicroResourceVariables* resource_variables,
+                        MicroProfilerInterface* profiler = nullptr);
   virtual ~MicroInterpreterGraph();
 
   // Sets up builtin data and calls TFLMRegistration->Init for every
@@ -113,12 +115,17 @@ class MicroInterpreterGraph : public MicroGraph {
   int current_subgraph_index_;
   uint32_t current_operator_index_;
   MicroResourceVariables* resource_variables_;
+  MicroProfilerInterface* profiler_ = nullptr;
   const flatbuffers::Vector<flatbuffers::Offset<SubGraph>>* subgraphs_ =
       nullptr;  // Initialized as nullptr to prevent any possible issues
                 // related to accessing uninitialized memory.
 
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
+
+}  // namespace micro
+
+using micro::MicroInterpreterGraph;
 
 }  // namespace tflite
 

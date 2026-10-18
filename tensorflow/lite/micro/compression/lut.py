@@ -17,8 +17,6 @@ import sys
 from dataclasses import dataclass, field
 from typing import ClassVar, Optional
 
-import bitarray
-import bitarray.util
 import numpy as np
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
@@ -75,6 +73,9 @@ class LutAncillaryData:
   # Byte 5 axis field value meaning one value table for the whole tensor.
   PER_TENSOR_AXIS: ClassVar[int] = 0xF
 
+  # Widest index the byte 5 bitwidth field can express.
+  MAX_BITWIDTH: ClassVar[int] = 7
+
   lut_version: int = 1
   bitwidth: int = 4
   axis: int = 0
@@ -82,8 +83,10 @@ class LutAncillaryData:
   value_tables: bytes = b''
 
   def __post_init__(self):
-    if not 1 <= self.bitwidth <= 7:
-      raise ValueError(f"bitwidth must be 1-7, got {self.bitwidth}")
+    if not 1 <= self.bitwidth <= self.MAX_BITWIDTH:
+      raise ValueError(
+        f"bitwidth must be 1-{self.MAX_BITWIDTH}, got {self.bitwidth}"
+      )
     if not 0 <= self.axis <= 15:
       raise ValueError(f"axis must be 0-15, got {self.axis}")
     if not 0 <= self.value_table_stride <= 128:
@@ -149,43 +152,6 @@ def compress_array(
   return compressed
 
 
-def identify_compression_axis(tensor: model_editor.Tensor) -> Optional[int]:
-  """Determines the axis along which to compress.
-
-  The axis along which to compress is inferred from the tensor's quantization
-  parameters. Unquantized tensors use per-tensor compression.
-
-  Args:
-    tensor: The tensor to analyze.
-
-  Returns:
-    The axis along which to compress, or None to indicate one value table for
-    the entire tensor.
-
-  Raises:
-    CompressionError: If the axis cannot be determined from quantization.
-  """
-  q = tensor.quantization
-  if q is None:
-    return None
-
-  # model_editor wraps quantization, access scales/axis from wrapper
-  scales = q.scales if isinstance(q.scales, list) else [q.scales]
-  quantization_channels = len(scales)
-
-  if quantization_channels == 1:
-    return None
-
-  if q.axis is not None and q.axis < len(tensor.shape):
-    if quantization_channels == tensor.shape[q.axis]:
-      return q.axis
-
-  raise compressor.CompressionError(
-    "Invalid or no quantization parameters from which to "
-    "infer the axis along which tensor should be compressed."
-  )
-
-
 def check_channel_axis(axis: int, shape: tuple[int, ...]):
   """Validates a per-channel axis against the tensor shape and the kernels.
 
@@ -224,13 +190,11 @@ def pack_indices(indices: np.ndarray, bitwidth: int) -> bytes:
   Returns:
     Packed bytes with indices in big-endian bit order.
   """
-  endianness = "big"
-  bits = bitarray.bitarray(endian=endianness)
-  for i in indices.ravel():
-    bits.extend(
-      bitarray.util.int2ba(int(i), length=bitwidth, endian=endianness)
-    )
-  return bits.tobytes()
+  if indices.size == 0:
+    return b""
+  bit_str = "".join(f"{int(i):0{bitwidth}b}" for i in indices.ravel())
+  bit_str += "0" * ((-len(bit_str)) % 8)
+  return int(bit_str, 2).to_bytes(len(bit_str) // 8, byteorder="big")
 
 
 def pack_lookup_tables(tables: list[np.ndarray], table_len: int) -> bytes:
@@ -291,8 +255,6 @@ class LutCompressor(compressor.Compressor):
     spec_bitwidth = method.index_bitwidth
 
     match method.mode:
-      case None:
-        compress_axis = identify_compression_axis(tensor)
       case spec.PerTensor():
         compress_axis = None
       case spec.PerChannel(axis=axis):
@@ -300,7 +262,8 @@ class LutCompressor(compressor.Compressor):
         compress_axis = axis
       case _:
         raise compressor.CompressionError(
-          f"unknown compression mode: {method.mode!r}"
+          f"compression mode required: give per_tensor or per_channel, "
+          f"got {method.mode!r}"
         )
 
     compressed = compress_array(tensor.array, compress_axis)

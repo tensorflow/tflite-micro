@@ -22,8 +22,7 @@ limitations under the License.
 #include "signal/src/fft_auto_scale.h"
 #include "signal/src/max_abs.h"
 #include "signal/src/msb.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
@@ -60,6 +59,7 @@ int XtensaFftAutoScale(const int16_t* input, int size, int16_t* output) {
 #endif
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -99,5 +99,11 @@ TFLMRegistration* Register_FFT_AUTO_SCALE() {
   return &r;
 }
 
+}  // namespace tflm_signal
+
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_FFT_AUTO_SCALE;
 }  // namespace tflm_signal
 }  // namespace tflite

@@ -29,14 +29,14 @@ limitations under the License.
 //   When indices are out of bound, the ops will not succeed.
 //
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor_0 = 0;
@@ -60,7 +60,9 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     op_data->scale = tensor_1->params.scale;
   }
 
-  op_data->num_columns = NumElements(tensor_1) / tensor_1->dims->data[0];
+  op_data->num_columns = tensor_1->dims->data[0] > 0
+                             ? NumElements(tensor_1) / tensor_1->dims->data[0]
+                             : 0;
 
   return kTfLiteOk;
 }
@@ -211,4 +213,5 @@ TFLMRegistration Register_EMBEDDING_LOOKUP() {
                                    EmbeddingLookUpEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

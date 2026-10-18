@@ -1,24 +1,27 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
-load("@rules_shell//shell:sh_test.bzl", "sh_test")  # @unused
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
-load("//python:py_rules.bzl", "tflm_py_library")
 load(
-    "//tensorflow:extra_rules.bzl",
-    "tflm_python_op_resolver_friends",
+    "//python:py_rules.bzl",
+    "py_package",
+    "py_wheel",
+    "pybind_extension",
+    "tflm_py_library",
+    "tflm_py_test",
+    "tflm_whl_test",
 )
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
     "tflm_cc_library",
 )
+load(
+    "//tensorflow/lite/micro:extra_rules.bzl",
+    "tflm_python_op_resolver_friends",
+)
 load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 
 package(
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -38,7 +41,6 @@ tflm_cc_library(
     visibility = [
         ":op_resolver_friends",
         "//tensorflow/lite/micro/integration_tests:__subpackages__",
-        "//tensorflow/lite/micro/python/interpreter/src:__subpackages__",
     ],
     deps = [
         "//tensorflow/lite/micro:micro_compatibility",
@@ -65,9 +67,14 @@ pybind_extension(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":python_ops_resolver",
+        "//tensorflow/lite/micro:micro_allocator",
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro/schema:schema_fbs",
         "@tflm_pip_deps//numpy:cc_headers",
     ],
 )
@@ -84,12 +91,11 @@ tflm_py_library(
     visibility = ["//visibility:public"],
     deps = [
         requirement("numpy"),
-        "//tensorflow/lite/micro/tools:generate_test_for_model",
-        "//tensorflow/lite/python:schema_py",
+        "//tensorflow/lite/micro/python:schema_py",
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "runtime_test",
     srcs = ["runtime_test.py"],
     tags = [
@@ -100,16 +106,19 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":runtime",
+        requirement("ai-edge-litert"),
         requirement("numpy"),
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
     ],
 )
 
-py_test(
+tflm_py_test(
     name = "test_compression_unsupported",
     srcs = ["test_compression_unsupported.py"],
+    data = [
+        "sine_float.tflite",
+    ],
     tags = [
         "noasan",
         "nomsan",  # Python doesn't like these symbols in _runtime.so
@@ -123,13 +132,11 @@ py_test(
     }),
     deps = [
         ":runtime",
-        requirement("numpy"),
-        requirement("tensorflow"),
         "//tensorflow/lite/micro/compression:model_editor",
     ],
 )
 
-py_library(
+tflm_py_library(
     name = "postinstall_check",
     srcs = [
         "postinstall_check.py",
@@ -162,9 +169,8 @@ py_package(
     packages = [
         "python.tflite_micro",
         "tensorflow.lite.micro.compression",
+        "tensorflow.lite.micro.python",
         "tensorflow.lite.micro.tools",
-        "tensorflow.lite.micro.tools.generate_test_for_model",
-        "tensorflow.lite.python",
     ],
     deps = [
         ":postinstall_check",
@@ -189,6 +195,7 @@ py_namespace(
     name = "namespace",
     init = "__init__.py",
     namespace = "tflite_micro",
+    tags = ["manual"],
     deps = [
         ":files_to_package",
     ],
@@ -210,6 +217,7 @@ string_flag(
         "cp311_cp311_manylinux_2_28_x86_64",
         "cp312_cp312_manylinux_2_28_x86_64",
         "cp313_cp313_manylinux_2_28_x86_64",
+        "cp314_cp314_manylinux_2_28_x86_64",
         "local",
     ],
 )
@@ -243,6 +251,13 @@ config_setting(
 )
 
 config_setting(
+    name = "cp314_cp314_manylinux_2_28_x86_64",
+    flag_values = {
+        ":compatibility_tag": "cp314_cp314_manylinux_2_28_x86_64",
+    },
+)
+
+config_setting(
     name = "local",
     flag_values = {
         ":compatibility_tag": "local",
@@ -260,6 +275,7 @@ py_wheel(
         ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
         ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
         ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
+        ":cp314_cp314_manylinux_2_28_x86_64": "cp314",
         ":local": "none",
     }),
     description_file = ":description_file",
@@ -269,6 +285,7 @@ py_wheel(
         ":cp311_cp311_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":cp312_cp312_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":cp313_cp313_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
+        ":cp314_cp314_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":local": "any",
     }),
     python_tag = select({
@@ -276,45 +293,28 @@ py_wheel(
         ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
         ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
         ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
+        ":cp314_cp314_manylinux_2_28_x86_64": "cp314",
         ":local": "py3",
     }),
     requires = [
-        "bitarray",
         "flatbuffers",
         "numpy",
         "pyyaml",
-        "tensorflow",
     ],
     stamp = 1,  # 1 == always stamp
     strip_path_prefixes = [package_name()],
     summary = "TensorFlow Lite for Microcontrollers",
-    twine = "@tflm_pip_deps_twine//:pkg",
     version = "{BUILD_EMBED_LABEL}.dev{STABLE_GIT_COMMIT_TIME}",
     deps = [
         ":namespace",
     ],
 )
 
-sh_test(
+tflm_whl_test(
     name = "whl_test",
     size = "large",
     srcs = [
         "whl_test.sh",
-    ],
-    args = [
-        "$(rootpath :whl)",
-    ] + select({
-        "@rules_python//python/config_settings:is_python_3.10": ["$(rootpath @python_3_10//:bin/python3)"],
-        "@rules_python//python/config_settings:is_python_3.11": ["$(rootpath @python_3_11//:bin/python3)"],
-        "@rules_python//python/config_settings:is_python_3.12": ["$(rootpath @python_3_12//:bin/python3)"],
-        "@rules_python//python/config_settings:is_python_3.13": ["$(rootpath @python_3_13//:bin/python3)"],
-    }),
-    data = [
-        ":whl",
-        "@python_3_10//:bin/python3",
-        "@python_3_11//:bin/python3",
-        "@python_3_12//:bin/python3",
-        "@python_3_13//:bin/python3",
     ],
     tags = [
         "noasan",

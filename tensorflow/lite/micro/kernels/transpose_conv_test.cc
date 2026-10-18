@@ -17,9 +17,9 @@ limitations under the License.
 
 #include <type_traits>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
@@ -27,6 +27,12 @@ limitations under the License.
 namespace tflite {
 namespace testing {
 namespace {
+
+using micro::kTransposeConvBiasTensor;
+using micro::kTransposeConvFilterTensor;
+using micro::kTransposeConvInputTensor;
+using micro::kTransposeConvOutputTensor;
+using micro::kTransposeConvQuantizedDimension;
 
 // Common inputs and outputs.
 constexpr int kInputElements = 32;

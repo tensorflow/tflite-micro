@@ -53,9 +53,10 @@ def _lut_spec(*lut_lines: str) -> str:
 class TestLutMode(unittest.TestCase):
   """Tests for parsing the per_tensor/per_channel choice."""
 
-  def testMissingModeIsNone(self):
-    result = spec.parse_yaml(_lut_spec("index_bitwidth: 4"))
-    self.assertIsNone(result[0].compression[0].mode)
+  def testMissingModeRaises(self):
+    bad = _lut_spec("index_bitwidth: 4")
+    with self.assertRaisesRegex(spec.ParseError, "per_tensor or per_channel"):
+      spec.parse_yaml(bad)
 
   def testBothModesRaise(self):
     bad = _lut_spec(

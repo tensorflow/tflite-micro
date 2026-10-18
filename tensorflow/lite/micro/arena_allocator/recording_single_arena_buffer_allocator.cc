@@ -17,9 +17,10 @@ limitations under the License.
 
 #include <new>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
+#include "tensorflow/lite/micro/compatibility.h"
 
 namespace tflite {
+namespace micro {
 
 RecordingSingleArenaBufferAllocator::RecordingSingleArenaBufferAllocator(
     uint8_t* buffer_head, size_t buffer_size)
@@ -82,4 +83,5 @@ uint8_t* RecordingSingleArenaBufferAllocator::AllocatePersistentBuffer(
   return result;
 }
 
+}  // namespace micro
 }  // namespace tflite

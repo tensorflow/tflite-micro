@@ -15,16 +15,16 @@ limitations under the License.
 
 #include <cmath>
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kAbsNameId = 0;
@@ -62,15 +62,16 @@ bool IsRsqrtSupportedType(const TfLiteType type) {
 inline void SetAbsOutputMultiplier(const float input_scale,
                                    const float output_scale,
                                    int32_t* multiplier, int* shift) {
-  QuantizeMultiplier(static_cast<double>(input_scale / output_scale),
-                     multiplier, shift);
+  QuantizeMultiplier(
+      static_cast<double>(input_scale) / static_cast<double>(output_scale),
+      multiplier, shift);
 }
 
 inline void SetRsqrtOutputMultiplier(const float input_scale,
                                      const float output_scale,
                                      int32_t* multiplier, int* shift) {
-  const double scale =
-      1. / static_cast<double>((std::sqrt(input_scale) * output_scale));
+  const double scale = 1.0 / (std::sqrt(static_cast<double>(input_scale)) *
+                              static_cast<double>(output_scale));
   QuantizeMultiplier(scale, multiplier, shift);
 }
 
@@ -226,7 +227,6 @@ inline TfLiteStatus EvalLogical(TfLiteContext* context, TfLiteNode* node,
 
 void* ElementWiseAbsRsqrtInit(TfLiteContext* context, const char* buffer,
                               size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpDataAbsRsqrt));
 }
 
@@ -244,7 +244,7 @@ inline T AbsEvalQuantized(TfLiteContext* context, TfLiteNode* node, T i) {
                  static_cast<long int>(kMax)));
   }
 
-  const int32_t output = tflite::MultiplyByQuantizedMultiplier(
+  const int32_t output = tflite::micro::MultiplyByQuantizedMultiplier(
                              value, op_data->multiplier, op_data->shift) +
                          op_data->output_offset;
   return static_cast<T>(std::min(
@@ -268,11 +268,11 @@ inline T RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node, T i) {
   int inv_sqrt_shift;
   GetInvSqrtQuantizedMultiplierExp(value, kReverseShift, &inv_sqrt_multiplier,
                                    &inv_sqrt_shift);
-  const int32_t data = tflite::MultiplyByQuantizedMultiplier(
+  const int32_t data = tflite::micro::MultiplyByQuantizedMultiplier(
       static_cast<int32_t>(1), inv_sqrt_multiplier, inv_sqrt_shift + kShift);
   const int32_t output =
-      tflite::MultiplyByQuantizedMultiplier(data, op_data->multiplier,
-                                            op_data->shift - kShift) +
+      tflite::micro::MultiplyByQuantizedMultiplier(data, op_data->multiplier,
+                                                   op_data->shift - kShift) +
       op_data->output_offset;
   return static_cast<T>(std::min(
       std::max(static_cast<long int>(output), static_cast<long int>(kMin)),
@@ -413,4 +413,5 @@ TFLMRegistration Register_LOGICAL_NOT() {
       nullptr, GenericPrepare<IsLogicalSupportedType>, LogicalNotEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

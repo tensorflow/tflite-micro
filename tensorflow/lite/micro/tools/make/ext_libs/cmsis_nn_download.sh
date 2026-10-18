@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2025 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ DOWNLOADS_DIR=${1}
 DOWNLOADED_CMSIS_NN_PATH=${DOWNLOADS_DIR}/cmsis_nn
 
 ZIP_PREFIX_NN="4ab83cc3cc98fb85ed6dafb55e8ca02f1628dcae"
-CMSIS_NN_URL="http://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
+CMSIS_NN_URL="https://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
 CMSIS_NN_MD5="c960031e7d10cf31c477fb34ef460106"
 
 should_download=$(check_should_download ${DOWNLOADS_DIR})

@@ -20,6 +20,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_time.h"
 
 namespace tflite {
+namespace micro {
 
 uint32_t ticks_per_second() { return 100e6; }
 
@@ -31,4 +32,5 @@ void InitializeTarget() {
   start_clock();
 }
 
+}  // namespace micro
 }  // namespace tflite

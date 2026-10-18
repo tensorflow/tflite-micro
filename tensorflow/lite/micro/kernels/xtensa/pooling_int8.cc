@@ -13,9 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pooling.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
@@ -23,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 TfLiteStatus AverageEvalInt8(TfLiteContext* context, TfLiteNode* node) {
@@ -294,7 +293,6 @@ TfLiteStatus MaxEvalQuantizedHifi(TfLiteContext* context, TfLiteNode* node,
 
 void* XtensaPoolingInit(TfLiteContext* context, const char* buffer,
                         size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
 #if defined(HIFI5)
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaOpDataPooling));
@@ -335,4 +333,5 @@ TFLMRegistration Register_MAX_POOL_2D_INT8() {
 #endif
 }
 
+}  // namespace micro
 }  // namespace tflite

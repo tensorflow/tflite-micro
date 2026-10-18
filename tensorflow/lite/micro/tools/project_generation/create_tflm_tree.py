@@ -196,7 +196,6 @@ def _create_examples_tree(prefix_dir, examples_list, tensorflow_root):
       full_filename = os.path.join(prefix_dir, "third_party", relative_path)
     else:
       # not third-party and not examples, don't modify file name
-      # ex. tensorflow/lite/experimental/microfrontend
       full_filename = os.path.join(prefix_dir, f)
     dest_file_list.append(full_filename)
 

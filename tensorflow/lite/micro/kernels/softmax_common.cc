@@ -13,17 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 // Softmax parameter data that persists in user_data
 const int kInt16LUTArraySize = LUTSize<int16_t>();
@@ -120,14 +120,14 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
       op_data->input_left_shift = input_left_shift;
     } else {
       int input_left_shift;
-      tflite::PreprocessSoftmaxScaling(
+      tflite::micro::PreprocessSoftmaxScaling(
           static_cast<double>(params->beta),
           static_cast<double>(input->params.scale), kScaledDiffIntegerBits,
           &op_data->input_multiplier, &input_left_shift);
       op_data->input_left_shift = input_left_shift;
       op_data->diff_min =
-          -1.0 * tflite::CalculateInputRadius(kScaledDiffIntegerBits,
-                                              op_data->input_left_shift);
+          -1.0 * tflite::micro::CalculateInputRadius(kScaledDiffIntegerBits,
+                                                     op_data->input_left_shift);
     }
   } else {
     TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
@@ -138,7 +138,6 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
 }
 
 void* SoftmaxInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(SoftmaxParams));
 }
 
@@ -165,4 +164,5 @@ TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node) {
   return ret_val;
 }
 
+}  // namespace micro
 }  // namespace tflite

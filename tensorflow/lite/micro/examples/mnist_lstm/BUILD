@@ -1,22 +1,12 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
+load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
-py_binary(
-    name = "train",
-    srcs = ["train.py"],
-    deps = [
-        requirement("numpy"),
-        requirement("tensorflow"),
-    ],
-)
-
-py_binary(
+tflm_py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
     deps = [
         "//python/tflite_micro:runtime",
-        requirement("absl_py"),
         requirement("pillow"),
     ],
 )
@@ -26,7 +16,7 @@ filegroup(
     srcs = glob(["samples/*.png"]),
 )
 
-py_test(
+tflm_py_test(
     name = "evaluate_test",
     srcs = ["evaluate_test.py"],
     data = [
@@ -43,7 +33,8 @@ py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":evaluate",
-        ":train",
         "//tensorflow/lite/micro/tools:requantize_flatbuffer",
+        requirement("ai-edge-litert"),
+        requirement("numpy"),
     ],
 )

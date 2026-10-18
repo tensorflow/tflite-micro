@@ -28,20 +28,19 @@ limitations under the License.
 
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/util.h"
-#include "tensorflow/lite/c/c_api_types.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_allocator.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_resource_variable.h"
 #include "tensorflow/lite/micro/micro_utils.h"
+#include "tensorflow/lite/micro/schema/schema_generated.h"
 #include "tensorflow/lite/micro/tools/benchmarking/op_resolver.h"
 #include "tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
 
@@ -127,11 +126,7 @@ TfLiteStatus ConvertTensorType(TfLiteType type, TensorTypes& tensor_type) {
       tensor_type = TensorTypes_INT2;
       return kTfLiteOk;
     case kTfLiteFloat8E4M3FN:
-      tensor_type = TensorTypes_FLOAT8_E4M3FN;
-      return kTfLiteOk;
     case kTfLiteFloat8E5M2:
-      tensor_type = TensorTypes_FLOAT8_E5M2;
-      return kTfLiteOk;
     case kTfLiteNoType:
       MicroPrintf("Unsupported data type %d in tensor\n", tensor_type);
       return kTfLiteError;
@@ -159,7 +154,7 @@ TfLiteStatus SetRandomInput(const uint32_t random_seed,
     }
 
     // Pre-populate input tensor with random values.
-    uint8_t* input_values = GetTensorData<uint8_t>(input);
+    uint8_t* input_values = micro::GetTensorData<uint8_t>(input);
     for (size_t j = 0; j < input->bytes; ++j) {
       input_values[j] = dist(eng);
       test_data->data.push_back(input_values[j]);

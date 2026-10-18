@@ -23,47 +23,40 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/audio_preprocessor
 """
 
 from __future__ import annotations
-from pathlib import Path
+import argparse
 from dataclasses import dataclass
+from pathlib import Path
 import tempfile
+import wave
 
-from absl import app
-from absl import flags
-
-import tensorflow as tf
-from tensorflow.python.platform import resource_loader
-from tflite_micro.python.tflite_micro.signal.ops import window_op
-from tflite_micro.python.tflite_micro.signal.ops import fft_ops
-from tflite_micro.python.tflite_micro.signal.ops import energy_op
-from tflite_micro.python.tflite_micro.signal.ops import filter_bank_ops
-from tflite_micro.python.tflite_micro.signal.ops import pcan_op
+import numpy as np
 from tflite_micro.python.tflite_micro import runtime
 
-_ENABLE_DEBUG = flags.DEFINE_enum(
-  'debug_mode',
-  'off',
-  ['off', 'all'],
-  'Enable debug output',
-)
+try:
+  import tensorflow as tf
+  from tensorflow.python.platform import resource_loader
+  from tflite_micro.python.tflite_micro.signal.ops import energy_op
+  from tflite_micro.python.tflite_micro.signal.ops import fft_ops
+  from tflite_micro.python.tflite_micro.signal.ops import filter_bank_ops
+  from tflite_micro.python.tflite_micro.signal.ops import pcan_op
+  from tflite_micro.python.tflite_micro.signal.ops import window_op
 
-_FILE_TO_TEST = flags.DEFINE_enum(
-  'file_to_test', 'no', ['no', 'yes'], 'File to test'
-)
+  _HAS_TF = True
+  _TF_MODULE_BASE = tf.Module
+except Exception:
+  tf = None
+  _HAS_TF = False
+  _TF_MODULE_BASE = object
 
-_OUTPUT_TYPE = flags.DEFINE_enum(
-  'output_type',
-  'int8',
-  ['int8', 'float32'],
-  'Type of TfLite output file (.tflite) to generate',
-)
+_DEBUG_MODE = 'off'
 
 
 def _debug_print(*args):
-  if _ENABLE_DEBUG.value != 'off':
+  if _DEBUG_MODE != 'off':
     print(*args)
 
 
-class _GenerateFeature(tf.Module):
+class _GenerateFeature(_TF_MODULE_BASE):
   """Generate feature tensor from audio window samples"""
 
   def __init__(self, name: str, params: FeatureParams, detail: str):
@@ -96,7 +89,7 @@ class _GenerateFeature(tf.Module):
     # Graph execution does not handle global variables.  Instead, capture the
     # global variable(s) within a closure (_debug_print_internal).
     def _debug_print_internal(*args):
-      if _ENABLE_DEBUG.value != 'off' and tf.executing_eagerly():
+      if _DEBUG_MODE != 'off' and tf.executing_eagerly():
         print(*args)
 
     _debug_print('*** generate_feature_for_frame ***')
@@ -307,7 +300,7 @@ class FeatureParams:
   """filter bank upper band limit"""
 
   filter_bank_scaling_bits: int = (
-    filter_bank_ops.FILTER_BANK_WEIGHT_SCALING_BITS
+    filter_bank_ops.FILTER_BANK_WEIGHT_SCALING_BITS if _HAS_TF else 12
   )
   """filter bank weight scaling bits, updates filter bank constant"""
 
@@ -398,14 +391,23 @@ class AudioPreprocessor:
 
   def _get_model(self):
     if self._model is None:
-      cf = self._get_concrete_function()
-      converter = tf.lite.TFLiteConverter.from_concrete_functions(
-        [cf], self._get_feature_generator()
-      )
-      converter.allow_custom_ops = True
-      self._model = converter.convert()
-      if _ENABLE_DEBUG.value != 'off':
-        tf.lite.experimental.Analyzer.analyze(model_content=self._model)
+      if _HAS_TF:
+        cf = self._get_concrete_function()
+        converter = tf.lite.TFLiteConverter.from_concrete_functions(
+          [cf], self._get_feature_generator()
+        )
+        converter.allow_custom_ops = True
+        self._model = converter.convert()
+        if _DEBUG_MODE != 'off':
+          tf.lite.experimental.Analyzer.analyze(model_content=self._model)
+      else:
+        model_name = (
+          'audio_preprocessor_float.tflite'
+          if self._params.use_float_output
+          else 'audio_preprocessor_int8.tflite'
+        )
+        model_path = Path(__file__).parent / 'models' / model_name
+        self._model = model_path.read_bytes()
     return self._model
 
   def load_samples(self, filename: Path, use_rounding: bool = False):
@@ -422,28 +424,47 @@ class AudioPreprocessor:
       has been loaded into INT16, using a standard rounding algorithm.
       Otherwise use a simple conversion to INT16.
     """
-    file_data = tf.io.read_file(str(filename))
-    samples: tf.Tensor
-    samples, sample_rate = tf.audio.decode_wav(file_data, desired_channels=1)
-    sample_rate = int(sample_rate)
-    _debug_print(
-      f'Loaded {filename.name}'
-      f' sample-rate={sample_rate}'
-      f' sample-count={len(samples)}'
-    )
-    assert sample_rate == self._params.sample_rate, 'mismatched sample rate'
-    # convert samples to INT16
-    # i = (((int) ((x * 32767) + 32768.5f)) - 32768);
-    max_value = tf.dtypes.int16.max
-    min_value = tf.dtypes.int16.min
-    if use_rounding:
-      samples = ((samples * max_value) + (-min_value + 0.5)) + min_value
-    else:
-      samples *= -min_value
-    samples = tf.cast(samples, tf.int16)  # type: ignore
-    samples = tf.reshape(samples, [1, -1])
+    if _HAS_TF:
+      file_data = tf.io.read_file(str(filename))
+      samples: tf.Tensor
+      samples, sample_rate = tf.audio.decode_wav(file_data, desired_channels=1)
+      sample_rate = int(sample_rate)
+      _debug_print(
+        f'Loaded {filename.name}'
+        f' sample-rate={sample_rate}'
+        f' sample-count={len(samples)}'
+      )
+      assert sample_rate == self._params.sample_rate, 'mismatched sample rate'
+      # convert samples to INT16
+      # i = (((int) ((x * 32767) + 32768.5f)) - 32768);
+      max_value = tf.dtypes.int16.max
+      min_value = tf.dtypes.int16.min
+      if use_rounding:
+        samples = ((samples * max_value) + (-min_value + 0.5)) + min_value
+      else:
+        samples *= -min_value
+      samples = tf.cast(samples, tf.int16)  # type: ignore
+      samples = tf.reshape(samples, [1, -1])
 
-    self._samples = samples
+      self._samples = samples
+    else:
+      with wave.open(str(filename), 'rb') as wav_file:
+        sample_rate = wav_file.getframerate()
+        raw_samples = np.frombuffer(
+          wav_file.readframes(wav_file.getnframes()), dtype=np.int16
+        )
+      _debug_print(
+        f'Loaded {filename.name}'
+        f' sample-rate={sample_rate}'
+        f' sample-count={len(raw_samples)}'
+      )
+      assert sample_rate == self._params.sample_rate, 'mismatched sample rate'
+      if use_rounding:
+        samples_f = raw_samples.astype(np.float32) / 32768.0
+        raw_samples = (((samples_f * 32767.0) + 32768.5) - 32768.0).astype(
+          np.int16
+        )
+      self._samples = raw_samples.reshape([1, -1])
 
   @property
   def samples(self) -> tf.Tensor:
@@ -521,7 +542,7 @@ class AudioPreprocessor:
     self._tflm_interpreter.set_input(audio_frame, 0)
     self._tflm_interpreter.invoke()
     result = self._tflm_interpreter.get_output(0)
-    return tf.convert_to_tensor(result)
+    return tf.convert_to_tensor(result) if _HAS_TF else result
 
   def reset_tflm(self):
     """
@@ -557,17 +578,40 @@ class AudioPreprocessor:
     return fname
 
 
-def _main(_):
+def _main():
+  global _DEBUG_MODE
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--debug_mode',
+    default='off',
+    choices=['off', 'all'],
+    help='Enable debug output',
+  )
+  parser.add_argument(
+    '--file_to_test',
+    default='no',
+    choices=['no', 'yes'],
+    help='File to test',
+  )
+  parser.add_argument(
+    '--output_type',
+    default='int8',
+    choices=['int8', 'float32'],
+    help='Type of TfLite output file (.tflite) to generate',
+  )
+  args, _ = parser.parse_known_args()
+  _DEBUG_MODE = args.debug_mode
+
   prefix_path = resource_loader.get_path_to_datafile('testdata')
 
-  fname = _FILE_TO_TEST.value
+  fname = args.file_to_test
   audio_30ms_path = Path(prefix_path, f'{fname}_30ms.wav')
 
-  use_float_output = _OUTPUT_TYPE.value == 'float32'
+  use_float_output = args.output_type == 'float32'
   params = FeatureParams(use_float_output=use_float_output)
   pp = AudioPreprocessor(params=params, detail=fname)
 
-  if _ENABLE_DEBUG.value != 'off':
+  if _DEBUG_MODE != 'off':
     pp.load_samples(audio_30ms_path)
     _ = pp.generate_feature(pp.samples)
 
@@ -576,4 +620,4 @@ def _main(_):
 
 
 if __name__ == '__main__':
-  app.run(_main)
+  _main()

@@ -18,13 +18,13 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 extern const int kActivationsInputTensor;
 extern const int kActivationsOutputTensor;
 
@@ -81,6 +81,10 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node);
 
 TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
+
+using micro::Relu6OpData;
+using micro::ReluOpData;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_ACTIVATIONS_H_

@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_XTENSA_DECODE_STATE_HUFFMAN_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_XTENSA_DECODE_STATE_HUFFMAN_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_DECODE_STATE_HUFFMAN_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_DECODE_STATE_HUFFMAN_H_
 
 #include <cstdint>
 
@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state_huffman.h"
 
 namespace tflite {
-
+namespace micro {
 class XtensaDecodeStateHuffman : public DecodeStateHuffman {
  public:
   XtensaDecodeStateHuffman() = delete;
@@ -47,6 +47,9 @@ class XtensaDecodeStateHuffman : public DecodeStateHuffman {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+}  // namespace micro
+
+using micro::XtensaDecodeStateHuffman;
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_XTENSA_DECODE_STATE_HUFFMAN_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_DECODE_STATE_HUFFMAN_H_

@@ -35,6 +35,7 @@ int MicroVsnprintf(char* buffer, size_t buf_size, const char* format,
 #endif
 
 namespace tflite {
+namespace micro {
 
 // From
 // https://stackoverflow.com/questions/23235910/variadic-unused-function-macro
@@ -48,6 +49,10 @@ T Unused(Args&&... args) {
   (void)(sizeof...(args));
   return static_cast<T>(0);
 }
+
+}  // namespace micro
+
+using micro::Unused;
 
 }  // namespace tflite
 

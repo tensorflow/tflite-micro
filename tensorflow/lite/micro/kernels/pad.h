@@ -16,11 +16,11 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 struct OpData {
   PadParams params;
   int32_t output_zero_point;
@@ -38,6 +38,11 @@ TFLMRegistration Register_PAD_INT8();
 inline TFLMRegistration Register_PAD_INT8() { return Register_PAD(); }
 #endif
 
+}  // namespace micro
+using micro::OpData;
+using micro::Register_PAD;
+using micro::Register_PAD_INT8;
+using micro::Register_PADV2;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_PAD_H_

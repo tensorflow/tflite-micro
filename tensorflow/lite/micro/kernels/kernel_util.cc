@@ -15,9 +15,19 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
+#include <algorithm>
+#include <complex>
+#include <cstdint>
+#include <cstdlib>
+#include <initializer_list>
+#include <limits>
+
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/kernels/internal/cppmath.h"
+#include "tensorflow/lite/micro/kernels/internal/portable_tensor_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -34,6 +44,50 @@ int ValidateTensorIndexing(const TfLiteContext* context, int index,
     }
   }
   return -1;
+}
+
+inline TfLiteStatus Quantize(TfLiteContext* context, float scale,
+                             int32_t zero_point, float f, int32_t& q) {
+  const float tmp = TfLiteRound(f / scale);
+  const bool no_integer_overflow_from_quantization =
+      (tmp >= static_cast<float>(std::numeric_limits<int32_t>::min()) &&
+       tmp <= static_cast<float>(std::numeric_limits<int32_t>::max()));
+  TF_LITE_ENSURE(context, no_integer_overflow_from_quantization);
+  q = zero_point + static_cast<int32_t>(tmp);
+  return kTfLiteOk;
+}
+
+TfLiteStatus CalculateActivationRangeQuantizedImpl(
+    TfLiteContext* context, TfLiteFusedActivation activation, int32_t qmin,
+    int32_t qmax, TfLiteTensor* output, int32_t* act_min, int32_t* act_max) {
+  const auto scale = output->params.scale;
+  const auto zero_point = output->params.zero_point;
+
+  int32_t tmp_q;
+  if (activation == kTfLiteActRelu) {
+    TF_LITE_ENSURE_OK(context,
+                      Quantize(context, scale, zero_point, 0.0, tmp_q));
+    *act_min = std::max(qmin, tmp_q);
+    *act_max = qmax;
+  } else if (activation == kTfLiteActRelu6) {
+    TF_LITE_ENSURE_OK(context,
+                      Quantize(context, scale, zero_point, 0.0, tmp_q));
+    *act_min = std::max(qmin, tmp_q);
+    TF_LITE_ENSURE_OK(context,
+                      Quantize(context, scale, zero_point, 6.0, tmp_q));
+    *act_max = std::min(qmax, tmp_q);
+  } else if (activation == kTfLiteActReluN1To1) {
+    TF_LITE_ENSURE_OK(context,
+                      Quantize(context, scale, zero_point, -1.0, tmp_q));
+    *act_min = std::max(qmin, tmp_q);
+    TF_LITE_ENSURE_OK(context,
+                      Quantize(context, scale, zero_point, 1.0, tmp_q));
+    *act_max = std::min(qmax, tmp_q);
+  } else {
+    *act_min = qmin;
+    *act_max = qmax;
+  }
+  return kTfLiteOk;
 }
 
 }  // namespace
@@ -130,7 +184,6 @@ TfLiteStatus CreateWritableTensorDimsWithCopy(TfLiteContext* context,
                                               TfLiteEvalTensor* eval_tensor) {
   TF_LITE_ENSURE(context, tensor != nullptr);
   TF_LITE_ENSURE(context, eval_tensor != nullptr);
-  TF_LITE_ENSURE(context, context->AllocatePersistentBuffer != nullptr);
   int ranks = tensor->dims->size;
   size_t alloc_size = TfLiteIntArrayGetSizeInBytes(ranks);
   TfLiteIntArray* new_dims = static_cast<TfLiteIntArray*>(
@@ -210,7 +263,7 @@ void PrintNBytes(const TfLiteEvalTensor* tensor, int n_bytes,
 // same as the PrintNBytes above but the buffer needs to be extracted out of the
 // TfLiteEvalTensor*
 void PrintNBytes(const TfLiteTensor* tensor, int n_bytes, const char* prefix) {
-  const int8_t* tensor_data = tflite::GetTensorData<int8_t>(tensor);
+  const int8_t* tensor_data = tflite::micro::GetTensorData<int8_t>(tensor);
   PrintNBytes(tensor_data, n_bytes, prefix);
 }
 
@@ -290,11 +343,235 @@ TfLiteEvalTensor MakeUnpackedInt4Tensor(TfLiteContext* context,
       context->GetScratchBuffer(context, scratch_buffer_index));
   new_tensor.dims = tensor->dims;
   new_tensor.type = kTfLiteInt8;
-  tflite::tensor_utils::UnpackDenseInt4IntoInt8(
+  tflite::micro::tensor_utils::UnpackDenseInt4IntoInt8(
       tflite::micro::GetTensorData<int8_t>(tensor),
       tflite::micro::GetTensorShape(tensor).FlatSize(),
       tflite::micro::GetTensorData<int8_t>(&new_tensor));
   return new_tensor;
+}
+
+// Per-axis
+TfLiteStatus PopulateConvolutionQuantizationParams(
+    TfLiteContext* context, const TfLiteTensor* input,
+    const TfLiteTensor* filter, const TfLiteTensor* bias, TfLiteTensor* output,
+    const TfLiteFusedActivation& activation, int32_t* multiplier, int* shift,
+    int32_t* output_activation_min, int32_t* output_activation_max,
+    int32_t* per_channel_multiplier, int32_t* per_channel_shift) {
+  const auto* affine_quantization =
+      reinterpret_cast<TfLiteAffineQuantization*>(filter->quantization.params);
+  return PopulateConvolutionQuantizationParams(
+      context, input, filter, bias, output, activation, multiplier, shift,
+      output_activation_min, output_activation_max, per_channel_multiplier,
+      per_channel_shift, affine_quantization->scale->size);
+}
+
+// Per-axis & per-tensor
+TfLiteStatus PopulateConvolutionQuantizationParams(
+    TfLiteContext* context, const TfLiteTensor* input,
+    const TfLiteTensor* filter, const TfLiteTensor* bias, TfLiteTensor* output,
+    const TfLiteFusedActivation& activation, int32_t* multiplier, int* shift,
+    int32_t* output_activation_min, int32_t* output_activation_max,
+    int32_t* per_channel_multiplier, int32_t* per_channel_shift,
+    int num_channels) {
+  TF_LITE_ENSURE_EQ(context, input->quantization.type,
+                    kTfLiteAffineQuantization);
+  TF_LITE_ENSURE_EQ(context, filter->quantization.type,
+                    kTfLiteAffineQuantization);
+  // TODO(jianlijianli): Enable bias type check and bias scale == input scale
+  // * filter scale for each channel in affine quantization once bias
+  // quantization is properly populated.
+  // TF_LITE_ENSURE_EQ(context, bias->quantization.type,
+  // kTfLiteAffineQuantization);
+
+  // Check data type.
+  const auto* affine_quantization =
+      reinterpret_cast<TfLiteAffineQuantization*>(filter->quantization.params);
+  TF_LITE_ENSURE(context, affine_quantization);
+  TF_LITE_ENSURE(context, affine_quantization->scale);
+  const bool is_per_channel = affine_quantization->scale->size > 1;
+  if (is_per_channel) {
+    //  Currently only Int8/Int16 is supported for per channel quantization.
+    TF_LITE_ENSURE(context,
+                   input->type == kTfLiteInt8 || input->type == kTfLiteInt16);
+    TF_LITE_ENSURE(context,
+                   filter->type == kTfLiteInt8 || filter->type == kTfLiteInt4);
+    TF_LITE_ENSURE_EQ(context, affine_quantization->scale->size, num_channels);
+    TF_LITE_ENSURE_EQ(
+        context, num_channels,
+        filter->dims->data[affine_quantization->quantized_dimension]);
+  }
+
+  // Populate multiplier and shift using affine quantization.
+  const float input_scale = input->params.scale;
+  const float output_scale = output->params.scale;
+  const float* filter_scales = affine_quantization->scale->data;
+  for (int i = 0; i < num_channels; ++i) {
+    // If per-tensor quantization parameter is specified, broadcast it along the
+    // quantization dimension (channels_out).
+    const float scale = is_per_channel ? filter_scales[i] : filter_scales[0];
+    const double filter_scale = static_cast<double>(scale);
+    const double effective_output_scale = static_cast<double>(input_scale) *
+                                          filter_scale /
+                                          static_cast<double>(output_scale);
+    int32_t significand;
+    int channel_shift;
+    tflite::micro::QuantizeMultiplier(effective_output_scale, &significand,
+                                      &channel_shift);
+    per_channel_multiplier[i] = significand;
+    per_channel_shift[i] = channel_shift;
+  }
+
+  // Populate scalar quantization parameters.
+  // This check on legacy quantization parameters is kept only for backward
+  // compatibility.
+  if (input->type == kTfLiteUInt8) {
+    // Check bias scale == input scale * filter scale.
+    double real_multiplier = 0.0;
+    TF_LITE_ENSURE_STATUS(GetQuantizedConvolutionMultipler(
+        context, input, filter, bias, output, &real_multiplier));
+    int exponent;
+
+    // Populate quantization parameters with multiplier and shift.
+    tflite::micro::QuantizeMultiplier(real_multiplier, multiplier, &exponent);
+    *shift = -exponent;
+  }
+  if (input->type == kTfLiteInt8 || input->type == kTfLiteUInt8 ||
+      input->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_STATUS(CalculateActivationRangeQuantized(
+        context, activation, output, output_activation_min,
+        output_activation_max));
+  }
+  return kTfLiteOk;
+}
+
+TfLiteStatus GetQuantizedConvolutionMultipler(TfLiteContext* context,
+                                              const TfLiteTensor* input,
+                                              const TfLiteTensor* filter,
+                                              const TfLiteTensor* bias,
+                                              TfLiteTensor* output,
+                                              double* multiplier) {
+  const double input_product_scale = static_cast<double>(input->params.scale) *
+                                     static_cast<double>(filter->params.scale);
+  // The following conditions must be guaranteed by the training pipeline.
+  if (bias) {
+    const double bias_scale = static_cast<double>(bias->params.scale);
+    // Here we're making sure the input_product_scale & bias_scale are about the
+    // same. Since we have:
+    // (output - output_zp) * output_scale =
+    // input_product_scale * input_product + bias * bias_scale ---- (0)
+    //
+    // (0) equals:
+    // (input_product + bias) * input_product_scale ----- (1)
+    //           +
+    // bias * (bias_scale - input_product_scale)   ------ (2)
+    //
+    // For the real kernel computation, we're doing (1), so we really need to
+    // make sure (2) has minimum impact on the output, so:
+    // bias * (bias_scale - input_product_scale) / output_scale should be
+    // a small number for an integer.
+    // Since normally bias should be within a small range.
+    // We should expect (bias_scale - input_product_scale) / output_scale to
+    // be a small number like 0.02.
+    const double scale_diff = std::abs(input_product_scale - bias_scale);
+    const double output_scale = static_cast<double>(output->params.scale);
+
+    TF_LITE_ENSURE(context, scale_diff / output_scale <= 0.02);
+  }
+  return GetQuantizedConvolutionMultipler(context, input, filter, output,
+                                          multiplier);
+}
+
+TfLiteStatus GetQuantizedConvolutionMultipler(TfLiteContext* context,
+                                              const TfLiteTensor* input,
+                                              const TfLiteTensor* filter,
+                                              TfLiteTensor* output,
+                                              double* multiplier) {
+  const double input_product_scale = static_cast<double>(input->params.scale) *
+                                     static_cast<double>(filter->params.scale);
+  TF_LITE_ENSURE(context, input_product_scale >= 0);
+  *multiplier = input_product_scale / static_cast<double>(output->params.scale);
+
+  return kTfLiteOk;
+}
+
+TfLiteStatus CalculateActivationRangeQuantized(TfLiteContext* context,
+                                               TfLiteFusedActivation activation,
+                                               TfLiteTensor* output,
+                                               int32_t* act_min,
+                                               int32_t* act_max) {
+  int32_t qmin = 0;
+  int32_t qmax = 0;
+  if (output->type == kTfLiteUInt8) {
+    qmin = std::numeric_limits<uint8_t>::min();
+    qmax = std::numeric_limits<uint8_t>::max();
+  } else if (output->type == kTfLiteInt8) {
+    // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+    qmin = std::numeric_limits<int8_t>::min();
+    // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+    qmax = std::numeric_limits<int8_t>::max();
+  } else if (output->type == kTfLiteInt16) {
+    qmin = std::numeric_limits<int16_t>::min();
+    qmax = std::numeric_limits<int16_t>::max();
+  } else {
+    TF_LITE_ENSURE(context, false);
+  }
+
+  return CalculateActivationRangeQuantizedImpl(context, activation, qmin, qmax,
+                                               output, act_min, act_max);
+}
+
+bool HaveSameShapes(const TfLiteTensor* input1, const TfLiteTensor* input2) {
+  return TfLiteIntArrayEqual(input1->dims, input2->dims);
+}
+
+TfLiteStatus CheckedShapeProduct(TfLiteContext* context,
+                                 std::initializer_list<int> dims,
+                                 const char* error_message, size_t& product) {
+  return CheckedShapeProduct(context, dims.begin(), dims.size(), error_message,
+                             product);
+}
+
+TfLiteStatus CheckedShapeProduct(TfLiteContext* context, const int* dims,
+                                 int count, const char* error_message,
+                                 size_t& product) {
+  TF_LITE_ENSURE(context, count >= 0);
+  TF_LITE_ENSURE(context, dims != nullptr || count == 0);
+  size_t checked_count = 1;
+  for (int i = 0; i < count; ++i) {
+    const int d = dims[i];
+    TF_LITE_ENSURE_MSG(context, d >= 0, "Encountered a negative dimension.");
+    TF_LITE_ENSURE_MSG(
+        context,
+        checked_count == 0 ||
+            static_cast<size_t>(d) <=
+                std::numeric_limits<size_t>::max() / checked_count,
+        "%s", error_message);
+    checked_count *= d;
+  }
+  product = checked_count;
+  return kTfLiteOk;
+}
+
+TfLiteStatus CheckedShapeProductToInt(TfLiteContext* context,
+                                      std::initializer_list<int> dims,
+                                      const char* error_message, int& product) {
+  size_t checked_count = 1;
+  for (const int d : dims) {
+    TF_LITE_ENSURE_MSG(context, d >= 0, "Encountered a negative dimension.");
+    TF_LITE_ENSURE_MSG(
+        context,
+        checked_count == 0 ||
+            static_cast<size_t>(d) <=
+                std::numeric_limits<size_t>::max() / checked_count,
+        "%s", error_message);
+    checked_count *= d;
+  }
+  TF_LITE_ENSURE_MSG(
+      context,
+      checked_count <= static_cast<size_t>(std::numeric_limits<int>::max()),
+      "%s", error_message);
+  product = static_cast<int>(checked_count);
+  return kTfLiteOk;
 }
 
 }  // namespace micro

@@ -1,99 +1,47 @@
-<!--ts-->
-- [TensorFlow Lite for Microcontrollers](#tensorflow-lite-for-microcontrollers)
-- [Build Status](#build-status)
-  - [CI Status](#ci-status)
-  - [Community Supported TFLM Examples](#community-supported-tflm-examples)
-- [Contributing](#contributing)
-- [Getting Help](#getting-help)
-- [Additional Documentation](#additional-documentation)
-- [RFCs](#rfcs)
+# TensorFlow Lite for Microcontrollers (TFLM)
 
-<!-- Added by: advaitjain, at: Mon 04 Oct 2021 11:23:57 AM PDT -->
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Core (Linux)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml)
+[![Windows](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml)
+[![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml)
+[![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml)
+[![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml)
+[![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml)
+[![PyPI](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml)
 
-<!--te-->
+TensorFlow Lite for Microcontrollers is designed to run deep learning models on bare-metal systems, DSPs, and microcontrollers with limited memory (tens to hundreds of kilobytes). It runs models converted via [LiteRT](https://github.com/google-ai-edge/LiteRT) and [TensorFlow](https://github.com/tensorflow/tensorflow/).
 
-# TensorFlow Lite for Microcontrollers
+---
 
-TensorFlow Lite for Microcontrollers is a port of TensorFlow Lite designed to
-run machine learning models on DSPs, microcontrollers and other devices with
-limited memory.
+## Supported Hardware & Ecosystems
 
-Additional Links:
- * [Tensorflow github repository](https://github.com/tensorflow/tensorflow/)
- * [TFLM at tensorflow.org](https://www.tensorflow.org/lite/microcontrollers)
+* **Tier-1 Architectures (Tested in CI):** Arm Cortex-M (CMSIS-NN / Corstone), Cadence Xtensa (HiFi 3/4/5, Vision P6), RISC-V, Qualcomm Hexagon, and x86/Windows.
+* **Community Platforms & SDKs:** [Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples), [Coral Dev Board Micro](https://github.com/google-coral/coralmicro), [Espressif ESP32](https://github.com/espressif/tflite-micro-esp-examples), [Renesas](https://github.com/renesas/tflite-micro-renesas), [Silicon Labs](https://github.com/SiliconLabsSoftware/machine_learning_applications/), and [Ingenic MIPS](https://github.com/yinzara/ingenic-tflite-micro).
 
-# Build Status
+---
 
-## CI Status
-| Group | Status |
-| :--- | :--- |
-| Core | [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_core.yml) [![CI](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml)  [![Sync](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/sync.yml) |
-| Targets | [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml) [![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml) [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml) [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml) |
-| Misc | [![Generate Integration Test](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml/badge.svg)](https://github.com/tensorflow/tflite-micro/actions/workflows/generate_integration_tests.yml) |
+## Documentation
 
+* **Core Concepts:**
+  * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
+  * [Error Handling & Defensive Programming](tensorflow/lite/micro/docs/error_handling_guide.md)
+  * [Logging](tensorflow/lite/micro/docs/logging.md)
+  * [Continuous Integration](docs/continuous_integration.md)
+* **Porting & Hardware Optimization:**
+  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
+  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
+  * [Arm IP Support](tensorflow/lite/micro/docs/arm.md)
+  * [Software Emulation (Renode)](tensorflow/lite/micro/docs/renode.md) and [QEMU](tensorflow/lite/micro/docs/qemu.md)
+* **Tooling, Compression & Python:**
+  * [Model Compression Guide](tensorflow/lite/micro/docs/compression.md) & [Tutorial](tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.md)
+  * [Python Interpreter & Dev Guide](python/tflite_micro/README.md)
+  * [Layer-by-Layer Debugging Tool](docs/debugging_output.md)
+  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md) and [Profiling](tensorflow/lite/micro/docs/profiling.md)
 
-## Community Supported TFLM Examples
-This table captures platforms that TFLM has been ported to. Please see
-[New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md) for
-additional documentation.
+---
 
-Platform      |    Status     |
------------     | --------------|
-Arduino         | [![Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml/badge.svg)](https://github.com/tensorflow/tflite-micro-arduino-examples/actions/workflows/ci.yml) [![Antmicro](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml/badge.svg)](https://github.com/antmicro/tensorflow-arduino-examples/actions/workflows/test_examples.yml) |
-[Coral Dev Board Micro](https://coral.ai/products/dev-board-micro) | [TFLM + EdgeTPU Examples for Coral Dev Board Micro](https://github.com/google-coral/coralmicro) |
-Espressif Systems Dev Boards  | [![ESP Dev Boards](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml/badge.svg)](https://github.com/espressif/tflite-micro-esp-examples/actions/workflows/ci.yml) |
-Ingenic MIPS Boards | [![Ingenic MIPS Boards](https://github.com/yinzara/ingenic-tflite-micro/actions/workflows/ci.yml/badge.svg)](https://github.com/yinzara/ingenic-tflite-micro/tree/main/examples/hello_world) |
-Renesas Boards | [TFLM Examples for Renesas Boards](https://github.com/renesas/tflite-micro-renesas) |
-Silicon Labs Dev Kits | [TFLM Examples for Silicon Labs Dev Kits](https://github.com/SiliconLabsSoftware/machine_learning_applications/)
-Sparkfun Edge   | [![Sparkfun Edge](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/advaitjain/tflite-micro-sparkfun-edge-examples/actions/workflows/ci.yml)
-Texas Instruments Dev Boards | [![Texas Instruments Dev Boards](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml/badge.svg?event=status)](https://github.com/TexasInstruments/tensorflow-lite-micro-examples/actions/workflows/ci.yml)
+## Community & Contributing
 
-
-# Contributing
-See our [contribution documentation](CONTRIBUTING.md).
-
-# Getting Help
-
-A [Github issue](https://github.com/tensorflow/tflite-micro/issues/new/choose)
-should be the primary method of getting in touch with the TensorFlow Lite Micro
-(TFLM) team.
-
-The following resources may also be useful:
-
-1.  SIG Micro [email group](https://groups.google.com/a/tensorflow.org/g/micro)
-    and
-    [monthly meetings](http://doc/1YHq9rmhrOUdcZnrEnVCWvd87s2wQbq4z17HbeRl-DBc).
-
-1.  SIG Micro [gitter chat room](https://gitter.im/tensorflow/sig-micro).
-
-1. For questions that are not specific to TFLM, please consult the broader TensorFlow project, e.g.:
-   * Create a topic on the [TensorFlow Discourse forum](https://discuss.tensorflow.org)
-   * Send an email to the [TensorFlow Lite mailing list](https://groups.google.com/a/tensorflow.org/g/tflite)
-   * Create a [TensorFlow issue](https://github.com/tensorflow/tensorflow/issues/new/choose)
-   * Create a [Model Optimization Toolkit](https://github.com/tensorflow/model-optimization) issue
-
-# Additional Documentation
-
- * [Continuous Integration](docs/continuous_integration.md)
- * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md)
- * [Profiling](tensorflow/lite/micro/docs/profiling.md)
- * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
- * [Error Handling](tensorflow/lite/micro/docs/error_handling_guide.md)
- * [Logging](tensorflow/lite/micro/docs/logging.md)
- * [Porting Reference Kernels from TfLite to TFLM](tensorflow/lite/micro/docs/porting_reference_ops.md)
- * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
- * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
- * Platform/IP support
-   * [Arm IP support](tensorflow/lite/micro/docs/arm.md)
- * [Software Emulation with Renode](tensorflow/lite/micro/docs/renode.md)
- * [Software Emulation with QEMU](tensorflow/lite/micro/docs/qemu.md)
- * [Compression](tensorflow/lite/micro/docs/compression.md)
-   * [MNIST Compression Tutorial](tensorflow/lite/micro/compression/mnist_compression_tutorial.ipynb)
- * [Python Dev Guide](docs/python.md)
- * [Automatically Generated Files](docs/automatically_generated_files.md)
- * [Python Interpreter Guide](python/tflite_micro/README.md)
-
-# RFCs
-
-1. [Pre-allocated tensors](tensorflow/lite/micro/docs/rfc/001_preallocated_tensors.md)
-1. [TensorFlow Lite for Microcontrollers Port of 16x8 Quantized Operators](tensorflow/lite/micro/docs/rfc/002_16x8_quantization_port.md)
+* **Questions & Issues:** Please file a [GitHub Issue](https://github.com/tensorflow/tflite-micro/issues/new/choose).
+* **Contributing:** Review our [Contributing Guide](CONTRIBUTING.md).
+* **Security:** Report vulnerabilities according to our [Security Policy](SECURITY.md).

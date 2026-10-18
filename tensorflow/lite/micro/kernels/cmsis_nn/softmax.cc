@@ -16,17 +16,17 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/softmax.h"
 
 #include "Include/arm_nnfunctions.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/softmax.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/softmax.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 struct CMSISNNSoftmaxParams {
@@ -36,7 +36,6 @@ struct CMSISNNSoftmaxParams {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(CMSISNNSoftmaxParams));
 }
@@ -96,7 +95,7 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      tflite::reference_ops::Softmax(
+      tflite::micro::reference_ops::Softmax(
           op_data.softmax_params, tflite::micro::GetTensorShape(input),
           tflite::micro::GetTensorData<float>(input),
           tflite::micro::GetTensorShape(output),
@@ -217,4 +216,5 @@ TFLMRegistration Register_SOFTMAX_INT16() {
   return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt16);
 }
 
+}  // namespace micro
 }  // namespace tflite

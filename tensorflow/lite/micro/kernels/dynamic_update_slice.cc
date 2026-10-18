@@ -14,19 +14,18 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/dynamic_update_slice.h"
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
+namespace micro {
 constexpr int kMaxDimensions = RuntimeShape::kMaxSmallSize;
 
 namespace {
@@ -153,6 +152,8 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumDimensions(start_indices), 1);
   TF_LITE_ENSURE_EQ(context, SizeOfDimension(start_indices, 0),
                     NumDimensions(operand));
+  TF_LITE_ENSURE(context, NumDimensions(operand) >= 1 &&
+                              NumDimensions(operand) <= kMaxDimensions);
 
   TF_LITE_ENSURE_EQ(context, NumDimensions(update), NumDimensions(operand));
   // Check that update dimensions are not larger than operand dimensions
@@ -228,4 +229,5 @@ TFLMRegistration Register_DYNAMIC_UPDATE_SLICE() {
                                    /*invoke=*/Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

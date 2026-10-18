@@ -15,13 +15,13 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 struct XtensaSoftmaxOpData {
   SoftmaxParams params;
@@ -53,6 +53,12 @@ TfLiteStatus SoftmaxEvalVision(TfLiteContext* context, TfLiteNode* node,
                                TfLiteEvalTensor* output);
 #endif  // defined(VISION_P6)
 
+}  // namespace micro
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
+using micro::XtensaSoftmaxOpData;
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
+        // defined(VISION_P6)
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_

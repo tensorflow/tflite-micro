@@ -13,14 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_NON_PERSISTENT_MEMORY_PLANNER_SHIM_H__
-#define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_NON_PERSISTENT_MEMORY_PLANNER_SHIM_H__
+#ifndef TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_NON_PERSISTENT_BUFFER_PLANNER_SHIM_H_
+#define TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_NON_PERSISTENT_BUFFER_PLANNER_SHIM_H_
 
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/memory_planner/memory_plan_struct.h"
 #include "tensorflow/lite/micro/memory_planner/micro_memory_planner.h"
 
 namespace tflite {
+namespace micro {
 
 /*   This is an experimental feature and subjected to change.
  *
@@ -128,6 +129,10 @@ class NonPersistentMemoryPlannerShim : public MicroMemoryPlanner {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+}  // namespace micro
+
+using micro::NonPersistentMemoryPlannerShim;
+
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_NON_PERSISTENT_MEMORY_PLANNER_SHIM_H__
+#endif  // TENSORFLOW_LITE_MICRO_MEMORY_PLANNER_NON_PERSISTENT_BUFFER_PLANNER_SHIM_H_

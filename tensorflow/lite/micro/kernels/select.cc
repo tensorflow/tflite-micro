@@ -12,18 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/select.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/select.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensorCondition = 0;
@@ -36,7 +36,6 @@ struct OpData {
 };
 
 void* SelectInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   auto* data = static_cast<OpData*>(
       context->AllocatePersistentBuffer(context, sizeof(OpData)));
   data->requires_broadcast = false;
@@ -189,8 +188,8 @@ TfLiteStatus SelectEval(TfLiteContext* context, TfLiteNode* node) {
 // 1. Either the same shape (in which case the select is elementwise), or
 // 2. Broadcastable shapes between 'condition', 'x' and 'y'.
 TFLMRegistration Register_SELECT_V2() {
-  return tflite::micro::RegisterOp(tflite::SelectInit, tflite::SelectPrepare,
-                                   tflite::SelectEval);
+  return RegisterOp(SelectInit, SelectPrepare, SelectEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

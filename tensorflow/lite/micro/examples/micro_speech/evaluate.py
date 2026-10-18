@@ -21,22 +21,13 @@ bazel-bin/tensorflow/lite/micro/examples/micro_speech/evaluate
   --sample_path="path to 1 second audio sample in WAV format"
 """
 
-from absl import app
-from absl import flags
-import numpy as np
+import argparse
 from pathlib import Path
+import numpy as np
 
 from tflite_micro.python.tflite_micro import runtime
-from tensorflow.python.platform import resource_loader
-import tensorflow as tf
 from tflite_micro.tensorflow.lite.micro.examples.micro_speech import (
   audio_preprocessor,
-)
-
-_SAMPLE_PATH = flags.DEFINE_string(
-  name='sample_path',
-  default='',
-  help='path for the audio sample to be predicted.',
 )
 
 _FEATURES_SHAPE = (49, 40)
@@ -142,7 +133,7 @@ def generate_features(
   window_stride = int(
     audio_pp.params.window_stride_ms * audio_pp.params.sample_rate / 1000
   )
-  samples = audio_pp.samples[0]
+  samples = np.asarray(audio_pp.samples[0])
   frame_number = 0
   end_index = start_index + window_size
 
@@ -150,12 +141,9 @@ def generate_features(
   audio_pp.reset_tflm()
 
   while end_index <= len(samples):
-    frame_tensor: tf.Tensor = tf.convert_to_tensor(
-      samples[start_index:end_index]
-    )
-    frame_tensor = tf.reshape(frame_tensor, [1, -1])
+    frame_tensor = samples[start_index:end_index].reshape([1, -1])
     feature_tensor = audio_pp.generate_feature_using_tflm(frame_tensor)
-    features[frame_number] = feature_tensor.numpy()
+    features[frame_number] = np.asarray(feature_tensor)
     start_index += window_stride
     end_index += window_stride
     frame_number += 1
@@ -173,12 +161,20 @@ def get_category_names() -> list[str]:
   return ['silence', 'unknown', 'yes', 'no']
 
 
-def _main(_):
-  sample_path = Path(_SAMPLE_PATH.value)
+def _main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--sample_path',
+    default='',
+    help='path for the audio sample to be predicted.',
+  )
+  args, _ = parser.parse_known_args()
+
+  sample_path = Path(args.sample_path)
   assert sample_path.exists() and sample_path.is_file(), (
     'Audio sample file does not exist. Please check the path.'
   )
-  model_prefix_path = resource_loader.get_path_to_datafile('models')
+  model_prefix_path = Path(__file__).parent / 'models'
   model_path = Path(model_prefix_path, 'micro_speech_quantized.tflite')
 
   feature_params = audio_preprocessor.FeatureParams()
@@ -213,4 +209,4 @@ def _main(_):
 
 
 if __name__ == '__main__':
-  app.run(_main)
+  _main()

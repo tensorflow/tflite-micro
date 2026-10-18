@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -23,6 +23,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 
 namespace tflite {
+namespace micro {
 
 class DecodeStateHuffman : public DecodeState {
  public:
@@ -150,6 +151,9 @@ class DecodeStateHuffman : public DecodeState {
   TF_LITE_REMOVE_VIRTUAL_DELETE
 };
 
+}  // namespace micro
+
+using micro::DecodeStateHuffman;
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DECODE_STATE_HUFFMAN_H_

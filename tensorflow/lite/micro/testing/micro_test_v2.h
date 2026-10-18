@@ -39,15 +39,20 @@ limitations under the License.
 #include <limits>
 #include <type_traits>
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/debug_log.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/system_setup.h"
 
 namespace tflite {
+namespace micro {
 // Initializes the target system for testing. This must be called in main()
 // before running any tests.
 inline void InitializeTest() { InitializeTarget(); }
+}  // namespace micro
+
+using micro::InitializeTest;
+
 }  // namespace tflite
 
 namespace micro_test {
@@ -147,12 +152,12 @@ inline bool AreStringsEqual(const char* s1, const char* s2) {
 // Singleton class to manage test registration and execution.
 class TestRunner {
  public:
-  static TestRunner& Get() {
+  static TestRunner& Get() noexcept {
     static TestRunner instance;
     return instance;
   }
 
-  void RegisterTest(TestInfo* test) {
+  void RegisterTest(TestInfo* test) noexcept {
     test->next = tests_;
     tests_ = test;
   }
@@ -229,7 +234,9 @@ class TestRunner {
 // Helper class to register tests at startup time.
 class TestRegistrar {
  public:
-  TestRegistrar(TestInfo* info) { TestRunner::Get().RegisterTest(info); }
+  explicit TestRegistrar(TestInfo* info) noexcept {
+    TestRunner::Get().RegisterTest(info);
+  }
 };
 
 }  // namespace internal

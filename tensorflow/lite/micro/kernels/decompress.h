@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECOMPRESS_H_
-#define TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECOMPRESS_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_DECOMPRESS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_DECOMPRESS_H_
 
 #include <cstdint>
 
@@ -22,7 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 #ifdef USE_TFLM_COMPRESSION
 
 struct DecompressionState {
@@ -84,6 +84,12 @@ struct DecompressionState {
 
 #endif  // USE_TFLM_COMPRESSION
 
+}  // namespace micro
+
+#ifdef USE_TFLM_COMPRESSION
+using micro::DecompressionState;
+#endif  // USE_TFLM_COMPRESSION
+
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_MICRO_KERNELS_DECOMPRESS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_DECOMPRESS_H_

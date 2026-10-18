@@ -15,8 +15,8 @@ limitations under the License.
 
 // MCPS measurement macros for CEVA optimized kernels
 
-#ifndef MCPS_MACROS_
-#define MCPS_MACROS_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_CEVA_MCPS_MACROS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_CEVA_MCPS_MACROS_H_
 
 #ifndef WIN32
 #include <ceva-time.h>
@@ -112,4 +112,4 @@ int32_t CEVA_BX_Stack_Measurement(const int32_t count);
 #define MCPS_STOP_ONE(...)
 #endif
 
-#endif
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_CEVA_MCPS_MACROS_H_

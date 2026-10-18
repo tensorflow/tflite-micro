@@ -13,13 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TFLM_BENCHMARK_INTERNAL_METRICS_H_
-#define TFLM_BENCHMARK_INTERNAL_METRICS_H_
+#ifndef TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_METRICS_H_
+#define TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_METRICS_H_
 
 #include "tensorflow/lite/micro/micro_profiler.h"
 #include "tensorflow/lite/micro/recording_micro_allocator.h"
 
 namespace tflite {
+namespace micro {
 
 // Defines how formatted data is printed to stdout.
 enum class PrettyPrintType {
@@ -38,6 +39,11 @@ enum class PrettyPrintType {
 //       stdout.
 void LogAllocatorEvents(const tflite::RecordingMicroAllocator& allocator,
                         PrettyPrintType type);
+}  // namespace micro
+
+using micro::LogAllocatorEvents;
+using micro::PrettyPrintType;
+
 }  // namespace tflite
 
-#endif  // TFLM_BENCHMARK_INTERNAL_METRICS_H_
+#endif  // TENSORFLOW_LITE_MICRO_TOOLS_BENCHMARKING_METRICS_H_

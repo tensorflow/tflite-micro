@@ -15,14 +15,12 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/c_api_types.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace {
@@ -54,7 +52,9 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kTargetPosteriorsTensor);
   TF_LITE_ENSURE(context, target_posteriors != nullptr);
 
-  TF_LITE_ENSURE_EQ(context, NumDimensions(input), 1);
+  // Historically Hotword models produce 2D output [1, N].
+  TF_LITE_ENSURE(context,
+                 NumDimensions(input) == 1 || NumDimensions(input) == 2);
   TF_LITE_ENSURE_EQ(context, NumDimensions(target_indices), 1);
   TF_LITE_ENSURE_EQ(context, NumDimensions(thresholds), 1);
   TF_LITE_ENSURE_EQ(context, NumDimensions(detected), 1);
@@ -105,7 +105,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   int32_t* target_posteriors_data =
       tflite::micro::GetTensorData<int32_t>(target_posteriors);
 
-  const int32_t input_size = input->dims->data[0];
+  const int32_t input_size = ElementCount(*input->dims);
   const int num_targets = detected->dims->data[0];
   for (int i = 0; i < num_targets; ++i) {
     const int32_t target_idx = target_indices_data[i];
@@ -120,8 +120,10 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace
 
+namespace micro {
 TFLMRegistration Register_BASIC_CLASSIFIER() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
 }
+}  // namespace micro
 
 }  // namespace tflite

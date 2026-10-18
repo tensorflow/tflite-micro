@@ -9,8 +9,6 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -114,11 +112,14 @@ tflm_cc_test(
     deps = [
         ":models_and_testdata",
         "//python/tflite_micro:python_ops_resolver",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_profiler",
         "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

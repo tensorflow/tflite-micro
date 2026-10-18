@@ -16,7 +16,7 @@ jobs:
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -31,7 +31,7 @@ jobs:
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -45,7 +45,7 @@ jobs:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     name: C++ Build Warnings
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha || github.ref }}
           allow-unsafe-pr-checkout: true
@@ -56,7 +56,7 @@ jobs:
           cache-save: ${{ github.event_name == 'push' }}
           repository-cache: true
       - name: Build with Warnings as Errors
-        run: bazel build --compilation_mode=opt --copt="-Werror" --copt="-Wall" --copt="-Wextra" --copt="-Wno-unused-parameter" //...
+        run: bazel build --config=ci --compilation_mode=opt --build_tests_only --copt="-Werror" --copt="-Wall" --copt="-Wextra" --copt="-Wno-unused-parameter" //...
 
   project_generation:
     runs-on: ubuntu-latest
@@ -66,7 +66,7 @@ jobs:
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
@@ -88,7 +88,7 @@ jobs:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     name: Clang Tidy
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true

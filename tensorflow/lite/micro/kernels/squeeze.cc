@@ -13,18 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/process_broadcast_shapes.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/process_broadcast_shapes.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 struct SqueezeContext {
@@ -80,7 +80,10 @@ TfLiteStatus SqueezePrepare(TfLiteContext* context, TfLiteNode* node) {
   // Ensure output dimensions are big enough.
   for (int in_idx = 0, out_idx = 0; in_idx < input_num_dims; ++in_idx) {
     if (!should_squeeze[in_idx]) {
-      TFLITE_CHECK_GE(output_dims->data[out_idx++], input_dims->data[in_idx]);
+      TF_LITE_ENSURE(
+          context, out_idx < output_dims->size &&
+                       output_dims->data[out_idx] >= input_dims->data[in_idx]);
+      ++out_idx;
     }
   }
 
@@ -115,4 +118,5 @@ TFLMRegistration Register_SQUEEZE() {
   return tflite::micro::RegisterOp(nullptr, SqueezePrepare, SqueezeEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

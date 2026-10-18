@@ -144,7 +144,7 @@ Flags:
 
 -Wimplicit-function-declaration -std=c17 -Werror -fno-unwind-tables 
 -fno-asynchronous-unwind-tables -ffunction-sections -fdata-sections -fmessage-length=0 
--DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -DCMSIS_NN 
+-DTF_LITE_DISABLE_X86_NEON -DCMSIS_NN 
 -DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto -DTF_LITE_MCU_DEBUG_LOG 
 -mthumb -mfloat-abi=soft -funsigned-char -mlittle-endian -fomit-frame-pointer -MD -DARMCM4
 
@@ -160,7 +160,7 @@ Flags:
 
 -std=c++17 -fno-rtti -fno-exceptions -fno-threadsafe-statics -Wnon-virtual-dtor -Werror 
 -fno-unwind-tables -fno-asynchronous-unwind-tables -ffunction-sections -fdata-sections 
--fmessage-length=0 -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON -Wsign-compare 
+-fmessage-length=0 -DTF_LITE_DISABLE_X86_NEON -Wsign-compare 
 -Wdouble-promotion -Wunused-variable -Wunused-function -Wswitch -Wvla -Wall -Wextra 
 -Wmissing-field-initializers -Wstrict-aliasing -Wno-unused-parameter -DCMSIS_NN 
 -DKERNELS_OPTIMIZED_FOR_SPEED -mcpu=cortex-m4+nofp -mfpu=auto -DTF_LITE_MCU_DEBUG_LOG 
@@ -182,7 +182,7 @@ BUILD_TYPE=default
 --------------------
 NN library download URLs:
 
-http://github.com/ARM-software/CMSIS-NN/archive/22080c68d040c98139e6cb1549473e3149735f4d.z
+https://github.com/ARM-software/CMSIS-NN/archive/22080c68d040c98139e6cb1549473e3149735f4d.z
 ip
 
 NN library MD5 checksums:

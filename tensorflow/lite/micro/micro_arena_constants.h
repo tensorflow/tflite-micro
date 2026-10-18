@@ -17,11 +17,16 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_MICRO_ARENA_CONSTANTS_H_
 
 namespace tflite {
+namespace micro {
 
 // The default buffer alignment requirement.
 // We align tensor buffers to 16-byte boundaries, since this is a common
 // requirement for SIMD extensions.
 constexpr int MicroArenaBufferAlignment() { return 16; }
+
+}  // namespace micro
+
+using micro::MicroArenaBufferAlignment;
 
 }  // namespace tflite
 

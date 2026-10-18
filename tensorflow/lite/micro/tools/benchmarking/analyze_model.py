@@ -19,10 +19,10 @@ import argparse
 import os
 import sys
 
-# Add tensorflow/lite/python to sys.path so schema_py_generated can be imported
-# directly without requiring a full TensorFlow installation.
+# Add tensorflow/lite/micro/python to sys.path so schema_py_generated can be
+# imported directly without requiring a full TensorFlow installation.
 _SCHEMA_DIR = os.path.abspath(
-  os.path.join(os.path.dirname(__file__), '../../../python')
+  os.path.join(os.path.dirname(__file__), '../../python')
 )
 if _SCHEMA_DIR not in sys.path:
   sys.path.insert(0, _SCHEMA_DIR)

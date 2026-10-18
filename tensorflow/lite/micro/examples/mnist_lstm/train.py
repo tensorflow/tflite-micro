@@ -23,28 +23,12 @@ Run:
 `bazel-bin/tensorflow/lite/micro/examples/mnist_lstm/train`
 """
 
+import argparse
+import logging
 import os
 
-from absl import app
-from absl import flags
-from absl import logging
 import numpy as np
 import tensorflow as tf
-
-FLAGS = flags.FLAGS
-
-flags.DEFINE_integer("epochs", 20, "number of epochs to train the model.")
-flags.DEFINE_string(
-  "save_dir",
-  "/tmp/lstm_trained_model",
-  "the directory to save the trained model.",
-)
-flags.DEFINE_boolean(
-  "save_tf_model", False, "store the original unconverted tf model."
-)
-flags.DEFINE_boolean(
-  "quantize", False, "convert and save the full integer (int8) quantized model."
-)
 
 
 def create_model(units=20):
@@ -191,30 +175,54 @@ def prepare_trained_model(trained_model):
   return run_model
 
 
-def main(_):
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--epochs",
+    type=int,
+    default=20,
+    help="number of epochs to train the model.",
+  )
+  parser.add_argument(
+    "--save_dir",
+    default="/tmp/lstm_trained_model",
+    help="the directory to save the trained model.",
+  )
+  parser.add_argument(
+    "--save_tf_model",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="store the original unconverted tf model.",
+  )
+  parser.add_argument(
+    "--quantize",
+    action=argparse.BooleanOptionalAction,
+    default=False,
+    help="convert and save the full integer (int8) quantized model.",
+  )
+  args, _ = parser.parse_known_args()
+
   x_train, y_train = get_train_data()
-  trained_model = train_lstm_model(FLAGS.epochs, x_train, y_train)
+  trained_model = train_lstm_model(args.epochs, x_train, y_train)
   run_model = prepare_trained_model(trained_model)
   # Save the tf model
-  if FLAGS.save_tf_model:
-    run_model.save(FLAGS.save_dir, save_format="tf")
-    logging.info("TF model saved to %s", FLAGS.save_dir)
+  if args.save_tf_model:
+    run_model.save(args.save_dir, save_format="tf")
+    logging.info("TF model saved to %s", args.save_dir)
 
   # Convert and save the model to .tflite
   tflite_model = convert_tflite_model(run_model)
-  save_tflite_model(
-    tflite_model, FLAGS.save_dir, model_name="mnist_lstm.tflite"
-  )
+  save_tflite_model(tflite_model, args.save_dir, model_name="mnist_lstm.tflite")
 
   # Convert and save the quantized model
-  if FLAGS.quantize:
+  if args.quantize:
     quantized_tflite_model = convert_quantized_tflite_model(run_model, x_train)
     save_tflite_model(
       quantized_tflite_model,
-      FLAGS.save_dir,
+      args.save_dir,
       model_name="mnist_lstm_quant.tflite",
     )
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()

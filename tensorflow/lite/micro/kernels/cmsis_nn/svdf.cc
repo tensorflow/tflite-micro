@@ -16,19 +16,19 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
 #include "Include/arm_nnfunctions.h"
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 struct CmsisNnOpDataSvdf {
@@ -52,7 +52,6 @@ struct CmsisNnOpDataSvdf {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(CmsisNnOpDataSvdf));
 }
 
@@ -148,20 +147,22 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
 
     TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt8);
 
-    const double effective_scale_1 = static_cast<double>(
-        input->params.scale * weights_feature->params.scale /
-        activation_state->params.scale);
+    const double effective_scale_1 =
+        static_cast<double>(input->params.scale) *
+        static_cast<double>(weights_feature->params.scale) /
+        static_cast<double>(activation_state->params.scale);
     const double effective_scale_2 =
-        static_cast<double>(activation_state->params.scale *
-                            weights_time->params.scale / output->params.scale);
+        static_cast<double>(activation_state->params.scale) *
+        static_cast<double>(weights_time->params.scale) /
+        static_cast<double>(output->params.scale);
 
     // TODO(b/162018098): Use TF_LITE_ENSURE_NEAR when it is ready.
     // TODO(#1751): account for optional bias tensor
     TF_LITE_ENSURE(
         context,
         std::abs(static_cast<double>(bias->params.scale) -
-                 static_cast<double>(activation_state->params.scale *
-                                     weights_time->params.scale)) < 1e-5);
+                 (static_cast<double>(activation_state->params.scale) *
+                  static_cast<double>(weights_time->params.scale))) < 1e-5);
 
     QuantizeMultiplier(effective_scale_1, &(data->effective_scale_1_a),
                        &(data->effective_scale_1_b));
@@ -171,8 +172,6 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     data->input_zero_point = input->params.zero_point;
     data->output_zero_point = output->params.zero_point;
     data->activation_state_zero_point = activation_state->params.zero_point;
-
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
 
     const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
         context, batch_size * num_filters * sizeof(int32_t),
@@ -229,7 +228,6 @@ TfLiteStatus CmsisNnPrepareSvdf(TfLiteContext* context, TfLiteNode* node) {
     }
     TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteFloat32);
 
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
     const TfLiteStatus scratch_status = context->RequestScratchBufferInArena(
         context, batch_size * num_filters * sizeof(float),
         &(data->scratch_tensor_index));
@@ -298,7 +296,6 @@ TfLiteStatus EvalIntegerSVDF(TfLiteContext* context, TfLiteNode* node,
   out_quant_params.shift = data.effective_scale_2_b;
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   cmsis_nn_context scratch_ctx;
   scratch_ctx.buf = static_cast<int32_t*>(
@@ -450,4 +447,5 @@ TFLMRegistration Register_SVDF_INT8() {
   return tflite::micro::RegisterOp(Init, CmsisNnPrepareSvdf, EvalSvdfInt8);
 }
 
+}  // namespace micro
 }  // namespace tflite

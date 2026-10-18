@@ -82,8 +82,10 @@ For example:
 [+] Building 2.6s (7/7) FINISHED
 => writing image sha256:900704dad7fa27938dcc1c5057c0e760fb4ab0dff676415182455ae66546bbd4
 bazel build //python/tflite_micro:whl.dist \
+    --@rules_python//python/config_settings:python_version=3.10 \
     --//python/tflite_micro:compatibility_tag=cp310_cp310_manylinux_2_28_x86_64
 bazel test //python/tflite_micro:whl_test \
+    --@rules_python//python/config_settings:python_version=3.10 \
     --//python/tflite_micro:compatibility_tag=cp310_cp310_manylinux_2_28_x86_64
 //python/tflite_micro:whl_test
 Executed 1 out of 1 test: 1 test passes.
@@ -160,7 +162,7 @@ print(tflm_interpreter.get_output_details(0))
 ### Tutorials
 
 For a complete end-to-end example using the Python interpreter for model compression:
-* [MNIST Compression Tutorial](../../tensorflow/lite/micro/compression/mnist_compression_tutorial.ipynb)
+* [MNIST Compression Tutorial](../../tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.ipynb)
 
 ### Technical Details
 

@@ -18,11 +18,12 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/arena_allocator/ibuffer_allocator.h"
 #include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
+namespace micro {
 
 // PersistentArenaBufferAllocator is an implementation of
 // IPersistentBufferAllocator interface on an arena that is dedicated for
@@ -52,6 +53,10 @@ class PersistentArenaBufferAllocator : public IPersistentBufferAllocator {
   // SingleArenaBufferAllocator's persistent part.
   uint8_t* tail_temp_;
 };
+
+}  // namespace micro
+
+using micro::PersistentArenaBufferAllocator;
 
 }  // namespace tflite
 

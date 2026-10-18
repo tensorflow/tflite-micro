@@ -6,8 +6,6 @@ load(
 
 package(
     default_visibility = ["//visibility:public"],
-    # Disabling layering_check because of http://b/177257332
-    features = ["-layering_check"],
     licenses = ["notice"],
 )
 
@@ -17,8 +15,7 @@ tflm_cc_library(
         "micro_memory_planner.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro:micro_common",
     ],
 )
 
@@ -32,7 +29,7 @@ tflm_cc_library(
     ],
     deps = [
         ":micro_memory_planner",
-        "//tensorflow/lite/c:common",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_log",
     ],
@@ -81,8 +78,7 @@ tflm_cc_library(
         "memory_plan_struct.h",
     ],
     deps = [
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
         "//tensorflow/lite/micro:micro_utils",
     ],
@@ -97,9 +93,9 @@ tflm_cc_library(
     deps = [
         ":memory_plan_struct",
         ":micro_memory_planner",
-        "//tensorflow/lite/c:common",
-        "//tensorflow/lite/core/api",
+        "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_compatibility",
+        "//tensorflow/lite/micro:micro_log",
     ],
 )
 

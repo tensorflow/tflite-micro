@@ -21,7 +21,6 @@ import subprocess
 import sys
 
 TARGET_DIRS = [
-  "tensorflow/lite/kernels/internal/reference",
   "tensorflow/lite/micro",
   "third_party",
 ]
@@ -29,14 +28,14 @@ TARGET_DIRS = [
 EXCLUDES = (
   "kernels/internal/reference/integer_ops/",
   "kernels/internal/reference/reference_ops.h",
-  "python/schema_py_generated.py",
   "python_requirements.in",
-  "tensorflow/lite/micro/compression/metadata_saved.h",
   "tools/make/downloads",
   "tools/make/targets/ecm3531",
   "BUILD",
   "leon_commands",
   "LICENSE",
+  "_generated.h",
+  "_generated.py",
   ".gitignore",
   ".bmp",
   ".bzl",

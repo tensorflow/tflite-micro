@@ -15,16 +15,22 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_HEXAGON_HEXAGON_SVDF_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_HEXAGON_HEXAGON_SVDF_H_
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/types.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
 namespace tflite {
+namespace micro {
 
 struct HexagonOpDataSvdf {
   struct OpDataSvdf reference_op_data;
-  void* hexagon_data;
+  int32_t* converted_bias;
+  int input_u8_scratch_index;
+  int feature_s32_scratch_index;
+  int time_s32_scratch_index;
+  int output_s32_scratch_index;
+  int optimizable;
 };
 
 void* HexagonSvdfInit(TfLiteContext* context, const char* buffer,
@@ -32,6 +38,7 @@ void* HexagonSvdfInit(TfLiteContext* context, const char* buffer,
 TfLiteStatus HexagonSvdfPrepare(TfLiteContext* context, TfLiteNode* node);
 TfLiteStatus HexagonSvdfEvalInt8(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_HEXAGON_HEXAGON_SVDF_H_

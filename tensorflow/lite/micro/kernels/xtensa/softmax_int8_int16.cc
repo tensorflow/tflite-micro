@@ -13,21 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/softmax.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/softmax.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_softmax.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
@@ -93,11 +93,9 @@ TfLiteStatus EvalHifi(const XtensaSoftmaxOpData* op_data,
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length) {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context,
                                            sizeof(XtensaSoftmaxOpData));
 #elif defined(VISION_P6)
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   if (InitXtensaContext()) {
     return nullptr;
   }
@@ -132,7 +130,7 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
                     output, context);
 #else
     SoftmaxParams op_data = *static_cast<SoftmaxParams*>(node->user_data);
-    tflite::reference_ops::Softmax(
+    tflite::micro::reference_ops::Softmax(
         op_data, tflite::micro::GetTensorShape(input),
         tflite::micro::GetTensorData<int8_t>(input),
         tflite::micro::GetTensorShape(output),
@@ -151,4 +149,5 @@ TFLMRegistration Register_SOFTMAX_INT8_INT16() {
                                    XtensaEvalSoftmaxInt8Int16);
 }
 
+}  // namespace micro
 }  // namespace tflite

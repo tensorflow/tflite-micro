@@ -13,21 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/transpose_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/transpose_conv.h"
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/reference/integer_ops/transpose_conv.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/padding.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/transpose_conv.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/padding.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 // For the TfLite transpose_conv implementation, input tensor 0 corresponds to
@@ -65,18 +65,6 @@ struct OpData {
   int32_t* per_channel_output_multiplier;
   int32_t* per_channel_output_shift;
 };
-
-inline PaddingType RuntimePaddingType(TfLitePadding padding) {
-  switch (padding) {
-    case TfLitePadding::kTfLitePaddingSame:
-      return PaddingType::kSame;
-    case TfLitePadding::kTfLitePaddingValid:
-      return PaddingType::kValid;
-    case TfLitePadding::kTfLitePaddingUnknown:
-    default:
-      return PaddingType::kNone;
-  }
-}
 
 TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
                              const TfLiteTransposeConvParams* params, int width,
@@ -118,7 +106,7 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
     TF_LITE_ENSURE(context, output != nullptr);
     int output_channels = filter->dims->data[kConvQuantizedDimension];
 
-    TF_LITE_ENSURE_STATUS(tflite::PopulateConvolutionQuantizationParams(
+    TF_LITE_ENSURE_STATUS(PopulateConvolutionQuantizationParams(
         context, input, filter, bias, output, kTfLiteActNone,
         &data->params.output_multiplier, &data->params.output_shift,
         &data->params.quantized_activation_min,
@@ -149,7 +137,6 @@ TfLiteStatus CalculateOpData(TfLiteContext* context, TfLiteNode* node,
 }
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(OpData));
 }
 
@@ -190,7 +177,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Quantized kernels use an int32 scratch buffer.
   if (input->type == kTfLiteInt8) {
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     const int stride_width = params->stride_width;
     const int stride_height = params->stride_height;
@@ -218,7 +204,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   // Quantized 16x8 kernels use an int64 scratch buffer.
   if (input->type == kTfLiteInt16) {
-    TFLITE_DCHECK(context->RequestScratchBufferInArena != nullptr);
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
     const int stride_width = params->stride_width;
     const int stride_height = params->stride_height;
@@ -351,8 +336,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetOptionalTensorData<float>(bias),
 #endif  // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output),
-          tflite::micro::GetTensorShape(nullptr), nullptr);
+          tflite::micro::GetTensorData<float>(output), RuntimeShape(), nullptr);
       break;
     }
     case kTfLiteInt8: {
@@ -427,8 +411,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetOptionalTensorData<int32_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
             tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int8_t>(output),
-            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+            tflite::micro::GetTensorData<int8_t>(output), RuntimeShape(),
+            nullptr, scratch_buffer);
       }
 #else
       reference_integer_ops::TransposeConv(
@@ -448,8 +432,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetOptionalTensorData<int32_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
           tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int8_t>(output),
-          tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+          tflite::micro::GetTensorData<int8_t>(output), RuntimeShape(), nullptr,
+          scratch_buffer);
 #endif
       break;
     }
@@ -490,8 +474,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 #endif  // USE_TFLM_COMPRESSION
             tflite::micro::GetTensorShape(bias), bias_converted_buffer,
             tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int16_t>(output),
-            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+            tflite::micro::GetTensorData<int16_t>(output), RuntimeShape(),
+            nullptr, scratch_buffer);
       } else {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
         const RuntimeShape& input_shape = tflite::micro::GetTensorShape(input);
@@ -561,8 +545,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
             tflite::micro::GetTensorData<int64_t>(bias),
 #endif  // USE_TFLM_COMPRESSION
             tflite::micro::GetTensorShape(output),
-            tflite::micro::GetTensorData<int16_t>(output),
-            tflite::micro::GetTensorShape(nullptr), nullptr, scratch_buffer);
+            tflite::micro::GetTensorData<int16_t>(output), RuntimeShape(),
+            nullptr, scratch_buffer);
 #endif  // #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
       }
       break;
@@ -581,4 +565,5 @@ TFLMRegistration Register_TRANSPOSE_CONV() {
   return tflite::micro::RegisterOp(Init, Prepare, Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

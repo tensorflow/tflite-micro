@@ -17,7 +17,6 @@ limitations under the License.
 #include <cstdint>
 #include <iterator>
 
-#include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_model_settings.h"
 #include "tensorflow/lite/micro/examples/micro_speech/models/audio_preprocessor_int8_model_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/models/micro_speech_quantized_model_data.h"
@@ -27,6 +26,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/examples/micro_speech/testdata/silence_1000ms_audio_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/testdata/yes_1000ms_audio_data.h"
 #include "tensorflow/lite/micro/examples/micro_speech/testdata/yes_30ms_audio_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -37,7 +37,7 @@ namespace {
 // Arena size is a guesstimate, followed by use of
 // MicroInterpreter::arena_used_bytes() on both the AudioPreprocessor and
 // MicroSpeech models and using the larger of the two results.
-constexpr size_t kArenaSize = 28584;  // xtensa p6
+constexpr size_t kArenaSize = 28600;  // xtensa p6
 alignas(16) uint8_t g_arena[kArenaSize];
 
 using Features = int8_t[kFeatureCount][kFeatureSize];
@@ -129,7 +129,7 @@ TfLiteStatus LoadMicroSpeechModelAndPerformInference(
   int output_zero_point = output->params.zero_point;
 
   std::copy_n(&features[0][0], kFeatureElementCount,
-              tflite::GetTensorData<int8_t>(input));
+              tflite::micro::GetTensorData<int8_t>(input));
   TF_LITE_ENSURE_STATUS(interpreter.Invoke());
 
   // Dequantize output values
@@ -137,7 +137,7 @@ TfLiteStatus LoadMicroSpeechModelAndPerformInference(
   MicroPrintf("MicroSpeech category predictions for <%s>", expected_label);
   for (int i = 0; i < kCategoryCount; i++) {
     category_predictions[i] =
-        (tflite::GetTensorData<int8_t>(output)[i] - output_zero_point) *
+        (tflite::micro::GetTensorData<int8_t>(output)[i] - output_zero_point) *
         output_scale;
     MicroPrintf("  %.4f %s", static_cast<double>(category_predictions[i]),
                 kCategoryLabels[i]);
@@ -185,9 +185,9 @@ TfLiteStatus GenerateSingleFeature(const int16_t* audio_data,
   }
 
   std::copy_n(audio_data, audio_data_size,
-              tflite::GetTensorData<int16_t>(input));
+              tflite::micro::GetTensorData<int16_t>(input));
   TF_LITE_ENSURE_STATUS(interpreter->Invoke());
-  std::copy_n(tflite::GetTensorData<int8_t>(output), kFeatureSize,
+  std::copy_n(tflite::micro::GetTensorData<int8_t>(output), kFeatureSize,
               feature_output);
 
   return kTfLiteOk;

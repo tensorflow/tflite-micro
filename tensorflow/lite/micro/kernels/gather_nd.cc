@@ -13,14 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kParams = 0;
@@ -152,7 +152,7 @@ TfLiteStatus GatherNd(const TfLiteEvalTensor* params,
       IndicesT index = index_data[offset];
       from_pos += index * dims_to_count[j];
     }
-    if (from_pos < 0 || from_pos + slice_size > params_flat_size) {
+    if (from_pos < 0 || from_pos > params_flat_size - slice_size) {
       return kTfLiteError;
     }
     std::memcpy(output_data + i * slice_size, param_data + from_pos,
@@ -209,4 +209,5 @@ TFLMRegistration Register_GATHER_ND() {
   return tflite::micro::RegisterOp(nullptr, GatherNdPrepare, GatherNdEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

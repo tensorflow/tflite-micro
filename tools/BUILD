@@ -1,11 +1,10 @@
-load("@rules_python//python:defs.bzl", "py_binary")
-load("//python:py_rules.bzl", "tflm_py_test")
+load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 
 package(
     default_visibility = ["//visibility:public"],
 )
 
-py_binary(
+tflm_py_binary(
     name = "expand_stamp_vars",
     srcs = ["expand_stamp_vars.py"],
 )

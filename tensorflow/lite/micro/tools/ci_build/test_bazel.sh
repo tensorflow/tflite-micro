@@ -25,3 +25,4 @@ BAZEL_CONFIG=${1:-ci}
 TARGETS=${2:-//...}
 
 bazel test --config=${BAZEL_CONFIG} -- ${TARGETS}
+BAZEL_CONFIG=${BAZEL_CONFIG} "${SCRIPT_DIR}/test_generated_files.sh"

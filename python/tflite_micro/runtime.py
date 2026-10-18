@@ -17,7 +17,9 @@
 import enum
 import os
 from tflite_micro.python.tflite_micro import _runtime
-from tflite_micro.tensorflow.lite.python import schema_py_generated as schema_fb
+from tflite_micro.tensorflow.lite.micro.python import (
+  schema_py_generated as schema_fb,
+)
 
 
 def convert_bytearray_to_object(model_bytearray):
@@ -117,9 +119,6 @@ class Interpreter(object):
       arena_size = len(model_data) * 10
     # Some models make use of resource variables ops, get the count here
     num_resource_variables = count_resource_variables(model_data)
-    print(
-      "Number of resource variables the model uses = ", num_resource_variables
-    )
 
     self._interpreter = _runtime.InterpreterWrapper(
       model_data,

@@ -23,10 +23,7 @@ from tflite_micro import compression
 
 import numpy as np
 
-try:
-  from importlib import resources
-except ImportError:
-  import importlib_resources as resources
+from importlib import resources
 import sys
 
 
@@ -34,7 +31,7 @@ def runtime_test():
   """Test the runtime interpreter functionality."""
   # Create an interpreter with a sine model
   with resources.as_file(
-    resources.files(__name__).joinpath("sine_float.tflite")
+    resources.files(__package__).joinpath("sine_float.tflite")
   ) as model_path:
     interpreter = runtime.Interpreter.from_file(str(model_path))
     OUTPUT_INDEX = 0

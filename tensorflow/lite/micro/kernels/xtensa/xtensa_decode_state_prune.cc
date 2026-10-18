@@ -13,19 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#if defined(HIFI5)
+
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_decode_state_prune.h"
 
 #include <cstddef>
 
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
 namespace tflite {
-
+namespace micro {
 TfLiteStatus XtensaDecodeStatePrune::Decode(const TfLiteEvalTensor& input,
                                             const TfLiteEvalTensor& ancillary,
                                             const TfLiteEvalTensor& output) {
@@ -487,4 +489,7 @@ void XtensaDecodeStatePrune::DecompressToBufferInt16_Xtensa(void* buffer) {
   }
 }
 
+}  // namespace micro
 }  // namespace tflite
+
+#endif  // defined(HIFI5)

@@ -19,9 +19,9 @@ limitations under the License.
 #include <cstdint>
 #include <initializer_list>
 
-#include "tensorflow/lite/core/c/common.h"
 #include "tensorflow/lite/micro/kernels/decode_state.h"
 #include "tensorflow/lite/micro/kernels/decode_test_helpers.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace {
@@ -269,7 +269,7 @@ TEST(DecodeStateHuffmanTest, DecodeHuffmanTable16BitsInt16Fail) {
   tflite::testing::TestDecode<encodes.size() + ancillaries.size(),
                               outputs.size()>(
       encodes, ancillaries, outputs, expected, tflite::Register_DECODE(),
-      nullptr, kTfLiteError);
+      nullptr, nullptr, kTfLiteError);
 }
 
 TEST(DecodeStateHuffmanTest, DecodeHuffmanTable32BitsInt8) {

@@ -1,4 +1,4 @@
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("//python:py_rules.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -20,5 +20,6 @@ package(default_visibility = ["//visibility:public"])
         "3.11",
         "3.12",
         "3.13",
+        "3.14",
     ]
 ]

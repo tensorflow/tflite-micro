@@ -15,7 +15,7 @@
 // Test validity of the flatbuffer schema and illustrate use of the flatbuffer
 // machinery with C++.
 
-#include "tensorflow/lite/micro/compression/metadata_saved.h"
+#include "tensorflow/lite/micro/compression/metadata_generated.h"
 #include "tensorflow/lite/micro/hexdump.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/span.h"

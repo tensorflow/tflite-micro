@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/lstm_eval.h"
 
 namespace tflite {
-
+namespace micro {
 // Deduce the size information (Batch (B), Time Steps (T), Input dimension (I),
 // State dimension (S)) that defines the LSTM using the input and hidden state
 // tensor
@@ -111,7 +111,7 @@ TfLiteStatus CreateGateParams(
     const TfLiteTensor* hidden_state_bias,
     /*Scale of the fc output (input to non-linear activation)*/
     const float nonlinear_activation_input_scale, const TfLiteType cell_type,
-    tflite::GateParameters& gate_params) {
+    GateParameters& gate_params) {
   // A temp tflite tensor to represent the output of fc operation. Only the data
   // type and quantization parameters are set since it is only used for
   // parameter calculations
@@ -121,7 +121,7 @@ TfLiteStatus CreateGateParams(
   fc_output_temp.params.zero_point = 0;  // symmetrical quantized
 
   // A temp fc opdata to reuse the helper function on creating fc parameters
-  tflite::OpDataFullyConnected fc_data_temp;
+  OpDataFullyConnected fc_data_temp;
   // TODO(b/265853320): due to the lack of precision for the float scale,
   // scale_diff / output_scale <= 0.02 (potentially requires 1e-8 precision) can
   // not be satisfied for the bias. Here we rely on the correctiveness of the
@@ -148,12 +148,11 @@ TfLiteStatus CreateGateParams(
 // are required for input. However, during the hidden state update phase, the
 // output is the updated hidden state, which is asymmetrically quantized. Thus
 // output may require zero point
-tflite::ArithmeticParams CreateInterGateMulParams(const float input1_scale,
-                                                  const float input2_scale,
-                                                  const float output_scale,
-                                                  const TfLiteType output_type,
-                                                  const int output_zp) {
-  tflite::ArithmeticParams op_params = {};
+tflite::micro::ArithmeticParams CreateInterGateMulParams(
+    const float input1_scale, const float input2_scale,
+    const float output_scale, const TfLiteType output_type,
+    const int output_zp) {
+  tflite::micro::ArithmeticParams op_params = {};
   if (output_type == kTfLiteInt16) {
     op_params.quantized_activation_min = std::numeric_limits<int16_t>::min();
     op_params.quantized_activation_max = std::numeric_limits<int16_t>::max();
@@ -184,7 +183,7 @@ CellStateInfo CreateLstmCellStateInfo(const float cell_state_scale,
   CellStateInfo cell_state_info;
   // cell_state_scale_power: 2^-cell_state_scale_power = cell state scale
   int buffer;
-  tflite::CheckedLog2(cell_state_scale, &buffer);
+  tflite::micro::CheckedLog2(cell_state_scale, &buffer);
   cell_state_info.cell_state_scale_power = buffer;
   // Cell state specifics
   cell_state_info.cell_clip = cell_clip;
@@ -205,22 +204,22 @@ CellStateInfo CreateLstmCellStateInfoFloat(const float cell_clip) {
   return cell_state_info;
 }
 
-tflite::FullyConnectedParams CreateFCParamsFloat() {
+tflite::micro::FullyConnectedParams CreateFCParamsFloat() {
   FullyConnectedParams op_params;
   CalculateActivationRange(kTfLiteActNone, &op_params.float_activation_min,
                            &op_params.float_activation_max);
   return op_params;
 }
 
-tflite::GateParameters CreateGateParamsFloat() {
-  tflite::GateParameters gate_params = {};
+GateParameters CreateGateParamsFloat() {
+  GateParameters gate_params = {};
   gate_params.input_fc_params = CreateFCParamsFloat();
   gate_params.recurrent_fc_params = CreateFCParamsFloat();
   return gate_params;
 }
 
-tflite::ArithmeticParams CreateInterGateMulParamsFloat() {
-  tflite::ArithmeticParams op_params = {};
+tflite::micro::ArithmeticParams CreateInterGateMulParamsFloat() {
+  tflite::micro::ArithmeticParams op_params = {};
   CalculateActivationRange(kTfLiteActNone, &op_params.float_activation_min,
                            &op_params.float_activation_max);
   return op_params;
@@ -323,4 +322,5 @@ LSTMKernelContents CreateLSTMKernelContent(TfLiteContext* context,
   return kernel_content;
 }
 
+}  // namespace micro
 }  // namespace tflite

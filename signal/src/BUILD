@@ -2,6 +2,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
     default_visibility = ["//signal:__subpackages__"],
+    features = ["parse_headers"],
     licenses = ["notice"],
 )
 
@@ -151,6 +152,6 @@ cc_library(
     hdrs = ["pcan_argc_fixed.h"],
     deps = [
         ":msb_32",
-        "//tensorflow/lite/kernels/internal:compatibility",
+        "//tensorflow/lite/micro:micro_compatibility",
     ],
 )

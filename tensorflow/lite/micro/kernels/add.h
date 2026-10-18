@@ -18,12 +18,11 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 extern const int kAddInputTensor1;
 extern const int kAddInputTensor2;
 extern const int kAddOutputTensor;
@@ -73,6 +72,17 @@ inline TFLMRegistration Register_ADD_INT8() { return Register_ADD(); }
 
 inline TFLMRegistration Register_ADD_INT16() { return Register_ADD(); }
 #endif
+
+}  // namespace micro
+using micro::AddPrepare;
+using micro::CalculateOpDataAdd;
+using micro::kAddInputTensor1;
+using micro::kAddInputTensor2;
+using micro::kAddOutputTensor;
+using micro::OpDataAdd;
+using micro::Register_ADD;
+using micro::Register_ADD_INT16;
+using micro::Register_ADD_INT8;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_ADD_H_

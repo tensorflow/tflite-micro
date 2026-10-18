@@ -13,18 +13,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/kernels/internal/reference/space_to_batch_nd.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/space_to_batch_nd.h"
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/internal/types.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
-
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -41,7 +40,6 @@ const int kInputOutputMaxDimensionNum = 4;
 
 void* SpaceToBatchNDInit(TfLiteContext* context, const char* buffer,
                          size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   return context->AllocatePersistentBuffer(context, sizeof(SpaceToBatchParams));
 }
 
@@ -120,4 +118,5 @@ TFLMRegistration Register_SPACE_TO_BATCH_ND() {
                                    SpaceToBatchNDEval);
 }
 
+}  // namespace micro
 }  // namespace tflite

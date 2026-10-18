@@ -17,22 +17,21 @@ limitations under the License.
 
 #include <cmath>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/svdf.h"
 #include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils_hifimini.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_svdf.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 /**
  * This version of SVDF is specific to TFLite Micro. It contains only a full
  * integer recipe with optimizations for the Xtensa HiFiMini platform.
@@ -56,7 +55,6 @@ TfLiteStatus EvalIntegerSvdfHifimini(
   const int n_memory = weights_time_tensor->dims->data[1];
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   int32_t* scratch_tensor = static_cast<int32_t*>(
       context->GetScratchBuffer(context, data.scratch_tensor_index));
@@ -233,5 +231,6 @@ TfLiteStatus EvalIntegerSvdfHifimini(
   }
   return kTfLiteOk;
 }
+}  // namespace micro
 }  // namespace tflite
 #endif  // defined(HIFIMINI)

@@ -17,15 +17,15 @@ limitations under the License.
 
 #include <stdint.h>
 
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/flatbuffer_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kInputTensor = 0;
@@ -44,8 +44,6 @@ struct TFLMSignalLogParams {
 
 void* FilterBankLogInit(TfLiteContext* context, const char* buffer,
                         size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-
   auto* params = static_cast<TFLMSignalLogParams*>(
       context->AllocatePersistentBuffer(context, sizeof(TFLMSignalLogParams)));
 
@@ -111,4 +109,9 @@ TFLMRegistration* Register_FILTER_BANK_LOG() {
 
 }  // namespace tflm_signal
 
+}  // namespace micro
+
+namespace tflm_signal {
+using micro::tflm_signal::Register_FILTER_BANK_LOG;
+}  // namespace tflm_signal
 }  // namespace tflite

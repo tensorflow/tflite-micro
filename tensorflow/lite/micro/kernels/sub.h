@@ -18,11 +18,11 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
-
+namespace micro {
 extern const int kSubInputTensor1;
 extern const int kSubInputTensor2;
 extern const int kSubOutputTensor;
@@ -55,6 +55,8 @@ TfLiteStatus CalculateOpDataSub(TfLiteContext* context, TfLiteSubParams* params,
 
 TfLiteStatus SubPrepare(TfLiteContext* context, TfLiteNode* node);
 
+}  // namespace micro
+using micro::OpDataSub;
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_SUB_H_

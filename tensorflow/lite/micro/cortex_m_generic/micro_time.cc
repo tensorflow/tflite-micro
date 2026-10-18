@@ -22,6 +22,7 @@ limitations under the License.
 #endif
 
 namespace tflite {
+namespace micro {
 
 #if defined(PROJECT_GENERATION)
 
@@ -78,4 +79,5 @@ uint32_t GetCurrentTimeTicks() {
 
 #endif  // defined(PROJECT_GENERATION)
 
+}  // namespace micro
 }  // namespace tflite

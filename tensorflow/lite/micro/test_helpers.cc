@@ -23,20 +23,18 @@ limitations under the License.
 #include <new>
 
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/compatibility.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/compatibility.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helper_custom_ops.h"
-#include "tensorflow/lite/schema/schema_generated.h"
 
 #ifdef USE_TFLM_COMPRESSION
 
-#include "tensorflow/lite/micro/compression/metadata_saved.h"
+#include "tensorflow/lite/micro/compression/metadata_generated.h"
 
 #endif  // USE_TFLM_COMPRESSION
 
@@ -1696,9 +1694,6 @@ TFLMRegistration* MockCustom::GetMutableRegistration() {
 
 void* MockCustom::Init(TfLiteContext* context, const char* buffer,
                        size_t length) {
-  // We don't support delegate in TFL micro. This is a weak check to test if
-  // context struct being zero-initialized.
-  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
   freed_ = false;
   // Do nothing.
   return nullptr;
@@ -1744,9 +1739,6 @@ TFLMRegistration* MultipleInputs::GetMutableRegistration() {
 
 void* MultipleInputs::Init(TfLiteContext* context, const char* buffer,
                            size_t length) {
-  // We don't support delegate in TFL micro. This is a weak check to test if
-  // context struct being zero-initialized.
-  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
   freed_ = false;
   // Do nothing.
   return nullptr;
@@ -1798,9 +1790,6 @@ TFLMRegistration* NoOp::GetMutableRegistration() {
 }
 
 void* NoOp::Init(TfLiteContext* context, const char* buffer, size_t length) {
-  // We don't support delegate in TFL micro. This is a weak check to test if
-  // context struct being zero-initialized.
-  TFLITE_DCHECK(context->ReplaceNodeSubsetsWithDelegateKernels == nullptr);
   freed_ = false;
   // Do nothing.
   return nullptr;

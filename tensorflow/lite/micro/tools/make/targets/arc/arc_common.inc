@@ -57,9 +57,6 @@ endif
   
   PLATFORM_LDFLAGS += -Hnocopyr -m -Hldopt=-Bgrouplib -Hheap=24K 
 
-# Fix for kernel_util for ARC target
-  PLATFORM_LDFLAGS += -Hldopt=-u,TfLiteIntArrayEqual -Hldopt=-u,TfLiteIntArrayGetSizeInBytes
-
 ifneq ($(LCF_FILE), )
   PLATFORM_LDFLAGS += $(notdir $(LCF_FILE))
 endif

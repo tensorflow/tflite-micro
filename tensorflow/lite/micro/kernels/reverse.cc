@@ -12,21 +12,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#include "tensorflow/lite/kernels/internal/reference/reverse.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/reverse.h"
 
 #include <stdint.h>
 
 #include <cstdlib>
 #include <cstring>
 
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 constexpr int kMaxDimensions = RuntimeShape::kMaxSmallSize;
@@ -102,7 +102,9 @@ TfLiteStatus ReverseV2Eval(TfLiteContext* context, TfLiteNode* node) {
     if (axes_data[i] < 0) {
       axes_data[i] += rank;
     }
-    TF_LITE_ENSURE(context, axes_data[i] >= 0 && axes_data[i] < rank);
+    if (axes_data[i] < 0 || axes_data[i] >= rank) {
+      return kTfLiteError;
+    }
   }
   std::qsort(axes_data.data(), num_axes, sizeof(int32_t), comp);
 
@@ -171,4 +173,5 @@ TFLMRegistration Register_REVERSE_V2() {
   return tflite::micro::RegisterOp(nullptr, ReverseV2Prepare, ReverseV2Eval);
 }
 
+}  // namespace micro
 }  // namespace tflite

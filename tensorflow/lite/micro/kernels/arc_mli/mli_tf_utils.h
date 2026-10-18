@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_TF_UTILS_H_
-#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_TF_UTILS_H_
+#ifndef TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_TF_UTILS_H_
+#define TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_TF_UTILS_H_
 
 #include "mli_api.h"  // NOLINT
 #include "mli_interface.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -307,4 +307,4 @@ inline void permute_weights(const mli_tensor* weights_src,
 }  // namespace ops
 }  // namespace tflite
 
-#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_TF_UTILS_H_
+#endif  // TENSORFLOW_LITE_MICRO_KERNELS_ARC_MLI_MLI_TF_UTILS_H_

@@ -17,20 +17,20 @@ limitations under the License.
 
 #include <cmath>
 
-#include "tensorflow/lite/c/builtin_op_data.h"
-#include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/kernels/internal/common.h"
-#include "tensorflow/lite/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/kernels/kernel_util.h"
-#include "tensorflow/lite/kernels/op_macros.h"
+#include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/activation_utils.h"
+#include "tensorflow/lite/micro/kernels/internal/common.h"
+#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa_svdf.h"
+#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
+namespace micro {
 namespace {
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
@@ -52,7 +52,6 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
   const int n_memory = weights_time_tensor->dims->data[1];
 
   TFLITE_DCHECK(context != nullptr);
-  TFLITE_DCHECK(context->GetScratchBuffer != nullptr);
 
   // Shift states.
   int16_t* const state_ptr =
@@ -200,16 +199,18 @@ TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_TYPES_EQ(context, output->type, kTfLiteInt8);
 
   const double effective_scale_1 =
-      static_cast<double>(input->params.scale * weights_feature->params.scale /
-                          activation_state->params.scale);
+      static_cast<double>(input->params.scale) *
+      static_cast<double>(weights_feature->params.scale) /
+      static_cast<double>(activation_state->params.scale);
   const double effective_scale_2 =
-      static_cast<double>(activation_state->params.scale *
-                          weights_time->params.scale / output->params.scale);
+      static_cast<double>(activation_state->params.scale) *
+      static_cast<double>(weights_time->params.scale) /
+      static_cast<double>(output->params.scale);
 
   // TODO(#1751): account for optional bias tensor
   TF_LITE_ENSURE_NEAR(context, static_cast<double>(bias->params.scale),
-                      static_cast<double>(activation_state->params.scale *
-                                          weights_time->params.scale),
+                      (static_cast<double>(activation_state->params.scale) *
+                       static_cast<double>(weights_time->params.scale)),
                       1e-5);
 
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -391,4 +392,5 @@ TFLMRegistration Register_SVDF_INT8() {
   return tflite::micro::RegisterOp(Init, PrepareInt8, EvalInt8);
 }
 
+}  // namespace micro
 }  // namespace tflite
