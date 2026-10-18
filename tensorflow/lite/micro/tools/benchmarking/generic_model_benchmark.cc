@@ -204,16 +204,18 @@ void ShowInputCRC32(tflite::MicroInterpreter* interpreter) {
   }
 }
 
+#if defined(GENERIC_BENCHMARK_STREAMING_OUTPUT)
 bool IsOutputValid(tflite::MicroInterpreter& interpreter) {
-  for (size_t i = 0; i < interpreter.outputs_size(); ++i) {
-    TfLiteTensor* output = interpreter.output_tensor(i);
-    // Streaming models expose a 0D scalar bool output_valid tensor
-    if (output->type == kTfLiteBool && output->dims->size == 0) {
-      return tflite::GetTensorData<bool>(output)[0];
-    }
+  TfLiteTensor* output =
+      interpreter.output_tensor(GENERIC_BENCHMARK_STREAMING_OUTPUT);
+  // Streaming models expose a scalar bool output_valid tensor
+  if (output != nullptr && output->type == kTfLiteBool &&
+      output->bytes == sizeof(bool)) {
+    return tflite::micro::GetTensorData<bool>(output)[0];
   }
   return true;
 }
+#endif  // defined(GENERIC_BENCHMARK_STREAMING_OUTPUT)
 
 int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler;
@@ -303,13 +305,21 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
     MicroPrintf("");  // null MicroPrintf serves as a newline.
 
     status = interpreter.Invoke();
-    if ((status != kTfLiteOk) && (static_cast<int>(status) != kTfLiteAbort)) {
-      MicroPrintf("Model interpreter invocation failed: %d\n", status);
-      return -1;
+    if (status != kTfLiteOk) {
+      if (static_cast<int>(status) == kTfLiteAbort) {
+        continue;
+      } else {
+        MicroPrintf("Model interpreter invocation failed: %d\n", status);
+        return -1;
+      }
     }
 
+#if defined(GENERIC_BENCHMARK_STREAMING_OUTPUT)
     const bool is_complete_inference =
         (status == kTfLiteOk) && IsOutputValid(interpreter);
+#else
+    const bool is_complete_inference = (status == kTfLiteOk);
+#endif  // defined(GENERIC_BENCHMARK_STREAMING_OUTPUT)
 
     if (is_complete_inference) {
       profiler.Log();
