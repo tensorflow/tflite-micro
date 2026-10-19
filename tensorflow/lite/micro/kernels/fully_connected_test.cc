@@ -51,13 +51,12 @@ const float simple_weights_data[] = {
 int simple_bias_dims[] = {1, 3};
 const float simple_bias_data[] = {1, 2, 3};
 
-#if (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA) && !defined(HEXAGON)))
+#if (defined(USE_TFLM_COMPRESSION) || !defined(HEXAGON))
 
 constexpr size_t simple_bias_size =
     std::extent<decltype(simple_bias_data)>::value;
 
-#endif  // (defined(USE_TFLM_COMPRESSION) || (!defined(XTENSA) &&
-        // !defined(HEXAGON)))
+#endif  // (defined(USE_TFLM_COMPRESSION) || !defined(HEXAGON))
 
 #ifdef USE_TFLM_COMPRESSION
 
@@ -699,8 +698,6 @@ TEST(FullyConnectedTest, SimpleTestQuantizedInt8Compressed) {
 
 #if !defined(HEXAGON)
 
-#if !defined(XTENSA)
-
 TEST(FullyConnectedTest, SimpleTestQuantizedPerChannelInt8) {
   const float input_scale = 0.5f;
   const int input_zero_point = -1;
@@ -728,7 +725,6 @@ TEST(FullyConnectedTest, SimpleTestQuantizedPerChannelInt8) {
       tflite::testing::simple_output_dims, output_scale, output_zero_point,
       kTfLiteActNone, output_data);
 }
-#endif  // #if !defined(XTENSA)
 
 TEST(FullyConnectedTest, SimpleTestQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
