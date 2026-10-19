@@ -145,6 +145,33 @@ build:xtensa-vision-p6 --config=_xtensa_base
 build:xtensa-vision-p6 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:vision_p6_platform
 test:xtensa-vision-p6 --run_under="xt-run --turbo --xtensa-core=P29A_VP6 --exit_with_target_code"
 
+# Xtensa NNLib optimized configurations
+build:_xtensa_nnlib_base --copt=-DXTENSA=1
+
+build:xtensa-fusion-f1-nnlib --config=xtensa-fusion-f1
+build:xtensa-fusion-f1-nnlib --config=_xtensa_nnlib_base
+build:xtensa-fusion-f1-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_fusion_f1
+build:xtensa-fusion-f1-nnlib --//tensorflow/lite/micro/kernels:xtensa_nnlib_hifi4_dep=@nnlib_hifi4//:nnlib_hifi4
+build:xtensa-fusion-f1-nnlib --copt=-DHIFI4=1
+
+build:xtensa-hifi3z-nnlib --config=xtensa-hifi3z
+build:xtensa-hifi3z-nnlib --config=_xtensa_nnlib_base
+build:xtensa-hifi3z-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_hifi_3z
+build:xtensa-hifi3z-nnlib --//tensorflow/lite/micro/kernels:xtensa_nnlib_hifi4_dep=@nnlib_hifi4//:nnlib_hifi4
+build:xtensa-hifi3z-nnlib --copt=-DHIFI4=1
+
+build:xtensa-hifi5-nnlib --config=xtensa-hifi5
+build:xtensa-hifi5-nnlib --config=_xtensa_nnlib_base
+build:xtensa-hifi5-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_hifi_5
+build:xtensa-hifi5-nnlib --//tensorflow/lite/micro/kernels:xtensa_nnlib_hifi5_dep=@nnlib_hifi5//:nnlib_hifi5
+build:xtensa-hifi5-nnlib --copt=-DHIFI5=1
+
+build:xtensa-vision-p6-nnlib --config=xtensa-vision-p6
+build:xtensa-vision-p6-nnlib --config=_xtensa_nnlib_base
+build:xtensa-vision-p6-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_vision_p6
+build:xtensa-vision-p6-nnlib --//tensorflow/lite/micro/kernels:xtensa_vision_p6_dep=@xi_tflmlib_vision_p6//:xi_tflmlib_vision_p6
+build:xtensa-vision-p6-nnlib --copt=-DVISION_P6=1
+
 # Hooks for defining local configuration
 try-import ../bazelrc.local
 try-import bazelrc.local
