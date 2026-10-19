@@ -14,21 +14,29 @@
 # limitations under the License.
 # ==============================================================================
 # Called with following arguments:
-# 1 -  RUN_TESTS/RUN_NO_TESTS: To signal
-# 2 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 2 - (optional) TEST_MODE: RUN_TESTS (default) or RUN_NO_TESTS.
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
+# Also supports legacy parameter order: [TEST_MODE] [TENSORFLOW_ROOT] [EXTERNAL_DIR].
 
 set -ex
 pwd
 
-TENSORFLOW_ROOT=${2}
-EXTERNAL_DIR=${3}
+if [[ "${1:-}" == "RUN_TESTS" || "${1:-}" == "RUN_NO_TESTS" ]]; then
+  TEST_MODE="${1}"
+  TENSORFLOW_ROOT="${2:-}"
+  EXTERNAL_DIR="${3:-}"
+else
+  TENSORFLOW_ROOT="${1:-}"
+  TEST_MODE="${2:-RUN_TESTS}"
+  EXTERNAL_DIR="${3:-}"
+fi
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
 MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_VP6 TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}"
-if [[ ${1} == "RUN_TESTS" ]]; then
+if [[ ${TEST_MODE} == "RUN_TESTS" ]]; then
   COMMON_ARGS="${COMMON_ARGS} GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite"
 fi
 
@@ -36,11 +44,7 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 
-# Since we currently do not have optimized kernel implementations for vision_p6,
-# running the tests (in particular person_detection_int8) takes a very long
-# time. So, we have changed the default for this script to only perform a build
-# and added an option to run all the tests when that is feasible.
-if [[ ${1} == "RUN_TESTS" ]]; then
+if [[ ${TEST_MODE} == "RUN_TESTS" ]]; then
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark

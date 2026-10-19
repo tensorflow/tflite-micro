@@ -74,6 +74,5 @@ fi
   tar -C ${TEMPDIR} -xvzf ${TEMPFILE} >&2
   mkdir ${DOWNLOADED_CORSTONE_PATH}
   ${TEMPDIR}/FVP_Corstone_SSE-300.sh --i-agree-to-the-contained-eula --no-interactive -d ${DOWNLOADED_CORSTONE_PATH} >&2
-fi
 
 echo "SUCCESS"

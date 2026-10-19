@@ -14,15 +14,23 @@
 # limitations under the License.
 # ==============================================================================
 # Called with following arguments:
-# 1 - EXTERNAL or INTERNAL to signal how to run the script
-# 2 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 1 - (optional) TENSORFLOW_ROOT: path to root of the TFLM tree (relative to directory from where the script is called).
+# 2 - (optional) TEST_MODE: EXTERNAL (default) or INTERNAL to signal how to run the script.
 # 3 - (optional) EXTERNAL_DIR: Path to the external directory that contains external code
+# Also supports legacy parameter order: [TEST_MODE] [TENSORFLOW_ROOT] [EXTERNAL_DIR].
 
 set -ex
 pwd
 
-TENSORFLOW_ROOT=${2}
-EXTERNAL_DIR=${3}
+if [[ "${1:-}" == "EXTERNAL" || "${1:-}" == "INTERNAL" ]]; then
+  TEST_MODE="${1}"
+  TENSORFLOW_ROOT="${2:-}"
+  EXTERNAL_DIR="${3:-}"
+else
+  TENSORFLOW_ROOT="${1:-}"
+  TEST_MODE="${2:-EXTERNAL}"
+  EXTERNAL_DIR="${3:-}"
+fi
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
@@ -32,7 +40,7 @@ COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 # optional command line parameter "INTERNAL" uses internal test code
-if [[ ${1} == "INTERNAL" ]]; then
+if [[ ${TEST_MODE} == "INTERNAL" ]]; then
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 else
