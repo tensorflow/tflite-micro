@@ -23,7 +23,7 @@ def _arm_toolchain_impl(rctx):
                 "https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.3.rel1/binrel/arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi.tar.xz",
             ],
             sha256 = "8f6903f8ceb084d9227b9ef991490413014d991874a1e34074443c2a72b14dbd",
-            stripPrefix = "arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi",
+            strip_prefix = "arm-gnu-toolchain-14.3.rel1-x86_64-arm-none-eabi",
         )
 
     rctx.file(
