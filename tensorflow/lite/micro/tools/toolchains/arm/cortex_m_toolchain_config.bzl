@@ -51,6 +51,12 @@ def _cortex_m_toolchain_config_impl(ctx):
     else:
         fail("ar or ar_path must be specified")
 
+    strip_tool = []
+    if ctx.attr.strip_path:
+        strip_tool = [tool(path = ctx.attr.strip_path)]
+    elif ctx.file.strip:
+        strip_tool = [tool(tool = ctx.file.strip)]
+
     action_configs = [
         action_config(action_name = ACTION_NAMES.c_compile, tools = c_compiler_tool),
         action_config(action_name = ACTION_NAMES.cpp_compile, tools = cpp_compiler_tool),
@@ -59,6 +65,8 @@ def _cortex_m_toolchain_config_impl(ctx):
         action_config(action_name = ACTION_NAMES.assemble, tools = c_compiler_tool),
         action_config(action_name = ACTION_NAMES.preprocess_assemble, tools = c_compiler_tool),
     ]
+    if strip_tool:
+        action_configs.append(action_config(action_name = ACTION_NAMES.strip, tools = strip_tool))
 
     static_link_flags = feature(
         name = "static_link_flags",
@@ -131,9 +139,7 @@ def _cortex_m_toolchain_config_impl(ctx):
                         flags = [
                             "-static",
                             "-no-pie",
-                            "-nostartfiles",
-                            "--specs=nosys.specs",
-                            "-Wl,--entry=_start",
+                            "--specs=rdimon.specs",
                             "-Wl,-Ttext=0x10000",
                             "-Wl,--gc-sections",
                             "-no-canonical-prefixes",
@@ -171,5 +177,7 @@ cortex_m_toolchain_config = rule(
         "cpp_compiler": attr.label(allow_single_file = True, executable = True, cfg = "exec"),
         "cpp_compiler_path": attr.string(),
         "cpu": attr.string(mandatory = True),
+        "strip": attr.label(allow_single_file = True, executable = True, cfg = "exec"),
+        "strip_path": attr.string(),
     },
 )

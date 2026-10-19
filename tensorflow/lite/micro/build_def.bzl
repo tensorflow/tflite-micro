@@ -75,16 +75,10 @@ def tflm_cc_library(copts = tflm_copts(), defines = tflm_defines(), features = [
         **kwargs
     )
 
-def tflm_cc_test(copts = tflm_copts(), defines = tflm_defines(), deps = [], **kwargs):
+def tflm_cc_test(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
     cc_test(
         copts = copts,
         defines = defines,
-        deps = deps + select({
-            "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m": [
-                "//tensorflow/lite/micro/tools/toolchains/arm:qemu_syscalls",
-            ],
-            "//conditions:default": [],
-        }),
         **kwargs
     )
 

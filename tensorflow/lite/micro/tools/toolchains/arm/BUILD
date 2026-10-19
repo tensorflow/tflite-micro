@@ -1,4 +1,3 @@
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load(":cortex_m_toolchain_config.bzl", "cortex_m_toolchain_config")
@@ -6,16 +5,6 @@ load(":cortex_m_toolchain_config.bzl", "cortex_m_toolchain_config")
 package(default_visibility = ["//visibility:public"])
 
 filegroup(name = "empty")
-
-cc_library(
-    name = "qemu_syscalls",
-    srcs = ["qemu_syscalls.cc"],
-    target_compatible_with = [
-        "@platforms//os:none",
-        "@platforms//cpu:arm",
-    ],
-    alwayslink = True,
-)
 
 CPUS = {
     "m0": [
@@ -45,6 +34,7 @@ CPUS = {
         copts = copts,
         cpp_compiler = "@arm_none_eabi//:bin/arm-none-eabi-g++",
         cpu = "cortex-%s" % name,
+        strip = "@arm_none_eabi//:bin/arm-none-eabi-strip",
     )
     for name, copts in CPUS.items()
 ]
@@ -59,7 +49,7 @@ CPUS = {
         dwp_files = ":empty",
         linker_files = "@arm_none_eabi//:linker_files",
         objcopy_files = ":empty",
-        strip_files = ":empty",
+        strip_files = "@arm_none_eabi//:everything",
         supports_param_files = 0,
         toolchain_config = ":%s_config" % name,
         toolchain_identifier = "cortex-%s-toolchain" % name,
@@ -122,5 +112,4 @@ cc_test(
         "@platforms//os:none",
         "@platforms//cpu:arm",
     ],
-    deps = [":qemu_syscalls"],
 )
