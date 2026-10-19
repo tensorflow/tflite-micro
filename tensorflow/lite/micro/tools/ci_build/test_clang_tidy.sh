@@ -128,6 +128,7 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)tensorflow/lite/micro/hexagon/*' \
     ':(exclude)tensorflow/lite/micro/riscv32_generic/*' \
     ':(exclude)tensorflow/lite/micro/python/*' \
+    ':(exclude)tensorflow/lite/micro/tools/toolchains/*' \
     ':(exclude)tensorflow/lite/micro/tools/tflite_flatbuffer_align_wrapper.cc' \
     ':(exclude)tensorflow/lite/micro/tools/tflite_size/*' \
     ':(exclude)tensorflow/lite/micro/examples/*' \

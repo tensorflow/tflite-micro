@@ -2,8 +2,9 @@
 
 load(
     "@flatbuffers//:build_defs.bzl",
-    _upstream_flatbuffer_cc_library = "flatbuffer_cc_library",
+    "flatbuffer_library_public",
 )
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_library")
 
@@ -12,13 +13,49 @@ DEFAULT_FLATC_ARGS = [
     "--gen-object-api",
 ]
 
-def flatbuffer_cc_library(name, flatc_args = DEFAULT_FLATC_ARGS, cc_include_paths = [], **kwargs):
-    """Wrapper around upstream flatbuffer_cc_library with TFLM-specific defaults."""
-    _upstream_flatbuffer_cc_library(
-        name = name,
+def flatbuffer_cc_library(
+        name,
+        srcs,
+        flatc_args = DEFAULT_FLATC_ARGS,
+        cc_include_paths = [],
+        deps = [],
+        includes = [],
+        include_paths = None,
+        out_prefix = "",
+        visibility = None,
+        **kwargs):
+    """Generates C++ code for reading/writing flatbuffers using only runtime_cc."""
+    output_headers = [
+        (out_prefix + "%s_generated.h") % (s.replace(".fbs", "").split("/")[-1].split(":")[-1])
+        for s in srcs
+    ]
+    srcs_lib = "%s_srcs" % name
+    flatbuffer_library_public(
+        name = srcs_lib,
+        srcs = srcs,
+        outs = output_headers,
+        language_flag = "-c",
+        out_prefix = out_prefix,
+        includes = includes,
+        include_paths = include_paths,
         flatc_args = flatc_args,
-        cc_include_paths = cc_include_paths + ["."],
+        visibility = visibility,
         **kwargs
+    )
+    cc_library(
+        name = name,
+        hdrs = [":" + srcs_lib],
+        srcs = [":" + srcs_lib],
+        features = ["-parse_headers"],
+        deps = ["@flatbuffers//:runtime_cc"] + deps,
+        includes = cc_include_paths + ["."],
+        linkstatic = 1,
+        visibility = visibility,
+    )
+    native.filegroup(
+        name = "%s_includes" % name,
+        srcs = srcs + includes,
+        visibility = visibility,
     )
 
 def flatbuffer_py_library(
