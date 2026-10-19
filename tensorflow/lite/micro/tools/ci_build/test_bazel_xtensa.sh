@@ -55,3 +55,35 @@ ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5 \
   //tensorflow/lite/micro/kernels:mul_test \
   //tensorflow/lite/micro/kernels:pooling_test \
   //tensorflow/lite/micro/kernels:softmax_test
+
+# 5. Run full operator kernel test suite with accelerated NNLib kernels on HiFi 3z
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z-nnlib //tensorflow/lite/micro/kernels:all
+
+# 6. Run representative accelerated NNLib operator tests on HiFi 5
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5-nnlib \
+  //tensorflow/lite/micro:micro_utils_test \
+  //tensorflow/lite/micro/kernels:add_test \
+  //tensorflow/lite/micro/kernels:conv_test \
+  //tensorflow/lite/micro/kernels:depthwise_conv_test \
+  //tensorflow/lite/micro/kernels:mul_test \
+  //tensorflow/lite/micro/kernels:pooling_test \
+  //tensorflow/lite/micro/kernels:softmax_test
+
+# 7. Run representative accelerated NNLib operator tests on Fusion F1
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-fusion-f1-nnlib \
+  //tensorflow/lite/micro:micro_utils_test \
+  //tensorflow/lite/micro/kernels:add_test \
+  //tensorflow/lite/micro/kernels:conv_test \
+  //tensorflow/lite/micro/kernels:depthwise_conv_test \
+  //tensorflow/lite/micro/kernels:mul_test \
+  //tensorflow/lite/micro/kernels:pooling_test \
+  //tensorflow/lite/micro/kernels:softmax_test
+
+# 8. Run representative accelerated operator tests on Vision P6
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-vision-p6-nnlib \
+  //tensorflow/lite/micro:micro_utils_test \
+  //tensorflow/lite/micro/kernels:add_test \
+  //tensorflow/lite/micro/kernels:conv_test \
+  //tensorflow/lite/micro/kernels:depthwise_conv_test \
+  //tensorflow/lite/micro/kernels:pooling_test \
+  //tensorflow/lite/micro/kernels:softmax_test

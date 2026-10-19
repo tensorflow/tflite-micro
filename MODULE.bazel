@@ -43,6 +43,32 @@ http_archive(
     urls = ["https://github.com/ARM-software/CMSIS-NN/archive/4ab83cc3cc98fb85ed6dafb55e8ca02f1628dcae.zip"],
 )
 
+http_archive(
+    name = "nnlib_hifi4",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/xtensa:nnlib_hifi4.BUILD",
+    sha256 = "8b490e8a2f0e28e36dc5f244b4a256b5bcba393c629bf73d3e6e50817fe719af",
+    strip_prefix = "xa_nnlib_hifi4",
+    urls = ["https://github.com/foss-xtensa/nnlib-hifi4/raw/master/archive/xa_nnlib_hifi4_09_03_2026.zip"],
+)
+
+http_archive(
+    name = "nnlib_hifi5",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/xtensa:nnlib_hifi5.BUILD",
+    sha256 = "b96d396577813163b0271bd611aa674d5a834666986e2ace59d244d8c97544ee",
+    strip_prefix = "xa_nnlib_hifi5",
+    urls = ["https://github.com/foss-xtensa/nnlib-hifi5/raw/master/archive/xa_nnlib_hifi5_09_03_2026.zip"],
+)
+
+http_archive(
+    name = "xi_tflmlib_vision_p6",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/xtensa:xi_tflmlib_vision_p6.BUILD",
+    patch_args = ["-p1"],
+    patches = ["//tensorflow/lite/micro/tools/toolchains/xtensa:xi_tflmlib_vision_p6.patch"],
+    sha256 = "b39f6d25305afec534fff806e7531151a5b15a23f4313392801f2754a30cc461",
+    strip_prefix = "xi_tflmlib_vision_p6",
+    urls = ["https://github.com/foss-xtensa/tflmlib_vision/raw/main/archive/xi_tflmlib_vision_p6_22_06_29.zip"],
+)
+
 arm_toolchain = use_repo_rule("//tensorflow/lite/micro/tools/toolchains/arm:repo.bzl", "arm_toolchain")
 
 arm_toolchain(name = "arm_none_eabi")
