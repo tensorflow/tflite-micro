@@ -139,6 +139,7 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)tensorflow/lite/micro/kernels/cmsis_nn/*' \
     ':(exclude)tensorflow/lite/micro/kernels/ethos_u/*' \
     ':(exclude)tensorflow/lite/micro/kernels/ethosu.*' \
+    ':(exclude)tensorflow/lite/micro/kernels/hexagon/*' \
     ':(exclude)tensorflow/lite/micro/kernels/xtensa/*' \
     ':(exclude)tensorflow/lite/micro/kernels/internal/*' \
     ':(exclude)tensorflow/lite/micro/c/*' \
