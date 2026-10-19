@@ -110,16 +110,18 @@ test:cortex-m0 --run_under="qemu-arm -cpu cortex-m0"
 build:cortex-m4 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m4_platform
 test:cortex-m4 --run_under="qemu-arm -cpu cortex-m4"
 
+build:_cmsis_nn_base --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn
+build:_cmsis_nn_base --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
+build:_cmsis_nn_base --copt=-DCMSIS_NN
+
 build:cortex-m4-cmsis-nn --config=cortex-m4
-build:cortex-m4-cmsis-nn --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn
-build:cortex-m4-cmsis-nn --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
+build:cortex-m4-cmsis-nn --config=_cmsis_nn_base
 
 build:cortex-m55 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m55_platform
 test:cortex-m55 --run_under="qemu-arm -cpu cortex-m55"
 
 build:cortex-m55-cmsis-nn --config=cortex-m55
-build:cortex-m55-cmsis-nn --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn
-build:cortex-m55-cmsis-nn --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
+build:cortex-m55-cmsis-nn --config=_cmsis_nn_base
 
 # Embedded Xtensa configurations
 build:_xtensa_base --action_env=LM_LICENSE_FILE

@@ -41,34 +41,7 @@ ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5 //tensorflow/lite/micro/t
 ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-vision-p6 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
 
 # 2. Run full framework, allocator, memory planner, signal kernels, and example tests on HiFi 3z
-CORE_FRAMEWORK_TESTS=(
-  //tensorflow/lite/micro:fake_micro_context_test
-  //tensorflow/lite/micro:flatbuffer_utils_test
-  //tensorflow/lite/micro:hexdump_test
-  //tensorflow/lite/micro:memory_helpers_test
-  //tensorflow/lite/micro:micro_allocation_info_test
-  //tensorflow/lite/micro:micro_allocator_test
-  //tensorflow/lite/micro:micro_interpreter_context_test
-  //tensorflow/lite/micro:micro_interpreter_graph_test
-  //tensorflow/lite/micro:micro_interpreter_test
-  //tensorflow/lite/micro:micro_log_test
-  //tensorflow/lite/micro:micro_mutable_op_resolver_test
-  //tensorflow/lite/micro:micro_resource_variable_test
-  //tensorflow/lite/micro:micro_time_test
-  //tensorflow/lite/micro:micro_utils_test
-  //tensorflow/lite/micro:recording_micro_allocator_test
-  //tensorflow/lite/micro:span_test
-  //tensorflow/lite/micro:static_vector_test
-  //tensorflow/lite/micro:testing_helpers_test
-  //tensorflow/lite/micro/arena_allocator:all
-  //tensorflow/lite/micro/memory_planner:all
-  //tensorflow/lite/micro/testing:util_test
-  //tensorflow/lite/micro/testing:util_v2_test
-  //tensorflow/lite/micro/testing:test_all_op_resolver_test
-  //signal/micro/kernels:all
-  //tensorflow/lite/micro/examples/hello_world:hello_world_test
-)
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z "${CORE_FRAMEWORK_TESTS[@]}"
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro:core_framework_tests
 
 # 3. Run full operator kernel test suite (84 tests) on HiFi 3z
 ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro/kernels:all
