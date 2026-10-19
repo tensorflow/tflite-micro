@@ -18,6 +18,8 @@ limitations under the License.
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#if defined(__arm__) || defined(__thumb__)
+
 void* __dso_handle = nullptr;
 
 extern "C" void __libc_init_array(void);
@@ -136,3 +138,5 @@ void _start() {
 }
 
 }  // extern "C"
+
+#endif  // defined(__arm__) || defined(__thumb__)

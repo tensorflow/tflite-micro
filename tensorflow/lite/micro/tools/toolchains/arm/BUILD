@@ -10,6 +10,10 @@ filegroup(name = "empty")
 cc_library(
     name = "qemu_syscalls",
     srcs = ["qemu_syscalls.cc"],
+    target_compatible_with = [
+        "@platforms//os:none",
+        "@platforms//cpu:arm",
+    ],
     alwayslink = True,
 )
 
@@ -114,5 +118,9 @@ config_setting(
 cc_test(
     name = "smoke_test",
     srcs = ["test_smoke.cc"],
+    target_compatible_with = [
+        "@platforms//os:none",
+        "@platforms//cpu:arm",
+    ],
     deps = [":qemu_syscalls"],
 )
