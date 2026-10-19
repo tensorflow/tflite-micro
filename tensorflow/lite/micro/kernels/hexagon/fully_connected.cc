@@ -1,4 +1,4 @@
-/* Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2026 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,51 +13,57 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-/* Copyright 2020 The Qualcomm Innovation Center, Inc. All Rights Reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted (subject to the limitations in the disclaimer
-below) provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice,
-  this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-* Neither the name of Qualcomm Innovation Center, Inc. nor the names of its
-  contributors may be used to endorse or promote products derived from this
-  software without specific prior written permission.
-
-NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
-THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
-NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-==============================================================================*/
-
-#include "hexagon_tflm_translation_fully_connected.h"
-#include "tensorflow/lite/micro/builtin_op_data.h"
-#include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
+
+#include <algorithm>
+#include <cstdint>
+
+#include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "third_party/hexagon/hexagon_fully_connected.h"
+#include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_log.h"
 #include "third_party/hexagon/hexagon_tflm_translation_fully_connected.h"
 
 namespace tflite {
 namespace micro {
 namespace {
+
+struct HexagonOpDataFullyConnected {
+  struct OpDataFullyConnected reference_op_data;
+  int32_t* converted_bias;
+  int input_u8_scratch_index;
+  int output_s32_scratch_index;
+  int optimizable;
+};
+
+TfLiteStatus EvalFloat(TfLiteContext* context, TfLiteNode* node,
+                       TfLiteFusedActivation activation,
+                       const TfLiteEvalTensor* input,
+                       const TfLiteEvalTensor* filter,
+                       const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
+  float output_activation_min, output_activation_max;
+  CalculateActivationRange(activation, &output_activation_min,
+                           &output_activation_max);
+  FullyConnectedParams op_params;
+  op_params.float_activation_min = output_activation_min;
+  op_params.float_activation_max = output_activation_max;
+
+  const float* bias_data =
+      nullptr != bias ? GetTensorData<float>(bias) : nullptr;
+
+  reference_ops::FullyConnected(
+      op_params, GetTensorShape(input), GetTensorData<float>(input),
+      GetTensorShape(filter), GetTensorData<float>(filter),
+      GetTensorShape(bias), bias_data, GetTensorShape(output),
+      GetTensorData<float>(output));
+  return kTfLiteOk;
+}
 
 TfLiteStatus EvalQuantizedInt8(TfLiteContext* context, TfLiteNode* node,
                                const HexagonOpDataFullyConnected& data,
@@ -154,14 +160,16 @@ TfLiteStatus HexagonFullyConnectedOptimizedPrepare(
                       output_depth, 1, accum_depth);
   HexagonInterleaveWeightInplace(weights_data, output_depth, accum_depth, 1);
 
-  TF_LITE_ENSURE_OK(context,
-                    context->RequestScratchBufferInArena(
-                        context, batches * accum_depth * sizeof(uint8_t),
-                        &data->input_u8_scratch_index));
-  TF_LITE_ENSURE_OK(context,
-                    context->RequestScratchBufferInArena(
-                        context, batches * output_depth * sizeof(int32_t),
-                        &data->output_s32_scratch_index));
+  TF_LITE_ENSURE_OK(
+      context,
+      context->RequestScratchBufferInArena(
+          context, static_cast<size_t>(batches) * accum_depth * sizeof(uint8_t),
+          &data->input_u8_scratch_index));
+  TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                 context,
+                                 static_cast<size_t>(batches) * output_depth *
+                                     sizeof(int32_t),
+                                 &data->output_s32_scratch_index));
   return kTfLiteOk;
 }
 
@@ -185,37 +193,37 @@ TfLiteStatus HexagonFullyConnectedOptimizedEvalInt8(
   const int8_t* filter_data = GetTensorData<int8_t>(filter);
   int8_t* output_data = GetTensorData<int8_t>(output);
 
-  for (int i = 0; i < batches * accum_depth; ++i) {
+  for (size_t i = 0; i < static_cast<size_t>(batches) * accum_depth; ++i) {
     input_u8_scratch[i] = static_cast<uint8_t>(input_data[i] + 128);
   }
 
   for (int b = 0; b < batches; ++b) {
+    const size_t b_accum_offset = static_cast<size_t>(b) * accum_depth;
+    const size_t b_output_offset = static_cast<size_t>(b) * output_depth;
     if (data.optimizable == 1) {
       gemm_s32_s8xu8_Nany_Mmod2_Kmod8(
-          filter_data, input_u8_scratch + b * accum_depth,
-          output_s32_scratch + b * output_depth, output_depth, 1, accum_depth);
+          filter_data, input_u8_scratch + b_accum_offset,
+          output_s32_scratch + b_output_offset, output_depth, 1, accum_depth);
     } else {
       gemm_s32_s8xu8_Nany_Mmod4_Kmod8(
-          filter_data, input_u8_scratch + b * accum_depth,
-          output_s32_scratch + b * output_depth, output_depth, 1, accum_depth);
+          filter_data, input_u8_scratch + b_accum_offset,
+          output_s32_scratch + b_output_offset, output_depth, 1, accum_depth);
     }
 
     for (int c = 0; c < output_depth; ++c) {
       int32_t acc =
-          output_s32_scratch[b * output_depth + c] + data.converted_bias[c];
+          output_s32_scratch[b_output_offset + c] + data.converted_bias[c];
       acc = MultiplyByQuantizedMultiplier(
           acc, data.reference_op_data.output_multiplier,
           data.reference_op_data.output_shift);
       acc += data.reference_op_data.output_zero_point;
       acc = std::max(acc, data.reference_op_data.output_activation_min);
       acc = std::min(acc, data.reference_op_data.output_activation_max);
-      output_data[b * output_depth + c] = static_cast<int8_t>(acc);
+      output_data[b_output_offset + c] = static_cast<int8_t>(acc);
     }
   }
   return kTfLiteOk;
 }
-
-}  // namespace
 
 void* HexagonFullyConnectedInit(TfLiteContext* context, const char* buffer,
                                 size_t length) {
@@ -303,10 +311,57 @@ TfLiteStatus HexagonFullyConnectedEvalInt8(TfLiteContext* context,
   }
 }
 
+TfLiteStatus HexagonFullyConnectedEval(TfLiteContext* context,
+                                       TfLiteNode* node) {
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+  const auto* params =
+      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
+
+  const TfLiteEvalTensor* input =
+      GetEvalInput(context, node, kFullyConnectedInputTensor);
+  const TfLiteEvalTensor* filter =
+      GetEvalInput(context, node, kFullyConnectedWeightsTensor);
+  const TfLiteEvalTensor* bias =
+      GetEvalInput(context, node, kFullyConnectedBiasTensor);
+  TfLiteEvalTensor* output =
+      GetEvalOutput(context, node, kFullyConnectedOutputTensor);
+
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+  // Checks in Prepare ensure input, output and filter types are all the same.
+  switch (input->type) {
+    case kTfLiteFloat32:
+      return EvalFloat(context, node, params->activation, input, filter, bias,
+                       output);
+
+    case kTfLiteInt8:
+      return HexagonFullyConnectedEvalInt8(context, node);
+
+    default:
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
+      return kTfLiteError;
+  }
+  return kTfLiteOk;
+}
+
+}  // namespace
+
+TFLMRegistration Register_FULLY_CONNECTED() {
+  return RegisterOp(HexagonFullyConnectedInit, HexagonFullyConnectedPrepare,
+                    HexagonFullyConnectedEval);
+}
+
+TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
+  return RegisterOp(HexagonFullyConnectedEval);
+}
+
+#if defined(HEXAGON)
 TFLMRegistration Register_FULLY_CONNECTED_INT8() {
   return RegisterOp(HexagonFullyConnectedInit, HexagonFullyConnectedPrepare,
                     HexagonFullyConnectedEvalInt8);
 }
+#endif
 
 const TfLiteEvalTensor*
 HexagonLegacyGetEvalInput(const TfLiteContext* context, const TfLiteNode* node, int index) asm(
