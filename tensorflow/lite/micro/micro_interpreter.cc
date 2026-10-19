@@ -85,8 +85,7 @@ MicroInterpreter::~MicroInterpreter() {
   }
 }
 
-void MicroInterpreter::Init(MicroProfilerInterface* profiler) {
-  (void)profiler;
+void MicroInterpreter::Init([[maybe_unused]] MicroProfilerInterface* profiler) {
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kInit);
   micro_context_.InitTfLiteContext(&context_);

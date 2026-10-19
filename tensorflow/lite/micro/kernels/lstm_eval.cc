@@ -113,7 +113,7 @@ void AddElementWise(const int16_t* input_1, const int16_t* input_2, int n_batch,
     for (int i = 0; i < n_input; ++i) {
       const int index = batch * n_input + i;
       int32_t sum = input_1[index] + input_2[index];
-      const int32_t sum_clamped = std::min(kInt16Max, std::max(kInt16Min, sum));
+      const int32_t sum_clamped = std::clamp(sum, kInt16Min, kInt16Max);
       output[index] = static_cast<int16_t>(sum_clamped);
     }
   }
@@ -221,16 +221,16 @@ void Clipping(const int v_size, const CellStateInfo& cell_state_info,
               int16_t* vector) {
   for (int i = 0; i < v_size; i++) {
     vector[i] =
-        std::max(std::min(cell_state_info.quantized_cell_clip, vector[i]),
-                 static_cast<int16_t>(-cell_state_info.quantized_cell_clip));
+        std::clamp<int16_t>(vector[i], -cell_state_info.quantized_cell_clip,
+                            cell_state_info.quantized_cell_clip);
   }
 }
 
 void Clipping(const int v_size, const CellStateInfo& cell_state_info,
               float* vector) {
   for (int i = 0; i < v_size; i++) {
-    vector[i] = std::max(std::min(cell_state_info.cell_clip, vector[i]),
-                         -cell_state_info.cell_clip);
+    vector[i] = std::clamp(vector[i], -cell_state_info.cell_clip,
+                           cell_state_info.cell_clip);
   }
 }
 

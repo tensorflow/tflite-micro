@@ -23,7 +23,6 @@ namespace tflite {
 namespace micro {
 
 // TODO(b/161841696): Consider moving away from global arena buffers:
-constexpr int KernelRunner::kKernelRunnerBufferSize_;
 uint8_t KernelRunner::kKernelRunnerBuffer_[];
 
 KernelRunner::KernelRunner(const TFLMRegistration& registration,
