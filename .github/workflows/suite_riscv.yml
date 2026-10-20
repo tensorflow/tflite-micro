@@ -29,7 +29,7 @@ jobs:
         args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh
 
   riscv_bazel:
-    runs-on: linux-x86-n2-16
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10

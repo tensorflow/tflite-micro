@@ -61,7 +61,7 @@ jobs:
 
   cortex_m_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: linux-x86-n2-16
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10
