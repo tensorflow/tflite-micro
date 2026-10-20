@@ -24,6 +24,7 @@ limitations under the License.
 #include "absl/types/span.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
+#include "litert/c/options/litert_cpu_options.h"
 #include "litert/cc/litert_buffer_ref.h"
 #include "litert/cc/litert_common.h"
 #include "litert/cc/litert_compiled_model.h"
