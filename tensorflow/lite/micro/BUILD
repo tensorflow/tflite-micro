@@ -464,6 +464,14 @@ tflm_cc_library(
     ],
 )
 
+tflm_cc_library(name = "empty")
+
+label_flag(
+    name = "bsp",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
 tflm_cc_library(
     name = "system_setup",
     srcs = [
@@ -471,6 +479,9 @@ tflm_cc_library(
     ],
     hdrs = [
         "system_setup.h",
+    ],
+    deps = [
+        ":bsp",
     ],
 )
 

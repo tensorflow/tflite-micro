@@ -105,11 +105,20 @@ config_setting(
     ],
 )
 
-cc_test(
+[
+    cc_test(
+        name = "smoke_test_%s" % name,
+        srcs = ["test_smoke.cc"],
+        target_compatible_with = [
+            "@platforms//os:none",
+            "@platforms//cpu:arm",
+            ":%s" % name,
+        ],
+    )
+    for name in CPUS.keys()
+]
+
+alias(
     name = "smoke_test",
-    srcs = ["test_smoke.cc"],
-    target_compatible_with = [
-        "@platforms//os:none",
-        "@platforms//cpu:arm",
-    ],
+    actual = ":smoke_test_m55",
 )
