@@ -28,11 +28,10 @@ TEST(ImageProviderTest, TestImageProvider) {
   EXPECT_EQ(kTfLiteOk, get_status);
 
   // Make sure we can read all of the returned memory locations.
-  uint32_t total = 0;
+  [[maybe_unused]] uint32_t total = 0;
   for (int i = 0; i < kMaxImageSize; ++i) {
     total += image_data[i];
   }
-  (void)total;
 }
 
 TF_LITE_MICRO_TESTS_MAIN

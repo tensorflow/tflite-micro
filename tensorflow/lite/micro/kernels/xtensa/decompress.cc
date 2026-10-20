@@ -54,7 +54,6 @@ struct DecompressionStateXtensa : DecompressionState {
 
 void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   ae_int8x8 d_shuffle_t = AE_MOVINT8X8_FROMINT64(0xFB73EA62D951C840LL);
   ae_int8x8 d_shuffle_value_t = AE_MOVINT8X8_FROMINT64(0x08192A3B4C5D6E7FLL);
@@ -112,7 +111,6 @@ void DecompressionStateXtensa::DecompressToBufferWidth4_Xtensa(int8_t* buffer) {
 
 void DecompressionStateXtensa::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   int i, j;
   ae_int8* __restrict p_out_tmp = (ae_int8*)buffer;
@@ -235,7 +233,6 @@ void DecompressionStateXtensa::DecompressToBufferWidth3_Xtensa(int8_t* buffer) {
 
 void DecompressionStateXtensa::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   int i, j;
   ae_int8* __restrict p_out_tmp = (ae_int8*)buffer;
@@ -354,7 +351,6 @@ void DecompressionStateXtensa::DecompressToBufferWidth2_Xtensa(int8_t* buffer) {
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
     int8_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint8_t* __restrict value_table =
@@ -425,7 +421,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt8_Xtensa(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
     int16_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint16_t* __restrict value_table =
@@ -477,7 +472,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt16_Xtensa(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
     int32_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint32_t* __restrict value_table =
@@ -529,7 +523,6 @@ void DecompressionStateXtensa::DecompressToBufferWidthAnyInt32_Xtensa(
 void DecompressionStateXtensa::DecompressToBufferWidthAnyInt64_Xtensa(
     int64_t* buffer) {
   ScopedMicroProfiler scoped_profiler(__func__, micro_profiler_);
-  (void)scoped_profiler;
 
   const int stride = comp_data_.data.lut_data->value_table_channel_stride;
   const uint64_t* __restrict value_table =
@@ -686,21 +679,21 @@ T* DecompressionState::DecompressToBuffer(void* buffer) {
   TFLITE_DCHECK(compressed_bit_width_ <= LookupTableData::kMaxBitWidth);
   TFLITE_DCHECK(compressed_bit_width_ > 0);
 
-  if (std::is_same<T, int8_t>::value &&
-      comp_data_.data.lut_data->compressed_bit_width == 4 &&
-      !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value &&
-             comp_data_.data.lut_data->compressed_bit_width == 3 &&
-             !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
-  } else if (std::is_same<T, int8_t>::value &&
-             comp_data_.data.lut_data->compressed_bit_width == 2 &&
-             !comp_data_.data.lut_data->use_alternate_axis) {
-    DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
-  } else {
-    DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
+  if constexpr (std::is_same_v<T, int8_t>) {
+    if (!comp_data_.data.lut_data->use_alternate_axis) {
+      if (comp_data_.data.lut_data->compressed_bit_width == 4) {
+        DecompressToBufferWidth4_16(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      } else if (comp_data_.data.lut_data->compressed_bit_width == 3) {
+        DecompressToBufferWidth3_32(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      } else if (comp_data_.data.lut_data->compressed_bit_width == 2) {
+        DecompressToBufferWidth2_16(static_cast<int8_t*>(buffer));
+        return static_cast<T*>(buffer);
+      }
+    }
   }
+  DecompressToBufferWidthAny<T>(static_cast<T*>(buffer));
 
   return static_cast<T*>(buffer);
 }

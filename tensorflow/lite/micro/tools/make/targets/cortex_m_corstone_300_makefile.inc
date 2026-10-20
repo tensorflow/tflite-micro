@@ -35,15 +35,7 @@ ifneq ($(DOWNLOAD_RESULT), SUCCESS)
 endif
 
 # This target has dependencies to CMSIS-Device so just in case running without OPTIMIZED_KERNEL_DIR=cmsis_nn.
-CMSIS_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis
-CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
-CORTEX_DFP_PATH := $(CMSIS_PATH)/Cortex_DFP
-ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
-  endif
-endif
+include $(MAKEFILE_DIR)/ext_libs/cmsis.inc
 
 FLOAT := soft
 MCPU_OPTION := $(TARGET_ARCH)

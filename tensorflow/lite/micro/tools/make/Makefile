@@ -203,6 +203,7 @@ ifeq ($(TARGET), $(HOST_OS))
 endif
 
 CXXFLAGS := \
+  -std=c++17 \
   -fno-rtti \
   -fno-exceptions \
   -fno-threadsafe-statics \
@@ -210,6 +211,7 @@ CXXFLAGS := \
   $(COMMON_FLAGS)
 
 CCFLAGS := \
+  -std=c17 \
   -Wimplicit-function-declaration \
   $(COMMON_FLAGS)
 
@@ -265,14 +267,6 @@ else ifeq ($(BUILD_TYPE), release_with_logs)
   # for profiling and benchmarking.
   CXXFLAGS += -DNDEBUG
   CCFLAGS  += -DNDEBUG
-endif
-
-ifeq ($(CC_VER11), true)
-  CXXFLAGS += -std=c++11
-  CCFLAGS += -std=c11
-else
-  CXXFLAGS += -std=c++17
-  CCFLAGS += -std=c17
 endif
 
 # This library is the main target for this makefile. It will contain a minimal

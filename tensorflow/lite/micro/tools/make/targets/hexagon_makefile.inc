@@ -48,6 +48,7 @@ HEXAGON_LPI_BUILD :=
 PLATFORM_ARGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
   -DTF_LITE_USE_CTIME \
+  -DHEXAGON \
   -DHEXAGON_ASM \
   -DMALLOC_IN_STDLIB \
   -DPTHREAD_STUBS \
@@ -101,9 +102,7 @@ LDFLAGS += \
   $(HEXAGON_ROOT)/$(HEXAGON_TOOL_VER)/Tools/target/hexagon/lib/v66/libstdc++.a \
   $(HEXAGON_TFLM_LIB)
 
-# TODO(b/190754463): Remove include path once download_hexagon is removed.
 INCLUDES += \
-  -I$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/hexagon/inc \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/posix \
   -I$(HEXAGON_SDK_ROOT)/libs/common/qurt/computev66/include/qurt \
   -I${HEXAGON_SDK_ROOT}/rtos/qurt/computev66/include/posix \

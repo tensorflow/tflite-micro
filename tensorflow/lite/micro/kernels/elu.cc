@@ -62,7 +62,7 @@ void PopulateLookupTable(const TfLiteTensor* input, const TfLiteTensor* output,
     const int32_t quantized =
         static_cast<int32_t>(rescaled + output->params.zero_point);
     data->table[static_cast<uint8_t>(static_cast<T>(val))] =
-        static_cast<T>(std::max(std::min(maxval, quantized), minval));
+        static_cast<T>(std::clamp(quantized, minval, maxval));
   }
 }
 

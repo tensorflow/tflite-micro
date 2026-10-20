@@ -18,6 +18,26 @@ on:
 jobs:
   # --- Basic Jobs ---
 
+  xtensa_bazel:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    name: Xtensa Bazel
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+      - run: rm -rf .git
+      - name: Xtensa Bazel Tests
+        env:
+          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
+          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
+        run: |
+          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
+            ghcr.io/tflm-bot/xtensa:0.1 \
+            tensorflow/lite/micro/tools/ci_build/test_bazel_xtensa.sh
+
   vision_p6_tests:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
@@ -42,7 +62,7 @@ jobs:
           fi
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh ${TEST_MODE} tflite-micro/
+            tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh tflite-micro/ ${TEST_MODE}
 
   hifi5_unit_tests:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
@@ -102,7 +122,7 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh EXTERNAL tflite-micro/
+            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh tflite-micro/ EXTERNAL
 
   hifi_3z_unit_tests_with_compression:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
@@ -122,7 +142,7 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh EXTERNAL tflite-micro/
+            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh tflite-micro/ EXTERNAL
 
   # --- Extended Jobs ---
 
@@ -144,4 +164,4 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh EXTERNAL tflite-micro/
+            tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh tflite-micro/ EXTERNAL

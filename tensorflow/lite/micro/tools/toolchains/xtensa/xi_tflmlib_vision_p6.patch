@@ -1,0 +1,28 @@
+From ed92529a6be7a910462558edcf10070fbb0f2870 Mon Sep 17 00:00:00 2001
+From: Ryan Kuester <kuester@bdti.com>
+Date: Thu, 1 Aug 2024 12:48:12 -0500
+Subject: [PATCH] fix: use <climits> instead of <limits> to access INT_MAX and
+ friends
+
+For compatibility with the C++ library standard, use the header,
+<climits>, to access constants such as INT_MAX.
+---
+ runtime/include/cnnrt_xi.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/runtime/include/cnnrt_xi.h b/runtime/include/cnnrt_xi.h
+index f3a911e..00c74b8 100644
+--- a/runtime/include/cnnrt_xi.h
++++ b/runtime/include/cnnrt_xi.h
+@@ -25,7 +25,7 @@
+ #  define INCLUDE_XI_CNN
+ #endif
+ 
+-#include <limits>
++#include <climits>
+ #include "xi_api.h"
+ #include "xi_cnn_api.h"
+ #include "xi_tile_manager.h"
+-- 
+2.43.0
+

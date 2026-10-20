@@ -35,9 +35,8 @@ void CalculateClampedStartIndices(int num_dims, const int64_t* raw_indices_data,
                                   const int32_t* update_dims_data,
                                   int32_t* clamped_start_indices_output) {
   for (int i = 0; i < num_dims; ++i) {
-    clamped_start_indices_output[i] = static_cast<int32_t>(
-        std::min<int64_t>(std::max<int64_t>(0, raw_indices_data[i]),
-                          input_dims_data[i] - update_dims_data[i]));
+    clamped_start_indices_output[i] = static_cast<int32_t>(std::clamp<int64_t>(
+        raw_indices_data[i], 0, input_dims_data[i] - update_dims_data[i]));
   }
   return;
 }

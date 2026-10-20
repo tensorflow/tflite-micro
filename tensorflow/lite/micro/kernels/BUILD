@@ -248,6 +248,10 @@ VP6_COPTS = [
     "-DVISION_P6=1",
 ]
 
+XTENSA_HDRS = glob(["xtensa/**/*.h"])
+
+XTENSA_SRCS = glob(["xtensa/**/*.cc"])
+
 tflm_kernel_cc_library(
     name = "micro_ops",
     srcs = [
@@ -403,11 +407,11 @@ tflm_kernel_cc_library(
         "transpose_conv.h",
         "unidirectional_sequence_lstm.h",
     ] + select({
-        xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
-        xtensa_hifi_3_config(): glob(["xtensa/**/*.h"]),
-        xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),
-        xtensa_hifi_5_config(): glob(["xtensa/**/*.h"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.h"]),
+        xtensa_fusion_f1_config(): XTENSA_HDRS,
+        xtensa_hifi_3_config(): XTENSA_HDRS,
+        xtensa_hifi_3z_config(): XTENSA_HDRS,
+        xtensa_hifi_5_config(): XTENSA_HDRS,
+        xtensa_vision_p6_config(): XTENSA_HDRS,
         "//conditions:default": [],
     }),
     accelerated_srcs = {
@@ -416,11 +420,11 @@ tflm_kernel_cc_library(
             "cmsis_nn/**/*.cc",
             "ethos_u/**/*.cc",
         ]),
-        xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_hifi_3_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_fusion_f1_config(): XTENSA_SRCS,
+        xtensa_hifi_3_config(): XTENSA_SRCS,
+        xtensa_hifi_3z_config(): XTENSA_SRCS,
+        xtensa_hifi_5_config(): XTENSA_SRCS,
+        xtensa_vision_p6_config(): XTENSA_SRCS,
     },
     copts = tflm_copts() + select({
         ":cmsis_nn_default": [
@@ -473,11 +477,11 @@ tflm_kernel_cc_library(
             ":cmsis_nn_dep",
             ":ethos_u_dep",
         ],
-        xtensa_fusion_f1_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        xtensa_hifi_3_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        xtensa_hifi_3z_config(): ["//third_party/xtensa/nnlib_hifi4:nnlib_hifi4_lib"],
-        xtensa_hifi_5_config(): ["//third_party/xtensa/nnlib_hifi5:nnlib_hifi5_lib"],
-        xtensa_vision_p6_config(): ["//third_party/xtensa/xi_tflmlib_vision_p6:xi_tflmlib_vision_p6_lib"],
+        xtensa_fusion_f1_config(): [":xtensa_nnlib_hifi4_dep"],
+        xtensa_hifi_3_config(): [":xtensa_nnlib_hifi4_dep"],
+        xtensa_hifi_3z_config(): [":xtensa_nnlib_hifi4_dep"],
+        xtensa_hifi_5_config(): [":xtensa_nnlib_hifi5_dep"],
+        xtensa_vision_p6_config(): [":xtensa_vision_p6_dep"],
         "//conditions:default": [],
     }),
 )
@@ -1778,6 +1782,24 @@ label_flag(
 
 label_flag(
     name = "ethos_u_dep",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "xtensa_nnlib_hifi4_dep",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "xtensa_nnlib_hifi5_dep",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "xtensa_vision_p6_dep",
     build_setting_default = ":empty",
     visibility = ["//visibility:public"],
 )
