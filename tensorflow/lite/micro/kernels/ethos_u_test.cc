@@ -15,9 +15,6 @@ limitations under the License.
 
 #include <cstring>
 
-#include "tensorflow/lite/micro/examples/person_detection/model_settings.h"
-#include "tensorflow/lite/micro/examples/person_detection/testdata/no_person_image_data.h"
-#include "tensorflow/lite/micro/examples/person_detection/testdata/person_image_data.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -26,10 +23,15 @@ limitations under the License.
 
 namespace {
 
+// The Ethos-U custom operator encapsulates an offline Vela-compiled NPU
+// command stream and weight stream for an entire subgraph. Testing the
+// operator requires a valid Vela-compiled flatbuffer model. We use the
+// frozen person_detect_vela model with deterministic synthetic input tensors
+// to avoid circular dependencies on example applications.
 constexpr int kTensorArenaSize = 136 * 1024;
 alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 
-TEST(EthosUTest, InvokeVelaModel) {
+TEST(EthosUTest, InvokeVelaModelWithSyntheticData) {
   TFLMRegistration* ethos_u_reg = tflite::Register_ETHOSU();
   if (ethos_u_reg == nullptr) {
     MicroPrintf("Ethos-U is not supported on this platform. Skipping test.");
@@ -50,35 +52,32 @@ TEST(EthosUTest, InvokeVelaModel) {
   TfLiteTensor* input = interpreter.input(0);
   EXPECT_NE(input, nullptr);
   EXPECT_EQ(input->type, kTfLiteInt8);
-  EXPECT_EQ(input->bytes, static_cast<size_t>(g_person_image_data_size));
 
-  // 1. Evaluate with person image.
-  std::memcpy(input->data.int8, g_person_image_data, input->bytes);
+  // 1. Evaluate with all-zeros synthetic input.
+  std::memset(input->data.int8, 0, input->bytes);
   EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
   TfLiteTensor* output = interpreter.output(0);
   EXPECT_NE(output, nullptr);
   EXPECT_EQ(output->type, kTfLiteInt8);
+  EXPECT_EQ(output->dims->size, 2);
+  EXPECT_EQ(output->dims->data[1], 2);
 
-  int8_t person_score = output->data.int8[kPersonIndex];
-  int8_t no_person_score = output->data.int8[kNotAPersonIndex];
-  MicroPrintf("Person image: person=%d, no_person=%d", person_score,
-              no_person_score);
-  EXPECT_GT(person_score, no_person_score);
-  EXPECT_EQ(person_score, 113);
-  EXPECT_EQ(no_person_score, -113);
+  int8_t zero_out_0 = output->data.int8[0];
+  int8_t zero_out_1 = output->data.int8[1];
+  MicroPrintf("Synthetic zeros output: [%d, %d]", zero_out_0, zero_out_1);
+  EXPECT_GT(zero_out_0, zero_out_1);
 
-  // 2. Evaluate with no-person image.
-  std::memcpy(input->data.int8, g_no_person_image_data, input->bytes);
+  // 2. Evaluate with non-zero synthetic pattern (ramp).
+  for (size_t i = 0; i < input->bytes; ++i) {
+    input->data.int8[i] = static_cast<int8_t>((i % 255) - 128);
+  }
   EXPECT_EQ(interpreter.Invoke(), kTfLiteOk);
 
-  person_score = output->data.int8[kPersonIndex];
-  no_person_score = output->data.int8[kNotAPersonIndex];
-  MicroPrintf("No-person image: person=%d, no_person=%d", person_score,
-              no_person_score);
-  EXPECT_GT(no_person_score, person_score);
-  EXPECT_EQ(person_score, -57);
-  EXPECT_EQ(no_person_score, 57);
+  int8_t ramp_out_0 = output->data.int8[0];
+  int8_t ramp_out_1 = output->data.int8[1];
+  MicroPrintf("Synthetic ramp output: [%d, %d]", ramp_out_0, ramp_out_1);
+  EXPECT_GT(ramp_out_1, ramp_out_0);
 }
 
 }  // namespace

@@ -982,8 +982,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:micro_framework",
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro/examples/person_detection:model_settings",
-        "//tensorflow/lite/micro/examples/person_detection:simple_images_test_data",
         "//tensorflow/lite/micro/models:person_detect_vela_model_data",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
