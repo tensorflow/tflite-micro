@@ -16,7 +16,7 @@
 # Define a public API for the package by providing aliases for modules which
 # are otherwise deeply nested in subpackages determined by their location in
 # the tflm source tree. Directly using modules and subpackages not explicitly
-# made part of the public API in code outside of the tflm source tree is
+# made part of the private API in code outside of the tflm source tree 
 # unsupported.
 
 from tflite_micro.python.tflite_micro import runtime
