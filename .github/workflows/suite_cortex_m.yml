@@ -97,6 +97,21 @@ jobs:
         with:
           args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
 
+  corstone_300_bazel:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    name: Cortex-M Corstone 300 Bazel (FVP + Ethos-U)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+      - name: Test
+        uses: docker://ghcr.io/tflm-bot/corstone300:0.1
+        with:
+          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_bazel_corstone300.sh
+
   corstone_300_armclang:
     if: inputs.scope == 'all'
     runs-on: ubuntu-latest

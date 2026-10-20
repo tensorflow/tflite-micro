@@ -44,6 +44,24 @@ http_archive(
 )
 
 http_archive(
+    name = "cmsis_core",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/arm:cmsis_core.BUILD",
+    sha256 = "7d1de644243e370e8d1d798a0dfa8c8d67ab1121082816fbfe75bdb2183aac54",
+    strip_prefix = "CMSIS_6-5782d6f8057906d360f4b95ec08a2354afe5c9b9",
+    urls = ["https://github.com/ARM-software/CMSIS_6/archive/5782d6f8057906d360f4b95ec08a2354afe5c9b9.zip"],
+)
+
+http_archive(
+    name = "ethos_u_core_driver",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/arm:ethos_u_core_driver.BUILD",
+    sha256 = "fa062fd4cca1c32c60db47a3f711935a3ed35c8a0e4cd7bbb24369246bc77c58",
+    strip_prefix = "ethos-u-core-driver-9622608a5cc318c0933bcce720b59737d03bfb6f",
+    urls = [
+        "https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver/-/archive/9622608a5cc318c0933bcce720b59737d03bfb6f/ethos-u-core-driver-9622608a5cc318c0933bcce720b59737d03bfb6f.tar.gz",
+    ],
+)
+
+http_archive(
     name = "nnlib_hifi4",
     build_file = "//tensorflow/lite/micro/tools/toolchains/xtensa:nnlib_hifi4.BUILD",
     sha256 = "8b490e8a2f0e28e36dc5f244b4a256b5bcba393c629bf73d3e6e50817fe719af",

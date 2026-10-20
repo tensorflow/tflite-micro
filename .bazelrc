@@ -123,6 +123,20 @@ test:cortex-m55 --run_under="qemu-arm -cpu cortex-m55"
 build:cortex-m55-cmsis-nn --config=cortex-m55
 build:cortex-m55-cmsis-nn --config=_cmsis_nn_base
 
+# Corstone-300 + Ethos-U55 FVP configurations
+build:_corstone300_base --features=-qemu_semihosting
+build:_corstone300_base --copt=-DARMCM55
+build:_corstone300_base --copt=-DETHOS_U
+build:_corstone300_base --test_env=PATH
+build:_corstone300_base --//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:corstone_bsp
+build:_corstone300_base --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn_ethos_u
+build:_corstone300_base --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
+build:_corstone300_base --//tensorflow/lite/micro/kernels:ethos_u_dep=@ethos_u_core_driver//:ethos_u_core_driver
+
+build:corstone-300-ethos-u --config=cortex-m55
+build:corstone-300-ethos-u --config=_corstone300_base
+test:corstone-300-ethos-u --run_under="FVP_Corstone_SSE-300_Ethos-U55 -C cpu0.CFGDTCMSZ=15 -C cpu0.CFGITCMSZ=15 -C ethosu.num_macs=256 -C mps3_board.visualisation.disable-visualisation=1 -C mps3_board.telnetterminal0.start_telnet=0 -C mps3_board.uart0.out_file=- -C mps3_board.uart0.unbuffered_output=1 -C mps3_board.uart0.shutdown_on_eot=1 --stat"
+
 # Embedded RISC-V configurations
 build:riscv32 --platforms=//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_platform
 test:riscv32 --run_under="qemu-riscv32 -cpu rv32"
