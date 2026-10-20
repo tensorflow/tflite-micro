@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
 
   printf("RV32IMC Math Check: %ld * %ld = %ld, %ld / %ld = %ld\n",
          static_cast<long>(a), static_cast<long>(b), static_cast<long>(mul_res),
-         static_cast<long>(mul_res), static_cast<long>(b), static_cast<long>(div_res));
+         static_cast<long>(mul_res), static_cast<long>(b),
+         static_cast<long>(div_res));
 
   if (mul_res == 42 && div_res == 14) {
     printf("SUCCESS: RISC-V RV32IMC smoke test passed!\n");
