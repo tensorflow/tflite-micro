@@ -127,6 +127,23 @@ build:cortex-m55-cmsis-nn --config=_cmsis_nn_base
 build:riscv32 --platforms=//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_platform
 test:riscv32 --run_under="qemu-riscv32 -cpu rv32"
 
+# Embedded Qualcomm Hexagon configurations
+build:_hexagon_base --action_env=HEXAGON_SDK_ROOT
+build:_hexagon_base --action_env=HEXAGON_ROOT
+build:_hexagon_base --action_env=HEXAGON_TOOL_VER
+build:_hexagon_base --action_env=HEXAGON_CPU_VER
+build:_hexagon_base --action_env=HEXAGON_TFLM_CORE
+build:_hexagon_base --action_env=PATH
+build:_hexagon_base --test_env=PATH
+build:_hexagon_base --sandbox_add_mount_pair=/root/Qualcomm
+
+build:hexagon --config=_hexagon_base
+build:hexagon --platforms=//tensorflow/lite/micro/tools/toolchains/hexagon:hexagon_platform
+build:hexagon --//tensorflow/lite/micro/kernels:optimized_kernels=hexagon
+test:hexagon --run_under="hexagon-sim --simulated_returnval"
+
+build:hexagon-opt --config=hexagon
+
 # Embedded Xtensa configurations
 build:_xtensa_base --action_env=LM_LICENSE_FILE
 build:_xtensa_base --action_env=PATH

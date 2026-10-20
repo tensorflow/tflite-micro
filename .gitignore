@@ -14,3 +14,4 @@ gen
 # Ignore the `external` symlink added by `bazel-compile-commands-extractor`
 /external
 /.jetskicli/
+pmu_statsfile.txt

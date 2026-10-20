@@ -425,6 +425,7 @@ tflm_kernel_cc_library(
         xtensa_hifi_3z_config(): XTENSA_SRCS,
         xtensa_hifi_5_config(): XTENSA_SRCS,
         xtensa_vision_p6_config(): XTENSA_SRCS,
+        ":hexagon_default": glob(["hexagon/**/*.cc"]),
     },
     copts = tflm_copts() + select({
         ":cmsis_nn_default": [
@@ -441,6 +442,10 @@ tflm_kernel_cc_library(
         xtensa_hifi_3z_config(): HIFI4_COPTS,
         xtensa_hifi_5_config(): HIFI5_COPTS,
         xtensa_vision_p6_config(): VP6_COPTS,
+        ":hexagon_default": [
+            "-DHEXAGON",
+            "-DHEXAGON_ASM",
+        ],
         "//conditions:default": [],
     }),
     visibility = [
@@ -450,6 +455,7 @@ tflm_kernel_cc_library(
     deps = [
         ":activation_utils",
         ":kernel_util",
+        ":op_macros",
         "//signal/micro/kernels:register_signal_ops",
         "//tensorflow/lite/micro:flatbuffer_utils",
         "//tensorflow/lite/micro:memory_helpers",
@@ -482,6 +488,10 @@ tflm_kernel_cc_library(
         xtensa_hifi_3z_config(): [":xtensa_nnlib_hifi4_dep"],
         xtensa_hifi_5_config(): [":xtensa_nnlib_hifi5_dep"],
         xtensa_vision_p6_config(): [":xtensa_vision_p6_dep"],
+        ":hexagon_default": [
+            ":hexagon_tflm_core_dep",
+            "//third_party/hexagon:hexagon_translation",
+        ],
         "//conditions:default": [],
     }),
 )
@@ -1756,6 +1766,7 @@ string_flag(
         "xtensa_hifi_3z",
         "xtensa_hifi_5",
         "xtensa_vision_p6",
+        "hexagon",
     ],
     visibility = ["//visibility:public"],
 )
@@ -1764,6 +1775,13 @@ config_setting(
     name = "cmsis_nn_default",
     flag_values = {
         ":optimized_kernels": "cmsis_nn",
+    },
+)
+
+config_setting(
+    name = "hexagon_default",
+    flag_values = {
+        ":optimized_kernels": "hexagon",
     },
 )
 
@@ -1801,6 +1819,12 @@ label_flag(
 label_flag(
     name = "xtensa_vision_p6_dep",
     build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "hexagon_tflm_core_dep",
+    build_setting_default = "@hexagon_toolchain//:hexagon_tflm_core",
     visibility = ["//visibility:public"],
 )
 
