@@ -248,6 +248,10 @@ VP6_COPTS = [
     "-DVISION_P6=1",
 ]
 
+XTENSA_HDRS = glob(["xtensa/**/*.h"])
+
+XTENSA_SRCS = glob(["xtensa/**/*.cc"])
+
 tflm_kernel_cc_library(
     name = "micro_ops",
     srcs = [
@@ -403,11 +407,11 @@ tflm_kernel_cc_library(
         "transpose_conv.h",
         "unidirectional_sequence_lstm.h",
     ] + select({
-        xtensa_fusion_f1_config(): glob(["xtensa/**/*.h"]),
-        xtensa_hifi_3_config(): glob(["xtensa/**/*.h"]),
-        xtensa_hifi_3z_config(): glob(["xtensa/**/*.h"]),
-        xtensa_hifi_5_config(): glob(["xtensa/**/*.h"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.h"]),
+        xtensa_fusion_f1_config(): XTENSA_HDRS,
+        xtensa_hifi_3_config(): XTENSA_HDRS,
+        xtensa_hifi_3z_config(): XTENSA_HDRS,
+        xtensa_hifi_5_config(): XTENSA_HDRS,
+        xtensa_vision_p6_config(): XTENSA_HDRS,
         "//conditions:default": [],
     }),
     accelerated_srcs = {
@@ -416,11 +420,11 @@ tflm_kernel_cc_library(
             "cmsis_nn/**/*.cc",
             "ethos_u/**/*.cc",
         ]),
-        xtensa_fusion_f1_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_hifi_3_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_hifi_3z_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_hifi_5_config(): glob(["xtensa/**/*.cc"]),
-        xtensa_vision_p6_config(): glob(["xtensa/**/*.cc"]),
+        xtensa_fusion_f1_config(): XTENSA_SRCS,
+        xtensa_hifi_3_config(): XTENSA_SRCS,
+        xtensa_hifi_3z_config(): XTENSA_SRCS,
+        xtensa_hifi_5_config(): XTENSA_SRCS,
+        xtensa_vision_p6_config(): XTENSA_SRCS,
     },
     copts = tflm_copts() + select({
         ":cmsis_nn_default": [
