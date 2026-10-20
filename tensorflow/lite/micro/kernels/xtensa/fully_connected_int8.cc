@@ -62,12 +62,12 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
 
   // P6 Vision will handle INT4 filters as a reference operation.
   // For all other architectures, unpack INT4 here.
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
   void* p_scratch = nullptr;
 #endif
 
   if (filter->type == kTfLiteInt4) {
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
     p_scratch = static_cast<void*>(
         context->GetScratchBuffer(context, data.filter_buffer_index));
 #else
@@ -117,7 +117,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
         0);
   } else {
     if (num_batches == 1) {
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
       if (filter->type == kTfLiteInt4) {
         TF_LITE_ENSURE_EQ(
             context,
@@ -143,11 +143,11 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
                 data.output_activation_min, data.output_activation_max,
                 nullptr),
             0);
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
       }
 #endif
     } else {
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
       if (filter->type == kTfLiteInt4) {
         for (int b = 0; b < num_batches; ++b) {
           int8_t* base_input =
@@ -180,7 +180,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
                 data.output_activation_min, data.output_activation_max,
                 nullptr),
             0);
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
       }
 #endif
     }

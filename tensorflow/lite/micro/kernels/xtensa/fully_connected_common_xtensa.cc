@@ -163,7 +163,7 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
   if (filter->type == kTfLiteInt4) {
-#if (defined(HIFI5) && defined(NNLIB_HIFI5)) || defined(HIFI_IQ)
+#if defined(HIFI5) || defined(HIFI_IQ)
     const TfLiteEvalTensor* filter_eval = tflite::micro::GetEvalInput(
         context, node, kFullyConnectedWeightsTensor);
     const RuntimeShape& filter_shape =
@@ -214,6 +214,8 @@ TfLiteStatus XtensaPrepareFullyConnected(TfLiteContext* context,
   }
   micro_context->DeallocateTempTfLiteTensor(output);
 #if defined(VISION_P6)
+  // P6 does not support per-channel quantization.
+  TF_LITE_ENSURE(context, !data->is_per_channel);
   TF_LITE_ENSURE_OK(context, FullyConnectedPrepareVision(context, node));
 #endif  // defined(VISION_P6)
 
