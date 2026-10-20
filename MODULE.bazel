@@ -77,6 +77,10 @@ xtensa_toolchain = use_repo_rule("//tensorflow/lite/micro/tools/toolchains/xtens
 
 xtensa_toolchain(name = "xtensa_toolchain")
 
+riscv_toolchain = use_repo_rule("//tensorflow/lite/micro/tools/toolchains/riscv:repo.bzl", "riscv_toolchain")
+
+riscv_toolchain(name = "riscv_toolchain")
+
 # Python
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -145,4 +149,5 @@ register_toolchains(
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi3z_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi5_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_vision_p6_toolchain",
+    "//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_toolchain",
 )
