@@ -31,6 +31,11 @@ tflm_py_library(
 tflm_py_test(
     name = "freq_to_mel_test",
     srcs = ["freq_to_mel_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":freq_to_mel",
@@ -50,6 +55,11 @@ tflm_py_library(
 tflm_py_test(
     name = "wide_dynamic_func_lut_test",
     srcs = ["wide_dynamic_func_lut_test.py"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "noubsan",
+    ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":wide_dynamic_func_lut",
