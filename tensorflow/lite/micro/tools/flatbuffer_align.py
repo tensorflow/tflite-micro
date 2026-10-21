@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Helper module to align tflite flatbuffers using C-API in libtflm.so."""
+"""Helper module to align tflite flatbuffers using internal C-API in _runtime.so."""
 
 import ctypes
 from tflite_micro.python.tflite_micro.runtime import _lib

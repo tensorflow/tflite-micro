@@ -149,7 +149,7 @@ For a complete end-to-end example using the Python interpreter for model compres
 
 ### Technical Details
 
-The Python interpreter is built as a pure C-ABI shared library (`libtflm.so`) that
+The Python interpreter uses an internal C-ABI shared library (`_runtime.so`) that
 interfaces with Python via Python's standard library `ctypes`. This avoids any
 dependency on CPython internal headers or binding libraries, making the compiled
 binary forward-compatible across all Python 3 versions without rebuilding.

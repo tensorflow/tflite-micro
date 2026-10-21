@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Signal audio utility functions using libtflm.so via ctypes."""
+"""Signal audio utility functions using _runtime.so via ctypes."""
 
 import ctypes
 from tflite_micro.python.tflite_micro.runtime import _lib

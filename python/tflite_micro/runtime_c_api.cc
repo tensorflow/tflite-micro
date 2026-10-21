@@ -15,7 +15,7 @@ limitations under the License.
 
 #define TFLM_COMPILE_LIBRARY
 
-#include "tensorflow/lite/micro/c_api/tflm_c_api.h"
+#include "python/tflite_micro/runtime_c_api.h"
 
 #include <cmath>
 #include <cstddef>

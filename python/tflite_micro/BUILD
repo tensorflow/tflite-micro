@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
 load(
@@ -55,7 +56,6 @@ tflm_cc_library(
     ],
     visibility = [
         ":op_resolver_friends",
-        "//tensorflow/lite/micro/c_api:__subpackages__",
         "//tensorflow/lite/micro/integration_tests:__subpackages__",
     ],
     deps = [
@@ -65,13 +65,47 @@ tflm_cc_library(
     ],
 )
 
+tflm_cc_library(
+    name = "runtime_c_api",
+    srcs = ["runtime_c_api.cc"],
+    hdrs = ["runtime_c_api.h"],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":compression_utils",
+        ":python_ops_resolver",
+        ":shared_library",
+        "//tensorflow/lite/micro:micro_allocator",
+        "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro:micro_context",
+        "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_resource_variable",
+        "//tensorflow/lite/micro:micro_utils",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro:recording_allocators",
+        "//tensorflow/lite/micro/schema:schema_fbs",
+        "@flatbuffers",
+    ],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "_runtime.so",
+    linkshared = True,
+    linkstatic = True,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":runtime_c_api",
+    ],
+)
+
 tflm_py_library(
     name = "runtime",
     srcs = [
         "runtime.py",
     ],
     data = [
-        "//tensorflow/lite/micro/c_api:libtflm.so",
+        ":_runtime.so",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
@@ -154,7 +188,6 @@ py_package(
     # in the tflm tree.
     packages = [
         "python.tflite_micro",
-        "tensorflow.lite.micro.c_api",
         "tensorflow.lite.micro.compression",
         "tensorflow.lite.micro.python",
         "tensorflow.lite.micro.tools",

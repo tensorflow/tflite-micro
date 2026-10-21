@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Python package for TFLM Python Interpreter using standard C-API."""
+"""Python package for TFLM Python Interpreter using internal _runtime.so."""
 
 import ctypes
 import enum
@@ -24,15 +24,14 @@ from tflite_micro.tensorflow.lite.micro.python import (
 )
 
 
-def _load_tflm_library():
-  """Finds and loads libtflm.so across google3, Bazel, and PyPI."""
+def _load_runtime_library():
+  """Finds and loads _runtime.so across google3, Bazel, and PyPI."""
   # 1. Try google3 runfiles:
   try:
     from google3.pyglib import resources  # pylint: disable=g-import-not-at-top
 
     for candidate in [
-      "google3/third_party/tflite_micro/tensorflow/lite/micro/c_api/libtflm.so",
-      "google3/third_party/tflite_micro/python/tflite_micro/libtflm.so",
+      "google3/third_party/tflite_micro/python/tflite_micro/_runtime.so",
     ]:
       path = resources.GetResourceFilename(candidate)
       if os.path.exists(path):
@@ -46,8 +45,7 @@ def _load_tflm_library():
 
     r = runfiles.Create()
     for candidate in [
-      "tflite_micro/tensorflow/lite/micro/c_api/libtflm.so",
-      "tflite_micro/python/tflite_micro/libtflm.so",
+      "tflite_micro/python/tflite_micro/_runtime.so",
     ]:
       path = r.Rlocation(candidate)
       if path and os.path.exists(path):
@@ -55,44 +53,16 @@ def _load_tflm_library():
   except (ImportError, TypeError):
     pass
 
-  # 3. Try directory adjacent to this file:
-  adjacent_path = os.path.join(os.path.dirname(__file__), "libtflm.so")
+  # 3. Try directory adjacent to this file (PyPI wheel or local build):
+  adjacent_path = os.path.join(os.path.dirname(__file__), "_runtime.so")
   if os.path.exists(adjacent_path):
     return ctypes.CDLL(adjacent_path)
 
-  # 4. Try c_api directory inside the installed tflite_micro wheel namespace:
-  wheel_c_api_path = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
-    "tensorflow",
-    "lite",
-    "micro",
-    "c_api",
-    "libtflm.so",
-  )
-  if os.path.exists(wheel_c_api_path):
-    return ctypes.CDLL(os.path.abspath(wheel_c_api_path))
-
-  # 5. Try repo root relative path:
-  rel_path = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "..",
-    "tensorflow",
-    "lite",
-    "micro",
-    "c_api",
-    "libtflm.so",
-  )
-  if os.path.exists(rel_path):
-    return ctypes.CDLL(os.path.abspath(rel_path))
-
-  # 5. Fallback to system dynamic loader:
-  return ctypes.CDLL("libtflm.so")
+  # 4. Fallback to system dynamic loader:
+  return ctypes.CDLL("_runtime.so")
 
 
-_lib = _load_tflm_library()
+_lib = _load_runtime_library()
 
 # Function signatures
 _lib.TFLM_InterpreterCreate.restype = ctypes.c_void_p
