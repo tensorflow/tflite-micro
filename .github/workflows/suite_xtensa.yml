@@ -20,7 +20,7 @@ jobs:
 
   xtensa_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     name: Xtensa Bazel (HiFi 5)
     steps:
@@ -42,7 +42,7 @@ jobs:
 
   vision_p6_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Vision P6 Tests
     steps:
@@ -68,7 +68,7 @@ jobs:
 
   hifi5_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi5 Unit Tests
     steps:
@@ -88,7 +88,7 @@ jobs:
 
   hifi5_unit_tests_with_compression:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi5 Unit Tests with Compression
     steps:
@@ -108,7 +108,7 @@ jobs:
 
   hifi_3z_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi3z Unit Tests
     steps:
@@ -128,7 +128,7 @@ jobs:
 
   hifi_3z_unit_tests_with_compression:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi3z Unit Tests with Compression
     steps:
@@ -148,7 +148,7 @@ jobs:
 
   f1_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Fusion F1 Unit Tests
     steps:
