@@ -1,11 +1,11 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
 load(
     "//python:py_rules.bzl",
     "py_package",
     "py_wheel",
-    "pybind_extension",
     "tflm_py_library",
     "tflm_py_test",
     "tflm_whl_test",
@@ -31,6 +31,22 @@ package_group(
 )
 
 tflm_cc_library(
+    name = "compression_utils",
+    hdrs = ["compression_utils.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tensorflow/lite/micro:compression",
+        "//tensorflow/lite/micro/schema:schema_fbs",
+    ],
+)
+
+tflm_cc_library(
+    name = "shared_library",
+    hdrs = ["shared_library.h"],
+    visibility = ["//visibility:public"],
+)
+
+tflm_cc_library(
     name = "python_ops_resolver",
     srcs = [
         "python_ops_resolver.cc",
@@ -49,33 +65,37 @@ tflm_cc_library(
     ],
 )
 
-pybind_extension(
-    name = "_runtime",
-    # target = _runtime.so because pybind_extension() appends suffix
-    srcs = [
-        "_runtime.cc",
-        "compression_utils.h",
-        "interpreter_wrapper.cc",
-        "interpreter_wrapper.h",
-        "numpy_utils.cc",
-        "numpy_utils.h",
-        "pybind11_lib.h",
-        "python_utils.cc",
-        "python_utils.h",
-        "shared_library.h",
-    ],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+tflm_cc_library(
+    name = "runtime_c_api",
+    srcs = ["runtime_c_api.cc"],
+    hdrs = ["runtime_c_api.h"],
+    visibility = ["//visibility:private"],
     deps = [
+        ":compression_utils",
         ":python_ops_resolver",
+        ":shared_library",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_context",
         "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:micro_resource_variable",
         "//tensorflow/lite/micro:micro_utils",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@tflm_pip_deps//numpy:cc_headers",
+        "@flatbuffers",
+    ],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "_runtime.so",
+    linkshared = True,
+    linkstatic = True,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":runtime_c_api",
     ],
 )
 
@@ -100,7 +120,7 @@ tflm_py_test(
     srcs = ["runtime_test.py"],
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols in _runtime.so
+        "nomsan",
         "noubsan",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
@@ -121,7 +141,7 @@ tflm_py_test(
     ],
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols in _runtime.so
+        "nomsan",
         "noubsan",
     ],
     # Only compatible when compression is NOT enabled
@@ -213,47 +233,15 @@ string_flag(
     name = "compatibility_tag",
     build_setting_default = "local",
     values = [
-        "cp310_cp310_manylinux_2_28_x86_64",
-        "cp311_cp311_manylinux_2_28_x86_64",
-        "cp312_cp312_manylinux_2_28_x86_64",
-        "cp313_cp313_manylinux_2_28_x86_64",
-        "cp314_cp314_manylinux_2_28_x86_64",
+        "py3_none_manylinux_2_28_x86_64",
         "local",
     ],
 )
 
 config_setting(
-    name = "cp310_cp310_manylinux_2_28_x86_64",
+    name = "py3_none_manylinux_2_28_x86_64",
     flag_values = {
-        ":compatibility_tag": "cp310_cp310_manylinux_2_28_x86_64",
-    },
-)
-
-config_setting(
-    name = "cp311_cp311_manylinux_2_28_x86_64",
-    flag_values = {
-        ":compatibility_tag": "cp311_cp311_manylinux_2_28_x86_64",
-    },
-)
-
-config_setting(
-    name = "cp312_cp312_manylinux_2_28_x86_64",
-    flag_values = {
-        ":compatibility_tag": "cp312_cp312_manylinux_2_28_x86_64",
-    },
-)
-
-config_setting(
-    name = "cp313_cp313_manylinux_2_28_x86_64",
-    flag_values = {
-        ":compatibility_tag": "cp313_cp313_manylinux_2_28_x86_64",
-    },
-)
-
-config_setting(
-    name = "cp314_cp314_manylinux_2_28_x86_64",
-    flag_values = {
-        ":compatibility_tag": "cp314_cp314_manylinux_2_28_x86_64",
+        ":compatibility_tag": "py3_none_manylinux_2_28_x86_64",
     },
 )
 
@@ -270,32 +258,14 @@ py_wheel(
     #
     # - whl.dist: build a properly named file under whl_dist/
     #
-    abi = select({
-        ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
-        ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
-        ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
-        ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
-        ":cp314_cp314_manylinux_2_28_x86_64": "cp314",
-        ":local": "none",
-    }),
+    abi = "none",
     description_file = ":description_file",
     distribution = "tflite_micro",
     platform = select({
-        ":cp310_cp310_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
-        ":cp311_cp311_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
-        ":cp312_cp312_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
-        ":cp313_cp313_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
-        ":cp314_cp314_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":local": "any",
+        ":py3_none_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
     }),
-    python_tag = select({
-        ":cp310_cp310_manylinux_2_28_x86_64": "cp310",
-        ":cp311_cp311_manylinux_2_28_x86_64": "cp311",
-        ":cp312_cp312_manylinux_2_28_x86_64": "cp312",
-        ":cp313_cp313_manylinux_2_28_x86_64": "cp313",
-        ":cp314_cp314_manylinux_2_28_x86_64": "cp314",
-        ":local": "py3",
-    }),
+    python_tag = "py3",
     requires = [
         "flatbuffers",
         "numpy",

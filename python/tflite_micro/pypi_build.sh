@@ -18,33 +18,17 @@ set -e
 
 OUT_DIR_DEFAULT=bazel-pypi-out
 
-USAGE="$(basename $0) <python-tag> [<output-directory>]
+USAGE="$(basename $0) [<output-directory>]
 
-Build a Python wheel for public release to PyPI using a special Docker build
-container. Uses bazel, but does not pollute the WORKSPACE's default cache.
-
-<python-tag> must be one of the supported interpreters:
-   cp310
-   cp311
-   cp312
-   cp313
-   cp314
+Build a universal Python wheel (py3-none-manylinux) for public release to PyPI
+using a special Docker build container. Uses bazel, but does not pollute the
+WORKSPACE's default cache.
 
 <output-directory> defaults to $OUT_DIR_DEFAULT.
 "
 
-case "$1" in
-    cp310|cp311|cp312|cp313|cp314)
-        PY_TAG=$1
-        PY_VERSION=3.${PY_TAG#cp3}
-        OUTDIR=$(realpath ${2:-$OUT_DIR_DEFAULT})
-        mkdir -p $OUTDIR
-        break
-        ;;
-    *)
-        echo usage: "$USAGE" >&2
-        exit 1
-esac
+OUTDIR=$(realpath ${1:-$OUT_DIR_DEFAULT})
+mkdir -p $OUTDIR
 
 SRCDIR=$(realpath .)
 if ! test -f $SRCDIR/MODULE.bazel; then
@@ -75,60 +59,41 @@ docker run \
     $IMAGE_ID \
     /bin/bash -s -e -x -u \
 <<EOF
-    # Setup the Python compatibility tags. The PY_ABI always matches the Python
-    # interpreter tag. The platform tag is supplied by the build image in the
-    # environment variable AUDITWHEEL_PLAT.
-    PY_ABI=$PY_TAG
+    # Setup the universal Python compatibility tags.
     PY_PLATFORM=\$AUDITWHEEL_PLAT
-    PY_COMPATIBILITY=${PY_TAG}_\${PY_ABI}_\${PY_PLATFORM}
-
-    # Link the desired Python version into the PATH for any tool that runs
-    # python3 from there. Bazel does not; its hermetic rules_python toolchain
-    # comes from the python_version flag passed below.
-    ln -sf /opt/python/$PY_TAG-$PY_TAG/bin/* /usr/bin
+    PY_COMPATIBILITY=py3_none_\${PY_PLATFORM}
 
     # Bazelisk fails if it can't check HOME for a .rc file., and pip (in
-    # :whl_test) installation of some dependencies (e.g., wrapt) expects HOME.
+    # :whl_test) installation of some dependencies expects HOME.
     export HOME=$OUTDIR
 
     # Bazelisk, bazel, and pip all need a writable cache directory.
     export XDG_CACHE_HOME=$OUTDIR/cache
 
-    # Relocate the bazel root to keep the cache used for each Python toolchain
-    # separate. Drop root privileges and run as the invoking user.
     call_bazel() {
         setpriv --reuid=$(id -u) --regid=$(id -g) --clear-groups \
             bazel \
-                --output_user_root=$OUTDIR/$PY_TAG-out \
+                --output_user_root=$OUTDIR/bazel-out \
                 "\$@" \
-                --repo_contents_cache= `# OUTDIR defaults to inside SRCDIR` \
-                --action_env=HOME `# help setuptools find HOME in container` \
-                --action_env=USER `# bazel reads USER via whoami` \
-                --action_env=XDG_CACHE_HOME `# locate pip's cache inside OUTDIR`
+                --repo_contents_cache= \
+                --action_env=HOME \
+                --action_env=USER \
+                --action_env=XDG_CACHE_HOME
     }
 
-    # Build the wheel via bazel. The python_version flag selects the toolchain
-    # whose headers the extension modules compile against, and must agree with
-    # the compatibility tag, which only labels the wheel. Enable compression
-    # support for the official package.
+    # Build universal wheel via bazel.
     call_bazel build //python/tflite_micro:whl.dist \
         --compilation_mode=opt \
-        --@rules_python//python/config_settings:python_version=$PY_VERSION \
         --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
         --//:with_compression=true
 
-    # Test in the container environment. Use the same options as the build.
+    # Test in the container environment.
     call_bazel test //python/tflite_micro:whl_test \
             --compilation_mode=opt \
-            --@rules_python//python/config_settings:python_version=$PY_VERSION \
             --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
             --//:with_compression=true
 EOF
 
-# Make the output directory tree writable so it can be removed easily by the
-# user with `rm -rf $OUTDIR`. Bazel leaves it write-protected.
 chmod -R +w $OUTDIR
-
-# Copy the generated wheel file to the root of the $OUTDIR.
 cp bazel-bin/python/tflite_micro/whl_dist/*.whl $OUTDIR
 echo "Output:\n$(ls $OUTDIR/*.whl)"

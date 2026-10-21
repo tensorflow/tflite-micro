@@ -21,7 +21,7 @@ tflm_py_test(
     main = "flatbuffer_size_test.py",
     tags = [
         "noasan",
-        "nomsan",  # Python doesn't like these symbols from flatbuffer_size_wrapper_pybind.so
+        "nomsan",
         "noubsan",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
