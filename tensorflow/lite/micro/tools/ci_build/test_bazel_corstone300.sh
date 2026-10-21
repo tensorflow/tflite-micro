@@ -52,3 +52,7 @@ ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-300-ethos-u \
 
 # 3. Run operator kernel tests with CMSIS-NN and Ethos-U on Corstone-300
 ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-300-ethos-u //tensorflow/lite/micro/kernels:all
+
+# 4. Run end-to-end vision model test on Corstone-300
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-300-ethos-u //tensorflow/lite/micro/examples/person_detection:person_detection_test
+

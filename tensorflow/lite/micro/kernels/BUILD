@@ -974,6 +974,20 @@ tflm_cc_test(
 )
 
 tflm_cc_test(
+    name = "ethos_u_test",
+    srcs = [
+        "ethos_u_test.cc",
+    ],
+    deps = [
+        "//tensorflow/lite/micro:micro_framework",
+        "//tensorflow/lite/micro:micro_log",
+        "//tensorflow/lite/micro:op_resolvers",
+        "//tensorflow/lite/micro/models:person_detect_vela_model_data",
+        "//tensorflow/lite/micro/testing:micro_test",
+    ],
+)
+
+tflm_cc_test(
     name = "exp_test",
     srcs = ["exp_test.cc"],
     deps = [
