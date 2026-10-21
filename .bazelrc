@@ -48,6 +48,8 @@ build:_ci_base --terminal_columns=0
 build:_ci_base --verbose_failures
 build:_ci_base --test_output=errors
 build:_ci_base --keep_going
+# Avoid sandbox directory reuse race conditions on container OverlayFS.
+build:_ci_base --noreuse_sandbox_directories
 
 build:ci --config=_ci_base
 build:ci --action_env=CC=clang
