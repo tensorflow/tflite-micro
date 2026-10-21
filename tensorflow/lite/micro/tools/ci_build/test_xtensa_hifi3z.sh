@@ -41,7 +41,6 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 # optional command line parameter "INTERNAL" uses internal test code
 if [[ ${TEST_MODE} == "INTERNAL" ]]; then
-  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
   readable_run make -f ${MAKEFILE} \
@@ -57,7 +56,6 @@ if [[ ${TEST_MODE} == "INTERNAL" ]]; then
     $(get_parallel_jobs) test_integration_tests_seanet_leaky_relu_test
 else
   BENCHMARK_ARGS="${COMMON_ARGS} GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite"
-  readable_run make -f ${MAKEFILE} ${BENCHMARK_ARGS} $(get_parallel_jobs) build
   readable_run make -f ${MAKEFILE} ${BENCHMARK_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark
