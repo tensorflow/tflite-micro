@@ -40,7 +40,6 @@ COMMON_ARGS="TARGET=xtensa TARGET_ARCH=hifi5 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
 # run generic benchmark
