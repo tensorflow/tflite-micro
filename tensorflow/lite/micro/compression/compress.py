@@ -32,7 +32,7 @@ from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import pruning
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.micro.tools import (
-  tflite_flatbuffer_align_wrapper,
+  flatbuffer_align,
 )
 
 # argparse prints "usage: " ahead of this line.
@@ -107,7 +107,7 @@ def _apply_flatbuffer_alignment(model_bytes: bytearray) -> bytearray:
 
   try:
     # Unpack and repack with proper alignment
-    tflite_flatbuffer_align_wrapper.align_tflite_model(
+    flatbuffer_align.align_tflite_model(
       temp_in_path, temp_out_path
     )
 

@@ -12,24 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+"""Given a input tflite flatbuffer, outputs a html with flatbuffer size graph"""
+
+import ctypes
 import json
+import os
 import sys
 
 from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
-  flatbuffer_size_wrapper_pybind,
+    flatbuffer_size_graph,
 )
 from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
-  flatbuffer_size_graph,
+    flatbuffer_size_graph_html_converter,
 )
-from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
-  flatbuffer_size_graph_html_converter,
-)
+
+
+def _load_flatbuffer_size_library():
+  try:
+    from rules_python.python.runfiles import runfiles  # pylint: disable=g-import-not-at-top
+    r = runfiles.Create()
+    path = r.Rlocation("tflite_micro/tensorflow/lite/micro/tools/tflite_size/src/libflatbuffer_size.so")
+    if path and os.path.exists(path):
+      return ctypes.CDLL(path)
+  except Exception:
+    pass
+
+  adjacent_path = os.path.join(os.path.dirname(__file__), "libflatbuffer_size.so")
+  if os.path.exists(adjacent_path):
+    return ctypes.CDLL(adjacent_path)
+
+  return ctypes.CDLL("libflatbuffer_size.so")
+
+
+_lib = _load_flatbuffer_size_library()
+_lib.TFLM_FlatbufferSizeConvertToJsonString.restype = ctypes.c_char_p
+_lib.TFLM_FlatbufferSizeConvertToJsonString.argtypes = [ctypes.c_char_p]
+_lib.TFLM_FlatbufferSizeFreeJsonString.restype = None
+_lib.TFLM_FlatbufferSizeFreeJsonString.argtypes = [ctypes.c_char_p]
 
 
 def convert_tflite_to_html(in_flatbuf):
   """Given a input tflite flatbuffer, returns a html and a json with size info"""
-  size_wrapper = flatbuffer_size_wrapper_pybind.FlatbufferSize()
-  out_json = size_wrapper.convertToJsonString(in_flatbuf)
+  raw_json = _lib.TFLM_FlatbufferSizeConvertToJsonString(in_flatbuf)
+  out_json = raw_json.decode("utf-8")
   json_as_dict = json.loads(out_json)
 
   formatted_json = json.dumps(json_as_dict)
@@ -48,16 +73,13 @@ def main(argv):
     tflite_input = argv[1]
     html_output = argv[2]
   except IndexError:
-    print("Usage: %s <input tflite> <output html>" % (argv[0]))
+    print("usage: ", argv[0], " <input tflite> <output html>\n")
   else:
-    with open(tflite_input, 'rb') as f:
-      in_flatbuf = f.read()
-
-    html_string = convert_tflite_to_html(in_flatbuf)[0]
-
-    with open(html_output, 'w') as f:
+    with open(tflite_input, "rb") as f:
+      html_string, _ = convert_tflite_to_html(f.read())
+    with open(html_output, "w") as f:
       f.write(html_string)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   main(sys.argv)

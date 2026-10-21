@@ -73,42 +73,25 @@ tags](https://packaging.python.org/en/latest/specifications/platform-compatibili
 ### Building
 
 In an environment with a working Docker installation, run the script
-`python/tflite_micro/pypi_build.sh <python-tag>` once for each tag. The
-script's online help (`--help`) lists the available tags. The script builds an
-appropriate Docker container and invokes a Bazel build and test within it.
-For example:
+`python/tflite_micro/pypi_build.sh`. The script builds an
+appropriate Docker container and invokes a Bazel build and test within it, producing
+a universal Python 3 wheel (`py3-none-manylinux_...`):
 ```
-% python/tflite_micro/pypi_build.sh cp310
-[+] Building 2.6s (7/7) FINISHED
-=> writing image sha256:900704dad7fa27938dcc1c5057c0e760fb4ab0dff676415182455ae66546bbd4
-bazel build //python/tflite_micro:whl.dist \
-    --@rules_python//python/config_settings:python_version=3.10 \
-    --//python/tflite_micro:compatibility_tag=cp310_cp310_manylinux_2_28_x86_64
-bazel test //python/tflite_micro:whl_test \
-    --@rules_python//python/config_settings:python_version=3.10 \
-    --//python/tflite_micro:compatibility_tag=cp310_cp310_manylinux_2_28_x86_64
-//python/tflite_micro:whl_test
-Executed 1 out of 1 test: 1 test passes.
+% python/tflite_micro/pypi_build.sh
+...
 Output:
-bazel-pypi-out/tflite_micro-0.dev20230920031310-cp310-cp310-manylinux_2_28_x86_64.whl
+bazel-pypi-out/tflite_micro-0.dev20261020031310-py3-none-manylinux_2_28_x86_64.whl
 ```
 
 By default, *.whl*s are generated under the output directory `bazel-pypi-out/`.
 
 ### Uploading to PyPI
 
-Upload the generated *.whl*s to PyPI with the script
-`python/tflite_micro/pypi_upload.sh`. This script lightly wraps the standard
-upload tool `twine`. A PyPI authentication token must be assigned to
+Upload the generated *.whl* to PyPI with `twine`. A PyPI authentication token must be assigned to
 `TWINE_PASSWORD` in the environment. For example:
 ```
 % export TWINE_PASSWORD=pypi-AgENdGV[....]
-% ./python/tflite_micro/pypi_upload.sh --test-pypi bazel-pypi-out/tflite_micro-*.whl
-Uploading distributions to https://test.pypi.org/legacy/
-Uploading tflite_micro-0.dev20230920031310-cp310-cp310-manylinux_2_28_x86_64.whl
-Uploading tflite_micro-0.dev20230920031310-cp311-cp311-manylinux_2_28_x86_64.whl
-View at:
-https://test.pypi.org/project/tflite-micro/0.dev20230920031310/
+% twine upload bazel-pypi-out/tflite_micro-*.whl
 ```
 
 See the script's online help (`--help`) for more.
@@ -166,9 +149,10 @@ For a complete end-to-end example using the Python interpreter for model compres
 
 ### Technical Details
 
-The Python interpreter uses [pybind11](https://github.com/pybind/pybind11) to
-expose an evolving set of C++ APIs. The Bazel build leverages the
-[pybind11_bazel extension](https://github.com/pybind/pybind11_bazel).
+The Python interpreter is built as a pure C-ABI shared library (`libtflm.so`) that
+interfaces with Python via Python's standard library `ctypes`. This avoids any
+dependency on CPython internal headers or binding libraries, making the compiled
+binary forward-compatible across all Python 3 versions without rebuilding.
 
 The most updated Python APIs can be found in
 `python/tflite_micro/runtime.py`.

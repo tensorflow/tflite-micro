@@ -2,7 +2,6 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//python:py_rules.bzl",
-    "pybind_extension",
     "tflm_py_binary",
     "tflm_py_library",
     "tflm_py_test",
@@ -144,15 +143,15 @@ tflm_py_test(
     ],
 )
 
-pybind_extension(
-    name = "tflite_flatbuffer_align_wrapper",  # :tflite_flatbuffer_align_wrapper.so
+tflm_py_library(
+    name = "flatbuffer_align",
     srcs = [
-        "tflite_flatbuffer_align_wrapper.cc",
+        "flatbuffer_align.py",
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    visibility = ["//visibility:public"],
     deps = [
-        "//tensorflow/lite/micro/schema:schema_fbs",
-        "@flatbuffers",
+        "//python/tflite_micro:runtime",
     ],
 )
 
@@ -161,26 +160,22 @@ tflm_py_binary(
     srcs = [
         "tflite_flatbuffer_align.py",
     ],
-    data = [
-        ":tflite_flatbuffer_align_wrapper.so",
-    ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
+        ":flatbuffer_align",
     ],
 )
 
 tflm_py_library(
     name = "model_transforms_utils",
     srcs = ["model_transforms_utils.py"],
-    data = [
-        ":tflite_flatbuffer_align_wrapper.so",
-    ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = [
         ":application_friends",
         ":tflm_tools",
     ],
     deps = [
+        ":flatbuffer_align",
         "//tensorflow/lite/micro/python:schema_py",
         "//tensorflow/lite/micro/python:schema_util",
     ],

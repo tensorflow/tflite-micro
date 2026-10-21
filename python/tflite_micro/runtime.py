@@ -12,14 +12,224 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Python package for TFLM Python Interpreter"""
+"""Python package for TFLM Python Interpreter using standard C-API."""
 
+import ctypes
 import enum
 import os
-from tflite_micro.python.tflite_micro import _runtime
+import sys
+import numpy as np
+
 from tflite_micro.tensorflow.lite.micro.python import (
-  schema_py_generated as schema_fb,
+    schema_py_generated as schema_fb,
 )
+
+
+def _load_tflm_library():
+  """Finds and loads libtflm.so across google3, Bazel, and PyPI."""
+  # 1. Try google3 runfiles:
+  try:
+    from google3.pyglib import resources  # pylint: disable=g-import-not-at-top
+
+    for candidate in [
+        "google3/third_party/tflite_micro/tensorflow/lite/micro/c_api/libtflm.so",
+        "google3/third_party/tflite_micro/python/tflite_micro/libtflm.so",
+    ]:
+      path = resources.GetResourceFilename(candidate)
+      if os.path.exists(path):
+        return ctypes.CDLL(path)
+  except ImportError:
+    pass
+
+  # 2. Try Bazel runfiles:
+  try:
+    from rules_python.python.runfiles import runfiles  # pylint: disable=g-import-not-at-top
+
+    r = runfiles.Create()
+    for candidate in [
+        "tflite_micro/tensorflow/lite/micro/c_api/libtflm.so",
+        "tflite_micro/python/tflite_micro/libtflm.so",
+    ]:
+      path = r.Rlocation(candidate)
+      if path and os.path.exists(path):
+        return ctypes.CDLL(path)
+  except (ImportError, TypeError):
+    pass
+
+  # 3. Try directory adjacent to this file:
+  adjacent_path = os.path.join(os.path.dirname(__file__), "libtflm.so")
+  if os.path.exists(adjacent_path):
+    return ctypes.CDLL(adjacent_path)
+
+  # 4. Try c_api directory inside the installed tflite_micro wheel namespace:
+  wheel_c_api_path = os.path.join(
+      os.path.dirname(__file__),
+      "..",
+      "..",
+      "tensorflow",
+      "lite",
+      "micro",
+      "c_api",
+      "libtflm.so",
+  )
+  if os.path.exists(wheel_c_api_path):
+    return ctypes.CDLL(os.path.abspath(wheel_c_api_path))
+
+  # 5. Try repo root relative path:
+  rel_path = os.path.join(
+      os.path.dirname(__file__),
+      "..",
+      "..",
+      "tensorflow",
+      "lite",
+      "micro",
+      "c_api",
+      "libtflm.so",
+  )
+  if os.path.exists(rel_path):
+    return ctypes.CDLL(os.path.abspath(rel_path))
+
+  # 5. Fallback to system dynamic loader:
+  return ctypes.CDLL("libtflm.so")
+
+
+_lib = _load_tflm_library()
+
+# Function signatures
+_lib.TFLM_InterpreterCreate.restype = ctypes.c_void_p
+_lib.TFLM_InterpreterCreate.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_char_p),
+    ctypes.c_size_t,
+    ctypes.c_size_t,
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_size_t,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterDestroy.restype = None
+_lib.TFLM_InterpreterDestroy.argtypes = [ctypes.c_void_p]
+
+_lib.TFLM_InterpreterInvoke.restype = ctypes.c_int
+_lib.TFLM_InterpreterInvoke.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterReset.restype = ctypes.c_int
+_lib.TFLM_InterpreterReset.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterPrintAllocations.restype = None
+_lib.TFLM_InterpreterPrintAllocations.argtypes = [ctypes.c_void_p]
+
+_lib.TFLM_InterpreterSetInputData.restype = ctypes.c_int
+_lib.TFLM_InterpreterSetInputData.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_size_t,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterGetOutputData.restype = ctypes.c_void_p
+_lib.TFLM_InterpreterGetOutputData.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_size_t),
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterGetTensorData.restype = ctypes.c_void_p
+_lib.TFLM_InterpreterGetTensorData.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_size_t),
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterGetTensorDetails.restype = ctypes.c_int
+_lib.TFLM_InterpreterGetTensorDetails.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_int,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(ctypes.c_size_t),
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_int32),
+    ctypes.POINTER(ctypes.c_size_t),
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+_lib.TFLM_InterpreterGetEvalTensorDetails.restype = ctypes.c_int
+_lib.TFLM_InterpreterGetEvalTensorDetails.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(ctypes.c_size_t),
+    ctypes.c_size_t,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+]
+
+# TfLiteType enum to NumPy dtype mapping
+_TFLITE_TYPE_TO_NUMPY_DTYPE = {
+    1: np.float32,
+    2: np.int32,
+    3: np.uint8,
+    4: np.int64,
+    6: np.bool_,
+    7: np.int16,
+    8: np.complex64,
+    9: np.int8,
+    10: np.float16,
+    11: np.float64,
+    12: np.complex128,
+    13: np.uint64,
+    16: np.uint32,
+    17: np.uint16,
+    18: np.int8,  # Int4
+    20: np.int8,  # Int2
+    21: np.uint8,  # UInt4
+}
+
+_NUMPY_DTYPE_TO_TFLITE_TYPE = {
+    np.dtype(np.float32): 1,
+    np.dtype(np.int32): 2,
+    np.dtype(np.uint8): 3,
+    np.dtype(np.int64): 4,
+    np.dtype(np.bool_): 6,
+    np.dtype(np.int16): 7,
+    np.dtype(np.complex64): 8,
+    np.dtype(np.int8): 9,
+    np.dtype(np.float16): 10,
+    np.dtype(np.float64): 11,
+    np.dtype(np.complex128): 12,
+    np.dtype(np.uint64): 13,
+    np.dtype(np.uint32): 16,
+    np.dtype(np.uint16): 17,
+}
 
 
 def convert_bytearray_to_object(model_bytearray):
@@ -45,7 +255,7 @@ def count_resource_variables(model):
       continue
     for op in subgraph.operators:
       builtin_code = get_builtin_code_from_operator_code(
-        model.operatorCodes[op.opcodeIndex]
+          model.operatorCodes[op.opcodeIndex]
       )
       if builtin_code == schema_fb.BuiltinOperator.VAR_HANDLE:
         unique_shared_names.add(op.builtinOptions.sharedName)
@@ -53,106 +263,79 @@ def count_resource_variables(model):
 
 
 class InterpreterConfig(enum.Enum):
-  """There are two mutually exclusive types of way you could use the TFLM python
-
-  interpreter, this enum is made so that users can clearly choose between the
-  two
-  different usage method for the interpreter.
-
-  The first default way is kRecordingAllocation where all memory usage by the
-  interpreter is recorded on inference. When using this config the GetTensor()
-  api is disabled by the interpreter since this interpreter configuration
-  doesn’t
-  guarantee that the valid data for all tensors is available post inference.
-
-  The second way is kPreserveAllTensors where the GetTensor() api is disabled by
-  the interpreter since this interpreter configuration doesn’t guarantee that
-  the
-  valid data for all tensors is available post inference. But the memory usage
-  by
-  the interpreter won’t be recorded on inference.
-
-  Usage:
-
-  default_interpreter = Interpreter(…
-        intrepreter_config=InterpreterConfig.kAllocationRecording)
-
-  preserve_interpreter = Interpreter(…
-        intrepreter_config=InterpreterConfig.kPreserveAllTensors)
-  """
+  """Interpreter configuration modes."""
 
   kAllocationRecording = 0
   kPreserveAllTensors = 1
 
 
-# TODO(b/297118768): Once Korko Docker container for ubuntu x86 has imutabledict
-# added to it, this should be turned into an immutabledict.
-_ENUM_TRANSLATOR = {
-  InterpreterConfig.kAllocationRecording: (
-    _runtime.PythonInterpreterConfig.kAllocationRecording
-  ),
-  InterpreterConfig.kPreserveAllTensors: (
-    _runtime.PythonInterpreterConfig.kPreserveAllTensors
-  ),
-}
-
-
 class Interpreter(object):
+  """TFLM Python Interpreter wrapping C shared library."""
+
   def __init__(
-    self,
-    model_data,
-    custom_op_registerers,
-    arena_size,
-    intrepreter_config=InterpreterConfig.kAllocationRecording,
-    alt_decompression_memory_size=0,
+      self,
+      model_data,
+      custom_op_registerers,
+      arena_size,
+      intrepreter_config=InterpreterConfig.kAllocationRecording,
+      alt_decompression_memory_size=0,
   ):
     if model_data is None:
       raise ValueError("Model must not be None")
 
     if not isinstance(custom_op_registerers, list) or not all(
-      isinstance(s, str) for s in custom_op_registerers
+        isinstance(s, str) for s in custom_op_registerers
     ):
       raise ValueError("Custom ops registerers must be a list of strings")
 
-    # This is a heuristic to ensure that the arena is sufficiently sized.
     if arena_size is None:
       arena_size = len(model_data) * 10
-    # Some models make use of resource variables ops, get the count here
+
     num_resource_variables = count_resource_variables(model_data)
 
-    self._interpreter = _runtime.InterpreterWrapper(
-      model_data,
-      custom_op_registerers,
-      arena_size,
-      num_resource_variables,
-      _ENUM_TRANSLATOR[intrepreter_config],
-      alt_decompression_memory_size,
+    # Convert custom_op_registerers to C char** array
+    c_reg_array = None
+    if custom_op_registerers:
+      c_strings = [s.encode("utf-8") for s in custom_op_registerers]
+      c_reg_array = (ctypes.c_char_p * len(c_strings))(*c_strings)
+
+    err_buf = ctypes.create_string_buffer(512)
+    # Retain model_data reference to prevent Python GC from releasing memory
+    self._model_data = bytes(model_data)
+    self._handle = _lib.TFLM_InterpreterCreate(
+        self._model_data,
+        len(self._model_data),
+        c_reg_array,
+        len(custom_op_registerers),
+        arena_size,
+        num_resource_variables,
+        intrepreter_config.value,
+        alt_decompression_memory_size,
+        err_buf,
+        len(err_buf),
     )
+
+    if not self._handle:
+      err_msg = err_buf.value.decode("utf-8") or "Unknown error"
+      if "Python object to char *" in err_msg:
+        raise ValueError(err_msg)
+      raise RuntimeError(err_msg)
+
+  def __del__(self):
+    if hasattr(self, "_handle") and self._handle:
+      _lib.TFLM_InterpreterDestroy(self._handle)
+      self._handle = None
 
   @classmethod
   def from_file(
-    self,
-    model_path,
-    custom_op_registerers=None,
-    arena_size=None,
-    intrepreter_config=InterpreterConfig.kAllocationRecording,
-    alt_decompression_memory_size=0,
+      cls,
+      model_path,
+      custom_op_registerers=None,
+      arena_size=None,
+      intrepreter_config=InterpreterConfig.kAllocationRecording,
+      alt_decompression_memory_size=0,
   ):
-    """Instantiates a TFLM interpreter from a model .tflite filepath.
-
-    Args:
-      model_path: Filepath to the .tflite model
-      custom_op_registerers: List of strings, each of which is the name of a
-        custom OP registerer
-      arena_size: Tensor arena size in bytes. If unused, tensor arena size will
-        default to 10 times the model size.
-      alt_decompression_memory_size: Size in bytes of alternate decompression
-        memory. If non-zero, DECODE operators will use this memory instead of
-        the main arena for decompressed tensor outputs.
-
-    Returns:
-      An Interpreter instance
-    """
+    """Instantiates a TFLM interpreter from a model .tflite filepath."""
     if custom_op_registerers is None:
       custom_op_registerers = []
 
@@ -162,176 +345,216 @@ class Interpreter(object):
     with open(model_path, "rb") as f:
       model_data = f.read()
 
-    return Interpreter(
-      model_data,
-      custom_op_registerers,
-      arena_size,
-      intrepreter_config,
-      alt_decompression_memory_size,
+    return cls(
+        model_data,
+        custom_op_registerers,
+        arena_size,
+        intrepreter_config,
+        alt_decompression_memory_size,
     )
 
   @classmethod
   def from_bytes(
-    self,
-    model_data,
-    custom_op_registerers=None,
-    arena_size=None,
-    intrepreter_config=InterpreterConfig.kAllocationRecording,
-    alt_decompression_memory_size=0,
+      cls,
+      model_data,
+      custom_op_registerers=None,
+      arena_size=None,
+      intrepreter_config=InterpreterConfig.kAllocationRecording,
+      alt_decompression_memory_size=0,
   ):
-    """Instantiates a TFLM interpreter from a model in byte array.
-
-    Args:
-      model_data: Model in byte array format
-      custom_op_registerers: List of strings, each of which is the name of a
-        custom OP registerer
-      arena_size: Tensor arena size in bytes. If unused, tensor arena size will
-        default to 10 times the model size.
-      alt_decompression_memory_size: Size in bytes of alternate decompression
-        memory. If non-zero, DECODE operators will use this memory instead of
-        the main arena for decompressed tensor outputs.
-
-    Returns:
-      An Interpreter instance
-    """
-
+    """Instantiates a TFLM interpreter from a model in byte array."""
     if custom_op_registerers is None:
       custom_op_registerers = []
 
-    return Interpreter(
-      model_data,
-      custom_op_registerers,
-      arena_size,
-      intrepreter_config,
-      alt_decompression_memory_size,
+    return cls(
+        model_data,
+        custom_op_registerers,
+        arena_size,
+        intrepreter_config,
+        alt_decompression_memory_size,
     )
 
   def print_allocations(self):
-    """Invoke the RecordingMicroAllocator to print the arena usage.
-
-    This should be called after `invoke()`.
-
-    Returns:
-      This method does not return anything, but It dumps the arena
-      usage to stderr.
-    """
-    self._interpreter.PrintAllocations()
+    """Prints arena allocations."""
+    _lib.TFLM_InterpreterPrintAllocations(self._handle)
 
   def invoke(self):
-    """Invoke the TFLM interpreter to run an inference.
-
-    This should be called after `set_input()`.
-
-    Returns:
-      Status code of the C++ invoke function. A RuntimeError will be raised as
-      well upon any error.
-    """
-    return self._interpreter.Invoke()
+    """Invoke the TFLM interpreter to run an inference."""
+    err_buf = ctypes.create_string_buffer(512)
+    status = _lib.TFLM_InterpreterInvoke(self._handle, err_buf, len(err_buf))
+    if status != 0:
+      raise RuntimeError(err_buf.value.decode("utf-8") or "Interpreter invocation failed.")
+    return status
 
   def reset(self):
-    """Reset the model state to be what you would expect when the interpreter is first
-
-    created. i.e. after Init and Prepare is called for the very first time.
-
-    This should be called after invoke stateful model like LSTM.
-
-    Returns:
-      Status code of the C++ invoke function. A RuntimeError will be raised as
-      well upon any error.
-    """
-    return self._interpreter.Reset()
+    """Reset the model state."""
+    err_buf = ctypes.create_string_buffer(512)
+    status = _lib.TFLM_InterpreterReset(self._handle, err_buf, len(err_buf))
+    if status != 0:
+      raise RuntimeError(err_buf.value.decode("utf-8") or "Failed to reset interpreter.")
+    return status
 
   def set_input(self, input_data, index):
-    """Set input data into input tensor.
-
-    This should be called before `invoke()`.
-
-    Args:
-      input_data: Input data in numpy array format. The numpy array format is
-        chosen to be consistent with TFLite interpreter.
-      index: An integer between 0 and the number of input tensors (exclusive)
-        consistent with the order defined in the list of inputs in the .tflite
-        model
-    """
+    """Set input data into input tensor."""
     if input_data is None:
       raise ValueError("Input data must not be None")
     if index is None or index < 0:
       raise ValueError("Index must be a non-negative integer")
 
-    self._interpreter.SetInputTensor(input_data, index)
+    # Convert input_data to NumPy array if it isn't already
+    if not isinstance(input_data, np.ndarray):
+      input_data = np.array(input_data)
+
+    if not input_data.flags["C_CONTIGUOUS"]:
+      input_data = np.ascontiguousarray(input_data)
+
+    type_code = _NUMPY_DTYPE_TO_TFLITE_TYPE.get(input_data.dtype, -1)
+
+    dims = (ctypes.c_int * input_data.ndim)(*input_data.shape)
+    err_buf = ctypes.create_string_buffer(512)
+    ptr = input_data.ctypes.data_as(ctypes.c_void_p)
+
+    status = _lib.TFLM_InterpreterSetInputData(
+        self._handle,
+        index,
+        ptr,
+        input_data.nbytes,
+        type_code,
+        dims,
+        input_data.ndim,
+        err_buf,
+        len(err_buf),
+    )
+    if status != 0:
+      err_msg = err_buf.value.decode("utf-8")
+      if "Cannot set tensor" in err_msg or "numpy array had" in err_msg:
+        raise ValueError(err_msg)
+      if "out of bound" in err_msg:
+        raise IndexError(err_msg)
+      raise RuntimeError(err_msg)
 
   def get_output(self, index):
-    """Get data from output tensor.
-
-    The output data correspond to the most recent `invoke()`.
-
-    Args:
-      index: An integer between 0 and the number of output tensors (exclusive)
-        consistent with the order defined in the list of outputs in the .tflite
-        model
-
-    Returns:
-      Output data in numpy array format. The numpy array format is chosen to
-      be consistent with TFLite interpreter.
-    """
+    """Get data from output tensor."""
     if index is None or index < 0:
       raise ValueError("Index must be a non-negative integer")
 
-    return self._interpreter.GetOutputTensor(index)
+    details = self.get_output_details(index)
+    byte_size = ctypes.c_size_t()
+    err_buf = ctypes.create_string_buffer(512)
+    ptr = _lib.TFLM_InterpreterGetOutputData(
+        self._handle, index, ctypes.byref(byte_size), err_buf, len(err_buf)
+    )
+    if not ptr:
+      raise IndexError(err_buf.value.decode("utf-8") or "Output tensor index out of bounds.")
 
-  def GetTensor(self, tensor_index, subgraph_index):
-    return self._interpreter.GetTensor(tensor_index, subgraph_index)
+    raw_buf = (ctypes.c_char * byte_size.value).from_address(ptr)
+    arr = np.frombuffer(raw_buf, dtype=details["dtype"]).reshape(details["shape"])
+    return arr.copy()
+
+  def GetTensor(self, tensor_index, subgraph_index=0):
+    """Retrieve intermediate tensor data when using kPreserveAllTensors."""
+    details = self._get_eval_tensor_details(tensor_index, subgraph_index)
+    byte_size = ctypes.c_size_t()
+    err_buf = ctypes.create_string_buffer(512)
+    ptr = _lib.TFLM_InterpreterGetTensorData(
+        self._handle,
+        tensor_index,
+        subgraph_index,
+        ctypes.byref(byte_size),
+        err_buf,
+        len(err_buf),
+    )
+    if not ptr:
+      raise RuntimeError(err_buf.value.decode("utf-8") or "Failed to get tensor data.")
+
+    raw_buf = (ctypes.c_char * byte_size.value).from_address(ptr)
+    arr = np.frombuffer(raw_buf, dtype=details["dtype"]).reshape(details["shape"])
+    details["tensor_data"] = arr.copy()
+    return details
+
+  def _get_eval_tensor_details(self, tensor_index, subgraph_index):
+    out_type = ctypes.c_int()
+    max_dims = 16
+    out_dims = (ctypes.c_int * max_dims)()
+    out_num_dims = ctypes.c_size_t()
+    err_buf = ctypes.create_string_buffer(512)
+
+    status = _lib.TFLM_InterpreterGetEvalTensorDetails(
+        self._handle,
+        tensor_index,
+        subgraph_index,
+        ctypes.byref(out_type),
+        out_dims,
+        ctypes.byref(out_num_dims),
+        max_dims,
+        err_buf,
+        len(err_buf),
+    )
+    if status != 0:
+      raise RuntimeError(err_buf.value.decode("utf-8") or "Failed to get eval tensor details.")
+
+    shape = np.array([out_dims[i] for i in range(out_num_dims.value)], dtype=np.int32)
+    dtype = _TFLITE_TYPE_TO_NUMPY_DTYPE.get(out_type.value)
+    return {"dtype": dtype, "shape": shape}
+
+  def _get_tensor_details(self, is_input, index):
+    out_type = ctypes.c_int()
+    max_dims = 16
+    out_dims = (ctypes.c_int * max_dims)()
+    out_num_dims = ctypes.c_size_t()
+
+    max_quant = 512
+    out_scales = (ctypes.c_float * max_quant)()
+    out_zero_points = (ctypes.c_int32 * max_quant)()
+    out_num_quant = ctypes.c_size_t()
+    out_quant_dim = ctypes.c_int()
+    err_buf = ctypes.create_string_buffer(512)
+
+    status = _lib.TFLM_InterpreterGetTensorDetails(
+        self._handle,
+        1 if is_input else 0,
+        index,
+        ctypes.byref(out_type),
+        out_dims,
+        ctypes.byref(out_num_dims),
+        max_dims,
+        out_scales,
+        out_zero_points,
+        ctypes.byref(out_num_quant),
+        max_quant,
+        ctypes.byref(out_quant_dim),
+        err_buf,
+        len(err_buf),
+    )
+    if status != 0:
+      err_msg = err_buf.value.decode("utf-8")
+      if "out of bound" in err_msg:
+        raise IndexError(err_msg)
+      raise ValueError(err_msg)
+
+    dtype = _TFLITE_TYPE_TO_NUMPY_DTYPE.get(out_type.value)
+    shape = np.array([out_dims[i] for i in range(out_num_dims.value)], dtype=np.int32)
+    scales = np.array([out_scales[i] for i in range(out_num_quant.value)], dtype=np.float32)
+    zero_points = np.array([out_zero_points[i] for i in range(out_num_quant.value)], dtype=np.int32)
+
+    return {
+        "dtype": dtype,
+        "shape": shape,
+        "quantization_parameters": {
+            "scales": scales,
+            "zero_points": zero_points,
+            "quantized_dimension": out_quant_dim.value,
+        },
+    }
 
   def get_input_details(self, index):
-    """Get input tensor information
-
-    Args:
-        index (int): An integer between 0 and the number of output tensors
-          (exclusive) consistent with the order defined in the list of outputs
-          in the .tflite model
-
-    Returns:
-        A dictionary from input index to tensor details where each item is a
-        dictionary with details about an input tensor. Each dictionary contains
-        the following fields that describe the tensor:
-        + `shape`: The shape of the tensor.
-        + `dtype`: The numpy data type (such as `np.int32` or `np.uint8`).
-        + `quantization_parameters`: A dictionary of parameters used to quantize
-          the tensor:
-          ~ `scales`: List of scales (one if per-tensor quantization).
-          ~ `zero_points`: List of zero_points (one if per-tensor quantization).
-          ~ `quantized_dimension`: Specifies the dimension of per-axis
-          quantization, in the case of multiple scales/zero_points.
-
-    """
+    """Get input tensor information."""
     if index is None or index < 0:
       raise ValueError("Index must be a non-negative integer")
-
-    return self._interpreter.GetInputTensorDetails(index)
+    return self._get_tensor_details(is_input=True, index=index)
 
   def get_output_details(self, index):
-    """Get output tensor information
-
-    Args:
-        index (int): An integer between 0 and the number of output tensors
-          (exclusive) consistent with the order defined in the list of outputs
-          in the .tflite model
-
-    Returns:
-        A dictionary from input index to tensor details where each item is a
-        dictionary with details about an input tensor. Each dictionary contains
-        the following fields that describe the tensor:
-        + `shape`: The shape of the tensor.
-        + `dtype`: The numpy data type (such as `np.int32` or `np.uint8`).
-        + `quantization_parameters`: A dictionary of parameters used to quantize
-          the tensor:
-          ~ `scales`: List of scales (one if per-tensor quantization).
-          ~ `zero_points`: List of zero_points (one if per-tensor quantization).
-          ~ `quantized_dimension`: Specifies the dimension of per-axis
-          quantization, in the case of multiple scales/zero_points.
-
-    """
+    """Get output tensor information."""
     if index is None or index < 0:
       raise ValueError("Index must be a non-negative integer")
-
-    return self._interpreter.GetOutputTensorDetails(index)
+    return self._get_tensor_details(is_input=False, index=index)
