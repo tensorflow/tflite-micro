@@ -84,7 +84,9 @@ jobs:
 
   corstone_300_gcc:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
+    container:
+      image: ghcr.io/tflm-bot/corstone300:0.1
     timeout-minutes: 60
     name: Cortex-M Corstone 300 (GCC)
     steps:
@@ -93,13 +95,13 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
       - name: Test
-        uses: docker://ghcr.io/tflm-bot/corstone300:0.1
-        with:
-          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
+        run: tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
 
   corstone_300_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
+    container:
+      image: ghcr.io/tflm-bot/corstone300:0.1
     timeout-minutes: 60
     name: Cortex-M Corstone 300 Bazel (FVP + Ethos-U)
     steps:
@@ -108,9 +110,7 @@ jobs:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
       - name: Test
-        uses: docker://ghcr.io/tflm-bot/corstone300:0.1
-        with:
-          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_bazel_corstone300.sh
+        run: tensorflow/lite/micro/tools/ci_build/test_bazel_corstone300.sh
 
   corstone_300_armclang:
     if: inputs.scope == 'all'
