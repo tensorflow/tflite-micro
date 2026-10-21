@@ -229,8 +229,8 @@ py_wheel(
     description_file = ":description_file",
     distribution = "tflite_micro",
     platform = select({
-        ":py3_none_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
         ":local": "any",
+        ":py3_none_manylinux_2_28_x86_64": "manylinux_2_28_x86_64",
     }),
     python_tag = "py3",
     requires = [

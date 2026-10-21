@@ -1,5 +1,4 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//tensorflow/lite/micro:build_def.bzl", "tflm_cc_library")
 
 package(
@@ -11,7 +10,6 @@ tflm_cc_library(
     name = "c_api_lib",
     srcs = ["tflm_c_api.cc"],
     hdrs = ["tflm_c_api.h"],
-    alwayslink = True,
     deps = [
         "//python/tflite_micro:compression_utils",
         "//python/tflite_micro:python_ops_resolver",
@@ -26,8 +24,9 @@ tflm_cc_library(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@flatbuffers//:flatbuffers",
+        "@flatbuffers",
     ],
+    alwayslink = True,
 )
 
 cc_binary(

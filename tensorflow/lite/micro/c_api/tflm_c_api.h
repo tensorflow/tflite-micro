@@ -35,11 +35,13 @@ extern "C" {
 
 typedef struct TFLM_Interpreter TFLM_Interpreter;
 
+// NOLINTNEXTLINE(performance-enum-size)
 typedef enum {
   kTFLMOk = 0,
   kTFLMError = 1,
 } TFLM_Status;
 
+// NOLINTNEXTLINE(performance-enum-size)
 typedef enum {
   kTFLMConfigAllocationRecording = 0,
   kTFLMConfigPreserveAllTensors = 1,
@@ -50,28 +52,29 @@ typedef enum {
 TFLM_C_API_EXPORT TFLM_Interpreter* TFLM_InterpreterCreate(
     const uint8_t* model_data, size_t model_size,
     const char* const* custom_op_registerers, size_t num_registerers,
-    size_t arena_size, int num_resource_variables,
-    int interpreter_config, size_t alt_decompression_memory_size,
-    char* err_buf, size_t err_buf_len);
+    size_t arena_size, int num_resource_variables, int interpreter_config,
+    size_t alt_decompression_memory_size, char* err_buf, size_t err_buf_len);
 
 // Destroy the TFLM Interpreter.
 TFLM_C_API_EXPORT void TFLM_InterpreterDestroy(TFLM_Interpreter* interp);
 
 // Execution
-TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterInvoke(
-    TFLM_Interpreter* interp, char* err_buf, size_t err_buf_len);
+TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterInvoke(TFLM_Interpreter* interp,
+                                                     char* err_buf,
+                                                     size_t err_buf_len);
 
-TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterReset(
-    TFLM_Interpreter* interp, char* err_buf, size_t err_buf_len);
+TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterReset(TFLM_Interpreter* interp,
+                                                    char* err_buf,
+                                                    size_t err_buf_len);
 
 TFLM_C_API_EXPORT void TFLM_InterpreterPrintAllocations(
     TFLM_Interpreter* interp);
 
 // Input & Output Tensor Data
 TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterSetInputData(
-    TFLM_Interpreter* interp, size_t index, const void* data,
-    size_t byte_size, int type_code, const int* dims, size_t num_dims,
-    char* err_buf, size_t err_buf_len);
+    TFLM_Interpreter* interp, size_t index, const void* data, size_t byte_size,
+    int type_code, const int* dims, size_t num_dims, char* err_buf,
+    size_t err_buf_len);
 
 // Returns pointer to output tensor buffer inside arena and sets out_byte_size.
 TFLM_C_API_EXPORT const void* TFLM_InterpreterGetOutputData(
@@ -85,23 +88,22 @@ TFLM_C_API_EXPORT const void* TFLM_InterpreterGetTensorData(
 
 // Metadata & Quantization Details
 TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterGetTensorDetails(
-    const TFLM_Interpreter* interp, int is_input, size_t index,
-    int* out_type,
-    int* out_dims, size_t* out_num_dims, size_t max_dims,
-    float* out_scales, int32_t* out_zero_points, size_t* out_num_quant_params,
-    size_t max_quant_params, int* out_quantized_dimension,
-    char* err_buf, size_t err_buf_len);
+    const TFLM_Interpreter* interp, int is_input, size_t index, int* out_type,
+    int* out_dims, size_t* out_num_dims, size_t max_dims, float* out_scales,
+    int32_t* out_zero_points, size_t* out_num_quant_params,
+    size_t max_quant_params, int* out_quantized_dimension, char* err_buf,
+    size_t err_buf_len);
 
 TFLM_C_API_EXPORT TFLM_Status TFLM_InterpreterGetEvalTensorDetails(
     TFLM_Interpreter* interp, size_t tensor_index, size_t subgraph_index,
-    int* out_type,
-    int* out_dims, size_t* out_num_dims, size_t max_dims,
+    int* out_type, int* out_dims, size_t* out_num_dims, size_t max_dims,
     char* err_buf, size_t err_buf_len);
 
 // Model alignment helper
-TFLM_C_API_EXPORT TFLM_Status TFLM_AlignFlatbuffer(
-    const char* input_path, const char* output_path,
-    char* err_buf, size_t err_buf_len);
+TFLM_C_API_EXPORT TFLM_Status TFLM_AlignFlatbuffer(const char* input_path,
+                                                   const char* output_path,
+                                                   char* err_buf,
+                                                   size_t err_buf_len);
 
 // Signal utils helpers
 TFLM_C_API_EXPORT float TFLM_FreqToMel(float freq);

@@ -401,6 +401,4 @@ def generate_random_input_data(model, input_tensor, random_number_generator):
 
 
 def tflite_flatbuffer_align(input_model_path, output_model_path):
-  flatbuffer_align.align_tflite_model(
-    input_model_path, output_model_path
-  )
+  flatbuffer_align.align_tflite_model(input_model_path, output_model_path)

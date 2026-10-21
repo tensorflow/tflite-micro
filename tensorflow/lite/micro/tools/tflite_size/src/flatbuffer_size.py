@@ -20,24 +20,29 @@ import os
 import sys
 
 from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
-    flatbuffer_size_graph,
+  flatbuffer_size_graph,
 )
 from tflite_micro.tensorflow.lite.micro.tools.tflite_size.src import (
-    flatbuffer_size_graph_html_converter,
+  flatbuffer_size_graph_html_converter,
 )
 
 
 def _load_flatbuffer_size_library():
   try:
     from rules_python.python.runfiles import runfiles  # pylint: disable=g-import-not-at-top
+
     r = runfiles.Create()
-    path = r.Rlocation("tflite_micro/tensorflow/lite/micro/tools/tflite_size/src/libflatbuffer_size.so")
+    path = r.Rlocation(
+      "tflite_micro/tensorflow/lite/micro/tools/tflite_size/src/libflatbuffer_size.so"
+    )
     if path and os.path.exists(path):
       return ctypes.CDLL(path)
   except Exception:
     pass
 
-  adjacent_path = os.path.join(os.path.dirname(__file__), "libflatbuffer_size.so")
+  adjacent_path = os.path.join(
+    os.path.dirname(__file__), "libflatbuffer_size.so"
+  )
   if os.path.exists(adjacent_path):
     return ctypes.CDLL(adjacent_path)
 

@@ -22,13 +22,13 @@ _lib.TFLM_FreqToMel.argtypes = [ctypes.c_float]
 
 _lib.TFLM_WideDynamicFuncLut.restype = ctypes.c_int
 _lib.TFLM_WideDynamicFuncLut.argtypes = [
-    ctypes.c_float,
-    ctypes.c_float,
-    ctypes.c_int,
-    ctypes.c_int,
-    ctypes.POINTER(ctypes.c_int16),
-    ctypes.c_size_t,
-    ctypes.POINTER(ctypes.c_size_t),
+  ctypes.c_float,
+  ctypes.c_float,
+  ctypes.c_int,
+  ctypes.c_int,
+  ctypes.POINTER(ctypes.c_int16),
+  ctypes.c_size_t,
+  ctypes.POINTER(ctypes.c_size_t),
 ]
 
 
@@ -38,20 +38,20 @@ def freq_to_mel(freq: float) -> float:
 
 
 def wide_dynamic_func_lut(
-    strength: float, offset: float, input_bits: int, gain_bits: int
+  strength: float, offset: float, input_bits: int, gain_bits: int
 ) -> list[int]:
   """Generate lookup table for PCAN gain function."""
   max_size = 130
   out_lut = (ctypes.c_int16 * max_size)()
   out_size = ctypes.c_size_t(0)
   status = _lib.TFLM_WideDynamicFuncLut(
-      float(strength),
-      float(offset),
-      int(input_bits),
-      int(gain_bits),
-      out_lut,
-      max_size,
-      ctypes.byref(out_size),
+    float(strength),
+    float(offset),
+    int(input_bits),
+    int(gain_bits),
+    out_lut,
+    max_size,
+    ctypes.byref(out_size),
   )
   if status != 0:
     raise RuntimeError("Failed to compute wide dynamic func LUT")

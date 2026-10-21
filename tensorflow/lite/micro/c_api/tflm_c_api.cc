@@ -85,9 +85,8 @@ extern "C" {
 TFLM_Interpreter* TFLM_InterpreterCreate(
     const uint8_t* model_data, size_t model_size,
     const char* const* custom_op_registerers, size_t num_registerers,
-    size_t arena_size, int num_resource_variables,
-    int interpreter_config, size_t alt_decompression_memory_size,
-    char* err_buf, size_t err_buf_len) {
+    size_t arena_size, int num_resource_variables, int interpreter_config,
+    size_t alt_decompression_memory_size, char* err_buf, size_t err_buf_len) {
   if (model_data == nullptr || model_size == 0) {
     SetError(err_buf, err_buf_len, "Invalid model data.");
     return nullptr;
@@ -114,8 +113,7 @@ TFLM_Interpreter* TFLM_InterpreterCreate(
     wrapper->alt_decompression_memory =
         std::make_unique<uint8_t[]>(alt_decompression_memory_size);
     wrapper->alt_decompression_region = {
-        wrapper->alt_decompression_memory.get(),
-        alt_decompression_memory_size};
+        wrapper->alt_decompression_memory.get(), alt_decompression_memory_size};
   } else {
     wrapper->alt_decompression_region = {nullptr, 0};
   }
@@ -124,8 +122,9 @@ TFLM_Interpreter* TFLM_InterpreterCreate(
     for (size_t i = 0; i < num_registerers; ++i) {
       if (!AddCustomOpRegistererByName(custom_op_registerers[i],
                                        &wrapper->python_ops_resolver)) {
-        std::string err = std::string("TFLM could not register custom op via ") +
-                          custom_op_registerers[i];
+        std::string err =
+            std::string("TFLM could not register custom op via ") +
+            custom_op_registerers[i];
         SetError(err_buf, err_buf_len, err.c_str());
         return nullptr;
       }
@@ -134,9 +133,8 @@ TFLM_Interpreter* TFLM_InterpreterCreate(
 
   switch (interpreter_config) {
     case kTFLMConfigAllocationRecording: {
-      wrapper->recording_allocator =
-          tflite::RecordingMicroAllocator::Create(wrapper->memory_arena.get(),
-                                                  arena_size);
+      wrapper->recording_allocator = tflite::RecordingMicroAllocator::Create(
+          wrapper->memory_arena.get(), arena_size);
       wrapper->allocator = wrapper->recording_allocator;
       break;
     }
@@ -165,7 +163,8 @@ TFLM_Interpreter* TFLM_InterpreterCreate(
     TfLiteStatus status = wrapper->interpreter->SetDecompressionMemory(
         &wrapper->alt_decompression_region, 1);
     if (status != kTfLiteOk) {
-      SetError(err_buf, err_buf_len, "TFLM failed to set decompression memory.");
+      SetError(err_buf, err_buf_len,
+               "TFLM failed to set decompression memory.");
       return nullptr;
     }
   }
@@ -179,12 +178,10 @@ TFLM_Interpreter* TFLM_InterpreterCreate(
   return wrapper.release();
 }
 
-void TFLM_InterpreterDestroy(TFLM_Interpreter* interp) {
-  delete interp;
-}
+void TFLM_InterpreterDestroy(TFLM_Interpreter* interp) { delete interp; }
 
-TFLM_Status TFLM_InterpreterInvoke(
-    TFLM_Interpreter* interp, char* err_buf, size_t err_buf_len) {
+TFLM_Status TFLM_InterpreterInvoke(TFLM_Interpreter* interp, char* err_buf,
+                                   size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
     return kTFLMError;
@@ -198,8 +195,8 @@ TFLM_Status TFLM_InterpreterInvoke(
   return kTFLMOk;
 }
 
-TFLM_Status TFLM_InterpreterReset(
-    TFLM_Interpreter* interp, char* err_buf, size_t err_buf_len) {
+TFLM_Status TFLM_InterpreterReset(TFLM_Interpreter* interp, char* err_buf,
+                                  size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
     return kTFLMError;
@@ -217,10 +214,11 @@ void TFLM_InterpreterPrintAllocations(TFLM_Interpreter* interp) {
   }
 }
 
-TFLM_Status TFLM_InterpreterSetInputData(
-    TFLM_Interpreter* interp, size_t index, const void* data,
-    size_t byte_size, int type_code, const int* dims, size_t num_dims,
-    char* err_buf, size_t err_buf_len) {
+TFLM_Status TFLM_InterpreterSetInputData(TFLM_Interpreter* interp, size_t index,
+                                         const void* data, size_t byte_size,
+                                         int type_code, const int* dims,
+                                         size_t num_dims, char* err_buf,
+                                         size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
     return kTFLMError;
@@ -228,14 +226,16 @@ TFLM_Status TFLM_InterpreterSetInputData(
 
   TfLiteTensor* tensor = interp->interpreter->input(index);
   if (tensor == nullptr) {
-    SetError(err_buf, err_buf_len, "Tensor is out of bounds, please check tensor index.");
+    SetError(err_buf, err_buf_len,
+             "Tensor is out of bounds, please check tensor index.");
     return kTFLMError;
   }
 
   if (type_code != -1 && tensor->type != static_cast<TfLiteType>(type_code)) {
     char msg[128];
     std::snprintf(msg, sizeof(msg),
-                  "Cannot set tensor: Got value of type %s but expected type %s for input %zu",
+                  "Cannot set tensor: Got value of type %s but expected type "
+                  "%s for input %zu",
                   TfLiteTypeGetName(static_cast<TfLiteType>(type_code)),
                   TfLiteTypeGetName(tensor->type), index);
     SetError(err_buf, err_buf_len, msg);
@@ -246,7 +246,8 @@ TFLM_Status TFLM_InterpreterSetInputData(
     if (num_dims != static_cast<size_t>(tensor->dims->size)) {
       char msg[128];
       std::snprintf(msg, sizeof(msg),
-                    "Cannot set tensor: Dimension mismatch. Got %zu but expected %d for input %zu",
+                    "Cannot set tensor: Dimension mismatch. Got %zu but "
+                    "expected %d for input %zu",
                     num_dims, tensor->dims->size, index);
       SetError(err_buf, err_buf_len, msg);
       return kTFLMError;
@@ -255,7 +256,8 @@ TFLM_Status TFLM_InterpreterSetInputData(
       if (tensor->dims->data[j] != dims[j]) {
         char msg[128];
         std::snprintf(msg, sizeof(msg),
-                      "Cannot set tensor: Dimension mismatch. Got %d but expected %d for dimension %zu of input %zu",
+                      "Cannot set tensor: Dimension mismatch. Got %d but "
+                      "expected %d for dimension %zu of input %zu",
                       dims[j], tensor->dims->data[j], j, index);
         SetError(err_buf, err_buf_len, msg);
         return kTFLMError;
@@ -273,7 +275,8 @@ TFLM_Status TFLM_InterpreterSetInputData(
   }
 
   if (tensor->data.data == nullptr && tensor->bytes > 0) {
-    SetError(err_buf, err_buf_len, "Cannot set tensor: Tensor is non-empty but has nullptr.");
+    SetError(err_buf, err_buf_len,
+             "Cannot set tensor: Tensor is non-empty but has nullptr.");
     return kTFLMError;
   }
 
@@ -281,9 +284,9 @@ TFLM_Status TFLM_InterpreterSetInputData(
   return kTFLMOk;
 }
 
-const void* TFLM_InterpreterGetOutputData(
-    const TFLM_Interpreter* interp, size_t index, size_t* out_byte_size,
-    char* err_buf, size_t err_buf_len) {
+const void* TFLM_InterpreterGetOutputData(const TFLM_Interpreter* interp,
+                                          size_t index, size_t* out_byte_size,
+                                          char* err_buf, size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
     return nullptr;
@@ -301,18 +304,21 @@ const void* TFLM_InterpreterGetOutputData(
   return tensor->data.data;
 }
 
-const void* TFLM_InterpreterGetTensorData(
-    TFLM_Interpreter* interp, size_t tensor_index, size_t subgraph_index,
-    size_t* out_byte_size, char* err_buf, size_t err_buf_len) {
+const void* TFLM_InterpreterGetTensorData(TFLM_Interpreter* interp,
+                                          size_t tensor_index,
+                                          size_t subgraph_index,
+                                          size_t* out_byte_size, char* err_buf,
+                                          size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
     return nullptr;
   }
 
   if (!interp->interpreter->preserve_all_tensors()) {
-    SetError(err_buf, err_buf_len,
-             "TFLM only supports GetTensor() when using a python interpreter "
-             "with the InterpreterConfig.kPreserveAllTensors interpreter_config");
+    SetError(
+        err_buf, err_buf_len,
+        "TFLM only supports GetTensor() when using a python interpreter "
+        "with the InterpreterConfig.kPreserveAllTensors interpreter_config");
     return nullptr;
   }
 
@@ -330,12 +336,11 @@ const void* TFLM_InterpreterGetTensorData(
 }
 
 TFLM_Status TFLM_InterpreterGetTensorDetails(
-    const TFLM_Interpreter* interp, int is_input, size_t index,
-    int* out_type,
-    int* out_dims, size_t* out_num_dims, size_t max_dims,
-    float* out_scales, int32_t* out_zero_points, size_t* out_num_quant_params,
-    size_t max_quant_params, int* out_quantized_dimension,
-    char* err_buf, size_t err_buf_len) {
+    const TFLM_Interpreter* interp, int is_input, size_t index, int* out_type,
+    int* out_dims, size_t* out_num_dims, size_t max_dims, float* out_scales,
+    int32_t* out_zero_points, size_t* out_num_quant_params,
+    size_t max_quant_params, int* out_quantized_dimension, char* err_buf,
+    size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
     return kTFLMError;
@@ -344,14 +349,16 @@ TFLM_Status TFLM_InterpreterGetTensorDetails(
   const TfLiteTensor* tensor = is_input ? interp->interpreter->input(index)
                                         : interp->interpreter->output(index);
   if (tensor == nullptr) {
-    SetError(err_buf, err_buf_len, "Tensor is out of bound, please check tensor index.");
+    SetError(err_buf, err_buf_len,
+             "Tensor is out of bound, please check tensor index.");
     return kTFLMError;
   }
 
   if (tensor->type == kTfLiteString || tensor->type == kTfLiteResource ||
       tensor->type == kTfLiteVariant) {
     SetError(err_buf, err_buf_len,
-             "TFLM doesn't support strings, resource variables, or variants as outputs.");
+             "TFLM doesn't support strings, resource variables, or variants as "
+             "outputs.");
     return kTFLMError;
   }
 
@@ -359,7 +366,8 @@ TFLM_Status TFLM_InterpreterGetTensorDetails(
     *out_type = static_cast<int>(tensor->type);
   }
 
-  if (out_dims != nullptr && out_num_dims != nullptr && tensor->dims != nullptr) {
+  if (out_dims != nullptr && out_num_dims != nullptr &&
+      tensor->dims != nullptr) {
     size_t count = static_cast<size_t>(tensor->dims->size);
     if (count > max_dims) {
       count = max_dims;
@@ -373,7 +381,8 @@ TFLM_Status TFLM_InterpreterGetTensorDetails(
   const TfLiteQuantization quantization = tensor->quantization;
   size_t q_count = 0;
   int32_t q_dim = 0;
-  if (quantization.type == kTfLiteAffineQuantization && quantization.params != nullptr) {
+  if (quantization.type == kTfLiteAffineQuantization &&
+      quantization.params != nullptr) {
     const auto* q_params =
         reinterpret_cast<const TfLiteAffineQuantization*>(quantization.params);
     if (q_params->scale != nullptr && q_params->zero_point != nullptr) {
@@ -405,8 +414,7 @@ TFLM_Status TFLM_InterpreterGetTensorDetails(
 
 TFLM_Status TFLM_InterpreterGetEvalTensorDetails(
     TFLM_Interpreter* interp, size_t tensor_index, size_t subgraph_index,
-    int* out_type,
-    int* out_dims, size_t* out_num_dims, size_t max_dims,
+    int* out_type, int* out_dims, size_t* out_num_dims, size_t max_dims,
     char* err_buf, size_t err_buf_len) {
   if (interp == nullptr || interp->interpreter == nullptr) {
     SetError(err_buf, err_buf_len, "Null interpreter instance.");
@@ -414,9 +422,10 @@ TFLM_Status TFLM_InterpreterGetEvalTensorDetails(
   }
 
   if (!interp->interpreter->preserve_all_tensors()) {
-    SetError(err_buf, err_buf_len,
-             "TFLM only supports GetTensor() when using a python interpreter "
-             "with the InterpreterConfig.kPreserveAllTensors interpreter_config");
+    SetError(
+        err_buf, err_buf_len,
+        "TFLM only supports GetTensor() when using a python interpreter "
+        "with the InterpreterConfig.kPreserveAllTensors interpreter_config");
     return kTFLMError;
   }
 
@@ -431,7 +440,8 @@ TFLM_Status TFLM_InterpreterGetEvalTensorDetails(
     *out_type = static_cast<int>(eval_tensor->type);
   }
 
-  if (out_dims != nullptr && out_num_dims != nullptr && eval_tensor->dims != nullptr) {
+  if (out_dims != nullptr && out_num_dims != nullptr &&
+      eval_tensor->dims != nullptr) {
     size_t count = static_cast<size_t>(eval_tensor->dims->size);
     if (count > max_dims) {
       count = max_dims;
@@ -445,9 +455,9 @@ TFLM_Status TFLM_InterpreterGetEvalTensorDetails(
   return kTFLMOk;
 }
 
-TFLM_Status TFLM_AlignFlatbuffer(
-    const char* input_path, const char* output_path,
-    char* err_buf, size_t err_buf_len) {
+TFLM_Status TFLM_AlignFlatbuffer(const char* input_path,
+                                 const char* output_path, char* err_buf,
+                                 size_t err_buf_len) {
   if (input_path == nullptr || output_path == nullptr) {
     SetError(err_buf, err_buf_len, "Null path provided.");
     return kTFLMError;
@@ -481,13 +491,12 @@ TFLM_Status TFLM_AlignFlatbuffer(
   return kTFLMOk;
 }
 
-float TFLM_FreqToMel(float freq) {
-  return 1127.0f * log1pf(freq / 700.0f);
-}
+float TFLM_FreqToMel(float freq) { return 1127.0f * log1pf(freq / 700.0f); }
 
 namespace {
 constexpr size_t kWideDynamicFunctionBits = 32;
-constexpr size_t kWideDynamicFunctionLUTSize = (4 * kWideDynamicFunctionBits - 3);
+constexpr size_t kWideDynamicFunctionLUTSize =
+    (4 * kWideDynamicFunctionBits - 3);
 
 int16_t PcanGainLookupFunction(const float strength, const float offset,
                                const int gain_bits, int32_t input_bits,
@@ -500,20 +509,23 @@ int16_t PcanGainLookupFunction(const float strength, const float offset,
   if (gain_as_float > std::numeric_limits<int16_t>::max()) {
     return std::numeric_limits<int16_t>::max();
   }
-  return static_cast<int16_t>(gain_as_float + 0.5f);
+  return static_cast<int16_t>(std::lround(gain_as_float));
 }
 }  // namespace
 
-TFLM_Status TFLM_WideDynamicFuncLut(
-    float strength, float offset, int input_bits, int gain_bits,
-    int16_t* out_lut, size_t max_lut_size, size_t* out_lut_size) {
+TFLM_Status TFLM_WideDynamicFuncLut(float strength, float offset,
+                                    int input_bits, int gain_bits,
+                                    int16_t* out_lut, size_t max_lut_size,
+                                    size_t* out_lut_size) {
   if (out_lut == nullptr || max_lut_size < kWideDynamicFunctionLUTSize) {
     return kTFLMError;
   }
 
   int16_t gain_lut[kWideDynamicFunctionLUTSize + 1];
-  gain_lut[0] = PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 0);
-  gain_lut[1] = PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 1);
+  gain_lut[0] =
+      PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 0);
+  gain_lut[1] =
+      PcanGainLookupFunction(strength, offset, gain_bits, input_bits, 1);
 
   for (size_t interval = 2; interval <= kWideDynamicFunctionBits; ++interval) {
     const uint32_t x0 = static_cast<uint32_t>(1) << (interval - 1);
@@ -521,9 +533,12 @@ TFLM_Status TFLM_WideDynamicFuncLut(
     const uint32_t x2 =
         (interval == kWideDynamicFunctionBits) ? x0 + (x0 - 1) : 2 * x0;
 
-    const int16_t y0 = PcanGainLookupFunction(strength, offset, gain_bits, input_bits, x0);
-    const int16_t y1 = PcanGainLookupFunction(strength, offset, gain_bits, input_bits, x1);
-    const int16_t y2 = PcanGainLookupFunction(strength, offset, gain_bits, input_bits, x2);
+    const int16_t y0 =
+        PcanGainLookupFunction(strength, offset, gain_bits, input_bits, x0);
+    const int16_t y1 =
+        PcanGainLookupFunction(strength, offset, gain_bits, input_bits, x1);
+    const int16_t y2 =
+        PcanGainLookupFunction(strength, offset, gain_bits, input_bits, x2);
 
     const int32_t diff1 = static_cast<int32_t>(y1 - y0);
     const int32_t diff2 = static_cast<int32_t>(y2 - y0);

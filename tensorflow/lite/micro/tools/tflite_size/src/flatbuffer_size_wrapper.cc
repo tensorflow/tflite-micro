@@ -52,8 +52,6 @@ char* TFLM_FlatbufferSizeConvertToJsonString(const char* in_flatbuffer) {
   return result;
 }
 
-void TFLM_FlatbufferSizeFreeJsonString(char* str) {
-  std::free(str);
-}
+void TFLM_FlatbufferSizeFreeJsonString(char* str) { std::free(str); }
 
 }  // extern "C"

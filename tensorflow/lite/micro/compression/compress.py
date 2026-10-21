@@ -107,9 +107,7 @@ def _apply_flatbuffer_alignment(model_bytes: bytearray) -> bytearray:
 
   try:
     # Unpack and repack with proper alignment
-    flatbuffer_align.align_tflite_model(
-      temp_in_path, temp_out_path
-    )
+    flatbuffer_align.align_tflite_model(temp_in_path, temp_out_path)
 
     with open(temp_out_path, 'rb') as f:
       aligned_model = bytearray(f.read())

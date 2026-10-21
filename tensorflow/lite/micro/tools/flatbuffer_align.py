@@ -19,10 +19,10 @@ from tflite_micro.python.tflite_micro.runtime import _lib
 
 _lib.TFLM_AlignFlatbuffer.restype = ctypes.c_int
 _lib.TFLM_AlignFlatbuffer.argtypes = [
-    ctypes.c_char_p,
-    ctypes.c_char_p,
-    ctypes.c_char_p,
-    ctypes.c_size_t,
+  ctypes.c_char_p,
+  ctypes.c_char_p,
+  ctypes.c_char_p,
+  ctypes.c_size_t,
 ]
 
 
@@ -30,10 +30,12 @@ def align_tflite_model(input_model_path: str, output_model_path: str):
   """Aligns the tflite flatbuffer to 16 bytes."""
   err_buf = ctypes.create_string_buffer(512)
   status = _lib.TFLM_AlignFlatbuffer(
-      input_model_path.encode("utf-8"),
-      output_model_path.encode("utf-8"),
-      err_buf,
-      len(err_buf),
+    input_model_path.encode("utf-8"),
+    output_model_path.encode("utf-8"),
+    err_buf,
+    len(err_buf),
   )
   if status != 0:
-    raise RuntimeError(err_buf.value.decode("utf-8") or "Failed to align model.")
+    raise RuntimeError(
+      err_buf.value.decode("utf-8") or "Failed to align model."
+    )

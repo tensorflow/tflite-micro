@@ -21,11 +21,11 @@ tflm_cc_library(
         "flatbuffer_size.h",
         "flatbuffer_size_wrapper.h",
     ],
-    alwayslink = True,
     deps = [
         "//tensorflow/lite/micro/schema:schema_fbs_with_reflection",
         "@flatbuffers",
     ],
+    alwayslink = True,
 )
 
 cc_binary(

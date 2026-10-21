@@ -28,9 +28,7 @@ def main(argv):
   except IndexError:
     print('usage: ', argv[0], ' <input tflite> <output tflite>\n')
   else:
-    flatbuffer_align.align_tflite_model(
-      input_model_path, output_model_path
-    )
+    flatbuffer_align.align_tflite_model(input_model_path, output_model_path)
 
 
 if __name__ == '__main__':
