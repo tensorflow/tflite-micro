@@ -41,13 +41,10 @@ void OverlapAddShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   }
 }
 
-// Transform an input signal made of overlapping frames of size frame_size into
-// an output signal made of frames of size frame_step.
-// The overlapping input frames are spaced frame_step apart in time.
-// The op adds the overlapping frames into the output frame.
+// Registers the SignalOverlapAdd custom op (documented in overlap_add_op.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalOverlapAddOp() {
-  OpDefBuilder("SignalOverlapAdd")
+  SignalOpDefBuilder("SignalOverlapAdd")
       .Attr("T: {float, int16}")
       .Attr("frame_step: int >= 1")
       .Input("input: T")

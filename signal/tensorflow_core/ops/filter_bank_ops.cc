@@ -62,11 +62,10 @@ void FilterBankSpectralSubtractionShape(TF_ShapeInferenceContext* raw_ctx,
   ctx.SetOutput(1, out);
 }
 
-// Applies a mel filter bank, square root, spectral subtraction, and natural log
-// to filter bank spectral energy arrays.
+// Registers Signal filter bank custom ops (documented in filter_bank_ops.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalFilterBankOps() {
-  OpDefBuilder("SignalFilterBank")
+  SignalOpDefBuilder("SignalFilterBank")
       .Attr("num_channels: int >= 0")
       .Input("input: uint32")
       .Input("weights: int16")
@@ -78,14 +77,14 @@ __attribute__((constructor)) void RegisterSignalFilterBankOps() {
       .SetShapeFn(&FilterBankShape)
       .Register();
 
-  OpDefBuilder("SignalFilterBankSquareRoot")
+  SignalOpDefBuilder("SignalFilterBankSquareRoot")
       .Input("input: uint64")
       .Input("scale_bits: int32")
       .Output("output: uint32")
       .SetShapeFn(&FilterBank1DIdentityShape)
       .Register();
 
-  OpDefBuilder("SignalFilterBankSpectralSubtraction")
+  SignalOpDefBuilder("SignalFilterBankSpectralSubtraction")
       .Attr("num_channels: int >= 0")
       .Attr("smoothing: int >= 0")
       .Attr("one_minus_smoothing: int >= 0")
@@ -101,7 +100,7 @@ __attribute__((constructor)) void RegisterSignalFilterBankOps() {
       .SetShapeFn(&FilterBankSpectralSubtractionShape)
       .Register();
 
-  OpDefBuilder("SignalFilterBankLog")
+  SignalOpDefBuilder("SignalFilterBankLog")
       .Attr("output_scale: int >= 1")
       .Attr("input_correction_bits: int >= 0")
       .Input("input: uint32")

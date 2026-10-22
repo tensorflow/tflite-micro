@@ -35,9 +35,10 @@ void WindowShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   ctx.SetOutput(0, out);
 }
 
+// Registers the SignalWindow custom op (documented in window_op.py).
 // TODO(b/286250473): change back name to "Window" after name clash resolved
 __attribute__((constructor)) void RegisterSignalWindowOp() {
-  OpDefBuilder("SignalWindow")
+  SignalOpDefBuilder("SignalWindow")
       .Attr("shift: int")
       .Input("input: int16")
       .Input("weights: int16")

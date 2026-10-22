@@ -52,23 +52,10 @@ void FftAutoScaleShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   ctx.SetOutput(1, ctx.Scalar());
 }
 
-// Computes the 1-dimensional discrete Fourier transform of a real-valued signal
-// over the inner-most dimension of input. Since the DFT of a real signal is
-// Hermitian-symmetric, RFFT only returns the fft_length / 2 + 1 unique complex
-// components of the FFT: the zero-frequency term, followed by the fft_length /
-// 2 positive-frequency terms. Along the axis RFFT is computed on, if fft_length
-// is larger than the corresponding dimension of input, the dimension is padded
-// with zeros.
-//
-// Computes the inverse 1-dimensional discrete Fourier transform of a
-// real-valued signal over the inner-most dimension of input.
-//
-// Shifts the input left until the amplitude is maximized without clipping.
-// Returns the amount of left shift for compensation later. This op can be used
-// to maximize precision of integer FFT implementations, especially 16-bit.
+// Registers the Signal FFT custom ops (documented in fft_ops.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalFftOps() {
-  OpDefBuilder("SignalRfft")
+  SignalOpDefBuilder("SignalRfft")
       .Attr("T: {float, int16, int32}")
       .Attr("fft_length: int >= 2")
       .Input("input: T")
@@ -76,7 +63,7 @@ __attribute__((constructor)) void RegisterSignalFftOps() {
       .SetShapeFn(&RfftShape)
       .Register();
 
-  OpDefBuilder("SignalIrfft")
+  SignalOpDefBuilder("SignalIrfft")
       .Attr("T: {float, int16, int32}")
       .Attr("fft_length: int >= 2")
       .Input("input: T")
@@ -84,7 +71,7 @@ __attribute__((constructor)) void RegisterSignalFftOps() {
       .SetShapeFn(&IrfftShape)
       .Register();
 
-  OpDefBuilder("SignalFftAutoScale")
+  SignalOpDefBuilder("SignalFftAutoScale")
       .Input("input: int16")
       .Output("output: int16")
       .Output("scale_bits: int32")

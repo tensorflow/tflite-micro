@@ -32,19 +32,10 @@ void EnergyShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   }
 }
 
-// Calculate the energy of a spectral array. Only elements in the index range
-// [start_index, end_index] are calculated, and the rest are set to zero.
-//
-// input: A 1-D frequency domain signal of complex int16 elements
-// output: A 1-D array of uint32 elements containing the square of the absolute
-//         value of each element in input.
-//
-// start_index: index in input to start calculating from. Default: 0
-// end_index: last index in the input to calculate. Default: last element of
-// input
+// Registers the SignalEnergy custom op (documented in energy_op.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalEnergyOp() {
-  OpDefBuilder("SignalEnergy")
+  SignalOpDefBuilder("SignalEnergy")
       .Attr("start_index: int")
       .Attr("end_index: int")
       .Input("input: int16")

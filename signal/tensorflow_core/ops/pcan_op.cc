@@ -29,12 +29,9 @@ void PcanShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   ctx.SetOutput(0, out);
 }
 
-// Determines whether per-channel amplitude-normalized (PCAN) auto gain control
-// is applied, using either floating-point or fixed-point computation. If
-// enabled, the dynamic range of the filterbank output is compressed by dividing
-// by a power of the noise estimate.
+// Registers the SignalPCAN custom op (documented in pcan_op.py).
 __attribute__((constructor)) void RegisterSignalPcanOp() {
-  OpDefBuilder("SignalPCAN")
+  SignalOpDefBuilder("SignalPCAN")
       .Attr("snr_shift: int")
       .Input("input: uint32")
       .Input("noise_estimate: uint32")

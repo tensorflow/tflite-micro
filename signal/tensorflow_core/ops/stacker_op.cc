@@ -41,14 +41,10 @@ void StackerShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   ctx.SetOutput(1, ctx.Scalar());
 }
 
-// Stack several input frames into a single stacked frame. On each invocation,
-// it generates a stacked frame that contains: (stacker_left_context + 1 +
-// stacker_right_context) consecutive unstacked frames. The stacked frame
-// becomes the input to the neural network. The stacker then moves forward in a
-// step of one or more input frames.
+// Registers the SignalStacker custom op (documented in stacker_op.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalStackerOp() {
-  OpDefBuilder("SignalStacker")
+  SignalOpDefBuilder("SignalStacker")
       .Attr("num_channels: int >= 1")
       .Attr("stacker_left_context: int >= 0")
       .Attr("stacker_right_context: int >= 0")

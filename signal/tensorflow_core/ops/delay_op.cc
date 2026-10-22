@@ -27,25 +27,10 @@ void DelayShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   ctx.SetOutput(0, out);
 }
 
-// Delay the innermost dimension of input signal by delay_length samples.
-//
-// For example, assuming an input signal of 10 samples,
-// [1 2 3 4 5 6 7 8 9 0]
-// If we input the signal to a delay op configured with delay_length=3, the op
-// will produce the following output:
-// [0 0 0 1 2 3 4 5 6 7]
-// To retrieve the remainder of the input signal, call the delay op again with
-// zeros as input:
-// [0 0 0 0 0 0 0 0 0 0]
-// to get the output:
-// [8 9 0 0 0 0 0 0 0 0]
-//
-// input: A multidimensional input signal.
-// output: An output signal of the same shape as the input signal. The innermost
-//         dimension is delayed by delay_length samples.
+// Registers the SignalDelay custom op (documented in delay_op.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalDelayOp() {
-  OpDefBuilder("SignalDelay")
+  SignalOpDefBuilder("SignalDelay")
       .Attr("delay_length: int >= 0")
       .Input("input: int16")
       .Output("output: int16")

@@ -46,16 +46,10 @@ void FramerShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
   ctx.SetOutput(1, ctx.Scalar());
 }
 
-// Transform an input signal into a series of overlapping frames, each of
-// size frame_size. The frame_step determines how many samples the framer
-// progresses on each invocation. When the framer has enough samples to produce
-// a frame, it writes it to the output tensor and sets the output_valid to True.
-// If the framer doesn't have enough samples to produce a frame, it doesn't
-// initialize the contents of the output tensor and sets the output_valid
-// boolean to False.
+// Registers the SignalFramer custom op (documented in framer_op.py).
 // TODO(b/286250473): change back name after name clash resolved
 __attribute__((constructor)) void RegisterSignalFramerOp() {
-  OpDefBuilder("SignalFramer")
+  SignalOpDefBuilder("SignalFramer")
       .Attr("frame_size: int >= 1")
       .Attr("frame_step: int >= 1")
       .Attr("prefill: bool")

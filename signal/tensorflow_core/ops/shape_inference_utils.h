@@ -147,37 +147,41 @@ class ShapeInferenceContext {
   TF_Status* status_;
 };
 
-// Fluent C++ builder around TF_OpDefinitionBuilder*, matching REGISTER_OP.
-class OpDefBuilder {
+// Fluent C++ wrapper around TF_OpDefinitionBuilder* (tensorflow/c/ops.h).
+// Unlike internal tensorflow::OpDefBuilder, the stable TF C API does not
+// expose .Doc(); user-facing op docstrings live on the public Python
+// wrapper functions in python/tflite_micro/signal/ops/.
+class SignalOpDefBuilder {
  public:
-  explicit OpDefBuilder(const char* op_name)
+  explicit SignalOpDefBuilder(const char* op_name)
       : builder_(TF_NewOpDefinitionBuilder(op_name)) {}
 
-  ~OpDefBuilder() {
+  ~SignalOpDefBuilder() {
     if (builder_ != nullptr) {
       TF_DeleteOpDefinitionBuilder(builder_);
     }
   }
 
-  OpDefBuilder(const OpDefBuilder&) = delete;
-  OpDefBuilder& operator=(const OpDefBuilder&) = delete;
+  SignalOpDefBuilder(const SignalOpDefBuilder&) = delete;
+  SignalOpDefBuilder& operator=(const SignalOpDefBuilder&) = delete;
 
-  OpDefBuilder& Attr(const char* spec) {
+  SignalOpDefBuilder& Attr(const char* spec) {
     TF_OpDefinitionBuilderAddAttr(builder_, spec);
     return *this;
   }
 
-  OpDefBuilder& Input(const char* spec) {
+  SignalOpDefBuilder& Input(const char* spec) {
     TF_OpDefinitionBuilderAddInput(builder_, spec);
     return *this;
   }
 
-  OpDefBuilder& Output(const char* spec) {
+  SignalOpDefBuilder& Output(const char* spec) {
     TF_OpDefinitionBuilderAddOutput(builder_, spec);
     return *this;
   }
 
-  OpDefBuilder& SetShapeFn(void (*fn)(TF_ShapeInferenceContext*, TF_Status*)) {
+  SignalOpDefBuilder& SetShapeFn(void (*fn)(TF_ShapeInferenceContext*,
+                                            TF_Status*)) {
     TF_OpDefinitionBuilderSetShapeInferenceFunction(builder_, fn);
     return *this;
   }

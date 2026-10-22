@@ -62,23 +62,39 @@ def square_root_hann_cwola_window_weights(
   return weights.astype(dtype=dtype)
 
 
-def _window_wrapper(window_fn, default_name):
-  """Wrapper around gen_window_op.window*."""
-
-  def _window(input_tensor, weight_tensor, shift, name=default_name):
-    with tf.name_scope(name) as name:
-      input_tensor = tf.convert_to_tensor(input_tensor, dtype=np.int16)
-      input_dim_list = input_tensor.shape.as_list()
-      weight_tensor = tf.convert_to_tensor(weight_tensor)
-      weight_dim_list = weight_tensor.shape.as_list()
-      if input_dim_list[-1] != weight_dim_list[0]:
-        raise ValueError("Innermost input dimension must match weights size")
-      return window_fn(input_tensor, weight_tensor, shift=shift, name=name)
-
-  return _window
-
-
 # TODO(b/286250473): change back name to "window" after name clash resolved
-window = _window_wrapper(gen_window_op.signal_window, "signal_window")
+def window(input_tensor, weight_tensor, shift, name="signal_window"):
+  """Applies a 1-D window to `input_tensor` with an elementwise right shift.
+
+  Multiplies each innermost frame of `input_tensor` elementwise by
+  `weight_tensor` and right-shifts each product by `shift` bits.
+
+  Args:
+    input_tensor: An N-D `int16` time-domain input signal (rank >= 1).
+    weight_tensor: A 1-D `int16` array of window weights whose length matches
+      the innermost dimension of `input_tensor`.
+    shift: `int` number of right shifts applied to each weighted element before
+      writing to the output.
+    name: Optional name for the operation.
+
+  Returns:
+    An `int16` `Tensor` with the same shape as `input_tensor` containing the
+    windowed signal.
+
+  Raises:
+    ValueError: If the innermost dimension of `input_tensor` does not match the
+      size of `weight_tensor`.
+  """
+  with tf.name_scope(name) as name:
+    input_tensor = tf.convert_to_tensor(input_tensor, dtype=np.int16)
+    input_dim_list = input_tensor.shape.as_list()
+    weight_tensor = tf.convert_to_tensor(weight_tensor)
+    weight_dim_list = weight_tensor.shape.as_list()
+    if input_dim_list[-1] != weight_dim_list[0]:
+      raise ValueError("Innermost input dimension must match weights size")
+    return gen_window_op.signal_window(
+      input_tensor, weight_tensor, shift=shift, name=name
+    )
+
 
 tf.no_gradient("signal_window")
