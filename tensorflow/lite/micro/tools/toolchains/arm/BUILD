@@ -1,5 +1,13 @@
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
+load(
+    "//tensorflow/lite/micro/tools/toolchains:env.bzl",
+    "ARM_TOOLCHAIN_BIN_PREFIX",
+    "ARM_TOOLCHAIN_FILES_PREFIX",
+    "QEMU_ARM_DATA",
+    "tflm_arm_cpu_constraint_setting",
+    "tflm_cc_toolchain",
+    "tflm_sh_runner",
+)
 load(":cortex_m_toolchain_config.bzl", "cortex_m_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
@@ -29,27 +37,27 @@ CPUS = {
 [
     cortex_m_toolchain_config(
         name = "%s_config" % name,
-        ar = "@arm_none_eabi//:bin/arm-none-eabi-ar",
-        c_compiler = "@arm_none_eabi//:bin/arm-none-eabi-gcc",
+        ar = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-ar",
+        c_compiler = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-gcc",
         copts = copts,
-        cpp_compiler = "@arm_none_eabi//:bin/arm-none-eabi-g++",
+        cpp_compiler = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-g++",
         cpu = "cortex-%s" % name,
-        strip = "@arm_none_eabi//:bin/arm-none-eabi-strip",
+        strip = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-strip",
     )
     for name, copts in CPUS.items()
 ]
 
 [
-    cc_toolchain(
+    tflm_cc_toolchain(
         name = "cc_toolchain_%s" % name,
-        all_files = "@arm_none_eabi//:everything",
-        ar_files = "@arm_none_eabi//:everything",
-        as_files = "@arm_none_eabi//:compiler_files",
-        compiler_files = "@arm_none_eabi//:compiler_files",
+        all_files = ARM_TOOLCHAIN_FILES_PREFIX + "everything",
+        ar_files = ARM_TOOLCHAIN_FILES_PREFIX + "everything",
+        as_files = ARM_TOOLCHAIN_FILES_PREFIX + "compiler_files",
+        compiler_files = ARM_TOOLCHAIN_FILES_PREFIX + "compiler_files",
         dwp_files = ":empty",
-        linker_files = "@arm_none_eabi//:linker_files",
+        linker_files = ARM_TOOLCHAIN_FILES_PREFIX + "linker_files",
         objcopy_files = ":empty",
-        strip_files = "@arm_none_eabi//:everything",
+        strip_files = ARM_TOOLCHAIN_FILES_PREFIX + "everything",
         supports_param_files = 0,
         toolchain_config = ":%s_config" % name,
         toolchain_identifier = "cortex-%s-toolchain" % name,
@@ -57,12 +65,12 @@ CPUS = {
     for name in CPUS.keys()
 ]
 
-constraint_setting(name = "cortex_m_cpu")
+ARM_CPU_CONSTRAINT_SETTING = tflm_arm_cpu_constraint_setting()
 
 [
     constraint_value(
         name = name,
-        constraint_setting = ":cortex_m_cpu",
+        constraint_setting = ARM_CPU_CONSTRAINT_SETTING,
     )
     for name in CPUS.keys()
 ]
@@ -104,6 +112,15 @@ config_setting(
         "@platforms//cpu:arm",
     ],
 )
+
+[
+    tflm_sh_runner(
+        name = "run_%s" % name,
+        srcs = ["//tensorflow/lite/micro/tools/toolchains:run_qemu.sh"],
+        data = QEMU_ARM_DATA,
+    )
+    for name in CPUS.keys()
+]
 
 [
     cc_test(

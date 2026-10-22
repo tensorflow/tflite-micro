@@ -107,10 +107,10 @@ test --output_filter=^//
 
 # Embedded Cortex-M configurations
 build:cortex-m0 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m0_platform
-test:cortex-m0 --run_under="qemu-arm -cpu cortex-m0"
+test:cortex-m0 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m0
 
 build:cortex-m4 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m4_platform
-test:cortex-m4 --run_under="qemu-arm -cpu cortex-m4"
+test:cortex-m4 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m4
 
 build:_cmsis_nn_base --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn
 build:_cmsis_nn_base --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
@@ -120,7 +120,7 @@ build:cortex-m4-cmsis-nn --config=cortex-m4
 build:cortex-m4-cmsis-nn --config=_cmsis_nn_base
 
 build:cortex-m55 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m55_platform
-test:cortex-m55 --run_under="qemu-arm -cpu cortex-m55"
+test:cortex-m55 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m55
 
 build:cortex-m55-cmsis-nn --config=cortex-m55
 build:cortex-m55-cmsis-nn --config=_cmsis_nn_base
@@ -128,6 +128,7 @@ build:cortex-m55-cmsis-nn --config=_cmsis_nn_base
 # Corstone-300 + Ethos-U55 FVP configurations
 build:_corstone300_base --features=-qemu_semihosting
 build:_corstone300_base --copt=-DARMCM55
+build:_corstone300_base --copt=-DCMSIS_NN
 build:_corstone300_base --copt=-DETHOS_U
 build:_corstone300_base --test_env=PATH
 build:_corstone300_base --//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:corstone_bsp
@@ -135,13 +136,14 @@ build:_corstone300_base --//tensorflow/lite/micro/kernels:optimized_kernels=cmsi
 build:_corstone300_base --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
 build:_corstone300_base --//tensorflow/lite/micro/kernels:ethos_u_dep=@ethos_u_core_driver//:ethos_u_core_driver
 
-build:corstone-300-ethos-u --config=cortex-m55
+build:corstone-300-ethos-u --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m55_platform
 build:corstone-300-ethos-u --config=_corstone300_base
-test:corstone-300-ethos-u --run_under="FVP_Corstone_SSE-300_Ethos-U55 -C cpu0.CFGDTCMSZ=15 -C cpu0.CFGITCMSZ=15 -C ethosu.num_macs=256 -C mps3_board.visualisation.disable-visualisation=1 -C mps3_board.telnetterminal0.start_telnet=0 -C mps3_board.uart0.out_file=- -C mps3_board.uart0.unbuffered_output=1 -C mps3_board.uart0.shutdown_on_eot=1 --stat"
+test:corstone-300-ethos-u --run_under=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:run_corstone300
 
 # Embedded RISC-V configurations
 build:riscv32 --platforms=//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_platform
-test:riscv32 --run_under="qemu-riscv32 -cpu rv32"
+build:riscv32 --//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/riscv:riscv_bsp
+test:riscv32 --run_under=//tensorflow/lite/micro/tools/toolchains/riscv:run_riscv32
 
 # Embedded Qualcomm Hexagon configurations
 build:_hexagon_base --action_env=HEXAGON_SDK_ROOT
@@ -156,7 +158,8 @@ build:_hexagon_base --sandbox_add_mount_pair=/root/Qualcomm
 build:hexagon --config=_hexagon_base
 build:hexagon --platforms=//tensorflow/lite/micro/tools/toolchains/hexagon:hexagon_platform
 build:hexagon --//tensorflow/lite/micro/kernels:optimized_kernels=hexagon
-test:hexagon --run_under="hexagon-sim --simulated_returnval"
+build:hexagon --//tensorflow/lite/micro/kernels:hexagon_tflm_core_dep=@hexagon_toolchain//:hexagon_tflm_core
+test:hexagon --run_under=//tensorflow/lite/micro/tools/toolchains/hexagon:run_hexagon
 
 build:hexagon-opt --config=hexagon
 
@@ -168,19 +171,19 @@ build:_xtensa_base --test_env=PATH
 
 build:xtensa-fusion-f1 --config=_xtensa_base
 build:xtensa-fusion-f1 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:fusion_f1_platform
-test:xtensa-fusion-f1 --run_under="xt-run --turbo --xtensa-core=P29A_FusionF1 --exit_with_target_code"
+test:xtensa-fusion-f1 --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_fusion_f1
 
 build:xtensa-hifi3z --config=_xtensa_base
 build:xtensa-hifi3z --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:hifi3z_platform
-test:xtensa-hifi3z --run_under="xt-run --turbo --xtensa-core=P29A_HiFi3z --exit_with_target_code"
+test:xtensa-hifi3z --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_hifi3z
 
 build:xtensa-hifi5 --config=_xtensa_base
 build:xtensa-hifi5 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:hifi5_platform
-test:xtensa-hifi5 --run_under="xt-run --turbo --xtensa-core=PRD_H5_RDO_07_01_2022 --exit_with_target_code"
+test:xtensa-hifi5 --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_hifi5
 
 build:xtensa-vision-p6 --config=_xtensa_base
 build:xtensa-vision-p6 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:vision_p6_platform
-test:xtensa-vision-p6 --run_under="xt-run --turbo --xtensa-core=P29A_VP6 --exit_with_target_code"
+test:xtensa-vision-p6 --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_vision_p6
 
 # Xtensa NNLib optimized configurations
 build:_xtensa_nnlib_base --copt=-DXTENSA=1

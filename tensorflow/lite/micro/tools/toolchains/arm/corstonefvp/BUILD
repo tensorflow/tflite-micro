@@ -1,9 +1,20 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load(
+    "//tensorflow/lite/micro/tools/toolchains:env.bzl",
+    "CORSTONE300_FVP_DATA",
+    "tflm_sh_runner",
+)
 
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["corstone300.ld"])
+
+tflm_sh_runner(
+    name = "run_corstone300",
+    srcs = ["run_corstone300.sh"],
+    data = CORSTONE300_FVP_DATA,
+)
 
 cc_library(
     name = "corstone_bsp",

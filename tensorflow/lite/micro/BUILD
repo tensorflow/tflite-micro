@@ -388,7 +388,10 @@ tflm_cc_library(
         "micro_time.h",
     ],
     copts = tflm_copts() + ["-DTF_LITE_USE_CTIME"],
-    deps = [":micro_common"],
+    deps = [
+        ":bsp",
+        ":micro_common",
+    ],
 )
 
 tflm_cc_library(
