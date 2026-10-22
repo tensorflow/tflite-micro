@@ -1838,7 +1838,7 @@ label_flag(
 
 label_flag(
     name = "hexagon_tflm_core_dep",
-    build_setting_default = "@hexagon_toolchain//:hexagon_tflm_core",
+    build_setting_default = ":empty",
     visibility = ["//visibility:public"],
 )
 

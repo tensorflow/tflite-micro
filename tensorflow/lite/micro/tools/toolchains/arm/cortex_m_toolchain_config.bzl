@@ -166,6 +166,11 @@ def _cortex_m_toolchain_config_impl(ctx):
         ],
     )
 
+    has_cxx17_headers = feature(
+        name = "has_cxx17_headers",
+        enabled = True,
+    )
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = ctx.attr.cpu + "-toolchain",
@@ -179,7 +184,12 @@ def _cortex_m_toolchain_config_impl(ctx):
         action_configs = action_configs,
         tool_paths = [],
         cxx_builtin_include_directories = [],
-        features = [cortex_m_flags, static_link_flags, qemu_semihosting],
+        features = [
+            cortex_m_flags,
+            static_link_flags,
+            qemu_semihosting,
+            has_cxx17_headers,
+        ],
     )
 
 cortex_m_toolchain_config = rule(

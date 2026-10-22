@@ -157,9 +157,6 @@ def _riscv_toolchain_config_impl(ctx):
                             "--specs=nano.specs",
                             "-u",
                             "_printf_float",
-                            "-u",
-                            "_times",
-                            "-lriscv_time",
                             "-mno-relax",
                             "-Wl,--gc-sections",
                             "-no-canonical-prefixes",
@@ -168,6 +165,11 @@ def _riscv_toolchain_config_impl(ctx):
                 ],
             ),
         ],
+    )
+
+    has_cxx17_headers = feature(
+        name = "has_cxx17_headers",
+        enabled = True,
     )
 
     return cc_common.create_cc_toolchain_config_info(
@@ -183,7 +185,11 @@ def _riscv_toolchain_config_impl(ctx):
         action_configs = action_configs,
         tool_paths = [],
         cxx_builtin_include_directories = [],
-        features = [riscv_flags, static_link_flags],
+        features = [
+            riscv_flags,
+            static_link_flags,
+            has_cxx17_headers,
+        ],
     )
 
 riscv_toolchain_config = rule(

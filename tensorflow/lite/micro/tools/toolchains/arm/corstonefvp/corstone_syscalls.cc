@@ -48,6 +48,13 @@ int _write(int file, char* ptr, int len) {
 }
 
 void _exit(int status) {
+  const char kExitSuccess[] = "\n__TFLM_EXIT_CODE_0__\n";
+  const char kExitFailure[] = "\n__TFLM_EXIT_FAILURE__\n";
+  if (status == 0) {
+    _write(1, const_cast<char*>(kExitSuccess), sizeof(kExitSuccess) - 1);
+  } else {
+    _write(1, const_cast<char*>(kExitFailure), sizeof(kExitFailure) - 1);
+  }
   volatile uint32_t* const UART0_DATA =
       reinterpret_cast<volatile uint32_t*>(0x49303000);
   volatile uint32_t* const UART0_STATE =
