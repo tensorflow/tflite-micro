@@ -388,7 +388,10 @@ tflm_cc_library(
         "micro_time.h",
     ],
     copts = tflm_copts() + ["-DTF_LITE_USE_CTIME"],
-    deps = [":micro_common"],
+    deps = [
+        ":bsp",
+        ":micro_common",
+    ],
 )
 
 tflm_cc_library(
@@ -464,6 +467,14 @@ tflm_cc_library(
     ],
 )
 
+tflm_cc_library(name = "empty")
+
+label_flag(
+    name = "bsp",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
 tflm_cc_library(
     name = "system_setup",
     srcs = [
@@ -471,6 +482,9 @@ tflm_cc_library(
     ],
     hdrs = [
         "system_setup.h",
+    ],
+    deps = [
+        ":bsp",
     ],
 )
 

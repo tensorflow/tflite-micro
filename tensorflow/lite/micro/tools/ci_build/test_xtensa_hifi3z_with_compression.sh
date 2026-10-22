@@ -47,8 +47,17 @@ COMMON_ARGS="TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR} TAR
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes config_info
 
-readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes build
-readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes test
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes microlite
+readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} USE_TFLM_COMPRESSION=yes \
+  test_kernel_conv_test \
+  test_kernel_depthwise_conv_test \
+  test_kernel_fully_connected_test \
+  test_kernel_transpose_conv_test \
+  test_kernel_concatenation_test \
+  test_kernel_decompress_test \
+  test_micro_interpreter_test \
+  test_recording_micro_allocator_test \
+  test_micro_resource_variable_test
 
 readable_run make -f ${MAKEFILE} $(get_parallel_jobs) ${COMMON_ARGS} \
   GENERIC_BENCHMARK_MODEL_PATH=${TENSORFLOW_ROOT}tensorflow/lite/micro/models/person_detect.tflite \

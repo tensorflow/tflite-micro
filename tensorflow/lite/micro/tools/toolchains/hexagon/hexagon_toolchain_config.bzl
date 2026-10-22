@@ -195,6 +195,11 @@ def _hexagon_toolchain_config_impl(ctx):
         ],
     )
 
+    has_cxx17_headers = feature(
+        name = "has_cxx17_headers",
+        enabled = True,
+    )
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = "hexagon-" + ctx.attr.cpu_version + "-toolchain",
@@ -211,7 +216,11 @@ def _hexagon_toolchain_config_impl(ctx):
             "/root/Qualcomm",
             "/usr/include",
         ],
-        features = [hexagon_flags, static_link_flags],
+        features = [
+            hexagon_flags,
+            static_link_flags,
+            has_cxx17_headers,
+        ],
     )
 
 hexagon_toolchain_config = rule(

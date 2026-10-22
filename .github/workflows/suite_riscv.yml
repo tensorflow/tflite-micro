@@ -12,24 +12,21 @@ on:
 
 jobs:
   riscv_tests:
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
     name: RISC-V Tests
     steps:
-    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-      with:
-        python-version: '3.11'
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        ref: ${{ inputs.trigger-sha }}
-        allow-unsafe-pr-checkout: true
-    - name: Test
-      uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.10
-      with:
-        args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_riscv.sh
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+      - name: Test
+        run: tensorflow/lite/micro/tools/ci_build/test_riscv.sh
 
   riscv_bazel:
-    runs-on: linux-x86-n2-16
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/tflm-ci:0.6.10

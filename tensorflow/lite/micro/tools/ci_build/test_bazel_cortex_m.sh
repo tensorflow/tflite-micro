@@ -24,9 +24,9 @@ BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || ec
 BAZEL_FLAGS="--config=_ci_base"
 
 # 1. Run smoke tests across Cortex-M profiles (M0, M4, M55 Helium)
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m0 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m4 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m0 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_m0
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m4 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_m4
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_m55
 
 # 2. Run full framework, allocator, memory planner, signal kernels, and example tests on Cortex-M55
 ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55 //tensorflow/lite/micro:core_framework_tests

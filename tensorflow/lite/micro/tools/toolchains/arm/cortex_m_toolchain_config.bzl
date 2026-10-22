@@ -99,6 +99,24 @@ def _cortex_m_toolchain_config_impl(ctx):
         ],
     )
 
+    qemu_semihosting = feature(
+        name = "qemu_semihosting",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = [ACTION_NAMES.cpp_link_executable],
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "--specs=rdimon.specs",
+                            "-Wl,-Ttext=0x10000",
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
     cortex_m_flags = feature(
         name = "default_compiler_flags",
         enabled = True,
@@ -139,8 +157,6 @@ def _cortex_m_toolchain_config_impl(ctx):
                         flags = [
                             "-static",
                             "-no-pie",
-                            "--specs=rdimon.specs",
-                            "-Wl,-Ttext=0x10000",
                             "-Wl,--gc-sections",
                             "-no-canonical-prefixes",
                         ],
@@ -148,6 +164,11 @@ def _cortex_m_toolchain_config_impl(ctx):
                 ],
             ),
         ],
+    )
+
+    has_cxx17_headers = feature(
+        name = "has_cxx17_headers",
+        enabled = True,
     )
 
     return cc_common.create_cc_toolchain_config_info(
@@ -163,7 +184,12 @@ def _cortex_m_toolchain_config_impl(ctx):
         action_configs = action_configs,
         tool_paths = [],
         cxx_builtin_include_directories = [],
-        features = [cortex_m_flags, static_link_flags],
+        features = [
+            cortex_m_flags,
+            static_link_flags,
+            qemu_semihosting,
+            has_cxx17_headers,
+        ],
     )
 
 cortex_m_toolchain_config = rule(
