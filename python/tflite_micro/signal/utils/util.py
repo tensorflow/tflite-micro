@@ -111,9 +111,6 @@ def load_custom_op(name):
       f'{signal.__name__}.gen_{name.removesuffix(".so")}'
     )
   except ImportError:
-    from tensorflow.python.framework import load_library
-    from tensorflow.python.platform import resource_loader
-
-    return load_library.load_op_library(
-      resource_loader.get_path_to_datafile('../ops/_' + name)
+    return tf.load_op_library(
+      os.path.join(os.path.dirname(__file__), '..', 'ops', '_' + name)
     )

@@ -1,7 +1,11 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@tflm_pip_deps//:requirements.bzl", "requirement")
-load("//python:py_rules.bzl", "tflm_py_library")
-load("//python/tflite_micro/signal:tflm_signal.bzl", "py_tflm_signal_library", "tflm_signal_op_test")
+load(
+    "//python:py_rules.bzl",
+    "py_tflm_signal_library",
+    "tflm_py_library",
+    "tflm_signal_op_test",
+)
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 load("//tensorflow/lite/micro:extra_rules.bzl", "tflm_signal_friends")
 

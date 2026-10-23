@@ -1,5 +1,4 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("//python/tflite_micro/signal:tflm_signal.bzl", "tflm_signal_kernel_library")
 
 package(
     default_visibility = ["//python/tflite_micro/signal:__subpackages__"],
@@ -18,7 +17,7 @@ cc_library(
     ],
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "delay_kernel",
     srcs = ["delay_kernel.cc"],
     deps = [
@@ -26,9 +25,10 @@ tflm_signal_kernel_library(
         "//signal/src:circular_buffer",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "energy_kernel",
     srcs = ["energy_kernel.cc"],
     deps = [
@@ -37,9 +37,10 @@ tflm_signal_kernel_library(
         "//signal/src:energy",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "fft_kernel",
     srcs = ["fft_kernels.cc"],
     deps = [
@@ -50,9 +51,10 @@ tflm_signal_kernel_library(
         "//third_party/tf_c_headers:kernels",
         "//third_party/tf_c_headers:tf_datatype",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "filter_bank_kernels",
     srcs = ["filter_bank_kernels.cc"],
     deps = [
@@ -63,9 +65,10 @@ tflm_signal_kernel_library(
         "//signal/src:filter_bank_square_root",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "framer_kernel",
     srcs = ["framer_kernel.cc"],
     deps = [
@@ -73,9 +76,10 @@ tflm_signal_kernel_library(
         "//signal/src:circular_buffer",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "overlap_add_kernel",
     srcs = ["overlap_add_kernel.cc"],
     deps = [
@@ -84,9 +88,10 @@ tflm_signal_kernel_library(
         "//third_party/tf_c_headers:kernels",
         "//third_party/tf_c_headers:tf_datatype",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "pcan_kernel",
     srcs = ["pcan_kernel.cc"],
     deps = [
@@ -94,9 +99,10 @@ tflm_signal_kernel_library(
         "//signal/src:pcan_argc_fixed",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "stacker_kernel",
     srcs = ["stacker_kernel.cc"],
     deps = [
@@ -104,9 +110,10 @@ tflm_signal_kernel_library(
         "//signal/src:circular_buffer",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
 
-tflm_signal_kernel_library(
+cc_library(
     name = "window_kernel",
     srcs = ["window_kernel.cc"],
     deps = [
@@ -114,4 +121,5 @@ tflm_signal_kernel_library(
         "//signal/src:window",
         "//third_party/tf_c_headers:kernels",
     ],
+    alwayslink = True,
 )
