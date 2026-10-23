@@ -48,6 +48,7 @@ jobs:
     uses: ./.github/workflows/suite_riscv.yml
     with:
       trigger-sha: ${{ github.sha }}
+      scope: 'all'
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 

@@ -78,6 +78,7 @@ cc_test(
     srcs = [
         "fft_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":fft_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -105,6 +106,7 @@ cc_test(
     srcs = [
         "window_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":register_signal_ops",
         ":window_flexbuffers_generated_data",
@@ -131,6 +133,7 @@ cc_test(
     srcs = [
         "framer_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":framer_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -157,6 +160,7 @@ cc_test(
     srcs = [
         "overlap_add_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":overlap_add_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -183,6 +187,7 @@ cc_test(
     srcs = [
         "delay_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":delay_flexbuffers_generated_data",
         "//tensorflow/lite/micro:micro_common",
@@ -208,6 +213,7 @@ cc_test(
     srcs = [
         "stacker_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":register_signal_ops",
         ":stacker_flexbuffers_generated_data",
@@ -234,6 +240,7 @@ cc_test(
     srcs = [
         "energy_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":energy_flexbuffers_generated_data",
         ":register_signal_ops",
@@ -280,6 +287,7 @@ cc_test(
     srcs = [
         "filter_bank_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":filter_bank_flexbuffers_generated_data",
         "//tensorflow/lite/micro:micro_common",
@@ -295,6 +303,7 @@ cc_test(
     srcs = [
         "filter_bank_log_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":filter_bank_log_flexbuffers_generated_data",
         "//tensorflow/lite/micro:micro_common",
@@ -310,6 +319,7 @@ cc_test(
     srcs = [
         "filter_bank_spectral_subtraction_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":filter_bank_spectral_subtraction_flexbuffers_generated_data",
         "//tensorflow/lite/micro:micro_common",
@@ -325,6 +335,7 @@ cc_test(
     srcs = [
         "filter_bank_square_root_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:op_resolvers",
@@ -349,6 +360,7 @@ cc_test(
     srcs = [
         "pcan_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":pcan_flexbuffers_generated_data",
         "//tensorflow/lite/micro:micro_common",

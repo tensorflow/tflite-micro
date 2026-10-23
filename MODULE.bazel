@@ -8,6 +8,7 @@ bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_platform", version = "0.1.0")
 bazel_dep(name = "rules_python", version = "1.9.2")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 
@@ -167,6 +168,7 @@ register_toolchains(
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m0_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m4_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m55_toolchain",
+    "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m55_baremetal_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_fusion_f1_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi3z_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi5_toolchain",

@@ -25,32 +25,6 @@ def _riscv_toolchain_impl(rctx):
             strip_prefix = "riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14",
         )
 
-    # Provide _times (implemented via rdcycle) so newlib's clock() advances under QEMU.
-    rctx.file(
-        "src/riscv_time.c",
-        content = """#include <sys/times.h>
-#include <stdint.h>
-
-clock_t _times(struct tms *buf) {
-  uint32_t c;
-  __asm__ volatile("rdcycle %0" : "=r"(c));
-  if (buf) {
-    buf->tms_utime = c;
-    buf->tms_stime = 0;
-    buf->tms_cutime = 0;
-    buf->tms_cstime = 0;
-  }
-  return (clock_t)c;
-}
-""",
-    )
-    gcc_path = str(rctx.path("bin/riscv64-unknown-elf-gcc"))
-    ar_path = str(rctx.path("bin/riscv64-unknown-elf-ar"))
-    rctx.execute([gcc_path, "-march=rv32imc", "-mabi=ilp32", "-O2", "-c", "src/riscv_time.c", "-o", "src/riscv_time.o"])
-    rctx.execute([ar_path, "rcs", "riscv64-unknown-elf/lib/rv32im/ilp32/libriscv_time.a", "src/riscv_time.o"])
-    rctx.execute([ar_path, "rcs", "riscv64-unknown-elf/lib/rv32imac/ilp32/libriscv_time.a", "src/riscv_time.o"])
-    rctx.execute([ar_path, "rcs", "riscv64-unknown-elf/lib/libriscv_time.a", "src/riscv_time.o"])
-
     rctx.file(
         "BUILD.bazel",
         content = """package(default_visibility = ["//visibility:public"])

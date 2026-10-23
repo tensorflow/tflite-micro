@@ -36,47 +36,39 @@ fi
 # Ensure Bazel server shuts down cleanly when run inside ephemeral containers
 trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 
-# 1. Run smoke tests across all 4 Cadence Xtensa DSP cores (~30s total)
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-fusion-f1 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-vision-p6 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
+TARGETS=(
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_fusion_f1
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi3z
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi5
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_vision_p6
+)
 
-# 2. Run representative accelerated NNLib operator tests on HiFi 5 (~9m 30s)
 if [[ "${TARGET_CORE}" == "hifi5" || "${TARGET_CORE}" == "all" ]]; then
-  ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5-nnlib \
-    //tensorflow/lite/micro:micro_utils_test \
-    //tensorflow/lite/micro/kernels:add_test \
-    //tensorflow/lite/micro/kernels:conv_test \
-    //tensorflow/lite/micro/kernels:depthwise_conv_test \
-    //tensorflow/lite/micro/kernels:mul_test \
-    //tensorflow/lite/micro/kernels:pooling_test \
-    //tensorflow/lite/micro/kernels:softmax_test
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_hifi5_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_hifi5_smoke_tests
+  )
 fi
 
-# 3. Extended core suites (only executed when TARGET_CORE matches or is 'all')
 if [[ "${TARGET_CORE}" == "hifi3z" || "${TARGET_CORE}" == "all" ]]; then
-  ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro:core_framework_tests
-  ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z-nnlib //tensorflow/lite/micro/kernels:all
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_hifi3z_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_hifi3z_tests
+  )
 fi
 
 if [[ "${TARGET_CORE}" == "fusion_f1" || "${TARGET_CORE}" == "all" ]]; then
-  ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-fusion-f1-nnlib \
-    //tensorflow/lite/micro:micro_utils_test \
-    //tensorflow/lite/micro/kernels:add_test \
-    //tensorflow/lite/micro/kernels:conv_test \
-    //tensorflow/lite/micro/kernels:depthwise_conv_test \
-    //tensorflow/lite/micro/kernels:mul_test \
-    //tensorflow/lite/micro/kernels:pooling_test \
-    //tensorflow/lite/micro/kernels:softmax_test
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_fusion_f1_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_fusion_f1_smoke_tests
+  )
 fi
 
 if [[ "${TARGET_CORE}" == "vision_p6" || "${TARGET_CORE}" == "all" ]]; then
-  ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-vision-p6-nnlib \
-    //tensorflow/lite/micro:micro_utils_test \
-    //tensorflow/lite/micro/kernels:add_test \
-    //tensorflow/lite/micro/kernels:conv_test \
-    //tensorflow/lite/micro/kernels:depthwise_conv_test \
-    //tensorflow/lite/micro/kernels:pooling_test \
-    //tensorflow/lite/micro/kernels:softmax_test
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_vision_p6_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_vision_p6_smoke_tests
+  )
 fi
+
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-env "${TARGETS[@]}"

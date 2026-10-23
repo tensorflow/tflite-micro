@@ -26,11 +26,8 @@ BAZEL_FLAGS="--config=_ci_base"
 # Ensure Bazel server shuts down cleanly when run inside ephemeral containers
 trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 
-# 1. Run smoke test on RISC-V 32-bit (RV32IMC)
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=riscv32 //tensorflow/lite/micro/tools/toolchains/riscv:smoke_test
-
-# 2. Run full framework, allocator, memory planner, signal kernels, and example tests on RISC-V 32-bit
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=riscv32 //tensorflow/lite/micro:core_framework_tests
-
-# 3. Run full operator kernel test suite on RISC-V 32-bit
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=riscv32 //tensorflow/lite/micro/kernels:all
+# Run RISC-V 32-bit (RV32IMC) smoke test, framework tests, and operator kernel suite in a unified invocation
+${BAZEL_BIN} test ${BAZEL_FLAGS} \
+  //tensorflow/lite/micro/tools/toolchains/riscv:smoke_test_riscv32 \
+  //tensorflow/lite/micro:core_riscv32_tests \
+  //tensorflow/lite/micro/kernels:kernel_riscv32_tests

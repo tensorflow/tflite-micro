@@ -58,6 +58,40 @@ def tflm_defines():
         "//conditions:default": [],
     })
 
+    defines += select({
+        "//tensorflow/lite/micro/kernels:cmsis_nn_default": ["CMSIS_NN"],
+        "//tensorflow/lite/micro/kernels:cmsis_nn_ethos_u_default": [
+            "CMSIS_NN",
+            "ETHOSU",
+            "ETHOS_U",
+        ],
+        "//tensorflow/lite/micro/kernels:hexagon_default": [
+            "HEXAGON",
+            "HEXAGON_ASM",
+        ],
+        "//tensorflow/lite/micro/kernels:xtensa_fusion_f1_default": [
+            "XTENSA=1",
+            "HIFI4=1",
+        ],
+        "//tensorflow/lite/micro/kernels:xtensa_hifi_3_default": [
+            "XTENSA=1",
+            "HIFI3=1",
+        ],
+        "//tensorflow/lite/micro/kernels:xtensa_hifi_3z_default": [
+            "XTENSA=1",
+            "HIFI4=1",
+        ],
+        "//tensorflow/lite/micro/kernels:xtensa_hifi_5_default": [
+            "XTENSA=1",
+            "HIFI5=1",
+        ],
+        "//tensorflow/lite/micro/kernels:xtensa_vision_p6_default": [
+            "XTENSA=1",
+            "VISION_P6=1",
+        ],
+        "//conditions:default": [],
+    })
+
     return defines
 
 def tflm_cc_binary(copts = tflm_copts(), defines = tflm_defines(), **kwargs):
