@@ -622,33 +622,6 @@ TEST(TransposeConvTest, SimpleTestQuantized16x8PerChannel) {
       &tflite::testing::common_conv_params, output_data);
 }
 
-TEST(TransposeConvTest, SimpleTestQuantized16x8PerChannelWithInt16Bias) {
-  int16_t output_data[tflite::testing::kOutputElements];
-
-  const float input_scale = 1.0f;
-  const float output_scale = 1.0f;
-  const float filter_scale = 1.0f;
-  const int input_zero_point = 0;
-  const int output_zero_point = 0;
-
-  int16_t input_quantized[tflite::testing::kInputElements];
-  int8_t filter_quantized[tflite::testing::kFilterElements];
-  int16_t bias_quantized[tflite::testing::kBiasElements];
-  int16_t golden_quantized[tflite::testing::kOutputElements];
-  int zero_points[tflite::testing::kBiasElements + 1];
-  float scales[tflite::testing::kBiasElements + 1];
-
-  tflite::testing::TestTransposeConvQuantized(
-      tflite::testing::kInputShape, tflite::testing::kInputData,
-      input_quantized, input_scale, input_zero_point,
-      tflite::testing::kFilterShape, tflite::testing::kFilterData,
-      filter_quantized, filter_scale, tflite::testing::kBiasShape,
-      tflite::testing::kBiasData, bias_quantized, scales, zero_points,
-      tflite::testing::kOutputShape, tflite::testing::kGoldenData,
-      golden_quantized, output_scale, output_zero_point,
-      &tflite::testing::common_conv_params, output_data);
-}
-
 TEST(TransposeConvTest, InputOutputDifferentTypeIsError) {
   using tflite::testing::CreateQuantizedTensor;
   using tflite::testing::CreateTensor;
@@ -778,71 +751,6 @@ TEST(TransposeConvTest, SimpleTestQuantizedPerChannelSingleChannelCompressed) {
       tflite::testing::kOutputShapeQ1, tflite::testing::kGoldenDataQ1,
       golden_quantized, output_quantized, output_scale, output_zero_point,
       &tflite::testing::common_conv_params, 0, &filter_comp_info,
-      &bias_comp_info);
-}
-
-TEST(TransposeConvTest,
-     SimpleBiasTestQuantizedPerChannelBias16MultiChannelCompressed) {
-  // data from TfLite test: SimpleBiasTestQuantizedPerChannel16x8Bias64
-  const float input_scale = 4.0f / 127.0f;
-  const float output_scale = 128.0f / 65536.0f;
-  const int input_zero_point = 0;
-  const int output_zero_point = 0;
-  float filter_scales[] = {
-      tflite::testing::kNumChannelsQ2,
-      7.0f / 127.0f,
-      8.0f / 127.0f,
-  };
-  int filter_zero_points[] = {
-      tflite::testing::kNumChannelsQ2,
-      0,
-      0,
-  };
-  // bias scales and zero points will be computed
-  float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
-  int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};
-
-  int16_t input_quantized[tflite::testing::kInputElementsQ2];
-  int8_t filter_quantized[tflite::testing::kBinQuantFilterValueTableElementsQ2];
-  int16_t bias_quantized[tflite::testing::kBiasElementsQ2];
-  int16_t golden_quantized[tflite::testing::kOutputElementsQ2];
-  int16_t output_quantized[tflite::testing::kOutputElementsQ2];
-
-  tflite::testing::TestCompressionQuantizedInfo<int8_t> filter_comp_info = {};
-  tflite::testing::TestCompressionQuantizedInfo<int16_t> bias_comp_info = {};
-
-  filter_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
-  filter_comp_info.value_table = filter_quantized;
-  filter_comp_info.value_table_stride =
-      tflite::testing::kBinQuantFilterValueTableElementsQ2 /
-      tflite::testing::kNumChannelsQ2;
-  filter_comp_info.bit_width = tflite::testing::kBinQuantFilterBitWidthQ2;
-  filter_comp_info.compressed = tflite::testing::kBinQuantFilterDataQ2;
-  filter_comp_info.data = tflite::testing::kBinQuantFilterValueTableQ2;
-  filter_comp_info.dims_data = tflite::testing::kFilterShapeQ2;
-  filter_comp_info.scales = filter_scales;
-  filter_comp_info.zero_points = filter_zero_points;
-
-  bias_comp_info.scheme = tflite::CompressionScheme::kBinQuant;
-  bias_comp_info.value_table = bias_quantized;
-  bias_comp_info.value_table_stride =
-      tflite::testing::kBiasElementsQ2 / tflite::testing::kNumChannelsQ2;
-  bias_comp_info.bit_width = tflite::testing::kBinQuantBiasBitWidthQ2;
-  bias_comp_info.compressed = tflite::testing::kBinQuantBiasDataQ2;
-  bias_comp_info.data = tflite::testing::kBiasDataQ2;
-  bias_comp_info.dims_data = tflite::testing::kBiasShapeQ2;
-  bias_comp_info.scales = bias_scales;
-  bias_comp_info.zero_points = bias_zero_points;
-
-  // The quantized output is compared to the expected output (quantized).
-  // A tolerance of 81 is approx. 0.1582f which is less than the TfLite
-  // tolerance of 0.19f.
-  tflite::testing::TestTransposeConvQuantizedCompressed(
-      tflite::testing::kInputShapeQ2, tflite::testing::kInputDataQ2,
-      input_quantized, input_scale, input_zero_point,
-      tflite::testing::kOutputShapeQ2, tflite::testing::kGoldenDataQ2,
-      golden_quantized, output_quantized, output_scale, output_zero_point,
-      &tflite::testing::common_conv_params, 81, &filter_comp_info,
       &bias_comp_info);
 }
 
