@@ -34,7 +34,6 @@ from tflite_micro.python.tflite_micro import runtime
 
 try:
   import tensorflow as tf
-  from tensorflow.python.platform import resource_loader
   from tflite_micro.python.tflite_micro.signal.ops import energy_op
   from tflite_micro.python.tflite_micro.signal.ops import fft_ops
   from tflite_micro.python.tflite_micro.signal.ops import filter_bank_ops
@@ -602,7 +601,7 @@ def _main():
   args, _ = parser.parse_known_args()
   _DEBUG_MODE = args.debug_mode
 
-  prefix_path = resource_loader.get_path_to_datafile('testdata')
+  prefix_path = Path(__file__).parent / 'testdata'
 
   fname = args.file_to_test
   audio_30ms_path = Path(prefix_path, f'{fname}_30ms.wav')

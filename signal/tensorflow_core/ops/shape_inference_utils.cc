@@ -23,8 +23,8 @@ limitations under the License.
 #include <cstring>
 #include <string>
 
-#if __has_include("third_party/tensorflow/core/framework/shape_inference.h")
-#include "third_party/tensorflow/core/framework/shape_inference.h"
+#ifdef TFLM_USE_TF_SHAPE_INFERENCE_HEADER
+#include "tensorflow/core/framework/shape_inference.h"
 #else
 namespace tensorflow {
 namespace shape_inference {

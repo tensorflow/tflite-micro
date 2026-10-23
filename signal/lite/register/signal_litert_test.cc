@@ -21,10 +21,10 @@ limitations under the License.
 #include <utility>
 #include <vector>
 
-#include "absl/types/span.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
 #include "litert/c/options/litert_cpu_options.h"
+#include "litert/cc/litert_api_types.h"
 #include "litert/cc/litert_buffer_ref.h"
 #include "litert/cc/litert_common.h"
 #include "litert/cc/litert_compiled_model.h"
@@ -159,17 +159,19 @@ TEST(SignalLiteRtTest, WindowOpWithTfLiteOperator) {
 
   std::vector<int16_t> in_data = {4096, 4096, 4096, 4096};
   std::vector<int16_t> weights_data = {1024, 2048, 3072, 4096};
-  ASSERT_TRUE(
-      inputs[0].Write<int16_t>(absl::MakeConstSpan(in_data)).HasValue());
-  ASSERT_TRUE(
-      inputs[1].Write<int16_t>(absl::MakeConstSpan(weights_data)).HasValue());
+  ASSERT_TRUE(inputs[0]
+                  .Write<int16_t>(litert::Span<const int16_t>(in_data))
+                  .HasValue());
+  ASSERT_TRUE(inputs[1]
+                  .Write<int16_t>(litert::Span<const int16_t>(weights_data))
+                  .HasValue());
 
   ASSERT_TRUE(compiled.Run(inputs, outputs).HasValue());
 
   auto lock_expected = litert::TensorBufferScopedLock::Create<const int16_t>(
       outputs[0], litert::TensorBuffer::LockMode::kRead);
   ASSERT_TRUE(lock_expected.HasValue());
-  auto out_span = absl::MakeSpan(lock_expected.Value().second, 4);
+  litert::Span<const int16_t> out_span(lock_expected.Value().second, 4);
   EXPECT_THAT(out_span, ElementsAreArray({1024, 2048, 3072, 4096}));
 }
 
@@ -211,27 +213,29 @@ TEST(SignalLiteRtTest, StatefulDelayOpPersistsStateAcrossRuns) {
 
   // Run 1: input [10, 20, 30] -> delayed by 2 -> [0, 0, 10]
   std::vector<int16_t> in_run1 = {10, 20, 30};
-  ASSERT_TRUE(
-      inputs[0].Write<int16_t>(absl::MakeConstSpan(in_run1)).HasValue());
+  ASSERT_TRUE(inputs[0]
+                  .Write<int16_t>(litert::Span<const int16_t>(in_run1))
+                  .HasValue());
   ASSERT_TRUE(compiled.Run(inputs, outputs).HasValue());
   {
     auto lock_expected = litert::TensorBufferScopedLock::Create<const int16_t>(
         outputs[0], litert::TensorBuffer::LockMode::kRead);
     ASSERT_TRUE(lock_expected.HasValue());
-    auto out_span = absl::MakeSpan(lock_expected.Value().second, 3);
+    litert::Span<const int16_t> out_span(lock_expected.Value().second, 3);
     EXPECT_THAT(out_span, ElementsAreArray({0, 0, 10}));
   }
 
   // Run 2: input [40, 50, 60] -> carries over [20, 30] -> [20, 30, 40]
   std::vector<int16_t> in_run2 = {40, 50, 60};
-  ASSERT_TRUE(
-      inputs[0].Write<int16_t>(absl::MakeConstSpan(in_run2)).HasValue());
+  ASSERT_TRUE(inputs[0]
+                  .Write<int16_t>(litert::Span<const int16_t>(in_run2))
+                  .HasValue());
   ASSERT_TRUE(compiled.Run(inputs, outputs).HasValue());
   {
     auto lock_expected = litert::TensorBufferScopedLock::Create<const int16_t>(
         outputs[0], litert::TensorBuffer::LockMode::kRead);
     ASSERT_TRUE(lock_expected.HasValue());
-    auto out_span = absl::MakeSpan(lock_expected.Value().second, 3);
+    litert::Span<const int16_t> out_span(lock_expected.Value().second, 3);
     EXPECT_THAT(out_span, ElementsAreArray({20, 30, 40}));
   }
 }
@@ -305,17 +309,19 @@ TEST(SignalLiteRtTest, MultiOpFramerWindowRfftPipeline) {
   std::vector<int16_t> audio_in(64, 0);
   audio_in[0] = 6400;
   std::vector<int16_t> weights(64, 4096);
-  ASSERT_TRUE(
-      inputs[0].Write<int16_t>(absl::MakeConstSpan(audio_in)).HasValue());
-  ASSERT_TRUE(
-      inputs[1].Write<int16_t>(absl::MakeConstSpan(weights)).HasValue());
+  ASSERT_TRUE(inputs[0]
+                  .Write<int16_t>(litert::Span<const int16_t>(audio_in))
+                  .HasValue());
+  ASSERT_TRUE(inputs[1]
+                  .Write<int16_t>(litert::Span<const int16_t>(weights))
+                  .HasValue());
 
   ASSERT_TRUE(compiled.Run(inputs, outputs).HasValue());
 
   auto spec_lock = litert::TensorBufferScopedLock::Create<const int16_t>(
       outputs[0], litert::TensorBuffer::LockMode::kRead);
   ASSERT_TRUE(spec_lock.HasValue());
-  auto spec_span = absl::MakeSpan(spec_lock.Value().second, 66);
+  litert::Span<const int16_t> spec_span(spec_lock.Value().second, 66);
   // Integer RFFT scales by 1/fft_length (6400 / 64 = 100 real, 0 imag for all
   // 33 bins).
   for (int i = 0; i < 33; ++i) {
