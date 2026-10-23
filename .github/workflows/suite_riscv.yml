@@ -6,12 +6,18 @@ on:
       trigger-sha:
         required: true
         type: string
+      scope:
+        description: 'Scope of tests to run (basic or all)'
+        required: false
+        type: string
+        default: 'all'
     secrets:
       tflm-bot-token:
         required: true
 
 jobs:
   riscv_tests:
+    if: inputs.scope == 'all'
     runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
@@ -26,6 +32,7 @@ jobs:
         run: tensorflow/lite/micro/tools/ci_build/test_riscv.sh
 
   riscv_bazel:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:

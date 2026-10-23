@@ -434,9 +434,9 @@ template <typename T>
 struct TestCompressionQuantizedInfo : TestCompressionInfo<T> {
   const uint8_t* compressed;
   const float* data;
-  const int* dims_data;    // TfLiteIntArray
-  const float* scales;     // TfLiteFloatArray (may be computed)
-  const int* zero_points;  // TfLiteIntArray (may be computed)
+  const int* dims_data;  // TfLiteIntArray
+  float* scales;         // TfLiteFloatArray (mutated in-place / computed)
+  int* zero_points;      // TfLiteIntArray (may be computed)
 };
 
 template <size_t NTENSORS, size_t NINPUTS = 2>

@@ -101,7 +101,7 @@ def _cortex_m_toolchain_config_impl(ctx):
 
     qemu_semihosting = feature(
         name = "qemu_semihosting",
-        enabled = True,
+        enabled = ctx.attr.semihosting,
         flag_sets = [
             flag_set(
                 actions = [ACTION_NAMES.cpp_link_executable],
@@ -166,6 +166,11 @@ def _cortex_m_toolchain_config_impl(ctx):
         ],
     )
 
+    has_cxx17_headers = feature(
+        name = "has_cxx17_headers",
+        enabled = True,
+    )
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = ctx.attr.cpu + "-toolchain",
@@ -179,7 +184,12 @@ def _cortex_m_toolchain_config_impl(ctx):
         action_configs = action_configs,
         tool_paths = [],
         cxx_builtin_include_directories = [],
-        features = [cortex_m_flags, static_link_flags, qemu_semihosting],
+        features = [
+            cortex_m_flags,
+            static_link_flags,
+            qemu_semihosting,
+            has_cxx17_headers,
+        ],
     )
 
 cortex_m_toolchain_config = rule(
@@ -193,6 +203,7 @@ cortex_m_toolchain_config = rule(
         "cpp_compiler": attr.label(allow_single_file = True, executable = True, cfg = "exec"),
         "cpp_compiler_path": attr.string(),
         "cpu": attr.string(mandatory = True),
+        "semihosting": attr.bool(default = True),
         "strip": attr.label(allow_single_file = True, executable = True, cfg = "exec"),
         "strip_path": attr.string(),
     },

@@ -1,4 +1,5 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//tensorflow/lite/micro:build_def.bzl", "tflm_defines")
 
 package(
     default_visibility = ["//signal:__subpackages__"],
@@ -39,6 +40,7 @@ cc_library(
     name = "max_abs",
     srcs = ["max_abs.cc"],
     hdrs = ["max_abs.h"],
+    defines = tflm_defines(),
 )
 
 cc_library(
@@ -69,6 +71,7 @@ cc_library(
     name = "msb_32",
     srcs = ["msb_32.cc"],
     hdrs = ["msb.h"],
+    defines = tflm_defines(),
 )
 
 cc_library(

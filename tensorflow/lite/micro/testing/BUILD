@@ -65,6 +65,9 @@ tflm_cc_test(
     srcs = [
         "test_all_op_resolver_test.cc",
     ],
+    visibility = [
+        ":tflite_micro",
+    ],
     deps = [
         ":micro_test",
         ":test_all_op_resolver",
@@ -76,6 +79,9 @@ tflm_cc_test(
     srcs = [
         "util_test.cc",
     ],
+    visibility = [
+        ":tflite_micro",
+    ],
     deps = [
         ":micro_test",
     ],
@@ -85,6 +91,9 @@ tflm_cc_test(
     name = "util_v2_test",
     srcs = [
         "util_v2_test.cc",
+    ],
+    visibility = [
+        ":tflite_micro",
     ],
     deps = [
         ":micro_test",
