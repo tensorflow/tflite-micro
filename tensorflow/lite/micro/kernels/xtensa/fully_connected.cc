@@ -132,9 +132,5 @@ TFLMRegistration Register_FULLY_CONNECTED() {
                                    XtensaPrepareFullyConnected, Eval);
 }
 
-TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(Eval);
-}
-
 }  // namespace micro
 }  // namespace tflite
