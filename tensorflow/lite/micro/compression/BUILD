@@ -61,6 +61,7 @@ tflm_cc_test(
 
 tflm_platform_target(
     name = "metadata_test_cc_compression",
+    size = "small",
     profile = "compression",
     target = ":metadata_test_cc",
 )

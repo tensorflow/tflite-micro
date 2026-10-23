@@ -26,6 +26,7 @@ riscv_toolchain_config(
     cpp_compiler = RISCV_TOOLCHAIN_BIN_PREFIX + "riscv64-unknown-elf-g++",
     cpu = "riscv32",
     strip = RISCV_TOOLCHAIN_BIN_PREFIX + "riscv64-unknown-elf-strip",
+    tags = ["manual"],
 )
 
 tflm_cc_toolchain(
@@ -38,7 +39,7 @@ tflm_cc_toolchain(
     linker_files = RISCV_LINKER_FILES,
     objcopy_files = ":empty",
     strip_files = RISCV_TOOLCHAIN_FILES_PREFIX + "everything",
-    supports_param_files = 0,
+    supports_param_files = False,
     toolchain_config = ":riscv32_config",
     toolchain_identifier = "riscv32-toolchain",
 )
