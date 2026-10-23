@@ -13,192 +13,181 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+
 #include "signal/src/fft_auto_scale.h"
 #include "signal/src/irfft.h"
 #include "signal/src/rfft.h"
-#include "tensorflow/core/framework/op_kernel.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
+#include "tensorflow/c/tf_datatype.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-// get_needed_memory_func(), init_func(), apply_func()
-// are type specific implementations of the RFFT functions.
-// See rfft.h included above for documentation
-template <typename T, DataType E, size_t (*get_needed_memory_func)(int32_t),
-          void* (*init_func)(int32_t, void*, size_t),
-          void (*apply_func)(void*, const T* input, Complex<T>*)>
-class RfftOp : public tensorflow::OpKernel {
+template <typename T, size_t (*GetNeededMemoryFn)(int32_t),
+          void* (*InitFn)(int32_t, void*, size_t),
+          void (*ApplyFn)(void*, const T* input, Complex<T>*)>
+class RfftOp {
  public:
-  explicit RfftOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("fft_length", &fft_length_));
-    OP_REQUIRES_OK(context,
-                   context->allocate_temp(E, TensorShape({fft_length_}),
-                                          &work_area_tensor_));
-    work_area_ = work_area_tensor_.flat<T>().data();
-    // Subband array size is the number of subbands * 2 because each coefficient
-    // is complex.
+  explicit RfftOp(KernelConstruction* ctx) {
+    if (!ctx->GetAttr("fft_length", &fft_length_)) {
+      return;
+    }
+    work_area_.resize(static_cast<size_t>(fft_length_));
+    // Each complex coefficient occupies two scalar elements.
     subband_array_size_ = ((fft_length_ / 2) + 1) * 2;
-    size_t state_size = (*get_needed_memory_func)(fft_length_);
-    OP_REQUIRES_OK(context,
-                   context->allocate_temp(
-                       DT_INT8, TensorShape({static_cast<int32_t>(state_size)}),
-                       &state_tensor_));
-    state_ = state_tensor_.flat<int8_t>().data();
-    (*init_func)(fft_length_, state_, state_size);
+    size_t state_size = GetNeededMemoryFn(fft_length_);
+    state_.resize(state_size);
+    InitFn(fft_length_, state_.data(), state_size);
   }
 
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
-    const T* input = input_tensor.flat<T>().data();
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    TensorShape output_shape = input_tensor.shape();
-    output_shape.set_dim(output_shape.dims() - 1, subband_array_size_);
+    std::vector<int64_t> out_dims = input_tensor.Shape();
+    int64_t frame_size = out_dims.empty() ? 0 : out_dims.back();
+    int64_t outer_dims =
+        (frame_size > 0) ? (input_tensor.NumElements() / frame_size) : 0;
+    if (!out_dims.empty()) {
+      out_dims.back() = subband_array_size_;
+    }
 
-    // Create an output tensor
-    tensorflow::Tensor* output_tensor = nullptr;
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0, output_shape, &output_tensor));
-    T* output = output_tensor->flat<T>().data();
+    TensorHandle output_tensor = ctx->AllocateOutput<T>(0, out_dims);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    int outer_dims = input_tensor.flat_inner_dims<T, 2>().dimensions().at(0);
-    int frame_size = input_tensor.flat_inner_dims<T, 2>().dimensions().at(1);
-    for (int i = 0; i < outer_dims; i++) {
+    const T* input = input_tensor.Data<T>();
+    T* output = output_tensor.Data<T>();
+    for (int64_t i = 0; i < outer_dims; ++i) {
       auto input_in_work_end =
-          std::copy_n(&input[i * frame_size], frame_size, work_area_);
-      // Zero pad input to FFT length
-      std::fill(input_in_work_end, &work_area_[fft_length_], 0);
-      (*apply_func)(
-          state_, work_area_,
-          reinterpret_cast<Complex<T>*>(&output[i * subband_array_size_]));
+          std::copy_n(&input[i * frame_size], frame_size, work_area_.data());
+      // Zero-pad input to FFT length.
+      std::fill(input_in_work_end, work_area_.data() + fft_length_, T{0});
+      ApplyFn(state_.data(), work_area_.data(),
+              reinterpret_cast<Complex<T>*>(&output[i * subband_array_size_]));
     }
   }
 
  private:
-  int fft_length_;
-  int subband_array_size_;
-  int8_t* state_;
-  T* work_area_;
-  Tensor work_area_tensor_;
-  Tensor state_tensor_;
+  int32_t fft_length_ = 0;
+  int32_t subband_array_size_ = 0;
+  std::vector<T> work_area_;
+  std::vector<int8_t> state_;
 };
 
-// get_needed_memory_func(), init_func(), apply_func()
-// are type specific implementations of the IRFFT functions.
-// See irfft.h included above for documentation
-template <typename T, size_t (*get_needed_memory_func)(int32_t),
-          void* (*init_func)(int32_t, void*, size_t),
-          void (*apply_func)(void*, const Complex<T>* input, T*)>
-class IrfftOp : public tensorflow::OpKernel {
+template <typename T, size_t (*GetNeededMemoryFn)(int32_t),
+          void* (*InitFn)(int32_t, void*, size_t),
+          void (*ApplyFn)(void*, const Complex<T>* input, T*)>
+class IrfftOp {
  public:
-  explicit IrfftOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("fft_length", &fft_length_));
-    // Subband array size is the number of subbands * 2 because each coefficient
-    // is complex.
+  explicit IrfftOp(KernelConstruction* ctx) {
+    if (!ctx->GetAttr("fft_length", &fft_length_)) {
+      return;
+    }
     subband_array_size_ = ((fft_length_ / 2) + 1) * 2;
-
-    size_t state_size = (*get_needed_memory_func)(fft_length_);
-    OP_REQUIRES_OK(context, context->allocate_temp(
-                                DT_INT8, TensorShape({(int32_t)state_size}),
-                                &state_handle_));
-    state_ = state_handle_.flat<int8_t>().data();
-    (*init_func)(fft_length_, state_, state_size);
+    size_t state_size = GetNeededMemoryFn(fft_length_);
+    state_.resize(state_size);
+    InitFn(fft_length_, state_.data(), state_size);
   }
 
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
-    const T* input = input_tensor.flat<T>().data();
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    TensorShape output_shape = input_tensor.shape();
-    output_shape.set_dim(output_shape.dims() - 1, fft_length_);
+    std::vector<int64_t> out_dims = input_tensor.Shape();
+    int64_t in_last_dim = out_dims.empty() ? 0 : out_dims.back();
+    int64_t outer_dims =
+        (in_last_dim > 0) ? (input_tensor.NumElements() / in_last_dim) : 0;
+    if (!out_dims.empty()) {
+      out_dims.back() = fft_length_;
+    }
 
-    // Create an output tensor
-    tensorflow::Tensor* output_tensor = nullptr;
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0, output_shape, &output_tensor));
-    T* output = output_tensor->flat<T>().data();
+    TensorHandle output_tensor = ctx->AllocateOutput<T>(0, out_dims);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    int outer_dims = input_tensor.flat_inner_dims<T, 2>().dimensions().at(0);
-    for (int i = 0; i < outer_dims; i++) {
-      (*apply_func)(
-          state_,
+    const T* input = input_tensor.Data<T>();
+    T* output = output_tensor.Data<T>();
+    for (int64_t i = 0; i < outer_dims; ++i) {
+      ApplyFn(
+          state_.data(),
           reinterpret_cast<const Complex<T>*>(&input[i * subband_array_size_]),
           &output[i * fft_length_]);
     }
   }
 
  private:
-  int fft_length_;
-  int subband_array_size_;
-  int8_t* state_;
-  Tensor state_handle_;
+  int32_t fft_length_ = 0;
+  int32_t subband_array_size_ = 0;
+  std::vector<int8_t> state_;
 };
 
-class FftAutoScaleOp : public tensorflow::OpKernel {
+class FftAutoScaleOp {
  public:
-  explicit FftAutoScaleOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {}
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
-    const int16_t* input = input_tensor.flat<int16_t>().data();
+  explicit FftAutoScaleOp(KernelConstruction* /*ctx*/) {}
 
-    // Create an output tensor
-    tensorflow::Tensor* output_tensor = nullptr;
-    OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
-                                                     &output_tensor));
-    int16_t* output = output_tensor->flat<int16_t>().data();
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    tensorflow::Tensor* scale_bit_tensor = nullptr;
-    OP_REQUIRES_OK(context, context->allocate_output(1, {}, &scale_bit_tensor));
-    scale_bit_tensor->scalar<int32_t>()() = tflite::tflm_signal::FftAutoScale(
-        input, output_tensor->NumElements(), output);
+    TensorHandle output_tensor =
+        ctx->AllocateOutput<int16_t>(0, input_tensor.Shape());
+    TensorHandle scale_bit_tensor = ctx->AllocateScalarOutput<int32_t>(1);
+    if (!ctx->ok()) {
+      return;
+    }
+
+    *scale_bit_tensor.Data<int32_t>() = tflite::tflm_signal::FftAutoScale(
+        input_tensor.Data<int16_t>(),
+        static_cast<size_t>(input_tensor.NumElements()),
+        output_tensor.Data<int16_t>());
   }
 };
 
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(
-    Name("SignalFftAutoScale").Device(tensorflow::DEVICE_CPU), FftAutoScaleOp);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalRfft")
-        .Device(tensorflow::DEVICE_CPU)
-        .TypeConstraint<float>("T"),
-    RfftOp<float, DT_FLOAT, ::tflm_signal::RfftFloatGetNeededMemory,
-           ::tflm_signal::RfftFloatInit, ::tflm_signal::RfftFloatApply>);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalRfft")
-        .Device(tensorflow::DEVICE_CPU)
-        .TypeConstraint<int16>("T"),
-    RfftOp<int16_t, DT_INT16, ::tflm_signal::RfftInt16GetNeededMemory,
-           ::tflm_signal::RfftInt16Init, ::tflm_signal::RfftInt16Apply>);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalRfft")
-        .Device(tensorflow::DEVICE_CPU)
-        .TypeConstraint<int32>("T"),
-    RfftOp<int32_t, DT_INT32, ::tflm_signal::RfftInt32GetNeededMemory,
-           ::tflm_signal::RfftInt32Init, ::tflm_signal::RfftInt32Apply>);
+__attribute__((constructor)) void RegisterSignalFftKernels() {
+  RegisterKernel<FftAutoScaleOp>("SignalFftAutoScale");
 
-REGISTER_KERNEL_BUILDER(
-    Name("SignalIrfft")
-        .Device(tensorflow::DEVICE_CPU)
-        .TypeConstraint<float>("T"),
-    IrfftOp<float, tflite::tflm_signal::IrfftFloatGetNeededMemory,
-            tflite::tflm_signal::IrfftFloatInit,
-            tflite::tflm_signal::IrfftFloatApply>);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalIrfft")
-        .Device(tensorflow::DEVICE_CPU)
-        .TypeConstraint<int16>("T"),
-    IrfftOp<int16_t, tflite::tflm_signal::IrfftInt16GetNeededMemory,
-            tflite::tflm_signal::IrfftInt16Init,
-            tflite::tflm_signal::IrfftInt16Apply>);
-REGISTER_KERNEL_BUILDER(
-    Name("SignalIrfft")
-        .Device(tensorflow::DEVICE_CPU)
-        .TypeConstraint<int32>("T"),
-    IrfftOp<int32_t, tflite::tflm_signal::IrfftInt32GetNeededMemory,
-            tflite::tflm_signal::IrfftInt32Init,
-            tflite::tflm_signal::IrfftInt32Apply>);
+  RegisterTypedKernel<
+      RfftOp<float, ::tflm_signal::RfftFloatGetNeededMemory,
+             ::tflm_signal::RfftFloatInit, ::tflm_signal::RfftFloatApply>>(
+      "SignalRfft", TF_FLOAT);
+  RegisterTypedKernel<
+      RfftOp<int16_t, ::tflm_signal::RfftInt16GetNeededMemory,
+             ::tflm_signal::RfftInt16Init, ::tflm_signal::RfftInt16Apply>>(
+      "SignalRfft", TF_INT16);
+  RegisterTypedKernel<
+      RfftOp<int32_t, ::tflm_signal::RfftInt32GetNeededMemory,
+             ::tflm_signal::RfftInt32Init, ::tflm_signal::RfftInt32Apply>>(
+      "SignalRfft", TF_INT32);
 
+  RegisterTypedKernel<
+      IrfftOp<float, tflite::tflm_signal::IrfftFloatGetNeededMemory,
+              tflite::tflm_signal::IrfftFloatInit,
+              tflite::tflm_signal::IrfftFloatApply>>("SignalIrfft", TF_FLOAT);
+  RegisterTypedKernel<
+      IrfftOp<int16_t, tflite::tflm_signal::IrfftInt16GetNeededMemory,
+              tflite::tflm_signal::IrfftInt16Init,
+              tflite::tflm_signal::IrfftInt16Apply>>("SignalIrfft", TF_INT16);
+  RegisterTypedKernel<
+      IrfftOp<int32_t, tflite::tflm_signal::IrfftInt32GetNeededMemory,
+              tflite::tflm_signal::IrfftInt32Init,
+              tflite::tflm_signal::IrfftInt32Apply>>("SignalIrfft", TF_INT32);
+}
+
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

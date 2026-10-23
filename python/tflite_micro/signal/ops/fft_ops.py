@@ -51,44 +51,107 @@ def get_pow2_fft_length(input_length):
   return fft_length, fft_bits
 
 
-def _fft_wrapper(fft_fn, default_name):
-  """Wrapper around gen_fft_ops.*rfft*."""
-
-  def _fft(input_tensor, fft_length, name=default_name):
-    if not (
-      (_MIN_FFT_LENGTH <= fft_length <= _MAX_FFT_LENGTH)
-      and (fft_length % 2 == 0)
-    ):
-      raise ValueError(
-        "Invalid fft_length. Must be an even number between %d and %d."
-        % (_MIN_FFT_LENGTH, _MAX_FFT_LENGTH)
-      )
-    with tf.name_scope(name) as name:
-      input_tensor = tf.convert_to_tensor(input_tensor)
-      return fft_fn(input_tensor, fft_length=fft_length, name=name)
-
-  return _fft
+def _validate_fft_length(fft_length):
+  if not (
+    (_MIN_FFT_LENGTH <= fft_length <= _MAX_FFT_LENGTH) and (fft_length % 2 == 0)
+  ):
+    raise ValueError(
+      "Invalid fft_length. Must be an even number between %d and %d."
+      % (_MIN_FFT_LENGTH, _MAX_FFT_LENGTH)
+    )
 
 
-def _fft_auto_scale_wrapper(fft_auto_scale_fn, default_name):
-  """Wrapper around gen_fft_ops.fft_auto_scale*."""
+def rfft(input_tensor, fft_length, name="signal_rfft"):
+  """Computes the 1-D discrete Fourier transform of a real-valued signal.
 
-  def _fft_auto_scale(input_tensor, name=default_name):
-    with tf.name_scope(name) as name:
-      input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.int16)
-      dim_list = input_tensor.shape.as_list()
-      if len(dim_list) != 1:
-        raise ValueError("Input tensor must have a rank of 1")
-      return fft_auto_scale_fn(input_tensor, name=name)
+  Computes the RFFT over the innermost dimension of `input_tensor`. Since the
+  DFT of a real signal is Hermitian-symmetric, RFFT returns only the
+  `(fft_length // 2) + 1` unique complex components: the zero-frequency (DC)
+  term followed by the `fft_length // 2` positive-frequency terms. If
+  `fft_length` is larger than the innermost dimension of `input_tensor`, the
+  dimension is zero-padded.
 
-  return _fft_auto_scale
+  Args:
+    input_tensor: A `Tensor` of type `float32`, `int16`, or `int32` with rank
+      >= 1.
+    fft_length: Even `int` in `[64, 2048]` specifying the FFT length. Shorter
+      inputs are zero-padded to `fft_length`.
+    name: Optional name for the operation.
+
+  Returns:
+    A `Tensor` of the same dtype as `input_tensor` containing
+    `((fft_length // 2) + 1) * 2` interleaved real/imaginary elements along its
+    innermost dimension. For integer inputs (`int16`, `int32`), the output is
+    scaled by `1 / fft_length` to avoid overflow; for `float32`, it is unscaled.
+
+  Raises:
+    ValueError: If `fft_length` is not an even integer in `[64, 2048]`.
+  """
+  _validate_fft_length(fft_length)
+  with tf.name_scope(name) as name:
+    input_tensor = tf.convert_to_tensor(input_tensor)
+    return gen_fft_ops.signal_rfft(
+      input_tensor, fft_length=fft_length, name=name
+    )
 
 
-rfft = _fft_wrapper(gen_fft_ops.signal_rfft, "signal_rfft")
-irfft = _fft_wrapper(gen_fft_ops.signal_irfft, "signal_irfft")
-fft_auto_scale = _fft_auto_scale_wrapper(
-  gen_fft_ops.signal_fft_auto_scale, "signal_fft_auto_scale"
-)
+def irfft(input_tensor, fft_length, name="signal_irfft"):
+  """Computes the inverse 1-D discrete Fourier transform of a real signal.
+
+  Computes the inverse RFFT over the innermost dimension of `input_tensor`,
+  which is assumed to contain the `(fft_length // 2) + 1` unique complex
+  components produced by `rfft` (represented as `((fft_length // 2) + 1) * 2`
+  interleaved real/imaginary elements).
+
+  Args:
+    input_tensor: A `Tensor` of type `float32`, `int16`, or `int32` containing
+      `((fft_length // 2) + 1) * 2` interleaved spectral elements along its
+      innermost dimension.
+    fft_length: Even `int` in `[64, 2048]` specifying the inverse FFT length.
+    name: Optional name for the operation.
+
+  Returns:
+    A `Tensor` of the same dtype as `input_tensor` containing `fft_length`
+    time-domain elements along its innermost dimension.
+
+  Raises:
+    ValueError: If `fft_length` is not an even integer in `[64, 2048]`.
+  """
+  _validate_fft_length(fft_length)
+  with tf.name_scope(name) as name:
+    input_tensor = tf.convert_to_tensor(input_tensor)
+    return gen_fft_ops.signal_irfft(
+      input_tensor, fft_length=fft_length, name=name
+    )
+
+
+def fft_auto_scale(input_tensor, name="signal_fft_auto_scale"):
+  """Left-shifts `input_tensor` to maximize amplitude without clipping.
+
+  Returns both the scaled signal and the number of left-shift bits applied for
+  downstream compensation. Useful for maximizing precision in 16-bit integer FFT
+  pipelines.
+
+  Args:
+    input_tensor: A 1-D `int16` time-domain input signal.
+    name: Optional name for the operation.
+
+  Returns:
+    A tuple `(output, scale_bits)` where `output` is the auto-scaled 1-D `int16`
+    signal and `scale_bits` is a scalar `int32` `Tensor` giving the number of
+    left shifts applied.
+
+  Raises:
+    ValueError: If `input_tensor` does not have rank 1.
+  """
+  with tf.name_scope(name) as name:
+    input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.int16)
+    dim_list = input_tensor.shape.as_list()
+    if len(dim_list) != 1:
+      raise ValueError("Input tensor must have a rank of 1")
+    return gen_fft_ops.signal_fft_auto_scale(input_tensor, name=name)
+
+
 tf.no_gradient("signal_rfft")
 tf.no_gradient("signal_irfft")
 tf.no_gradient("signal_fft_auto_scale")

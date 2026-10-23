@@ -13,45 +13,55 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstdint>
+
 #include "signal/src/window.h"
-#include "tensorflow/core/framework/op_kernel.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-class WindowOp : public tensorflow::OpKernel {
+class WindowOp {
  public:
-  explicit WindowOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("shift", &shift_));
-  }
+  explicit WindowOp(KernelConstruction* ctx) { ctx->GetAttr("shift", &shift_); }
 
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
-    const int16_t* input = input_tensor.flat<int16_t>().data();
-    const tensorflow::Tensor& weight_tensor = context->input(1);
-    const int16_t* weights = weight_tensor.flat<int16_t>().data();
-    int weight_size = weight_tensor.flat<int16_t>().size();
-    int outer_dims =
-        input_tensor.flat_inner_dims<int16_t, 2>().dimensions().at(0);
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    TensorHandle weight_tensor = ctx->Input(1);
+    if (!ctx->ok()) {
+      return;
+    }
 
-    tensorflow::Tensor* output_tensor = nullptr;
-    OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
-                                                     &output_tensor));
-    int16_t* output = output_tensor->flat<int16_t>().data();
-    for (int i = 0; i < outer_dims; i++) {
-      tflm_signal::ApplyWindow(&input[i * weight_size], weights, weight_size,
-                               shift_, &output[i * weight_size]);
+    int64_t weight_size = weight_tensor.NumElements();
+    int64_t outer_dims =
+        (weight_size > 0) ? (input_tensor.NumElements() / weight_size) : 0;
+
+    TensorHandle output_tensor =
+        ctx->AllocateOutput<int16_t>(0, input_tensor.Shape());
+    if (!ctx->ok()) {
+      return;
+    }
+
+    const int16_t* input = input_tensor.Data<int16_t>();
+    const int16_t* weights = weight_tensor.Data<int16_t>();
+    int16_t* output = output_tensor.Data<int16_t>();
+    for (int64_t i = 0; i < outer_dims; ++i) {
+      tflm_signal::ApplyWindow(&input[i * weight_size], weights,
+                               static_cast<int>(weight_size), shift_,
+                               &output[i * weight_size]);
     }
   }
 
  private:
-  int shift_;
+  int32_t shift_ = 0;
 };
 
 // TODO(b/286250473): change back name to "Window" after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalWindow").Device(tensorflow::DEVICE_CPU),
-                        WindowOp);
+__attribute__((constructor)) void RegisterSignalWindowKernel() {
+  RegisterKernel<WindowOp>("SignalWindow");
+}
 
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

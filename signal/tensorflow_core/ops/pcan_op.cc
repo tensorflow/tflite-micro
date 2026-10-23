@@ -13,48 +13,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/core/framework/op.h"
-#include "tensorflow/core/framework/shape_inference.h"
-
-using ::tensorflow::shape_inference::InferenceContext;
-using ::tensorflow::shape_inference::ShapeHandle;
+#include "signal/tensorflow_core/ops/shape_inference_utils.h"
+#include "tensorflow/c/ops.h"
+#include "tensorflow/c/tf_status.h"
 
 namespace tensorflow {
 namespace signal {
-
 namespace {
 
-absl::Status PcanShape(InferenceContext* c) {
-  ShapeHandle out, lut;
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(1), 1, &out));
-  TF_RETURN_IF_ERROR(c->WithRank(c->input(2), 1, &lut));
+void PcanShape(TF_ShapeInferenceContext* raw_ctx, TF_Status* status) {
+  ShapeInferenceContext ctx(raw_ctx, status);
+  ctx.WithRank(ctx.Input(0), 1);
+  ShapeHandle out = ctx.WithRank(ctx.Input(1), 1);
+  ctx.WithRank(ctx.Input(2), 1);
+  ctx.SetOutput(0, out);
+}
 
-  c->set_output(0, out);
-  return absl::OkStatus();
+// Registers the SignalPCAN custom op (documented in pcan_op.py).
+__attribute__((constructor)) void RegisterSignalPcanOp() {
+  SignalOpDefBuilder("SignalPCAN")
+      .Attr("snr_shift: int")
+      .Input("input: uint32")
+      .Input("noise_estimate: uint32")
+      .Input("gain_lut: int16")
+      .Output("output: uint32")
+      .SetShapeFn(&PcanShape)
+      .Register();
 }
 
 }  // namespace
-
-REGISTER_OP("SignalPCAN")
-    .Attr("snr_shift: int")
-    .Input("input: uint32")
-    .Input("noise_estimate: uint32")
-    .Input("gain_lut: int16")
-    .Output("output: uint32")
-    .SetShapeFn(PcanShape)
-    .Doc(R"doc(
-Determines whether per-channel amplitude-normalized (PCAN) auto gain control is
-applied, using either floating-point or fixed-point computation. If enabled,
-the dynamic range of the filterbank output is compressed by dividing by a power
-of the noise estimate.
-
-input: A 1-D array of mel-spectrum subband filter bank outputs.
-noise_estimate: A 1-D array of mel-spectrun subbabd noise estimates.
-gain_lut: A 1-D lookup table for gain calculation.
-output: A 1-D array of processed subband filter bank.
-snr_shift: Amount of right shift when calculating the SNR.
-)doc");
-
 }  // namespace signal
 }  // namespace tensorflow
