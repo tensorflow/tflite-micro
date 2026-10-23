@@ -654,8 +654,8 @@ TEST(FullyConnectedTest, SimpleTestQuantizedInt8) {
 TEST(FullyConnectedTest, SimpleTestQuantizedInt8Compressed) {
   const float input_scale = 1.0f;
   const int input_zero_point = -1;
-  constexpr float weights_scale[] = {1, 1.0f};
-  constexpr int weights_zero_point[] = {1, 0};
+  float weights_scale[] = {1, 1.0f};
+  int weights_zero_point[] = {1, 0};
   const float output_scale = 0.5f;
   const int output_zero_point = -1;
 
@@ -762,8 +762,8 @@ TEST(FullyConnectedTest, SimpleTestQuantizedInt16) {
 TEST(FullyConnectedTest, SimpleTestQuantizedInt16Compressed) {
   const float input_scale = 128.0 / 65536;
   const int input_zero_point = 0;
-  constexpr float weights_scale[] = {1, 1.0f};
-  constexpr int weights_zero_point[] = {1, 0};
+  float weights_scale[] = {1, 1.0f};
+  int weights_zero_point[] = {1, 0};
   const float output_scale = 128.0 / 65536;
   const int output_zero_point = 0;
 

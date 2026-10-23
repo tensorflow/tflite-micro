@@ -5,6 +5,10 @@ load(
     "CORSTONE300_FVP_DATA",
     "tflm_sh_runner",
 )
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -44,6 +48,10 @@ cc_library(
 cc_test(
     name = "smoke_test",
     srcs = ["corstone_smoke_test.cc"],
+    tags = [
+        "manual",
+        "notap",
+    ],
     target_compatible_with = [
         "@platforms//os:none",
         "@platforms//cpu:arm",
@@ -51,4 +59,10 @@ cc_test(
     deps = [
         ":corstone_bsp",
     ],
+)
+
+tflm_platform_target(
+    name = "smoke_test_corstone300",
+    profile = "corstone300",
+    target = ":smoke_test",
 )

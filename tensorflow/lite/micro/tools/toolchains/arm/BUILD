@@ -8,11 +8,22 @@ load(
     "tflm_cc_toolchain",
     "tflm_sh_runner",
 )
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
+)
 load(":cortex_m_toolchain_config.bzl", "cortex_m_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
 filegroup(name = "empty")
+
+M55_COPTS = [
+    "-mcpu=cortex-m55",
+    "-mfpu=auto",
+    "-mfloat-abi=hard",
+    "-mthumb",
+]
 
 CPUS = {
     "m0": [
@@ -26,12 +37,30 @@ CPUS = {
         "-mthumb",
         "-mfpu=fpv4-sp-d16",
     ],
-    "m55": [
-        "-mcpu=cortex-m55",
-        "-mfpu=auto",
-        "-mfloat-abi=hard",
-        "-mthumb",
-    ],
+    "m55": M55_COPTS,
+}
+
+PROFILES = {
+    "m0": {
+        "copts": CPUS["m0"],
+        "cpu": "cortex-m0",
+        "semihosting": True,
+    },
+    "m4": {
+        "copts": CPUS["m4"],
+        "cpu": "cortex-m4",
+        "semihosting": True,
+    },
+    "m55": {
+        "copts": M55_COPTS,
+        "cpu": "cortex-m55",
+        "semihosting": True,
+    },
+    "m55_baremetal": {
+        "copts": M55_COPTS,
+        "cpu": "cortex-m55",
+        "semihosting": False,
+    },
 }
 
 [
@@ -39,12 +68,13 @@ CPUS = {
         name = "%s_config" % name,
         ar = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-ar",
         c_compiler = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-gcc",
-        copts = copts,
+        copts = info["copts"],
         cpp_compiler = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-g++",
-        cpu = "cortex-%s" % name,
+        cpu = info["cpu"],
+        semihosting = info["semihosting"],
         strip = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-strip",
     )
-    for name, copts in CPUS.items()
+    for name, info in PROFILES.items()
 ]
 
 [
@@ -62,7 +92,7 @@ CPUS = {
         toolchain_config = ":%s_config" % name,
         toolchain_identifier = "cortex-%s-toolchain" % name,
     )
-    for name in CPUS.keys()
+    for name in PROFILES.keys()
 ]
 
 ARM_CPU_CONSTRAINT_SETTING = tflm_arm_cpu_constraint_setting()
@@ -72,7 +102,7 @@ ARM_CPU_CONSTRAINT_SETTING = tflm_arm_cpu_constraint_setting()
         name = name,
         constraint_setting = ARM_CPU_CONSTRAINT_SETTING,
     )
-    for name in CPUS.keys()
+    for name in PROFILES.keys()
 ]
 
 [
@@ -90,7 +120,7 @@ ARM_CPU_CONSTRAINT_SETTING = tflm_arm_cpu_constraint_setting()
         toolchain = ":cc_toolchain_%s" % name,
         toolchain_type = "@rules_cc//cc:toolchain_type",
     )
-    for name in CPUS.keys()
+    for name in PROFILES.keys()
 ]
 
 [
@@ -102,7 +132,7 @@ ARM_CPU_CONSTRAINT_SETTING = tflm_arm_cpu_constraint_setting()
             ":%s" % name,
         ],
     )
-    for name in CPUS.keys()
+    for name in PROFILES.keys()
 ]
 
 config_setting(
@@ -126,6 +156,10 @@ config_setting(
     cc_test(
         name = "smoke_test_%s" % name,
         srcs = ["test_smoke.cc"],
+        tags = [
+            "manual",
+            "notap",
+        ],
         target_compatible_with = [
             "@platforms//os:none",
             "@platforms//cpu:arm",
@@ -138,4 +172,22 @@ config_setting(
 alias(
     name = "smoke_test",
     actual = ":smoke_test_m55",
+    tags = [
+        "manual",
+        "notap",
+    ],
+    target_compatible_with = [
+        "@platforms//os:none",
+        "@platforms//cpu:arm",
+        ":m55",
+    ],
 )
+
+[
+    tflm_platform_target(
+        name = "smoke_test_cortex_%s" % name,
+        profile = "cortex_%s" % name,
+        target = ":smoke_test_%s" % name,
+    )
+    for name in CPUS.keys()
+]

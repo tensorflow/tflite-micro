@@ -106,111 +106,86 @@ build --output_filter=^//
 test --output_filter=^//
 
 # Embedded Cortex-M configurations
-build:cortex-m0 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m0_platform
+build:cortex-m0 --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m0_test_platform
 test:cortex-m0 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m0
 
-build:cortex-m4 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m4_platform
+build:cortex-m4 --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m4_test_platform
 test:cortex-m4 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m4
 
-build:_cmsis_nn_base --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn
-build:_cmsis_nn_base --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
-build:_cmsis_nn_base --copt=-DCMSIS_NN
+build:cortex-m4-cmsis-nn --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m4_cmsis_nn_test_platform
+test:cortex-m4-cmsis-nn --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m4
 
-build:cortex-m4-cmsis-nn --config=cortex-m4
-build:cortex-m4-cmsis-nn --config=_cmsis_nn_base
-
-build:cortex-m55 --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m55_platform
+build:cortex-m55 --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m55_ref_test_platform
 test:cortex-m55 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m55
 
-build:cortex-m55-cmsis-nn --config=cortex-m55
-build:cortex-m55-cmsis-nn --config=_cmsis_nn_base
+build:cortex-m55-cmsis-nn --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m55_test_platform
+test:cortex-m55-cmsis-nn --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m55
 
 # Corstone-300 + Ethos-U55 FVP configurations
-build:_corstone300_base --features=-qemu_semihosting
-build:_corstone300_base --copt=-DARMCM55
-build:_corstone300_base --copt=-DCMSIS_NN
-build:_corstone300_base --copt=-DETHOS_U
-build:_corstone300_base --test_env=PATH
-build:_corstone300_base --//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:corstone_bsp
-build:_corstone300_base --//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn_ethos_u
-build:_corstone300_base --//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn
-build:_corstone300_base --//tensorflow/lite/micro/kernels:ethos_u_dep=@ethos_u_core_driver//:ethos_u_core_driver
+build:corstone-env --test_env=PATH
 
-build:corstone-300-ethos-u --platforms=//tensorflow/lite/micro/tools/toolchains/arm:m55_platform
-build:corstone-300-ethos-u --config=_corstone300_base
+build:corstone-300-ethos-u --config=corstone-env
+build:corstone-300-ethos-u --platforms=//tensorflow/lite/micro/tools/toolchains:corstone300_test_platform
 test:corstone-300-ethos-u --run_under=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:run_corstone300
 
 # Embedded RISC-V configurations
-build:riscv32 --platforms=//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_platform
-build:riscv32 --//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/riscv:riscv_bsp
+build:riscv32 --platforms=//tensorflow/lite/micro/tools/toolchains:riscv32_test_platform
 test:riscv32 --run_under=//tensorflow/lite/micro/tools/toolchains/riscv:run_riscv32
 
 # Embedded Qualcomm Hexagon configurations
-build:_hexagon_base --action_env=HEXAGON_SDK_ROOT
-build:_hexagon_base --action_env=HEXAGON_ROOT
-build:_hexagon_base --action_env=HEXAGON_TOOL_VER
-build:_hexagon_base --action_env=HEXAGON_CPU_VER
-build:_hexagon_base --action_env=HEXAGON_TFLM_CORE
-build:_hexagon_base --action_env=PATH
-build:_hexagon_base --test_env=PATH
-build:_hexagon_base --sandbox_add_mount_pair=/root/Qualcomm
+build:hexagon-env --action_env=HEXAGON_SDK_ROOT
+build:hexagon-env --action_env=HEXAGON_ROOT
+build:hexagon-env --action_env=HEXAGON_TOOL_VER
+build:hexagon-env --action_env=HEXAGON_CPU_VER
+build:hexagon-env --action_env=HEXAGON_TFLM_CORE
+build:hexagon-env --action_env=PATH
+build:hexagon-env --test_env=PATH
+build:hexagon-env --sandbox_add_mount_pair=/root/Qualcomm
 
-build:hexagon --config=_hexagon_base
-build:hexagon --platforms=//tensorflow/lite/micro/tools/toolchains/hexagon:hexagon_platform
-build:hexagon --//tensorflow/lite/micro/kernels:optimized_kernels=hexagon
-build:hexagon --//tensorflow/lite/micro/kernels:hexagon_tflm_core_dep=@hexagon_toolchain//:hexagon_tflm_core
+build:hexagon --config=hexagon-env
+build:hexagon --platforms=//tensorflow/lite/micro/tools/toolchains:hexagon_test_platform
 test:hexagon --run_under=//tensorflow/lite/micro/tools/toolchains/hexagon:run_hexagon
 
 build:hexagon-opt --config=hexagon
 
 # Embedded Xtensa configurations
-build:_xtensa_base --action_env=LM_LICENSE_FILE
-build:_xtensa_base --action_env=PATH
-build:_xtensa_base --test_env=LM_LICENSE_FILE
-build:_xtensa_base --test_env=PATH
+build:xtensa-env --action_env=LM_LICENSE_FILE
+build:xtensa-env --action_env=PATH
+build:xtensa-env --test_env=LM_LICENSE_FILE
+build:xtensa-env --test_env=PATH
 
-build:xtensa-fusion-f1 --config=_xtensa_base
+build:xtensa-fusion-f1 --config=xtensa-env
 build:xtensa-fusion-f1 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:fusion_f1_platform
 test:xtensa-fusion-f1 --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_fusion_f1
 
-build:xtensa-hifi3z --config=_xtensa_base
+build:xtensa-hifi3z --config=xtensa-env
 build:xtensa-hifi3z --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:hifi3z_platform
 test:xtensa-hifi3z --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_hifi3z
 
-build:xtensa-hifi5 --config=_xtensa_base
+build:xtensa-hifi5 --config=xtensa-env
 build:xtensa-hifi5 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:hifi5_platform
 test:xtensa-hifi5 --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_hifi5
 
-build:xtensa-vision-p6 --config=_xtensa_base
+build:xtensa-vision-p6 --config=xtensa-env
 build:xtensa-vision-p6 --platforms=//tensorflow/lite/micro/tools/toolchains/xtensa:vision_p6_platform
 test:xtensa-vision-p6 --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_vision_p6
 
 # Xtensa NNLib optimized configurations
-build:_xtensa_nnlib_base --copt=-DXTENSA=1
+build:xtensa-fusion-f1-nnlib --config=xtensa-env
+build:xtensa-fusion-f1-nnlib --platforms=//tensorflow/lite/micro/tools/toolchains:xtensa_fusion_f1_test_platform
+test:xtensa-fusion-f1-nnlib --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_fusion_f1
 
-build:xtensa-fusion-f1-nnlib --config=xtensa-fusion-f1
-build:xtensa-fusion-f1-nnlib --config=_xtensa_nnlib_base
-build:xtensa-fusion-f1-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_fusion_f1
-build:xtensa-fusion-f1-nnlib --//tensorflow/lite/micro/kernels:xtensa_nnlib_hifi4_dep=@nnlib_hifi4//:nnlib_hifi4
-build:xtensa-fusion-f1-nnlib --copt=-DHIFI4=1
+build:xtensa-hifi3z-nnlib --config=xtensa-env
+build:xtensa-hifi3z-nnlib --platforms=//tensorflow/lite/micro/tools/toolchains:xtensa_hifi3z_test_platform
+test:xtensa-hifi3z-nnlib --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_hifi3z
 
-build:xtensa-hifi3z-nnlib --config=xtensa-hifi3z
-build:xtensa-hifi3z-nnlib --config=_xtensa_nnlib_base
-build:xtensa-hifi3z-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_hifi_3z
-build:xtensa-hifi3z-nnlib --//tensorflow/lite/micro/kernels:xtensa_nnlib_hifi4_dep=@nnlib_hifi4//:nnlib_hifi4
-build:xtensa-hifi3z-nnlib --copt=-DHIFI4=1
+build:xtensa-hifi5-nnlib --config=xtensa-env
+build:xtensa-hifi5-nnlib --platforms=//tensorflow/lite/micro/tools/toolchains:xtensa_hifi5_test_platform
+test:xtensa-hifi5-nnlib --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_hifi5
 
-build:xtensa-hifi5-nnlib --config=xtensa-hifi5
-build:xtensa-hifi5-nnlib --config=_xtensa_nnlib_base
-build:xtensa-hifi5-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_hifi_5
-build:xtensa-hifi5-nnlib --//tensorflow/lite/micro/kernels:xtensa_nnlib_hifi5_dep=@nnlib_hifi5//:nnlib_hifi5
-build:xtensa-hifi5-nnlib --copt=-DHIFI5=1
-
-build:xtensa-vision-p6-nnlib --config=xtensa-vision-p6
-build:xtensa-vision-p6-nnlib --config=_xtensa_nnlib_base
-build:xtensa-vision-p6-nnlib --//tensorflow/lite/micro/kernels:optimized_kernels=xtensa_vision_p6
-build:xtensa-vision-p6-nnlib --//tensorflow/lite/micro/kernels:xtensa_vision_p6_dep=@xi_tflmlib_vision_p6//:xi_tflmlib_vision_p6
-build:xtensa-vision-p6-nnlib --copt=-DVISION_P6=1
+build:xtensa-vision-p6-nnlib --config=xtensa-env
+build:xtensa-vision-p6-nnlib --platforms=//tensorflow/lite/micro/tools/toolchains:xtensa_vision_p6_test_platform
+test:xtensa-vision-p6-nnlib --run_under=//tensorflow/lite/micro/tools/toolchains/xtensa:run_vision_p6
 
 # Hooks for defining local configuration
 try-import ../bazelrc.local

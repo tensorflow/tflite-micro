@@ -11,6 +11,10 @@ load(
     "tflm_cc_test",
 )
 load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
+)
+load(
     "//third_party/flatbuffers:build_defs.bzl",
     "flatbuffer_cc_library",
     "flatbuffer_py_library",
@@ -53,6 +57,12 @@ tflm_cc_test(
         "//tensorflow/lite/micro/testing:micro_test",
         "@flatbuffers//:runtime_cc",
     ],
+)
+
+tflm_platform_target(
+    name = "metadata_test_cc_compression",
+    profile = "compression",
+    target = ":metadata_test_cc",
 )
 
 flatbuffer_py_library(

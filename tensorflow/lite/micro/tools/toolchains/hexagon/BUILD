@@ -16,9 +16,14 @@
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load(
     "//tensorflow/lite/micro/tools/toolchains:env.bzl",
+    "HEXAGON_CONSTRAINTS",
     "HEXAGON_RUNNER_DATA",
     "tflm_hexagon_toolchains",
     "tflm_sh_runner",
+)
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
 )
 
 package(default_visibility = ["//visibility:public"])
@@ -34,4 +39,15 @@ tflm_sh_runner(
 cc_test(
     name = "smoke_test",
     srcs = ["test_smoke.cc"],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    target_compatible_with = HEXAGON_CONSTRAINTS,
+)
+
+tflm_platform_target(
+    name = "smoke_test_hexagon",
+    profile = "hexagon",
+    target = ":smoke_test",
 )

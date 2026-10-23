@@ -16,9 +16,14 @@
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load(
     "//tensorflow/lite/micro/tools/toolchains:env.bzl",
+    "XTENSA_CONSTRAINTS",
     "tflm_sh_runner",
     "tflm_xtensa_runner_data",
     "tflm_xtensa_toolchains",
+)
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
 )
 
 package(default_visibility = ["//visibility:public"])
@@ -56,4 +61,18 @@ tflm_xtensa_toolchains(cores = CORES)
 cc_test(
     name = "smoke_test",
     srcs = ["test_smoke.cc"],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    target_compatible_with = XTENSA_CONSTRAINTS,
 )
+
+[
+    tflm_platform_target(
+        name = "smoke_test_xtensa_%s" % name,
+        profile = "xtensa_%s" % name,
+        target = ":smoke_test",
+    )
+    for name in CORES.keys()
+]
