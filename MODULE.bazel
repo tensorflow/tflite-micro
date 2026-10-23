@@ -8,6 +8,7 @@ bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_platform", version = "0.1.0")
 bazel_dep(name = "rules_python", version = "1.9.2")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 
@@ -44,6 +45,24 @@ http_archive(
 )
 
 http_archive(
+    name = "cmsis_core",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/arm:cmsis_core.BUILD",
+    sha256 = "7d1de644243e370e8d1d798a0dfa8c8d67ab1121082816fbfe75bdb2183aac54",
+    strip_prefix = "CMSIS_6-5782d6f8057906d360f4b95ec08a2354afe5c9b9",
+    urls = ["https://github.com/ARM-software/CMSIS_6/archive/5782d6f8057906d360f4b95ec08a2354afe5c9b9.zip"],
+)
+
+http_archive(
+    name = "ethos_u_core_driver",
+    build_file = "//tensorflow/lite/micro/tools/toolchains/arm:ethos_u_core_driver.BUILD",
+    sha256 = "fa062fd4cca1c32c60db47a3f711935a3ed35c8a0e4cd7bbb24369246bc77c58",
+    strip_prefix = "ethos-u-core-driver-9622608a5cc318c0933bcce720b59737d03bfb6f",
+    urls = [
+        "https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-driver/-/archive/9622608a5cc318c0933bcce720b59737d03bfb6f/ethos-u-core-driver-9622608a5cc318c0933bcce720b59737d03bfb6f.tar.gz",
+    ],
+)
+
+http_archive(
     name = "nnlib_hifi4",
     build_file = "//tensorflow/lite/micro/tools/toolchains/xtensa:nnlib_hifi4.BUILD",
     sha256 = "8b490e8a2f0e28e36dc5f244b4a256b5bcba393c629bf73d3e6e50817fe719af",
@@ -76,6 +95,14 @@ arm_toolchain(name = "arm_none_eabi")
 xtensa_toolchain = use_repo_rule("//tensorflow/lite/micro/tools/toolchains/xtensa:repo.bzl", "xtensa_toolchain")
 
 xtensa_toolchain(name = "xtensa_toolchain")
+
+riscv_toolchain = use_repo_rule("//tensorflow/lite/micro/tools/toolchains/riscv:repo.bzl", "riscv_toolchain")
+
+riscv_toolchain(name = "riscv_toolchain")
+
+hexagon_toolchain = use_repo_rule("//tensorflow/lite/micro/tools/toolchains/hexagon:repo.bzl", "hexagon_toolchain")
+
+hexagon_toolchain(name = "hexagon_toolchain")
 
 # Python
 
@@ -141,8 +168,11 @@ register_toolchains(
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m0_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m4_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m55_toolchain",
+    "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m55_baremetal_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_fusion_f1_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi3z_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi5_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_vision_p6_toolchain",
+    "//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_toolchain",
+    "//tensorflow/lite/micro/tools/toolchains/hexagon:hexagon_toolchain",
 )

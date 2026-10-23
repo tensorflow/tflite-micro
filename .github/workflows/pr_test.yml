@@ -114,10 +114,11 @@ jobs:
 
   call-riscv:
     needs: [gatekeeper, approval-gate]
-    if: needs.gatekeeper.outputs.scope == 'all'
+    if: needs.gatekeeper.outputs.scope != 'none'
     uses: ./.github/workflows/suite_riscv.yml
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
+      scope: ${{ needs.gatekeeper.outputs.scope }}
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 

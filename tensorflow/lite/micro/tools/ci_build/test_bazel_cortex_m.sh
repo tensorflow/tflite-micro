@@ -23,16 +23,12 @@ cd "${ROOT_DIR}"
 BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || echo "bazel")}
 BAZEL_FLAGS="--config=_ci_base"
 
-# 1. Run smoke tests across Cortex-M profiles (M0, M4, M55 Helium)
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m0 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m4 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55 //tensorflow/lite/micro/tools/toolchains/arm:smoke_test
-
-# 2. Run full framework, allocator, memory planner, signal kernels, and example tests on Cortex-M55
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55 //tensorflow/lite/micro:core_framework_tests
-
-# 3. Run full operator kernel test suite (84 tests) on Cortex-M55
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55 //tensorflow/lite/micro/kernels:all
-
-# 4. Run full operator kernel test suite with accelerated CMSIS-NN kernels on Cortex-M55 with Helium MVE
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=cortex-m55-cmsis-nn //tensorflow/lite/micro/kernels:all
+# Run Cortex-M smoke tests (M0, M4, M55), reference suites, and CMSIS-NN Helium MVE suites in a unified invocation
+${BAZEL_BIN} test ${BAZEL_FLAGS} \
+  //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m0 \
+  //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m4 \
+  //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m55 \
+  //tensorflow/lite/micro:core_cortex_m55_ref_tests \
+  //tensorflow/lite/micro/kernels:kernel_cortex_m55_ref_tests \
+  //tensorflow/lite/micro:core_cortex_m55_tests \
+  //tensorflow/lite/micro/kernels:kernel_cortex_m55_tests

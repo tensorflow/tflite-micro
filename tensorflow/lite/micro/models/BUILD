@@ -1,6 +1,10 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
-load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
+load(
+    "//tensorflow/lite/micro:build_def.bzl",
+    "generate_cc_arrays",
+    "tflm_cc_library",
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -24,6 +28,28 @@ generate_cc_arrays(
     name = "generated_person_detect_model_hdr",
     src = "person_detect.tflite",
     out = "person_detect_model_data.h",
+)
+
+generate_cc_arrays(
+    name = "generated_person_detect_vela_model_cc",
+    src = "person_detect_vela.tflite",
+    out = "person_detect_vela_model_data.cc",
+)
+
+generate_cc_arrays(
+    name = "generated_person_detect_vela_model_hdr",
+    src = "person_detect_vela.tflite",
+    out = "person_detect_vela_model_data.h",
+)
+
+tflm_cc_library(
+    name = "person_detect_vela_model_data",
+    srcs = [
+        ":generated_person_detect_vela_model_cc",
+    ],
+    hdrs = [
+        ":generated_person_detect_vela_model_hdr",
+    ],
 )
 
 generate_cc_arrays(

@@ -42,11 +42,11 @@ fi
 
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
-readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
-
 if [[ ${TEST_MODE} == "RUN_TESTS" ]]; then
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) test
 
   # run generic benchmark
   readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) run_tflm_benchmark
+else
+  readable_run make -f ${MAKEFILE} ${COMMON_ARGS} $(get_parallel_jobs) build
 fi

@@ -21,8 +21,8 @@ jobs:
   xtensa_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    name: Xtensa Bazel
+    timeout-minutes: 30
+    name: Xtensa Bazel (HiFi 5)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -36,10 +36,12 @@ jobs:
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
-            tensorflow/lite/micro/tools/ci_build/test_bazel_xtensa.sh
+            tensorflow/lite/micro/tools/ci_build/test_bazel_xtensa.sh hifi5
+
+  # --- Extended Jobs ---
 
   vision_p6_tests:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Vision P6 Tests
@@ -65,7 +67,7 @@ jobs:
             tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh tflite-micro/ ${TEST_MODE}
 
   hifi5_unit_tests:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi5 Unit Tests
@@ -85,7 +87,7 @@ jobs:
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/
 
   hifi5_unit_tests_with_compression:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi5 Unit Tests with Compression
@@ -105,7 +107,7 @@ jobs:
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/
 
   hifi_3z_unit_tests:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi3z Unit Tests
@@ -125,7 +127,7 @@ jobs:
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh tflite-micro/ EXTERNAL
 
   hifi_3z_unit_tests_with_compression:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    if: inputs.scope == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     name: Hifi3z Unit Tests with Compression
@@ -143,8 +145,6 @@ jobs:
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
             ghcr.io/tflm-bot/xtensa:0.1 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh tflite-micro/ EXTERNAL
-
-  # --- Extended Jobs ---
 
   f1_unit_tests:
     if: inputs.scope == 'all'

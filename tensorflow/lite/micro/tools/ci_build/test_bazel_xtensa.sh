@@ -20,6 +20,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
+TARGET_CORE="${1:-hifi5}"
+
 BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || echo "bazel")}
 BAZEL_FLAGS="--config=_ci_base"
 
@@ -34,56 +36,39 @@ fi
 # Ensure Bazel server shuts down cleanly when run inside ephemeral containers
 trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 
-# 1. Run smoke tests across all 4 Cadence Xtensa DSP cores
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-fusion-f1 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-vision-p6 //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test
+TARGETS=(
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_fusion_f1
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi3z
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi5
+  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_vision_p6
+)
 
-# 2. Run full framework, allocator, memory planner, signal kernels, and example tests on HiFi 3z
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro:core_framework_tests
+if [[ "${TARGET_CORE}" == "hifi5" || "${TARGET_CORE}" == "all" ]]; then
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_hifi5_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_hifi5_smoke_tests
+  )
+fi
 
-# 3. Run full operator kernel test suite (84 tests) on HiFi 3z
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z //tensorflow/lite/micro/kernels:all
+if [[ "${TARGET_CORE}" == "hifi3z" || "${TARGET_CORE}" == "all" ]]; then
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_hifi3z_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_hifi3z_tests
+  )
+fi
 
-# 4. Run representative operator kernel tests on HiFi 5
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5 \
-  //tensorflow/lite/micro:micro_utils_test \
-  //tensorflow/lite/micro/kernels:add_test \
-  //tensorflow/lite/micro/kernels:conv_test \
-  //tensorflow/lite/micro/kernels:depthwise_conv_test \
-  //tensorflow/lite/micro/kernels:mul_test \
-  //tensorflow/lite/micro/kernels:pooling_test \
-  //tensorflow/lite/micro/kernels:softmax_test
+if [[ "${TARGET_CORE}" == "fusion_f1" || "${TARGET_CORE}" == "all" ]]; then
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_fusion_f1_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_fusion_f1_smoke_tests
+  )
+fi
 
-# 5. Run full operator kernel test suite with accelerated NNLib kernels on HiFi 3z
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi3z-nnlib //tensorflow/lite/micro/kernels:all
+if [[ "${TARGET_CORE}" == "vision_p6" || "${TARGET_CORE}" == "all" ]]; then
+  TARGETS+=(
+    //tensorflow/lite/micro:core_xtensa_vision_p6_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_vision_p6_smoke_tests
+  )
+fi
 
-# 6. Run representative accelerated NNLib operator tests on HiFi 5
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-hifi5-nnlib \
-  //tensorflow/lite/micro:micro_utils_test \
-  //tensorflow/lite/micro/kernels:add_test \
-  //tensorflow/lite/micro/kernels:conv_test \
-  //tensorflow/lite/micro/kernels:depthwise_conv_test \
-  //tensorflow/lite/micro/kernels:mul_test \
-  //tensorflow/lite/micro/kernels:pooling_test \
-  //tensorflow/lite/micro/kernels:softmax_test
-
-# 7. Run representative accelerated NNLib operator tests on Fusion F1
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-fusion-f1-nnlib \
-  //tensorflow/lite/micro:micro_utils_test \
-  //tensorflow/lite/micro/kernels:add_test \
-  //tensorflow/lite/micro/kernels:conv_test \
-  //tensorflow/lite/micro/kernels:depthwise_conv_test \
-  //tensorflow/lite/micro/kernels:mul_test \
-  //tensorflow/lite/micro/kernels:pooling_test \
-  //tensorflow/lite/micro/kernels:softmax_test
-
-# 8. Run representative accelerated operator tests on Vision P6
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-vision-p6-nnlib \
-  //tensorflow/lite/micro:micro_utils_test \
-  //tensorflow/lite/micro/kernels:add_test \
-  //tensorflow/lite/micro/kernels:conv_test \
-  //tensorflow/lite/micro/kernels:depthwise_conv_test \
-  //tensorflow/lite/micro/kernels:pooling_test \
-  //tensorflow/lite/micro/kernels:softmax_test
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=xtensa-env "${TARGETS[@]}"
