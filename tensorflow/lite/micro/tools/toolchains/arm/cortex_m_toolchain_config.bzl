@@ -101,7 +101,7 @@ def _cortex_m_toolchain_config_impl(ctx):
 
     qemu_semihosting = feature(
         name = "qemu_semihosting",
-        enabled = True,
+        enabled = ctx.attr.semihosting,
         flag_sets = [
             flag_set(
                 actions = [ACTION_NAMES.cpp_link_executable],
@@ -203,6 +203,7 @@ cortex_m_toolchain_config = rule(
         "cpp_compiler": attr.label(allow_single_file = True, executable = True, cfg = "exec"),
         "cpp_compiler_path": attr.string(),
         "cpu": attr.string(mandatory = True),
+        "semihosting": attr.bool(default = True),
         "strip": attr.label(allow_single_file = True, executable = True, cfg = "exec"),
         "strip_path": attr.string(),
     },

@@ -12,6 +12,7 @@ alias(
 bool_flag(
     name = "with_compression",
     build_setting_default = False,
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -19,6 +20,7 @@ config_setting(
     flag_values = {
         ":with_compression": "True",
     },
+    visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])

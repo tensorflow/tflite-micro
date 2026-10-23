@@ -16,7 +16,7 @@ limitations under the License.
 #include <stdint.h>
 #include <sys/times.h>
 
-clock_t _times(struct tms* buf) {
+__attribute__((weak)) clock_t _times(struct tms* buf) {
   uint32_t cycles;
   __asm__ volatile("rdcycle %0" : "=r"(cycles));
   if (buf != 0) {

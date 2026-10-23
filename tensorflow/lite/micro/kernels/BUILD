@@ -16,6 +16,10 @@ load(
     "xtensa_hifi_5_config",
     "xtensa_vision_p6_config",
 )
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_test_suite",
+)
 
 package(
     licenses = ["notice"],
@@ -228,26 +232,6 @@ tflm_cc_library(
     ],
 )
 
-HIFI3_COPTS = [
-    "-DXTENSA=1",
-    "-DHIFI3=1",
-]
-
-HIFI4_COPTS = [
-    "-DXTENSA=1",
-    "-DHIFI4=1",
-]
-
-HIFI5_COPTS = [
-    "-DXTENSA=1",
-    "-DHIFI5=1",
-]
-
-VP6_COPTS = [
-    "-DXTENSA=1",
-    "-DVISION_P6=1",
-]
-
 XTENSA_HDRS = glob(["xtensa/**/*.h"])
 
 XTENSA_SRCS = glob(["xtensa/**/*.cc"])
@@ -428,24 +412,12 @@ tflm_kernel_cc_library(
         ":hexagon_default": glob(["hexagon/**/*.cc"]),
     },
     copts = tflm_copts() + select({
-        ":cmsis_nn_default": [
-            "-DCMSIS_NN",
-            "-DKERNELS_OPTIMIZED_FOR_SPEED",
-        ],
-        ":cmsis_nn_ethos_u_default": [
-            "-DCMSIS_NN",
-            "-DETHOSU",
-            "-DKERNELS_OPTIMIZED_FOR_SPEED",
-        ],
-        xtensa_fusion_f1_config(): HIFI4_COPTS,
-        xtensa_hifi_3_config(): HIFI3_COPTS,
-        xtensa_hifi_3z_config(): HIFI4_COPTS,
-        xtensa_hifi_5_config(): HIFI5_COPTS,
-        xtensa_vision_p6_config(): VP6_COPTS,
-        ":hexagon_default": [
-            "-DHEXAGON",
-            "-DHEXAGON_ASM",
-        ],
+        ":cmsis_nn_default": ["-DKERNELS_OPTIMIZED_FOR_SPEED"],
+        ":cmsis_nn_ethos_u_default": ["-DKERNELS_OPTIMIZED_FOR_SPEED"],
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        xtensa_hifi_5_config(): ["-Wl,--orphan-handling=place"],
         "//conditions:default": [],
     }),
     visibility = [
@@ -1760,6 +1732,50 @@ tflm_cc_test(
     ],
 )
 
+KERNEL_SMOKE_TEST_TARGETS = [
+    ":add_test",
+    ":conv_test",
+    ":depthwise_conv_test",
+    ":mul_test",
+    ":pooling_test",
+    ":softmax_test",
+]
+
+test_suite(
+    name = "kernel_smoke_tests",
+    tests = KERNEL_SMOKE_TEST_TARGETS,
+    visibility = ["//visibility:public"],
+)
+
+tflm_platform_test_suite(
+    name = "kernel",
+    exclude_targets = [
+        ":decompress_test",
+    ],
+    extra_targets_by_profile = {
+        "compression": [":decompress_test"],
+    },
+    profiles = [
+        "compression",
+        "corstone300",
+        "cortex_m55",
+        "cortex_m55_ref",
+        "hexagon",
+        "riscv32",
+        "xtensa_hifi3z",
+        "xtensa_hifi5",
+    ],
+    smoke_profiles = [
+        "corstone300",
+        "xtensa_fusion_f1",
+        "xtensa_hifi3z",
+        "xtensa_hifi5",
+        "xtensa_vision_p6",
+    ],
+    smoke_targets = KERNEL_SMOKE_TEST_TARGETS,
+    targets = None,
+)
+
 ####################################
 # Bazel config settings.
 ####################################
@@ -1790,6 +1806,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "cmsis_nn",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -1797,6 +1814,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "hexagon",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -1804,6 +1822,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "cmsis_nn_ethos_u",
     },
+    visibility = ["//visibility:public"],
 )
 
 label_flag(
@@ -1852,6 +1871,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "xtensa_fusion_f1",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -1859,6 +1879,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "xtensa_hifi_3",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -1866,6 +1887,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "xtensa_hifi_3z",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -1873,6 +1895,7 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "xtensa_hifi_5",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -1880,4 +1903,5 @@ config_setting(
     flag_values = {
         ":optimized_kernels": "xtensa_vision_p6",
     },
+    visibility = ["//visibility:public"],
 )

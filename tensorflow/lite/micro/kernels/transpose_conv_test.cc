@@ -729,11 +729,11 @@ TEST(TransposeConvTest, SimpleTestQuantizedPerChannelSingleChannelCompressed) {
   const float output_scale = 2.0f;
   const int input_zero_point = -128;
   const int output_zero_point = -128;
-  constexpr float filter_scales[] = {
+  float filter_scales[] = {
       tflite::testing::kNumChannelsQ1,
       9.0f / 127.0f,
   };
-  constexpr int filter_zero_points[] = {
+  int filter_zero_points[] = {
       tflite::testing::kNumChannelsQ1,
       0,
   };
@@ -788,12 +788,12 @@ TEST(TransposeConvTest,
   const float output_scale = 128.0f / 65536.0f;
   const int input_zero_point = 0;
   const int output_zero_point = 0;
-  constexpr float filter_scales[] = {
+  float filter_scales[] = {
       tflite::testing::kNumChannelsQ2,
       7.0f / 127.0f,
       8.0f / 127.0f,
   };
-  constexpr int filter_zero_points[] = {
+  int filter_zero_points[] = {
       tflite::testing::kNumChannelsQ2,
       0,
       0,
@@ -853,12 +853,12 @@ TEST(TransposeConvTest,
   const float output_scale = 128.0f / 65536.0f;
   const int input_zero_point = 0;
   const int output_zero_point = 0;
-  constexpr float filter_scales[] = {
+  float filter_scales[] = {
       tflite::testing::kNumChannelsQ2,
       7.0f / 127.0f,
       8.0f / 127.0f,
   };
-  constexpr int filter_zero_points[] = {
+  int filter_zero_points[] = {
       tflite::testing::kNumChannelsQ2,
       0,
       0,

@@ -34,16 +34,8 @@ BAZEL_FLAGS="--config=_ci_base"
 # Ensure Bazel server shuts down cleanly when run inside ephemeral containers
 trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 
-# 1. Run smoke test on Hexagon DSP (v66) with hexagon-sim
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=hexagon //tensorflow/lite/micro/tools/toolchains/hexagon:smoke_test
-
-# 2. Run core framework and allocator tests
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=hexagon \
-  //tensorflow/lite/micro:micro_utils_test \
-  //tensorflow/lite/micro:micro_log_test \
-  //tensorflow/lite/micro:micro_allocator_test \
-  //tensorflow/lite/micro:micro_interpreter_test \
-  //tensorflow/lite/micro:micro_mutable_op_resolver_test
-
-# 3. Run full operator kernel test suite (84 tests, including Hexagon-optimized kernels)
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=hexagon //tensorflow/lite/micro/kernels:all
+# Run Hexagon DSP (v66) smoke test, core smoke tests, and operator kernel suite in a unified invocation
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=hexagon-env \
+  //tensorflow/lite/micro/tools/toolchains/hexagon:smoke_test_hexagon \
+  //tensorflow/lite/micro:core_hexagon_smoke_tests \
+  //tensorflow/lite/micro/kernels:kernel_hexagon_tests

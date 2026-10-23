@@ -210,9 +210,8 @@ TEST(ConvTest, SimpleTestQuantizedPerChannelCompressed) {
   const float output_scale = 0.5f;
   const int input_zero_point = -1;
   const int output_zero_point = -1;
-  constexpr float filter_scales[] = {tflite::testing::kNumChannelsQ1, 1.0f,
-                                     2.0f};
-  constexpr int filter_zero_points[] = {tflite::testing::kNumChannelsQ1, 0, 0};
+  float filter_scales[] = {tflite::testing::kNumChannelsQ1, 1.0f, 2.0f};
+  int filter_zero_points[] = {tflite::testing::kNumChannelsQ1, 0, 0};
   // bias scales and zero points will be computed
   float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
   int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};
@@ -414,9 +413,8 @@ TEST(ConvTest, SimpleTestQuantized16x8PerChannel64bBiasCompressed) {
   const float output_scale = 128.0f / 65536;
   const int input_zero_point = 0;
   const int output_zero_point = 0;
-  constexpr float filter_scales[] = {tflite::testing::kNumChannelsQ1, 1.0f,
-                                     2.0f};
-  constexpr int filter_zero_points[] = {tflite::testing::kNumChannelsQ1, 0, 0};
+  float filter_scales[] = {tflite::testing::kNumChannelsQ1, 1.0f, 2.0f};
+  int filter_zero_points[] = {tflite::testing::kNumChannelsQ1, 0, 0};
   // bias scales and zero points will be computed
   float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
   int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};
@@ -498,9 +496,8 @@ TEST(ConvTest, SimpleTestQuantized16x8PerChannel32bBiasCompressed) {
   const float output_scale = 128.0f / 65536;
   const int input_zero_point = 0;
   const int output_zero_point = 0;
-  constexpr float filter_scales[] = {tflite::testing::kNumChannelsQ1, 1.0f,
-                                     2.0f};
-  constexpr int filter_zero_points[] = {tflite::testing::kNumChannelsQ1, 0, 0};
+  float filter_scales[] = {tflite::testing::kNumChannelsQ1, 1.0f, 2.0f};
+  int filter_zero_points[] = {tflite::testing::kNumChannelsQ1, 0, 0};
   // bias scales and zero points will be computed
   float bias_scales[std::extent<decltype(filter_scales)>::value] = {};
   int bias_zero_points[std::extent<decltype(filter_scales)>::value] = {};

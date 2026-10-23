@@ -9,6 +9,10 @@ load(
     "tflm_cc_toolchain",
     "tflm_sh_runner",
 )
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
+)
 load(":riscv_toolchain_config.bzl", "riscv_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
@@ -80,4 +84,18 @@ tflm_sh_runner(
 cc_test(
     name = "smoke_test",
     srcs = ["test_smoke.cc"],
+    tags = [
+        "manual",
+        "notap",
+    ],
+    target_compatible_with = [
+        "@platforms//os:none",
+        "@platforms//cpu:riscv32",
+    ],
+)
+
+tflm_platform_target(
+    name = "smoke_test_riscv32",
+    profile = "riscv32",
+    target = ":smoke_test",
 )

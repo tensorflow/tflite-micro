@@ -5,6 +5,10 @@ load(
     "tflm_cc_test",
     "tflm_copts",
 )
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_test_suite",
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -774,51 +778,91 @@ tflm_cc_test(
     ],
 )
 
+CORE_SMOKE_TEST_TARGETS = [
+    ":micro_allocator_test",
+    ":micro_interpreter_test",
+    ":micro_log_test",
+    ":micro_mutable_op_resolver_test",
+    ":micro_utils_test",
+]
+
+test_suite(
+    name = "core_smoke_tests",
+    tests = CORE_SMOKE_TEST_TARGETS,
+)
+
+CORE_FRAMEWORK_TEST_TARGETS = [
+    ":fake_micro_context_test",
+    ":flatbuffer_utils_test",
+    ":hexdump_test",
+    ":memory_helpers_test",
+    ":micro_allocation_info_test",
+    ":micro_allocator_test",
+    ":micro_interpreter_context_test",
+    ":micro_interpreter_graph_test",
+    ":micro_interpreter_test",
+    ":micro_log_test",
+    ":micro_mutable_op_resolver_test",
+    ":micro_resource_variable_test",
+    ":micro_time_test",
+    ":micro_utils_test",
+    ":recording_micro_allocator_test",
+    ":span_test",
+    ":static_vector_test",
+    ":testing_helpers_test",
+    "//signal/micro/kernels:delay_test",
+    "//signal/micro/kernels:energy_test",
+    "//signal/micro/kernels:fft_test",
+    "//signal/micro/kernels:filter_bank_log_test",
+    "//signal/micro/kernels:filter_bank_spectral_subtraction_test",
+    "//signal/micro/kernels:filter_bank_square_root_test",
+    "//signal/micro/kernels:filter_bank_test",
+    "//signal/micro/kernels:framer_test",
+    "//signal/micro/kernels:overlap_add_test",
+    "//signal/micro/kernels:pcan_test",
+    "//signal/micro/kernels:stacker_test",
+    "//signal/micro/kernels:window_test",
+    "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator_test",
+    "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator_test",
+    "//tensorflow/lite/micro/arena_allocator:recording_simple_memory_allocator_test",
+    "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator_test",
+    "//tensorflow/lite/micro/examples/hello_world:hello_world_test",
+    "//tensorflow/lite/micro/memory_planner:greedy_memory_planner_test",
+    "//tensorflow/lite/micro/memory_planner:linear_memory_planner_test",
+    "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim_test",
+    "//tensorflow/lite/micro/testing:test_all_op_resolver_test",
+    "//tensorflow/lite/micro/testing:util_test",
+    "//tensorflow/lite/micro/testing:util_v2_test",
+]
+
 test_suite(
     name = "core_framework_tests",
-    tests = [
-        ":fake_micro_context_test",
-        ":flatbuffer_utils_test",
-        ":hexdump_test",
-        ":memory_helpers_test",
-        ":micro_allocation_info_test",
-        ":micro_allocator_test",
-        ":micro_interpreter_context_test",
-        ":micro_interpreter_graph_test",
-        ":micro_interpreter_test",
-        ":micro_log_test",
-        ":micro_mutable_op_resolver_test",
-        ":micro_resource_variable_test",
-        ":micro_time_test",
-        ":micro_utils_test",
-        ":recording_micro_allocator_test",
-        ":span_test",
-        ":static_vector_test",
-        ":testing_helpers_test",
-        "//signal/micro/kernels:delay_test",
-        "//signal/micro/kernels:energy_test",
-        "//signal/micro/kernels:fft_test",
-        "//signal/micro/kernels:filter_bank_log_test",
-        "//signal/micro/kernels:filter_bank_spectral_subtraction_test",
-        "//signal/micro/kernels:filter_bank_square_root_test",
-        "//signal/micro/kernels:filter_bank_test",
-        "//signal/micro/kernels:framer_test",
-        "//signal/micro/kernels:overlap_add_test",
-        "//signal/micro/kernels:pcan_test",
-        "//signal/micro/kernels:stacker_test",
-        "//signal/micro/kernels:window_test",
-        "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator_test",
-        "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator_test",
-        "//tensorflow/lite/micro/arena_allocator:recording_simple_memory_allocator_test",
-        "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator_test",
-        "//tensorflow/lite/micro/examples/hello_world:hello_world_test",
-        "//tensorflow/lite/micro/memory_planner:greedy_memory_planner_test",
-        "//tensorflow/lite/micro/memory_planner:linear_memory_planner_test",
-        "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim_test",
-        "//tensorflow/lite/micro/testing:test_all_op_resolver_test",
-        "//tensorflow/lite/micro/testing:util_test",
-        "//tensorflow/lite/micro/testing:util_v2_test",
+    tests = CORE_FRAMEWORK_TEST_TARGETS,
+)
+
+tflm_platform_test_suite(
+    name = "core",
+    extra_targets_by_profile = {
+        "compression": [":memory_arena_threshold_test"],
+    },
+    profiles = [
+        "compression",
+        "cortex_m55",
+        "cortex_m55_ref",
+        "riscv32",
+        "xtensa_hifi3z",
+        "xtensa_hifi5",
     ],
+    smoke_profiles = [
+        "corstone300",
+        "hexagon",
+        "xtensa_fusion_f1",
+        "xtensa_hifi3z",
+        "xtensa_hifi5",
+        "xtensa_vision_p6",
+    ],
+    smoke_targets = CORE_SMOKE_TEST_TARGETS,
+    targets = CORE_FRAMEWORK_TEST_TARGETS,
 )
 
 bzl_library(

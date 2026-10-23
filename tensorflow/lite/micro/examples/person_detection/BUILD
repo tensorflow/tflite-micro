@@ -7,6 +7,10 @@ load(
     "tflm_cc_library",
     "tflm_cc_test",
 )
+load(
+    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_target",
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -85,6 +89,12 @@ tflm_cc_test(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
+)
+
+tflm_platform_target(
+    name = "person_detection_test_corstone300",
+    profile = "corstone300",
+    target = ":person_detection_test",
 )
 
 tflm_cc_library(

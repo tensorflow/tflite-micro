@@ -1315,10 +1315,10 @@ TEST(DepthwiseConvTest, SimpleTestQuantizedPerChannelInt8Compressed) {
   const float output_scale = 0.5f;
   const int input_zero_point = -1;
   const int output_zero_point = -1;
-  constexpr float filter_scales[] = {
+  float filter_scales[] = {
       tflite::testing::kNumChannelsQ1, 0.1f, 2.0f, 3.0f, 0.4f,
   };
-  constexpr int filter_zero_points[] = {
+  int filter_zero_points[] = {
       tflite::testing::kNumChannelsQ1, 0, 0, 0, 0,
   };
   // bias scales and zero points will be computed
@@ -1382,10 +1382,10 @@ TEST(DepthwiseConvTest, SimpleTestQuantizedPerChannelInt16Compressed) {
       tflite::testing::SymmetricScaleFromMinMax<int16_t>(-63.5f, 64.0f);
   const int input_zero_point = 0;
   const int output_zero_point = 0;
-  constexpr float filter_scales[] = {
+  float filter_scales[] = {
       tflite::testing::kNumChannelsQ1, 0.1f, 2.0f, 3.0f, 0.4f,
   };
-  constexpr int filter_zero_points[] = {
+  int filter_zero_points[] = {
       tflite::testing::kNumChannelsQ1, 0, 0, 0, 0,
   };
   // bias scales and zero points will be computed
