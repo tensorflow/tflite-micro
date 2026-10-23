@@ -31,10 +31,6 @@ namespace micro {
 namespace {
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->builtin_data != nullptr);
-  const auto* params =
-      static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
-
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kFullyConnectedInputTensor);
   const TfLiteEvalTensor* filter =
@@ -64,26 +60,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   // Checks in Prepare ensure input, output and filter types are all the same.
   switch (input->type) {
     case kTfLiteFloat32: {
-      tflite::micro::reference_ops::FullyConnected(
-          FullyConnectedParamsFloat(params->activation),
-          tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<float>(input),
-          tflite::micro::GetTensorShape(filter),
-#ifdef USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorData<float>(micro_context, filter,
-                                              weights_comp_td,
-                                              data.weights_scratch_index),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetOptionalTensorData<float>(
-              micro_context, bias, bias_comp_td, data.bias_scratch_index),
-#else   // USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorData<float>(filter),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetOptionalTensorData<float>(bias),
-#endif  // USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output));
-      break;
+      return XtensaEvalFullyConnectedFloat32(context, node, data, input, filter,
+                                             bias, output);
     }
 
     case kTfLiteInt8: {
@@ -152,10 +130,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 TFLMRegistration Register_FULLY_CONNECTED() {
   return tflite::micro::RegisterOp(XtensaInitFullyConnected,
                                    XtensaPrepareFullyConnected, Eval);
-}
-
-TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(Eval);
 }
 
 }  // namespace micro

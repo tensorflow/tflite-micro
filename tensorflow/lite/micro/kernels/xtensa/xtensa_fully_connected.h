@@ -66,6 +66,11 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt8(
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
     const TfLiteEvalTensor* bias, TfLiteEvalTensor* output);
 
+TfLiteStatus XtensaEvalFullyConnectedFloat32(
+    TfLiteContext* context, TfLiteNode* node, const OpDataFullyConnected& data,
+    const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
+    const TfLiteEvalTensor* bias, TfLiteEvalTensor* output);
+
 TfLiteStatus XtensaCalculateOpDataFullyConnected(
     TfLiteContext* context, TfLiteFusedActivation activation,
     TfLiteType data_type, const TfLiteTensor* input, const TfLiteTensor* filter,
