@@ -80,7 +80,7 @@ TEST(EnergyTest, EnergyTestMiddle) {
                            9, 10, 11, 12, 13, 14, 15, 16};
   const uint32_t golden[] = {0, 0, 61, 113, 0, 0, 0, 0};
   uint32_t output[8];
-  memset(output, 0, sizeof(output));
+  memset(output, 0xAB, sizeof(output));
   EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
                            input_shape, input, output_shape, golden,
                            g_gen_data_start_index_2_end_index_4,
@@ -94,7 +94,7 @@ TEST(EnergyTest, EnergyTestStart) {
                            9, 10, 11, 12, 13, 14, 15, 16};
   const uint32_t golden[] = {5, 25, 61, 113, 0, 0, 0, 0};
   uint32_t output[8];
-  memset(output, 0, sizeof(output));
+  memset(output, 0xAB, sizeof(output));
   EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
                            input_shape, input, output_shape, golden,
                            g_gen_data_start_index_0_end_index_4,
@@ -108,7 +108,34 @@ TEST(EnergyTest, EnergyTestEnd) {
                            9, 10, 11, 12, 13, 14, 15, 16};
   const uint32_t golden[] = {0, 0, 0, 0, 181, 265, 365, 481};
   uint32_t output[8];
-  memset(output, 0, sizeof(output));
+  memset(output, 0xAB, sizeof(output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
+                           input_shape, input, output_shape, golden,
+                           g_gen_data_start_index_4_end_index_8,
+                           g_gen_data_size_start_index_4_end_index_8, output));
+}
+
+TEST(EnergyTest, EnergyTestInt16MinNoOverflow) {
+  int input_shape[] = {1, 16};
+  int output_shape[] = {1, 8};
+  const int16_t input[] = {1, 2, 3, 4, -32768, -32768, 7,  8,
+                           9, 0, 0, 0, 0,      0,      15, 16};
+  const uint32_t golden[] = {0, 0, 2147483648U, 113, 0, 0, 0, 0};
+  uint32_t output[8];
+  memset(output, 0xAB, sizeof(output));
+  EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
+                           input_shape, input, output_shape, golden,
+                           g_gen_data_start_index_2_end_index_4,
+                           g_gen_data_size_start_index_2_end_index_4, output));
+}
+
+TEST(EnergyTest, EnergyTestClampsOutOfRangeBounds) {
+  int input_shape[] = {1, 8};
+  int output_shape[] = {1, 4};
+  const int16_t input[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  const uint32_t golden[] = {0, 0, 0, 0};
+  uint32_t output[4];
+  memset(output, 0xAB, sizeof(output));
   EXPECT_EQ(kTfLiteOk, tflite::testing::TestEnergy(
                            input_shape, input, output_shape, golden,
                            g_gen_data_start_index_4_end_index_8,

@@ -94,7 +94,8 @@ TfLiteStatus EnergyEval(TfLiteContext* context, TfLiteNode* node) {
   uint32_t* output_data = tflite::micro::GetTensorData<uint32_t>(output);
 
   tflm_signal::SpectrumToEnergy(input_data, params->start_index,
-                                params->end_index, output_data);
+                                params->end_index, output->dims->data[0],
+                                output_data);
   return kTfLiteOk;
 }
 

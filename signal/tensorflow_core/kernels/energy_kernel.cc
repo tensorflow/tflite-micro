@@ -47,8 +47,8 @@ class EnergyOp {
     const auto* input =
         reinterpret_cast<const Complex<int16_t>*>(input_tensor.Data<int16_t>());
     uint32_t* output = output_tensor.Data<uint32_t>();
-    tflite::tflm_signal::SpectrumToEnergy(input, start_index_, end_index_,
-                                          output);
+    tflite::tflm_signal::SpectrumToEnergy(
+        input, start_index_, end_index_, static_cast<int>(output_size), output);
   }
 
  private:
