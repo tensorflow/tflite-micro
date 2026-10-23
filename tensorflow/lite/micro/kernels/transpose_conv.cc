@@ -312,9 +312,8 @@ TfLiteStatus TransposeConvEval(TfLiteContext* context, TfLiteNode* node) {
           tflite::micro::GetTensorData<int16_t>(input),
           tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorData<int8_t>(micro_context, filter,
-                                               filter_comp_td,
-                                               data.filter_scratch_index),
+          tflite::micro::GetTensorData<int8_t>(
+              micro_context, filter, filter_comp_td, data.filter_scratch_index),
           tflite::micro::GetTensorShape(bias),
           tflite::micro::GetOptionalTensorData<int64_t>(
               micro_context, bias, bias_comp_td, data.bias_scratch_index),
