@@ -73,6 +73,7 @@ PROFILES = {
         cpu = info["cpu"],
         semihosting = info["semihosting"],
         strip = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-strip",
+        tags = ["manual"],
     )
     for name, info in PROFILES.items()
 ]
@@ -88,7 +89,7 @@ PROFILES = {
         linker_files = ARM_TOOLCHAIN_FILES_PREFIX + "linker_files",
         objcopy_files = ":empty",
         strip_files = ARM_TOOLCHAIN_FILES_PREFIX + "everything",
-        supports_param_files = 0,
+        supports_param_files = False,
         toolchain_config = ":%s_config" % name,
         toolchain_identifier = "cortex-%s-toolchain" % name,
     )

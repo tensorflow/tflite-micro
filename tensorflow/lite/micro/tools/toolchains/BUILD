@@ -21,7 +21,6 @@ exports_files([
     "env.bzl",
     "platform_suites.bzl",
     "run_qemu.sh",
-    "run_target.sh",
 ])
 
 tflm_declare_test_platforms(name = "test_platform")

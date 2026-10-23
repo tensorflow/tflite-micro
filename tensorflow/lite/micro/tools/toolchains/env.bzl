@@ -61,10 +61,11 @@ def tflm_sh_runner(name, srcs, data = None):
         visibility = ["//visibility:public"],
     )
 
-def tflm_cc_toolchain(name, **kwargs):
+def tflm_cc_toolchain(name, tags = None, **kwargs):
     """Declares a C/C++ toolchain target."""
     cc_toolchain(
         name = name,
+        tags = tags or ["manual"],
         **kwargs
     )
 
@@ -91,6 +92,7 @@ def tflm_xtensa_toolchains(cores):
             cpp_compiler = "@xtensa_toolchain//:bin/xt-clang++",
             name_alias = name,
             strip = "@xtensa_toolchain//:bin/xt-strip",
+            tags = ["manual"],
         )
         tflm_cc_toolchain(
             name = "cc_toolchain_%s" % name,
@@ -102,7 +104,7 @@ def tflm_xtensa_toolchains(cores):
             linker_files = "@xtensa_toolchain//:linker_files",
             objcopy_files = ":empty",
             strip_files = "@xtensa_toolchain//:everything",
-            supports_param_files = 0,
+            supports_param_files = False,
             toolchain_config = ":%s_config" % name,
             toolchain_identifier = "xtensa-%s-toolchain" % name,
         )
@@ -146,6 +148,7 @@ def tflm_hexagon_toolchains():
         cpp_compiler = "@hexagon_toolchain//:bin/hexagon-clang++",
         cpu_version = "v66",
         strip = "@hexagon_toolchain//:bin/hexagon-strip",
+        tags = ["manual"],
     )
     tflm_cc_toolchain(
         name = "cc_toolchain_hexagon",
@@ -157,7 +160,7 @@ def tflm_hexagon_toolchains():
         linker_files = "@hexagon_toolchain//:linker_files",
         objcopy_files = ":empty",
         strip_files = "@hexagon_toolchain//:everything",
-        supports_param_files = 0,
+        supports_param_files = False,
         toolchain_config = ":hexagon_v66_config",
         toolchain_identifier = "hexagon-v66-toolchain",
     )

@@ -842,8 +842,8 @@ test_suite(
 
 tflm_platform_test_suite(
     name = "core",
-    extra_targets_by_profile = {
-        "compression": [":memory_arena_threshold_test"],
+    extra_target_profiles = {
+        ":memory_arena_threshold_test": "compression",
     },
     profiles = [
         "compression",

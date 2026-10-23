@@ -1752,8 +1752,8 @@ tflm_platform_test_suite(
     exclude_targets = [
         ":decompress_test",
     ],
-    extra_targets_by_profile = {
-        "compression": [":decompress_test"],
+    extra_target_profiles = {
+        ":decompress_test": "compression",
     },
     profiles = [
         "compression",
@@ -1773,7 +1773,7 @@ tflm_platform_test_suite(
         "xtensa_vision_p6",
     ],
     smoke_targets = KERNEL_SMOKE_TEST_TARGETS,
-    targets = None,
+    visibility = ["//visibility:public"],
 )
 
 ####################################
