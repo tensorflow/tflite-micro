@@ -24,13 +24,12 @@ namespace tflite {
 namespace tflm_signal {
 // TODO(b/286250473): remove namespace once de-duped libraries above
 
-// Calculates the power spectrum from a DFT output between start and end indices
+// Calculates the power spectrum from a DFT output in [start_index, end_index)
+// (clamped to [0, output_size]) and zeros elements outside that range.
 //
-// * `start_index` and `end_index` must valid indices into `input`
-// * `output` must be the same size as `input`. Only the values at indices
-//   `start_index` and `end_index` inclusive should be considered valid.
+// * `input` and `output` must each have at least `output_size` elements.
 void SpectrumToEnergy(const Complex<int16_t>* input, int start_index,
-                      int end_index, uint32_t* output);
+                      int end_index, int output_size, uint32_t* output);
 
 }  // namespace tflm_signal
 }  // namespace tflite

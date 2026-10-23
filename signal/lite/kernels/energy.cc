@@ -81,7 +81,8 @@ TfLiteStatus Eval(void* /*user_data*/, TfLiteOpaqueContext* context,
   uint32_t* output_data = GetTensorData<uint32_t>(output);
 
   tflm_signal::SpectrumToEnergy(input_data, params->start_index,
-                                params->end_index, output_data);
+                                params->end_index,
+                                TfLiteOpaqueTensorDim(output, 0), output_data);
   return kTfLiteOk;
 }
 

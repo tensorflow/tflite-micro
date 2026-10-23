@@ -24,7 +24,7 @@ gen_energy_op = util.load_custom_op('energy_op.so')
 def energy(input_tensor, start_index=0, end_index=-1, name="signal_energy"):
   """Calculates the spectral energy of a complex frequency-domain array.
 
-  Only elements in the complex bin index range `[start_index, end_index]` are
+  Only elements in the complex bin index range `[start_index, end_index)` are
   calculated, and the remaining elements are set to zero.
 
   Args:
@@ -32,16 +32,17 @@ def energy(input_tensor, start_index=0, end_index=-1, name="signal_energy"):
       real and imaginary components of complex spectral bins.
     start_index: Complex bin index in `input_tensor` to start calculating from.
       Defaults to `0`.
-    end_index: Last complex bin index to calculate, or `-1` to use the end of
-      `input_tensor`. Defaults to `-1`.
+    end_index: One-past-the-last complex bin index to calculate, or `-1` to use
+      the end of `input_tensor`. Defaults to `-1`.
     name: Optional name for the operation.
 
   Returns:
     A 1-D `uint32` `Tensor` of length `len(input_tensor) // 2` containing the
-    squared magnitude of each complex bin in `[start_index, end_index]`.
+    squared magnitude of each complex bin in `[start_index, end_index)`.
 
   Raises:
-    ValueError: If `input_tensor` does not have rank 1.
+    ValueError: If `input_tensor` does not have rank 1 or has unknown length
+      when `end_index == -1`.
   """
   with tf.name_scope(name) as name:
     input_tensor = tf.convert_to_tensor(input_tensor, dtype=tf.int16)
@@ -49,7 +50,11 @@ def energy(input_tensor, start_index=0, end_index=-1, name="signal_energy"):
     if len(dim_list) != 1:
       raise ValueError("Input tensor must have a rank of 1")
     if end_index == -1:
-      end_index = dim_list[0] - 1
+      if dim_list[0] is None:
+        raise ValueError(
+          "Input length must be statically known when end_index=-1"
+        )
+      end_index = dim_list[0] // 2
     return gen_energy_op.signal_energy(
       input_tensor, start_index=start_index, end_index=end_index, name=name
     )

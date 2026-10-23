@@ -120,10 +120,10 @@ class EnergyOpModel : public SingleOpModel {
 };
 
 TEST(SignalOpsTest, EnergyOp) {
-  EnergyOpModel m({TensorType_INT16, {6}}, {TensorType_UINT32, {3}}, 0, 2);
-  m.PopulateTensor<int16_t>(m.input(), {3, 4, 5, 12, 0, 0});
+  EnergyOpModel m({TensorType_INT16, {8}}, {TensorType_UINT32, {4}}, 1, 3);
+  m.PopulateTensor<int16_t>(m.input(), {3, 4, 5, 12, -32768, -32768, 7, 24});
   ASSERT_EQ(m.Invoke(), kTfLiteOk);
-  EXPECT_THAT(m.GetOutput(), ElementsAre(25, 169, 0));
+  EXPECT_THAT(m.GetOutput(), ElementsAre(0U, 169U, 2147483648U, 0U));
 }
 
 class FftAutoScaleOpModel : public SingleOpModel {
