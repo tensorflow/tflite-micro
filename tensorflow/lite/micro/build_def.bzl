@@ -59,6 +59,11 @@ def tflm_defines():
     })
 
     defines += select({
+        "//:with_single_rounding_enabled": ["TFLITE_SINGLE_ROUNDING=1"],
+        "//conditions:default": ["TFLITE_SINGLE_ROUNDING=0"],
+    })
+
+    defines += select({
         "//tensorflow/lite/micro/kernels:cmsis_nn_default": ["CMSIS_NN"],
         "//tensorflow/lite/micro/kernels:cmsis_nn_ethos_u_default": [
             "CMSIS_NN",

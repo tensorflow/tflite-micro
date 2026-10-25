@@ -47,7 +47,10 @@ cc_library(
         "MODEL_INT16=1",
         "EIGEN_NO_MALLOC=1",
         "hifi5=1",
-    ],
+    ] + select({
+        "@tflite_micro//:with_single_rounding_enabled": ["TFLITE_SINGLE_ROUNDING=1"],
+        "//conditions:default": ["TFLITE_SINGLE_ROUNDING=0"],
+    }),
     includes = [
         ".",
         "algo/common/include",

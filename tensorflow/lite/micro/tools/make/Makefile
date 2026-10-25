@@ -185,6 +185,11 @@ ifeq ($(WERROR), 1)
   CC_WARNINGS += -Werror
 endif
 
+TFLITE_SINGLE_ROUNDING ?= 1
+ifeq (,$(filter $(TFLITE_SINGLE_ROUNDING),0 1))
+  $(error TFLITE_SINGLE_ROUNDING must be 0 or 1)
+endif
+
 COMMON_FLAGS := \
   -fno-unwind-tables \
   -fno-asynchronous-unwind-tables \
@@ -193,6 +198,7 @@ COMMON_FLAGS := \
   -fmessage-length=0 \
   -DTFLM_REMOVE_VIRTUAL_DELETE \
   -DTF_LITE_DISABLE_X86_NEON \
+  -DTFLITE_SINGLE_ROUNDING=$(TFLITE_SINGLE_ROUNDING) \
   $(CC_WARNINGS) \
   $(ADDITIONAL_DEFINES)
 

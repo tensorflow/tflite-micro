@@ -20,9 +20,11 @@ cc_library(
     hdrs = glob(["Include/**/*.h"]),
     copts = ["-Wno-unknown-attributes"],
     defines = [
-        "CMSIS_NN_USE_SINGLE_ROUNDING=1",
         "ARM_NN_ENABLE_F32=1",
-    ],
+    ] + select({
+        "@tflite_micro//:with_single_rounding_enabled": ["CMSIS_NN_USE_SINGLE_ROUNDING=1"],
+        "//conditions:default": [],
+    }),
     includes = [
         ".",
         "Include",

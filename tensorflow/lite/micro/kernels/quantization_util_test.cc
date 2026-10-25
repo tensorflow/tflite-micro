@@ -15,6 +15,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 
+#include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
@@ -355,6 +356,27 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_PreprocessSoftmaxScaling) {
     return std::pair<int32_t, int>{q, s};
   };
 
+#if TFLITE_SINGLE_ROUNDING
+  // If beta * scale is greater than fits in the number of integer bits, the
+  // result is move near the maximum. Otherwise they quantize as expected.
+  // With 4 integer bits we can represent up to 8.0.
+  auto r = quantize(1.0, 8.0, 4);
+  EXPECT_EQ(r.first, 2147483646);
+  EXPECT_EQ(r.second, 30);
+
+  r = quantize(1.0, 4.0, 4);
+  EXPECT_EQ(r.first, 1073741824);
+  EXPECT_EQ(r.second, 30);
+
+  // But with 5 bits we can go further.
+  r = quantize(2.0, 8.0, 5);
+  EXPECT_EQ(r.first, 2147483646);
+  EXPECT_EQ(r.second, 30);
+
+  r = quantize(2.0, 4.0, 5);
+  EXPECT_EQ(r.first, 1073741824);
+  EXPECT_EQ(r.second, 30);
+#else
   // If beta * scale is greater than fits in the number of integer bits, the
   // result is move near the maximum. Otherwise they quantize as expected.
   // With 4 integer bits we can represent up to 16.0.
@@ -375,6 +397,47 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_PreprocessSoftmaxScaling) {
   r = quantize(2.0, 8.0, 5);
   EXPECT_EQ(r.first, 1073741824);
   EXPECT_EQ(r.second, 31);
+#endif
+}
+
+TEST(QuantizationUtilTest, MultiplyByQuantizedMultiplier) {
+  auto quant_and_multiply = [](int32_t x, double multiplier) {
+    int32_t quantized_multiplier;
+    int shift;
+    tflite::QuantizeMultiplier(multiplier, &quantized_multiplier, &shift);
+    return tflite::MultiplyByQuantizedMultiplier(x, quantized_multiplier,
+                                                 shift);
+  };
+
+  EXPECT_EQ(quant_and_multiply(0, 0.1), 0);
+  EXPECT_EQ(quant_and_multiply(1, 0), 0);
+  EXPECT_EQ(quant_and_multiply(10000, 0.00097656), 10);
+  EXPECT_EQ(quant_and_multiply(-10000, 0.00097656), -10);
+  EXPECT_EQ(quant_and_multiply(std::numeric_limits<int32_t>::min(), 0.00001),
+            -21475);
+  EXPECT_EQ(quant_and_multiply(std::numeric_limits<int32_t>::max(), 0.00001),
+            21475);
+
+#if TFLITE_SINGLE_ROUNDING
+  // Inputs where single rounding and double rounding diverge by 1 LSB:
+  // 22870 * 1820867126 / 2^38 = 151.49708... -> 151 (single) vs 152 (double).
+  EXPECT_EQ(
+      tflite::MultiplyByQuantizedMultiplier(
+          static_cast<int32_t>(22870), static_cast<int32_t>(1820867126), -7),
+      151);
+  // -2 * 2^30 / 2^32 = -0.5 -> 0 (single, round-half-up) vs -1 (double).
+  EXPECT_EQ(tflite::MultiplyByQuantizedMultiplier(
+                static_cast<int32_t>(-2), static_cast<int32_t>(1 << 30), -1),
+            0);
+#else
+  EXPECT_EQ(
+      tflite::MultiplyByQuantizedMultiplier(
+          static_cast<int32_t>(22870), static_cast<int32_t>(1820867126), -7),
+      152);
+  EXPECT_EQ(tflite::MultiplyByQuantizedMultiplier(
+                static_cast<int32_t>(-2), static_cast<int32_t>(1 << 30), -1),
+            -1);
+#endif
 }
 
 TEST(QuantizationUtilTest, QuantizationUtilTest_CalculateInputRadius) {
