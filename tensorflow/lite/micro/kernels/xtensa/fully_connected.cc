@@ -40,18 +40,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kFullyConnectedOutputTensor);
 
-#ifdef USE_TFLM_COMPRESSION
-
-  MicroContext* micro_context = GetMicroContext(context);
-
-  const CompressionTensorData* weights_comp_td =
-      micro_context->GetTensorCompressionData(node,
-                                              kFullyConnectedWeightsTensor);
-  const CompressionTensorData* bias_comp_td =
-      micro_context->GetTensorCompressionData(node, kFullyConnectedBiasTensor);
-
-#endif  // USE_TFLM_COMPRESSION
-
   TFLITE_DCHECK(node->user_data != nullptr);
 
   const auto& data =
@@ -86,26 +74,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt16: {
       switch (filter->type) {
         case kTfLiteInt8: {
-          tflite::micro::reference_integer_ops::FullyConnected(
-              FullyConnectedParamsQuantized(data),
-              tflite::micro::GetTensorShape(input),
-              tflite::micro::GetTensorData<int16_t>(input),
-              tflite::micro::GetTensorShape(filter),
-#ifdef USE_TFLM_COMPRESSION
-              tflite::micro::GetTensorData<int8_t>(micro_context, filter,
-                                                   weights_comp_td,
-                                                   data.weights_scratch_index),
-              tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int64_t>(
-                  micro_context, bias, bias_comp_td, data.bias_scratch_index),
-#else   // USE_TFLM_COMPRESSION
-              tflite::micro::GetTensorData<int8_t>(filter),
-              tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int64_t>(bias),
-#endif  // USE_TFLM_COMPRESSION
-              tflite::micro::GetTensorShape(output),
-              tflite::micro::GetTensorData<int16_t>(output));
-          break;
+          return XtensaEvalFullyConnectedQuantizedInt16(
+              context, node, data, input, filter, bias, output);
         }
         default: {
           MicroPrintf("Filter type %s (%d) not supported.",
