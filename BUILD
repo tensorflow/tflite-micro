@@ -23,6 +23,20 @@ config_setting(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "with_single_rounding",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "with_single_rounding_enabled",
+    flag_values = {
+        ":with_single_rounding": "True",
+    },
+    visibility = ["//visibility:public"],
+)
+
 licenses(["notice"])
 
 exports_files(["LICENSE"])

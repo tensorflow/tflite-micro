@@ -339,6 +339,10 @@ TFLITE_NOINLINE int32_t MultiplyByQuantizedMultiplier(
 TFLITE_NOINLINE int32_t MultiplyByQuantizedMultiplier(
     int64_t x, int32_t quantized_multiplier, int shift);
 
+#ifndef TFLITE_SINGLE_ROUNDING
+#define TFLITE_SINGLE_ROUNDING 1
+#endif  // TFLITE_SINGLE_ROUNDING
+
 // Single-rounding MultiplyByQuantizedMultiplier
 #if TFLITE_SINGLE_ROUNDING
 inline int32_t MultiplyByQuantizedMultiplierSmallerThanOneExp(

@@ -1340,6 +1340,7 @@ tflm_cc_test(
     ],
     deps = [
         "//tensorflow/lite/micro:micro_common",
+        "//tensorflow/lite/micro/kernels/internal:common",
         "//tensorflow/lite/micro/kernels/internal:quantization_util",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
