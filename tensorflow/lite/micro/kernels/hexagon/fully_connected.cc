@@ -352,10 +352,6 @@ TFLMRegistration Register_FULLY_CONNECTED() {
                     HexagonFullyConnectedEval);
 }
 
-TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
-  return RegisterOp(HexagonFullyConnectedEval);
-}
-
 #if defined(HEXAGON)
 TFLMRegistration Register_FULLY_CONNECTED_INT8() {
   return RegisterOp(HexagonFullyConnectedInit, HexagonFullyConnectedPrepare,
