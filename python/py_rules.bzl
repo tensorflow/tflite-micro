@@ -35,6 +35,14 @@ def tflm_oss_manual_tags():
     """Returns ["manual"] in OSS builds for targets requiring external TF/LiteRT deps."""
     return ["manual"]
 
+def tflm_tf_shape_inference_copts():
+    """Returns copts for shape_inference_utils when building with full TF."""
+    return []
+
+def tflm_tf_shape_inference_deps():
+    """Returns extra deps for shape_inference_utils when building with full TF."""
+    return []
+
 def pybind_extension(name, **kwargs):
     if "manual" in kwargs.get("tags", []):
         _pybind_library(
@@ -182,20 +190,4 @@ def tflm_signal_op_test(
             requirement("ai-edge-litert"),
         ],
         **kwargs
-    )
-
-def tflm_signal_kernel_library(
-        name,
-        srcs = [],
-        hdrs = [],
-        deps = [],
-        copts = [],
-        alwayslink = 1):
-    cc_library(
-        name = name,
-        srcs = srcs,
-        hdrs = hdrs,
-        alwayslink = alwayslink,
-        copts = copts,
-        deps = deps,
     )

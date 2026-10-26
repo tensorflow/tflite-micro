@@ -57,10 +57,10 @@ cc_test(
     deps = [
         "//signal/lite/kernels:signal_ops",
         "//third_party/tflite_c_headers:c_api_opaque",
-        "@com_google_absl//absl/types:span",
         "@com_google_googletest//:gtest_main",
         "@flatbuffers//:runtime_cc",
         "@litert//litert/c/options:litert_cpu_options",
+        "@litert//litert/cc:litert_api_types",
         "@litert//litert/cc:litert_buffer_ref",
         "@litert//litert/cc:litert_common",
         "@litert//litert/cc:litert_compiled_model",
