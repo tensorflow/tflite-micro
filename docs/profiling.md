@@ -44,4 +44,4 @@ In order to further dig into performance of specific routines, the MicroProfiler
 can be used directly from the TFLiteContext or a new MicroProfiler can be
 created if the TFLiteContext is not available where the profiling needs to
 happen. The MicroProfiler's `BeginEvent` and `EndEvent` can be called directly, or
-wrapped using a [ScopedMicroProfiler](../micro_profiler.h).
+wrapped using a [ScopedMicroProfiler](../tensorflow/lite/micro/micro_profiler.h).

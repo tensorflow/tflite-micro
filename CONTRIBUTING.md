@@ -130,7 +130,7 @@ fixing a bug needs a bigger architectural change.
 1.  **Error Handling & Security PRs:** We only accept changes that solve real
     problems encountered in actual TFLM usage. Before adding input validation or
     defensive checks, read our
-    [Error Handling & Defensive Programming Guide](tensorflow/lite/micro/docs/error_handling_guide.md)
+    [Error Handling & Defensive Programming Guide](docs/error_handling_guide.md)
     and [Security Policy](SECURITY.md). Please do not submit mass-generated,
     fuzzer-derived, or AI-scanned speculative PRs (such as adding runtime
     `Eval` checks or integer-overflow checks for mutated `.tflite` model files);
@@ -142,15 +142,15 @@ Pull requests that port reference kernels from TF Lite Mobile to TF Lite Micro
 are welcome once we have context from the contributor on why the additional
 kernel is needed.
 
-Please see the [reference kernel porting guide](tensorflow/lite/micro/docs/porting_reference_ops.md)
+Please see the [reference kernel porting guide](docs/porting_reference_ops.md)
 for more details of that process.
 
 ### Optimized Kernel Implementations
-Please see the [optimized kernel implementations guide](tensorflow/lite/micro/docs/optimized_kernel_implementations.md).
+Please see the [optimized kernel implementations guide](docs/optimized_kernel_implementations.md).
 
 ### New Target / Platform / IDE / Examples
 
-Please see the [new platform support guide](tensorflow/lite/micro/docs/new_platform_support.md)
+Please see the [new platform support guide](docs/new_platform_support.md)
 for documentation on how to add TFLM support for your particular platform.
 
 # Development Environment

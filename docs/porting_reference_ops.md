@@ -296,7 +296,7 @@ Use `TfLiteContext::AllocatePersistentBuffer` to allocate persistent memory.
 Memory allocated by this method will remain valid throughout the lifetime of
 the `tflite::MicroInterpreter` instance.
 
-An example code snippet looks like ([leaky_relu.cc](../kernels/leaky_relu.cc)):
+An example code snippet looks like ([leaky_relu.cc](../tensorflow/lite/micro/kernels/leaky_relu.cc)):
 ```C++
 void* LeakyReluInit(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(LeakyReluOpData));
@@ -316,7 +316,7 @@ to share data between operator invocations.  Scratch buffer temporary memory is
 to be used only as pre-allocated storage during the execution scope of your
 operator's `Invoke` method.
 
-An example code snippet looks like ([add_n.cc](../kernels/add_n.cc)):
+An example code snippet looks like ([add_n.cc](../tensorflow/lite/micro/kernels/add_n.cc)):
 ```C++
 if (output->type == kTfLiteFloat32) {
     // Allocate scratch buffer space for pointer to each tensor's data
@@ -341,7 +341,7 @@ method, use `MicroContext::AllocateTempBuffer`.  A matching call to
 `MicroContext::DeallocateTempBuffer` must be made prior to returning from your
 operator's `Prepare` method.
 
-An example code snippet ([depthwise_conv_vision.cc](../kernels/xtensa/depthwise_conv_vision.cc)):
+An example code snippet ([depthwise_conv_vision.cc](../tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc)):
 ```C++
 TfLiteTensor filter_int8;
 
@@ -392,7 +392,7 @@ writable (ex. Flash, ROM), a special method must be called before modification
 is attempted.  The `tflite::micro::CreateWritableTensorDimsWithCopy` method will
 move the tensor shape values to guaranteed persistent writable memory.
 
-An example code snippet looks like ([l2_pool_2d.cc](../kernels/l2_pool_2d.cc)):
+An example code snippet looks like ([l2_pool_2d.cc](../tensorflow/lite/micro/kernels/l2_pool_2d.cc)):
 ```C++
 // the output variable is a TfLiteTensor*
 TfLiteEvalTensor* output_eval =
