@@ -16,21 +16,6 @@ on:
         required: true
 
 jobs:
-  riscv_tests:
-    if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
-    timeout-minutes: 60
-    container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
-    name: RISC-V Tests
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - name: Test
-        run: tensorflow/lite/micro/tools/ci_build/test_riscv.sh
-
   riscv_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: linux-x86-n4-16

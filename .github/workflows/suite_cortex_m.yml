@@ -82,21 +82,6 @@ jobs:
 
   # --- Extended Tests (Corstone 300) ---
 
-  corstone_300_gcc:
-    if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
-    container:
-      image: ghcr.io/tflm-bot/corstone300:0.1
-    timeout-minutes: 60
-    name: Cortex-M Corstone 300 (GCC)
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - name: Test
-        run: tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
-
   corstone_300_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: linux-x86-n4-16
