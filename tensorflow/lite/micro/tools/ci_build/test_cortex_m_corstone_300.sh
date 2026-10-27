@@ -42,7 +42,7 @@ readable_run make -f ${MAKEFILE} ${COMMON_ARGS} config_info
 
 # Avoid running tests in parallel.
 readable_run make -f ${MAKEFILE} clean
-readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build_tests
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} test
 
 # Run generic benchmark. Not supported for armclang - see comment in target makefile.

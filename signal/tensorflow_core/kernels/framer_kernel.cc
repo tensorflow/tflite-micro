@@ -13,114 +13,119 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #include "signal/src/circular_buffer.h"
-#include "tensorflow/core/framework/op_kernel.h"
+#include "signal/tensorflow_core/kernels/kernel_utils.h"
 
 namespace tensorflow {
 namespace signal {
+namespace {
 
-class FramerOp : public tensorflow::OpKernel {
+class FramerOp {
  public:
-  explicit FramerOp(tensorflow::OpKernelConstruction* context)
-      : tensorflow::OpKernel(context) {
-    OP_REQUIRES_OK(context, context->GetAttr("frame_size", &frame_size_));
-    OP_REQUIRES_OK(context, context->GetAttr("frame_step", &frame_step_));
-    OP_REQUIRES_OK(context, context->GetAttr("prefill", &prefill_));
-    initialized_ = false;
+  explicit FramerOp(KernelConstruction* ctx) {
+    ctx->GetAttr("frame_size", &frame_size_);
+    ctx->GetAttr("frame_step", &frame_step_);
+    ctx->GetAttr("prefill", &prefill_);
   }
 
-  ~FramerOp() {}
+  void Compute(KernelContext* ctx) {
+    TensorHandle input_tensor = ctx->Input(0);
+    if (!ctx->ok()) {
+      return;
+    }
 
-  void Compute(tensorflow::OpKernelContext* context) override {
-    const tensorflow::Tensor& input_tensor = context->input(0);
+    const std::vector<int64_t> in_dims = input_tensor.Shape();
+    const int64_t last_dim = in_dims.empty() ? 0 : in_dims.back();
+    const int64_t total_elements = input_tensor.NumElements();
+
     if (!initialized_) {
-      n_frames_ = input_tensor.flat_inner_dims<int16_t>().dimensions().at(1) /
-                  frame_step_;
-      outer_dims_ = input_tensor.flat_inner_dims<int16_t>().dimensions().at(0);
+      n_frames_ = last_dim / frame_step_;
+      outer_dims_ = (last_dim > 0) ? (total_elements / last_dim) : 0;
 
-      state_tensors_.resize(outer_dims_);
-      circular_buffers_.resize(outer_dims_);
+      state_buffers_.resize(static_cast<size_t>(outer_dims_));
+      circular_buffers_.resize(static_cast<size_t>(outer_dims_));
 
-      // Calculate the capacity of the circular buffer. Round up the frame size
-      // to
-      // a multiple of frame step. Saves memory relative to the simpler
-      // frame_size + frame_step. For example:
-      // step_size = 160, frame_size = 400
-      // capacity = 480 vs. step_size + frame_size = 560
+      // Round up frame_size to a multiple of frame_step to save state memory.
       size_t capacity =
-          (frame_size_ + frame_step_ - 1) / frame_step_ * frame_step_;
+          static_cast<size_t>((frame_size_ + frame_step_ - 1) / frame_step_) *
+          frame_step_;
       size_t state_size =
           tflite::tflm_signal::CircularBufferGetNeededMemory(capacity);
-      for (int i = 0; i < outer_dims_; i++) {
-        OP_REQUIRES_OK(
-            context,
-            context->allocate_temp(
-                DT_INT8, TensorShape({static_cast<int32_t>(state_size)}),
-                &state_tensors_[i]));
-        int8_t* state_ = state_tensors_[i].flat<int8_t>().data();
-        circular_buffers_[i] = tflite::tflm_signal::CircularBufferInit(
-            capacity, state_, state_size);
+      for (int64_t i = 0; i < outer_dims_; ++i) {
+        auto idx = static_cast<size_t>(i);
+        state_buffers_[idx].resize(state_size);
+        circular_buffers_[idx] = tflite::tflm_signal::CircularBufferInit(
+            capacity, state_buffers_[idx].data(), state_size);
         if (prefill_) {
           tflite::tflm_signal::CircularBufferWriteZeros(
-              circular_buffers_[i], frame_size_ - frame_step_);
+              circular_buffers_[idx], frame_size_ - frame_step_);
         }
       }
-
       initialized_ = true;
     }
 
-    // Split the last dimension of the input into {n_frames_, frame_size_}.
-    TensorShape output_shape = input_tensor.shape();
-    output_shape.AddDim(frame_size_);
-    output_shape.set_dim(output_shape.dims() - 2, n_frames_);
+    // Split the last dimension of the input into {n_frames, frame_size}.
+    std::vector<int64_t> out_dims = in_dims;
+    if (out_dims.empty()) {
+      out_dims = {n_frames_, frame_size_};
+    } else {
+      out_dims.back() = n_frames_;
+      out_dims.push_back(frame_size_);
+    }
 
-    tensorflow::Tensor* output_tensor = nullptr;
-    tensorflow::Tensor* output_valid_tensor = nullptr;
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(0, output_shape, &output_tensor));
-    OP_REQUIRES_OK(context,
-                   context->allocate_output(1, {}, &output_valid_tensor));
+    TensorHandle output_tensor = ctx->AllocateOutput<int16_t>(0, out_dims);
+    TensorHandle output_valid_tensor = ctx->AllocateScalarOutput<bool>(1);
+    if (!ctx->ok()) {
+      return;
+    }
+
+    const int16_t* input = input_tensor.Data<int16_t>();
+    int16_t* output = output_tensor.Data<int16_t>();
+    bool* out_valid = output_valid_tensor.Data<bool>();
 
     bool output_valid = true;
-    for (int i = 0; i < outer_dims_; i++) {
-      for (int frame = 0; frame < n_frames_; frame++) {
-        int input_index = (i * n_frames_ + frame) * frame_step_;
-        int output_index = (i * n_frames_ + frame) * frame_size_;
-        tflite::tflm_signal::CircularBufferWrite(
-            circular_buffers_[i],
-            &(input_tensor.flat<int16_t>().data())[input_index], frame_step_);
-        if (tflite::tflm_signal::CircularBufferAvailable(
-                circular_buffers_[i]) >= (unsigned)frame_size_) {
-          tflite::tflm_signal::CircularBufferGet(
-              circular_buffers_[i], frame_size_,
-              &(reinterpret_cast<int16_t*>(
-                  output_tensor->data()))[output_index]);
-          tflite::tflm_signal::CircularBufferDiscard(circular_buffers_[i],
-                                                     frame_step_);
+    const auto frame_step = static_cast<size_t>(frame_step_);
+    const auto frame_size = static_cast<size_t>(frame_size_);
+
+    for (int64_t i = 0; i < outer_dims_; ++i) {
+      auto* cb = circular_buffers_[static_cast<size_t>(i)];
+      for (int64_t frame = 0; frame < n_frames_; ++frame) {
+        int64_t input_index = (i * n_frames_ + frame) * frame_step_;
+        int64_t output_index = (i * n_frames_ + frame) * frame_size_;
+        tflite::tflm_signal::CircularBufferWrite(cb, &input[input_index],
+                                                 frame_step);
+        if (tflite::tflm_signal::CircularBufferAvailable(cb) >= frame_size) {
+          tflite::tflm_signal::CircularBufferGet(cb, frame_size,
+                                                 &output[output_index]);
+          tflite::tflm_signal::CircularBufferDiscard(cb, frame_step);
         } else {
           output_valid = false;
         }
       }
-      *output_valid_tensor->flat<bool>().data() = output_valid;
     }
+    *out_valid = output_valid;
   }
 
  private:
-  bool initialized_;
-  int frame_size_;
-  int frame_step_;
-  int outer_dims_;
-  bool prefill_;
-  int n_frames_;
-  std::vector<Tensor> state_tensors_;
-  std::vector<struct tflite::tflm_signal::CircularBuffer*> circular_buffers_;
+  bool initialized_ = false;
+  int32_t frame_size_ = 0;
+  int32_t frame_step_ = 0;
+  int64_t outer_dims_ = 0;
+  bool prefill_ = false;
+  int64_t n_frames_ = 0;
+  std::vector<std::vector<int8_t>> state_buffers_;
+  std::vector<tflite::tflm_signal::CircularBuffer*> circular_buffers_;
 };
 
 // TODO(b/286250473): change back name after name clash resolved
-REGISTER_KERNEL_BUILDER(Name("SignalFramer").Device(tensorflow::DEVICE_CPU),
-                        FramerOp);
+__attribute__((constructor)) void RegisterSignalFramerKernel() {
+  RegisterKernel<FramerOp>("SignalFramer");
+}
 
+}  // namespace
 }  // namespace signal
 }  // namespace tensorflow

@@ -27,6 +27,7 @@ tflm_cc_test(
     srcs = [
         "hello_world_test.cc",
     ],
+    visibility = ["//tensorflow/lite/micro:__subpackages__"],
     deps = [
         ":model",
         "//tensorflow/lite/micro:micro_common",

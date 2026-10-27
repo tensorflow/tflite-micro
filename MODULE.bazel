@@ -6,7 +6,9 @@ module(
 
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_platform", version = "0.1.0")
 bazel_dep(name = "rules_python", version = "1.9.2")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 
@@ -37,9 +39,9 @@ http_archive(
 http_archive(
     name = "cmsis_nn",
     build_file = "//tensorflow/lite/micro/tools/toolchains/arm:cmsis_nn.BUILD",
-    sha256 = "c41f6d91fa118babe49f7554dd9ef3e28b7a2287e3be44e43820f63fea81e49c",
-    strip_prefix = "CMSIS-NN-4ab83cc3cc98fb85ed6dafb55e8ca02f1628dcae",
-    urls = ["https://github.com/ARM-software/CMSIS-NN/archive/4ab83cc3cc98fb85ed6dafb55e8ca02f1628dcae.zip"],
+    sha256 = "5212f41b7c2789816fb42f15e53ade4f0729d3780c18e7eaa52c8a00cf00fb8b",
+    strip_prefix = "CMSIS-NN-18bb0fd4ecea4b17a5a3c444c8d3a8cf28b1e68f",
+    urls = ["https://github.com/ARM-software/CMSIS-NN/archive/18bb0fd4ecea4b17a5a3c444c8d3a8cf28b1e68f.zip"],
 )
 
 http_archive(
@@ -150,6 +152,7 @@ register_toolchains(
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m0_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m4_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m55_toolchain",
+    "//tensorflow/lite/micro/tools/toolchains/arm:cortex_m55_baremetal_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_fusion_f1_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi3z_toolchain",
     "//tensorflow/lite/micro/tools/toolchains/xtensa:xtensa_hifi5_toolchain",

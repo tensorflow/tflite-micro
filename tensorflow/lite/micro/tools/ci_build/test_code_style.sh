@@ -89,7 +89,7 @@ end_group
 # File Exclusions for Formatting
 ############################################################
 
-EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/xtensa|ci/|kernels/internal/reference/integer_ops/|kernels/internal/reference/reference_ops\.h|kernels/internal/types\.h|experimental|_generated\.(h|py)$|\.inc$|\.md$)"
+EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/tf_c_headers|third_party/tflite_c_headers|third_party/xtensa|ci/|kernels/internal/reference/integer_ops/|kernels/internal/reference/reference_ops\.h|kernels/internal/types\.h|experimental|_generated\.(h|py)$|\.inc$|\.md$)"
 
 CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${EXCLUDES_REGEX}")
 PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}")

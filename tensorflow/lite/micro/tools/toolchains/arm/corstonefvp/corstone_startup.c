@@ -22,7 +22,8 @@ limitations under the License.
 extern uint32_t __INITIAL_SP;
 extern uint32_t __STACK_LIMIT;
 
-extern void _start(void);      // GCC Newlib C runtime entry point
+extern void _start(void);  // GCC Newlib C runtime entry point
+extern void _exit(int status);
 extern void SystemInit(void);  // CMSIS System Initialization
 
 void Reset_Handler(void);
@@ -85,8 +86,7 @@ void Default_Handler(void) {
       "(External IRQ %d)\r\n",
       (unsigned)vectactive, (int)vectactive - 16);
   fflush(stdout);
-  while (1) {
-  }
+  _exit(1);
 }
 
 void Fault_Handler(void) {
@@ -99,8 +99,7 @@ void Fault_Handler(void) {
       "HFSR=0x%08X\r\n",
       (unsigned)vectactive, (unsigned)*SCB_CFSR, (unsigned)*SCB_HFSR);
   fflush(stdout);
-  while (1) {
-  }
+  _exit(1);
 }
 
 /* Reset Handler called on controller reset */

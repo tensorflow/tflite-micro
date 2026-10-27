@@ -22,13 +22,14 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/xtensa/fixedpoint_utils_hifimini.h"
 #endif  // defined(HIFMINI)
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 #include "include/nnlib/xa_nnlib_api.h"
 #include "include/nnlib/xa_nnlib_standards.h"
 
 #define ALIGNED_SIZE(x, bytes) (((x) + (bytes - 1)) & (~(bytes - 1)))
 #define ALIGN_PTR(x, bytes) ((((unsigned)(x)) + (bytes - 1)) & (~(bytes - 1)))
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
+        // defined(HIFI_IQ)
 
 #if defined(VISION_P6)
 #include "utils.h"

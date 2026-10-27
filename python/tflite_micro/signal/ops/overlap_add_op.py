@@ -20,23 +20,49 @@ from tflite_micro.python.tflite_micro.signal.utils import util
 gen_overlap_add_op = util.load_custom_op('overlap_add_op.so')
 
 
-def _overlap_add_wrapper(overlap_add_fn, default_name):
-  """Wrapper around gen_overlap_add_op.overlap_add*."""
-
-  def _overlap_add(input_tensor, frame_step, name=default_name):
-    with tf.name_scope(name) as name:
-      input_tensor = tf.convert_to_tensor(input_tensor)
-      dim_list = input_tensor.shape.as_list()
-      if frame_step > dim_list[-1]:
-        raise ValueError("Frame_step must not exceed innermost input dimension")
-      return overlap_add_fn(input_tensor, frame_step=frame_step, name=name)
-
-  return _overlap_add
-
-
 # TODO(b/286250473): change back name after name clash resolved
-overlap_add = _overlap_add_wrapper(
-  gen_overlap_add_op.signal_overlap_add, "signal_overlap_add"
-)
+def overlap_add(input_tensor, frame_step, name="signal_overlap_add"):
+  """Reconstructs a signal from overlapping frames spaced `frame_step` apart.
+
+  Transforms an input made of overlapping frames of length `frame_size` into an
+  output signal by shifting successive frames by `frame_step` samples and
+  summing aligned samples.
+
+  For example, for 5 input frames with `frame_size=3` and `frame_step=2`
+  (`[1, 2, 3]`, `[4, 5, 6]`, `[7, 8, 9]`, `[0, 1, 2]`, `[3, 4, 5]`):
+  ```
+  [1, 2, 3]
+        [4, 5, 6]
+              [7, 8, 9]
+                    [0, 1, 2]
+                          [3, 4, 5]
+  ```
+  Adding vertically aligned samples produces 5 output steps of `frame_step=2`
+  samples each: `[1, 2]`, `[7, 5]`, `[13, 8]`, `[9, 1]`, `[5, 4]`.
+
+  Args:
+    input_tensor: A `float32` or `int16` `Tensor` of shape
+      `[..., frames, frame_size]` with rank >= 2.
+    frame_step: Positive `int` step size in samples (`frame_step <= frame_size`)
+      and number of output samples produced per input frame.
+    name: Optional name for the operation.
+
+  Returns:
+    A `Tensor` of the same dtype as `input_tensor` with shape
+    `[..., frames * frame_step]` containing the overlap-added output samples.
+
+  Raises:
+    ValueError: If `frame_step` exceeds the innermost dimension of
+      `input_tensor`.
+  """
+  with tf.name_scope(name) as name:
+    input_tensor = tf.convert_to_tensor(input_tensor)
+    dim_list = input_tensor.shape.as_list()
+    if frame_step > dim_list[-1]:
+      raise ValueError("Frame_step must not exceed innermost input dimension")
+    return gen_overlap_add_op.signal_overlap_add(
+      input_tensor, frame_step=frame_step, name=name
+    )
+
 
 tf.no_gradient("signal_overlap_add")

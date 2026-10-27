@@ -127,6 +127,18 @@ inline TFLMRegistration Register_FULLY_CONNECTED_INT4() {
 
 #endif
 
+#if defined(XTENSA)
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// float32.
+TFLMRegistration Register_FULLY_CONNECTED_FLOAT32();
+
+#else
+inline TFLMRegistration Register_FULLY_CONNECTED_FLOAT32() {
+  return Register_FULLY_CONNECTED();
+}
+
+#endif
+
 }  // namespace micro
 extern const int kFullyConnectedInputTensor;
 extern const int kFullyConnectedWeightsTensor;
@@ -135,6 +147,7 @@ extern const int kFullyConnectedOutputTensor;
 
 using micro::OpDataFullyConnected;
 using micro::Register_FULLY_CONNECTED;
+using micro::Register_FULLY_CONNECTED_FLOAT32;
 using micro::Register_FULLY_CONNECTED_INT16;
 using micro::Register_FULLY_CONNECTED_INT4;
 using micro::Register_FULLY_CONNECTED_INT8;

@@ -43,6 +43,7 @@ def _xtensa_toolchain_impl(rctx):
         rctx.file("bin/ar", "")
         rctx.file("bin/xt-clang", "")
         rctx.file("bin/xt-clang++", "")
+        rctx.file("bin/xt-run", "")
         rctx.file("bin/xt-strip", "")
         rctx.file(
             "BUILD.bazel",
@@ -55,6 +56,7 @@ exports_files([
     "bin/ar",
     "bin/xt-clang",
     "bin/xt-clang++",
+    "bin/xt-run",
     "bin/xt-strip",
 ])
 """,

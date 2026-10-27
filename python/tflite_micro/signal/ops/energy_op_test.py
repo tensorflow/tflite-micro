@@ -19,13 +19,12 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.platform import resource_loader
 from tflite_micro.python.tflite_micro.signal.ops import energy_op
 from tflite_micro.python.tflite_micro.signal.utils import util
 
 
 class EnergyOpTest(tf.test.TestCase):
-  _PREFIX_PATH = resource_loader.get_path_to_datafile('')
+  _PREFIX_PATH = os.path.dirname(__file__)
 
   def GetResource(self, filepath):
     full_path = os.path.join(self._PREFIX_PATH, filepath)
@@ -53,18 +52,18 @@ class EnergyOpTest(tf.test.TestCase):
     while i < len(lines):
       in_frame = np.array([int(j) for j in lines[i].split()], dtype='int16')
       out_frame_exp = [int(j) for j in lines[i + 1].split()]
+      out_frame_exp[:start_index] = [0] * start_index
+      out_frame_exp[end_index:] = [0] * (len(out_frame_exp) - end_index)
       # TFLM
       interpreter.set_input(in_frame, 0)
       interpreter.invoke()
       out_frame = interpreter.get_output(0)
-      for j in range(start_index, end_index):
-        self.assertEqual(out_frame_exp[j], out_frame[j])
+      self.assertAllEqual(out_frame_exp, out_frame)
       # TF
       out_frame = self.evaluate(
         energy_op.energy(in_frame, start_index=start_index, end_index=end_index)
       )
-      for j in range(start_index, end_index):
-        self.assertEqual(out_frame_exp[j], out_frame[j])
+      self.assertAllEqual(out_frame_exp, out_frame)
       i += 2
 
   def testSingleFrame(self):
@@ -849,8 +848,21 @@ class EnergyOpTest(tf.test.TestCase):
       energy_in, start_index=start_index, end_index=end_index
     )
 
-    for j in range(start_index, end_index):
-      self.assertEqual(energy_exp[j], energy_out[j])
+    self.assertAllEqual(energy_exp, energy_out)
+
+  def testDefaultEndIndex(self):
+    energy_in = np.array([3, 4, 5, 12, -32768, -32768], dtype=np.int16)
+    expected = [25, 169, 2147483648]
+    self.assertAllEqual(expected, self.evaluate(energy_op.energy(energy_in)))
+
+    func = tf.function(energy_op.energy)
+    concrete_function = func.get_concrete_function(
+      tf.TensorSpec([6], dtype=tf.int16)
+    )
+    interpreter = util.get_tflm_interpreter(concrete_function, func)
+    interpreter.set_input(energy_in, 0)
+    interpreter.invoke()
+    self.assertAllEqual(expected, interpreter.get_output(0))
 
   def testEnergy(self):
     self.SingleEnergyTest('testdata/energy_test1.txt')

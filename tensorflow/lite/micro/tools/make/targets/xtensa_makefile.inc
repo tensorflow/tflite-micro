@@ -119,6 +119,7 @@ ifeq ($(OPTIMIZED_KERNEL_DIR), xtensa)
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_hifi.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/depthwise_conv_vision.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_common_xtensa.cc \
+    $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_float32.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_hifimini.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc \
     $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc \

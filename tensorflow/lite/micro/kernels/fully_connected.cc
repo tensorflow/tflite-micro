@@ -361,9 +361,5 @@ TFLMRegistration Register_FULLY_CONNECTED() {
                                    FullyConnectedEval);
 }
 
-TFLMInferenceRegistration RegisterInference_FULLY_CONNECTED() {
-  return tflite::micro::RegisterOp(FullyConnectedEval);
-}
-
 }  // namespace micro
 }  // namespace tflite

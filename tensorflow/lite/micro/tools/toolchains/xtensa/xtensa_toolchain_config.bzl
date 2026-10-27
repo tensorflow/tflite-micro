@@ -159,6 +159,11 @@ def _xtensa_toolchain_config_impl(ctx):
         ],
     )
 
+    has_cxx17_headers = feature(
+        name = "has_cxx17_headers",
+        enabled = True,
+    )
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = "xtensa-" + ctx.attr.name_alias + "-toolchain",
@@ -175,7 +180,11 @@ def _xtensa_toolchain_config_impl(ctx):
             "/opt/xtensa",
             "/usr/include",
         ],
-        features = [xtensa_flags, static_link_flags],
+        features = [
+            xtensa_flags,
+            static_link_flags,
+            has_cxx17_headers,
+        ],
     )
 
 xtensa_toolchain_config = rule(

@@ -39,16 +39,10 @@ BAZEL_FLAGS="--config=_ci_base"
 # Ensure Bazel server shuts down cleanly when run inside ephemeral containers
 trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 
-# 1. Run Corstone-300 + Ethos-U55 smoke test on FVP
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-300-ethos-u //tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:smoke_test
+# Run Corstone-300 + Ethos-U55 smoke test, core tests, operator kernels, and end-to-end vision model in a single unified invocation
+${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-env \
+  //tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:smoke_test_corstone300 \
+  //tensorflow/lite/micro:core_corstone300_smoke_tests \
+  //tensorflow/lite/micro/kernels:kernel_corstone300_tests \
+  //tensorflow/lite/micro/examples/person_detection:person_detection_test_corstone300
 
-# 2. Run core framework tests on Corstone-300
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-300-ethos-u \
-  //tensorflow/lite/micro:micro_utils_test \
-  //tensorflow/lite/micro:micro_log_test \
-  //tensorflow/lite/micro:micro_allocator_test \
-  //tensorflow/lite/micro:micro_interpreter_test \
-  //tensorflow/lite/micro:micro_mutable_op_resolver_test
-
-# 3. Run operator kernel tests with CMSIS-NN and Ethos-U on Corstone-300
-${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-300-ethos-u //tensorflow/lite/micro/kernels:all
