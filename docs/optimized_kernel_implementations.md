@@ -37,7 +37,7 @@ important.
 
 1.  Pick a benchmark that you would like to measure the performance for.
 
-    *   Existing benchmarks are in the [benchmarks directory](../benchmarks).
+    *   Existing benchmarks are in the [benchmarks directory](../tensorflow/lite/micro/benchmarks).
     *   If none of the existing benchmarks capture your use-case, then please
         create a github issue or start a thread on micro@tensorflow.org to
         figure out how to add in a new benchmark.
@@ -144,22 +144,22 @@ to use the optimized NN lib and document the latency improvement.
 This module is the least defined but we strongly recommend the following: 1. A
 single target makefile.inc for all the architectures that you would like to
 support along with optional target-specific
-[system_setup.cc](../cortex_m_corstone_300/system_setup.cc). See
-[cortex_m_generic_makefile.inc](../tools/make/targets/cortex_m_generic_makefile.inc)
-and [xtensa_makefile.inc](../tools/make/targets/xtensa_makefile.inc) as
+[system_setup.cc](../tensorflow/lite/micro/cortex_m_corstone_300/system_setup.cc). See
+[cortex_m_generic_makefile.inc](../tensorflow/lite/micro/tools/make/targets/cortex_m_generic_makefile.inc)
+and [xtensa_makefile.inc](../tensorflow/lite/micro/tools/make/targets/xtensa_makefile.inc) as
 examples.
 
 1.  A single `ext_libs.inc` (and associated scripts) that downloads any external
     dependencies (including the NN library). For example:
 
-    *   [cmsis_nn.inc](../tools/make/ext_libs/cmsis_nn.inc) and
-        [cmsis_download.sh](../tools/make/ext_libs/cmsis_download.sh)
-    *   [xtensa.inc](../tools/make/ext_libs/xtensa.inc) and
-        [xtensa_download.sh](../tools/make/ext_libs/xtensa_download.sh)
+    *   [cmsis_nn.inc](../tensorflow/lite/micro/tools/make/ext_libs/cmsis_nn.inc) and
+        [cmsis_download.sh](../tensorflow/lite/micro/tools/make/ext_libs/cmsis_download.sh)
+    *   [xtensa.inc](../tensorflow/lite/micro/tools/make/ext_libs/xtensa.inc) and
+        [xtensa_download.sh](../tensorflow/lite/micro/tools/make/ext_libs/xtensa_download.sh)
 
 1.  The optimized kernels will then live in a kernels subdirectory (e.g.
-    [kernels/cmsis_nn](../kernels/cmsis_nn) and
-    [kernels/xtensa](../kernels/xtensa))
+    [kernels/cmsis_nn](../tensorflow/lite/micro/kernels/cmsis_nn) and
+    [kernels/xtensa](../tensorflow/lite/micro/kernels/xtensa))
 
 Two development workflows that the TFLM team would like to encourage and
 support:
@@ -202,5 +202,5 @@ up having a high associated cost on the latency.
 We strongly encourage optimized kernel implementations to have an associated
 continuous build that runs through all the unit tests and publishes a build
 badge to the
-[TFLM community supported platforms](../../../../README.md#community--contributing)
+[TFLM community supported platforms](../README.md#community--contributing)
 table. Running the units tests once a day is often a good place to start.

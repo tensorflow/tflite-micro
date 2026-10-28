@@ -44,7 +44,7 @@ RENODE_TEST_SCRIPT=${TFLM_ROOT_DIR}/tools/make/downloads/renode/renode-test
 if [ ! -f "${RENODE_TEST_SCRIPT}" ]; then
   echo "The renode test script: ${RENODE_TEST_SCRIPT} does not exist. Please " \
        "make sure that you have correctly installed Renode for TFLM. See " \
-       "tensorflow/lite/micro/docs/renode.md for more details."
+       "docs/renode.md for more details."
   exit 1
 fi
 
@@ -52,7 +52,7 @@ if ! ${RENODE_TEST_SCRIPT} &> /dev/null
 then
   echo "The following command failed: ${RENODE_TEST_SCRIPT}. Please " \
        "make sure that you have correctly installed Renode for TFLM. See " \
-       "tensorflow/lite/micro/docs/renode.md for more details."
+       "docs/renode.md for more details."
   exit 1
 fi
 

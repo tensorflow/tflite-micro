@@ -10,7 +10,7 @@ than operating as a multi-tenant service or privilege boundary, its defensive
 programming model differs fundamentally from desktop, mobile, and server-side
 ML runtimes. Before reporting an issue or submitting a defensive-coding pull
 request, please read our
-[Error Handling & Defensive Programming Guide](tensorflow/lite/micro/docs/error_handling_guide.md).
+[Error Handling & Defensive Programming Guide](docs/error_handling_guide.md).
 
 ## Trust Boundaries
 

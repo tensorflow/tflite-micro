@@ -23,20 +23,20 @@ TensorFlow Lite for Microcontrollers is designed to run deep learning models on 
 ## Documentation
 
 * **Core Concepts:**
-  * [Memory Management](tensorflow/lite/micro/docs/memory_management.md)
-  * [Error Handling & Defensive Programming](tensorflow/lite/micro/docs/error_handling_guide.md)
-  * [Logging](tensorflow/lite/micro/docs/logging.md)
+  * [Memory Management](docs/memory_management.md)
+  * [Error Handling & Defensive Programming](docs/error_handling_guide.md)
+  * [Logging](docs/logging.md)
   * [Continuous Integration](docs/continuous_integration.md)
 * **Porting & Hardware Optimization:**
-  * [Optimized Kernel Implementations](tensorflow/lite/micro/docs/optimized_kernel_implementations.md)
-  * [New Platform Support](tensorflow/lite/micro/docs/new_platform_support.md)
-  * [Arm IP Support](tensorflow/lite/micro/docs/arm.md)
-  * [Software Emulation (Renode)](tensorflow/lite/micro/docs/renode.md) and [QEMU](tensorflow/lite/micro/docs/qemu.md)
+  * [Optimized Kernel Implementations](docs/optimized_kernel_implementations.md)
+  * [New Platform Support](docs/new_platform_support.md)
+  * [Arm IP Support](docs/arm.md)
+  * [Software Emulation (Renode)](docs/renode.md) and [QEMU](docs/qemu.md)
 * **Tooling, Compression & Python:**
-  * [Model Compression Guide](tensorflow/lite/micro/docs/compression.md) & [Tutorial](tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.md)
+  * [Model Compression Guide](docs/compression.md) & [Tutorial](tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.md)
   * [Python Interpreter & Dev Guide](python/tflite_micro/README.md)
   * [Layer-by-Layer Debugging Tool](docs/debugging_output.md)
-  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md) and [Profiling](tensorflow/lite/micro/docs/profiling.md)
+  * [Benchmarks](tensorflow/lite/micro/benchmarks/README.md) and [Profiling](docs/profiling.md)
 
 ---
 

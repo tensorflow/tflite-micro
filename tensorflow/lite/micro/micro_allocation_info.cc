@@ -335,7 +335,7 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
 }
 
 // Get offline tensors allocation plan. See
-// micro/docs/memory_management.md for more info.
+// docs/memory_management.md for more info.
 TfLiteStatus AllocationInfoBuilder::GetOfflinePlannedOffsets(
     const int32_t** offline_planner_offsets) {
   if (model_->metadata()) {
