@@ -1,19 +1,17 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load(
     "//python:py_rules.bzl",
-    "pybind_extension",
-    "pybind_library",
     "tflm_py_binary",
     "tflm_py_library",
 )
+load("//tensorflow/lite/micro:build_def.bzl", "tflm_cc_library")
 
 package(
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],
 )
 
-# Append _lib at the end to avoid naming collision with the extension below
-# because internal tool appends a _pybind suffix.
-pybind_library(
+tflm_cc_library(
     name = "flatbuffer_size_wrapper_lib",
     srcs = [
         "flatbuffer_size.cc",
@@ -27,15 +25,12 @@ pybind_library(
         "//tensorflow/lite/micro/schema:schema_fbs_with_reflection",
         "@flatbuffers",
     ],
+    alwayslink = True,
 )
 
-# pybind_extension() appends ".so" to "name" so the actual target name contains
-# the ".so" suffix
-pybind_extension(
-    name = "flatbuffer_size_wrapper_pybind",
-    srcs = [
-        "flatbuffer_size_wrapper_pybind.cc",
-    ],
+cc_binary(
+    name = "libflatbuffer_size.so",
+    linkshared = True,
     deps = [
         ":flatbuffer_size_wrapper_lib",
     ],
@@ -48,16 +43,27 @@ tflm_py_library(
         "flatbuffer_size_graph_html_converter.py",
     ],
     data = [
-        ":flatbuffer_size_wrapper_pybind.so",
+        ":libflatbuffer_size.so",
+    ],
+    deps = [
+        "//python/tflite_micro:runtime",
+    ],
+)
+
+tflm_py_library(
+    name = "flatbuffer_size",
+    srcs = ["flatbuffer_size.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":flatbuffer_size_lib",
     ],
 )
 
 tflm_py_binary(
-    name = "flatbuffer_size",
-    srcs = [
-        "flatbuffer_size.py",
-    ],
+    name = "tflite_size",
+    srcs = ["flatbuffer_size.py"],
+    main = "flatbuffer_size.py",
     deps = [
-        ":flatbuffer_size_lib",
+        ":flatbuffer_size",
     ],
 )

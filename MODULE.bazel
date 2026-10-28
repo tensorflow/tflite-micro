@@ -118,15 +118,6 @@ PYTHON_VERSIONS = [
     "3.14",
 ]
 
-pip.whl_mods(
-    additive_build_content = """\
-load("@@//python:numpy_cc_targets.bzl", "extra_numpy_targets")
-extra_numpy_targets()
-""",
-    hub_name = "tflm_pip_deps_whl_mods",
-    whl_name = "numpy",
-)
-
 [
     (
         python.toolchain(
@@ -134,15 +125,9 @@ extra_numpy_targets()
             python_version = version,
         ),
         pip.parse(
-            extra_hub_aliases = {
-                "numpy": ["cc_headers"],
-            },
             hub_name = "tflm_pip_deps",
             python_version = version,
             requirements_lock = "//python:python_requirements_%s.txt" % version.replace(".", "_"),
-            whl_modifications = {
-                "@tflm_pip_deps_whl_mods//:numpy.json": "numpy",
-            },
         ),
     )
     for version in PYTHON_VERSIONS
@@ -160,7 +145,6 @@ use_repo(
 use_repo(
     pip,
     "tflm_pip_deps",
-    "tflm_pip_deps_whl_mods",
 )
 
 # Embedded Toolchains
