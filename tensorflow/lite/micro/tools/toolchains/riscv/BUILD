@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load(
@@ -10,23 +11,53 @@ load(
     "tflm_sh_runner",
 )
 load(
+    "//tensorflow/lite/micro/tools/toolchains:gcc_toolchain_config.bzl",
+    "gcc_toolchain_config",
+)
+load(
     "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_sh_test",
     "tflm_platform_target",
 )
-load(":riscv_toolchain_config.bzl", "riscv_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
 filegroup(name = "empty")
 
-riscv_toolchain_config(
+gcc_toolchain_config(
     name = "riscv32_config",
     ar = RISCV_TOOLCHAIN_BIN_PREFIX + "riscv64-unknown-elf-ar",
+    arch_flags = [
+        "-march=rv32imc",
+        "-mabi=ilp32",
+        "-mcmodel=medany",
+        "-mexplicit-relocs",
+    ],
     c_compiler = RISCV_TOOLCHAIN_BIN_PREFIX + "riscv64-unknown-elf-gcc",
+    compile_flags = [
+        "-fno-builtin-printf",
+        "-DTF_LITE_MCU_DEBUG_LOG",
+        "-DTF_LITE_USE_GLOBAL_CMATH_FUNCTIONS",
+        "-funsigned-char",
+        "-fno-delete-null-pointer-checks",
+    ],
     cpp_compiler = RISCV_TOOLCHAIN_BIN_PREFIX + "riscv64-unknown-elf-g++",
     cpu = "riscv32",
+    cxxopts = [
+        "-fpermissive",
+        "-fno-use-cxa-atexit",
+        "-DTF_LITE_USE_GLOBAL_MIN",
+        "-DTF_LITE_USE_GLOBAL_MAX",
+    ],
+    linkopts = [
+        "--specs=nano.specs",
+        "-u",
+        "_printf_float",
+        "-mno-relax",
+    ],
     strip = RISCV_TOOLCHAIN_BIN_PREFIX + "riscv64-unknown-elf-strip",
     tags = ["manual"],
+    target_system_name = "riscv32-unknown-elf",
 )
 
 tflm_cc_toolchain(
@@ -99,4 +130,48 @@ tflm_platform_target(
     name = "smoke_test_riscv32",
     profile = "riscv32",
     target = ":smoke_test",
+)
+
+[
+    cc_binary(
+        name = "qemu_exit_%s_guest" % code,
+        testonly = True,
+        srcs = ["//tensorflow/lite/micro/tools/toolchains:qemu_exit_test_guest.cc"],
+        defines = ["QEMU_TEST_EXIT_CODE=%s" % code],
+        tags = ["manual"],
+        target_compatible_with = [
+            "@platforms//os:none",
+            "@platforms//cpu:riscv32",
+        ],
+    )
+    for code in [
+        "0",
+        "37",
+    ]
+]
+
+[
+    tflm_platform_target(
+        name = "qemu_exit_%s_riscv32" % code,
+        profile = "riscv32",
+        target = ":qemu_exit_%s_guest" % code,
+    )
+    for code in [
+        "0",
+        "37",
+    ]
+]
+
+tflm_platform_sh_test(
+    name = "qemu_exit_code_test",
+    srcs = ["//tensorflow/lite/micro/tools/toolchains:qemu_exit_code_test.sh"],
+    args = [
+        "$(rlocationpath :qemu_exit_0_riscv32)",
+        "$(rlocationpath :qemu_exit_37_riscv32)",
+    ],
+    data = [
+        ":qemu_exit_0_riscv32",
+        ":qemu_exit_37_riscv32",
+    ],
+    profile = "riscv32",
 )

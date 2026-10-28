@@ -42,6 +42,7 @@ trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 # Run Corstone-300 + Ethos-U55 smoke test, core tests, operator kernels, and end-to-end vision model in a single unified invocation
 ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-env \
   //tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:smoke_test_corstone300 \
+  //tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:corstone_exit_code_test \
   //tensorflow/lite/micro:core_corstone300_smoke_tests \
   //tensorflow/lite/micro/kernels:kernel_corstone300_tests \
   //tensorflow/lite/micro/examples/person_detection:person_detection_test_corstone300

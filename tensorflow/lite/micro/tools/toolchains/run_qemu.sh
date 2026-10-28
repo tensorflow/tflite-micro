@@ -55,11 +55,12 @@ fi
 
 if [[ -z "${QEMU_BIN:-}" ]]; then
   RUNFILES_ROOT=""
-  if [[ -n "${TEST_SRCDIR:-}" && -d "${TEST_SRCDIR}/google3" ]]; then
-    RUNFILES_ROOT="${TEST_SRCDIR}/google3"
-  elif [[ -d "$0.runfiles/google3" ]]; then
-    RUNFILES_ROOT="$0.runfiles/google3"
-  fi
+  for root in "${TEST_SRCDIR:-}" "${RUNFILES_DIR:-}" "$0.runfiles"; do
+    if [[ -n "${root}" && -d "${root}/google3" ]]; then
+      RUNFILES_ROOT="${root}/google3"
+      break
+    fi
+  done
 
   if [[ -n "${RUNFILES_ROOT}" && -x "${RUNFILES_ROOT}/third_party/qemu/qemu-${QEMU_ARCH}-for-host" ]]; then
     QEMU_BIN="${RUNFILES_ROOT}/third_party/qemu/qemu-${QEMU_ARCH}-for-host"

@@ -123,6 +123,7 @@ test:cortex-m55-cmsis-nn --run_under=//tensorflow/lite/micro/tools/toolchains/ar
 
 # Corstone-300 + Ethos-U55 FVP configurations
 build:corstone-env --test_env=PATH
+build:corstone-env --test_env=FVP_BIN
 
 build:corstone-300-ethos-u --config=corstone-env
 build:corstone-300-ethos-u --platforms=//tensorflow/lite/micro/tools/toolchains:corstone300_test_platform
