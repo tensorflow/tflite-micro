@@ -6,7 +6,10 @@
 *google*
 *__pycache__*
 venv
+.venv/
 gen
+.pytest_cache/
+.ruff_cache/
 
 # Ignore the directory in which `clangd` stores its local index.
 /.cache/
