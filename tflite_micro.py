@@ -15,7 +15,7 @@ def create_namespace_module(name, relative_path):
 
 
 # Inject submodules for all top-level directories
-for name in ["tensorflow", "python", "tools", "signal", "third_party"]:
+for name in ["tensorflow", "python", "signal", "third_party"]:
   full_name = __name__ + "." + name
   if full_name not in sys.modules:
     sys.modules[full_name] = create_namespace_module(full_name, name)

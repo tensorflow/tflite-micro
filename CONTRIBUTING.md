@@ -194,7 +194,7 @@ Below are some tips that might be useful and improve the development experience.
 
 * Add a git hook to check for code style prior to pushing changes:
   ```
-  cp tensorflow/lite/micro/tools/dev_setup/pre-push.tflm .git/hooks/pre-push
+  cp ci/pre-push.sh .git/hooks/pre-push
   ```
 
 # Development Workflow Notes
