@@ -28,6 +28,7 @@ ${BAZEL_BIN} test ${BAZEL_FLAGS} \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m0 \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m4 \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m55 \
+  //tensorflow/lite/micro/tools/toolchains/arm:qemu_exit_code_test \
   //tensorflow/lite/micro:core_cortex_m55_ref_tests \
   //tensorflow/lite/micro/kernels:kernel_cortex_m55_ref_tests \
   //tensorflow/lite/micro:core_cortex_m55_tests \

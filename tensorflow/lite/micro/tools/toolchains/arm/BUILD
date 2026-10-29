@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load(
     "//tensorflow/lite/micro/tools/toolchains:env.bzl",
@@ -9,10 +10,14 @@ load(
     "tflm_sh_runner",
 )
 load(
+    "//tensorflow/lite/micro/tools/toolchains:gcc_toolchain_config.bzl",
+    "gcc_toolchain_config",
+)
+load(
     "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
+    "tflm_platform_sh_test",
     "tflm_platform_target",
 )
-load(":cortex_m_toolchain_config.bzl", "cortex_m_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -40,40 +45,46 @@ CPUS = {
     "m55": M55_COPTS,
 }
 
+SEMIHOSTING_LINKOPTS = [
+    "--specs=rdimon.specs",
+    "-Wl,-Ttext=0x10000",
+]
+
 PROFILES = {
     "m0": {
-        "copts": CPUS["m0"],
+        "arch_flags": CPUS["m0"],
         "cpu": "cortex-m0",
-        "semihosting": True,
+        "linkopts": SEMIHOSTING_LINKOPTS,
     },
     "m4": {
-        "copts": CPUS["m4"],
+        "arch_flags": CPUS["m4"],
         "cpu": "cortex-m4",
-        "semihosting": True,
+        "linkopts": SEMIHOSTING_LINKOPTS,
     },
     "m55": {
-        "copts": M55_COPTS,
+        "arch_flags": M55_COPTS,
         "cpu": "cortex-m55",
-        "semihosting": True,
+        "linkopts": SEMIHOSTING_LINKOPTS,
     },
     "m55_baremetal": {
-        "copts": M55_COPTS,
+        "arch_flags": M55_COPTS,
         "cpu": "cortex-m55",
-        "semihosting": False,
+        "linkopts": [],
     },
 }
 
 [
-    cortex_m_toolchain_config(
+    gcc_toolchain_config(
         name = "%s_config" % name,
         ar = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-ar",
+        arch_flags = info["arch_flags"],
         c_compiler = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-gcc",
-        copts = info["copts"],
         cpp_compiler = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-g++",
         cpu = info["cpu"],
-        semihosting = info["semihosting"],
+        linkopts = info["linkopts"],
         strip = ARM_TOOLCHAIN_BIN_PREFIX + "arm-none-eabi-strip",
         tags = ["manual"],
+        target_system_name = "arm-none-eabi",
     )
     for name, info in PROFILES.items()
 ]
@@ -192,3 +203,48 @@ alias(
     )
     for name in CPUS.keys()
 ]
+
+[
+    cc_binary(
+        name = "qemu_exit_%s_guest" % code,
+        testonly = True,
+        srcs = ["//tensorflow/lite/micro/tools/toolchains:qemu_exit_test_guest.cc"],
+        defines = ["QEMU_TEST_EXIT_CODE=%s" % code],
+        tags = ["manual"],
+        target_compatible_with = [
+            "@platforms//os:none",
+            "@platforms//cpu:arm",
+            ":m55",
+        ],
+    )
+    for code in [
+        "0",
+        "37",
+    ]
+]
+
+[
+    tflm_platform_target(
+        name = "qemu_exit_%s_cortex_m55" % code,
+        profile = "cortex_m55",
+        target = ":qemu_exit_%s_guest" % code,
+    )
+    for code in [
+        "0",
+        "37",
+    ]
+]
+
+tflm_platform_sh_test(
+    name = "qemu_exit_code_test",
+    srcs = ["//tensorflow/lite/micro/tools/toolchains:qemu_exit_code_test.sh"],
+    args = [
+        "$(rlocationpath :qemu_exit_0_cortex_m55)",
+        "$(rlocationpath :qemu_exit_37_cortex_m55)",
+    ],
+    data = [
+        ":qemu_exit_0_cortex_m55",
+        ":qemu_exit_37_cortex_m55",
+    ],
+    profile = "cortex_m55",
+)

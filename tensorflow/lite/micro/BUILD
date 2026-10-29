@@ -844,6 +844,7 @@ tflm_platform_test_suite(
     name = "core",
     extra_target_profiles = {
         ":memory_arena_threshold_test": "compression",
+        ":micro_time_test": "corstone300",
     },
     profiles = [
         "compression",

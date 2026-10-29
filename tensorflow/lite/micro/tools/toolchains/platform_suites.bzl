@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_platform//platform_data:defs.bzl", "platform_data")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(
     "//tensorflow/lite/micro/tools/toolchains:env.bzl",
     "TFLM_PLATFORM_CONFIGS",
@@ -36,6 +37,11 @@ _FORWARDED_HOST_TAGS = [
     "noubsan",
 ]
 
+def _rlocationpath(ctx, file):
+    if file.short_path.startswith("../"):
+        return file.short_path[3:]
+    return ctx.workspace_name + "/" + file.short_path
+
 def _tflm_platform_test_impl(ctx):
     guest_bin = ctx.executable.binary
     runner_bin = ctx.executable.runner
@@ -47,15 +53,14 @@ def _tflm_platform_test_impl(ctx):
 
     if runner_bin:
         launcher = ctx.actions.declare_file(ctx.label.name + ".sh")
-        ctx.actions.write(
+        ctx.actions.expand_template(
+            template = ctx.file._launcher_template,
             output = launcher,
-            content = """#!/usr/bin/env bash
-set -euo pipefail
-exec "{runner}" "{guest}" "$@"
-""".format(
-                guest = guest_bin.short_path,
-                runner = runner_bin.short_path,
-            ),
+            substitutions = {
+                "{{GUEST_RLOCATION}}": _rlocationpath(ctx, guest_bin),
+                "{{RUNNER_RLOCATION}}": _rlocationpath(ctx, runner_bin),
+                "{{TARGET_NAME}}": str(ctx.label),
+            },
             is_executable = True,
         )
         runfiles = runfiles.merge(ctx.attr.runner[DefaultInfo].default_runfiles)
@@ -88,6 +93,12 @@ _tflm_platform_test = rule(
         "runner": attr.label(
             cfg = "target",
             executable = True,
+        ),
+        "_launcher_template": attr.label(
+            allow_single_file = True,
+            default = Label(
+                "//tensorflow/lite/micro/tools/toolchains:platform_launcher.sh.tpl",
+            ),
         ),
     },
 )
@@ -212,6 +223,46 @@ tflm_platform_target = macro(
     },
 )
 
+def tflm_platform_sh_test(
+        name,
+        profile,
+        srcs,
+        args = None,
+        data = None,
+        size = None,
+        tags = None,
+        timeout = None,
+        visibility = None):
+    """Declares a shell test gated on a TFLM platform's execution mode."""
+    cfg = TFLM_PLATFORM_CONFIGS.get(profile)
+    if not cfg or cfg.get("mode") == "off":
+        return
+
+    resolved_tags = tags if tags != None else list(_BAREMETAL_TAGS)
+    if cfg.get("mode", "test") == "build":
+        build_test(
+            name = name,
+            tags = resolved_tags,
+            targets = data or [],
+            visibility = visibility,
+        )
+        return
+
+    sh_kwargs = {}
+    if size:
+        sh_kwargs["size"] = size
+    if timeout:
+        sh_kwargs["timeout"] = timeout
+    sh_test(
+        name = name,
+        srcs = srcs,
+        args = args or [],
+        data = data or [],
+        tags = resolved_tags,
+        visibility = visibility,
+        **sh_kwargs
+    )
+
 def _rule_metadata(existing, curr_pkg, target_label):
     if target_label.package != curr_pkg:
         return [], None, None, False
@@ -306,8 +357,12 @@ def _tflm_platform_test_suite_macro_impl(
             cfg = TFLM_PLATFORM_CONFIGS.get(profile)
             if not cfg or cfg.get("mode") == "off":
                 continue
+            smoke_list = list(smoke_targets)
+            for extra_label in extra_by_profile.get(profile, []):
+                if extra_label not in smoke_list:
+                    smoke_list.append(extra_label)
             smoke_suite_tests = []
-            for target_label in smoke_targets:
+            for target_label in smoke_list:
                 wrapper_name = "%s_%s_%s" % (name, target_label.name, profile)
                 if wrapper_name in emitted:
                     wrapped = emitted[wrapper_name]

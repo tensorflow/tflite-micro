@@ -139,6 +139,7 @@ def _xtensa_toolchain_config_impl(ctx):
                             "-fno-exceptions",
                             "-fno-rtti",
                             "-fno-unwind-tables",
+                            "-fno-threadsafe-statics",
                         ],
                     ),
                 ],

@@ -19,7 +19,11 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "env.bzl",
+    "gcc_toolchain_config.bzl",
+    "platform_launcher.sh.tpl",
     "platform_suites.bzl",
+    "qemu_exit_code_test.sh",
+    "qemu_exit_test_guest.cc",
     "run_qemu.sh",
 ])
 

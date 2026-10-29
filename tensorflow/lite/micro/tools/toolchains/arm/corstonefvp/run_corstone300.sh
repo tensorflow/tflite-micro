@@ -28,7 +28,7 @@ if [[ -f "${1:-}" ]]; then
 fi
 
 if [[ -z "${FVP_BIN:-}" ]]; then
-  for root in "${TEST_SRCDIR:-}" "$0.runfiles"; do
+  for root in "${TEST_SRCDIR:-}" "${RUNFILES_DIR:-}" "$0.runfiles"; do
     if [[ -n "${root}" && -d "${root}" ]]; then
       for cand in \
         "${root}"/*/bin/FVP_Corstone_SSE-300_Ethos-U55 \
@@ -74,14 +74,24 @@ if [[ -x "/usr/grte/v5/lib64/ld-linux-x86-64.so.2" ]]; then
 fi
 
 ETHOSU_NUM_MACS="${ETHOSU_NUM_MACS:-256}"
-FVP_TIMEOUT_SEC="${FVP_TIMEOUT_SEC:-180}"
+if [[ -z "${FVP_TIMEOUT_SEC:-}" ]]; then
+  if [[ -n "${TEST_TIMEOUT:-}" && "${TEST_TIMEOUT}" -gt 15 ]]; then
+    FVP_TIMEOUT_SEC=$((TEST_TIMEOUT - 10))
+  else
+    FVP_TIMEOUT_SEC=180
+  fi
+fi
+HOST_KILL_SEC=$((FVP_TIMEOUT_SEC + 5))
+
 LOG_FILE="$(mktemp "${TEST_TMPDIR:-/tmp}/fvp_corstone300.XXXXXX.log")"
 trap 'rm -f "${LOG_FILE}"' EXIT
 
 set +e
-"${CMD_PREFIX[@]}" "${FVP_BIN}" \
-  -C cpu0.CFGDTCMSZ=15 \
-  -C cpu0.CFGITCMSZ=15 \
+timeout -k 10 "${HOST_KILL_SEC}" "${CMD_PREFIX[@]}" "${FVP_BIN}" \
+  -C cpu0.CFGDTCMSZ=13 \
+  -C cpu0.CFGITCMSZ=13 \
+  -C cpu0.INITSVTOR=0x0 \
+  -C mps3_board.sse300.iotss3_systemcontrol.INITSVTOR_RST=0x0 \
   -C "ethosu.num_macs=${ETHOSU_NUM_MACS}" \
   -C mps3_board.visualisation.disable-visualisation=1 \
   -C mps3_board.telnetterminal0.start_telnet=0 \
@@ -94,12 +104,26 @@ set +e
 FVP_STATUS="${PIPESTATUS[0]}"
 set -e
 
-if [[ "${FVP_STATUS}" -ne 0 ]]; then
-  exit "${FVP_STATUS}"
+SENTINEL="$(grep -aoE '__TFLM_EXIT_CODE=-?[0-9]+__' "${LOG_FILE}" | tail -n 1 || true)"
+if [[ -z "${SENTINEL}" ]]; then
+  if [[ "${FVP_STATUS}" -ne 0 ]]; then
+    echo "ERROR: Corstone-300 FVP terminated with status ${FVP_STATUS} before guest exit." >&2
+    exit "${FVP_STATUS}"
+  fi
+  echo "ERROR: Guest did not emit __TFLM_EXIT_CODE=<n>__ sentinel on Corstone-300 FVP." >&2
+  exit 1
 fi
 
-LOG_CONTENT="$(<"${LOG_FILE}")"
-if [[ "${LOG_CONTENT}" == *"__TFLM_EXIT_FAILURE__"* || "${LOG_CONTENT}" != *"__TFLM_EXIT_CODE_0__"* ]]; then
-  echo "ERROR: Target exited with failure or did not reach normal exit on Corstone-300 FVP." >&2
+GUEST_CODE="${SENTINEL#__TFLM_EXIT_CODE=}"
+GUEST_CODE="${GUEST_CODE%__}"
+if [[ "${GUEST_CODE}" -ne 0 ]]; then
+  echo "ERROR: Guest exited with status ${GUEST_CODE} on Corstone-300 FVP." >&2
+  if [[ "${GUEST_CODE}" -ge 1 && "${GUEST_CODE}" -le 255 ]]; then
+    exit "${GUEST_CODE}"
+  fi
   exit 1
+fi
+
+if [[ "${FVP_STATUS}" -ne 0 ]]; then
+  exit "${FVP_STATUS}"
 fi

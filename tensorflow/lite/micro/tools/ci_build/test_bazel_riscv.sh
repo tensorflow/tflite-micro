@@ -29,5 +29,6 @@ trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 # Run RISC-V 32-bit (RV32IMC) smoke test, framework tests, and operator kernel suite in a unified invocation
 ${BAZEL_BIN} test ${BAZEL_FLAGS} \
   //tensorflow/lite/micro/tools/toolchains/riscv:smoke_test_riscv32 \
+  //tensorflow/lite/micro/tools/toolchains/riscv:qemu_exit_code_test \
   //tensorflow/lite/micro:core_riscv32_tests \
   //tensorflow/lite/micro/kernels:kernel_riscv32_tests
