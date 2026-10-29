@@ -13,33 +13,46 @@ on:
         default: 'all'
 
 jobs:
-  # --- Basic Tests (QEMU) ---
+  # --- Basic Tests ---
 
   cortex_m_qemu:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
-
+    container:
+      image: ghcr.io/tflm-bot/corstone300:0.2
     name: Cortex-M QEMU Unit Tests
     steps:
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.11'
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
       - name: Test
-        uses: docker://ghcr.io/tflm-bot/tflm-ci:0.6.10
+        run: tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh
+
+  cortex_m_project_generation:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    runs-on: linux-x86-n4-16
+    timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/corstone300:0.2
+    name: Cortex-M Project Generation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          args: /bin/sh -c tensorflow/lite/micro/tools/ci_build/test_cortex_m_qemu.sh tflite-micro/
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+      - name: Test
+        run: |
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_cortex_m_project_generation.sh tflite-micro/
 
   cortex_m_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
     runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+      image: ghcr.io/tflm-bot/corstone300:0.2
     name: Cortex-M Bazel
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -48,12 +61,33 @@ jobs:
           allow-unsafe-pr-checkout: true
       - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
         with:
-          bazelisk-cache: true
+          bazelisk-cache: false
           disk-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           repository-cache: true
       - name: Test
         run: tensorflow/lite/micro/tools/ci_build/test_bazel_cortex_m.sh
+
+  corstone_300_bazel:
+    if: inputs.scope == 'basic' || inputs.scope == 'all'
+    runs-on: linux-x86-n4-16
+    container:
+      image: ghcr.io/tflm-bot/corstone300:0.2
+    timeout-minutes: 60
+    name: Cortex-M Corstone 300 Bazel (FVP + Ethos-U)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.trigger-sha }}
+          allow-unsafe-pr-checkout: true
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: false
+          disk-cache: true
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          repository-cache: true
+      - name: Test
+        run: tensorflow/lite/micro/tools/ci_build/test_bazel_corstone300.sh
 
   # --- Extended Tests (Corstone 300) ---
 
@@ -61,7 +95,7 @@ jobs:
     if: inputs.scope == 'all'
     runs-on: linux-x86-n4-16
     container:
-      image: ghcr.io/tflm-bot/corstone300:0.1
+      image: ghcr.io/tflm-bot/corstone300:0.2
     timeout-minutes: 60
     name: Cortex-M Corstone 300 (GCC)
     steps:
@@ -71,18 +105,3 @@ jobs:
           allow-unsafe-pr-checkout: true
       - name: Test
         run: tensorflow/lite/micro/tools/ci_build/test_cortex_m_corstone_300.sh
-
-  corstone_300_bazel:
-    if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
-    container:
-      image: ghcr.io/tflm-bot/corstone300:0.1
-    timeout-minutes: 60
-    name: Cortex-M Corstone 300 Bazel (FVP + Ethos-U)
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - name: Test
-        run: tensorflow/lite/micro/tools/ci_build/test_bazel_corstone300.sh

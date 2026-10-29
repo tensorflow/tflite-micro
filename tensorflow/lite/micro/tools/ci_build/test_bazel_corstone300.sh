@@ -25,13 +25,13 @@ if [ -d "/opt/arm/fvp/models/Linux64_GCC-9.3" ]; then
   export PATH="/opt/arm/fvp/models/Linux64_GCC-9.3:${PATH}"
 fi
 
-# Ensure bazelisk is available in the container
-if ! command -v bazel &> /dev/null && ! command -v bazelisk &> /dev/null; then
+# Pre-baked in corstone300:0.2+; fallback kept only until workflow bump merges on main (pull_request_target).
+if ! command -v bazel &> /dev/null; then
   curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64 -o /tmp/bazelisk
   chmod +x /tmp/bazelisk
   BAZEL_BIN=/tmp/bazelisk
 else
-  BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || echo "bazel")}
+  BAZEL_BIN=${BAZEL:-$(command -v bazel 2>/dev/null || echo "bazel")}
 fi
 
 BAZEL_FLAGS="--config=_ci_base"

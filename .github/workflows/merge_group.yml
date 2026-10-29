@@ -13,8 +13,6 @@ jobs:
     uses: ./.github/workflows/suite_core.yml
     with:
       trigger-sha: ${{ github.sha }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-windows:
     uses: ./.github/workflows/suite_windows.yml

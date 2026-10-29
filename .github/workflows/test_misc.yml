@@ -14,7 +14,7 @@ jobs:
 
     name: Code Style
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+      image: ghcr.io/tflm-bot/tflm-ci:0.7.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,7 +29,7 @@ jobs:
 
     name: Makefile Checks
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+      image: ghcr.io/tflm-bot/tflm-ci:0.7.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -42,7 +42,7 @@ jobs:
     runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+      image: ghcr.io/tflm-bot/tflm-ci:0.7.0
     name: C++ Build Warnings
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,9 +51,9 @@ jobs:
           allow-unsafe-pr-checkout: true
       - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
         with:
-          bazelisk-cache: true
+          bazelisk-cache: false
           disk-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           repository-cache: true
       - name: Build with Warnings as Errors
         run: bazel build --config=ci --compilation_mode=opt --build_tests_only --copt="-Werror" --copt="-Wall" --copt="-Wextra" --copt="-Wno-unused-parameter" //...
@@ -64,18 +64,12 @@ jobs:
 
     name: Project Generation
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+      image: ghcr.io/tflm-bot/tflm-ci:0.7.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
-        with:
-          bazelisk-cache: true
-          disk-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
-          repository-cache: true
       - name: Test
         run: |
           cd ..
@@ -85,7 +79,7 @@ jobs:
     runs-on: linux-x86-n4-16
     timeout-minutes: 60
     container:
-      image: ghcr.io/tflm-bot/tflm-ci:0.6.10
+      image: ghcr.io/tflm-bot/tflm-ci:0.7.0
     name: Clang Tidy
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -95,9 +89,9 @@ jobs:
           fetch-depth: 0
       - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
         with:
-          bazelisk-cache: true
+          bazelisk-cache: false
           disk-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           repository-cache: true
       - name: Generate Compilation Database
         run: python3 tensorflow/lite/micro/tools/ci_build/generate_compile_commands.py

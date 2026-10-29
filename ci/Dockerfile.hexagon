@@ -12,7 +12,7 @@
 #   docker build -f ci/Dockerfile.hexagon -t hexagon .
 #
 # --- Build and push to GHCR.IO ---
-#   export HEXAGON_VERSION=0.5
+#   export HEXAGON_VERSION=0.6
 #   docker build --no-cache -f ci/Dockerfile.hexagon -t ghcr.io/tflm-bot/hexagon:$HEXAGON_VERSION .
 #   docker push ghcr.io/tflm-bot/hexagon:$HEXAGON_VERSION
 #
@@ -52,6 +52,13 @@ ENV PATH=${HEXAGON_ROOT}/${HEXAGON_TOOL_VER}/Tools/bin:${PATH}
 
 # Configure git safe directories
 RUN git config --system --add safe.directory '*'
+
+# Pre-bake Bazel via Bazelisk matching .bazelversion
+ENV BAZELISK_HOME="/opt/bazelisk"
+COPY .bazelversion ci/install_bazelisk.sh /install/
+RUN chmod +x /install/install_bazelisk.sh && \
+    /install/install_bazelisk.sh && \
+    rm -rf /install
 
 WORKDIR /workspace
 

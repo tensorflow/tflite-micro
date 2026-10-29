@@ -2,7 +2,7 @@
 # Arm Corstone-300 & Ethos-U Toolchain Container for TFLite Micro
 #
 # Supports:
-#   - Arm Cortex-M55 (Helium / MVE)
+#   - Arm Cortex-M0/M3/M4/M55 (QEMU user-mode & Corstone-300 FVP)
 #   - Arm Ethos-U55 NPU FVP emulation
 #   - Arm GNU Toolchain (arm-none-eabi-gcc 14.3.rel1)
 #   - Arm Corstone-300 Ecosystem FVP (11.24_13)
@@ -13,7 +13,7 @@
 #   docker build -f ci/Dockerfile.corstone300 -t corstone300 .
 #
 # --- Build and push to GHCR.IO ---
-#   export CORSTONE_VERSION=0.1
+#   export CORSTONE_VERSION=0.2
 #   docker build --no-cache -f ci/Dockerfile.corstone300 -t ghcr.io/tflm-bot/corstone300:$CORSTONE_VERSION .
 #   docker push ghcr.io/tflm-bot/corstone300:$CORSTONE_VERSION
 #
@@ -54,5 +54,30 @@ ENV PATH="/opt/arm/gcc/bin:/opt/arm/fvp/models/Linux64_GCC-9.3:${PATH}"
 
 # Configure git safe directories
 RUN git config --system --add safe.directory '*'
+
+# 4. Install qemu-user from bookworm-backports to address QEMU issue #1697
+RUN echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends -t bookworm-backports qemu-user && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 5. Expose pre-baked Arm GCC to Bazel @arm_none_eabi repository rule
+ENV ARM_TOOLCHAIN_PATH="/opt/arm/gcc"
+
+# 6. Pre-bake pristine ethos-u-core-platform source for offline Makefile builds
+ENV ETHOS_U_CORE_PLATFORM_COMMIT=e25a89dec1cf990f3168dbd6c565e3b0d51cb151
+RUN git clone https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform /opt/arm/ethos_u_core_platform_src && \
+    cd /opt/arm/ethos_u_core_platform_src && \
+    git checkout ${ETHOS_U_CORE_PLATFORM_COMMIT} && \
+    rm -rf .git
+ENV ETHOS_U_CORE_PLATFORM_SRC="/opt/arm/ethos_u_core_platform_src"
+
+# 7. Pre-bake Bazel via Bazelisk matching .bazelversion
+ENV BAZELISK_HOME="/opt/bazelisk"
+COPY .bazelversion ci/install_bazelisk.sh /install/
+RUN chmod +x /install/install_bazelisk.sh && \
+    /install/install_bazelisk.sh && \
+    rm -rf /install
 
 WORKDIR /workspace

@@ -15,7 +15,11 @@
 # ==============================================================================
 
 set -e
-wget https://github.com/bazelbuild/bazelisk/releases/download/v1.29.0/bazelisk-linux-amd64
-mv bazelisk-linux-amd64 bazel
-chmod +x bazel
-mv bazel /usr/local/bin
+export BAZELISK_HOME="${BAZELISK_HOME:-/opt/bazelisk}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION_FILE="${SCRIPT_DIR}/.bazelversion"
+[ -f "${VERSION_FILE}" ] || VERSION_FILE="${SCRIPT_DIR}/../.bazelversion"
+wget -qO /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.29.0/bazelisk-linux-amd64
+chmod +x /usr/local/bin/bazel
+USE_BAZEL_VERSION="$(tr -d '[:space:]' < "${VERSION_FILE}")" /usr/local/bin/bazel --version
+chmod -R a+rwX "${BAZELISK_HOME}"
