@@ -7,6 +7,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   call-ci-bazel:
     uses: ./.github/workflows/test_bazel.yml
