@@ -73,10 +73,11 @@ RUN git clone https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-cor
     rm -rf .git
 ENV ETHOS_U_CORE_PLATFORM_SRC="/opt/arm/ethos_u_core_platform_src"
 
-# 7. Pre-bake native Bazel matching .bazelversion
-COPY .bazelversion ci/install_bazel.sh /install/
-RUN chmod +x /install/install_bazel.sh && \
-    /install/install_bazel.sh && \
+# 7. Pre-bake Bazel via Bazelisk matching .bazelversion
+ENV BAZELISK_HOME="/opt/bazelisk"
+COPY .bazelversion ci/install_bazelisk.sh /install/
+RUN chmod +x /install/install_bazelisk.sh && \
+    /install/install_bazelisk.sh && \
     rm -rf /install
 
 WORKDIR /workspace

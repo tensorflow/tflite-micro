@@ -75,10 +75,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
     yapf==0.40.2
 
 # Copy and run install scripts, then clean them up
+ENV BAZELISK_HOME="/opt/bazelisk"
 WORKDIR /
-COPY .bazelversion ci/install_bazel.sh ci/install_buildifier.sh /install/
+COPY .bazelversion ci/install_bazelisk.sh ci/install_buildifier.sh /install/
 RUN chmod +x /install/*.sh && \
-    /install/install_bazel.sh && \
+    /install/install_bazelisk.sh && \
     /install/install_buildifier.sh && \
     rm -rf /install
 
