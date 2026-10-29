@@ -5,7 +5,6 @@
 [![Windows](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_windows.yml)
 [![Cortex-M](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_cortex_m.yml)
 [![Xtensa](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_xtensa.yml)
-[![RISC-V](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_riscv.yml)
 [![Hexagon](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/run_hexagon.yml)
 [![PyPI](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml/badge.svg?branch=main)](https://github.com/tensorflow/tflite-micro/actions/workflows/pypi_build.yml)
 
@@ -15,7 +14,7 @@ TensorFlow Lite for Microcontrollers is designed to run deep learning models on 
 
 ## Supported Hardware & Ecosystems
 
-* **Tier-1 Architectures (Tested in CI):** Arm Cortex-M (CMSIS-NN / Corstone), Cadence Xtensa (HiFi 3/4/5, Vision P6), RISC-V, Qualcomm Hexagon, and x86/Windows.
+* **Tier-1 Architectures (Tested in CI):** Arm Cortex-M (CMSIS-NN / Corstone), Cadence Xtensa (HiFi 3/4/5, Vision P6), Qualcomm Hexagon, and x86/Windows.
 * **Community Platforms & SDKs:** [Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples), [Coral Dev Board Micro](https://github.com/google-coral/coralmicro), [Espressif ESP32](https://github.com/espressif/tflite-micro-esp-examples), [Renesas](https://github.com/renesas/tflite-micro-renesas), [Silicon Labs](https://github.com/SiliconLabsSoftware/machine_learning_applications/), and [Ingenic MIPS](https://github.com/yinzara/ingenic-tflite-micro).
 
 ---

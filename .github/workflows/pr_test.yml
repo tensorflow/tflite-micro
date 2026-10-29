@@ -90,8 +90,6 @@ jobs:
     with:
       trigger-sha: ${{ github.event.pull_request.head.sha }}
       scope: ${{ needs.gatekeeper.outputs.scope }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa:
     needs: [gatekeeper, approval-gate]
@@ -112,18 +110,8 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-riscv:
-    needs: [gatekeeper, approval-gate]
-    if: needs.gatekeeper.outputs.scope != 'none'
-    uses: ./.github/workflows/suite_riscv.yml
-    with:
-      trigger-sha: ${{ github.event.pull_request.head.sha }}
-      scope: ${{ needs.gatekeeper.outputs.scope }}
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
   tests-passed:
-    needs: [gatekeeper, approval-gate, call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon, call-riscv]
+    needs: [gatekeeper, approval-gate, call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon]
     if: always()
     runs-on: ubuntu-latest
     steps:

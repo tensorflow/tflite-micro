@@ -26,8 +26,6 @@ jobs:
     with:
       trigger-sha: ${{ github.sha }}
       scope: 'all'
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   call-xtensa:
     uses: ./.github/workflows/suite_xtensa.yml
@@ -44,16 +42,8 @@ jobs:
     secrets:
       tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
-  call-riscv:
-    uses: ./.github/workflows/suite_riscv.yml
-    with:
-      trigger-sha: ${{ github.sha }}
-      scope: 'all'
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
-
   tests-passed:
-    needs: [call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon, call-riscv]
+    needs: [call-core, call-windows, call-cortex-m, call-xtensa, call-hexagon]
     if: always()
     runs-on: ubuntu-latest
     steps:
