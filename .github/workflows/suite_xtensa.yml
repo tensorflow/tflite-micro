@@ -35,7 +35,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_bazel_xtensa.sh hifi5
 
   # --- Extended Jobs ---
@@ -63,7 +63,7 @@ jobs:
             TEST_MODE="RUN_NO_TESTS"
           fi
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh tflite-micro/ ${TEST_MODE}
 
   hifi5_unit_tests:
@@ -83,7 +83,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/
 
   hifi5_unit_tests_with_compression:
@@ -103,7 +103,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/
 
   hifi_3z_unit_tests:
@@ -123,7 +123,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh tflite-micro/ EXTERNAL
 
   hifi_3z_unit_tests_with_compression:
@@ -143,7 +143,7 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh tflite-micro/ EXTERNAL
 
   f1_unit_tests:
@@ -163,5 +163,5 @@ jobs:
           DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.1 \
+            ghcr.io/tflm-bot/xtensa:0.2 \
             tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh tflite-micro/ EXTERNAL

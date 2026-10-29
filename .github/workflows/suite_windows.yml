@@ -26,6 +26,7 @@ jobs:
         with:
           bazelisk-cache: true
           disk-cache: true
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
           repository-cache: true
           bazelrc: |
             startup --windows_enable_symlinks

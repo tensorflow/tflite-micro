@@ -26,7 +26,7 @@ jobs:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/hexagon:0.5 \
+            ghcr.io/tflm-bot/hexagon:0.6 \
             tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/
 
   hexagon_bazel:
@@ -44,5 +44,5 @@ jobs:
           TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
         run: |
           tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/hexagon:0.5 \
+            ghcr.io/tflm-bot/hexagon:0.6 \
             tensorflow/lite/micro/tools/ci_build/test_bazel_hexagon.sh

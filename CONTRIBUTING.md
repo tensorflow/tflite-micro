@@ -162,9 +162,9 @@ other OSes may work.
 
 TFLM's primary build system is [Bazel](https://bazel.build). Add
 [Bazelisk](https://github.com/bazelbuild/bazelisk) as the `bazel` executable in
-your PATH ([e.g., copy it to `/usr/local/bin/bazel`](ci/install_bazelisk.sh)) to
-automatically download and run the correct Bazel version as specified in
-`//.bazelversion`.
+your PATH (or install the pinned Bazel binary via
+[ci/install_bazel.sh](ci/install_bazel.sh)) to run the Bazel version specified
+in `//.bazelversion`.
 
 ## Recommendations
 

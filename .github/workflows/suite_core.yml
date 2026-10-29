@@ -6,9 +6,6 @@ on:
       trigger-sha:
         required: true
         type: string
-    secrets:
-      tflm-bot-token:
-        required: true
 
 jobs:
   call-ci-bazel:

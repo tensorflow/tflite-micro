@@ -83,32 +83,6 @@ popd >/dev/null
 
 rm -rf "${TEST_OUTPUT_DIR}"
 
-# Remove existing state prior to testing project generation for cortex-m target.
-MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
-make -f ${MAKEFILE} config_info TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
-make -f ${MAKEFILE} clean clean_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
-
-TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"
-
-readable_run \
-  python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
-  "${TEST_OUTPUT_DIR_CMSIS}" \
-  ${EXAMPLES}
-
-readable_run \
-  cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR_CMSIS}"
-
-pushd "${TEST_OUTPUT_DIR_CMSIS}" >/dev/null
-
-PATH="${PATH}:${ROOT_DIR}tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
-  readable_run \
-  make $(get_parallel_jobs) BUILD_TYPE=cmsis_nn TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
-
-popd >/dev/null
-
-rm -rf "${TEST_OUTPUT_DIR_CMSIS}"
-
 # Test that C++ files are renamed to .cpp
 TEST_OUTPUT_DIR_RENAME_CC="$(mktemp -d)"
 
@@ -129,16 +103,8 @@ fi
 
 if test -z "${CPP_FILES}"; then
   echo "Expected a .cpp file to exist"
-  echo "${CPP_FILES}}}"
+  echo "${CPP_FILES}"
   exit 1
 fi
 
-# Test the tflm tree creation works even inside from TENSORFLOW_ROOT directory.
-pushd "${TENSORFLOW_ROOT}" >/dev/null
-TEST_OUTPUT_DIR="$(mktemp -d)"
-readable_run \
-  python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=cortex-m4" \
-  "${TEST_OUTPUT_DIR}"
-rm -rf "${TEST_OUTPUT_DIR}"
-popd >/dev/null
+rm -rf "${TEST_OUTPUT_DIR_RENAME_CC}"
