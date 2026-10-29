@@ -26,13 +26,14 @@ jobs:
 
   xtensa_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Xtensa Bazel (HiFi 5)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,13 +53,14 @@ jobs:
 
   vision_p6_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Vision P6 Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -80,13 +82,14 @@ jobs:
 
   hifi5_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hifi5 Unit Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -101,13 +104,14 @@ jobs:
 
   hifi5_unit_tests_with_compression:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hifi5 Unit Tests with Compression
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -122,13 +126,14 @@ jobs:
 
   hifi_3z_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hifi3z Unit Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -143,13 +148,14 @@ jobs:
 
   hifi_3z_unit_tests_with_compression:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hifi3z Unit Tests with Compression
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -164,13 +170,14 @@ jobs:
 
   f1_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/xtensa:0.2
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Fusion F1 Unit Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

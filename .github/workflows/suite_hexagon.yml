@@ -15,13 +15,14 @@ permissions:
 
 jobs:
   hexagon_build:
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/hexagon:0.6
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hexagon Build Test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -35,13 +36,14 @@ jobs:
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/
 
   hexagon_bazel:
-    runs-on: linux-x86-n4-16
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     container:
       image: ghcr.io/tflm-bot/hexagon:0.6
       credentials:
         username: tflm-bot
         password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hexagon Bazel
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
