@@ -1,6 +1,7 @@
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//visibility:public",
     ],

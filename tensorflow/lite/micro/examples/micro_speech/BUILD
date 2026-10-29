@@ -1,7 +1,6 @@
 # Description:
 #   TensorFlow Lite microcontroller example.
 
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
@@ -12,6 +11,7 @@ load(
 )
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],
 )
@@ -210,8 +210,8 @@ tflm_py_binary(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        requirement("numpy"),
         "//python/tflite_micro:runtime",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -232,7 +232,7 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":audio_preprocessor",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 

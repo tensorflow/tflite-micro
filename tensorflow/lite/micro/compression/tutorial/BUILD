@@ -1,17 +1,18 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
 )
 
+package(default_applicable_licenses = ["//:license"])
+
 py_library(
     name = "md_to_ipynb_lib",
     srcs = ["md_to_ipynb.py"],
-    deps = [requirement("pyyaml")],
+    deps = ["//third_party/py/yaml"],
 )
 
 py_binary(

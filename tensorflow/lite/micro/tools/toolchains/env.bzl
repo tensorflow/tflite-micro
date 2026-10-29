@@ -28,6 +28,8 @@ load(
 ARM_TOOLCHAIN_BIN_PREFIX = "@arm_none_eabi//:bin/"
 ARM_TOOLCHAIN_FILES_PREFIX = "@arm_none_eabi//:"
 
+CC_TOOLCHAIN_TYPE = "@rules_cc//cc:toolchain_type"
+
 RISCV_TOOLCHAIN_BIN_PREFIX = "@riscv_toolchain//:bin/"
 RISCV_TOOLCHAIN_FILES_PREFIX = "@riscv_toolchain//:"
 RISCV_LINKER_FILES = "@riscv_toolchain//:linker_files"
@@ -127,7 +129,7 @@ def tflm_xtensa_toolchains(cores):
                 ":%s" % name,
             ],
             toolchain = ":cc_toolchain_%s" % name,
-            toolchain_type = "@rules_cc//cc:toolchain_type",
+            toolchain_type = CC_TOOLCHAIN_TYPE,
         )
         native.platform(
             name = "%s_platform" % name,
@@ -175,7 +177,7 @@ def tflm_hexagon_toolchains():
             "@platforms//cpu:hexagon",
         ],
         toolchain = ":cc_toolchain_hexagon",
-        toolchain_type = "@rules_cc//cc:toolchain_type",
+        toolchain_type = CC_TOOLCHAIN_TYPE,
     )
     native.platform(
         name = "hexagon_platform",
@@ -202,7 +204,7 @@ TFLM_PLATFORM_CONFIGS = {
             "--//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:corstone_bsp",
             "--//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn_ethos_u",
             "--//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn",
-            "--//tensorflow/lite/micro/kernels:ethos_u_dep=@ethos_u_core_driver//:ethos_u_core_driver",
+            "--//tensorflow/lite/micro/kernels:ethos_u_dep=//third_party/ethos_u_core_driver",
         ],
         "mode": "test",
         "parents": ["//tensorflow/lite/micro/tools/toolchains/arm:m55_baremetal_platform"],

@@ -1,5 +1,4 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_namespace.bzl", "py_namespace")
 load(
     "//python:py_rules.bzl",
@@ -10,6 +9,7 @@ load(
     "tflm_py_test",
     "tflm_whl_test",
 )
+load("//python/tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
@@ -19,9 +19,9 @@ load(
     "//tensorflow/lite/micro:extra_rules.bzl",
     "tflm_python_op_resolver_friends",
 )
-load("//tools:expand_stamp_vars.bzl", "expand_stamp_vars")
 
 package(
+    default_applicable_licenses = ["//:license"],
     licenses = ["notice"],
 )
 
@@ -75,7 +75,7 @@ pybind_extension(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:recording_allocators",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@tflm_pip_deps//numpy:cc_headers",
+        "//third_party/py/numpy:headers",
     ],
 )
 
@@ -90,8 +90,8 @@ tflm_py_library(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     visibility = ["//visibility:public"],
     deps = [
-        requirement("numpy"),
         "//tensorflow/lite/micro/python:schema_py",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -106,10 +106,10 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":runtime",
-        requirement("ai-edge-litert"),
-        requirement("numpy"),
         "//tensorflow/lite/micro/examples/recipes:add_four_numbers",
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
+        "//third_party/py/numpy",
+        "//third_party/tensorflow/lite/python:lite",
     ],
 )
 

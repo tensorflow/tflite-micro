@@ -1,6 +1,7 @@
 load("//tensorflow/lite/micro:build_def.bzl", "generate_cc_arrays")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
 )
 

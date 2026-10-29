@@ -3,6 +3,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load(
     "//tensorflow/lite/micro/tools/toolchains:env.bzl",
+    "CC_TOOLCHAIN_TYPE",
     "QEMU_RISCV32_DATA",
     "RISCV_LINKER_FILES",
     "RISCV_TOOLCHAIN_BIN_PREFIX",
@@ -20,7 +21,10 @@ load(
     "tflm_platform_target",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 filegroup(name = "empty")
 
@@ -86,7 +90,7 @@ toolchain(
         "@platforms//cpu:riscv32",
     ],
     toolchain = ":cc_toolchain_riscv32",
-    toolchain_type = "@rules_cc//cc:toolchain_type",
+    toolchain_type = CC_TOOLCHAIN_TYPE,
 )
 
 platform(

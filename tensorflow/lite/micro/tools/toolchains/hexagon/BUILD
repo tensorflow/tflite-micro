@@ -26,7 +26,10 @@ load(
     "tflm_platform_target",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 tflm_hexagon_toolchains()
 

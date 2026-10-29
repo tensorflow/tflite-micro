@@ -38,12 +38,12 @@ def expand_stamp_vars(name, template, out):
         name = name,
         srcs = [template],
         outs = [out],
-        cmd = "$(location //tools:expand_stamp_vars) " +
+        cmd = "$(location //python/tools:expand_stamp_vars) " +
               "bazel-out/stable-status.txt " +
               "bazel-out/volatile-status.txt " +
               "<$< >$@",
         tools = [
-            "//tools:expand_stamp_vars",
+            "//python/tools:expand_stamp_vars",
         ],
 
         # Undocumented, but valid, and the only way to declare the necessary

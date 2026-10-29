@@ -12,7 +12,10 @@ load(
     "tflm_platform_target",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 exports_files(["corstone300.ld"])
 
@@ -42,7 +45,7 @@ cc_library(
         "@platforms//cpu:arm",
     ],
     deps = [
-        "@ethos_u_core_driver",
+        "//third_party/ethos_u_core_driver",
     ],
     alwayslink = True,
 )

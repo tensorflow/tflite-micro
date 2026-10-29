@@ -2,6 +2,7 @@
 #   Test data for the signal library
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//python/tflite_micro/signal:__subpackages__",
         "//signal:__subpackages__",

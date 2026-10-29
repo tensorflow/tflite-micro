@@ -11,6 +11,7 @@ load(
 )
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],
 )
@@ -43,7 +44,7 @@ tflm_cc_library(
         ":micro_compatibility",
         ":micro_log",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -90,7 +91,7 @@ tflm_cc_library(
         ":portable_type_to_tflitetype",
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -214,7 +215,7 @@ tflm_cc_library(
         ":micro_profiler",
         ":micro_profiler_interface",
         ":micro_resource_variable",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -257,7 +258,7 @@ tflm_cc_library(
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:linear_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -277,7 +278,7 @@ tflm_cc_library(
         ":micro_common",
         ":micro_compatibility",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -291,7 +292,7 @@ tflm_cc_library(
         ":micro_compatibility",
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/schema:schema_fbs",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -318,7 +319,7 @@ tflm_cc_library(
         "//tensorflow/lite/micro/compression:metadata_cc",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels/internal:tensor",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -659,7 +660,7 @@ tflm_cc_test(
         ":flatbuffer_utils",
         ":test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 

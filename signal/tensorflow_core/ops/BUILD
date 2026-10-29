@@ -6,6 +6,7 @@ load(
 )
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//python/tflite_micro/signal:__subpackages__"],
     licenses = ["notice"],
 )
@@ -16,8 +17,8 @@ cc_library(
     hdrs = ["shape_inference_utils.h"],
     copts = tflm_tf_shape_inference_copts(),
     deps = [
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ] + tflm_tf_shape_inference_deps(),
 )
 
@@ -26,8 +27,8 @@ cc_library(
     srcs = ["delay_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -37,8 +38,8 @@ cc_library(
     srcs = ["energy_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -48,8 +49,8 @@ cc_library(
     srcs = ["fft_ops.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -59,8 +60,8 @@ cc_library(
     srcs = ["filter_bank_ops.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -70,8 +71,8 @@ cc_library(
     srcs = ["framer_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -81,8 +82,8 @@ cc_library(
     srcs = ["overlap_add_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -92,8 +93,8 @@ cc_library(
     srcs = ["pcan_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -103,8 +104,8 @@ cc_library(
     srcs = ["stacker_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )
@@ -114,8 +115,8 @@ cc_library(
     srcs = ["window_op.cc"],
     deps = [
         ":shape_inference_utils",
-        "//third_party/tf_c_headers:ops",
-        "//third_party/tf_c_headers:tf_status",
+        "//third_party/tensorflow/c:ops",
+        "//third_party/tensorflow/c:tf_status",
     ],
     alwayslink = True,
 )

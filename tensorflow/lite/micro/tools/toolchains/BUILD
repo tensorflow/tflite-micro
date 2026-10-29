@@ -15,7 +15,10 @@
 
 load(":env.bzl", "tflm_declare_test_platforms")
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 exports_files([
     "env.bzl",
