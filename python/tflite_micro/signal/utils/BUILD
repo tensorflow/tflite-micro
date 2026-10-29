@@ -2,6 +2,7 @@ load("//python:py_rules.bzl", "pybind_extension", "tflm_py_library", "tflm_py_te
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//python/tflite_micro/signal:__subpackages__",
     ],

@@ -22,7 +22,7 @@
 build --embed_label=0
 
 # Get stamp values from a script's output
-build --workspace_status_command=./tools/workspace_status.sh
+build --workspace_status_command=./python/tools/workspace_status.sh
 
 # Automatically enable the config matching the host OS
 common --enable_platform_specific_config

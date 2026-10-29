@@ -1,6 +1,7 @@
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
 )
 

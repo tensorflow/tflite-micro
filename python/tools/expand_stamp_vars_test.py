@@ -17,7 +17,7 @@
 
 # A test for the filter that expands Bazel workspace stamp variables.
 
-from tflite_micro.tools import expand_stamp_vars
+from tflite_micro.python.tools import expand_stamp_vars
 
 import io
 import unittest

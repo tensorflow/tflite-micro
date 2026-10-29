@@ -4,6 +4,7 @@ load(
     "//tensorflow/lite/micro/tools/toolchains:env.bzl",
     "ARM_TOOLCHAIN_BIN_PREFIX",
     "ARM_TOOLCHAIN_FILES_PREFIX",
+    "CC_TOOLCHAIN_TYPE",
     "QEMU_ARM_DATA",
     "tflm_arm_cpu_constraint_setting",
     "tflm_cc_toolchain",
@@ -19,7 +20,10 @@ load(
     "tflm_platform_target",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 filegroup(name = "empty")
 
@@ -130,7 +134,7 @@ ARM_CPU_CONSTRAINT_SETTING = tflm_arm_cpu_constraint_setting()
             ":%s" % name,
         ],
         toolchain = ":cc_toolchain_%s" % name,
-        toolchain_type = "@rules_cc//cc:toolchain_type",
+        toolchain_type = CC_TOOLCHAIN_TYPE,
     )
     for name in PROFILES.keys()
 ]
