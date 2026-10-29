@@ -1,7 +1,8 @@
 <!--ts-->
-   * [Installation](#installlation)
+   * [Installation](#installation)
    * [Software Emulation with QEMU](#software-emulation-with-qemu)
    * [Running Unit Tests](#running-unit-tests)
+   * [Debugging](#debugging)
    * [Useful External Links for QEMU](#useful-external-links-for-qemu)
 
 <!-- Added by: mikebernico, at: Mon April 10 2023 -->
@@ -20,10 +21,13 @@ of QEMU available in your system's PATH. For example, to test on ARM, the
 
 ## Docker Environment
 
-As an alternative to installing dependencies on your host machine,
-you can use the provided Docker environment.
-For instructions, see the "Run locally for debugging" section in the
-[Dockerfile](https://github.com/tensorflow/tflite-micro/blob/main/ci/Dockerfile.micro).
+As an alternative to installing dependencies on your host machine, you can use
+the pre-built Cortex-M CI container image defined in
+[ci/Dockerfile.corstone300](https://github.com/tensorflow/tflite-micro/blob/main/ci/Dockerfile.corstone300):
+
+```bash
+docker run -it --rm -v "$(pwd)":/workspace -w /workspace ghcr.io/tflm-bot/corstone300:0.2 /bin/bash
+```
 
 # Software Emulation with QEMU
 
@@ -47,7 +51,7 @@ test target as follows:
 make -f tensorflow/lite/micro/tools/make/Makefile \
   TARGET=cortex_m_qemu \
   TARGET_ARCH=cortex-m3 \
-  OPTIMIZED_KERNEL_DIR=cmsis_nn
+  OPTIMIZED_KERNEL_DIR=cmsis_nn \
   <TEST_TARGET>
 ```
 
