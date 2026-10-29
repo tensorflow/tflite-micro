@@ -24,16 +24,10 @@ cd "${ROOT_DIR}"
 
 source tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-if [[ $1 = "armclang" ]]; then
-  TOOLCHAIN=armclang
-else
-  TOOLCHAIN=gcc
-fi
-
+TOOLCHAIN=gcc
 TARGET=cortex_m_corstone_300
 TARGET_ARCH=cortex-m55
 OPTIMIZED_KERNEL_DIR=cmsis_nn
-TOOLCHAINS=(gcc armclang)
 
 MAKEFILE=tensorflow/lite/micro/tools/make/Makefile
 COMMON_ARGS="CO_PROCESSOR=ethos_u OPTIMIZED_KERNEL_DIR=${OPTIMIZED_KERNEL_DIR} TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} TOOLCHAIN=${TOOLCHAIN}"
@@ -45,11 +39,8 @@ readable_run make -f ${MAKEFILE} clean
 readable_run make $(get_parallel_jobs) -f ${MAKEFILE} ${COMMON_ARGS} build_tests
 readable_run make -f ${MAKEFILE} ${COMMON_ARGS} test
 
-# Run generic benchmark. Not supported for armclang - see comment in target makefile.
-if [[ $1 != "armclang" ]]; then
-  readable_run make $(get_parallel_jobs) -f ${MAKEFILE} \
-    ${COMMON_ARGS} \
-    GENERIC_BENCHMARK_MODEL_PATH=tensorflow/lite/micro/models/person_detect_vela.tflite \
-    GENERIC_BENCHMARK_ARENA_SIZE=$(expr 150 \* 1024) \
-    run_tflm_benchmark
-fi
+readable_run make $(get_parallel_jobs) -f ${MAKEFILE} \
+  ${COMMON_ARGS} \
+  GENERIC_BENCHMARK_MODEL_PATH=tensorflow/lite/micro/models/person_detect_vela.tflite \
+  GENERIC_BENCHMARK_ARENA_SIZE=$(expr 150 \* 1024) \
+  run_tflm_benchmark

@@ -10,10 +10,19 @@ on:
       tflm-bot-token:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   hexagon_build:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/hexagon:0.6
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hexagon Build Test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,27 +31,30 @@ jobs:
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Hexagon Build Test
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
         run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/hexagon:0.6 \
-            tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_hexagon.sh tflite-micro/
 
   hexagon_bazel:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/hexagon:0.6
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
+      options: --init
     name: Hexagon Bazel
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - run: rm -rf .git
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: false
+          disk-cache: true
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          repository-cache: true
       - name: Hexagon Bazel Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-        run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/hexagon:0.6 \
-            tensorflow/lite/micro/tools/ci_build/test_bazel_hexagon.sh
+        run: tensorflow/lite/micro/tools/ci_build/test_bazel_hexagon.sh

@@ -40,36 +40,22 @@ include $(MAKEFILE_DIR)/ext_libs/cmsis.inc
 FLOAT := soft
 MCPU_OPTION := $(TARGET_ARCH)
 
-# Linker and targets must match according to:
-# https://www.keil.com/support/man/docs/armclang_mig/armclang_mig_aya1488905345341.htm
 ifeq ($(TARGET_ARCH), cortex-m0)
-  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M0
-
+  # Default FLOAT=soft, MCPU_OPTION=cortex-m0
 else ifeq ($(TARGET_ARCH), cortex-m3)
-  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M3
-
+  # Default FLOAT=soft, MCPU_OPTION=cortex-m3
 else ifeq ($(TARGET_ARCH), cortex-m4)
-  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M4.no_fp
   MCPU_OPTION := cortex-m4+nofp
-
 else ifeq ($(TARGET_ARCH), cortex-m4+fp)
-  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M4
   FLOAT=hard
   MCPU_OPTION := cortex-m4
-
 else ifeq ($(TARGET_ARCH), cortex-m55)
-  ARMC6_LDFLAGS += -Wl,--cpu=8.1-M.Main.mve.fp
   FLOAT=hard
-
 else ifeq ($(TARGET_ARCH), cortex-m7)
-  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M7.no_fp
   MCPU_OPTION := cortex-m7+nofp
-
 else ifeq ($(TARGET_ARCH), cortex-m7+fp)
-  ARMC6_LDFLAGS += -Wl,--cpu=Cortex-M7
   FLOAT=hard
   MCPU_OPTION := cortex-m7
-
 else
   $(error "TARGET_ARCH=$(TARGET_ARCH) is not supported")
 endif
@@ -85,53 +71,7 @@ endif
 ARM_CPU := $(subst cortex-m,ARMCM,$(MCPU_OPTION))
 ARM_CPU := $(subst +nofp,,$(ARM_CPU))
 
-ifeq ($(TOOLCHAIN), armclang)
-  CXX_TOOL  := armclang
-  CC_TOOL   := armclang
-  AR_TOOL   := armar
-  LD        := armlink
-
-  FLAGS_ARMC = \
-    --target=arm-arm-none-eabi \
-    -Wno-unused-private-field \
-    -mcpu=$(MCPU_OPTION)
-
-  # Pass comma separated linker options to armlink
-  ARMC6_LDFLAGS += -Wl,--strict,--summary_stderr,--info,summarysizes,--map
-  ARMC6_LDFLAGS += -Wl,--load_addr_map_info,--xref,--callgraph,--symbols
-  ARMC6_LDFLAGS += -Wl,--info,sizes,--info,totals,--info,unused,--info,veneers
-  ARMC6_LDFLAGS += -Wl,--list=gen/$(TARGET).map
-  ARMC6_LDFLAGS += -Wl,--entry=Reset_Handler --verbose
-  ARMC6_LDFLAGS += -Wl,--scatter=$(ETHOS_U_CORE_PLATFORM)/platform.scatter
-
-  # Pass a hint to the linker where to find the entry point. This needs to be
-  # done since the startup object file (containing the entry point) is inside
-  # the TFLM library. See:
-  # https://developer.arm.com/documentation/ka003125/latest
-  ARMC6_LDFLAGS += -Wl,$(LIBDIR)/$(MICROLITE_LIB_NAME)\(startup_$(ARM_CPU).o\)
-
-  CXXFLAGS += $(FLAGS_ARMC)
-  CCFLAGS += $(FLAGS_ARMC)
-  LDFLAGS := $(ARMC6_LDFLAGS)
-
-  MICROLITE_CC_KERNEL_SRCS := $(filter-out $(EXCLUDED_CC_SRCS),$(MICROLITE_CC_KERNEL_SRCS))
-  THIRD_PARTY_CC_HDRS := $(filter-out $(EXCLUDED_HDRS),$(THIRD_PARTY_CC_HDRS))
-  MICROLITE_CC_HDRS := $(filter-out $(EXCLUDED_KERNEL_HDRS),$(MICROLITE_CC_HDRS))
-
-  # Arm Compiler will not link the Math library (see below), therefore we're filtering it out.
-  # See Fatal error: L6450U: Cannot find library m:
-  # "Arm Compiler is designed to run in a bare metal environment,
-  # and automatically includes implementations of these functions,
-  # and so no such flag is necessary."
-  # https://developer.arm.com/documentation/100891/0611/troubleshooting/general-troubleshooting-advice
-  MICROLITE_LIBS := $(filter-out -lm,$(MICROLITE_LIBS))
-
-  # This does not build with armclang and is anyway not used by this target.
-  EXCLUDED_TESTS := \
-    tensorflow/lite/micro/tools/benchmarking/Makefile.inc
-  MICRO_LITE_BENCHMARKS := $(filter-out $(EXCLUDED_TESTS), $(MICRO_LITE_BENCHMARKS))
-
-else ifeq ($(TOOLCHAIN), gcc)
+ifeq ($(TOOLCHAIN), gcc)
   ifeq ($(TARGET_TOOLCHAIN_ROOT),)
     ifeq ($(shell which arm-none-eabi-gcc 2>/dev/null),)
       TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
