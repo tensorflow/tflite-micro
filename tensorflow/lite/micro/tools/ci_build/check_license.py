@@ -27,12 +27,9 @@ TARGET_DIRS = [
 
 EXCLUDES = (
   "kernels/internal/reference/integer_ops/",
-  "kernels/internal/reference/reference_ops.h",
   "python_requirements.in",
   "tools/make/downloads",
-  "tools/make/targets/ecm3531",
   "BUILD",
-  "leon_commands",
   "LICENSE",
   "_generated.h",
   "_generated.py",
