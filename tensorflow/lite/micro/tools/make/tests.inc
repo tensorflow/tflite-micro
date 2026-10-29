@@ -8,7 +8,7 @@ include $(MICRO_LITE_INTEGRATION_TESTS)
 
 # Load layer_by_layer_output_tool
 ifneq ($(TARGET), $(filter $(TARGET), \
-  bluepill cortex_m_corstone_300 riscv32_generic hexagon))
+  cortex_m_corstone_300 riscv32_generic hexagon))
 include $(MICRO_LITE_LAYER_BY_LAYER_OUTPUT)
 endif
 

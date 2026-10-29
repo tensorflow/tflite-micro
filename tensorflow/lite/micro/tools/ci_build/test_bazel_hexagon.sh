@@ -20,14 +20,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 
-# Pre-baked in hexagon:0.6+; fallback kept only until workflow bump merges on main (pull_request_target).
-if ! command -v bazel &> /dev/null; then
-  curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64 -o /tmp/bazelisk
-  chmod +x /tmp/bazelisk
-  BAZEL_BIN=/tmp/bazelisk
-else
-  BAZEL_BIN=${BAZEL:-$(command -v bazel 2>/dev/null || echo "bazel")}
-fi
+BAZEL_BIN=${BAZEL:-$(command -v bazel 2>/dev/null || echo "bazel")}
 
 BAZEL_FLAGS="--config=_ci_base"
 

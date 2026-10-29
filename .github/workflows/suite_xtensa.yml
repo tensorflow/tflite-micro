@@ -15,35 +15,50 @@ on:
       tflm-bot-token:
         required: true
 
+permissions:
+  contents: read
+
+env:
+  XTENSA_TOOLS_VERSION: RI-2022.9-linux
+
 jobs:
   # --- Basic Jobs ---
 
   xtensa_bazel:
     if: inputs.scope == 'basic' || inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 30
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Xtensa Bazel (HiFi 5)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.trigger-sha }}
           allow-unsafe-pr-checkout: true
-      - run: rm -rf .git
+      - uses: bazel-contrib/setup-bazel@c5acdfb288317d0b5c0bbd7a396a3dc868bb0f86 # 0.19.0
+        with:
+          bazelisk-cache: false
+          disk-cache: true
+          cache-save: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+          repository-cache: true
       - name: Xtensa Bazel Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
-        run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_bazel_xtensa.sh hifi5
+        run: tensorflow/lite/micro/tools/ci_build/test_bazel_xtensa.sh hifi5
 
   # --- Extended Jobs ---
 
   vision_p6_tests:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Vision P6 Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,8 +68,6 @@ jobs:
       - run: rm -rf .git
       - name: Vision P6 Tests
         env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
           SCOPE: ${{ inputs.scope }}
         run: |
           if [[ "${SCOPE}" == "all" ]]; then
@@ -62,14 +75,18 @@ jobs:
           else
             TEST_MODE="RUN_NO_TESTS"
           fi
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh tflite-micro/ ${TEST_MODE}
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_vision_p6.sh tflite-micro/ ${TEST_MODE}
 
   hifi5_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Hifi5 Unit Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -78,18 +95,19 @@ jobs:
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Hifi5 Unit Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/
 
   hifi5_unit_tests_with_compression:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Hifi5 Unit Tests with Compression
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -98,18 +116,19 @@ jobs:
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Hifi5 Unit Tests with Compression
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/
 
   hifi_3z_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Hifi3z Unit Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -118,18 +137,19 @@ jobs:
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Hifi3z Unit Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh tflite-micro/ EXTERNAL
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh tflite-micro/ EXTERNAL
 
   hifi_3z_unit_tests_with_compression:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Hifi3z Unit Tests with Compression
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -138,18 +158,19 @@ jobs:
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Hifi3z Unit Tests with Compression
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh tflite-micro/ EXTERNAL
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh tflite-micro/ EXTERNAL
 
   f1_unit_tests:
     if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
+    runs-on: linux-x86-n4-16
     timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/xtensa:0.2
+      credentials:
+        username: tflm-bot
+        password: ${{ secrets.tflm-bot-token }}
     name: Fusion F1 Unit Tests
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -158,10 +179,6 @@ jobs:
           allow-unsafe-pr-checkout: true
       - run: rm -rf .git
       - name: Fusion F1 Unit Tests
-        env:
-          TFLM_BOT_TOKEN: ${{ secrets.tflm-bot-token }}
-          DOCKER_RUN_ENV: --env XTENSA_TOOLS_VERSION=RI-2022.9-linux
         run: |
-          tensorflow/lite/micro/tools/ci_build/docker_run_tflm.sh \
-            ghcr.io/tflm-bot/xtensa:0.2 \
-            tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh tflite-micro/ EXTERNAL
+          cd ..
+          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_fusion_f1.sh tflite-micro/ EXTERNAL

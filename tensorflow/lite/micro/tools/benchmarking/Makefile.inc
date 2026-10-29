@@ -65,10 +65,8 @@ $(GENERATED_SRCS_DIR)$(MICROLITE_BENCHMARK_ROOT_DIR)/show_meta_data.cc:
 	MODEL_FILE="$(GENERIC_BENCHMARK_MODEL_PATH)" \
 	$(MICROLITE_BENCHMARK_ROOT_DIR)/collect_meta_data.sh
 
-ifneq ($(TARGET),bluepill)
 ifneq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifimini))
     $(eval $(call microlite_test,tflm_benchmark,\
     $(GENERIC_BENCHMARK_SRCS),$(GENERIC_BENCHMARK_HDRS),\
     $(GENERIC_BENCHMARK_GENERATOR_INPUTS)))
-endif
 endif

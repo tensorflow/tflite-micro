@@ -81,16 +81,8 @@ else
   MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 endif
 
-# For bluepill, the CI build is failing due to introduction of the
-# introduction of test_run_latency.sh script. Looks at
-# https://b.corp.google.com/issues/268565399#comment11 for more details.
-ifneq ($(TARGET), bluepill)
 test_$(1):$$($(1)_BINARY)
 	$(MAKEFILE_DIR)/test_latency_log.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
-else
-test_$(1):$$($(1)_BINARY)
-	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
-endif
 
 else
 MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)

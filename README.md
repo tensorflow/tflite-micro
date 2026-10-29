@@ -30,7 +30,7 @@ TensorFlow Lite for Microcontrollers is designed to run deep learning models on 
   * [Optimized Kernel Implementations](docs/optimized_kernel_implementations.md)
   * [New Platform Support](docs/new_platform_support.md)
   * [Arm IP Support](docs/arm.md)
-  * [Software Emulation (Renode)](docs/renode.md) and [QEMU](docs/qemu.md)
+  * [Software Emulation (QEMU)](docs/qemu.md)
 * **Tooling, Compression & Python:**
   * [Model Compression Guide](docs/compression.md) & [Tutorial](tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.md)
   * [Python Interpreter & Dev Guide](python/tflite_micro/README.md)
