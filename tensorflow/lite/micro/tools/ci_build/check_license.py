@@ -27,7 +27,6 @@ TARGET_DIRS = [
 ]
 
 EXCLUDES = (
-  "kernels/internal/reference/integer_ops/",
   "python_requirements.in",
   "tools/make/downloads",
   "BUILD",
