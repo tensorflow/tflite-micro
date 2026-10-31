@@ -806,7 +806,7 @@ TEST(FullyConnectedTest, SimpleTestQuantizedInt16Compressed) {
 
 #endif  // USE_TFLM_COMPRESSION
 
-#if !defined(XTENSA) && !defined(CMSIS_NN)
+#if !defined(VISION_P6) && !defined(CMSIS_NN)
 
 TEST(FullyConnectedTest, SimpleTestPerChannelQuantizedInt16) {
   const float input_scale = 128.0 / 65536;
@@ -836,7 +836,7 @@ TEST(FullyConnectedTest, SimpleTestPerChannelQuantizedInt16) {
       kTfLiteActNone, output_data);
 }
 
-#endif  // !defined(XTENSA) && !defined(CMSIS_NN)
+#endif  // !defined(VISION_P6) && !defined(CMSIS_NN)
 
 #endif  // !defined(HEXAGON)
 
