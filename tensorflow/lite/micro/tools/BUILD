@@ -16,8 +16,6 @@ package(
     licenses = ["notice"],
 )
 
-exports_files(["make/kissfft.patch"])
-
 package_group(
     name = "tflm_tools",
     packages = ["//tensorflow/lite/micro/tools/..."],

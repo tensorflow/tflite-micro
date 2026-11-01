@@ -13,11 +13,87 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "signal/src/kiss_fft_wrappers/kiss_fft_common.h"
+#include "signal/src/kiss_fft_wrappers/kiss_fft_int32.h"
 
 #define FIXED_POINT 32
+
+#define kiss_fft_alloc tflm_kiss_fft_alloc_fixed32
+#define kiss_fft tflm_kiss_fft_fixed32
+#define kiss_fft_stride tflm_kiss_fft_stride_fixed32
+#define kiss_fft_cleanup tflm_kiss_fft_cleanup_fixed32
+#define kiss_fft_next_fast_size tflm_kiss_fft_next_fast_size_fixed32
+#define kiss_fftr_alloc tflm_kiss_fftr_alloc_fixed32
+#define kiss_fftr tflm_kiss_fftr_fixed32
+#define kiss_fftri tflm_kiss_fftri_fixed32
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+// Upstream master / Google3 kiss_fft_alloc adds an int-vs-size_t overflow
+// check.
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+
 namespace kiss_fft_fixed32 {
+// NOLINTBEGIN(bugprone-suspicious-include)
 #include "kiss_fft.c"
+#if __has_include("kiss_fftr.c")
+#include "kiss_fftr.c"
+#else
 #include "tools/kiss_fftr.c"
+#endif
+// NOLINTEND(bugprone-suspicious-include)
+
+#undef kiss_fft_alloc
+#undef kiss_fft
+#undef kiss_fft_stride
+#undef kiss_fft_cleanup
+#undef kiss_fft_next_fast_size
+#undef kiss_fftr_alloc
+#undef kiss_fftr
+#undef kiss_fftri
+
+static_assert(sizeof(kiss_fft_cpx) == 2 * sizeof(int32_t),
+              "kiss_fft_fixed32 must be built with FIXED_POINT=32");
+
+kiss_fft_cfg kiss_fft_alloc(int nfft, int inverse_fft, void* mem,
+                            size_t* lenmem) {
+  return tflm_kiss_fft_alloc_fixed32(nfft, inverse_fft, mem, lenmem);
+}
+
+void kiss_fft(kiss_fft_cfg cfg, const kiss_fft_cpx* fin, kiss_fft_cpx* fout) {
+  tflm_kiss_fft_fixed32(cfg, fin, fout);
+}
+
+void kiss_fft_stride(kiss_fft_cfg cfg, const kiss_fft_cpx* fin,
+                     kiss_fft_cpx* fout, int fin_stride) {
+  tflm_kiss_fft_stride_fixed32(cfg, fin, fout, fin_stride);
+}
+
+void kiss_fft_cleanup() { tflm_kiss_fft_cleanup_fixed32(); }
+
+int kiss_fft_next_fast_size(int n) {
+  return tflm_kiss_fft_next_fast_size_fixed32(n);
+}
+
+kiss_fftr_cfg kiss_fftr_alloc(int nfft, int inverse_fft, void* mem,
+                              size_t* lenmem) {
+  return tflm_kiss_fftr_alloc_fixed32(nfft, inverse_fft, mem, lenmem);
+}
+
+void kiss_fftr(kiss_fftr_cfg cfg, const kiss_fft_scalar* timedata,
+               kiss_fft_cpx* freqdata) {
+  tflm_kiss_fftr_fixed32(cfg, timedata, freqdata);
+}
+
+void kiss_fftri(kiss_fftr_cfg cfg, const kiss_fft_cpx* freqdata,
+                kiss_fft_scalar* timedata) {
+  tflm_kiss_fftri_fixed32(cfg, freqdata, timedata);
+}
 }  // namespace kiss_fft_fixed32
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 #undef FIXED_POINT

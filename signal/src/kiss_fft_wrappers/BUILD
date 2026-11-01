@@ -1,4 +1,5 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -26,5 +27,14 @@ cc_library(
     deps = [
         "//third_party/kissfft",
         "//third_party/kissfft:kissfftr",
+    ],
+)
+
+cc_test(
+    name = "kiss_fft_wrappers_test",
+    srcs = ["kiss_fft_wrappers_test.cc"],
+    deps = [
+        ":kiss_fft_wrappers",
+        "//tensorflow/lite/micro/testing:micro_test",
     ],
 )

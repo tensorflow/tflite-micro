@@ -30,11 +30,9 @@ http_archive(
 http_archive(
     name = "kissfft",
     build_file = "//third_party/kissfft:kissfft.BUILD",
-    patch_args = ["-p1"],
-    patches = ["//tensorflow/lite/micro/tools:make/kissfft.patch"],
-    sha256 = "ac2259f84e372a582270ed7c7b709d02e6ca9c7206e40bb58de6ef77f6474872",
-    strip_prefix = "kissfft-130",
-    urls = ["https://github.com/mborgerding/kissfft/archive/refs/tags/v130.zip"],
+    sha256 = "205a8f6a448ef12b091f8ac6a514b5091bb5f6b0b543431ed75f673116cf5cbf",
+    strip_prefix = "kissfft-131.2.0",
+    urls = ["https://github.com/mborgerding/kissfft/archive/refs/tags/131.2.0.tar.gz"],
 )
 
 http_archive(
