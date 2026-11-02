@@ -23,7 +23,7 @@ EXCLUDED_TESTS := \
   tensorflow/lite/micro/kernels/detection_postprocess_test.cc
 
 EXCLUDED_HDRS := \
-  third_party/flatbuffers/include/flatbuffers/flexbuffers.h
+  $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/flexbuffers.h
 
 EXCLUDED_KERNEL_HDRS := \
   tensorflow/lite/micro/kernels/flexbuffers_generated_data.h

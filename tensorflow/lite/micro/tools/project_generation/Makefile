@@ -27,7 +27,9 @@ COMMON_FLAGS := \
   -ffunction-sections \
   -fdata-sections \
   -fmessage-length=0 \
-  -DTFLM_REMOVE_VIRTUAL_DELETE
+  -DTFLM_REMOVE_VIRTUAL_DELETE \
+  -DFLATBUFFERS_LOCALE_INDEPENDENT=0 \
+  -DFLATBUFFERS_PREFER_PRINTF=1
 
 CXX := clang++
 CC := clang
