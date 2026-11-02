@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/softmax.h"
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
@@ -242,9 +245,10 @@ const float golden_4d[] = {
     0.268866557, 0.000033181, 0.730855076, 0.000000011, 0.000245175};
 
 template <typename T>
-void ValidateSoftmaxGoldens(TfLiteTensor* tensors, const int tensor_count,
-                            T* output_data, const T* expected_output,
-                            int output_dims_count, float tolerance) {
+void ValidateSoftmaxGoldens(
+    TfLiteTensor* tensors, const int tensor_count, T* output_data,
+    const T* expected_output, int output_dims_count, float tolerance,
+    TFLMRegistration registration = Register_SOFTMAX()) {
   TfLiteSoftmaxParams builtin_data = {1.0f};
 
   int inputs_array_data[] = {1, 0};
@@ -252,7 +256,6 @@ void ValidateSoftmaxGoldens(TfLiteTensor* tensors, const int tensor_count,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TFLMRegistration registration = Register_SOFTMAX();
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, &builtin_data);
 
@@ -262,6 +265,20 @@ void ValidateSoftmaxGoldens(TfLiteTensor* tensors, const int tensor_count,
   for (int i = 0; i < output_dims_count; ++i) {
     EXPECT_NEAR(expected_output[i], output_data[i], tolerance);
   }
+}
+
+void ValidateSoftmaxFailsDuringPrepare(TfLiteTensor* tensors,
+                                       const int tensor_count,
+                                       TFLMRegistration registration) {
+  TfLiteSoftmaxParams builtin_data = {1.0f};
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
+                             outputs_array, &builtin_data);
+  EXPECT_NE(kTfLiteOk, runner.InitAndPrepare());
 }
 
 void TestSoftmaxFloat(int* input_dims_data, const float* input_data,
@@ -289,7 +306,8 @@ void TestSoftmaxQuantized(int* input_dims_data, const float* input_data,
                           int input_zero_point, int* output_dims_data,
                           const float* golden, outputT* golden_quantized,
                           float output_scale, int output_zero_point,
-                          outputT* output_data, float tolerance = 1.0) {
+                          outputT* output_data, float tolerance = 1.0,
+                          TFLMRegistration registration = Register_SOFTMAX()) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
@@ -308,7 +326,7 @@ void TestSoftmaxQuantized(int* input_dims_data, const float* input_data,
            output_zero_point);
 
   ValidateSoftmaxGoldens(tensors, tensors_size, output_data, golden_quantized,
-                         output_dims_count, tolerance);
+                         output_dims_count, tolerance, registration);
 }
 
 }  // namespace
@@ -479,6 +497,149 @@ TEST(SoftmaxTest, Softmax2DQuantizedInt8InputInt16OutputShouldMatchGolden) {
       input_quantized, input_scale, input_zero_point, tflite::testing::shape_2d,
       tflite::testing::golden_2d, golden_quantized, output_scale,
       output_zero_point, output_data);
+}
+
+TEST(SoftmaxTest, TypedAddSoftmaxInt8AndInt8To16) {
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+  const float output_scale_8to16 = 1.0f / 65536.0f;
+  const int output_zero_point_8to16 = -32768;
+
+  // 1. AddSoftmax<softmax::Int8>() succeeds on (int8, int8), fails Prepare() on
+  // (int8, int16) and (float32, float32).
+  {
+    tflite::MicroMutableOpResolver<1> resolver;
+    EXPECT_EQ(kTfLiteOk, resolver.AddSoftmax<tflite::softmax::Int8>());
+    const TFLMRegistration* registration =
+        resolver.FindOp(tflite::BuiltinOperator_SOFTMAX);
+    ASSERT_NE(registration, nullptr);
+    EXPECT_EQ(registration->invoke, &tflite::micro::SoftmaxEvalInt8);
+
+    int8_t input_quantized[tflite::testing::flat_size_2d];
+    int8_t golden_quantized[tflite::testing::flat_size_2d];
+    int8_t output_data[tflite::testing::flat_size_2d];
+    tflite::testing::TestSoftmaxQuantized(
+        tflite::testing::shape_2d, tflite::testing::input_data_2d,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::shape_2d, tflite::testing::golden_2d, golden_quantized,
+        tflite::testing::output_scale_int8,
+        tflite::testing::output_zero_point_int8, output_data, 1.0f,
+        *registration);
+
+    // Fails Prepare() on (int8, int16).
+    TfLiteIntArray* dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::shape_2d);
+    int16_t output_i16[tflite::testing::flat_size_2d] = {};
+    TfLiteTensor i8_to_i16_tensors[2] = {
+        tflite::testing::CreateQuantizedTensor(input_quantized, dims,
+                                               input_scale, input_zero_point),
+        tflite::testing::CreateQuantizedTensor(
+            output_i16, dims, output_scale_8to16, output_zero_point_8to16),
+    };
+    tflite::testing::ValidateSoftmaxFailsDuringPrepare(i8_to_i16_tensors, 2,
+                                                       *registration);
+
+    // Fails Prepare() on (float32, float32).
+    float output_f32[tflite::testing::flat_size_2d] = {};
+    TfLiteTensor f32_tensors[2] = {
+        tflite::testing::CreateTensor(tflite::testing::input_data_2d, dims),
+        tflite::testing::CreateTensor(output_f32, dims),
+    };
+    tflite::testing::ValidateSoftmaxFailsDuringPrepare(f32_tensors, 2,
+                                                       *registration);
+  }
+
+  // 2. AddSoftmax<softmax::Int8To16>() succeeds on (int8, int16), fails
+  // Prepare() on (int8, int8).
+  {
+    tflite::MicroMutableOpResolver<1> resolver;
+    EXPECT_EQ(kTfLiteOk, resolver.AddSoftmax<tflite::softmax::Int8To16>());
+    const TFLMRegistration* registration =
+        resolver.FindOp(tflite::BuiltinOperator_SOFTMAX);
+    ASSERT_NE(registration, nullptr);
+    EXPECT_EQ(registration->invoke, &tflite::micro::SoftmaxEvalInt8To16);
+
+    int8_t input_quantized[tflite::testing::flat_size_2d];
+    int16_t golden_quantized[tflite::testing::flat_size_2d];
+    int16_t output_data[tflite::testing::flat_size_2d];
+    tflite::testing::TestSoftmaxQuantized(
+        tflite::testing::shape_2d, tflite::testing::input_data_2d,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::shape_2d, tflite::testing::golden_2d, golden_quantized,
+        output_scale_8to16, output_zero_point_8to16, output_data, 1.0f,
+        *registration);
+
+    // Fails Prepare() on (int8, int8).
+    TfLiteIntArray* dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::shape_2d);
+    int8_t output_i8[tflite::testing::flat_size_2d] = {};
+    TfLiteTensor i8_tensors[2] = {
+        tflite::testing::CreateQuantizedTensor(input_quantized, dims,
+                                               input_scale, input_zero_point),
+        tflite::testing::CreateQuantizedTensor(
+            output_i8, dims, tflite::testing::output_scale_int8,
+            tflite::testing::output_zero_point_int8),
+    };
+    tflite::testing::ValidateSoftmaxFailsDuringPrepare(i8_tensors, 2,
+                                                       *registration);
+  }
+
+  // 3. AddSoftmax<softmax::Int8, softmax::Int8To16>() succeeds on both
+  // (int8, int8) and (int8, int16), fails Prepare() on (float32, float32) and
+  // (int16, int16).
+  {
+    tflite::MicroMutableOpResolver<1> resolver;
+    EXPECT_EQ(kTfLiteOk, (resolver.AddSoftmax<tflite::softmax::Int8,
+                                              tflite::softmax::Int8To16>()));
+    const TFLMRegistration* registration =
+        resolver.FindOp(tflite::BuiltinOperator_SOFTMAX);
+    ASSERT_NE(registration, nullptr);
+    using ExpectedDispatcher =
+        tflite::OpDispatcher<tflite::SoftmaxOp, tflite::softmax::Int8,
+                             tflite::softmax::Int8To16>;
+    EXPECT_EQ(registration->invoke, &ExpectedDispatcher::Eval);
+
+    int8_t input_quantized[tflite::testing::flat_size_2d];
+    int8_t golden_i8[tflite::testing::flat_size_2d];
+    int8_t output_i8[tflite::testing::flat_size_2d];
+    tflite::testing::TestSoftmaxQuantized(
+        tflite::testing::shape_2d, tflite::testing::input_data_2d,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::shape_2d, tflite::testing::golden_2d, golden_i8,
+        tflite::testing::output_scale_int8,
+        tflite::testing::output_zero_point_int8, output_i8, 1.0f,
+        *registration);
+
+    int16_t golden_i16[tflite::testing::flat_size_2d];
+    int16_t output_i16[tflite::testing::flat_size_2d];
+    tflite::testing::TestSoftmaxQuantized(
+        tflite::testing::shape_2d, tflite::testing::input_data_2d,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::shape_2d, tflite::testing::golden_2d, golden_i16,
+        output_scale_8to16, output_zero_point_8to16, output_i16, 1.0f,
+        *registration);
+
+    TfLiteIntArray* dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::shape_2d);
+    float output_f32[tflite::testing::flat_size_2d] = {};
+    TfLiteTensor f32_tensors[2] = {
+        tflite::testing::CreateTensor(tflite::testing::input_data_2d, dims),
+        tflite::testing::CreateTensor(output_f32, dims),
+    };
+    tflite::testing::ValidateSoftmaxFailsDuringPrepare(f32_tensors, 2,
+                                                       *registration);
+
+    int16_t input_i16[tflite::testing::flat_size_2d] = {};
+    TfLiteTensor i16_tensors[2] = {
+        tflite::testing::CreateQuantizedTensor(input_i16, dims, input_scale,
+                                               input_zero_point),
+        tflite::testing::CreateQuantizedTensor(
+            output_i16, dims, tflite::testing::output_scale_int16,
+            tflite::testing::output_zero_point_int16),
+    };
+    tflite::testing::ValidateSoftmaxFailsDuringPrepare(i16_tensors, 2,
+                                                       *registration);
+  }
 }
 
 TF_LITE_MICRO_TESTS_MAIN

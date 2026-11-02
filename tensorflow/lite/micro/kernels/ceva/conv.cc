@@ -250,6 +250,31 @@ TfLiteStatus ConvEval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
+void* ConvBackendInit(TfLiteContext* context, const char* buffer,
+                      size_t length) {
+  return Init(context, buffer, length);
+}
+
+TfLiteStatus ConvBackendPrepare(TfLiteContext* context, TfLiteNode* node) {
+  return ConvPrepare(context, node);
+}
+
+TfLiteStatus ConvEvalFloat32(TfLiteContext* context, TfLiteNode* node) {
+  return ConvEval(context, node);
+}
+
+TfLiteStatus ConvEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  return ConvEval(context, node);
+}
+
+TfLiteStatus ConvEvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
+  return ConvEval(context, node);
+}
+
+TfLiteStatus ConvEvalInt8x4(TfLiteContext* context, TfLiteNode* node) {
+  return ConvEval(context, node);
+}
+
 TFLMRegistration Register_CONV_2D() {
   return tflite::micro::RegisterOp(Init, ConvPrepare, ConvEval);
 }

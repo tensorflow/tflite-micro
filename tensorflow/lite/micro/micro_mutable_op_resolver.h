@@ -209,6 +209,12 @@ class MicroMutableOpResolver : public MicroOpResolver {
     return AddBuiltin(BuiltinOperator_CONV_2D, registration, ParseConv2D);
   }
 
+  template <typename Sig1, typename... MoreSigs>
+  TfLiteStatus AddConv2D() {
+    return AddBuiltin(BuiltinOperator_CONV_2D,
+                      Register_CONV_2D<Sig1, MoreSigs...>(), ParseConv2D);
+  }
+
   TfLiteStatus AddCos(const TFLMRegistration& registration = Register_COS()) {
     return AddBuiltin(BuiltinOperator_COS, registration, ParseCos);
   }
@@ -616,6 +622,11 @@ class MicroMutableOpResolver : public MicroOpResolver {
   TfLiteStatus AddSoftmax(
       const TFLMRegistration& registration = Register_SOFTMAX()) {
     return AddBuiltin(BuiltinOperator_SOFTMAX, registration, ParseSoftmax);
+  }
+
+  template <typename Sig1, typename... MoreSigs>
+  TfLiteStatus AddSoftmax() {
+    return AddSoftmax(Register_SOFTMAX<Sig1, MoreSigs...>());
   }
 
   TfLiteStatus AddSpaceToBatchNd(

@@ -35,12 +35,15 @@ struct CMSISNNSoftmaxParams {
   int32_t row_size;
 };
 
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+}  // namespace
+
+void* SoftmaxBackendInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
   return context->AllocatePersistentBuffer(context,
                                            sizeof(CMSISNNSoftmaxParams));
 }
 
-TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SoftmaxBackendPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
@@ -85,7 +88,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return ret_val;
 }
 
-TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SoftmaxEvalFloat32(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
@@ -93,52 +96,12 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
   const CMSISNNSoftmaxParams op_data =
       *static_cast<const CMSISNNSoftmaxParams*>(node->user_data);
 
-  switch (input->type) {
-    case kTfLiteFloat32: {
-      tflite::micro::reference_ops::Softmax(
-          op_data.softmax_params, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<float>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output));
-      return kTfLiteOk;
-    }
-    case kTfLiteInt8: {
-      if (output->type == kTfLiteInt8) {
-        arm_softmax_s8(tflite::micro::GetTensorData<int8_t>(input),
-                       op_data.num_rows, op_data.row_size,
-                       op_data.softmax_params.input_multiplier,
-                       op_data.softmax_params.input_left_shift,
-                       op_data.softmax_params.diff_min,
-                       tflite::micro::GetTensorData<int8_t>(output));
-      } else {
-        arm_softmax_s8_s16(tflite::micro::GetTensorData<int8_t>(input),
-                           op_data.num_rows, op_data.row_size,
-                           op_data.softmax_params.input_multiplier,
-                           op_data.softmax_params.input_left_shift,
-                           op_data.softmax_params.diff_min,
-                           tflite::micro::GetTensorData<int16_t>(output));
-      }
-      return kTfLiteOk;
-    }
-    case kTfLiteInt16: {
-      const cmsis_nn_softmax_lut_s16 softmax_params = {
-          .exp_lut = op_data.softmax_params.exp_lut,
-          .one_by_one_lut = op_data.softmax_params.one_over_one_plus_x_lut};
-
-      TFLITE_DCHECK_EQ(
-          arm_softmax_s16(
-              tflite::micro::GetTensorData<int16_t>(input), op_data.num_rows,
-              op_data.row_size, op_data.softmax_params.input_multiplier,
-              op_data.softmax_params.input_left_shift, &softmax_params,
-              tflite::micro::GetTensorData<int16_t>(output)),
-          ARM_CMSIS_NN_SUCCESS);
-      return kTfLiteOk;
-    }
-    default:
-      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
-                  input->type);
-      return kTfLiteError;
-  }
+  tflite::micro::reference_ops::Softmax(
+      op_data.softmax_params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<float>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<float>(output));
+  return kTfLiteOk;
 }
 
 TfLiteStatus SoftmaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
@@ -158,7 +121,7 @@ TfLiteStatus SoftmaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus SoftmaxEvalInt8_Int16(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus SoftmaxEvalInt8To16(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
@@ -198,22 +161,44 @@ TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+namespace {
+
+TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+
+  switch (input->type) {
+    case kTfLiteFloat32:
+      return SoftmaxEvalFloat32(context, node);
+    case kTfLiteInt8:
+      return (output->type == kTfLiteInt8) ? SoftmaxEvalInt8(context, node)
+                                           : SoftmaxEvalInt8To16(context, node);
+    case kTfLiteInt16:
+      return SoftmaxEvalInt16(context, node);
+    default:
+      MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
+                  input->type);
+      return kTfLiteError;
+  }
+}
+
 }  // namespace
 
 TFLMRegistration Register_SOFTMAX() {
-  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEval);
+  return tflite::micro::RegisterOp(SoftmaxBackendInit, SoftmaxBackendPrepare,
+                                   SoftmaxEval);
 }
 
 TFLMRegistration Register_SOFTMAX_INT8() {
-  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt8);
+  return Register_SOFTMAX<softmax::Int8>();
 }
 
 TFLMRegistration Register_SOFTMAX_INT8_INT16() {
-  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt8_Int16);
+  return Register_SOFTMAX<softmax::Int8To16>();
 }
 
 TFLMRegistration Register_SOFTMAX_INT16() {
-  return tflite::micro::RegisterOp(Init, Prepare, SoftmaxEvalInt16);
+  return Register_SOFTMAX<softmax::Int16>();
 }
 
 }  // namespace micro

@@ -22,6 +22,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/testdata/conv_test_data.h"
 #include "tensorflow/lite/micro/micro_arena_constants.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helpers.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
@@ -1428,6 +1429,311 @@ TEST(ConvTest, Int8Filter8x3x3x3PerChannelScaleRelu6ShouldMatchGolden) {
                       output_dims_count, &conv_params,
                       tflite::Register_CONV_2D(), output_data,
                       1.0 /* tolerance */);
+}
+
+TEST(ConvTest, TypedAddConv2DInt8Only) {
+  tflite::MicroMutableOpResolver<1> resolver;
+  EXPECT_EQ(kTfLiteOk, resolver.AddConv2D<tflite::conv::Int8>());
+  const TFLMRegistration* registration =
+      resolver.FindOp(tflite::BuiltinOperator_CONV_2D);
+  ASSERT_NE(registration, nullptr);
+  EXPECT_EQ(registration->invoke, &tflite::micro::ConvEvalInt8);
+
+  const int output_dims_count = 12;
+  int8_t output_data[output_dims_count];
+
+  const float input_scale = 0.5f;
+  const float output_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+
+  int8_t input_quantized[tflite::testing::kInputElements];
+  int8_t filter_quantized[tflite::testing::kFilterElements];
+  int32_t bias_quantized[tflite::testing::kBiasElements];
+  int8_t golden_quantized[tflite::testing::kOutputElements];
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  // Should succeed on int8.
+  tflite::testing::TestConvQuantizedPerChannel(
+      tflite::testing::kInputShape, tflite::testing::kInputData,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::kFilterShape, tflite::testing::kFilterData,
+      filter_quantized, tflite::testing::kBiasShape, tflite::testing::kBiasData,
+      bias_quantized, scales, zero_points, tflite::testing::kOutputShape,
+      tflite::testing::kGoldenData, golden_quantized, output_scale,
+      output_zero_point, &tflite::testing::common_conv_params, *registration,
+      output_data);
+
+  // Should fail Prepare() on float32.
+  {
+    TfLiteIntArray* input_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kInputShape);
+    TfLiteIntArray* filter_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kFilterShape);
+    TfLiteIntArray* bias_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kBiasShape);
+    TfLiteIntArray* output_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kOutputShape);
+    float float_output[tflite::testing::kOutputElements];
+    TfLiteTensor float_tensors[4] = {
+        tflite::testing::CreateTensor(tflite::testing::kInputData, input_dims),
+        tflite::testing::CreateTensor(tflite::testing::kFilterData,
+                                      filter_dims),
+        tflite::testing::CreateTensor(tflite::testing::kBiasData, bias_dims),
+        tflite::testing::CreateTensor(float_output, output_dims),
+    };
+    tflite::testing::ValidateConvFailsDuringPrepare(
+        float_tensors, 4, &tflite::testing::common_conv_params, *registration,
+        float_output);
+  }
+
+  // Should fail Prepare() on int16x8.
+  {
+    TfLiteIntArray* input_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kInputShape);
+    TfLiteIntArray* filter_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kFilterShape);
+    TfLiteIntArray* bias_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kBiasShape);
+    TfLiteIntArray* output_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kOutputShape);
+    int16_t input_i16[tflite::testing::kInputElements] = {};
+    int8_t filter_i8[tflite::testing::kFilterElements] = {};
+    int64_t bias_i64[tflite::testing::kBiasElements] = {};
+    int16_t output_i16[tflite::testing::kOutputElements] = {};
+    TfLiteTensor i16_tensors[4] = {
+        tflite::testing::CreateQuantizedTensor(input_i16, input_dims, 0.5f, 0),
+        tflite::testing::CreateQuantizedTensor(filter_i8, filter_dims, 0.5f, 0),
+        tflite::testing::CreateTensor(bias_i64, bias_dims),
+        tflite::testing::CreateQuantizedTensor(output_i16, output_dims, 1.0f,
+                                               0),
+    };
+    tflite::testing::ValidateConvFailsDuringPrepare(
+        i16_tensors, 4, &tflite::testing::common_conv_params, *registration,
+        output_i16);
+  }
+
+  // Should fail Prepare() on output-type mismatch (input=int8, output=float32).
+  {
+    TfLiteIntArray* input_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kInputShape);
+    TfLiteIntArray* filter_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kFilterShape);
+    TfLiteIntArray* bias_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kBiasShape);
+    TfLiteIntArray* output_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kOutputShape);
+    int8_t input_i8[tflite::testing::kInputElements] = {};
+    int8_t filter_i8[tflite::testing::kFilterElements] = {};
+    int32_t bias_i32[tflite::testing::kBiasElements] = {};
+    float output_f32[tflite::testing::kOutputElements] = {};
+    TfLiteTensor mismatch_tensors[4] = {
+        tflite::testing::CreateQuantizedTensor(input_i8, input_dims, 0.5f, 0),
+        tflite::testing::CreateQuantizedTensor(filter_i8, filter_dims, 0.5f, 0),
+        tflite::testing::CreateTensor(bias_i32, bias_dims),
+        tflite::testing::CreateTensor(output_f32, output_dims),
+    };
+    tflite::testing::ValidateConvFailsDuringPrepare(
+        mismatch_tensors, 4, &tflite::testing::common_conv_params,
+        *registration, output_f32);
+  }
+}
+
+TEST(ConvTest, TypedAddConv2DInt8AndInt16x8) {
+  tflite::MicroMutableOpResolver<1> resolver;
+  EXPECT_EQ(kTfLiteOk,
+            (resolver.AddConv2D<tflite::conv::Int8, tflite::conv::Int16x8>()));
+  const TFLMRegistration* registration =
+      resolver.FindOp(tflite::BuiltinOperator_CONV_2D);
+  ASSERT_NE(registration, nullptr);
+  using ExpectedDispatcher =
+      tflite::OpDispatcher<tflite::Conv2DOp, tflite::conv::Int8,
+                           tflite::conv::Int16x8>;
+  EXPECT_EQ(registration->invoke, &ExpectedDispatcher::Eval);
+
+  const float input_scale = 0.5f;
+  const float output_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  // Should succeed on int8.
+  {
+    int8_t input_quantized[tflite::testing::kInputElements];
+    int8_t filter_quantized[tflite::testing::kFilterElements];
+    int32_t bias_quantized[tflite::testing::kBiasElements];
+    int8_t golden_quantized[tflite::testing::kOutputElements];
+    int8_t output_data[tflite::testing::kOutputElements];
+
+    tflite::testing::TestConvQuantizedPerChannel(
+        tflite::testing::kInputShape, tflite::testing::kInputData,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::kFilterShape, tflite::testing::kFilterData,
+        filter_quantized, tflite::testing::kBiasShape,
+        tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+        tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+        golden_quantized, output_scale, output_zero_point,
+        &tflite::testing::common_conv_params, *registration, output_data);
+  }
+
+  // Should succeed on int16x8.
+  {
+    int16_t input_quantized[tflite::testing::kInputElements];
+    int8_t filter_quantized[tflite::testing::kFilterElements];
+    std::int64_t bias_quantized[tflite::testing::kBiasElements];
+    int16_t golden_quantized[tflite::testing::kOutputElements];
+    int16_t output_data[tflite::testing::kOutputElements];
+
+    tflite::testing::TestConvQuantizedPerChannel(
+        tflite::testing::kInputShape, tflite::testing::kInputData,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::kFilterShape, tflite::testing::kFilterData,
+        filter_quantized, tflite::testing::kBiasShape,
+        tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+        tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+        golden_quantized, output_scale, output_zero_point,
+        &tflite::testing::common_conv_params, *registration, output_data);
+  }
+
+  // Should fail Prepare() on float32.
+  {
+    TfLiteIntArray* input_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kInputShape);
+    TfLiteIntArray* filter_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kFilterShape);
+    TfLiteIntArray* bias_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kBiasShape);
+    TfLiteIntArray* output_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kOutputShape);
+    float float_output[tflite::testing::kOutputElements];
+    TfLiteTensor float_tensors[4] = {
+        tflite::testing::CreateTensor(tflite::testing::kInputData, input_dims),
+        tflite::testing::CreateTensor(tflite::testing::kFilterData,
+                                      filter_dims),
+        tflite::testing::CreateTensor(tflite::testing::kBiasData, bias_dims),
+        tflite::testing::CreateTensor(float_output, output_dims),
+    };
+    tflite::testing::ValidateConvFailsDuringPrepare(
+        float_tensors, 4, &tflite::testing::common_conv_params, *registration,
+        float_output);
+  }
+}
+
+TEST(ConvTest, TypedAddConv2DInt8x4AndInt16x8BiasVariants) {
+  const float input_scale = 0.5f;
+  const float output_scale = 1.0f;
+  const int input_zero_point = 0;
+  const int output_zero_point = 0;
+  int zero_points[tflite::testing::kBiasElements + 1];
+  float scales[tflite::testing::kBiasElements + 1];
+
+  // 1. Single-type Int8x4 registration on 4-bit weights.
+  {
+    tflite::MicroMutableOpResolver<1> resolver;
+    EXPECT_EQ(kTfLiteOk, resolver.AddConv2D<tflite::conv::Int8x4>());
+    const TFLMRegistration* registration =
+        resolver.FindOp(tflite::BuiltinOperator_CONV_2D);
+    ASSERT_NE(registration, nullptr);
+    EXPECT_EQ(registration->invoke, &tflite::micro::ConvEvalInt8x4);
+
+    int8_t input_quantized[tflite::testing::kInputElements];
+    int8_t filter_quantized[tflite::testing::kFilterElements];
+    int32_t bias_quantized[tflite::testing::kBiasElements];
+    int8_t golden_quantized[tflite::testing::kOutputElements];
+    int8_t output_data[tflite::testing::kOutputElements];
+
+    tflite::testing::TestConvQuantizedPerChannel(
+        tflite::testing::kInputShape, tflite::testing::kInputData,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::kFilterShape, tflite::testing::kFilterData,
+        filter_quantized, tflite::testing::kBiasShape,
+        tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+        tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+        golden_quantized, output_scale, output_zero_point,
+        &tflite::testing::common_conv_params, *registration, output_data,
+        kTfLiteInt4);
+  }
+
+  // 2. Single-type Int16x8 registration with int32 bias and with nullptr bias
+  // (NumInputs == 2), exercising the CMSIS-NN bias-tensor allocation fix.
+  {
+    tflite::MicroMutableOpResolver<1> resolver;
+    EXPECT_EQ(kTfLiteOk, resolver.AddConv2D<tflite::conv::Int16x8>());
+    const TFLMRegistration* registration =
+        resolver.FindOp(tflite::BuiltinOperator_CONV_2D);
+    ASSERT_NE(registration, nullptr);
+    EXPECT_EQ(registration->invoke, &tflite::micro::ConvEvalInt16x8);
+
+    int16_t input_quantized[tflite::testing::kInputElements];
+    int8_t filter_quantized[tflite::testing::kFilterElements];
+    int32_t bias_quantized[tflite::testing::kBiasElements];
+    int16_t golden_quantized[tflite::testing::kOutputElements];
+    int16_t output_data[tflite::testing::kOutputElements];
+
+    // With int32 bias.
+    tflite::testing::TestConvQuantizedPerChannel(
+        tflite::testing::kInputShape, tflite::testing::kInputData,
+        input_quantized, input_scale, input_zero_point,
+        tflite::testing::kFilterShape, tflite::testing::kFilterData,
+        filter_quantized, tflite::testing::kBiasShape,
+        tflite::testing::kBiasData, bias_quantized, scales, zero_points,
+        tflite::testing::kOutputShape, tflite::testing::kGoldenData,
+        golden_quantized, output_scale, output_zero_point,
+        &tflite::testing::common_conv_params, *registration, output_data);
+
+    // Without bias tensor (2 inputs: input and filter only).
+    TfLiteIntArray* input_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kInputShape);
+    TfLiteIntArray* filter_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kFilterShape);
+    TfLiteIntArray* output_dims =
+        tflite::testing::IntArrayFromInts(tflite::testing::kOutputShape);
+    int filter_zero_points[5];
+    float filter_scales[5];
+    TfLiteAffineQuantization filter_quant;
+    TfLiteTensor input_tensor = tflite::testing::CreateQuantizedTensor(
+        tflite::testing::kInputData, input_quantized, input_dims, input_scale,
+        input_zero_point);
+    TfLiteTensor filter_tensor =
+        tflite::testing::CreateSymmetricPerChannelQuantizedTensor(
+            tflite::testing::kFilterData, filter_quantized, filter_dims,
+            filter_scales, filter_zero_points, &filter_quant,
+            0 /* quantized dimension */);
+    TfLiteTensor output_tensor = tflite::testing::CreateQuantizedTensor(
+        output_data, output_dims, output_scale, output_zero_point);
+
+    float input_scales[] = {1, input_scale};
+    int input_zps[] = {1, input_zero_point};
+    TfLiteAffineQuantization input_quant = {
+        tflite::testing::FloatArrayFromFloats(input_scales),
+        tflite::testing::IntArrayFromInts(input_zps), 0};
+    input_tensor.quantization = {kTfLiteAffineQuantization, &input_quant};
+
+    float output_scales[] = {1, output_scale};
+    int output_zps[] = {1, output_zero_point};
+    TfLiteAffineQuantization output_quant = {
+        tflite::testing::FloatArrayFromFloats(output_scales),
+        tflite::testing::IntArrayFromInts(output_zps), 0};
+    output_tensor.quantization = {kTfLiteAffineQuantization, &output_quant};
+
+    TfLiteTensor no_bias_tensors[3] = {input_tensor, filter_tensor,
+                                       output_tensor};
+    int inputs_array_data[] = {2, 0, 1};
+    TfLiteIntArray* inputs_array =
+        tflite::testing::IntArrayFromInts(inputs_array_data);
+    int outputs_array_data[] = {1, 2};
+    TfLiteIntArray* outputs_array =
+        tflite::testing::IntArrayFromInts(outputs_array_data);
+
+    tflite::micro::KernelRunner runner(*registration, no_bias_tensors, 3,
+                                       inputs_array, outputs_array,
+                                       &tflite::testing::common_conv_params);
+    ASSERT_EQ(kTfLiteOk, runner.InitAndPrepare(reinterpret_cast<const char*>(
+                             &tflite::testing::common_conv_params)));
+    ASSERT_EQ(kTfLiteOk, runner.Invoke());
+  }
 }
 
 TF_LITE_MICRO_TESTS_MAIN
