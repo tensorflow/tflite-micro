@@ -1,0 +1,100 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "TFLM_ENABLE_SIGNAL": "ON",
+        "TFLM_BUILD_TESTS": "ON",
+        "TFLM_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "default",
+      "inherits": "base",
+      "displayName": "Host Default (tflm::micro + tflm::signal + tests)",
+      "description": "RelWithDebInfo host build with tflm::signal and unit/example tests.",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "displayName": "Host Debug (assertions + unoptimized + -Werror)",
+      "description": "Unoptimized Debug build preserving TFLITE_DCHECK assertions with -Werror.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TFLM_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "core-only",
+      "inherits": "base",
+      "displayName": "Host Core Only (tflm::micro without KissFFT / signal)",
+      "description": "MinSizeRel host build of tflm::micro without tflm::signal or KissFFT.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "TFLM_ENABLE_SIGNAL": "OFF"
+      }
+    },
+    {
+      "name": "ci",
+      "inherits": "base",
+      "displayName": "Host CI (RelWithDebInfo + -Werror)",
+      "description": "RelWithDebInfo host build with -Werror and unit/example tests.",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "TFLM_WARNINGS_AS_ERRORS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "default", "configurePreset": "default" },
+    { "name": "debug", "configurePreset": "debug" },
+    { "name": "core-only", "configurePreset": "core-only" },
+    { "name": "ci", "configurePreset": "ci" }
+  ],
+  "testPresets": [
+    { "name": "base", "hidden": true, "output": { "outputOnFailure": true } },
+    { "name": "default", "inherits": "base", "configurePreset": "default" },
+    { "name": "debug", "inherits": "base", "configurePreset": "debug" },
+    { "name": "core-only", "inherits": "base", "configurePreset": "core-only" },
+    { "name": "ci", "inherits": "base", "configurePreset": "ci" }
+  ],
+  "workflowPresets": [
+    {
+      "name": "default",
+      "steps": [
+        { "type": "configure", "name": "default" },
+        { "type": "build", "name": "default" },
+        { "type": "test", "name": "default" }
+      ]
+    },
+    {
+      "name": "debug",
+      "steps": [
+        { "type": "configure", "name": "debug" },
+        { "type": "build", "name": "debug" },
+        { "type": "test", "name": "debug" }
+      ]
+    },
+    {
+      "name": "core-only",
+      "steps": [
+        { "type": "configure", "name": "core-only" },
+        { "type": "build", "name": "core-only" },
+        { "type": "test", "name": "core-only" }
+      ]
+    },
+    {
+      "name": "ci",
+      "steps": [
+        { "type": "configure", "name": "ci" },
+        { "type": "build", "name": "ci" },
+        { "type": "test", "name": "ci" }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 /bazel-*
+/build/
 /compile_commands.json
 *.swp
 .vscode/

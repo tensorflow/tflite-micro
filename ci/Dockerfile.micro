@@ -15,7 +15,7 @@
 #
 # --- Build and upload to GHCR.IO ---
 # (Run from the root of the TFLM repository)
-#   export TFLM_CI_VERSION=0.7.0
+#   export TFLM_CI_VERSION=0.7.1
 #   docker build --no-cache -f ci/Dockerfile.micro -t ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION .
 #   docker push ghcr.io/tflm-bot/tflm-ci:$TFLM_CI_VERSION
 #
@@ -30,10 +30,12 @@ FROM python:3.11-bookworm
 
 # Install all required system dependencies
 RUN apt-get update && apt-get install -y \
+    cmake \
     curl \
     git \
     gnupg \
     lsb-release \
+    ninja-build \
     software-properties-common \
     sudo \
     wget \
