@@ -60,7 +60,6 @@ DEPENDENCIES = {
     name="flatbuffers",
     url="https://github.com/google/flatbuffers/archive/refs/tags/v25.9.23.zip",
     md5="023eca1e211d64007124420cd6be29c7",
-    patch="tensorflow/lite/micro/tools/make/flatbuffers.patch",
     dep_type="archive",
   ),
   "kissfft": Dependency(
