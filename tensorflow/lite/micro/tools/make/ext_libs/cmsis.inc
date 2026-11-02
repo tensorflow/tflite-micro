@@ -8,10 +8,7 @@ CMSIS_PATH := $(CMSIS_DEFAULT_DOWNLOAD_PATH)
 CORTEX_DFP_PATH := $(CMSIS_PATH)/Cortex_DFP
 
 ifeq ($(CMSIS_PATH), $(CMSIS_DEFAULT_DOWNLOAD_PATH))
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the CMSIS download: $(DOWNLOAD_RESULT))
-  endif
+  $(eval $(call ensure_third_party_deps,cmsis))
 endif
 
 endif

@@ -153,31 +153,27 @@ if [[ ${XTENSA_CORE} ]]; then
 fi
 substitute_strings target_info_strings "${result}"
 
-download_scripts=()
-download_script_args=( "--no-downloads" )
+dep_names=()
 if [[ ${OPTIMIZED_KERNEL} == "cmsis_nn" ]]; then
-  download_scripts+=( "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/ext_libs/cmsis_nn_download.sh" )
-  download_script_args+=( "${TENSORFLOW_ROOT}" )
+  dep_names+=( "cmsis_nn" )
 elif [[ ${OPTIMIZED_KERNEL} == "xtensa" ]]; then
-  download_script_args+=( "${TARGET_ARCH}" "${TENSORFLOW_ROOT}" )
-  if [[ ${TARGET_ARCH} =~ ^(vision_p6)$ ]]; then
-    download_scripts+=( "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/ext_libs/xtensa_download.sh" )
-  elif [[ ${TARGET_ARCH} =~ ^(hifi3|hifi4|hifi5)$ ]]; then
-    download_scripts+=( "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/ext_libs/xtensa_download.sh" )
-    download_scripts+=( "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/ext_libs/xtensa_ndsp_download.sh" )
+  if [[ ${TARGET_ARCH} == "vision_p6" ]]; then
+    dep_names+=( "xi_tflmlib_vision_p6" )
+  elif [[ ${TARGET_ARCH} == "hifi3" ]]; then
+    dep_names+=( "xa_nnlib_hifi4" "ndsplib-hifi3" )
+  elif [[ ${TARGET_ARCH} == "hifi4" ]]; then
+    dep_names+=( "xa_nnlib_hifi4" "ndsplib-hifi4" )
+  elif [[ ${TARGET_ARCH} == "hifi5" ]]; then
+    dep_names+=( "xa_nnlib_hifi5" "ndsplib-hifi5" )
   fi
 fi
 
-if [[ ${#download_scripts[@]} -gt 0 ]]; then
-  results_url=
-  results_md5=
-  for script in "${download_scripts[@]}"; do
-    results=$("${script}" "${download_script_args[@]}" 2>&1)
-    url=$(sed -rn 's/^LIBRARY_URL=(.*)$/\1/p' <<< "${results}")
-    results_url+=$(printf '\n%s' "${url}")
-    md5=$(sed -rn 's/^LIBRARY_MD5=(.*)$/\1/p' <<< "${results}")
-    results_md5+=$(printf '\n%s' "${md5}")
-  done
+if [[ ${#dep_names[@]} -gt 0 ]]; then
+  results=$(python3 \
+    "${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/download_dependencies.py" \
+    --print_metadata "${dep_names[@]}")
+  results_url=$(sed -En 's/^LIBRARY_URL=(.*)$/\1/p' <<< "${results}")
+  results_sha256=$(sed -En 's/^LIBRARY_SHA256=(.*)$/\1/p' <<< "${results}")
   substitute_strings nn_library_url_strings "${results_url}"
-  substitute_strings nn_library_md5_strings "${results_md5}"
+  substitute_strings nn_library_sha256_strings "${results_sha256}"
 fi

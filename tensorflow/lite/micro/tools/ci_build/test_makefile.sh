@@ -21,6 +21,28 @@ ROOT_DIR=${SCRIPT_DIR}/../../../../..
 cd "${ROOT_DIR}"
 pwd
 
+# Run hermetic unit and Bazel parity tests for the Make dependency downloader.
+python3 tensorflow/lite/micro/tools/make/download_dependencies_test.py
+
+# Verify clean targets do not trigger third-party downloads.
+CLEAN_TEST_DL_DIR="$(mktemp -d)/non_existent_downloads"
+make -f tensorflow/lite/micro/tools/make/Makefile \
+  TARGET=cortex_m_corstone_300 TARGET_ARCH=cortex-m55 \
+  DOWNLOADS_DIR="${CLEAN_TEST_DL_DIR}" clean
+if [[ -d "${CLEAN_TEST_DL_DIR}" ]]; then
+  echo "'make clean' unexpectedly created ${CLEAN_TEST_DL_DIR}."
+  rm -rf "$(dirname "${CLEAN_TEST_DL_DIR}")"
+  exit 1
+fi
+rm -rf "$(dirname "${CLEAN_TEST_DL_DIR}")"
+
+# Verify combining clean_downloads with build targets fails explicitly.
+if make -f tensorflow/lite/micro/tools/make/Makefile \
+  clean_downloads third_party_downloads &> /dev/null ; then
+  echo "'make clean_downloads third_party_downloads' should have failed."
+  exit 1
+fi
+
 # Check that an incorrect optimized kernel directory results in an error.
 # Without such an error, an incorrect optimized kernel directory can result in
 # an unexpected fallback to reference kernels and which can be hard to debug. We

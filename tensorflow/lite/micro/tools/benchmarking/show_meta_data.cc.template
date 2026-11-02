@@ -96,8 +96,8 @@ const char* nn_library_url_strings[] = {
     // %%%_nn_library_url_strings_%%%
 };
 
-const char* nn_library_md5_strings[] = {
-    // %%%_nn_library_md5_strings_%%%
+const char* nn_library_sha256_strings[] = {
+    // %%%_nn_library_sha256_strings_%%%
 };
 #endif  // defined(CMSIS_NN) || defined(HIFI3) || defined(HIFI4) ||
         // defined(HIFI5) || defined(VISION_P6)
@@ -149,8 +149,8 @@ void GenericBenchmarkShowMetaData() {
   ShowSeparator();
   ShowStrings("NN library download URLs:\n\n", nn_library_url_strings,
               std::extent<decltype(nn_library_url_strings)>::value);
-  ShowStrings("\nNN library MD5 checksums:\n\n", nn_library_md5_strings,
-              std::extent<decltype(nn_library_md5_strings)>::value);
+  ShowStrings("\nNN library SHA256 checksums:\n\n", nn_library_sha256_strings,
+              std::extent<decltype(nn_library_sha256_strings)>::value);
 #endif  // defined(CMSIS_NN) || defined(HIFI3) || defined(HIFI4) ||
         // defined(HIFI5) || defined(VISION_P6)
 

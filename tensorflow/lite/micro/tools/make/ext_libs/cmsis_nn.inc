@@ -17,10 +17,7 @@ include $(MAKEFILE_DIR)/ext_libs/cmsis.inc
 CMSIS_NN_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/cmsis_nn
 CMSIS_NN_PATH := $(CMSIS_NN_DEFAULT_DOWNLOAD_PATH)
 ifeq ($(CMSIS_NN_PATH), $(CMSIS_NN_DEFAULT_DOWNLOAD_PATH))
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/cmsis_nn_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT})
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the CMSIS-NN download: $(DOWNLOAD_RESULT))
-  endif
+  $(eval $(call ensure_third_party_deps,cmsis_nn))
 endif
 
 # TODO: Support float

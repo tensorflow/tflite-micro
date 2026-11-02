@@ -1,5 +1,3 @@
-DOWNLOAD_SCRIPT := $(MAKEFILE_DIR)/download_and_extract.sh
-
 #Handles the details of calculating the size of a binary target.
 #
 #Arguments are:
@@ -97,28 +95,25 @@ endif
 
 endef
 
-# Adds a dependency for a third-party library that needs to be downloaded from
-# an external source.
-# Arguments are:
-# 1 - URL to download archive file from (can be .zip, .tgz, or .bz).
-# 2 - MD5 sum of archive, to check integrity. Use md5sum tool to generate.
-# 3 - Folder name to unpack library into, inside tf/l/x/m/t/downloads root.
-# 4 - Optional post-download action, must match clause in download_and_extract.sh.
-# 5 - Optional post-download action parameter
-# These arguments are packed into a single '!' separated string, so no element
-# can contain a '!'.
-define add_third_party_download
-THIRD_PARTY_DOWNLOADS += $(1)!$(2)!$(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/make/downloads/$(3)!$(4)!$(5)
-endef
-
-# Unpacks an entry in a list of strings created by add_third_party_download, and
-# defines a dependency rule to download the library. The download_and_extract.sh
-# script is used to handle to downloading and unpacking.
-# 1 - Information about the library, separated by '!'s.
-define create_download_rule
-$(word 3, $(subst !, ,$(1))):
-	$(DOWNLOAD_SCRIPT) $(subst !, ,$(1))
-THIRD_PARTY_TARGETS += $(word 3, $(subst !, ,$(1)))
+# Downloads named dependencies via download_dependencies.py during Makefile
+# evaluation (unless SKIP_DOWNLOADS=1) and records standalone package names in
+# TFLM_THIRD_PARTY_DEPS for the third_party_downloads target.
+# Arguments:
+#   1 - Space-separated dependency name(s)
+#   2 - Optional extra CLI flags (e.g. --dest_name foo --cc bar)
+define ensure_third_party_deps
+$(if $(findstring --dest_name,$(2)),,TFLM_THIRD_PARTY_DEPS += $(1))
+ifneq ($$(SKIP_DOWNLOADS), 1)
+  DOWNLOAD_RESULT := $$(shell python3 $$(MAKEFILE_DIR)/download_dependencies.py \
+    --downloads_dir "$$(DOWNLOADS_DIR)" \
+    --tensorflow_root "$$(TENSORFLOW_ROOT)" \
+    --host_os "$$(HOST_OS)" \
+    --host_arch "$$(HOST_ARCH)" \
+    $(2) $(1))
+  ifneq ($$(DOWNLOAD_RESULT), SUCCESS)
+    $$(error Something went wrong with downloading $(1): $$(DOWNLOAD_RESULT))
+  endif
+endif
 endef
 
 # Recursively find all files of given pattern
