@@ -57,11 +57,13 @@ $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/vector_downward.h \
 $(DOWNLOADS_DIR)/flatbuffers/include/flatbuffers/verifier.h \
 $(DOWNLOADS_DIR)/flatbuffers/LICENSE \
 $(DOWNLOADS_DIR)/kissfft/COPYING \
+$(DOWNLOADS_DIR)/kissfft/LICENSES/BSD-3-Clause \
 $(DOWNLOADS_DIR)/kissfft/kiss_fft.c \
 $(DOWNLOADS_DIR)/kissfft/kiss_fft.h \
 $(DOWNLOADS_DIR)/kissfft/_kiss_fft_guts.h \
-$(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.c \
-$(DOWNLOADS_DIR)/kissfft/tools/kiss_fftr.h
+$(DOWNLOADS_DIR)/kissfft/kiss_fft_log.h \
+$(DOWNLOADS_DIR)/kissfft/kiss_fftr.c \
+$(DOWNLOADS_DIR)/kissfft/kiss_fftr.h
 
 # These two must be defined before we include the target specific Makefile.inc
 # because we filter out the examples that are not supported for those targets.

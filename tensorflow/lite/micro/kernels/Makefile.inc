@@ -64,6 +64,9 @@ $(eval $(call microlite_test,kernel_signal_fft_test,\
   $(TENSORFLOW_ROOT)signal/testdata/fft_test_data.cc, \
   $(TENSORFLOW_ROOT)signal/micro/kernels/fft_flexbuffers_generated_data.h))
 
+$(eval $(call microlite_test,signal_kiss_fft_wrappers_test,\
+  $(TENSORFLOW_ROOT)signal/src/kiss_fft_wrappers/kiss_fft_wrappers_test.cc))
+
 $(eval $(call microlite_test,kernel_signal_framer_test,\
   $(TENSORFLOW_ROOT)signal/micro/kernels/framer_test.cc \
   $(TENSORFLOW_ROOT)signal/micro/kernels/framer_flexbuffers_generated_data.cc, \
