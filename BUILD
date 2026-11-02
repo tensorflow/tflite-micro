@@ -1,5 +1,13 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@rules_license//rules:license.bzl", "license")
 load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_applicable_licenses = ["//:license"])
+
+license(
+    name = "license",
+    package_name = "tflite_micro",
+)
 
 # `bazel run` this target to generate compile_commands.json, which can be used
 # by various tools like editors and LSPs to provide features like intelligent

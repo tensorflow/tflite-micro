@@ -6,6 +6,7 @@ load(
 )
 
 package(
+    default_applicable_licenses = ["//:license"],
     features = ["parse_headers"],
     licenses = ["notice"],
 )

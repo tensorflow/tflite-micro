@@ -81,16 +81,8 @@ else
   MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
 endif
 
-# For bluepill, the CI build is failing due to introduction of the
-# introduction of test_run_latency.sh script. Looks at
-# https://b.corp.google.com/issues/268565399#comment11 for more details.
-ifneq ($(TARGET), bluepill)
 test_$(1):$$($(1)_BINARY)
 	$(MAKEFILE_DIR)/test_latency_log.sh $(1) $$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
-else
-test_$(1):$$($(1)_BINARY)
-	$$(TEST_SCRIPT) $$($(1)_BINARY) $$(TEST_PASS_STRING) $$(TARGET)
-endif
 
 else
 MICROLITE_BUILD_TARGETS += $$($(1)_BINARY)
@@ -111,8 +103,8 @@ endef
 # 1 - URL to download archive file from (can be .zip, .tgz, or .bz).
 # 2 - MD5 sum of archive, to check integrity. Use md5sum tool to generate.
 # 3 - Folder name to unpack library into, inside tf/l/x/m/t/downloads root.
-# 4 - Optional patching action, must match clause in download_and_extract.sh.
-# 5 - Optional patching action parameter
+# 4 - Optional post-download action, must match clause in download_and_extract.sh.
+# 5 - Optional post-download action parameter
 # These arguments are packed into a single '!' separated string, so no element
 # can contain a '!'.
 define add_third_party_download

@@ -1,6 +1,7 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//python/tflite_micro/signal:__subpackages__"],
     licenses = ["notice"],
 )
@@ -10,10 +11,10 @@ cc_library(
     srcs = ["kernel_utils.cc"],
     hdrs = ["kernel_utils.h"],
     deps = [
-        "//third_party/tf_c_headers:kernels",
-        "//third_party/tf_c_headers:tf_datatype",
-        "//third_party/tf_c_headers:tf_status",
-        "//third_party/tf_c_headers:tf_tensor",
+        "//third_party/tensorflow/c:kernels",
+        "//third_party/tensorflow/c:tf_datatype",
+        "//third_party/tensorflow/c:tf_status",
+        "//third_party/tensorflow/c:tf_tensor",
     ],
 )
 
@@ -23,7 +24,7 @@ cc_library(
     deps = [
         ":kernel_utils",
         "//signal/src:circular_buffer",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )
@@ -35,7 +36,7 @@ cc_library(
         ":kernel_utils",
         "//signal/src:complex",
         "//signal/src:energy",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )
@@ -48,8 +49,8 @@ cc_library(
         "//signal/src:fft_auto_scale",
         "//signal/src:irfft",
         "//signal/src:rfft",
-        "//third_party/tf_c_headers:kernels",
-        "//third_party/tf_c_headers:tf_datatype",
+        "//third_party/tensorflow/c:kernels",
+        "//third_party/tensorflow/c:tf_datatype",
     ],
     alwayslink = True,
 )
@@ -63,7 +64,7 @@ cc_library(
         "//signal/src:filter_bank_log",
         "//signal/src:filter_bank_spectral_subtraction",
         "//signal/src:filter_bank_square_root",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )
@@ -74,7 +75,7 @@ cc_library(
     deps = [
         ":kernel_utils",
         "//signal/src:circular_buffer",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )
@@ -85,8 +86,8 @@ cc_library(
     deps = [
         ":kernel_utils",
         "//signal/src:overlap_add",
-        "//third_party/tf_c_headers:kernels",
-        "//third_party/tf_c_headers:tf_datatype",
+        "//third_party/tensorflow/c:kernels",
+        "//third_party/tensorflow/c:tf_datatype",
     ],
     alwayslink = True,
 )
@@ -97,7 +98,7 @@ cc_library(
     deps = [
         ":kernel_utils",
         "//signal/src:pcan_argc_fixed",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )
@@ -108,7 +109,7 @@ cc_library(
     deps = [
         ":kernel_utils",
         "//signal/src:circular_buffer",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )
@@ -119,7 +120,7 @@ cc_library(
     deps = [
         ":kernel_utils",
         "//signal/src:window",
-        "//third_party/tf_c_headers:kernels",
+        "//third_party/tensorflow/c:kernels",
     ],
     alwayslink = True,
 )

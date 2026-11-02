@@ -337,8 +337,8 @@ $(HOST_OS)
 # having passed.
 TEST_PASS_STRING := '~~~ALL TESTS PASSED~~~'
 
-# $(TARGET)_makefile.inc can set this to true to allow it to defined a custom
-# implementation for `make test`. See bluepill_makefile as an example.
+# $(TARGET)_makefile.inc can set this to true to allow it to define a custom
+# implementation for `make test`. See arc_custom_makefile.inc as an example.
 TARGET_SPECIFIC_MAKE_TEST := 0
 
 ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)

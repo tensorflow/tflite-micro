@@ -28,7 +28,7 @@ limitations under the License.
 // equivalent function for your own platform, create your own implementation
 // file, and place it in a subfolder with named after the OS you're targeting.
 // For example, see the Cortex M bare metal version in the
-// tensorflow/lite/micro/bluepill/debug_log.cc file.
+// tensorflow/lite/micro/cortex_m_generic/debug_log.cc file.
 
 #include "tensorflow/lite/micro/debug_log.h"
 

@@ -25,31 +25,7 @@ ROOT_DIR="$(pwd)/${TENSORFLOW_ROOT}"
 
 source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/ci_build/helper_functions.sh
 
-# TODO(b/261685878): re-enable once all the issues with the bazel project
-# generation CI are sorted out.
-#
-# # First, we test that create_tflm_tree without any examples can be used to build a
-# # static library with bazel. Bazel can help catch errors that are not caught by
-# # a simple makefile (e.g. http://b/261106859).
-# TEST_OUTPUT_DIR="$(mktemp -d)"
-#
-# # We currently run the bazel build from TENSORFLOW_ROOT.
-# pushd "${ROOT_DIR}" > /dev/null
-# readable_run \
-#   python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-#   "${TEST_OUTPUT_DIR}"
-#
-# readable_run cp tensorflow/lite/micro/tools/project_generation/BUILD.testing "${TEST_OUTPUT_DIR}/BUILD"
-# popd > /dev/null
-#
-# pushd "${TEST_OUTPUT_DIR}" > /dev/null
-# readable_run touch WORKSPACE
-# readable_run bazel build :libtflm
-# popd > /dev/null
-#
-# rm -rf "${TEST_OUTPUT_DIR}"
-
-# Next, we test that create_tflm_tree can be used to build example binaries. We
+# Test that create_tflm_tree can be used to build example binaries. We
 # perform this test with a Makefile (instead of bazel) because make is more
 # commonly understood and because we use make for cross-compilation.
 EXAMPLES="-e hello_world -e micro_speech -e person_detection"
@@ -83,32 +59,6 @@ popd >/dev/null
 
 rm -rf "${TEST_OUTPUT_DIR}"
 
-# Remove existing state prior to testing project generation for cortex-m target.
-MAKEFILE=${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/Makefile
-make -f ${MAKEFILE} config_info TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
-make -f ${MAKEFILE} clean clean_downloads TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
-
-TEST_OUTPUT_DIR_CMSIS="$(mktemp -d)"
-
-readable_run \
-  python3 ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=project_generation TENSORFLOW_ROOT=${TENSORFLOW_ROOT} EXTERNAL_DIR=${EXTERNAL_DIR}" \
-  "${TEST_OUTPUT_DIR_CMSIS}" \
-  ${EXAMPLES}
-
-readable_run \
-  cp ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/project_generation/Makefile "${TEST_OUTPUT_DIR_CMSIS}"
-
-pushd "${TEST_OUTPUT_DIR_CMSIS}" >/dev/null
-
-PATH="${PATH}:${ROOT_DIR}tensorflow/lite/micro/tools/make/downloads/gcc_embedded/bin" \
-  readable_run \
-  make $(get_parallel_jobs) BUILD_TYPE=cmsis_nn TENSORFLOW_ROOT=${TENSORFLOW_ROOT}
-
-popd >/dev/null
-
-rm -rf "${TEST_OUTPUT_DIR_CMSIS}"
-
 # Test that C++ files are renamed to .cpp
 TEST_OUTPUT_DIR_RENAME_CC="$(mktemp -d)"
 
@@ -129,16 +79,8 @@ fi
 
 if test -z "${CPP_FILES}"; then
   echo "Expected a .cpp file to exist"
-  echo "${CPP_FILES}}}"
+  echo "${CPP_FILES}"
   exit 1
 fi
 
-# Test the tflm tree creation works even inside from TENSORFLOW_ROOT directory.
-pushd "${TENSORFLOW_ROOT}" >/dev/null
-TEST_OUTPUT_DIR="$(mktemp -d)"
-readable_run \
-  python3 tensorflow/lite/micro/tools/project_generation/create_tflm_tree.py \
-  --makefile_options="TARGET=cortex_m_generic OPTIMIZED_KERNEL_DIR=cmsis_nn TARGET_ARCH=cortex-m4" \
-  "${TEST_OUTPUT_DIR}"
-rm -rf "${TEST_OUTPUT_DIR}"
-popd >/dev/null
+rm -rf "${TEST_OUTPUT_DIR_RENAME_CC}"

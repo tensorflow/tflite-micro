@@ -5,6 +5,8 @@ load(
     "tflm_defines",
 )
 
+package(default_applicable_licenses = ["//:license"])
+
 tflm_cc_library(
     name = "op_resolver",
     hdrs = ["op_resolver.h"],

@@ -8,6 +8,7 @@ bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_platform", version = "0.1.0")
 bazel_dep(name = "rules_python", version = "1.9.2")
 bazel_dep(name = "rules_shell", version = "0.8.0")
@@ -28,9 +29,9 @@ http_archive(
 
 http_archive(
     name = "kissfft",
-    build_file = "//third_party/kissfft:BUILD.bazel",
+    build_file = "//third_party/kissfft:kissfft.BUILD",
     patch_args = ["-p1"],
-    patches = ["//third_party/kissfft:kissfft.patch"],
+    patches = ["//tensorflow/lite/micro/tools:make/kissfft.patch"],
     sha256 = "ac2259f84e372a582270ed7c7b709d02e6ca9c7206e40bb58de6ef77f6474872",
     strip_prefix = "kissfft-130",
     urls = ["https://github.com/mborgerding/kissfft/archive/refs/tags/v130.zip"],

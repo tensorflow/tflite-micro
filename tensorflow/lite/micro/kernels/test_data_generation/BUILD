@@ -1,6 +1,7 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 
 package(
+    default_applicable_licenses = ["//:license"],
     licenses = ["notice"],
 )
 
@@ -10,7 +11,7 @@ cc_binary(
         "generate_detection_postprocess_flexbuffers_data.cc",
     ],
     deps = [
-        "@flatbuffers",
+        "//third_party/flatbuffers",
     ],
 )
 
@@ -20,6 +21,6 @@ cc_binary(
         "generate_circular_buffer_flexbuffers_data.cc",
     ],
     deps = [
-        "@flatbuffers",
+        "//third_party/flatbuffers",
     ],
 )

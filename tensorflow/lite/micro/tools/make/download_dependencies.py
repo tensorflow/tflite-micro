@@ -67,7 +67,7 @@ DEPENDENCIES = {
     name="kissfft",
     url="https://github.com/mborgerding/kissfft/archive/refs/tags/v130.zip",
     md5="438ba1fef5783cc5f5f201395cc477ca",
-    patch="third_party/kissfft/kissfft.patch",
+    patch="tensorflow/lite/micro/tools/make/kissfft.patch",
     dep_type="archive",
   ),
   "eyalroz_printf": Dependency(

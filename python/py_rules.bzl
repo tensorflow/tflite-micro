@@ -23,7 +23,6 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_python//python:packaging.bzl", _py_package = "py_package", _py_wheel = "py_wheel")
 load("@rules_python//python:pip.bzl", _compile_pip_requirements = "compile_pip_requirements")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 
 compile_pip_requirements = _compile_pip_requirements
@@ -187,7 +186,7 @@ def tflm_signal_op_test(
         tags = common_tags,
         target_compatible_with = target_compatible_with,
         deps = deps + [
-            requirement("ai-edge-litert"),
+            "//third_party/tensorflow/lite/python:lite",
         ],
         **kwargs
     )

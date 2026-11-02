@@ -10,7 +10,6 @@ platform.
 -   [Person Detection Benchmark](#person-detection-benchmark)
 -   [Run on x86](#run-on-x86)
 -   [Run on Xtensa XPG Simulator](#run-on-xtensa-xpg-simulator)
--   [Run on Sparkfun Edge](#run-on-sparkfun-edge)
 -   [Run on FVP based on Arm Corstone-300 software](#run-on-fvp-based-on-arm-corstone-300-software)
 
 ## Keyword benchmark
@@ -22,7 +21,7 @@ the accuracy of optimized kernels, please run the kernel tests.
 
 ## Person detection benchmark
 
-The keyword benchmark provides a way to evaluate the performance of the 250KB
+The person detection benchmark provides a way to evaluate the performance of the 250KB
 visual wakewords model.
 
 ## Run on x86
@@ -47,23 +46,6 @@ Xtensa toolchain and license.  With these set up, run:
 ```
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa OPTIMIZED_KERNEL_DIR=xtensa TARGET_ARCH=<target architecture> XTENSA_CORE=<xtensa core> run_keyword_benchmark -j18
 ```
-
-## Run on Sparkfun Edge
-The following instructions will help you build and deploy this benchmark on the
-[SparkFun Edge development board](https://sparkfun.com/products/15170).
-
-
-If you're new to using this board, we recommend walking through the
-[AI on a microcontroller with TensorFlow Lite and SparkFun Edge](https://codelabs.developers.google.com/codelabs/sparkfun-tensorflow)
-codelab to get an understanding of the workflow.
-
-Build binary using
-
-```
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=sparkfun_edge person_detection_benchmark_bin
-```
-
-Refer to flashing instructions in the [Person Detection Example](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/examples/person_detection/README.md#running-on-sparkfun-edge).
 
 ## Run on FVP based on Arm Corstone-300 software
 

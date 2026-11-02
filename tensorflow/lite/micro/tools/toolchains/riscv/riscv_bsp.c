@@ -14,16 +14,39 @@ limitations under the License.
 ==============================================================================*/
 
 #include <stdint.h>
+#include <sys/time.h>
 #include <sys/times.h>
 
+// Provides _times() for bare-metal RV32IMC toolchains whose libgloss omits it
+// (such as SiFive GCC 8.1), using semihosted gettimeofday() so ticks match
+// Newlib's CLOCKS_PER_SEC = 1,000,000 (1 us) under QEMU and falling back to
+// rdcycle on pure bare-metal targets.
 __attribute__((weak)) clock_t _times(struct tms* buf) {
-  uint32_t cycles;
-  __asm__ volatile("rdcycle %0" : "=r"(cycles));
+  static time_t base_sec = 0;
+  static int initialized = 0;
+  struct timeval tv;
+  clock_t ticks;
+  if (gettimeofday(&tv, 0) == 0) {
+    if (!initialized) {
+      base_sec = tv.tv_sec;
+      initialized = 1;
+    }
+    uint64_t us =
+        (uint64_t)(tv.tv_sec - base_sec) * 1000000ULL + (uint64_t)tv.tv_usec;
+    ticks = (clock_t)us;
+  } else {
+    uint32_t cycles;
+    __asm__ volatile("rdcycle %0" : "=r"(cycles));
+    ticks = (clock_t)cycles;
+  }
+  if (ticks == (clock_t)-1) {
+    ticks = 0;
+  }
   if (buf != 0) {
-    buf->tms_utime = cycles;
+    buf->tms_utime = ticks;
     buf->tms_stime = 0;
     buf->tms_cutime = 0;
     buf->tms_cstime = 0;
   }
-  return (clock_t)cycles;
+  return ticks;
 }

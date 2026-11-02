@@ -1,5 +1,4 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//python:py_rules.bzl",
     "py_tflm_signal_library",
@@ -10,6 +9,7 @@ load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
 load("//tensorflow/lite/micro:extra_rules.bzl", "tflm_signal_friends")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = [":__subpackages__"],
     licenses = ["notice"],
 )
@@ -75,7 +75,7 @@ tflm_signal_op_test(
     srcs = ["ops/delay_op_test.py"],
     deps = [
         ":delay_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -100,7 +100,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":energy_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -125,7 +125,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":fft_ops",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -156,7 +156,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":filter_bank_ops",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -181,7 +181,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":framer_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -203,7 +203,7 @@ tflm_signal_op_test(
     srcs = ["ops/overlap_add_op_test.py"],
     deps = [
         ":overlap_add_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -228,7 +228,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":pcan_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -253,7 +253,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":stacker_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -277,7 +277,7 @@ tflm_signal_op_test(
     ],
     deps = [
         ":window_op",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -291,6 +291,6 @@ tflm_signal_op_test(
         ":overlap_add_op",
         ":window_op",
         "//python/tflite_micro/signal/utils:util",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )

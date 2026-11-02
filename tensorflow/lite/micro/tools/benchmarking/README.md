@@ -67,7 +67,7 @@ make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_b
 ```
 
 For more information on model compression, please see the
-[compression document](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/compression.md).
+[compression document](https://github.com/tensorflow/tflite-micro/blob/main/docs/compression.md).
 
 ## Build and run for x86
 Build for command line arguments:

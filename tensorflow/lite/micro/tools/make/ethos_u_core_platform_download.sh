@@ -51,23 +51,35 @@ else
     exit 1
   fi
 
-  git clone "https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform" ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
+  if [ -n "${ETHOS_U_CORE_PLATFORM_SRC}" ] && [ -d "${ETHOS_U_CORE_PLATFORM_SRC}" ]; then
+    echo >&2 "Using pre-baked ethos_u_core_platform from ${ETHOS_U_CORE_PLATFORM_SRC}"
+    mkdir -p "${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}"
+    cp -R "${ETHOS_U_CORE_PLATFORM_SRC}/." "${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/"
+  else
+    git clone "https://gitlab.arm.com/artificial-intelligence/ethos-u/ethos-u-core-platform" ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} >&2
+    pushd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} > /dev/null
+    git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
+    rm -rf .git
+    popd > /dev/null
+  fi
+
   pushd ${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH} > /dev/null
-  git checkout e25a89dec1cf990f3168dbd6c565e3b0d51cb151 >&2
-  rm -rf .git
   create_git_repo ./
   apply_patch_to_folder ./ ../../ethos_u_core_platform.patch "TFLM patch"
   popd > /dev/null
 
   LINKER_PATH=${DOWNLOADED_ETHOS_U_CORE_PLATFORM_PATH}/targets/corstone-300
 
-  # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is downloaded first.
-  COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
-  if [ ! -f ${COMPILER} ]; then
-    RETURN_VALUE=`${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/arm_gcc_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT}`
-    if [ "SUCCESS" != "${RETURN_VALUE}" ]; then
-      echo "The script ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/arm_gcc_download.sh failed."
-      exit 1
+  # Run C preprocessor on linker file to get rid of ifdefs and make sure compiler is available first.
+  COMPILER="$(command -v arm-none-eabi-gcc || true)"
+  if [ -z "${COMPILER}" ]; then
+    COMPILER=${DOWNLOADS_DIR}/gcc_embedded/bin/arm-none-eabi-gcc
+    if [ ! -f ${COMPILER} ]; then
+      RETURN_VALUE=`${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/arm_gcc_download.sh ${DOWNLOADS_DIR} ${TENSORFLOW_ROOT}`
+      if [ "SUCCESS" != "${RETURN_VALUE}" ]; then
+        echo "The script ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/arm_gcc_download.sh failed."
+        exit 1
+      fi
     fi
   fi
   ${COMPILER} -E -x c -P -o ${LINKER_PATH}/platform_parsed.ld ${LINKER_PATH}/platform.ld

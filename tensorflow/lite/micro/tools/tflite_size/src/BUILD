@@ -7,6 +7,7 @@ load(
 load("//tensorflow/lite/micro:build_def.bzl", "tflm_cc_library")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],
 )
@@ -23,7 +24,7 @@ tflm_cc_library(
     ],
     deps = [
         "//tensorflow/lite/micro/schema:schema_fbs_with_reflection",
-        "@flatbuffers",
+        "//third_party/flatbuffers",
     ],
     alwayslink = True,
 )

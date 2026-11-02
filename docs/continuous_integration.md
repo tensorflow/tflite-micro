@@ -12,7 +12,7 @@ The CI system behaves differently depending on your role. This "Tiered" approach
 
 ### 2. External Contributors
 *   **Basic Tests**: Low-risk checks (Linting, File checks) run automatically on every push.
-*   **Privileged Tests**: Hardware-in-the-loop tests (Cortex-M, Xtensa, Hexagon, RISC-V) and Windows builds require manual approval.
+*   **Privileged Tests**: Hardware-in-the-loop tests (Cortex-M, Xtensa, Hexagon) and Windows builds require manual approval.
     *   **Status**: Your PR will show a "Pending" status for the `approval-gate` job.
     *   **Action**: A maintainer must review the code and click **"Review Deployment"** -> **"Approve"** on the PR page.
     *   **New Pushes**: Pushing new code resets the approval, requiring a maintainer to re-approve the specific commit.
@@ -22,7 +22,7 @@ The CI system behaves differently depending on your role. This "Tiered" approach
 | Label | Description |
 | :--- | :--- |
 | `ci:ready` | **Trigger CI**: Applied by a maintainer when an external PR is ready for testing. This label wakes up the CI workflow and generates an approval request for the privileged test suite. |
-| `ci:full` | **Extended Scope**: Applied by a maintainer to expand the test scope. By default, CI runs a `basic` set of tests. Adding this label includes all hardware targets (e.g., RISC-V, Hexagon). |
+| `ci:full` | **Extended Scope**: Applied by a maintainer to expand the test scope. By default, CI runs a `basic` set of tests. Adding this label includes all extended hardware targets (e.g., Xtensa, Corstone-300). |
 
 ## GitHub Merge Queue
 

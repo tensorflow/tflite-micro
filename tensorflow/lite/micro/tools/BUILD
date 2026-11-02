@@ -1,5 +1,4 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//python:py_rules.bzl",
     "tflm_py_binary",
@@ -11,9 +10,12 @@ load("//tensorflow/lite/micro:extra_rules.bzl", "tflm_application_friends")
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_cc_library", "flatbuffer_py_library")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//:__subpackages__"],
     licenses = ["notice"],
 )
+
+exports_files(["make/kissfft.patch"])
 
 package_group(
     name = "tflm_tools",
@@ -30,9 +32,9 @@ tflm_py_library(
     srcs = ["flatbuffer_utils.py"],
     visibility = ["//:__subpackages__"],
     deps = [
-        requirement("flatbuffers"),
         "//tensorflow/lite/micro/python:schema_py",
         "//tensorflow/lite/micro/python:schema_util",
+        "//third_party/flatbuffers:runtime_py",
     ],
 )
 
@@ -41,8 +43,8 @@ tflm_py_library(
     srcs = ["test_utils.py"],
     visibility = ["//:__subpackages__"],
     deps = [
-        requirement("flatbuffers"),
         "//tensorflow/lite/micro/python:schema_py",
+        "//third_party/flatbuffers:runtime_py",
     ],
 )
 
@@ -78,7 +80,7 @@ tflm_py_binary(
     visibility = ["//:__subpackages__"],
     deps = [
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -95,8 +97,8 @@ tflm_py_library(
     name = "generate_cc_arrays_lib",
     srcs = ["generate_cc_arrays.py"],
     deps = [
-        requirement("pillow"),
-        requirement("numpy"),
+        "//third_party/py/PIL:pil",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -104,8 +106,8 @@ tflm_py_binary(
     name = "generate_cc_arrays",
     srcs = ["generate_cc_arrays.py"],
     deps = [
-        requirement("pillow"),
-        requirement("numpy"),
+        "//third_party/py/PIL:pil",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -138,8 +140,8 @@ tflm_py_test(
     deps = [
         ":flatbuffer_utils",
         ":requantize_flatbuffer",
-        requirement("numpy"),
         "//python/tflite_micro:runtime",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -196,8 +198,8 @@ tflm_py_library(
     deps = [
         ":flatbuffer_utils",
         ":model_transforms_utils",
-        requirement("numpy"),
         "//python/tflite_micro:runtime",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -219,7 +221,7 @@ cc_binary(
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/schema:schema_fbs",
         "//tensorflow/lite/micro/tools/benchmarking:op_resolver",
-        "@flatbuffers",
+        "//third_party/flatbuffers",
     ],
 )
 
@@ -259,8 +261,8 @@ tflm_py_binary(
         ":flatbuffer_utils",
         ":layer_by_layer_schema_py",
         ":model_transforms_utils",
-        requirement("ai-edge-litert"),
         "//python/tflite_micro:runtime",
+        "//third_party/tensorflow/lite/python:lite",
     ],
 )
 

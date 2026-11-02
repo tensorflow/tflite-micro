@@ -121,7 +121,6 @@ git diff -U0 --diff-filter=d "${MERGE_BASE}" -- \
     ':(exclude)signal/lite/register/*' \
     ':(exclude)tensorflow/lite/micro/arc_custom/*' \
     ':(exclude)tensorflow/lite/micro/arc_emsdp/*' \
-    ':(exclude)tensorflow/lite/micro/bluepill/*' \
     ':(exclude)tensorflow/lite/micro/ceva/*' \
     ':(exclude)tensorflow/lite/micro/chre/*' \
     ':(exclude)tensorflow/lite/micro/cortex_m_corstone_300/*' \

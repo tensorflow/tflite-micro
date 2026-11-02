@@ -26,7 +26,10 @@ load(
     "tflm_platform_target",
 )
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 CORES = {
     "fusion_f1": {

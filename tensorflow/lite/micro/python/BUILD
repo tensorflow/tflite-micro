@@ -1,8 +1,8 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_library")
 load("//third_party/flatbuffers:build_defs.bzl", "flatbuffer_py_library")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//visibility:public",
     ],
@@ -19,6 +19,6 @@ tflm_py_library(
     srcs = ["schema_util.py"],
     visibility = ["//:__subpackages__"],
     deps = [
-        requirement("flatbuffers"),
+        "//third_party/flatbuffers:runtime_py",
     ],
 )

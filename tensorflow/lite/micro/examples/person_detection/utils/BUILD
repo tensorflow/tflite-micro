@@ -1,7 +1,7 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_library", "tflm_py_test")
 
 package(
+    default_applicable_licenses = ["//:license"],
     licenses = ["notice"],
 )
 
@@ -9,8 +9,8 @@ tflm_py_binary(
     name = "raw_to_bitmap",
     srcs = ["raw_to_bitmap.py"],
     deps = [
-        requirement("numpy"),
-        requirement("pillow"),
+        "//third_party/py/PIL:pil",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -18,8 +18,8 @@ tflm_py_library(
     name = "raw_to_bitmap_lib",
     srcs = ["raw_to_bitmap.py"],
     deps = [
-        requirement("numpy"),
-        requirement("pillow"),
+        "//third_party/py/PIL:pil",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -36,6 +36,6 @@ tflm_py_test(
     ],
     deps = [
         ":raw_to_bitmap_lib",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )

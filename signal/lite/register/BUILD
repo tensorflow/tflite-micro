@@ -7,6 +7,7 @@ load("//python:py_rules.bzl", "pybind_extension", "tflm_oss_manual_tags")
 # require external @org_tensorflow (and @litert for signal_litert_test)
 # dependencies.
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],
 )
@@ -40,9 +41,9 @@ cc_test(
     deps = [
         ":signal_ops_registerer",
         "//signal/lite/kernels:signal_ops",
-        "//third_party/tflite_c_headers:common",
+        "//third_party/flatbuffers:runtime_cc",
+        "//third_party/tensorflow/lite/c:common",
         "@com_google_googletest//:gtest_main",
-        "@flatbuffers//:runtime_cc",
         "@org_tensorflow//tensorflow/lite:mutable_op_resolver",
         "@org_tensorflow//tensorflow/lite/kernels:test_util",
         "@org_tensorflow//tensorflow/lite/schema:schema_fbs",
@@ -56,9 +57,9 @@ cc_test(
     tags = tflm_oss_manual_tags(),
     deps = [
         "//signal/lite/kernels:signal_ops",
-        "//third_party/tflite_c_headers:c_api_opaque",
+        "//third_party/flatbuffers:runtime_cc",
+        "//third_party/tensorflow/lite/c:c_api_opaque",
         "@com_google_googletest//:gtest_main",
-        "@flatbuffers//:runtime_cc",
         "@litert//litert/c/options:litert_cpu_options",
         "@litert//litert/cc:litert_api_types",
         "@litert//litert/cc:litert_buffer_ref",

@@ -10,11 +10,6 @@ load(
 load(
     "//tensorflow/lite/micro:extra_rules.bzl",
     "tflm_kernel_friends",
-    "xtensa_fusion_f1_config",
-    "xtensa_hifi_3_config",
-    "xtensa_hifi_3z_config",
-    "xtensa_hifi_5_config",
-    "xtensa_vision_p6_config",
 )
 load(
     "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
@@ -22,6 +17,7 @@ load(
 )
 
 package(
+    default_applicable_licenses = ["//:license"],
     licenses = ["notice"],
 )
 
@@ -391,11 +387,11 @@ tflm_kernel_cc_library(
         "transpose_conv.h",
         "unidirectional_sequence_lstm.h",
     ] + select({
-        xtensa_fusion_f1_config(): XTENSA_HDRS,
-        xtensa_hifi_3_config(): XTENSA_HDRS,
-        xtensa_hifi_3z_config(): XTENSA_HDRS,
-        xtensa_hifi_5_config(): XTENSA_HDRS,
-        xtensa_vision_p6_config(): XTENSA_HDRS,
+        ":xtensa_fusion_f1_default": XTENSA_HDRS,
+        ":xtensa_hifi_3_default": XTENSA_HDRS,
+        ":xtensa_hifi_3z_default": XTENSA_HDRS,
+        ":xtensa_hifi_5_default": XTENSA_HDRS,
+        ":xtensa_vision_p6_default": XTENSA_HDRS,
         "//conditions:default": [],
     }),
     accelerated_srcs = {
@@ -404,12 +400,12 @@ tflm_kernel_cc_library(
             "cmsis_nn/**/*.cc",
             "ethos_u/**/*.cc",
         ]),
-        xtensa_fusion_f1_config(): XTENSA_SRCS,
-        xtensa_hifi_3_config(): XTENSA_SRCS,
-        xtensa_hifi_3z_config(): XTENSA_SRCS,
-        xtensa_hifi_5_config(): XTENSA_SRCS,
-        xtensa_vision_p6_config(): XTENSA_SRCS,
         ":hexagon_default": glob(["hexagon/**/*.cc"]),
+        ":xtensa_fusion_f1_default": XTENSA_SRCS,
+        ":xtensa_hifi_3_default": XTENSA_SRCS,
+        ":xtensa_hifi_3z_default": XTENSA_SRCS,
+        ":xtensa_hifi_5_default": XTENSA_SRCS,
+        ":xtensa_vision_p6_default": XTENSA_SRCS,
     },
     copts = tflm_copts() + select({
         ":cmsis_nn_default": ["-DKERNELS_OPTIMIZED_FOR_SPEED"],
@@ -417,7 +413,7 @@ tflm_kernel_cc_library(
         "//conditions:default": [],
     }),
     linkopts = select({
-        xtensa_hifi_5_config(): ["-Wl,--orphan-handling=place"],
+        ":xtensa_hifi_5_default": ["-Wl,--orphan-handling=place"],
         "//conditions:default": [],
     }),
     visibility = [
@@ -448,22 +444,22 @@ tflm_kernel_cc_library(
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/kernels/internal:tensor_utils_no_eigen",
         "//tensorflow/lite/micro/kernels/internal:types",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ] + select({
         ":cmsis_nn_default": [":cmsis_nn_dep"],
         ":cmsis_nn_ethos_u_default": [
             ":cmsis_nn_dep",
             ":ethos_u_dep",
         ],
-        xtensa_fusion_f1_config(): [":xtensa_nnlib_hifi4_dep"],
-        xtensa_hifi_3_config(): [":xtensa_nnlib_hifi4_dep"],
-        xtensa_hifi_3z_config(): [":xtensa_nnlib_hifi4_dep"],
-        xtensa_hifi_5_config(): [":xtensa_nnlib_hifi5_dep"],
-        xtensa_vision_p6_config(): [":xtensa_vision_p6_dep"],
         ":hexagon_default": [
             ":hexagon_tflm_core_dep",
-            "//third_party/hexagon:hexagon_translation",
+            "//third_party/tflite_micro_hexagon:hexagon_translation",
         ],
+        ":xtensa_fusion_f1_default": [":xtensa_nnlib_hifi4_dep"],
+        ":xtensa_hifi_3_default": [":xtensa_nnlib_hifi4_dep"],
+        ":xtensa_hifi_3z_default": [":xtensa_nnlib_hifi4_dep"],
+        ":xtensa_hifi_5_default": [":xtensa_nnlib_hifi5_dep"],
+        ":xtensa_vision_p6_default": [":xtensa_vision_p6_dep"],
         "//conditions:default": [],
     }),
 )
@@ -869,7 +865,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//tensorflow/lite/micro/testing:micro_test",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 

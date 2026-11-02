@@ -3,6 +3,7 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//signal/micro/kernels:__subpackages__"],
     features = ["parse_headers"],
     licenses = ["notice"],

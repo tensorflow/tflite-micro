@@ -28,7 +28,7 @@ if [[ -f "${1:-}" ]]; then
 fi
 
 if [[ -z "${HEXAGON_SIM:-}" ]]; then
-  for root in "${TEST_SRCDIR:-}" "$0.runfiles"; do
+  for root in "${TEST_SRCDIR:-}" "${RUNFILES_DIR:-}" "$0.runfiles"; do
     if [[ -n "${root}" && -d "${root}" ]]; then
       for cand in "${root}"/*hexagon_toolchain*/bin/hexagon-sim; do
         if [[ -s "${cand}" && -x "${cand}" ]]; then

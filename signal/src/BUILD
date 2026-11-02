@@ -2,6 +2,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//tensorflow/lite/micro:build_def.bzl", "tflm_defines")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//signal:__subpackages__"],
     features = ["parse_headers"],
     licenses = ["notice"],

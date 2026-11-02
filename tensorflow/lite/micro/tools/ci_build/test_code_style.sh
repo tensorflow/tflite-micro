@@ -89,11 +89,13 @@ end_group
 # File Exclusions for Formatting
 ############################################################
 
-EXCLUDES_REGEX="(\.github|third_party/hexagon|third_party/tf_c_headers|third_party/tflite_c_headers|third_party/xtensa|ci/|kernels/internal/reference/integer_ops/|kernels/internal/reference/reference_ops\.h|kernels/internal/types\.h|experimental|_generated\.(h|py)$|\.inc$|\.md$)"
+CPP_EXCLUDES="(\.github|third_party/|ci/|_generated\.(h|py)$|_generated_data\.(h|cc)$)"
+PY_EXCLUDES="(\.github|third_party/|ci/|_generated\.(h|py)$)"
+BUILD_EXCLUDES="(\.github|ci/|tools/make/downloads)"
 
-CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${EXCLUDES_REGEX}")
-PY_FILES=$(git ls-files "*.py" | grep -v -E "${EXCLUDES_REGEX}")
-BUILD_FILES=$(git ls-files "*BUILD" "*BUILD.bazel" "*.bzl" | grep -v -E "${EXCLUDES_REGEX}")
+CPP_FILES=$(git ls-files "*.cc" "*.h" "*.c" | grep -v -E "${CPP_EXCLUDES}")
+PY_FILES=$(git ls-files "*.py" | grep -v -E "${PY_EXCLUDES}")
+BUILD_FILES=$(git ls-files "*BUILD" "*BUILD.bazel" "*.bzl" | grep -v -E "${BUILD_EXCLUDES}")
 
 ############################################################
 # C/C++ Formatting Check (clang-format)
@@ -208,8 +210,6 @@ end_group
 start_group "Disallowed Patterns (<assert>)"
 ASSERT_PATHSPEC=\
 "${CHECK_CONTENTS_PATHSPEC}"\
-" :(exclude)micro/examples/micro_speech/esp/ringbuf.c"\
-" :(exclude)micro/experimental/*"\
 " :(exclude)micro/kernels/internal/*"\
 " :(exclude)*\.ipynb"\
 " :(exclude)*\.py"\

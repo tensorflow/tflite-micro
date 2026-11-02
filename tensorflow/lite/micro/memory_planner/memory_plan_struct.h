@@ -26,7 +26,7 @@ namespace micro {
 
 // This is an experimental feature and subjected to change.
 // More description is available at
-// tensorflow/lite/micro/docs/offline_memory_plan.md.
+// docs/offline_memory_plan.md.
 
 // Describes a buffer's layout inside an arena. This struct should be kept as
 // small as possible for memory footprint sensitive applications and should use

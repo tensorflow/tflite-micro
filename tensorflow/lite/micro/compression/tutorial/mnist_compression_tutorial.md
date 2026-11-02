@@ -1094,5 +1094,5 @@ Through this tutorial, you learned the complete compression pipeline:
 
 - [TensorFlow Model Optimization Toolkit](https://www.tensorflow.org/model_optimization)
 - [TFLM Compression Documentation](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/compression)
-- [Running Compressed Models on Simulators and Hardware](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/compression.md)
+- [Running Compressed Models on Simulators and Hardware](https://github.com/tensorflow/tflite-micro/blob/main/docs/compression.md)
 - [TensorFlow Lite for Microcontrollers](https://www.tensorflow.org/lite/microcontrollers)

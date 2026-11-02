@@ -23,6 +23,8 @@ limitations under the License.
 uint32_t SystemCoreClock = SYSTEM_CLOCK;
 
 extern const uint32_t __VECTOR_TABLE[];
+extern void _exit(int status) __attribute__((noreturn));
+extern void corstone_uart_puts(const char* s);
 
 #if __has_include(<ethosu_driver.h>)
 #include <ethosu_driver.h>
@@ -50,24 +52,33 @@ void SystemInit(void) {
   volatile uint32_t* const SCB_CPACR = (volatile uint32_t*)0xE000ED88;
   volatile uint32_t* const SCB_NSACR = (volatile uint32_t*)0xE000ED8C;
   *SCB_CPACR |=
-      (0xFF << 0) |
-      (0xF << 20);  // Full access to CP0..CP3 (MVE) & CP10..CP11 (FPU)
-  *SCB_NSACR |= (0xFF << 0) | (0xF << 20);
+      (0xFFUL << 0) |
+      (0xFUL << 20);  // Full access to CP0..CP3 (MVE) & CP10..CP11 (FPU)
+  *SCB_NSACR |= (0xFFUL << 0) | (0xFUL << 20);
 
   // 3. Enable Instruction and Data Caches / Loop and Branch info cache inside
   // SCB->CCR
   volatile uint32_t* const SCB_CCR = (volatile uint32_t*)0xE000ED14;
   *SCB_CCR |= (1UL << 18) | (1UL << 17) | (1UL << 16);  // LOB, IC, DC bits
-  __asm__ volatile("dsb\nisb" : : : "memory");
 
   // 4. Enable all fault handlers (UsageFault, BusFault, MemFault)
   volatile uint32_t* const SCB_SHCSR = (volatile uint32_t*)0xE000ED24;
   *SCB_SHCSR |= (1UL << 18) | (1UL << 17) | (1UL << 16);
 
-  // 5. Enable CMSDK APB UART0 Transmit (CTRL at 0x49303008 = Bit 0 TXEN) right
+  // 5. Enable trace/PMU subsystem (DEMCR.TRCENA) and Armv8.1-M PMU cycle
+  // counter (PMU_CCNTR at 0xE000307C) for guest timing.
+  volatile uint32_t* const DCB_DEMCR = (volatile uint32_t*)0xE000EDFC;
+  volatile uint32_t* const PMU_CNTENSET = (volatile uint32_t*)0xE0003C00;
+  volatile uint32_t* const PMU_CTRL = (volatile uint32_t*)0xE0003E04;
+  *DCB_DEMCR |= (1UL << 24);
+  *PMU_CTRL |= (1UL << 0) | (1UL << 2);  // ENABLE | CYCCNT_RESET
+  *PMU_CNTENSET = (1UL << 31);           // CCNTR_ENABLE
+  __asm__ volatile("dsb\nisb" : : : "memory");
+
+  // 6. Enable CMSDK APB UART0 Transmit (CTRL at 0x49303008 = Bit 0 TXEN) right
   // at system init
   volatile uint32_t* const UART0_CTRL = (volatile uint32_t*)0x49303008;
-  *UART0_CTRL = 0x01;
+  *UART0_CTRL = 0x01UL;
   SystemCoreClock = SYSTEM_CLOCK;
 }
 
@@ -75,12 +86,15 @@ __attribute__((constructor)) void CorstoneHardwareInit(void) {
   setvbuf(stdout, NULL, _IONBF, 0);
   setvbuf(stderr, NULL, _IONBF, 0);
 #if __has_include(<ethosu_driver.h>)
-  ethosu_init(&ethosu_drv_instance, /*base_address=*/(void*)0x48102000,
-              /*fast_memory=*/(void*)0, /*fast_memory_size=*/0,
-              /*secure=*/1, /*privileged=*/1);
+  if (ethosu_init(&ethosu_drv_instance, /*base_address=*/(void*)0x48102000,
+                  /*fast_memory=*/(void*)0, /*fast_memory_size=*/0,
+                  /*secure=*/1, /*privileged=*/1) != 0) {
+    corstone_uart_puts("FATAL: ethosu_init failed\r\n");
+    _exit(1);
+  }
 
   // Enable NVIC IRQ 56 (Ethos-U55 NPU completion interrupt) in ISER[1] bit 24
   volatile uint32_t* const NVIC_ISER1 = (volatile uint32_t*)0xE000E104;
-  *NVIC_ISER1 |= (1UL << (56 - 32));
+  *NVIC_ISER1 = (1UL << (56 - 32));
 #endif
 }

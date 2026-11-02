@@ -25,14 +25,7 @@ if [ -d "/opt/arm/fvp/models/Linux64_GCC-9.3" ]; then
   export PATH="/opt/arm/fvp/models/Linux64_GCC-9.3:${PATH}"
 fi
 
-# Ensure bazelisk is available in the container
-if ! command -v bazel &> /dev/null && ! command -v bazelisk &> /dev/null; then
-  curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-linux-amd64 -o /tmp/bazelisk
-  chmod +x /tmp/bazelisk
-  BAZEL_BIN=/tmp/bazelisk
-else
-  BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || echo "bazel")}
-fi
+BAZEL_BIN=${BAZEL:-$(command -v bazel 2>/dev/null || echo "bazel")}
 
 BAZEL_FLAGS="--config=_ci_base"
 
@@ -42,6 +35,7 @@ trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 # Run Corstone-300 + Ethos-U55 smoke test, core tests, operator kernels, and end-to-end vision model in a single unified invocation
 ${BAZEL_BIN} test ${BAZEL_FLAGS} --config=corstone-env \
   //tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:smoke_test_corstone300 \
+  //tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:corstone_exit_code_test \
   //tensorflow/lite/micro:core_corstone300_smoke_tests \
   //tensorflow/lite/micro/kernels:kernel_corstone300_tests \
   //tensorflow/lite/micro/examples/person_detection:person_detection_test_corstone300

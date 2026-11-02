@@ -1,4 +1,3 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load(
     "//python:py_rules.bzl",
     "tflm_py_binary",
@@ -22,6 +21,7 @@ load(
 load("view_tests.bzl", "generate_view_tests")
 
 package(
+    default_applicable_licenses = ["//:license"],
     default_visibility = [
         "//visibility:public",
     ],
@@ -55,7 +55,7 @@ tflm_cc_test(
         "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:span",
         "//tensorflow/lite/micro/testing:micro_test",
-        "@flatbuffers//:runtime_cc",
+        "//third_party/flatbuffers:runtime_cc",
     ],
 )
 
@@ -81,7 +81,7 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         "metadata_py",
-        requirement("flatbuffers"),
+        "//third_party/flatbuffers:runtime_py",
     ],
 )
 
@@ -133,7 +133,7 @@ tflm_py_test(
         ":model_editor",
         ":spec",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -144,7 +144,7 @@ tflm_py_library(
         ":model_editor",
         ":tensor_type",
         "//python/tflite_micro:runtime",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -161,7 +161,7 @@ tflm_py_test(
         ":model_editor",
         ":verify",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -183,7 +183,7 @@ tflm_py_test(
         ":verify",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -202,7 +202,7 @@ tflm_py_test(
         ":compress_lib",
         ":spec",
         ":verify",
-        requirement("pyyaml"),
+        "//third_party/py/yaml",
     ],
 )
 
@@ -232,8 +232,8 @@ tflm_py_test(
         ":verify",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
-        requirement("pyyaml"),
+        "//third_party/py/numpy",
+        "//third_party/py/yaml",
     ],
 )
 
@@ -241,7 +241,7 @@ tflm_py_library(
     name = "spec",
     srcs = ["spec.py"],
     deps = [
-        requirement("pyyaml"),
+        "//third_party/py/yaml",
     ],
 )
 
@@ -279,7 +279,7 @@ tflm_py_library(
     srcs = ["tensor_type.py"],
     deps = [
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -290,7 +290,7 @@ tflm_py_test(
     deps = [
         ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -300,8 +300,8 @@ tflm_py_library(
     deps = [
         ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("flatbuffers"),
-        requirement("numpy"),
+        "//third_party/flatbuffers:runtime_py",
+        "//third_party/py/numpy",
     ],
 )
 
@@ -312,7 +312,7 @@ tflm_py_test(
     deps = [
         ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -363,7 +363,7 @@ tflm_py_test(
         ":constant_inputs",
         ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -375,7 +375,7 @@ tflm_py_library(
         ":decode",
         ":model_editor",
         ":spec",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -395,7 +395,7 @@ tflm_py_test(
         ":model_editor",
         ":spec",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -446,7 +446,7 @@ tflm_py_test(
         ":decode_insert",
         ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -466,7 +466,7 @@ tflm_py_test(
         ":spec",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -482,7 +482,7 @@ tflm_py_library(
         ":spec",
         ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -511,7 +511,7 @@ tflm_py_test(
         ":propose_spec_lib",
         ":spec",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 
@@ -525,7 +525,7 @@ tflm_py_library(
         ":metadata_py",
         ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
-        requirement("numpy"),
+        "//third_party/py/numpy",
     ],
 )
 

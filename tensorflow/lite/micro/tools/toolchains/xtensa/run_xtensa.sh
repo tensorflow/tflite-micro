@@ -54,11 +54,12 @@ if [[ -z "${XTENSA_CORE:-}" || -z "${XTENSA_VERSION:-}" ]]; then
 fi
 
 GOOGLE3_DIR=""
-if [[ -n "${TEST_SRCDIR:-}" && -d "${TEST_SRCDIR}/google3" ]]; then
-  GOOGLE3_DIR="${TEST_SRCDIR}/google3"
-elif [[ -d "$0.runfiles/google3" ]]; then
-  GOOGLE3_DIR="$0.runfiles/google3"
-fi
+for root in "${TEST_SRCDIR:-}" "${RUNFILES_DIR:-}" "$0.runfiles"; do
+  if [[ -n "${root}" && -d "${root}/google3" ]]; then
+    GOOGLE3_DIR="${root}/google3"
+    break
+  fi
+done
 
 TOOLS_PATH=""
 if [[ -n "${GOOGLE3_DIR}" && -d "${GOOGLE3_DIR}/third_party/unsupported_toolchains/xtensa/${XTENSA_VERSION}/XtensaTools" ]]; then
@@ -73,7 +74,7 @@ if [[ -n "${GOOGLE3_DIR}" && -d "${GOOGLE3_DIR}/third_party/unsupported_toolchai
 else
   XT_RUN_BIN="${XT_RUN_BIN:-}"
   if [[ -z "${XT_RUN_BIN}" ]]; then
-    for root in "${TEST_SRCDIR:-}" "$0.runfiles"; do
+    for root in "${TEST_SRCDIR:-}" "${RUNFILES_DIR:-}" "$0.runfiles"; do
       if [[ -n "${root}" && -d "${root}" ]]; then
         for cand in "${root}"/*xtensa_toolchain*/bin/xt-run; do
           if [[ -s "${cand}" && -x "${cand}" ]]; then

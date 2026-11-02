@@ -22,8 +22,6 @@ jobs:
     with:
       trigger-sha: ${{ github.sha }}
       scope: 'all'
-    secrets:
-      tflm-bot-token: ${{ secrets.TFLM_BOT_PACKAGE_READ_TOKEN }}
 
   issue-on-error:
     needs: [call-suite-cortex-m]

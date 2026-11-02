@@ -1,13 +1,14 @@
-load("@tflm_pip_deps//:requirements.bzl", "requirement")
 load("//python:py_rules.bzl", "tflm_py_binary", "tflm_py_test")
 load("//tensorflow/lite/micro:build_def.bzl", "INCOMPATIBLE_WITH_WINDOWS")
+
+package(default_applicable_licenses = ["//:license"])
 
 tflm_py_binary(
     name = "evaluate",
     srcs = ["evaluate.py"],
     deps = [
         "//python/tflite_micro:runtime",
-        requirement("pillow"),
+        "//third_party/py/PIL:pil",
     ],
 )
 
@@ -34,7 +35,7 @@ tflm_py_test(
     deps = [
         ":evaluate",
         "//tensorflow/lite/micro/tools:requantize_flatbuffer",
-        requirement("ai-edge-litert"),
-        requirement("numpy"),
+        "//third_party/py/numpy",
+        "//third_party/tensorflow/lite/python:lite",
     ],
 )

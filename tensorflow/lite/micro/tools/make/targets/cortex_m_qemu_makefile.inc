@@ -13,13 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 
-export PATH := $(DOWNLOADS_DIR)/gcc_embedded/bin/:$(PATH)
-TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
-
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+ifeq ($(TARGET_TOOLCHAIN_ROOT),)
+  ifeq ($(shell which arm-none-eabi-gcc 2>/dev/null),)
+    TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
+    TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
+    DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh ${DOWNLOADS_DIR} $(TENSORFLOW_ROOT))
+    ifneq ($(DOWNLOAD_RESULT), SUCCESS)
+      $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
+    endif
+  endif
 endif
+TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
 
 PLATFORM_FLAGS = \
   -DTF_LITE_MCU_DEBUG_LOG \
