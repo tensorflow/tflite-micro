@@ -31,7 +31,7 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt16(
     TfLiteContext* context, TfLiteNode* node, const OpDataFullyConnected& data,
     const TfLiteEvalTensor* input, const TfLiteEvalTensor* filter,
     const TfLiteEvalTensor* bias, TfLiteEvalTensor* output) {
-  if (bias != nullptr && bias->type == kTfLiteInt32) {
+  if (bias != nullptr && bias->type != kTfLiteInt64) {
     MicroPrintf("Bias type %s (%d) not supported.",
                 TfLiteTypeGetName(bias->type), bias->type);
     return kTfLiteError;
