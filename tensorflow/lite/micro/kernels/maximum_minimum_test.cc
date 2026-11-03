@@ -334,7 +334,9 @@ TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
       dims2_4d, data2_4d, scale, zero_point, golden_min_4d, scale, zero_point,
       dims_out_4d, output_data_4d);
 
+#if !defined(CMSIS_NN)
   // Case 4: Both inputs broadcast (>4D, exercising 8D path).
+  // CMSIS-NN only supports up to 4D shapes via RuntimeShape::ExtendedShape(4).
   int dims1_5d[] = {5, 1, 2, 1, 1, 2};
   int dims2_5d[] = {5, 1, 1, 2, 1, 2};
   int dims_out_5d[] = {5, 1, 2, 2, 1, 2};
@@ -352,6 +354,7 @@ TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
       tflite::Register_MINIMUM(), dims1_5d, data1_5d, scale, zero_point,
       dims2_5d, data2_5d, scale, zero_point, golden_min_5d, scale, zero_point,
       dims_out_5d, output_data_5d);
+#endif  // !defined(CMSIS_NN)
 }
 
 TF_LITE_MICRO_TESTS_MAIN
