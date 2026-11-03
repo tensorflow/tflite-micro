@@ -35,7 +35,7 @@ TfLiteStatus HiFiLogicalImpl(TfLiteContext* context, TfLiteNode* node,
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kLogicalOutputTensor);
 
-  int err;
+  int err = 0;
   const int8_t *input1_data_ptr, *input2_data_ptr;
   int8_t* output_data_ptr;
   RuntimeShape input1_shape = tflite::micro::GetTensorShape(input1);
@@ -57,8 +57,7 @@ TfLiteStatus HiFiLogicalImpl(TfLiteContext* context, TfLiteNode* node,
                                              input2_data_ptr, flat_size);
     TF_LITE_ENSURE(context, err == 0);
   } else {
-    err = 1;
-    TF_LITE_ENSURE(context, err == 0);
+    return kTfLiteError;
   }
   return kTfLiteOk;
 }
