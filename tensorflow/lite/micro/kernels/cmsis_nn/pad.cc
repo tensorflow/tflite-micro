@@ -16,8 +16,8 @@ limitations under the License.
 
 #include <limits>
 
-#include "Include/arm_nn_types.h"
-#include "Include/arm_nnfunctions.h"
+#include "arm_nn_types.h"
+#include "arm_nnfunctions.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/pad.h"
 #include "tensorflow/lite/micro/micro_common.h"

@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/lite/micro/kernels/internal/reference/pooling.h"
 
-#include "Include/arm_nnfunctions.h"
+#include "arm_nnfunctions.h"
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"

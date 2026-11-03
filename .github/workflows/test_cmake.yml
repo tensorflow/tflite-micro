@@ -1,0 +1,38 @@
+name: Test - CMake
+
+on:
+  workflow_call:
+    inputs:
+      trigger-sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  cmake_tests:
+    runs-on: linux-x86-n4-16
+    timeout-minutes: 60
+    container:
+      image: ghcr.io/tflm-bot/tflm-ci:0.7.1
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: CMake x86 CI
+            mode: ci
+          - name: CMake x86 with Compression (Debug)
+            mode: compression_debug
+          - name: CMake x86 Core Only
+            mode: core_only
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.trigger-sha || github.ref }}
+          allow-unsafe-pr-checkout: true
+      - name: Test
+        env:
+          MODE: ${{ matrix.mode }}
+        run: tensorflow/lite/micro/tools/ci_build/test_cmake.sh "${MODE}"

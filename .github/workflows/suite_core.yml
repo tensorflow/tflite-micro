@@ -16,6 +16,11 @@ jobs:
     with:
       trigger-sha: ${{ inputs.trigger-sha }}
 
+  call-ci-cmake:
+    uses: ./.github/workflows/test_cmake.yml
+    with:
+      trigger-sha: ${{ inputs.trigger-sha }}
+
   call-ci-makefile:
     uses: ./.github/workflows/test_makefile.yml
     with:

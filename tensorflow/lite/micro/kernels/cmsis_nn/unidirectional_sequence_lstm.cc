@@ -20,7 +20,7 @@ limitations under the License.
 #include <algorithm>
 #include <limits>
 
-#include "Include/arm_nnfunctions.h"
+#include "arm_nnfunctions.h"
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
