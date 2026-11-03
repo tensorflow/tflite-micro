@@ -74,6 +74,7 @@ tflm_cc_library(
         ":compression_utils",
         ":python_ops_resolver",
         ":shared_library",
+        "//tensorflow/lite/micro:flatbuffer_conversions",
         "//tensorflow/lite/micro:micro_allocator",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:micro_context",

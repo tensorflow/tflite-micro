@@ -64,141 +64,114 @@ def _load_runtime_library():
 
 _lib = _load_runtime_library()
 
-# Function signatures
-_lib.TFLM_InterpreterCreate.restype = ctypes.c_void_p
-_lib.TFLM_InterpreterCreate.argtypes = [
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_char_p),
-  ctypes.c_size_t,
-  ctypes.c_size_t,
-  ctypes.c_int,
-  ctypes.c_int,
-  ctypes.c_size_t,
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
+_TENSOR_INPUT = 0
+_TENSOR_OUTPUT = 1
+_TENSOR_EVAL = 2
 
-_lib.TFLM_InterpreterDestroy.restype = None
-_lib.TFLM_InterpreterDestroy.argtypes = [ctypes.c_void_p]
 
-_lib.TFLM_InterpreterInvoke.restype = ctypes.c_int
-_lib.TFLM_InterpreterInvoke.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
+class _TensorInfo(ctypes.Structure):
+  _fields_ = [
+    ("tensor_type", ctypes.c_int),
+    ("data", ctypes.c_void_p),
+    ("bytes", ctypes.c_size_t),
+    ("dims", ctypes.POINTER(ctypes.c_int)),
+    ("num_dims", ctypes.c_size_t),
+    ("scales", ctypes.POINTER(ctypes.c_float)),
+    ("zero_points", ctypes.POINTER(ctypes.c_int32)),
+    ("num_quant_params", ctypes.c_size_t),
+    ("quantized_dimension", ctypes.c_int),
+  ]
 
-_lib.TFLM_InterpreterReset.restype = ctypes.c_int
-_lib.TFLM_InterpreterReset.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
 
-_lib.TFLM_InterpreterPrintAllocations.restype = None
-_lib.TFLM_InterpreterPrintAllocations.argtypes = [ctypes.c_void_p]
+def _bind(fn, argtypes, restype=ctypes.c_int):
+  fn.argtypes = argtypes
+  fn.restype = restype
 
-_lib.TFLM_InterpreterSetInputData.restype = ctypes.c_int
-_lib.TFLM_InterpreterSetInputData.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_size_t,
-  ctypes.c_void_p,
-  ctypes.c_size_t,
-  ctypes.c_int,
-  ctypes.POINTER(ctypes.c_int),
-  ctypes.c_size_t,
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
 
-_lib.TFLM_InterpreterGetOutputData.restype = ctypes.c_void_p
-_lib.TFLM_InterpreterGetOutputData.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_size_t),
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
+_bind(
+  _lib.TFLM_InterpreterCreate,
+  [
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_char_p),
+    ctypes.c_size_t,
+    ctypes.c_size_t,
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_size_t,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+  ],
+  restype=ctypes.c_void_p,
+)
+_bind(_lib.TFLM_InterpreterDestroy, [ctypes.c_void_p], restype=None)
+_bind(
+  _lib.TFLM_InterpreterLastError, [ctypes.c_void_p], restype=ctypes.c_char_p
+)
+_bind(_lib.TFLM_InterpreterInvoke, [ctypes.c_void_p])
+_bind(_lib.TFLM_InterpreterReset, [ctypes.c_void_p])
+_bind(_lib.TFLM_InterpreterPrintAllocations, [ctypes.c_void_p], restype=None)
+_bind(
+  _lib.TFLM_InterpreterSetInputData,
+  [
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.c_size_t,
+  ],
+)
+_bind(
+  _lib.TFLM_InterpreterGetTensor,
+  [
+    ctypes.c_void_p,
+    ctypes.c_int,
+    ctypes.c_size_t,
+    ctypes.c_size_t,
+    ctypes.POINTER(_TensorInfo),
+  ],
+)
 
-_lib.TFLM_InterpreterGetTensorData.restype = ctypes.c_void_p
-_lib.TFLM_InterpreterGetTensorData.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_size_t,
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_size_t),
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
-
-_lib.TFLM_InterpreterGetTensorDetails.restype = ctypes.c_int
-_lib.TFLM_InterpreterGetTensorDetails.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_int,
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_int),
-  ctypes.POINTER(ctypes.c_int),
-  ctypes.POINTER(ctypes.c_size_t),
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_float),
-  ctypes.POINTER(ctypes.c_int32),
-  ctypes.POINTER(ctypes.c_size_t),
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_int),
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
-
-_lib.TFLM_InterpreterGetEvalTensorDetails.restype = ctypes.c_int
-_lib.TFLM_InterpreterGetEvalTensorDetails.argtypes = [
-  ctypes.c_void_p,
-  ctypes.c_size_t,
-  ctypes.c_size_t,
-  ctypes.POINTER(ctypes.c_int),
-  ctypes.POINTER(ctypes.c_int),
-  ctypes.POINTER(ctypes.c_size_t),
-  ctypes.c_size_t,
-  ctypes.c_char_p,
-  ctypes.c_size_t,
-]
-
-# TfLiteType enum to NumPy dtype mapping
-_TFLITE_TYPE_TO_NUMPY_DTYPE = {
-  1: np.float32,
-  2: np.int32,
-  3: np.uint8,
-  4: np.int64,
-  6: np.bool_,
-  7: np.int16,
-  8: np.complex64,
-  9: np.int8,
-  10: np.float16,
-  11: np.float64,
-  12: np.complex128,
-  13: np.uint64,
-  16: np.uint32,
-  17: np.uint16,
-  18: np.int8,  # Int4
-  20: np.int8,  # Int2
-  21: np.uint8,  # UInt4
+# FlatBuffer TensorType enum to NumPy dtype mapping
+_TENSOR_TYPE_TO_NUMPY_DTYPE = {
+  schema_fb.TensorType.FLOAT32: np.float32,
+  schema_fb.TensorType.FLOAT16: np.float16,
+  schema_fb.TensorType.INT32: np.int32,
+  schema_fb.TensorType.UINT8: np.uint8,
+  schema_fb.TensorType.INT64: np.int64,
+  schema_fb.TensorType.BOOL: np.bool_,
+  schema_fb.TensorType.INT16: np.int16,
+  schema_fb.TensorType.COMPLEX64: np.complex64,
+  schema_fb.TensorType.INT8: np.int8,
+  schema_fb.TensorType.FLOAT64: np.float64,
+  schema_fb.TensorType.COMPLEX128: np.complex128,
+  schema_fb.TensorType.UINT64: np.uint64,
+  schema_fb.TensorType.UINT32: np.uint32,
+  schema_fb.TensorType.UINT16: np.uint16,
+  schema_fb.TensorType.INT4: np.int8,
+  schema_fb.TensorType.INT2: np.int8,
+  schema_fb.TensorType.UINT4: np.uint8,
 }
 
-_NUMPY_DTYPE_TO_TFLITE_TYPE = {
-  np.dtype(np.float32): 1,
-  np.dtype(np.int32): 2,
-  np.dtype(np.uint8): 3,
-  np.dtype(np.int64): 4,
-  np.dtype(np.bool_): 6,
-  np.dtype(np.int16): 7,
-  np.dtype(np.complex64): 8,
-  np.dtype(np.int8): 9,
-  np.dtype(np.float16): 10,
-  np.dtype(np.float64): 11,
-  np.dtype(np.complex128): 12,
-  np.dtype(np.uint64): 13,
-  np.dtype(np.uint32): 16,
-  np.dtype(np.uint16): 17,
+_NUMPY_DTYPE_TO_TENSOR_TYPE = {
+  np.dtype(dtype): tensor_type
+  for tensor_type, dtype in _TENSOR_TYPE_TO_NUMPY_DTYPE.items()
+  if tensor_type
+  not in (
+    schema_fb.TensorType.INT4,
+    schema_fb.TensorType.INT2,
+    schema_fb.TensorType.UINT4,
+  )
 }
+
+
+def _copy_tensor_buffer(info, dtype, shape):
+  if not info.data and info.bytes > 0:
+    raise RuntimeError("Tensor buffer is null.")
+  raw_buf = (ctypes.c_char * info.bytes).from_address(info.data or 0)
+  return np.frombuffer(raw_buf, dtype=dtype).reshape(shape).copy()
 
 
 def convert_bytearray_to_object(model_bytearray):
@@ -209,7 +182,7 @@ def convert_bytearray_to_object(model_bytearray):
 
 def get_builtin_code_from_operator_code(opcode):
   """Return the builtin code of the given operator code."""
-  if hasattr(opcode, 'BuiltinCode') and callable(opcode.BuiltinCode):
+  if hasattr(opcode, "BuiltinCode") and callable(opcode.BuiltinCode):
     return max(opcode.BuiltinCode(), opcode.DeprecatedBuiltinCode())
   return max(opcode.builtinCode, opcode.deprecatedBuiltinCode)
 
@@ -295,6 +268,17 @@ class Interpreter(object):
       _lib.TFLM_InterpreterDestroy(self._handle)
       self._handle = None
 
+  def _check(self, status, error_cls=RuntimeError):
+    if status == 0:
+      return
+    err_ptr = _lib.TFLM_InterpreterLastError(self._handle)
+    err_msg = err_ptr.decode("utf-8") if err_ptr else "Unknown error"
+    if "out of bound" in err_msg:
+      raise IndexError(err_msg)
+    if "Cannot set tensor" in err_msg or "numpy array had" in err_msg:
+      raise ValueError(err_msg)
+    raise error_cls(err_msg)
+
   @classmethod
   def from_file(
     cls,
@@ -349,22 +333,14 @@ class Interpreter(object):
 
   def invoke(self):
     """Invoke the TFLM interpreter to run an inference."""
-    err_buf = ctypes.create_string_buffer(512)
-    status = _lib.TFLM_InterpreterInvoke(self._handle, err_buf, len(err_buf))
-    if status != 0:
-      raise RuntimeError(
-        err_buf.value.decode("utf-8") or "Interpreter invocation failed."
-      )
+    status = _lib.TFLM_InterpreterInvoke(self._handle)
+    self._check(status)
     return status
 
   def reset(self):
     """Reset the model state."""
-    err_buf = ctypes.create_string_buffer(512)
-    status = _lib.TFLM_InterpreterReset(self._handle, err_buf, len(err_buf))
-    if status != 0:
-      raise RuntimeError(
-        err_buf.value.decode("utf-8") or "Failed to reset interpreter."
-      )
+    status = _lib.TFLM_InterpreterReset(self._handle)
+    self._check(status)
     return status
 
   def set_input(self, input_data, index):
@@ -374,17 +350,14 @@ class Interpreter(object):
     if index is None or index < 0:
       raise ValueError("Index must be a non-negative integer")
 
-    # Convert input_data to NumPy array if it isn't already
     if not isinstance(input_data, np.ndarray):
       input_data = np.array(input_data)
 
     if not input_data.flags["C_CONTIGUOUS"]:
       input_data = np.ascontiguousarray(input_data)
 
-    type_code = _NUMPY_DTYPE_TO_TFLITE_TYPE.get(input_data.dtype, -1)
-
+    tensor_type = _NUMPY_DTYPE_TO_TENSOR_TYPE.get(input_data.dtype, -1)
     dims = (ctypes.c_int * input_data.ndim)(*input_data.shape)
-    err_buf = ctypes.create_string_buffer(512)
     ptr = input_data.ctypes.data_as(ctypes.c_void_p)
 
     status = _lib.TFLM_InterpreterSetInputData(
@@ -392,160 +365,70 @@ class Interpreter(object):
       index,
       ptr,
       input_data.nbytes,
-      type_code,
+      tensor_type,
       dims,
       input_data.ndim,
-      err_buf,
-      len(err_buf),
     )
-    if status != 0:
-      err_msg = err_buf.value.decode("utf-8")
-      if "Cannot set tensor" in err_msg or "numpy array had" in err_msg:
-        raise ValueError(err_msg)
-      if "out of bound" in err_msg:
-        raise IndexError(err_msg)
-      raise RuntimeError(err_msg)
+    self._check(status)
+
+  def _get_tensor_info(self, kind, index, subgraph_index=0):
+    info = _TensorInfo()
+    status = _lib.TFLM_InterpreterGetTensor(
+      self._handle, kind, index, subgraph_index, ctypes.byref(info)
+    )
+    default_cls = RuntimeError if kind == _TENSOR_EVAL else ValueError
+    self._check(status, default_cls)
+    dtype = _TENSOR_TYPE_TO_NUMPY_DTYPE.get(info.tensor_type)
+    shape = np.array(
+      [info.dims[i] for i in range(info.num_dims)], dtype=np.int32
+    )
+    return info, dtype, shape
 
   def get_output(self, index):
     """Get data from output tensor."""
     if index is None or index < 0:
       raise ValueError("Index must be a non-negative integer")
 
-    details = self.get_output_details(index)
-    byte_size = ctypes.c_size_t()
-    err_buf = ctypes.create_string_buffer(512)
-    ptr = _lib.TFLM_InterpreterGetOutputData(
-      self._handle, index, ctypes.byref(byte_size), err_buf, len(err_buf)
-    )
-    if not ptr:
-      raise IndexError(
-        err_buf.value.decode("utf-8") or "Output tensor index out of bounds."
-      )
-
-    raw_buf = (ctypes.c_char * byte_size.value).from_address(ptr)
-    arr = np.frombuffer(raw_buf, dtype=details["dtype"]).reshape(
-      details["shape"]
-    )
-    return arr.copy()
+    info, dtype, shape = self._get_tensor_info(_TENSOR_OUTPUT, index)
+    return _copy_tensor_buffer(info, dtype, shape)
 
   def GetTensor(self, tensor_index, subgraph_index=0):
     """Retrieve intermediate tensor data when using kPreserveAllTensors."""
-    details = self._get_eval_tensor_details(tensor_index, subgraph_index)
-    byte_size = ctypes.c_size_t()
-    err_buf = ctypes.create_string_buffer(512)
-    ptr = _lib.TFLM_InterpreterGetTensorData(
-      self._handle,
-      tensor_index,
-      subgraph_index,
-      ctypes.byref(byte_size),
-      err_buf,
-      len(err_buf),
+    info, dtype, shape = self._get_tensor_info(
+      _TENSOR_EVAL, tensor_index, subgraph_index
     )
-    if not ptr:
-      raise RuntimeError(
-        err_buf.value.decode("utf-8") or "Failed to get tensor data."
-      )
+    return {
+      "dtype": dtype,
+      "shape": shape,
+      "tensor_data": _copy_tensor_buffer(info, dtype, shape),
+    }
 
-    raw_buf = (ctypes.c_char * byte_size.value).from_address(ptr)
-    arr = np.frombuffer(raw_buf, dtype=details["dtype"]).reshape(
-      details["shape"]
-    )
-    details["tensor_data"] = arr.copy()
-    return details
+  def _get_tensor_details(self, kind, index):
+    if index is None or index < 0:
+      raise ValueError("Index must be a non-negative integer")
 
-  def _get_eval_tensor_details(self, tensor_index, subgraph_index):
-    out_type = ctypes.c_int()
-    max_dims = 16
-    out_dims = (ctypes.c_int * max_dims)()
-    out_num_dims = ctypes.c_size_t()
-    err_buf = ctypes.create_string_buffer(512)
-
-    status = _lib.TFLM_InterpreterGetEvalTensorDetails(
-      self._handle,
-      tensor_index,
-      subgraph_index,
-      ctypes.byref(out_type),
-      out_dims,
-      ctypes.byref(out_num_dims),
-      max_dims,
-      err_buf,
-      len(err_buf),
-    )
-    if status != 0:
-      raise RuntimeError(
-        err_buf.value.decode("utf-8") or "Failed to get eval tensor details."
-      )
-
-    shape = np.array(
-      [out_dims[i] for i in range(out_num_dims.value)], dtype=np.int32
-    )
-    dtype = _TFLITE_TYPE_TO_NUMPY_DTYPE.get(out_type.value)
-    return {"dtype": dtype, "shape": shape}
-
-  def _get_tensor_details(self, is_input, index):
-    out_type = ctypes.c_int()
-    max_dims = 16
-    out_dims = (ctypes.c_int * max_dims)()
-    out_num_dims = ctypes.c_size_t()
-
-    max_quant = 512
-    out_scales = (ctypes.c_float * max_quant)()
-    out_zero_points = (ctypes.c_int32 * max_quant)()
-    out_num_quant = ctypes.c_size_t()
-    out_quant_dim = ctypes.c_int()
-    err_buf = ctypes.create_string_buffer(512)
-
-    status = _lib.TFLM_InterpreterGetTensorDetails(
-      self._handle,
-      1 if is_input else 0,
-      index,
-      ctypes.byref(out_type),
-      out_dims,
-      ctypes.byref(out_num_dims),
-      max_dims,
-      out_scales,
-      out_zero_points,
-      ctypes.byref(out_num_quant),
-      max_quant,
-      ctypes.byref(out_quant_dim),
-      err_buf,
-      len(err_buf),
-    )
-    if status != 0:
-      err_msg = err_buf.value.decode("utf-8")
-      if "out of bound" in err_msg:
-        raise IndexError(err_msg)
-      raise ValueError(err_msg)
-
-    dtype = _TFLITE_TYPE_TO_NUMPY_DTYPE.get(out_type.value)
-    shape = np.array(
-      [out_dims[i] for i in range(out_num_dims.value)], dtype=np.int32
-    )
+    info, dtype, shape = self._get_tensor_info(kind, index)
     scales = np.array(
-      [out_scales[i] for i in range(out_num_quant.value)], dtype=np.float32
+      [info.scales[i] for i in range(info.num_quant_params)], dtype=np.float32
     )
     zero_points = np.array(
-      [out_zero_points[i] for i in range(out_num_quant.value)], dtype=np.int32
+      [info.zero_points[i] for i in range(info.num_quant_params)],
+      dtype=np.int32,
     )
-
     return {
       "dtype": dtype,
       "shape": shape,
       "quantization_parameters": {
         "scales": scales,
         "zero_points": zero_points,
-        "quantized_dimension": out_quant_dim.value,
+        "quantized_dimension": info.quantized_dimension,
       },
     }
 
   def get_input_details(self, index):
     """Get input tensor information."""
-    if index is None or index < 0:
-      raise ValueError("Index must be a non-negative integer")
-    return self._get_tensor_details(is_input=True, index=index)
+    return self._get_tensor_details(_TENSOR_INPUT, index)
 
   def get_output_details(self, index):
     """Get output tensor information."""
-    if index is None or index < 0:
-      raise ValueError("Index must be a non-negative integer")
-    return self._get_tensor_details(is_input=False, index=index)
+    return self._get_tensor_details(_TENSOR_OUTPUT, index)

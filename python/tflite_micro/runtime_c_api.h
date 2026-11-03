@@ -53,6 +53,25 @@ typedef enum {
   kTFLMConfigPreserveAllTensors = 1,
 } TFLM_InterpreterConfig;
 
+// NOLINTNEXTLINE(performance-enum-size)
+typedef enum {
+  kTFLMTensorInput = 0,
+  kTFLMTensorOutput = 1,
+  kTFLMTensorEval = 2,
+} TFLM_TensorKind;
+
+typedef struct {
+  int tensor_type;  // tflite::TensorType (matches schema_fb.TensorType)
+  const void* data;
+  size_t bytes;
+  const int* dims;
+  size_t num_dims;
+  const float* scales;
+  const int32_t* zero_points;
+  size_t num_quant_params;
+  int quantized_dimension;
+} TFLM_TensorInfo;
+
 // Create a new TFLM Interpreter.
 // Returns nullptr on failure and populates err_buf if provided.
 TFLM_PYTHON_C_API_EXPORT TFLM_Interpreter* TFLM_InterpreterCreate(
@@ -64,12 +83,16 @@ TFLM_PYTHON_C_API_EXPORT TFLM_Interpreter* TFLM_InterpreterCreate(
 // Destroy the TFLM Interpreter.
 TFLM_PYTHON_C_API_EXPORT void TFLM_InterpreterDestroy(TFLM_Interpreter* interp);
 
-// Execution
-TFLM_PYTHON_C_API_EXPORT TFLM_Status TFLM_InterpreterInvoke(
-    TFLM_Interpreter* interp, char* err_buf, size_t err_buf_len);
+// Returns the last error message recorded on the interpreter instance.
+TFLM_PYTHON_C_API_EXPORT const char* TFLM_InterpreterLastError(
+    const TFLM_Interpreter* interp);
 
-TFLM_PYTHON_C_API_EXPORT TFLM_Status TFLM_InterpreterReset(
-    TFLM_Interpreter* interp, char* err_buf, size_t err_buf_len);
+// Execution
+TFLM_PYTHON_C_API_EXPORT TFLM_Status
+TFLM_InterpreterInvoke(TFLM_Interpreter* interp);
+
+TFLM_PYTHON_C_API_EXPORT TFLM_Status
+TFLM_InterpreterReset(TFLM_Interpreter* interp);
 
 TFLM_PYTHON_C_API_EXPORT void TFLM_InterpreterPrintAllocations(
     TFLM_Interpreter* interp);
@@ -77,31 +100,13 @@ TFLM_PYTHON_C_API_EXPORT void TFLM_InterpreterPrintAllocations(
 // Input & Output Tensor Data
 TFLM_PYTHON_C_API_EXPORT TFLM_Status TFLM_InterpreterSetInputData(
     TFLM_Interpreter* interp, size_t index, const void* data, size_t byte_size,
-    int type_code, const int* dims, size_t num_dims, char* err_buf,
-    size_t err_buf_len);
+    int tensor_type, const int* dims, size_t num_dims);
 
-// Returns pointer to output tensor buffer inside arena and sets out_byte_size.
-TFLM_PYTHON_C_API_EXPORT const void* TFLM_InterpreterGetOutputData(
-    const TFLM_Interpreter* interp, size_t index, size_t* out_byte_size,
-    char* err_buf, size_t err_buf_len);
-
-// For preserve_all_tensors mode
-TFLM_PYTHON_C_API_EXPORT const void* TFLM_InterpreterGetTensorData(
-    TFLM_Interpreter* interp, size_t tensor_index, size_t subgraph_index,
-    size_t* out_byte_size, char* err_buf, size_t err_buf_len);
-
-// Metadata & Quantization Details
-TFLM_PYTHON_C_API_EXPORT TFLM_Status TFLM_InterpreterGetTensorDetails(
-    const TFLM_Interpreter* interp, int is_input, size_t index, int* out_type,
-    int* out_dims, size_t* out_num_dims, size_t max_dims, float* out_scales,
-    int32_t* out_zero_points, size_t* out_num_quant_params,
-    size_t max_quant_params, int* out_quantized_dimension, char* err_buf,
-    size_t err_buf_len);
-
-TFLM_PYTHON_C_API_EXPORT TFLM_Status TFLM_InterpreterGetEvalTensorDetails(
-    TFLM_Interpreter* interp, size_t tensor_index, size_t subgraph_index,
-    int* out_type, int* out_dims, size_t* out_num_dims, size_t max_dims,
-    char* err_buf, size_t err_buf_len);
+// Populates out_info with tensor data pointer, dimensions, and quantization
+// metadata for input, output, or eval tensors.
+TFLM_PYTHON_C_API_EXPORT TFLM_Status
+TFLM_InterpreterGetTensor(TFLM_Interpreter* interp, int kind, size_t index,
+                          size_t subgraph_index, TFLM_TensorInfo* out_info);
 
 // Model alignment helper
 TFLM_PYTHON_C_API_EXPORT TFLM_Status
