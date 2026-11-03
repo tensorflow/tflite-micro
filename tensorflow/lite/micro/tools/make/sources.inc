@@ -223,6 +223,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_depth.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split_v.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squared_difference_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/squeeze.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/strided_slice_common.cc \
