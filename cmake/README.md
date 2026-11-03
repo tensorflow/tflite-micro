@@ -15,9 +15,9 @@ unit testing:
   `CMAKE_TOOLCHAIN_FILE`, board BSP/linker scripts, and vendor SDK targets (`cmsis-nn`,
   `ethosu_core_driver`, or `TFLM_BACKEND_TARGETS`), while TFLM specializes kernel and platform
   sources without mutating global flags or forcing `CXX_EXTENSIONS OFF`.
-- **Bazel-verified manifests**: Source, `FILE_SET HEADERS`, and test manifests under
-  `cmake/generated/` are generated from Bazel and verified by
-  `bazel test //cmake:cmake_lists_staleness_test`.
+- **Direct source & test discovery**: Library sources, `FILE_SET HEADERS`, and CTest targets are
+  discovered directly by `cmake/tflm_sources.cmake` (`CONFIGURE_DEPENDS`) without a separate codegen
+  step.
 
 ## Quick Start (Standalone Host Build & CI Tests)
 
@@ -48,13 +48,11 @@ tensorflow/lite/micro/tools/ci_build/test_cmake.sh ci        # single mode
 CMakeLists.txt                       Options, local deps, targets (tflm::micro, tflm::signal), CTest & install
 CMakePresets.json                    Host configure, build, test, and workflow presets
 cmake/
-  BUILD                              Bazel rules for manifest generation & staleness test
   README.md                          CMake build documentation
   download_deps.py                   Standalone FlatBuffers & KissFFT fetcher for host testing/CI
-  generate_cmake_lists.py            Bazel query -> CMake manifest generator & staleness checker
   tflm_codegen.cmake                 Public tflm_target_embed_assets() model/asset codegen module
   tflm_config.cmake.in               Relocatable find_package(tflm) config template
-  generated/                         Bazel-generated source, FILE_SET HEADERS, and CTest manifests
+  tflm_sources.cmake                 Source, FILE_SET HEADERS, and CTest target discovery
   tests/                             Consumer project (CMakeLists.txt, consumer_main.cc) for package smoke tests
 tensorflow/lite/micro/tools/ci_build/
   test_cmake.sh                      Out-of-tree CI build, CTest, and package/interop runner
@@ -154,10 +152,3 @@ tflm_target_embed_assets(my_app PRIVATE models/keyword_model.tflite)
 | `TFLM_BUILD_INTEGRATION_TESTS` | `OFF` | Build SeaNet integration tests (requires `TFLM_ENABLE_SIGNAL=ON`) |
 | `TFLM_EXCLUDED_TESTS` | `""` | Semicolon-separated list of test target names to exclude |
 | `TFLM_INSTALL` | `${PROJECT_IS_TOP_LEVEL}` | Enable `cmake --install` (`FILE_SET HEADERS`) and `tflm-config.cmake` export |
-
-## Updating Generated Manifests from Bazel
-
-```bash
-bazel run //cmake:update_cmake_lists
-bazel test //cmake:cmake_lists_staleness_test
-```
