@@ -149,4 +149,25 @@ TEST(SpaceToBatchNdTest, SpaceToBatchBasicInt8) {
           tflite::testing::basic_golden, golden_quantized, 1.0f, 0, output));
 }
 
+TEST(SpaceToBatchNdTest, SpaceToBatchPaddingInt8NonZeroZeroPoint) {
+  // Padded elements must be real zero, which is the output zero point.
+  int input_dims[] = {4, 1, 5, 2, 1};
+  const float input[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int block_shape_dims[] = {1, 2};
+  const int32_t block_shape[] = {3, 2};
+  int paddings_dims[] = {2, 2, 2};
+  const int32_t paddings[] = {1, 0, 2, 0};
+  int output_dims[] = {4, 6, 2, 2, 1};
+  const float golden[] = {0, 0, 0, 5, 0, 0, 0, 6, 0, 1, 0, 7,
+                          0, 2, 0, 8, 0, 3, 0, 9, 0, 4, 0, 10};
+  int8_t output[24];
+  int8_t input_quantized[10];
+  int8_t golden_quantized[24];
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestSpaceToBatchNdQuantized(
+                input_dims, input, input_quantized, 1.0f, -128,
+                block_shape_dims, block_shape, paddings_dims, paddings,
+                output_dims, golden, golden_quantized, 1.0f, -128, output));
+}
+
 TF_LITE_MICRO_TESTS_MAIN
