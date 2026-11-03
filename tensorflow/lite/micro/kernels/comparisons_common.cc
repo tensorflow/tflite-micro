@@ -13,11 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/comparisons.h"
-
 #include <cstddef>
 #include <cstdint>
 
+#include "tensorflow/lite/micro/kernels/comparisons.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/comparisons.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
