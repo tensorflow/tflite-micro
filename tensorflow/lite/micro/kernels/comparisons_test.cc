@@ -793,4 +793,66 @@ TEST(ComparisonsTest, LessEqualQuantizedInt8WithBroadcast) {
   }
 }
 
+TEST(ComparisonsTest, QuantizedInt8NoBroadcastAllOps) {
+  // 20 elements ({1, 2, 5, 2}) exercises both 16-wide SIMD and 4-element
+  // remainder paths on vectorized backends.
+  int dims[] = {4, 1, 2, 5, 2};
+  float input1_data[] = {1,   -9, 7,  3, 0,  -15, 12, -4, 5, 20,
+                         -20, 8,  -1, 0, 14, -7,  2,  -3, 6, 10};
+  float input2_data[] = {-1,  2, 7,  5, 0,  -10, 12, -6, 8, 15,
+                         -20, 9, -1, 1, 10, -7,  4,  -5, 6, 9};
+
+  bool expected_eq[] = {false, false, true,  false, true,  false, true,
+                        false, false, false, true,  false, true,  false,
+                        false, true,  false, false, true,  false};
+  bool expected_ne[] = {true, true,  false, true,  false, true,  false,
+                        true, true,  true,  false, true,  false, true,
+                        true, false, true,  true,  false, true};
+  bool expected_gt[] = {true, false, false, false, false, false, false,
+                        true, false, true,  false, false, false, false,
+                        true, false, false, true,  false, true};
+  bool expected_ge[] = {true, false, true,  false, true,  false, true,
+                        true, false, true,  true,  false, true,  false,
+                        true, true,  false, true,  true,  true};
+  bool expected_lt[] = {false, true,  false, true,  false, true,  false,
+                        false, true,  false, false, true,  false, true,
+                        false, false, true,  false, false, false};
+  bool expected_le[] = {false, true, true,  true,  true, true, true,
+                        false, true, false, true,  true, true, true,
+                        false, true, true,  false, true, false};
+
+  const float input1_scale = 0.5f;
+  const int input1_zero_point = -5;
+  const float input2_scale = 0.25f;
+  const int input2_zero_point = 5;
+  int8_t input1_quantized[20];
+  int8_t input2_quantized[20];
+  bool output_data[20];
+
+  tflite::testing::TestComparisonQuantizedInt8(
+      tflite::Register_EQUAL(), dims, input1_data, input1_quantized,
+      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
+      input2_scale, input2_zero_point, expected_eq, dims, output_data);
+  tflite::testing::TestComparisonQuantizedInt8(
+      tflite::Register_NOT_EQUAL(), dims, input1_data, input1_quantized,
+      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
+      input2_scale, input2_zero_point, expected_ne, dims, output_data);
+  tflite::testing::TestComparisonQuantizedInt8(
+      tflite::Register_GREATER(), dims, input1_data, input1_quantized,
+      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
+      input2_scale, input2_zero_point, expected_gt, dims, output_data);
+  tflite::testing::TestComparisonQuantizedInt8(
+      tflite::Register_GREATER_EQUAL(), dims, input1_data, input1_quantized,
+      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
+      input2_scale, input2_zero_point, expected_ge, dims, output_data);
+  tflite::testing::TestComparisonQuantizedInt8(
+      tflite::Register_LESS(), dims, input1_data, input1_quantized,
+      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
+      input2_scale, input2_zero_point, expected_lt, dims, output_data);
+  tflite::testing::TestComparisonQuantizedInt8(
+      tflite::Register_LESS_EQUAL(), dims, input1_data, input1_quantized,
+      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
+      input2_scale, input2_zero_point, expected_le, dims, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN
