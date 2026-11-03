@@ -28,6 +28,7 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+namespace {
 
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 TfLiteStatus EvalMulQuantizedHiFi(TfLiteContext* context, TfLiteNode* node,
@@ -198,6 +199,8 @@ TfLiteStatus MulEval(TfLiteContext* context, TfLiteNode* node) {
 
   return kTfLiteOk;
 }
+
+}  // namespace
 
 TFLMRegistration Register_MUL() {
   return tflite::micro::RegisterOp(MulInit, MulPrepare, MulEval);
