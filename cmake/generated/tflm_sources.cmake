@@ -418,6 +418,7 @@ set(TFLM_MICRO_KERNEL_SRCS_XTENSA
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/fully_connected_int8.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/fully_connected_vision.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/leaky_relu.cc"
+  "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/logical.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/logistic.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/lstm_eval.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/lstm_eval_hifi.cc"
