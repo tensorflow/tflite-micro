@@ -26,13 +26,34 @@ namespace micro {
 struct XtensaReduceOpData {
   OpDataReduce reference_op_data;
 
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  int scratch_tensor_index;
+  int32_t updated_multiplier;
+  int32_t updated_shift;
+  int resolved_axis[4];
+  int num_resolved_axis;
+  bool is_hifi_supported;
+#endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+
 #if defined(VISION_P6)
   uint8_t* p_context;  // persistent lib context for this instance saved here
   uint32_t context_size;
 #endif  // VISION_P6
 };
 
-#if defined(VISION_P6)
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+
+TfLiteStatus ReducePrepareMeanHifi(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus ReducePrepareMaxHifi(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus ReduceEvalMeanHifi(TfLiteContext* context, TfLiteNode* node,
+                                const XtensaReduceOpData& data);
+
+TfLiteStatus ReduceEvalMaxHifi(TfLiteContext* context, TfLiteNode* node,
+                               const XtensaReduceOpData& data);
+
+#elif defined(VISION_P6)
 
 TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node);
 
@@ -40,7 +61,7 @@ TfLiteStatus ReduceEvalVision(const XtensaReduceOpData& data,
                               const TfLiteEvalTensor* input,
                               TfLiteEvalTensor* output);
 
-#endif  // VISION_P6
+#endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 }  // namespace micro
 
