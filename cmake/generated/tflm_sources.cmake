@@ -42,6 +42,7 @@ set(TFLM_MICRO_PUBLIC_HDRS
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/add.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/batch_matmul.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/circular_buffer.h"
+  "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/comparisons.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/conv.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/decode_state.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/decode_state_huffman.h"
@@ -268,6 +269,7 @@ set(TFLM_MICRO_KERNEL_SRCS
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/circular_buffer.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/circular_buffer_common.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/comparisons.cc"
+  "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/comparisons_common.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/concatenation.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/conv.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/conv_common.cc"
@@ -395,6 +397,7 @@ set(TFLM_MICRO_KERNEL_SRCS_HEXAGON
 set(TFLM_MICRO_KERNEL_SRCS_XTENSA
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/add.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/add_vision.cc"
+  "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/comparisons.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/conv.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/conv_common_xtensa.cc"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/xtensa/conv_hifi.cc"
