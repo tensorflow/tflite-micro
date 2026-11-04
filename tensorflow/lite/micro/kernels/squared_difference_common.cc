@@ -102,18 +102,14 @@ T SquaredDifference(T x, T y, const ArithmeticParams& params) {
 
 }  // namespace
 
-const int kSquaredDifferenceInputTensor1 = 0;
-const int kSquaredDifferenceInputTensor2 = 1;
-const int kSquaredDifferenceOutputTensor = 0;
-
-void* SquaredDifferenceInit(TfLiteContext* context, const char* buffer,
-                            size_t length) {
+void* SquaredDifferenceInitReference(TfLiteContext* context, const char* buffer,
+                                     size_t length) {
   return context->AllocatePersistentBuffer(context,
                                            sizeof(OpDataSquaredDifference));
 }
 
-TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context,
-                                      TfLiteNode* node) {
+TfLiteStatus SquaredDifferencePrepareReference(TfLiteContext* context,
+                                               TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   OpDataSquaredDifference* data =
       static_cast<OpDataSquaredDifference*>(node->user_data);

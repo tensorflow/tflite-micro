@@ -23,19 +23,20 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-extern const int kSquaredDifferenceInputTensor1;
-extern const int kSquaredDifferenceInputTensor2;
-extern const int kSquaredDifferenceOutputTensor;
+inline constexpr int kSquaredDifferenceInputTensor1 = 0;
+inline constexpr int kSquaredDifferenceInputTensor2 = 1;
+inline constexpr int kSquaredDifferenceOutputTensor = 0;
 
 struct OpDataSquaredDifference {
   bool requires_broadcast;
   ArithmeticParams arithmetic_params;
 };
 
-void* SquaredDifferenceInit(TfLiteContext* context, const char* buffer,
-                            size_t length);
+void* SquaredDifferenceInitReference(TfLiteContext* context, const char* buffer,
+                                     size_t length);
 
-TfLiteStatus SquaredDifferencePrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus SquaredDifferencePrepareReference(TfLiteContext* context,
+                                               TfLiteNode* node);
 
 template <typename T>
 void EvalQuantizedSquaredDifferenceReference(
