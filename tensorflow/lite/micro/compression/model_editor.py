@@ -421,12 +421,36 @@ _BUILTIN_OPERATOR_NAMES = {
 }
 
 
+def _options_union(options) -> tuple:
+  """Return the OperatorT union field and tag for an options object.
+
+  The schema has two options unions. The member's name is the class
+  name without its "T" suffix.
+
+  Raises:
+      ValueError: If options belongs to neither union.
+  """
+  name = type(options).__name__
+  # Without the suffix check, a read-only class such as Conv2DOptions
+  # would match, and fail later in build().
+  if name.endswith("T"):
+    member = name.removesuffix("T")
+    tag = getattr(tflite.BuiltinOptions, member, None)
+    if tag is not None:
+      return "builtinOptions", tag
+    tag = getattr(tflite.BuiltinOptions2, member, None)
+    if tag is not None:
+      return "builtinOptions2", tag
+  raise ValueError(f"{name} is not a member of either builtin options union")
+
+
 class Operator:
   """Operator specification wrapping an OperatorT flatbuffer object.
 
-  Provides clean APIs for common fields (opcode, inputs, outputs, custom_code)
-  while preserving all other OperatorT fields (builtin_options, custom_options,
-  intermediates, mutating_variable_inputs, etc.) during read-modify-write.
+  Provides clean APIs for common fields (opcode, inputs, outputs,
+  custom_code, options) while preserving all other OperatorT fields
+  (custom_options, intermediates, mutating_variable_inputs, etc.)
+  during read-modify-write.
   """
 
   def __init__(
@@ -434,6 +458,7 @@ class Operator:
     opcode: Union[tflite.BuiltinOperator, int] = None,
     inputs: List[Optional[Tensor]] = None,
     outputs: List[Tensor] = None,
+    options=None,
     custom_code: Optional[str] = None,
     opcode_index: Optional[int] = None,
     _fb: tflite.OperatorT = None,
@@ -444,6 +469,7 @@ class Operator:
         opcode: BuiltinOperator enum value or CUSTOM
         inputs: List of input Tensor objects, None for an absent input
         outputs: List of output Tensor objects
+        options: Builtin options object, e.g. tflite.Conv2DOptionsT
         custom_code: Custom operator name (for CUSTOM opcode)
         opcode_index: Index into operator_codes (set during read)
         _fb: Optional OperatorT for wrapping existing flatbuffer object
@@ -460,6 +486,10 @@ class Operator:
     self._opcode = opcode
     self._custom_code = custom_code
     self._opcode_index = opcode_index
+
+    # Overrides any options in _fb
+    if options is not None:
+      self.options = options
 
   @property
   def opcode(self) -> Union[tflite.BuiltinOperator, int]:
@@ -489,6 +519,43 @@ class Operator:
     if self._custom_code is not None:
       return self._custom_code
     return _BUILTIN_OPERATOR_NAMES.get(self._opcode, f"opcode {self._opcode}")
+
+  @property
+  def options(self):
+    """Builtin options object, or None.
+
+    Set it in the constructor or by assignment:
+
+        Operator(
+          opcode=tflite.BuiltinOperator.CONV_2D,
+          inputs=[activation, filter, bias],
+          outputs=[output],
+          options=tflite.Conv2DOptionsT(strideW=1, strideH=1),
+        )
+
+    Edits to the returned object change the operator.
+    """
+    if self._fb.builtinOptions is not None:
+      return self._fb.builtinOptions
+    return self._fb.builtinOptions2
+
+  @options.setter
+  def options(self, value):
+    """Set builtin options and the matching union tag.
+
+    Clears both unions first. Assign None to remove options.
+
+    Raises:
+        ValueError: If value belongs to neither options union.
+    """
+    self._fb.builtinOptions = None
+    self._fb.builtinOptionsType = 0
+    self._fb.builtinOptions2 = None
+    self._fb.builtinOptions2Type = 0
+    if value is not None:
+      field, tag = _options_union(value)
+      setattr(self._fb, field, value)
+      setattr(self._fb, field + "Type", tag)
 
   @property
   def opcode_index(self) -> Optional[int]:
