@@ -149,13 +149,12 @@ support along with optional target-specific
 and [xtensa_makefile.inc](../tensorflow/lite/micro/tools/make/targets/xtensa_makefile.inc) as
 examples.
 
-1.  A single `ext_libs.inc` (and associated scripts) that downloads any external
-    dependencies (including the NN library). For example:
+1.  A single `ext_libs.inc` that configures external dependencies (registered in
+    [download_dependencies.py](../tensorflow/lite/micro/tools/make/download_dependencies.py),
+    including the NN library). For example:
 
-    *   [cmsis_nn.inc](../tensorflow/lite/micro/tools/make/ext_libs/cmsis_nn.inc) and
-        [cmsis_download.sh](../tensorflow/lite/micro/tools/make/ext_libs/cmsis_download.sh)
-    *   [xtensa.inc](../tensorflow/lite/micro/tools/make/ext_libs/xtensa.inc) and
-        [xtensa_download.sh](../tensorflow/lite/micro/tools/make/ext_libs/xtensa_download.sh)
+    *   [cmsis_nn.inc](../tensorflow/lite/micro/tools/make/ext_libs/cmsis_nn.inc)
+    *   [xtensa.inc](../tensorflow/lite/micro/tools/make/ext_libs/xtensa.inc)
 
 1.  The optimized kernels will then live in a kernels subdirectory (e.g.
     [kernels/cmsis_nn](../tensorflow/lite/micro/kernels/cmsis_nn) and

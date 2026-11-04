@@ -348,10 +348,8 @@ ifeq ($(findstring $(TARGET),$(TARGETS_WITHOUT_MAKEFILES)),)
 endif
 
 # Create rules for downloading third-party dependencies.
-THIRD_PARTY_TARGETS :=
-$(foreach DOWNLOAD,$(THIRD_PARTY_DOWNLOADS),$(eval $(call create_download_rule,$(DOWNLOAD))))
-third_party_downloads: $(THIRD_PARTY_TARGETS)
-	$(Q)python3 $(MAKEFILE_DIR)/download_dependencies.py --downloads_dir $(DOWNLOADS_DIR) --tensorflow_root "$(TENSORFLOW_ROOT)"
+third_party_downloads:
+	$(Q)python3 $(MAKEFILE_DIR)/download_dependencies.py --downloads_dir "$(DOWNLOADS_DIR)" --tensorflow_root "$(TENSORFLOW_ROOT)" --host_os "$(HOST_OS)" --host_arch "$(HOST_ARCH)" $(sort $(TFLM_THIRD_PARTY_DEPS)) > /dev/null
 
 # Validate valid options.
 ifeq (,$(filter $(OPTIMIZE_KERNELS_FOR),KERNELS_OPTIMIZED_FOR_SPEED KERNELS_OPTIMIZED_FOR_SIZE))
@@ -510,51 +508,51 @@ $(GENERATED_SRCS_DIR)%_test_data.cc $(GENERATED_SRCS_DIR)%_test_data.h: %.csv
 $(GENERATED_SRCS_DIR)%_test_data.cc $(GENERATED_SRCS_DIR)%_test_data.h: %.npy
 	$(Q)python3 $(TENSORFLOW_ROOT)tensorflow/lite/micro/tools/generate_cc_arrays.py $(GENERATED_SRCS_DIR) $< > /dev/null
 
-$(CORE_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.cc
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(CORE_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.c
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(CORE_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(CORE_OBJDIR)%.o: %.S
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(THIRD_PARTY_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_OBJDIR)%.o: %.cc
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CXX) $(CXXFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(THIRD_PARTY_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_OBJDIR)%.o: %.c
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(THIRD_PARTY_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_OBJDIR)%.o: %.S
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(CORE_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.cc
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CXX) $(CXXFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.c
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(THIRD_PARTY_KERNEL_OBJDIR)%.o: %.S
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(THIRD_PARTY_KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(KERNEL_OBJDIR)%.o: %.cc $(THIRD_PARTY_TARGETS)
+$(KERNEL_OBJDIR)%.o: %.cc
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CXX) $(CXXFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(KERNEL_OBJDIR)%.o: %.c $(THIRD_PARTY_TARGETS)
+$(KERNEL_OBJDIR)%.o: %.c
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
-$(KERNEL_OBJDIR)%.o: %.S $(THIRD_PARTY_TARGETS)
+$(KERNEL_OBJDIR)%.o: %.S
 	$(Q)$(MKDIR_P) $(dir $@)
 	$(Q)$(CC) $(CCFLAGS) $(KERNEL_OPTIMIZATION_LEVEL) $(INCLUDES) -c $< -o $@
 
@@ -663,6 +661,6 @@ config_info:
 	@echo "  CO_PROCESSOR: $(CO_PROCESSOR)"
 	@echo "  TARGET_TOOLCHAIN_ROOT: $(TARGET_TOOLCHAIN_ROOT)"
 	@echo "  INCLUDES: $(INCLUDES)"
-	@echo "  THIRD_PARTY_DOWNLOADS: $(THIRD_PARTY_DOWNLOADS)"
+	@echo "  TFLM_THIRD_PARTY_DEPS: $(TFLM_THIRD_PARTY_DEPS)"
 	@echo "  MICROLITE_BENCHMARK_SRCS: $(MICROLITE_BENCHMARK_SRCS)"
 	@echo "  MICROLITE_TEST_SRCS: $(MICROLITE_TEST_SRCS)"

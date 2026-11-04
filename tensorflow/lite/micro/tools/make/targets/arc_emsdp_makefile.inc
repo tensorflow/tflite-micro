@@ -22,9 +22,13 @@ BUILD_ARC_MLI := false
 ARC_MLI_PRE_COMPILED_TARGET := emsdp_em11d_em9d_dfss
 
 MLI_LIB_DIR = arc_mli_package
-$(eval $(call add_third_party_download,$(EMBARC_MLI_PRE_COMPILED_URL),$(EMBARC_MLI_PRE_COMPILED_MD5),$(MLI_LIB_DIR),))
+ifeq ($(MLI_LIB_DIR), arc_mli_package)
+  $(eval $(call ensure_third_party_deps,arc_mli_package))
+else
+  $(eval $(call ensure_third_party_deps,arc_mli_package,--dest_name "$(MLI_LIB_DIR)"))
+endif
 
-TCF_FILE = $(PWD)/$(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/hw/emsdp_em11d_em9d_dfss.tcf
+TCF_FILE = $(abspath $(DOWNLOADS_DIR))/$(MLI_LIB_DIR)/hw/emsdp_em11d_em9d_dfss.tcf
 
 include $(MAKEFILE_DIR)/targets/arc/arc_common.inc
 

@@ -19,7 +19,7 @@ def _riscv_toolchain_impl(rctx):
     else:
         rctx.download_and_extract(
             url = [
-                "http://mirror.tensorflow.org/static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14.tar.gz",
+                "https://storage.googleapis.com/mirror.tensorflow.org/static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14.tar.gz",
             ],
             sha256 = "a4965d855d4e06eecc17b0305e0cb60c4fc7c4fc4c89a3514e28eccfc5b06d07",
             strip_prefix = "riscv64-unknown-elf-gcc-20181030-x86_64-linux-ubuntu14",

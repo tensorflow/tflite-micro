@@ -13,7 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
-PRINTF_PATH := $(DOWNLOADS_DIR)/eyalroz_printf
+PRINTF_DEFAULT_DOWNLOAD_PATH := $(DOWNLOADS_DIR)/eyalroz_printf
+PRINTF_PATH := $(PRINTF_DEFAULT_DOWNLOAD_PATH)
+ifeq ($(PRINTF_PATH), $(PRINTF_DEFAULT_DOWNLOAD_PATH))
+  $(eval $(call ensure_third_party_deps,eyalroz_printf))
+endif
 THIRD_PARTY_CC_SRCS += \
   $(PRINTF_PATH)/src/printf/printf.c
 THIRD_PARTY_CC_HDRS += \

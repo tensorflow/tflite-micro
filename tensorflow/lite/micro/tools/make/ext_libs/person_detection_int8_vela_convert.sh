@@ -33,8 +33,6 @@
 
 set -e
 
-source ${3}tensorflow/lite/micro/tools/make/bash_helpers.sh
-
 DOWNLOADS_DIR=${1}
 GENERATED_SRCS_DIR=${2}
 

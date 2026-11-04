@@ -185,9 +185,9 @@ NN library download URLs:
 https://github.com/ARM-software/CMSIS-NN/archive/22080c68d040c98139e6cb1549473e3149735f4d.z
 ip
 
-NN library MD5 checksums:
+NN library SHA256 checksums:
 
-32aa69692541060a76b18bd5d2d98956
+5212f41b7c2789816fb42f15e53ade4f0729d3780c18e7eaa52c8a00cf00fb8b
 --------------------
 Model SHA1:
 

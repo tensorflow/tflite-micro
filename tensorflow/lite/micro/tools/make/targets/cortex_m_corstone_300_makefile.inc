@@ -17,21 +17,13 @@
 # For more info see: tensorflow/lite/micro/cortex_m_corstone_300/README.md
 
 UNAME_M := $(shell uname -m)
-ifeq ($(UNAME_M), aarch64)
-  export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_armv8l_GCC-9.3:$(PATH)
-else
-  export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_GCC-9.3:$(PATH)
-endif
-
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/corstone_300_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the Arm Corstone-300 software download: $(DOWNLOAD_RESULT))
-endif
-
-ETHOS_U_CORE_PLATFORM := $(DOWNLOADS_DIR)/ethos_u_core_platform/targets/corstone-300
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ethos_u_core_platform_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-  $(error Something went wrong with the Ethos-U Core Platform software download: $(DOWNLOAD_RESULT))
+ifeq ($(shell which FVP_Corstone_SSE-300_Ethos-U55 2>/dev/null),)
+  $(eval $(call ensure_third_party_deps,corstone300))
+  ifeq ($(UNAME_M), aarch64)
+    export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_armv8l_GCC-9.3:$(PATH)
+  else
+    export PATH := $(DOWNLOADS_DIR)/corstone300/models/Linux64_GCC-9.3:$(PATH)
+  endif
 endif
 
 # This target has dependencies to CMSIS-Device so just in case running without OPTIMIZED_KERNEL_DIR=cmsis_nn.
@@ -76,13 +68,13 @@ ifeq ($(TOOLCHAIN), gcc)
     ifeq ($(shell which arm-none-eabi-gcc 2>/dev/null),)
       TARGET_DEFAULT_TOOLCHAIN_ROOT := $(DOWNLOADS_DIR)/gcc_embedded/bin/
       TARGET_TOOLCHAIN_ROOT := $(TARGET_DEFAULT_TOOLCHAIN_ROOT)
-      DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/arm_gcc_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-      ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-        $(error Something went wrong with the GCC download: $(DOWNLOAD_RESULT))
-      endif
+      $(eval $(call ensure_third_party_deps,gcc_embedded))
     endif
   endif
   TARGET_TOOLCHAIN_PREFIX := arm-none-eabi-
+
+  ETHOS_U_CORE_PLATFORM := $(DOWNLOADS_DIR)/ethos_u_core_platform/targets/corstone-300
+  $(eval $(call ensure_third_party_deps,ethos_u_core_platform,--cc "$(TARGET_TOOLCHAIN_ROOT)$(TARGET_TOOLCHAIN_PREFIX)$(CC_TOOL)"))
 
   FLAGS_GCC = -mcpu=$(MCPU_OPTION) -mfpu=auto
   CXXFLAGS += $(FLAGS_GCC)

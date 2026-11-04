@@ -21,29 +21,30 @@ ifeq ($(BUILD_ARC_MLI),true)
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
   MLI_LIB_DIR := $(MLI_LIB_DIR)_mli20
-endif
-
-ifneq ($(findstring test, $(MAKECMDGOALS)),)
-  $(eval $(call add_third_party_download,$(EMBARC_MLI_URL),$(EMBARC_MLI_MD5),$(MLI_LIB_DIR),build_embarc_mli,$(TCF_FILE)))
+  $(eval $(call ensure_third_party_deps,embarc_mli_2_0,--dest_name "$(MLI_LIB_DIR)"))
 else
-  $(eval $(call add_third_party_download,$(EMBARC_MLI_URL),$(EMBARC_MLI_MD5),$(MLI_LIB_DIR)))
+  $(eval $(call ensure_third_party_deps,embarc_mli_1_1,--dest_name "$(MLI_LIB_DIR)"))
 endif
 
   MLI_INCLUDE_FOLDER = $(MLI_LIB_DIR)/include
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
-  MICROLITE_LIBS += $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/bin/arc/libmli.a
+  MICROLITE_LIBS += $(DOWNLOADS_DIR)/$(MLI_LIB_DIR)/bin/arc/libmli.a
 else
-  MICROLITE_LIBS += $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/bin/libmli.a
+  MICROLITE_LIBS += $(DOWNLOADS_DIR)/$(MLI_LIB_DIR)/bin/libmli.a
 endif
 
 else
 ifneq ($(ARC_MLI_PRE_COMPILED_TARGET),)
   MLI_LIB_DIR ?= arc_mli_package
-  $(eval $(call add_third_party_download,$(EMBARC_MLI_PRE_COMPILED_URL),$(EMBARC_MLI_PRE_COMPILED_MD5),$(MLI_LIB_DIR),))
+  ifeq ($(MLI_LIB_DIR), arc_mli_package)
+    $(eval $(call ensure_third_party_deps,arc_mli_package))
+  else
+    $(eval $(call ensure_third_party_deps,arc_mli_package,--dest_name "$(MLI_LIB_DIR)"))
+  endif
 
   MLI_INCLUDE_FOLDER = $(MLI_LIB_DIR)/include
-  MICROLITE_LIBS += $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/bin/$(ARC_MLI_PRE_COMPILED_TARGET)/release/libmli.a
+  MICROLITE_LIBS += $(DOWNLOADS_DIR)/$(MLI_LIB_DIR)/bin/$(ARC_MLI_PRE_COMPILED_TARGET)/release/libmli.a
 
 else 
 $(error Target for pre compiled ARC MLI library is not defined)
@@ -53,14 +54,14 @@ endif # BUILD_ARC_MLI
 ifeq ($(filter $(ARC_TAGS), project_generation),)
 
   THIRD_PARTY_CC_HDRS += \
-    $(MAKEFILE_DIR)/downloads/$(MLI_LIB_DIR)/LICENSE
+    $(DOWNLOADS_DIR)/$(MLI_LIB_DIR)/LICENSE
 
   THIRD_PARTY_CC_HDRS += $(MLI_LIB)
   GENERATED_PROJECT_LIBS += $(MLI_LIB)
 
   INCLUDES += \
-    -I$(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER) \
-    -I$(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api
+    -I$(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER) \
+    -I$(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api
 
   GENERATED_PROJECT_INCLUDES += \
     -I. \
@@ -69,24 +70,24 @@ ifeq ($(filter $(ARC_TAGS), project_generation),)
 
 ifneq ($(filter $(ARC_TAGS), mli20_experimental),)
   THIRD_PARTY_CC_HDRS += \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_config.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_types.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/mli_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/mli_config.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/mli_types.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
 else
   THIRD_PARTY_CC_HDRS += \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_config.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/mli_types.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_avepool_spec_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_conv2d_spec_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_depthwise_conv2d_spec_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_krn_maxpool_spec_api.h \
-    $(MAKEFILE_DIR)/downloads/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/mli_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/mli_config.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/mli_types.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_helpers_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_kernels_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_krn_avepool_spec_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_krn_conv2d_spec_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_krn_depthwise_conv2d_spec_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_krn_maxpool_spec_api.h \
+    $(DOWNLOADS_DIR)/$(MLI_INCLUDE_FOLDER)/api/mli_mov_api.h
 endif
 
 endif # project_generation

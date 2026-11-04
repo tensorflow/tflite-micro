@@ -1,6 +1,6 @@
 
 ifeq ($(TARGET_ARCH), hifimini)
-  FFT_PATH := $(MAKEFILE_DIR)/downloads/hifi_fft
+  FFT_PATH := $(DOWNLOADS_DIR)/hifi_fft
   INCLUDES += -I$(FFT_PATH)/
 
   THIRD_PARTY_KERNEL_CC_SRCS += \
@@ -9,15 +9,7 @@ ifeq ($(TARGET_ARCH), hifimini)
     $(shell find $(FFT_PATH)/hifi2_fft -name "*.h")
 
 else ifeq ($(TARGET_ARCH), hifi5)
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
-  endif
-
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_ndsp_download.sh ${DOWNLOADS_DIR} hifi5 $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the xtensa ndsp download: $(DOWNLOAD_RESULT))
-  endif
+  $(eval $(call ensure_third_party_deps,xa_nnlib_hifi5 ndsplib-hifi5))
 
   # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
   # not have separate cflags (or the concept of modular build targets) with the
@@ -30,8 +22,8 @@ else ifeq ($(TARGET_ARCH), hifi5)
   CCFLAGS += $(PLATFORM_FLAGS)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
-  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi5
-  NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-hifi5
+  NNLIB_PATH := $(DOWNLOADS_DIR)/xa_nnlib_hifi5
+  NDSPLIB_PATH := $(DOWNLOADS_DIR)/ndsplib-hifi5
 
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
@@ -72,15 +64,7 @@ else ifeq ($(TARGET_ARCH), hifi5)
     -I$(NDSPLIB_PATH)/library/include_private/
 else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
   # NNLib hifi4 also supports hifi3
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} hifi4 $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
-  endif
-
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_ndsp_download.sh ${DOWNLOADS_DIR} $(TARGET_ARCH) $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the xtensa ndsp download: $(DOWNLOAD_RESULT))
-  endif
+  $(eval $(call ensure_third_party_deps,xa_nnlib_hifi4 ndsplib-$(TARGET_ARCH)))
 
   # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
   # not have separate cflags (or the concept of modular build targets) with the
@@ -94,8 +78,8 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
   CXXFLAGS += $(PLATFORM_FLAGS)
 
   # NNLib for hifi4 also supports hifi3
-  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xa_nnlib_hifi4
-  NDSPLIB_PATH := $(MAKEFILE_DIR)/downloads/ndsplib-$(TARGET_ARCH)
+  NNLIB_PATH := $(DOWNLOADS_DIR)/xa_nnlib_hifi4
+  NDSPLIB_PATH := $(DOWNLOADS_DIR)/ndsplib-$(TARGET_ARCH)
 
   THIRD_PARTY_KERNEL_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.c")
@@ -153,10 +137,7 @@ else ifeq ($(TARGET_ARCH), $(filter $(TARGET_ARCH), hifi3 hifi4))
     -I$(NDSPLIB_PATH)/library/include_private/
 
 else ifeq ($(TARGET_ARCH), vision_p6)
-  DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ext_libs/xtensa_download.sh ${DOWNLOADS_DIR} vision_p6 $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error Something went wrong with the xtensa download: $(DOWNLOAD_RESULT))
-  endif
+  $(eval $(call ensure_third_party_deps,xi_tflmlib_vision_p6))
 
   # TODO(b/161489252): -Wno-shadow is only needed for xannlib. But since we do
   # not have separate cflags (or the concept of modular build targets) with the
@@ -171,7 +152,7 @@ else ifeq ($(TARGET_ARCH), vision_p6)
   CCFLAGS += $(PLATFORM_FLAGS)
   CXXFLAGS += $(PLATFORM_FLAGS)
 
-  NNLIB_PATH := $(MAKEFILE_DIR)/downloads/xi_tflmlib_vision_p6
+  NNLIB_PATH := $(DOWNLOADS_DIR)/xi_tflmlib_vision_p6
 
   THIRD_PARTY_CC_SRCS += \
     $(shell find $(NNLIB_PATH) -name "*.cc")

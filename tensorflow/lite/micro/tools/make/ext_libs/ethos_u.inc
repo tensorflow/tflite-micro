@@ -27,13 +27,10 @@ endif
 
 # Unless an external path is provided we force a download during the first phase of make so
 # that the files exist prior to the call to find below.
-ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH := $(MAKEFILE_DIR)/downloads/ethos_u_core_driver
+ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH := $(DOWNLOADS_DIR)/ethos_u_core_driver
 ETHOSU_DRIVER_PATH := $(ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH)
 ifeq ($(ETHOSU_DRIVER_PATH), $(ETHOSU_DEFAULT_DOWNLOAD_DRIVER_PATH))
-DOWNLOAD_RESULT := $(shell $(MAKEFILE_DIR)/ethos_u_core_driver_download.sh $(DOWNLOADS_DIR) $(TENSORFLOW_ROOT))
-  ifneq ($(DOWNLOAD_RESULT), SUCCESS)
-    $(error $(DOWNLOAD_SCRIPT) failed)
-  endif
+  $(eval $(call ensure_third_party_deps,ethos_u_core_driver))
 endif
 
 THIRD_PARTY_CC_HDRS += $(shell find $(ETHOSU_DRIVER_PATH)/include -name "*.h")
