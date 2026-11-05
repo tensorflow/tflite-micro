@@ -1177,7 +1177,43 @@ TfLiteStatus MicroAllocator::CommitStaticMemoryPlan(
       CommitPlan(memory_planner_,
                  non_persistent_buffer_allocator_->GetOverlayMemoryAddress(),
                  allocation_info, allocation_info_count));
-
+#if 1 // LR_CHG  Input and output tensor assignment for RESHAPE operation
+  // Zero-copy RESHAPE: post-commit data pointer sync.
+  //
+  // InitializeAllocationInfo() aliased each RESHAPE output tensor's
+  // output_ptr to its input tensor's output_ptr, and set
+  // out_alloc->needs_allocating = false.  As a result, CommitPlan() wrote the
+  // shared arena address only through in_alloc->output_ptr, which updates
+  // eval_tensors[in_idx].data.data.  The output eval tensor was skipped by
+  // CommitPlan() so eval_tensors[out_idx].data.data is still nullptr.
+  //
+  // This pass explicitly copies the resolved address into the output eval
+  // tensor so that downstream ops reading it via GetEvalInput() see the
+  // correct (shared) buffer pointer.
+  //
+  // The input tensor's lifetime was already extended in MarkAllocationLifetimes
+  // to cover the output's last consumer, so the shared buffer remains valid
+  // for the full duration that both tensors are needed.
+  for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
+       subgraph_idx++) {
+    const SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
+    TfLiteEvalTensor* eval_tensors = allocations[subgraph_idx].tensors;
+    uint32_t operators_size = NumSubgraphOperators(subgraph);
+    for (uint32_t op_idx = 0; op_idx < operators_size; op_idx++) {
+      const auto* op = subgraph->operators()->Get(op_idx);
+      const OperatorCode* opcode =
+          model->operator_codes()->Get(op->opcode_index());
+      if (GetBuiltinCode(opcode) != BuiltinOperator_RESHAPE) continue;
+      if (op->inputs()  == nullptr || op->inputs()->size()  < 1) continue;
+      if (op->outputs() == nullptr || op->outputs()->size() < 1) continue;
+      int in_idx  = op->inputs()->Get(0);
+      int out_idx = op->outputs()->Get(0);
+      if (in_idx < 0 || out_idx < 0) continue;
+      if (eval_tensors[in_idx].data.data == nullptr) continue;
+      eval_tensors[out_idx].data.data = eval_tensors[in_idx].data.data;
+    }
+  }
+#endif
   // Reset all temp allocations used above:
   builder.FreeAllocationInfo();
   non_persistent_buffer_allocator_->DeallocateTemp(planner_arena);
