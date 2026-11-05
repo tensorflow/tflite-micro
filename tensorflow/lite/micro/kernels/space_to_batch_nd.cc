@@ -61,6 +61,13 @@ TfLiteStatus SpaceToBatchNDPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, NumDimensions(output) <= kInputOutputMaxDimensionNum);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
+  // Padded elements are filled with real zero, which is the output zero point
+  // for quantized types.
+  TFLITE_DCHECK(node->user_data != nullptr);
+  auto* params = static_cast<SpaceToBatchParams*>(node->user_data);
+  params->output_offset =
+      input->type == kTfLiteInt8 ? output->params.zero_point : 0;
+
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
