@@ -18,7 +18,7 @@ project(tflm VERSION 0.1.0 LANGUAGES CXX)
 
 include(CMakeDependentOption)
 include("${PROJECT_SOURCE_DIR}/cmake/tflm_codegen.cmake")
-include("${PROJECT_SOURCE_DIR}/cmake/generated/tflm_sources.cmake")
+include("${PROJECT_SOURCE_DIR}/cmake/tflm_sources.cmake")
 
 # --- 1. Options & Validation --------------------------------------------------
 option(TFLM_ENABLE_SIGNAL "Build tflm::signal (requires KissFFT)" ${PROJECT_IS_TOP_LEVEL})
@@ -423,6 +423,9 @@ function(tflm_add_cc_test)
   if(ARG_NAME IN_LIST TFLM_EXCLUDED_TESTS OR _short IN_LIST TFLM_EXCLUDED_TESTS)
     return()
   endif()
+  if(TARGET "${ARG_NAME}")
+    message(FATAL_ERROR "tflm_add_cc_test: duplicate test target '${ARG_NAME}'.")
+  endif()
   add_executable(${ARG_NAME} ${ARG_SRCS})
   _tflm_apply_common_compile_options(${ARG_NAME})
   target_link_libraries(${ARG_NAME} PRIVATE tflm::test_support ${ARG_DEPS})
@@ -466,7 +469,7 @@ if(TFLM_BUILD_TESTS)
         "install via 'pip install Pillow numpy'.")
     endif()
   endif()
-  include("${PROJECT_SOURCE_DIR}/cmake/generated/tflm_generated_tests.cmake")
+  tflm_register_tests()
 endif()
 
 # --- 5. Package Install (TFLM_INSTALL) ----------------------------------------
