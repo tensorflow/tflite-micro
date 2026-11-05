@@ -45,9 +45,6 @@ bool HasPositiveDims(const TfLiteIntArray* dims) {
 
 bool CanUseHifiReduce(const TfLiteTensor* input, const TfLiteTensor* output,
                       const TfLiteTensor* axis, XtensaReduceOpData* xt_data) {
-  if (input->type != output->type) {
-    return false;
-  }
   if (input->dims->size < 1 || input->dims->size > kMaxSupportedDimsHifi ||
       output->dims->size < 0 || output->dims->size > kMaxSupportedDimsHifi) {
     return false;
@@ -55,7 +52,7 @@ bool CanUseHifiReduce(const TfLiteTensor* input, const TfLiteTensor* output,
   if (!HasPositiveDims(input->dims) || !HasPositiveDims(output->dims)) {
     return false;
   }
-  if (!IsConstantOrPersistentTensor(axis)) {
+  if (!IsConstantTensor(axis)) {
     return false;
   }
 
@@ -81,12 +78,23 @@ TfLiteStatus ReducePrepareMaxHifi(TfLiteContext* context, TfLiteNode* node) {
   xt_data->is_hifi_supported = false;
 
   MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kReduceInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kReduceOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-  TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
+  TfLiteTensor* axis =
+      micro_context->AllocateTempInputTensor(node, kReduceAxisTensor);
   TF_LITE_ENSURE(context, axis != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  if (input->type == kTfLiteInt8) {
+    const OpDataReduce& op_data = xt_data->reference_op_data;
+    TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data.input_scale),
+                      static_cast<double>(op_data.output_scale));
+    TF_LITE_ENSURE_EQ(context, op_data.input_zp, op_data.output_zp);
+  }
 
   TfLiteStatus status = kTfLiteOk;
   if (input->type == kTfLiteInt8 &&
@@ -119,12 +127,17 @@ TfLiteStatus ReducePrepareMeanHifi(TfLiteContext* context, TfLiteNode* node) {
   xt_data->is_hifi_supported = false;
 
   MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kReduceInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kReduceOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-  TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
+  TfLiteTensor* axis =
+      micro_context->AllocateTempInputTensor(node, kReduceAxisTensor);
   TF_LITE_ENSURE(context, axis != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
 
   TfLiteStatus status = kTfLiteOk;
   if ((input->type == kTfLiteInt8 || input->type == kTfLiteInt16) &&
@@ -183,13 +196,16 @@ TfLiteStatus ReducePrepareMeanHifi(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus ReduceEvalMeanHifi(TfLiteContext* context, TfLiteNode* node,
                                 const XtensaReduceOpData& data) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kReduceInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kReduceOutputTensor);
 
   void* p_scratch =
       context->GetScratchBuffer(context, data.scratch_tensor_index);
-  TF_LITE_ENSURE(context, p_scratch != nullptr);
+  if (p_scratch == nullptr) {
+    return kTfLiteError;
+  }
 
   const int scalar_out_dims[1] = {1};
   const int num_out_dims = (output->dims->size == 0) ? 1 : output->dims->size;
@@ -224,18 +240,16 @@ TfLiteStatus ReduceEvalMeanHifi(TfLiteContext* context, TfLiteNode* node,
 
 TfLiteStatus ReduceEvalMaxHifi(TfLiteContext* context, TfLiteNode* node,
                                const XtensaReduceOpData& data) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
-
-  const OpDataReduce& op_data = data.reference_op_data;
-  TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data.input_scale),
-                    static_cast<double>(op_data.output_scale));
-  TF_LITE_ENSURE_EQ(context, op_data.input_zp, op_data.output_zp);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kReduceInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kReduceOutputTensor);
 
   void* p_scratch =
       context->GetScratchBuffer(context, data.scratch_tensor_index);
-  TF_LITE_ENSURE(context, p_scratch != nullptr);
+  if (p_scratch == nullptr) {
+    return kTfLiteError;
+  }
 
   const int scalar_out_dims[1] = {1};
   const int num_out_dims = (output->dims->size == 0) ? 1 : output->dims->size;

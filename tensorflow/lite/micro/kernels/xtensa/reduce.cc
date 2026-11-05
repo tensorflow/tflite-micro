@@ -109,24 +109,18 @@ TfLiteStatus XtensaEvalMax(TfLiteContext* context, TfLiteNode* node) {
   }
   return EvalMaxHelper(context, node, op_data);
 #elif defined(VISION_P6)
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kReduceInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kReduceOutputTensor);
 
   switch (input->type) {
-    case kTfLiteInt8: {
-      TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data->input_scale),
-                        static_cast<double>(op_data->output_scale));
-      TF_LITE_ENSURE_EQ(context, op_data->input_zp, op_data->output_zp);
-      ReduceEvalVision(*op_data_xtensa, input, output);
-      break;
-    }
-    default: {
+    case kTfLiteInt8:
+      return ReduceEvalVision(*op_data_xtensa, input, output);
+    default:
       // Use the reference EvalMax for all other cases.
       return EvalMaxHelper(context, node, op_data);
-    }
   }
-  return kTfLiteOk;
 #else
   return EvalMaxHelper(context, node, op_data);
 #endif
