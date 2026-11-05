@@ -38,9 +38,9 @@ http_archive(
 http_archive(
     name = "cmsis_nn",
     build_file = "//tensorflow/lite/micro/tools/toolchains/arm:cmsis_nn.BUILD",
-    sha256 = "5212f41b7c2789816fb42f15e53ade4f0729d3780c18e7eaa52c8a00cf00fb8b",
-    strip_prefix = "CMSIS-NN-18bb0fd4ecea4b17a5a3c444c8d3a8cf28b1e68f",
-    urls = ["https://github.com/ARM-software/CMSIS-NN/archive/18bb0fd4ecea4b17a5a3c444c8d3a8cf28b1e68f.zip"],
+    sha256 = "4da26d0cc42c6bc25f16b5185fa4ae327ce2dd662b6317c2ddde37dfdea38ad6",
+    strip_prefix = "CMSIS-NN-ece8aa0df4bee4fc928c294e18059071649c88bb",
+    urls = ["https://github.com/ARM-software/CMSIS-NN/archive/ece8aa0df4bee4fc928c294e18059071649c88bb.zip"],
 )
 
 http_archive(
