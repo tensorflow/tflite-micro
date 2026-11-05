@@ -218,6 +218,46 @@ TfLiteStatus AllocationInfoBuilder::InitializeAllocationInfo(
       }
     }
   }
+#if 1  // LR_CHG  Zero-copy RESHAPE aliasing
+  // Zero-copy RESHAPE: alias each RESHAPE output tensor onto its input tensor
+  // so the memory planner assigns them one shared arena buffer.
+  //
+  // Both output_ptr fields point to the same void* variable after this pass.
+  // CommitPlan() will write one arena address through that pointer, which
+  // simultaneously sets eval_tensors[in_idx].data.data and
+  // eval_tensors[out_idx].data.data to the same value.
+  //
+  // Lifetime extension (keeping the input alive through the output's last
+  // consumer) is done in MarkAllocationLifetimes() after all lifetimes are
+  // final.  The actual data pointer sync for the output eval tensor is done
+  // in CommitStaticMemoryPlan() after CommitPlan() runs.
+  for (size_t subgraph_idx = 0; subgraph_idx < model_->subgraphs()->size();
+       subgraph_idx++) {
+    const SubGraph* subgraph = model_->subgraphs()->Get(subgraph_idx);
+    AllocationInfo* subgraph_allocation_info =
+        &allocation_info[info_.subgraph_offsets[subgraph_idx]];
+    uint32_t operators_size = NumSubgraphOperators(subgraph);
+    for (uint32_t op_idx = 0; op_idx < operators_size; op_idx++) {
+      const auto* op = subgraph->operators()->Get(op_idx);
+      const OperatorCode* opcode =
+          model_->operator_codes()->Get(op->opcode_index());
+      if (GetBuiltinCode(opcode) != BuiltinOperator_RESHAPE) continue;
+      if (op->inputs()  == nullptr || op->inputs()->size()  < 1) continue;
+      if (op->outputs() == nullptr || op->outputs()->size() < 1) continue;
+      int in_idx  = op->inputs()->Get(0);
+      int out_idx = op->outputs()->Get(0);
+      if (in_idx < 0 || out_idx < 0) continue;
+      AllocationInfo* in_alloc  = &subgraph_allocation_info[in_idx];
+      AllocationInfo* out_alloc = &subgraph_allocation_info[out_idx];
+      // Only alias when both tensors need runtime arena allocation.
+      // Constants (weights) have data.data != nullptr so needs_allocating=false.
+      if (!in_alloc->needs_allocating || !out_alloc->needs_allocating) continue;
+      // Point the output's CommitPlan write-target at the input's data pointer.
+      out_alloc->output_ptr       = in_alloc->output_ptr;
+      out_alloc->needs_allocating = false;
+    }
+  }
+#endif  
   // Initialize allocation info for every scratch buffer.
   AllocationInfo* scratch_allocation_info =
       &allocation_info[info_.scratch_offset];
@@ -318,7 +358,33 @@ TfLiteStatus AllocationInfoBuilder::MarkAllocationLifetimes(
       }
     }
   }
-
+#if 1  // LR_CHG
+  // Zero-copy RESHAPE: lifetime extension pass.
+  // Now that every op has been visited and all last_used values are final,
+  // make the input tensor's lifetime cover the output tensor's last consumer.
+  // This is the critical step that prevents the greedy planner from reusing
+  // the shared buffer while downstream consumers of the reshape output still
+  // need it.  Works for all cases:
+  //   - input.last_used < output.last_used  (normal: extend input)
+  //   - input.last_used > output.last_used  (rnnoise op[2]: already covered)
+  for (uint32_t i = 0; i < operators_size; i++) {
+    const auto* op = subgraph->operators()->Get(i);
+    const OperatorCode* opcode =
+        model_->operator_codes()->Get(op->opcode_index());
+    if (GetBuiltinCode(opcode) != BuiltinOperator_RESHAPE) continue;
+    if (op->inputs()  == nullptr || op->inputs()->size()  < 1) continue;
+    if (op->outputs() == nullptr || op->outputs()->size() < 1) continue;
+    int in_idx  = op->inputs()->Get(0);
+    int out_idx = op->outputs()->Get(0);
+    if (in_idx < 0 || out_idx < 0) continue;
+    AllocationInfo* in_alloc  = &subgraph_allocation_info[in_idx];
+    AllocationInfo* out_alloc = &subgraph_allocation_info[out_idx];
+    // Extend input lifetime to the later of the two.
+    if (out_alloc->last_used > in_alloc->last_used) {
+      in_alloc->last_used = out_alloc->last_used;
+    }
+  }
+#endif
   // Mark all outputs as persistent to the end of the subgraph invocation.
   for (size_t i = 0;
        subgraph->outputs() != nullptr && i < subgraph->outputs()->size(); ++i) {
