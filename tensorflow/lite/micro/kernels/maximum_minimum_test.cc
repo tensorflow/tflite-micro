@@ -287,8 +287,7 @@ TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
   const float scale = 1.0f;
   const int zero_point = 0;
 
-  // Case 1 & 2: Single-input broadcast (input2 broadcast, then input1
-  // broadcast).
+  // Single-input broadcast (input2 broadcast, then input1 broadcast).
   int dims[] = {3, 3, 1, 2};
   int dims_bcast[] = {1, 2};
   const int8_t data1[] = {1, 0, -1, -2, -5, 11};
@@ -314,16 +313,24 @@ TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
                                        data2, scale, zero_point, dims, data1,
                                        scale, zero_point, golden_min, scale,
                                        zero_point, dims, output_data);
+}
 
-  // Case 3: Both inputs broadcast (4D).
-  int dims1_4d[] = {3, 3, 1, 2};
-  int dims2_4d[] = {3, 1, 2, 2};
-  int dims_out_4d[] = {3, 3, 2, 2};
-  const int8_t data1_4d[] = {1, 5, -2, 10, 7, 0};
+TEST(MaximumMinimumTest, Int8With4DBroadcastTest) {
+  const float scale = 1.0f;
+  const int zero_point = 0;
+
+  // Both inputs broadcast across all 4 dimensions: [2, 1, 2, 1] & [1, 2, 1, 2]
+  // -> [2, 2, 2, 2].
+  int dims1_4d[] = {4, 2, 1, 2, 1};
+  int dims2_4d[] = {4, 1, 2, 1, 2};
+  int dims_out_4d[] = {4, 2, 2, 2, 2};
+  const int8_t data1_4d[] = {1, 5, -2, 10};
   const int8_t data2_4d[] = {0, 6, 3, -1};
-  const int8_t golden_max_4d[] = {1, 6, 3, 5, 0, 10, 3, 10, 7, 6, 7, 0};
-  const int8_t golden_min_4d[] = {0, 5, 1, -1, -2, 6, -2, -1, 0, 0, 3, -1};
-  int8_t output_data_4d[12];
+  const int8_t golden_max_4d[] = {1, 6, 5,  6,  3, 1,  5,  5,
+                                  0, 6, 10, 10, 3, -1, 10, 10};
+  const int8_t golden_min_4d[] = {0,  1,  0, 5, 1,  -1, 3, -1,
+                                  -2, -2, 0, 6, -2, -2, 3, -1};
+  int8_t output_data_4d[16];
 
   tflite::testing::TestMaxMinQuantized(
       tflite::Register_MAXIMUM(), dims1_4d, data1_4d, scale, zero_point,
@@ -333,9 +340,14 @@ TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
       tflite::Register_MINIMUM(), dims1_4d, data1_4d, scale, zero_point,
       dims2_4d, data2_4d, scale, zero_point, golden_min_4d, scale, zero_point,
       dims_out_4d, output_data_4d);
+}
 
 #if !defined(CMSIS_NN)
-  // Case 4: Both inputs broadcast (>4D, exercising 8D path).
+TEST(MaximumMinimumTest, Int8With5DBroadcastTest) {
+  const float scale = 1.0f;
+  const int zero_point = 0;
+
+  // Both inputs broadcast (>4D, exercising 8D path).
   // CMSIS-NN only supports up to 4D shapes via RuntimeShape::ExtendedShape(4).
   int dims1_5d[] = {5, 1, 2, 1, 1, 2};
   int dims2_5d[] = {5, 1, 1, 2, 1, 2};
@@ -354,7 +366,7 @@ TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
       tflite::Register_MINIMUM(), dims1_5d, data1_5d, scale, zero_point,
       dims2_5d, data2_5d, scale, zero_point, golden_min_5d, scale, zero_point,
       dims_out_5d, output_data_5d);
-#endif  // !defined(CMSIS_NN)
 }
+#endif  // !defined(CMSIS_NN)
 
 TF_LITE_MICRO_TESTS_MAIN

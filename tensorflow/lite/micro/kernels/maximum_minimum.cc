@@ -13,15 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/internal/reference/maximum_minimum.h"
+#include "tensorflow/lite/micro/kernels/maximum_minimum.h"
 
-#include "tensorflow/lite/micro/builtin_op_data.h"
-#include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include <cstdint>
+
+#include "tensorflow/lite/micro/kernels/internal/reference/maximum_minimum.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/maximum_minimum.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -29,36 +27,31 @@ namespace tflite {
 namespace micro {
 namespace {
 
-template <KernelType kernel_type, typename OpType>
+template <typename OpType>
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   OpContext op_context(context, node);
 
-  if (kernel_type == kReference) {
-    switch (op_context.output->type) {
-      case kTfLiteFloat32:
-        TFLiteOperation<float, OpType>(context, node, op_context);
-        break;
-      case kTfLiteInt8:
-        TFLiteOperation<int8_t, OpType>(context, node, op_context);
-        break;
-      case kTfLiteInt16:
-        TFLiteOperation<int16_t, OpType>(context, node, op_context);
-        break;
-      case kTfLiteInt32:
-        TFLiteOperation<int32_t, OpType>(context, node, op_context);
-        break;
-      case kTfLiteInt64:
-        TFLiteOperation<int64_t, OpType>(context, node, op_context);
-        break;
-      default:
-        MicroPrintf("Type %s (%d) is not supported by Maximum/Minimum.",
-                    TfLiteTypeGetName(op_context.output->type),
-                    op_context.output->type);
-        return kTfLiteError;
-    }
-  } else {
-    MicroPrintf("Kernel type not supported by Maximum/Minimum.");
-    return kTfLiteError;
+  switch (op_context.output->type) {
+    case kTfLiteFloat32:
+      TFLiteOperation<float, OpType>(context, node, op_context);
+      break;
+    case kTfLiteInt8:
+      TFLiteOperation<int8_t, OpType>(context, node, op_context);
+      break;
+    case kTfLiteInt16:
+      TFLiteOperation<int16_t, OpType>(context, node, op_context);
+      break;
+    case kTfLiteInt32:
+      TFLiteOperation<int32_t, OpType>(context, node, op_context);
+      break;
+    case kTfLiteInt64:
+      TFLiteOperation<int64_t, OpType>(context, node, op_context);
+      break;
+    default:
+      MicroPrintf("Type %s (%d) is not supported by Maximum/Minimum.",
+                  TfLiteTypeGetName(op_context.output->type),
+                  op_context.output->type);
+      return kTfLiteError;
   }
   return kTfLiteOk;
 }
@@ -66,13 +59,11 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_MAXIMUM() {
-  return tflite::micro::RegisterOp(nullptr, nullptr,
-                                   Eval<kReference, MaximumOp>);
+  return tflite::micro::RegisterOp(nullptr, nullptr, Eval<MaximumOp>);
 }
 
 TFLMRegistration Register_MINIMUM() {
-  return tflite::micro::RegisterOp(nullptr, nullptr,
-                                   Eval<kReference, MinimumOp>);
+  return tflite::micro::RegisterOp(nullptr, nullptr, Eval<MinimumOp>);
 }
 
 }  // namespace micro

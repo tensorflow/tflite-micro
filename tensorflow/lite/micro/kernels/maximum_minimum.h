@@ -29,13 +29,9 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 // This file has a reference implementation of TFMaximum/TFMinimum.
-enum KernelType {
-  kReference,
-};
-
-constexpr int kInputTensor1 = 0;
-constexpr int kInputTensor2 = 1;
-constexpr int kOutputTensor = 0;
+inline constexpr int kInputTensor1 = 0;
+inline constexpr int kInputTensor2 = 1;
+inline constexpr int kOutputTensor = 0;
 
 struct OpContext {
   OpContext(TfLiteContext* context, TfLiteNode* node) {

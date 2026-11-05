@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/maximum_minimum.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 
@@ -24,9 +25,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/internal/runtime_shape.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/op_macros.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_context.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
 namespace tflite {
@@ -34,6 +35,23 @@ namespace micro {
 namespace {
 
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+
+inline constexpr int kMaxBroadcastDims = 8;
+
+struct OpData {
+  int input1_dims[kMaxBroadcastDims];
+  int input2_dims[kMaxBroadcastDims];
+  int output_extents[kMaxBroadcastDims];
+#if defined(HIFI4) || defined(HIFI5)
+  int input1_strides[kMaxBroadcastDims];
+  int input2_strides[kMaxBroadcastDims];
+#endif  // defined(HIFI4) || defined(HIFI5)
+  int broadcast_dims;
+  int output_flat_size;
+  bool requires_broadcast;
+  bool input1_matches_output;
+  bool input2_matches_output;
+};
 
 template <typename OpType>
 int ExecElemKernelInt8(int8_t* out_data, const int8_t* in1_data,
@@ -47,20 +65,18 @@ int ExecElemKernelInt8(int8_t* out_data, const int8_t* in1_data,
   }
 }
 
-template <int NDims>
-void ExtendDims(const RuntimeShape& shape, int (&extended_dims)[NDims]) {
+void ExtendDims(const RuntimeShape& shape, int ndims, int* extended_dims) {
   const int dims_count = shape.DimensionsCount();
   TFLITE_DCHECK_GE(dims_count, 0);
-  TFLITE_DCHECK_LE(dims_count, NDims);
-  const int pad = NDims - dims_count;
-  for (int i = 0; i < NDims; ++i) {
+  TFLITE_DCHECK_LE(dims_count, ndims);
+  const int pad = ndims - dims_count;
+  for (int i = 0; i < ndims; ++i) {
     extended_dims[i] = (i < pad) ? 1 : shape.Dims(i - pad);
   }
 }
 
-template <int NDims>
-bool MatchesExtents(const int (&dims)[NDims], const int (&extents)[NDims]) {
-  for (int i = 0; i < NDims; ++i) {
+bool MatchesExtents(const int* dims, const int* extents, int ndims) {
+  for (int i = 0; i < ndims; ++i) {
     if (dims[i] != extents[i]) {
       return false;
     }
@@ -69,115 +85,102 @@ bool MatchesExtents(const int (&dims)[NDims], const int (&extents)[NDims]) {
 }
 
 #if defined(HIFI4) || defined(HIFI5)
-template <int NDims>
-void ComputeBroadcastStrides(const int (&extended_dims)[NDims],
-                             const int (&output_extents)[NDims],
-                             int (&strides)[NDims]) {
+void ComputeBroadcastStrides(const int* extended_dims,
+                             const int* output_extents, int ndims,
+                             int* strides) {
   int stride = 1;
-  for (int i = NDims - 1; i >= 0; --i) {
+  for (int i = ndims - 1; i >= 0; --i) {
     strides[i] = (extended_dims[i] == output_extents[i]) ? stride : 0;
     stride *= extended_dims[i];
   }
 }
 #endif  // defined(HIFI4) || defined(HIFI5)
 
-template <typename OpType, int NDims>
-TfLiteStatus MaximumMinimumBroadcastInt8(
-    TfLiteContext* context, const RuntimeShape& unextended_input1_shape,
-    const int8_t* input1_data, const RuntimeShape& unextended_input2_shape,
-    const int8_t* input2_data, const RuntimeShape& unextended_output_shape,
-    int8_t* output_data) {
-  int err = 0;
+void* Init(TfLiteContext* context, const char* buffer, size_t length) {
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+}
+
+TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
+
+  OpData* data = static_cast<OpData*>(node->user_data);
+  *data = {};
+
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input1 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor1);
+  TF_LITE_ENSURE(context, input1 != nullptr);
+  TfLiteTensor* input2 =
+      micro_context->AllocateTempInputTensor(node, kInputTensor2);
+  if (input2 == nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input1);
+    return kTfLiteError;
+  }
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
+  if (output == nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input1);
+    micro_context->DeallocateTempTfLiteTensor(input2);
+    return kTfLiteError;
+  }
+
+  const TfLiteType output_type = output->type;
+  const RuntimeShape input1_shape = GetTensorShape(input1);
+  const RuntimeShape input2_shape = GetTensorShape(input2);
+  const RuntimeShape output_shape = GetTensorShape(output);
+
+  micro_context->DeallocateTempTfLiteTensor(input1);
+  micro_context->DeallocateTempTfLiteTensor(input2);
+  micro_context->DeallocateTempTfLiteTensor(output);
+
+  if (output_type != kTfLiteInt8) {
+    return kTfLiteOk;
+  }
+
+  data->output_flat_size = output_shape.FlatSize();
+  data->requires_broadcast = !(input1_shape == input2_shape);
+  if (!data->requires_broadcast) {
+    return kTfLiteOk;
+  }
+
+  const int max_dims =
+      std::max({input1_shape.DimensionsCount(), input2_shape.DimensionsCount(),
+                output_shape.DimensionsCount()});
+  TF_LITE_ENSURE(context, max_dims >= 1 && max_dims <= kMaxBroadcastDims);
 
   // RuntimeShape in TFLM only supports up to kMaxSmallSize (6) dimensions, so
-  // pad dimensions directly into int arrays rather than calling
+  // pad dimensions directly into OpData arrays rather than calling
   // RuntimeShape::ExtendedShape(8, ...).
-  int input1_dims[NDims];
-  int input2_dims[NDims];
-  int output_extents[NDims];
-  ExtendDims<NDims>(unextended_input1_shape, input1_dims);
-  ExtendDims<NDims>(unextended_input2_shape, input2_dims);
-  ExtendDims<NDims>(unextended_output_shape, output_extents);
+  const int ndims = (max_dims <= 4) ? 4 : 8;
+  data->broadcast_dims = ndims;
+  ExtendDims(input1_shape, ndims, data->input1_dims);
+  ExtendDims(input2_shape, ndims, data->input2_dims);
+  ExtendDims(output_shape, ndims, data->output_extents);
 
-  const bool input1_matches_output =
-      MatchesExtents<NDims>(input1_dims, output_extents);
-  const bool input2_matches_output =
-      MatchesExtents<NDims>(input2_dims, output_extents);
-  const int output_flat_size = unextended_output_shape.FlatSize();
+  data->input1_matches_output =
+      MatchesExtents(data->input1_dims, data->output_extents, ndims);
+  data->input2_matches_output =
+      MatchesExtents(data->input2_dims, data->output_extents, ndims);
 
-  if (!input1_matches_output && input2_matches_output) {
-    // Broadcast input1 into output_data buffer, then execute element-wise op.
-    err = xa_nn_broadcast_8_8(output_data, output_extents, input1_data,
-                              input1_dims, NDims);
-    TF_LITE_ENSURE_EQ(context, err, 0);
-
-    err = ExecElemKernelInt8<OpType>(output_data, output_data, input2_data,
-                                     output_flat_size);
-    TF_LITE_ENSURE_EQ(context, err, 0);
-  } else if (input1_matches_output && !input2_matches_output) {
-    // Broadcast input2 into output_data buffer, then execute element-wise op.
-    err = xa_nn_broadcast_8_8(output_data, output_extents, input2_data,
-                              input2_dims, NDims);
-    TF_LITE_ENSURE_EQ(context, err, 0);
-
-    err = ExecElemKernelInt8<OpType>(output_data, input1_data, output_data,
-                                     output_flat_size);
-    TF_LITE_ENSURE_EQ(context, err, 0);
-  } else {
-    // Both inputs need broadcast.
 #if defined(HIFI4) || defined(HIFI5)
-    int input1_strides[NDims];
-    int input2_strides[NDims];
-    ComputeBroadcastStrides<NDims>(input1_dims, output_extents, input1_strides);
-    ComputeBroadcastStrides<NDims>(input2_dims, output_extents, input2_strides);
-
-    if constexpr (NDims == 4) {
-      if constexpr (std::is_same<OpType, MinimumOp>::value) {
-        err = xa_nn_elm_min_4D_Bcast_8x8_8(output_data, output_extents,
-                                           input1_data, input1_strides,
-                                           input2_data, input2_strides);
-      } else if constexpr (std::is_same<OpType, MaximumOp>::value) {
-        err = xa_nn_elm_max_4D_Bcast_8x8_8(output_data, output_extents,
-                                           input1_data, input1_strides,
-                                           input2_data, input2_strides);
-      } else {
-        return kTfLiteError;
-      }
-    } else if constexpr (NDims == 8) {
-      if constexpr (std::is_same<OpType, MinimumOp>::value) {
-        err = xa_nn_elm_min_8D_Bcast_8x8_8(output_data, output_extents,
-                                           input1_data, input1_strides,
-                                           input2_data, input2_strides);
-      } else if constexpr (std::is_same<OpType, MaximumOp>::value) {
-        err = xa_nn_elm_max_8D_Bcast_8x8_8(output_data, output_extents,
-                                           input1_data, input1_strides,
-                                           input2_data, input2_strides);
-      } else {
-        return kTfLiteError;
-      }
-    } else {
-      return kTfLiteError;
-    }
-    TF_LITE_ENSURE_EQ(context, err, 0);
-#else
-    reference_ops::MaximumMinimumBroadcastSlow(
-        unextended_input1_shape, input1_data, unextended_input2_shape,
-        input2_data, unextended_output_shape, output_data,
-        OpType::template op<int8_t>);
-#endif  // defined(HIFI4) || defined(HIFI5)
+  if (!data->input1_matches_output && !data->input2_matches_output) {
+    ComputeBroadcastStrides(data->input1_dims, data->output_extents, ndims,
+                            data->input1_strides);
+    ComputeBroadcastStrides(data->input2_dims, data->output_extents, ndims,
+                            data->input2_strides);
   }
+#endif  // defined(HIFI4) || defined(HIFI5)
 
   return kTfLiteOk;
 }
 
 template <typename OpType>
-TfLiteStatus HiFiEvalInt8(TfLiteContext* context, const OpContext& op_context) {
-  const RuntimeShape unextended_input1_shape =
-      tflite::micro::GetTensorShape(op_context.input1);
-  const RuntimeShape unextended_input2_shape =
-      tflite::micro::GetTensorShape(op_context.input2);
-  const RuntimeShape unextended_output_shape =
-      tflite::micro::GetTensorShape(op_context.output);
+TfLiteStatus HiFiEvalInt8(TfLiteNode* node, const OpContext& op_context) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  const OpData& data = *static_cast<const OpData*>(node->user_data);
 
   const int8_t* input1_data =
       tflite::micro::GetTensorData<int8_t>(op_context.input1);
@@ -185,26 +188,85 @@ TfLiteStatus HiFiEvalInt8(TfLiteContext* context, const OpContext& op_context) {
       tflite::micro::GetTensorData<int8_t>(op_context.input2);
   int8_t* output_data = tflite::micro::GetTensorData<int8_t>(op_context.output);
 
-  if (unextended_input1_shape == unextended_input2_shape) {
-    int err = ExecElemKernelInt8<OpType>(output_data, input1_data, input2_data,
-                                         unextended_output_shape.FlatSize());
-    TF_LITE_ENSURE_EQ(context, err, 0);
+  int err = 0;
+  if (!data.requires_broadcast) {
+    err = ExecElemKernelInt8<OpType>(output_data, input1_data, input2_data,
+                                     data.output_flat_size);
+    if (err != 0) {
+      return kTfLiteError;
+    }
     return kTfLiteOk;
   }
 
-  const int max_dims = std::max({unextended_input1_shape.DimensionsCount(),
-                                 unextended_input2_shape.DimensionsCount(),
-                                 unextended_output_shape.DimensionsCount()});
-  TF_LITE_ENSURE(context, max_dims >= 1 && max_dims <= 8);
+  if (!data.input1_matches_output && data.input2_matches_output) {
+    // Broadcast input1 into output_data buffer, then execute element-wise op.
+    err = xa_nn_broadcast_8_8(output_data, data.output_extents, input1_data,
+                              data.input1_dims, data.broadcast_dims);
+    if (err != 0) {
+      return kTfLiteError;
+    }
 
-  if (max_dims <= 4) {
-    return MaximumMinimumBroadcastInt8<OpType, 4>(
-        context, unextended_input1_shape, input1_data, unextended_input2_shape,
-        input2_data, unextended_output_shape, output_data);
+    err = ExecElemKernelInt8<OpType>(output_data, output_data, input2_data,
+                                     data.output_flat_size);
+    if (err != 0) {
+      return kTfLiteError;
+    }
+  } else if (data.input1_matches_output && !data.input2_matches_output) {
+    // Broadcast input2 into output_data buffer, then execute element-wise op.
+    err = xa_nn_broadcast_8_8(output_data, data.output_extents, input2_data,
+                              data.input2_dims, data.broadcast_dims);
+    if (err != 0) {
+      return kTfLiteError;
+    }
+
+    err = ExecElemKernelInt8<OpType>(output_data, input1_data, output_data,
+                                     data.output_flat_size);
+    if (err != 0) {
+      return kTfLiteError;
+    }
+  } else {
+    // Both inputs need broadcast.
+#if defined(HIFI4) || defined(HIFI5)
+    if (data.broadcast_dims == 4) {
+      if constexpr (std::is_same<OpType, MinimumOp>::value) {
+        err = xa_nn_elm_min_4D_Bcast_8x8_8(output_data, data.output_extents,
+                                           input1_data, data.input1_strides,
+                                           input2_data, data.input2_strides);
+      } else if constexpr (std::is_same<OpType, MaximumOp>::value) {
+        err = xa_nn_elm_max_4D_Bcast_8x8_8(output_data, data.output_extents,
+                                           input1_data, data.input1_strides,
+                                           input2_data, data.input2_strides);
+      } else {
+        return kTfLiteError;
+      }
+    } else if (data.broadcast_dims == 8) {
+      if constexpr (std::is_same<OpType, MinimumOp>::value) {
+        err = xa_nn_elm_min_8D_Bcast_8x8_8(output_data, data.output_extents,
+                                           input1_data, data.input1_strides,
+                                           input2_data, data.input2_strides);
+      } else if constexpr (std::is_same<OpType, MaximumOp>::value) {
+        err = xa_nn_elm_max_8D_Bcast_8x8_8(output_data, data.output_extents,
+                                           input1_data, data.input1_strides,
+                                           input2_data, data.input2_strides);
+      } else {
+        return kTfLiteError;
+      }
+    } else {
+      return kTfLiteError;
+    }
+    if (err != 0) {
+      return kTfLiteError;
+    }
+#else
+    reference_ops::MaximumMinimumBroadcastSlow(
+        tflite::micro::GetTensorShape(op_context.input1), input1_data,
+        tflite::micro::GetTensorShape(op_context.input2), input2_data,
+        tflite::micro::GetTensorShape(op_context.output), output_data,
+        OpType::template op<int8_t>);
+#endif  // defined(HIFI4) || defined(HIFI5)
   }
-  return MaximumMinimumBroadcastInt8<OpType, 8>(
-      context, unextended_input1_shape, input1_data, unextended_input2_shape,
-      input2_data, unextended_output_shape, output_data);
+
+  return kTfLiteOk;
 }
 
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
@@ -219,7 +281,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
       break;
     case kTfLiteInt8:
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-      return HiFiEvalInt8<OpType>(context, op_context);
+      return HiFiEvalInt8<OpType>(node, op_context);
 #else
       TFLiteOperation<int8_t, OpType>(context, node, op_context);
       break;
@@ -245,11 +307,19 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_MAXIMUM() {
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return tflite::micro::RegisterOp(Init, Prepare, Eval<MaximumOp>);
+#else
   return tflite::micro::RegisterOp(nullptr, nullptr, Eval<MaximumOp>);
+#endif
 }
 
 TFLMRegistration Register_MINIMUM() {
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return tflite::micro::RegisterOp(Init, Prepare, Eval<MinimumOp>);
+#else
   return tflite::micro::RegisterOp(nullptr, nullptr, Eval<MinimumOp>);
+#endif
 }
 
 }  // namespace micro
