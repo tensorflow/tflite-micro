@@ -29,7 +29,7 @@ from tflite_micro.tensorflow.lite.micro.python import (
 )
 from tflite_micro.tensorflow.lite.micro.python import schema_util
 from tflite_micro.tensorflow.lite.micro.tools import (
-  tflite_flatbuffer_align_wrapper,
+  flatbuffer_align,
 )
 
 
@@ -401,6 +401,4 @@ def generate_random_input_data(model, input_tensor, random_number_generator):
 
 
 def tflite_flatbuffer_align(input_model_path, output_model_path):
-  tflite_flatbuffer_align_wrapper.align_tflite_model(
-    input_model_path, output_model_path
-  )
+  flatbuffer_align.align_tflite_model(input_model_path, output_model_path)

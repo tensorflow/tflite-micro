@@ -35,21 +35,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ secrets.TFLM_BOT_REPO_TOKEN }}
-      - name: Build Wheel 3.10
+      - name: Build Universal Python Wheel
         run: |
-          python/tflite_micro/pypi_build.sh cp310
-      - name: Build Wheel 3.11
-        run: |
-          python/tflite_micro/pypi_build.sh cp311
-      - name: Build Wheel 3.12
-        run: |
-          python/tflite_micro/pypi_build.sh cp312
-      - name: Build Wheel 3.13
-        run: |
-          python/tflite_micro/pypi_build.sh cp313
-      - name: Build Wheel 3.14
-        run: |
-          python/tflite_micro/pypi_build.sh cp314
+          python/tflite_micro/pypi_build.sh
       - name: Check Directory Output
         run: |
           ls -l bazel-pypi-out
@@ -58,24 +46,6 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install twine
       - name: upload to pypi
-        if: |
-          github.event.inputs.upload-type == 'pypi' ||
-          github.event_name == 'schedule'
+        if: ${{ github.event.inputs.upload-type == 'pypi' || github.event_name == 'schedule' }}
         run: |
-          python/tflite_micro/pypi_upload.sh \
-          bazel-pypi-out/tflite_micro-*.whl
-
-  issue-on-error:
-    needs: [pypi-build]
-    if: ${{ always() && contains(needs.*.result, 'failure') }}
-    permissions:
-      issues: write
-    uses: ./.github/workflows/issue_on_error.yml
-    with:
-      repo: ${{ github.repository }}
-      workflow: ${{ github.workflow }}
-      run_id: ${{ github.run_id }}
-      run_number: ${{ github.run_number }}
-      flag_label: bot:issue
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+          twine upload --username __token__ --non-interactive bazel-pypi-out/*.whl
