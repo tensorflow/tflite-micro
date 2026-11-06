@@ -283,4 +283,90 @@ TEST(MaximumMinimumTest, Int32WithBroadcastTest) {
                                             golden_min, dims, output_data);
 }
 
+TEST(MaximumMinimumTest, Int8WithBroadcastTest) {
+  const float scale = 1.0f;
+  const int zero_point = 0;
+
+  // Single-input broadcast (input2 broadcast, then input1 broadcast).
+  int dims[] = {3, 3, 1, 2};
+  int dims_bcast[] = {1, 2};
+  const int8_t data1[] = {1, 0, -1, -2, -5, 11};
+  const int8_t data2[] = {0, 2};
+  const int8_t golden_max[] = {1, 2, 0, 2, 0, 11};
+  const int8_t golden_min[] = {0, 0, -1, -2, -5, 2};
+  int8_t output_data[6];
+
+  tflite::testing::TestMaxMinQuantized(tflite::Register_MAXIMUM(), dims, data1,
+                                       scale, zero_point, dims_bcast, data2,
+                                       scale, zero_point, golden_max, scale,
+                                       zero_point, dims, output_data);
+  tflite::testing::TestMaxMinQuantized(tflite::Register_MINIMUM(), dims, data1,
+                                       scale, zero_point, dims_bcast, data2,
+                                       scale, zero_point, golden_min, scale,
+                                       zero_point, dims, output_data);
+
+  tflite::testing::TestMaxMinQuantized(tflite::Register_MAXIMUM(), dims_bcast,
+                                       data2, scale, zero_point, dims, data1,
+                                       scale, zero_point, golden_max, scale,
+                                       zero_point, dims, output_data);
+  tflite::testing::TestMaxMinQuantized(tflite::Register_MINIMUM(), dims_bcast,
+                                       data2, scale, zero_point, dims, data1,
+                                       scale, zero_point, golden_min, scale,
+                                       zero_point, dims, output_data);
+}
+
+TEST(MaximumMinimumTest, Int8With4DBroadcastTest) {
+  const float scale = 1.0f;
+  const int zero_point = 0;
+
+  // Both inputs broadcast across all 4 dimensions: [2, 1, 2, 1] & [1, 2, 1, 2]
+  // -> [2, 2, 2, 2].
+  int dims1_4d[] = {4, 2, 1, 2, 1};
+  int dims2_4d[] = {4, 1, 2, 1, 2};
+  int dims_out_4d[] = {4, 2, 2, 2, 2};
+  const int8_t data1_4d[] = {1, 5, -2, 10};
+  const int8_t data2_4d[] = {0, 6, 3, -1};
+  const int8_t golden_max_4d[] = {1, 6, 5,  6,  3, 1,  5,  5,
+                                  0, 6, 10, 10, 3, -1, 10, 10};
+  const int8_t golden_min_4d[] = {0,  1,  0, 5, 1,  -1, 3, -1,
+                                  -2, -2, 0, 6, -2, -2, 3, -1};
+  int8_t output_data_4d[16];
+
+  tflite::testing::TestMaxMinQuantized(
+      tflite::Register_MAXIMUM(), dims1_4d, data1_4d, scale, zero_point,
+      dims2_4d, data2_4d, scale, zero_point, golden_max_4d, scale, zero_point,
+      dims_out_4d, output_data_4d);
+  tflite::testing::TestMaxMinQuantized(
+      tflite::Register_MINIMUM(), dims1_4d, data1_4d, scale, zero_point,
+      dims2_4d, data2_4d, scale, zero_point, golden_min_4d, scale, zero_point,
+      dims_out_4d, output_data_4d);
+}
+
+#if !defined(CMSIS_NN)
+TEST(MaximumMinimumTest, Int8With5DBroadcastTest) {
+  const float scale = 1.0f;
+  const int zero_point = 0;
+
+  // Both inputs broadcast (>4D, exercising 8D path).
+  // CMSIS-NN only supports up to 4D shapes via RuntimeShape::ExtendedShape(4).
+  int dims1_5d[] = {5, 1, 2, 1, 1, 2};
+  int dims2_5d[] = {5, 1, 1, 2, 1, 2};
+  int dims_out_5d[] = {5, 1, 2, 2, 1, 2};
+  const int8_t data1_5d[] = {-5, 8, 3, -1};
+  const int8_t data2_5d[] = {0, 4, -2, 10};
+  const int8_t golden_max_5d[] = {0, 8, -2, 10, 3, 4, 3, 10};
+  const int8_t golden_min_5d[] = {-5, 4, -5, 8, 0, -1, -2, -1};
+  int8_t output_data_5d[8];
+
+  tflite::testing::TestMaxMinQuantized(
+      tflite::Register_MAXIMUM(), dims1_5d, data1_5d, scale, zero_point,
+      dims2_5d, data2_5d, scale, zero_point, golden_max_5d, scale, zero_point,
+      dims_out_5d, output_data_5d);
+  tflite::testing::TestMaxMinQuantized(
+      tflite::Register_MINIMUM(), dims1_5d, data1_5d, scale, zero_point,
+      dims2_5d, data2_5d, scale, zero_point, golden_min_5d, scale, zero_point,
+      dims_out_5d, output_data_5d);
+}
+#endif  // !defined(CMSIS_NN)
+
 TF_LITE_MICRO_TESTS_MAIN

@@ -29,19 +29,18 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 // This file has a reference implementation of TFMaximum/TFMinimum.
-enum KernelType {
-  kReference,
-};
-
-constexpr int kInputTensor1 = 0;
-constexpr int kInputTensor2 = 1;
-constexpr int kOutputTensor = 0;
+inline constexpr int kMaximumMinimumInputTensor1 = 0;
+inline constexpr int kMaximumMinimumInputTensor2 = 1;
+inline constexpr int kMaximumMinimumOutputTensor = 0;
 
 struct OpContext {
   OpContext(TfLiteContext* context, TfLiteNode* node) {
-    input1 = tflite::micro::GetEvalInput(context, node, kInputTensor1);
-    input2 = tflite::micro::GetEvalInput(context, node, kInputTensor2);
-    output = tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+    input1 =
+        tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor1);
+    input2 =
+        tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor2);
+    output = tflite::micro::GetEvalOutput(context, node,
+                                          kMaximumMinimumOutputTensor);
   }
   const TfLiteEvalTensor* input1;
   const TfLiteEvalTensor* input2;
@@ -101,9 +100,9 @@ inline TFLMRegistration Register_MINIMUM_INT8() { return Register_MINIMUM(); }
 
 }  // namespace micro
 
-using micro::kInputTensor1;
-using micro::kInputTensor2;
-using micro::kOutputTensor;
+using micro::kMaximumMinimumInputTensor1;
+using micro::kMaximumMinimumInputTensor2;
+using micro::kMaximumMinimumOutputTensor;
 
 using micro::MaximumOp;
 using micro::MinimumOp;
