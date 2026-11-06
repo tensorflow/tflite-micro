@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/reference/reduce.h"
 
+#include <new>
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mean.h"
@@ -28,6 +30,8 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+namespace {
+
 void* XtensaInitReduce(TfLiteContext* context, const char* buffer,
                        size_t length) {
   void* data =
@@ -38,16 +42,18 @@ void* XtensaInitReduce(TfLiteContext* context, const char* buffer,
     return nullptr;
   }
 #endif
-  return data;
+  return new (data) XtensaReduceOpData();
 }
 
 TfLiteStatus XtensaPrepareMax(TfLiteContext* context, TfLiteNode* node) {
   OpDataReduce* op_data =
       &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
   TF_LITE_ENSURE_OK(context, PrepareMinMaxHelper(context, node, op_data));
-#if defined(VISION_P6)
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  TF_LITE_ENSURE_OK(context, ReducePrepareMaxHifi(context, node));
+#elif defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, ReducePrepareVision(context, node));
-#endif  // VISION_P6
+#endif
   return kTfLiteOk;
 }
 
@@ -59,7 +65,17 @@ TfLiteStatus XtensaPrepareMin(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
-TfLiteStatus XtensaPrepareMeanOrSum(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus XtensaPrepareMean(TfLiteContext* context, TfLiteNode* node) {
+  OpDataReduce* op_data =
+      &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
+  TF_LITE_ENSURE_OK(context, PrepareMeanOrSumHelper(context, node, op_data));
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  TF_LITE_ENSURE_OK(context, ReducePrepareMeanHifi(context, node));
+#endif
+  return kTfLiteOk;
+}
+
+TfLiteStatus XtensaPrepareSum(TfLiteContext* context, TfLiteNode* node) {
   OpDataReduce* op_data =
       &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
   return PrepareMeanOrSumHelper(context, node, op_data);
@@ -73,8 +89,14 @@ TfLiteStatus XtensaPrepareAll(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus XtensaEvalMean(TfLiteContext* context, TfLiteNode* node) {
-  OpDataReduce* op_data =
-      &(static_cast<XtensaReduceOpData*>(node->user_data)->reference_op_data);
+  XtensaReduceOpData* op_data_xtensa =
+      static_cast<XtensaReduceOpData*>(node->user_data);
+  OpDataReduce* op_data = &(op_data_xtensa->reference_op_data);
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  if (op_data_xtensa->is_hifi_supported) {
+    return ReduceEvalMeanHifi(context, node, *op_data_xtensa);
+  }
+#endif
   return EvalMeanHelper(context, node, op_data);
 }
 
@@ -83,25 +105,24 @@ TfLiteStatus XtensaEvalMax(TfLiteContext* context, TfLiteNode* node) {
       static_cast<XtensaReduceOpData*>(node->user_data);
   OpDataReduce* op_data = &(op_data_xtensa->reference_op_data);
 
-#if defined(VISION_P6)
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+#if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  if (op_data_xtensa->is_hifi_supported) {
+    return ReduceEvalMaxHifi(context, node, *op_data_xtensa);
+  }
+  return EvalMaxHelper(context, node, op_data);
+#elif defined(VISION_P6)
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kReduceInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kReduceOutputTensor);
 
   switch (input->type) {
-    case kTfLiteInt8: {
-      TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data->input_scale),
-                        static_cast<double>(op_data->output_scale));
-      TF_LITE_ENSURE_EQ(context, op_data->input_zp, op_data->output_zp);
-      ReduceEvalVision(*op_data_xtensa, input, output);
-      break;
-    }
-    default: {
+    case kTfLiteInt8:
+      return ReduceEvalVision(*op_data_xtensa, input, output);
+    default:
       // Use the reference EvalMax for all other cases.
       return EvalMaxHelper(context, node, op_data);
-    }
   }
-  return kTfLiteOk;
 #else
   return EvalMaxHelper(context, node, op_data);
 #endif
@@ -129,8 +150,10 @@ TfLiteStatus XtensaEvalAll(TfLiteContext* context, TfLiteNode* node) {
   return EvalAllHelper(context, node, op_data);
 }
 
+}  // namespace
+
 TFLMRegistration Register_MEAN() {
-  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
+  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMean,
                                    XtensaEvalMean);
 }
 
@@ -145,7 +168,7 @@ TFLMRegistration Register_REDUCE_MIN() {
 }
 
 TFLMRegistration Register_SUM() {
-  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareMeanOrSum,
+  return tflite::micro::RegisterOp(XtensaInitReduce, XtensaPrepareSum,
                                    XtensaEvalSum);
 }
 

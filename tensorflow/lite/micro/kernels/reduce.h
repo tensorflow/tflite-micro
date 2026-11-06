@@ -24,6 +24,11 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+
+inline constexpr int kReduceInputTensor = 0;
+inline constexpr int kReduceAxisTensor = 1;
+inline constexpr int kReduceOutputTensor = 0;
+
 struct OpDataReduce {
   int32_t multiplier;
   int shift;
@@ -65,6 +70,9 @@ TFLMRegistration Register_SUM();
 TFLMRegistration Register_REDUCE_ALL();
 
 }  // namespace micro
+using micro::kReduceAxisTensor;
+using micro::kReduceInputTensor;
+using micro::kReduceOutputTensor;
 using micro::OpDataReduce;
 using micro::Register_MEAN;
 using micro::Register_REDUCE_ALL;

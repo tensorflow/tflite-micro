@@ -1041,4 +1041,88 @@ TEST(ReduceTest, AllOpTestKeepDims) {
       expected_output_data, tflite::Register_REDUCE_ALL(), &params);
 }
 
+TEST(ReduceTest, MeanInt8NegativeAxesAndScalarOutput) {
+  int input_shape[] = {3, 2, 2, 2};
+  const float input_data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+  // Negative and duplicate axes reducing all 3 dimensions to a 0D scalar.
+  int axis_shape[] = {1, 4};
+  const int32_t axis_data[] = {-1, 0, -2, -3};
+  int scalar_output_shape[] = {0};
+  const float expected_output_data[] = {4.5f};
+
+  TfLiteReducerParams params = {false};
+
+  int8_t input_int8[8];
+  int8_t output_int8[1];
+  int8_t expected_int8[1];
+  tflite::testing::TestReduceOpQuantized<int8_t>(
+      input_shape, input_data, input_int8, /*input_scale=*/0.25f,
+      /*input_zero_point=*/-10, axis_shape, axis_data, scalar_output_shape,
+      expected_output_data, output_int8, expected_int8, /*output_scale=*/0.5f,
+      /*output_zero_point=*/5, tflite::Register_MEAN(), &params, 1.0f);
+}
+
+TEST(ReduceTest, MeanInt16NegativeAxesAndScalarOutput) {
+  int input_shape[] = {3, 2, 2, 2};
+  const float input_data[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
+  // Negative and duplicate axes reducing all 3 dimensions to a 0D scalar.
+  int axis_shape[] = {1, 4};
+  const int32_t axis_data[] = {-1, 0, -2, -3};
+  int scalar_output_shape[] = {0};
+  const float expected_output_data[] = {4.5f};
+
+  TfLiteReducerParams params = {false};
+
+  int16_t input_int16[8];
+  int16_t output_int16[1];
+  int16_t expected_int16[1];
+  tflite::testing::TestReduceOpQuantized<int16_t>(
+      input_shape, input_data, input_int16, /*input_scale=*/0.25f,
+      /*input_zero_point=*/-10, axis_shape, axis_data, scalar_output_shape,
+      expected_output_data, output_int16, expected_int16, /*output_scale=*/0.5f,
+      /*output_zero_point=*/5, tflite::Register_MEAN(), &params, 1.0f);
+}
+
+TEST(ReduceTest, Int8MaxNegativeAndDuplicateAxes) {
+  int input_shape[] = {3, 2, 3, 2};
+  const float input_data[] = {-5.0f, 1.0f, 3.0f, -2.0f, 7.0f,  4.0f,
+                              0.0f,  8.0f, 2.0f, 6.0f,  -1.0f, 5.0f};
+  int axis_shape[] = {1, 4};
+  const int32_t axis_data[] = {1, 0, -3, -3};
+  int output_shape[] = {1, 2};
+  const float expected_output_data[] = {7.0f, 8.0f};
+
+  TfLiteReducerParams params = {false};
+  int8_t input_quant[12];
+  int8_t output_quant[2];
+  int8_t expected_quant[2];
+  tflite::testing::TestReduceOpQuantized<int8_t>(
+      input_shape, input_data, input_quant, /*input_scale=*/0.25f,
+      /*input_zero_point=*/-8, axis_shape, axis_data, output_shape,
+      expected_output_data, output_quant, expected_quant,
+      /*output_scale=*/0.25f, /*output_zero_point=*/-8,
+      tflite::Register_REDUCE_MAX(), &params);
+}
+
+TEST(ReduceTest, Int8MaxScalarOutput) {
+  int input_shape[] = {3, 2, 3, 2};
+  const float input_data[] = {-5.0f, 1.0f, 3.0f, -2.0f, 7.0f,  4.0f,
+                              0.0f,  8.0f, 2.0f, 6.0f,  -1.0f, 5.0f};
+  int all_axis_shape[] = {1, 3};
+  const int32_t all_axis_data[] = {-1, -2, -3};
+  int scalar_output_shape[] = {0};
+  const float expected_scalar_data[] = {8.0f};
+
+  TfLiteReducerParams params = {false};
+  int8_t input_quant[12];
+  int8_t scalar_output_quant[1];
+  int8_t expected_scalar_quant[1];
+  tflite::testing::TestReduceOpQuantized<int8_t>(
+      input_shape, input_data, input_quant, /*input_scale=*/0.25f,
+      /*input_zero_point=*/-8, all_axis_shape, all_axis_data,
+      scalar_output_shape, expected_scalar_data, scalar_output_quant,
+      expected_scalar_quant, /*output_scale=*/0.25f, /*output_zero_point=*/-8,
+      tflite::Register_REDUCE_MAX(), &params);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

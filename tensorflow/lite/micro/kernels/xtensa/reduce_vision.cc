@@ -79,9 +79,23 @@ TfLiteStatus ReducePrepareVision(TfLiteContext* context, TfLiteNode* node) {
       reinterpret_cast<XtensaReduceOpData*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
-  TfLiteTensor* axis = micro_context->AllocateTempInputTensor(node, 1);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kReduceInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kReduceOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TfLiteTensor* axis =
+      micro_context->AllocateTempInputTensor(node, kReduceAxisTensor);
+  TF_LITE_ENSURE(context, axis != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  if (input->type == kTfLiteInt8) {
+    const OpDataReduce& op_data = data->reference_op_data;
+    TF_LITE_ENSURE_EQ(context, static_cast<double>(op_data.input_scale),
+                      static_cast<double>(op_data.output_scale));
+    TF_LITE_ENSURE_EQ(context, op_data.input_zp, op_data.output_zp);
+  }
 
   uint32_t input_dims[4] = {1, 1, 1, 1};
   uint32_t output_dims[4] = {1, 1, 1, 1};
