@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/reference/reduce.h"
 
+#include <new>
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/mean.h"
@@ -40,7 +42,7 @@ void* XtensaInitReduce(TfLiteContext* context, const char* buffer,
     return nullptr;
   }
 #endif
-  return data;
+  return new (data) XtensaReduceOpData();
 }
 
 TfLiteStatus XtensaPrepareMax(TfLiteContext* context, TfLiteNode* node) {
