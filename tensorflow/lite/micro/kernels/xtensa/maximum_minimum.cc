@@ -18,6 +18,7 @@ limitations under the License.
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <new>
 #include <type_traits>
 
 #include "tensorflow/lite/micro/compatibility.h"
@@ -98,7 +99,8 @@ void ComputeBroadcastStrides(const int* extended_dims,
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
+  void* op_data = context->AllocatePersistentBuffer(context, sizeof(OpData));
+  return new (op_data) OpData();
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -107,25 +109,17 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
   OpData* data = static_cast<OpData*>(node->user_data);
-  *data = {};
 
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input1 =
-      micro_context->AllocateTempInputTensor(node, kInputTensor1);
+      micro_context->AllocateTempInputTensor(node, kMaximumMinimumInputTensor1);
   TF_LITE_ENSURE(context, input1 != nullptr);
   TfLiteTensor* input2 =
-      micro_context->AllocateTempInputTensor(node, kInputTensor2);
-  if (input2 == nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input1);
-    return kTfLiteError;
-  }
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  if (output == nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input1);
-    micro_context->DeallocateTempTfLiteTensor(input2);
-    return kTfLiteError;
-  }
+      micro_context->AllocateTempInputTensor(node, kMaximumMinimumInputTensor2);
+  TF_LITE_ENSURE(context, input2 != nullptr);
+  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(
+      node, kMaximumMinimumOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
 
   const TfLiteType output_type = output->type;
   const RuntimeShape input1_shape = GetTensorShape(input1);

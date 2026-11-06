@@ -38,11 +38,11 @@ cmsis_nn_dims FillVariableShape(const RuntimeShape& shape) {
 TfLiteStatus EvalMaximum(TfLiteContext* context, TfLiteNode* node) {
   OpContext op_context(context, node);
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kMaximumMinimumOutputTensor);
 
   RuntimeShape input_1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
@@ -87,11 +87,11 @@ TfLiteStatus EvalMaximum(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus EvalMaximumInt8(TfLiteContext* context, TfLiteNode* node) {
   OpContext op_context(context, node);
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kMaximumMinimumOutputTensor);
 
   RuntimeShape input_1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
@@ -124,11 +124,11 @@ TfLiteStatus EvalMaximumInt8(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus EvalMinimum(TfLiteContext* context, TfLiteNode* node) {
   OpContext op_context(context, node);
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kMaximumMinimumOutputTensor);
 
   RuntimeShape input_1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
@@ -173,11 +173,11 @@ TfLiteStatus EvalMinimum(TfLiteContext* context, TfLiteNode* node) {
 TfLiteStatus EvalMinimumInt8(TfLiteContext* context, TfLiteNode* node) {
   OpContext op_context(context, node);
   const TfLiteEvalTensor* input1 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor1);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor1);
   const TfLiteEvalTensor* input2 =
-      tflite::micro::GetEvalInput(context, node, kInputTensor2);
+      tflite::micro::GetEvalInput(context, node, kMaximumMinimumInputTensor2);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kMaximumMinimumOutputTensor);
 
   RuntimeShape input_1_shape = tflite::micro::GetTensorShape(input1);
   RuntimeShape input_2_shape = tflite::micro::GetTensorShape(input2);
