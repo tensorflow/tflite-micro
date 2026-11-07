@@ -58,58 +58,99 @@ TfLiteStatus EvalHifiInt8(const XtensaSoftmaxOpData* op_data,
 }
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
 
+}  // namespace
+
+void* SoftmaxBackendInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
+  return XtensaInitSoftmax(context, buffer, length);
+}
+
+TfLiteStatus SoftmaxBackendPrepare(TfLiteContext* context, TfLiteNode* node) {
+  return XtensaPrepareSoftmax(context, node);
+}
+
+TfLiteStatus SoftmaxEvalInt8To16(TfLiteContext* context, TfLiteNode* node) {
+  return XtensaEvalSoftmaxInt8Int16(context, node);
+}
+
+TfLiteStatus SoftmaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data), input,
+                      output, context);
+#elif defined(VISION_P6)
+  return SoftmaxEvalVision(
+      context, node, *(static_cast<XtensaSoftmaxOpData*>(node->user_data)),
+      input, output);
+#else
+  SoftmaxParams params = *static_cast<SoftmaxParams*>(node->user_data);
+  tflite::micro::reference_ops::Softmax(
+      params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int8_t>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int8_t>(output));
+  return kTfLiteOk;
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+}
+
+TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  SoftmaxParams params =
+      static_cast<XtensaSoftmaxOpData*>(node->user_data)->params;
+#else
+  SoftmaxParams params = *static_cast<SoftmaxParams*>(node->user_data);
+#endif
+  tflite::micro::reference_ops::SoftmaxInt16(
+      params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int16_t>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int16_t>(output));
+  return kTfLiteOk;
+}
+
+TfLiteStatus SoftmaxEvalFloat32(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
+  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  TFLITE_DCHECK(node->user_data != nullptr);
+
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+  SoftmaxParams params =
+      static_cast<XtensaSoftmaxOpData*>(node->user_data)->params;
+#else
+  SoftmaxParams params = *static_cast<SoftmaxParams*>(node->user_data);
+#endif
+  tflite::micro::reference_ops::Softmax(
+      params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<float>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<float>(output));
+  return kTfLiteOk;
+}
+
+namespace {
+
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
   TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
 
   if (input->type == kTfLiteInt8 && output->type == kTfLiteInt16) {
-    return XtensaEvalSoftmaxInt8Int16(context, node);
+    return SoftmaxEvalInt8To16(context, node);
   }
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-  XtensaSoftmaxOpData op_data =
-      *static_cast<XtensaSoftmaxOpData*>(node->user_data);
-  SoftmaxParams params = op_data.params;
-#else
-  SoftmaxParams params = *static_cast<SoftmaxParams*>(node->user_data);
-#endif
-
   if (input->type == kTfLiteInt8 && output->type == kTfLiteInt8) {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-    return EvalHifiInt8(static_cast<XtensaSoftmaxOpData*>(node->user_data),
-                        input, output, context);
-#elif defined(VISION_P6)
-    return SoftmaxEvalVision(
-        context, node, *(static_cast<XtensaSoftmaxOpData*>(node->user_data)),
-        input, output);
-#else
-    tflite::micro::reference_ops::Softmax(
-        params, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int8_t>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int8_t>(output));
-    return kTfLiteOk;
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+    return SoftmaxEvalInt8(context, node);
   }
-
   if (input->type == kTfLiteInt16 && output->type == kTfLiteInt16) {
-    tflite::micro::reference_ops::SoftmaxInt16(
-        params, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<int16_t>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<int16_t>(output));
-    return kTfLiteOk;
+    return SoftmaxEvalInt16(context, node);
   }
-
   if (input->type == kTfLiteFloat32) {
-    tflite::micro::reference_ops::Softmax(
-        params, tflite::micro::GetTensorShape(input),
-        tflite::micro::GetTensorData<float>(input),
-        tflite::micro::GetTensorShape(output),
-        tflite::micro::GetTensorData<float>(output));
-    return kTfLiteOk;
+    return SoftmaxEvalFloat32(context, node);
   }
 
   MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
