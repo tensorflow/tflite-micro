@@ -183,8 +183,6 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
-  TFLITE_DCHECK(input->type == kTfLiteInt8);
-  TFLITE_DCHECK(output->type == kTfLiteInt8);
   return EvalInt8Impl(context, node, input, output);
 }
 
@@ -194,8 +192,6 @@ TfLiteStatus EvalInt16(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
-  TFLITE_DCHECK(input->type == kTfLiteInt16);
-  TFLITE_DCHECK(output->type == kTfLiteInt16);
   return EvalInt16Impl(node, input, output);
 }
 
@@ -205,8 +201,6 @@ TfLiteStatus EvalFloat32(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
-  TFLITE_DCHECK(input->type == kTfLiteFloat32);
-  TFLITE_DCHECK(output->type == kTfLiteFloat32);
   return EvalFloat32Impl(node, input, output);
 }
 

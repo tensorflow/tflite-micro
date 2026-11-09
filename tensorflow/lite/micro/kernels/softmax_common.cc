@@ -140,7 +140,6 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
 }
 
 void* SoftmaxInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(SoftmaxParams));
   return new (data) SoftmaxParams();

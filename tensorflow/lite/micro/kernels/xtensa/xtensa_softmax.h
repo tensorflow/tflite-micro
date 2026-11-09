@@ -29,30 +29,25 @@ namespace micro {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 inline constexpr int kInt8SoftmaxLutSize = 256;
 inline constexpr int kInt8SoftmaxLutThreshold = 256;
-
-struct XtensaSoftmaxOpData {
-  SoftmaxParams params;
-  int scratch_tensor_index;
-  int32_t* softmax_lut;
-};
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
         // defined(HIFI_IQ)
 
-#if defined(VISION_P6)
 struct XtensaSoftmaxOpData {
-  SoftmaxParams params;
-  uint8_t* p_context;  // persistent lib context for this instance saved here
-  uint32_t context_size;
-};
+  SoftmaxParams params{};
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  int scratch_tensor_index = 0;
+  int32_t* softmax_lut = nullptr;
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
+        // defined(HIFI_IQ)
+#if defined(VISION_P6)
+  uint8_t* p_context =
+      nullptr;  // persistent lib context for this instance saved here
+  uint32_t context_size = 0;
 #endif  // defined(VISION_P6)
+};
 
 inline const SoftmaxParams& XtensaGetSoftmaxParams(const TfLiteNode* node) {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ) || \
-    defined(VISION_P6)
   return static_cast<const XtensaSoftmaxOpData*>(node->user_data)->params;
-#else
-  return *static_cast<const SoftmaxParams*>(node->user_data);
-#endif
 }
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
@@ -92,11 +87,7 @@ TfLiteStatus SoftmaxEvalVision(TfLiteContext* context, TfLiteNode* node,
 
 }  // namespace micro
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ) || \
-    defined(VISION_P6)
 using micro::XtensaSoftmaxOpData;
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
-        // defined(HIFI_IQ) || defined(VISION_P6)
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_
