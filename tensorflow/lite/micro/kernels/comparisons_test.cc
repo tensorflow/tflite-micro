@@ -149,6 +149,30 @@ void TestComparisonQuantizedInt16(const TFLMRegistration& registration,
   TestComparison(registration, tensors, expected_output_data, output_data);
 }
 
+void TestQuantizedInt8NoBroadcast20Elements(
+    const TFLMRegistration& registration, bool* expected_output) {
+  // 20 elements ({1, 2, 5, 2}) exercises both 16-wide SIMD and 4-element
+  // remainder paths on vectorized backends.
+  int dims[] = {4, 1, 2, 5, 2};
+  float input1_data[] = {1,   -9, 7,  3, 0,  -15, 12, -4, 5, 20,
+                         -20, 8,  -1, 0, 14, -7,  2,  -3, 6, 10};
+  float input2_data[] = {-1,  2, 7,  5, 0,  -10, 12, -6, 8, 15,
+                         -20, 9, -1, 1, 10, -7,  4,  -5, 6, 9};
+
+  const float input1_scale = 0.5f;
+  const int input1_zero_point = -5;
+  const float input2_scale = 0.25f;
+  const int input2_zero_point = 5;
+  int8_t input1_quantized[20];
+  int8_t input2_quantized[20];
+  bool output_data[20];
+
+  TestComparisonQuantizedInt8(
+      registration, dims, input1_data, input1_quantized, input1_scale,
+      input1_zero_point, dims, input2_data, input2_quantized, input2_scale,
+      input2_zero_point, expected_output, dims, output_data);
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -792,38 +816,6 @@ TEST(ComparisonsTest, LessEqualQuantizedInt8WithBroadcast) {
         expected_data, expected_dim, output_data);
   }
 }
-
-namespace tflite {
-namespace testing {
-namespace {
-
-void TestQuantizedInt8NoBroadcast20Elements(
-    const TFLMRegistration& registration, bool* expected_output) {
-  // 20 elements ({1, 2, 5, 2}) exercises both 16-wide SIMD and 4-element
-  // remainder paths on vectorized backends.
-  int dims[] = {4, 1, 2, 5, 2};
-  float input1_data[] = {1,   -9, 7,  3, 0,  -15, 12, -4, 5, 20,
-                         -20, 8,  -1, 0, 14, -7,  2,  -3, 6, 10};
-  float input2_data[] = {-1,  2, 7,  5, 0,  -10, 12, -6, 8, 15,
-                         -20, 9, -1, 1, 10, -7,  4,  -5, 6, 9};
-
-  const float input1_scale = 0.5f;
-  const int input1_zero_point = -5;
-  const float input2_scale = 0.25f;
-  const int input2_zero_point = 5;
-  int8_t input1_quantized[20];
-  int8_t input2_quantized[20];
-  bool output_data[20];
-
-  TestComparisonQuantizedInt8(
-      registration, dims, input1_data, input1_quantized, input1_scale,
-      input1_zero_point, dims, input2_data, input2_quantized, input2_scale,
-      input2_zero_point, expected_output, dims, output_data);
-}
-
-}  // namespace
-}  // namespace testing
-}  // namespace tflite
 
 TEST(ComparisonsTest, EqualQuantizedInt8NoBroadcast) {
   bool expected[] = {false, false, true,  false, true,  false, true,
