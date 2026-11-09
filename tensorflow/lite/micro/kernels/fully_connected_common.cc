@@ -146,6 +146,11 @@ TfLiteStatus CalculateOpDataFullyConnected(
   // context.
   TFLITE_DCHECK(filter->params.zero_point == 0);
 
+  if (data_type == kTfLiteInt16) {
+    TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
+    TF_LITE_ENSURE_EQ(context, output->params.zero_point, 0);
+  }
+
   data->input_zero_point = input->params.zero_point;
   data->filter_zero_point = filter->params.zero_point;
   data->output_zero_point = output->params.zero_point;

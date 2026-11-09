@@ -15,6 +15,9 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 
+#include <limits>
+
+#include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 namespace tflite {
@@ -430,6 +433,67 @@ TEST(QuantizationUtilTest, QuantizationUtilTest_QuantizeMultiplierArray) {
               expected_effective_scale_significand[i]);
     EXPECT_EQ(effective_scale_shift[i], expected_effective_scale_shift[i]);
   }
+}
+
+TEST(QuantizationUtilTest, MultiplyByQuantizedMultiplierInt64Saturating) {
+  constexpr int32_t kInt32Min = std::numeric_limits<int32_t>::min();
+  constexpr int32_t kInt32Max = std::numeric_limits<int32_t>::max();
+  // qm = 0x40000000 => reduced_multiplier = 0x4000 (represents 0.5).
+  constexpr int32_t kHalfQm = 0x40000000;
+
+  // Normal scaling.
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{100}, kHalfQm, 0),
+      50);
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{-100}, kHalfQm, 0),
+      -50);
+
+  // Shifts >= 8 and >= 15 (total_shift <= 0, no shift UB).
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{1}, kHalfQm, 8),
+      128);
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{1}, kHalfQm, 15),
+      16384);
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{-1}, kHalfQm, 15),
+      -16384);
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{3}, kHalfQm, 20),
+      1572864);
+  EXPECT_EQ(
+      tflite::micro::MultiplyByQuantizedMultiplier(int64_t{-3}, kHalfQm, 20),
+      -1572864);
+
+  // Saturation to [INT32_MIN, INT32_MAX] rather than wraparound.
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(int64_t{1LL << 35},
+                                                         kHalfQm, 0),
+            kInt32Max);
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(int64_t{-(1LL << 35)},
+                                                         kHalfQm, 0),
+            kInt32Min);
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(int64_t{1LL << 20},
+                                                         kHalfQm, 20),
+            kInt32Max);
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(int64_t{-(1LL << 20)},
+                                                         kHalfQm, 20),
+            kInt32Min);
+
+  // Extreme int64_t inputs beyond 2^47 and large negative shifts (no overflow
+  // UB).
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(
+                std::numeric_limits<int64_t>::max(), kHalfQm, -31),
+            kInt32Max);
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(
+                std::numeric_limits<int64_t>::min(), kHalfQm, -31),
+            kInt32Min);
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(int64_t{1LL << 47},
+                                                         kHalfQm, -31),
+            32768);
+  EXPECT_EQ(tflite::micro::MultiplyByQuantizedMultiplier(
+                std::numeric_limits<int64_t>::max(), kHalfQm, -66),
+            0);
 }
 
 TF_LITE_MICRO_TESTS_MAIN

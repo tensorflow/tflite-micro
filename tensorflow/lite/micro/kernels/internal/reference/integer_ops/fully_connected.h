@@ -66,11 +66,12 @@ void FullyConnectedPerChannel(
       if (bias_data) {
         acc += bias_data[out_c];
       }
-      int32_t acc_scaled = MultiplyByQuantizedMultiplier(
-          acc, output_multiplier[out_c], output_shift[out_c]);
-      acc_scaled += output_offset;
-      acc_scaled = std::max(acc_scaled, output_activation_min);
-      acc_scaled = std::min(acc_scaled, output_activation_max);
+      int64_t acc_scaled =
+          static_cast<int64_t>(MultiplyByQuantizedMultiplier(
+              acc, output_multiplier[out_c], output_shift[out_c])) +
+          output_offset;
+      acc_scaled = std::max<int64_t>(acc_scaled, output_activation_min);
+      acc_scaled = std::min<int64_t>(acc_scaled, output_activation_max);
       output_data[out_c + output_depth * b] =
           static_cast<OutputType>(acc_scaled);
     }
@@ -169,11 +170,11 @@ void FullyConnected(const FullyConnectedParams& params,
       if (bias_data) {
         acc += bias_data[out_c];
       }
-      int32_t acc_scaled =
-          MultiplyByQuantizedMultiplier(acc, output_multiplier, output_shift);
-      acc_scaled += output_offset;
-      acc_scaled = std::max(acc_scaled, output_activation_min);
-      acc_scaled = std::min(acc_scaled, output_activation_max);
+      int64_t acc_scaled = static_cast<int64_t>(MultiplyByQuantizedMultiplier(
+                               acc, output_multiplier, output_shift)) +
+                           output_offset;
+      acc_scaled = std::max<int64_t>(acc_scaled, output_activation_min);
+      acc_scaled = std::min<int64_t>(acc_scaled, output_activation_max);
       output_data[out_c + output_depth * b] =
           static_cast<OutputType>(acc_scaled);
     }
