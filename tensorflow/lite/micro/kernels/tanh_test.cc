@@ -305,4 +305,50 @@ TEST(TanhTest, TestTanhInt16WideRange) {
   );
 }
 
+TEST(TanhTest, TestTanhInt8Asymmetric) {
+  using tflite::testing::tanh_input_vec_fp;
+  using tflite::testing::tanh_output_vec_fp;
+
+  constexpr int kSliceOffset = 22;  // [-4.0, 4.0]
+  constexpr int kSliceSize = 45;
+  const float input_scale = 10.f / 256.f;
+  const int input_zero_point = 12;
+  const float output_scale = 1.99999955f / 256.f;
+  const int output_zero_point = 0;
+
+  int input_shape[] = {2, 1, kSliceSize};
+  int output_shape[] = {2, 1, kSliceSize};
+
+  int8_t input_quantized[kSliceSize];
+  int8_t expected_output_quantized[kSliceSize];
+  int8_t output_quantized[kSliceSize];
+  tflite::testing::TestTanhQuantized<int8_t>(
+      input_shape, &tanh_input_vec_fp[kSliceOffset], input_quantized,
+      input_scale, input_zero_point, &tanh_output_vec_fp[kSliceOffset],
+      expected_output_quantized, output_shape, output_scale, output_zero_point,
+      output_quantized, 2);
+}
+
+TEST(TanhTest, TestTanhInt16PotScale) {
+  using tflite::testing::tanh_input_vec_fp;
+  using tflite::testing::tanh_output_vec_fp;
+  using tflite::testing::tanh_vec_size;
+
+  const float input_scale = 16.f / 65536.f;
+  const int input_zero_point = 0;
+  const float output_scale = 2.f / 65536.f;
+  const int output_zero_point = 0;
+
+  int input_shape[] = {2, 1, tanh_vec_size};
+  int output_shape[] = {2, 1, tanh_vec_size};
+
+  int16_t input_quantized[tanh_vec_size];
+  int16_t expected_output_quantized[tanh_vec_size];
+  int16_t output_quantized[tanh_vec_size];
+  tflite::testing::TestTanhQuantized<int16_t>(
+      input_shape, tanh_input_vec_fp, input_quantized, input_scale,
+      input_zero_point, tanh_output_vec_fp, expected_output_quantized,
+      output_shape, output_scale, output_zero_point, output_quantized, 16);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

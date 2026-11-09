@@ -13,35 +13,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/builtin_op_data.h"
+#include <cmath>
+#include <cstdint>
+#include <limits>
+
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/logistic.h"
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/logistic.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_context.h"
+#include "tensorflow/lite/micro/micro_log.h"
+#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace micro {
-const int kLogisticInputTensor = 0;
-const int kLogisticOutputTensor = 0;
+namespace {
 
-TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
-                                               TfLiteNode* node,
-                                               OpDataLogistic* data) {
-  MicroContext* micro_context = GetMicroContext(context);
-
-  TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kLogisticInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kLogisticOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-
+TfLiteStatus CalculateArithmeticOpDataLogisticImpl(TfLiteContext* context,
+                                                   const TfLiteTensor* input,
+                                                   const TfLiteTensor* output,
+                                                   OpDataLogistic* data) {
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context, HaveSameShapes(input, output));
+
   if (input->type == kTfLiteInt8) {
     TF_LITE_ENSURE_EQ(context, output->params.zero_point,
                       std::numeric_limits<int8_t>::min());
@@ -58,9 +54,7 @@ TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
 
     data->input_range_radius =
         CalculateInputRadius(kInputIntegerBits, data->input_left_shift, 31);
-  }
-
-  if (input->type == kTfLiteInt16) {
+  } else if (input->type == kTfLiteInt16) {
     static constexpr int kInputIntegerBits = 3;
     static constexpr int kOutputFractionalBits = 15;
 
@@ -102,11 +96,42 @@ TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
         context, CheckedLog2(output->params.scale, &output_scale_log2_rounded));
     TF_LITE_ENSURE_EQ(context, output_scale_log2_rounded,
                       -kOutputFractionalBits);
+  } else if (input->type != kTfLiteFloat32) {
+    MicroPrintf("Input %s, output %s not supported.",
+                TfLiteTypeGetName(input->type),
+                TfLiteTypeGetName(output->type));
+    return kTfLiteError;
   }
+
+  return kTfLiteOk;
+}
+
+}  // namespace
+
+TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
+                                               TfLiteNode* node,
+                                               OpDataLogistic* data) {
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
+
+  MicroContext* micro_context = GetMicroContext(context);
+
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kLogisticInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kLogisticOutputTensor);
+  if (output == nullptr) {
+    micro_context->DeallocateTempTfLiteTensor(input);
+    return kTfLiteError;
+  }
+
+  TfLiteStatus status =
+      CalculateArithmeticOpDataLogisticImpl(context, input, output, data);
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
-  return kTfLiteOk;
+  return status;
 }
 
 TfLiteStatus LogisticPrepare(TfLiteContext* context, TfLiteNode* node) {
