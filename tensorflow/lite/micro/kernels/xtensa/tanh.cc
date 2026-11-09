@@ -75,8 +75,8 @@ TfLiteStatus XtensaTanhPrepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempInputTensor(node, kTanhInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
 
-#if defined(USE_HIFI_ACT_TIE) &&                           \
-    (defined(AE_TANH16X4) || defined(AE_TANH16X4X2)) &&    \
+#if defined(USE_HIFI_ACT_TIE) &&                        \
+    (defined(AE_TANH16X4) || defined(AE_TANH16X4X2)) && \
     (defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))
   if (input->type == kTfLiteInt16 &&
       data->reference_op_data.input_multiplier != 0) {
@@ -101,11 +101,11 @@ TfLiteStatus XtensaTanhPrepare(TfLiteContext* context, TfLiteNode* node) {
     TF_LITE_ENSURE(context, data->tanh_lut != nullptr);
     TF_LITE_ENSURE_EQ(
         context,
-        xa_nn_init_lut_asym8s_tanh(
-            data->tanh_lut, data->reference_op_data.input_zero_point,
-            data->reference_op_data.input_range_radius,
-            data->reference_op_data.input_multiplier,
-            data->reference_op_data.input_left_shift),
+        xa_nn_init_lut_asym8s_tanh(data->tanh_lut,
+                                   data->reference_op_data.input_zero_point,
+                                   data->reference_op_data.input_range_radius,
+                                   data->reference_op_data.input_multiplier,
+                                   data->reference_op_data.input_left_shift),
         0);
   } else {
     data->tanh_lut = nullptr;
