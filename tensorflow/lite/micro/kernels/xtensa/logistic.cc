@@ -132,12 +132,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteFloat32: {
 #if defined(INCLUDE_FLOAT_OPT) && \
     (defined(HIFI3) || defined(HIFI4) || defined(HIFI5))
-      const int flat_size =
-          MatchingFlatSize(tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorShape(output));
-      if (flat_size == 0) {
-        return kTfLiteOk;
-      }
+      const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
       int err = xa_nn_vec_sigmoid_f32_f32(
           tflite::micro::GetTensorData<float>(output),
           tflite::micro::GetTensorData<float>(input), flat_size);
@@ -156,12 +151,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteInt8: {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
       TFLITE_DCHECK(xtensa_data.sigmoid_lut != nullptr);
-      const int flat_size =
-          MatchingFlatSize(tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorShape(output));
-      if (flat_size == 0) {
-        return kTfLiteOk;
-      }
+      const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
       int err = xa_nn_vec_apply_lut_asym8s_asym8s(
           tflite::micro::GetTensorData<int8_t>(output),
           tflite::micro::GetTensorData<int8_t>(input), xtensa_data.sigmoid_lut,
@@ -181,12 +171,7 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
     }
     case kTfLiteInt16: {
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-      const int flat_size =
-          MatchingFlatSize(tflite::micro::GetTensorShape(input),
-                           tflite::micro::GetTensorShape(output));
-      if (flat_size == 0) {
-        return kTfLiteOk;
-      }
+      const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
       int err = xa_nn_vec_sigmoid_sym16s_sym16s(
           tflite::micro::GetTensorData<int16_t>(output),
           tflite::micro::GetTensorData<int16_t>(input), data.input_multiplier,
