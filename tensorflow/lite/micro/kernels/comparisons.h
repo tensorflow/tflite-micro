@@ -24,12 +24,12 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-extern const int kComparisonsInputTensor1;
-extern const int kComparisonsInputTensor2;
-extern const int kComparisonsOutputTensor;
+inline constexpr int kComparisonsInputTensor1 = 0;
+inline constexpr int kComparisonsInputTensor2 = 1;
+inline constexpr int kComparisonsOutputTensor = 0;
 
 struct OpDataComparisons {
-  ComparisonParams params;
+  ComparisonParams params{};
 };
 
 void* ComparisonsInit(TfLiteContext* context, const char* buffer,

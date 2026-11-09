@@ -793,7 +793,12 @@ TEST(ComparisonsTest, LessEqualQuantizedInt8WithBroadcast) {
   }
 }
 
-TEST(ComparisonsTest, QuantizedInt8NoBroadcastAllOps) {
+namespace tflite {
+namespace testing {
+namespace {
+
+void TestQuantizedInt8NoBroadcast20Elements(
+    const TFLMRegistration& registration, bool* expected_output) {
   // 20 elements ({1, 2, 5, 2}) exercises both 16-wide SIMD and 4-element
   // remainder paths on vectorized backends.
   int dims[] = {4, 1, 2, 5, 2};
@@ -801,25 +806,6 @@ TEST(ComparisonsTest, QuantizedInt8NoBroadcastAllOps) {
                          -20, 8,  -1, 0, 14, -7,  2,  -3, 6, 10};
   float input2_data[] = {-1,  2, 7,  5, 0,  -10, 12, -6, 8, 15,
                          -20, 9, -1, 1, 10, -7,  4,  -5, 6, 9};
-
-  bool expected_eq[] = {false, false, true,  false, true,  false, true,
-                        false, false, false, true,  false, true,  false,
-                        false, true,  false, false, true,  false};
-  bool expected_ne[] = {true, true,  false, true,  false, true,  false,
-                        true, true,  true,  false, true,  false, true,
-                        true, false, true,  true,  false, true};
-  bool expected_gt[] = {true, false, false, false, false, false, false,
-                        true, false, true,  false, false, false, false,
-                        true, false, false, true,  false, true};
-  bool expected_ge[] = {true, false, true,  false, true,  false, true,
-                        true, false, true,  true,  false, true,  false,
-                        true, true,  false, true,  true,  true};
-  bool expected_lt[] = {false, true,  false, true,  false, true,  false,
-                        false, true,  false, false, true,  false, true,
-                        false, false, true,  false, false, false};
-  bool expected_le[] = {false, true, true,  true,  true, true, true,
-                        false, true, false, true,  true, true, true,
-                        false, true, true,  false, true, false};
 
   const float input1_scale = 0.5f;
   const int input1_zero_point = -5;
@@ -829,30 +815,62 @@ TEST(ComparisonsTest, QuantizedInt8NoBroadcastAllOps) {
   int8_t input2_quantized[20];
   bool output_data[20];
 
-  tflite::testing::TestComparisonQuantizedInt8(
-      tflite::Register_EQUAL(), dims, input1_data, input1_quantized,
-      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
-      input2_scale, input2_zero_point, expected_eq, dims, output_data);
-  tflite::testing::TestComparisonQuantizedInt8(
-      tflite::Register_NOT_EQUAL(), dims, input1_data, input1_quantized,
-      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
-      input2_scale, input2_zero_point, expected_ne, dims, output_data);
-  tflite::testing::TestComparisonQuantizedInt8(
-      tflite::Register_GREATER(), dims, input1_data, input1_quantized,
-      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
-      input2_scale, input2_zero_point, expected_gt, dims, output_data);
-  tflite::testing::TestComparisonQuantizedInt8(
-      tflite::Register_GREATER_EQUAL(), dims, input1_data, input1_quantized,
-      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
-      input2_scale, input2_zero_point, expected_ge, dims, output_data);
-  tflite::testing::TestComparisonQuantizedInt8(
-      tflite::Register_LESS(), dims, input1_data, input1_quantized,
-      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
-      input2_scale, input2_zero_point, expected_lt, dims, output_data);
-  tflite::testing::TestComparisonQuantizedInt8(
-      tflite::Register_LESS_EQUAL(), dims, input1_data, input1_quantized,
-      input1_scale, input1_zero_point, dims, input2_data, input2_quantized,
-      input2_scale, input2_zero_point, expected_le, dims, output_data);
+  TestComparisonQuantizedInt8(
+      registration, dims, input1_data, input1_quantized, input1_scale,
+      input1_zero_point, dims, input2_data, input2_quantized, input2_scale,
+      input2_zero_point, expected_output, dims, output_data);
+}
+
+}  // namespace
+}  // namespace testing
+}  // namespace tflite
+
+TEST(ComparisonsTest, EqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {false, false, true,  false, true,  false, true,
+                     false, false, false, true,  false, true,  false,
+                     false, true,  false, false, true,  false};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, NotEqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {true, true,  false, true,  false, true,  false,
+                     true, true,  true,  false, true,  false, true,
+                     true, false, true,  true,  false, true};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_NOT_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, GreaterQuantizedInt8NoBroadcast) {
+  bool expected[] = {true, false, false, false, false, false, false,
+                     true, false, true,  false, false, false, false,
+                     true, false, false, true,  false, true};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_GREATER(), expected);
+}
+
+TEST(ComparisonsTest, GreaterEqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {true, false, true,  false, true,  false, true,
+                     true, false, true,  true,  false, true,  false,
+                     true, true,  false, true,  true,  true};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_GREATER_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, LessQuantizedInt8NoBroadcast) {
+  bool expected[] = {false, true,  false, true,  false, true,  false,
+                     false, true,  false, false, true,  false, true,
+                     false, false, true,  false, false, false};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_LESS(), expected);
+}
+
+TEST(ComparisonsTest, LessEqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {false, true, true,  true,  true, true, true,
+                     false, true, false, true,  true, true, true,
+                     false, true, true,  false, true, false};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_LESS_EQUAL(), expected);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
