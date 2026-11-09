@@ -15,6 +15,8 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/softmax.h"
 
+#include <new>
+
 #include "arm_nnfunctions.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
@@ -36,8 +38,10 @@ struct CMSISNNSoftmaxParams {
 };
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context,
-                                           sizeof(CMSISNNSoftmaxParams));
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(CMSISNNSoftmaxParams));
+  return new (data) CMSISNNSoftmaxParams();
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
@@ -45,10 +49,12 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kSoftmaxInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TF_LITE_ENSURE(context, NumDimensions(input) >= 1);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kSoftmaxOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE_MSG(
@@ -86,11 +92,13 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const CMSISNNSoftmaxParams op_data =
+  const CMSISNNSoftmaxParams& op_data =
       *static_cast<const CMSISNNSoftmaxParams*>(node->user_data);
 
   switch (input->type) {
@@ -142,11 +150,13 @@ TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus SoftmaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const CMSISNNSoftmaxParams op_data =
+  const CMSISNNSoftmaxParams& op_data =
       *static_cast<const CMSISNNSoftmaxParams*>(node->user_data);
 
   arm_softmax_s8(tflite::micro::GetTensorData<int8_t>(input), op_data.num_rows,
@@ -159,11 +169,13 @@ TfLiteStatus SoftmaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus SoftmaxEvalInt8_Int16(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const CMSISNNSoftmaxParams op_data =
+  const CMSISNNSoftmaxParams& op_data =
       *static_cast<const CMSISNNSoftmaxParams*>(node->user_data);
 
   arm_softmax_s8_s16(
@@ -176,11 +188,13 @@ TfLiteStatus SoftmaxEvalInt8_Int16(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  const CMSISNNSoftmaxParams op_data =
+  const CMSISNNSoftmaxParams& op_data =
       *static_cast<const CMSISNNSoftmaxParams*>(node->user_data);
 
   const cmsis_nn_softmax_lut_s16 softmax_params = {
