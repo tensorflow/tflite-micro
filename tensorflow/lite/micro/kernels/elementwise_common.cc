@@ -17,8 +17,10 @@ limitations under the License.
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <new>
 #include <type_traits>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/elementwise.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
@@ -30,14 +32,10 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-
-const int kElementwiseInputTensor = 0;
-const int kElementwiseOutputTensor = 0;
-
 namespace {
 
 constexpr int kAbsNameId = 0;
-constexpr int kRsrqtNameId = 1;
+constexpr int kRsqrtNameId = 1;
 
 bool IsNumericSupportedType(const TfLiteType type) {
   return type == kTfLiteFloat32;
@@ -85,6 +83,7 @@ TfLiteStatus GenericPrepare(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kElementwiseOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context, HaveSameShapes(input, output));
   if (!is_supported_type(input->type)) {
     MicroPrintf("Input data type %s (%d) is not supported.",
                 TfLiteTypeGetName(input->type), input->type);
@@ -108,12 +107,14 @@ TfLiteStatus PrepareAbsRsqrt(TfLiteContext* context, TfLiteNode* node) {
       micro_context->AllocateTempOutputTensor(node, kElementwiseOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
   TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context, HaveSameShapes(input, output));
   if (!is_supported_type(input->type)) {
     MicroPrintf("Input data type %s (%d) is not supported.",
                 TfLiteTypeGetName(input->type), input->type);
     return kTfLiteError;
   }
 
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
   auto* op_data = static_cast<OpDataAbsRsqrt*>(node->user_data);
   op_data->input_type = input->type;
 
@@ -154,7 +155,7 @@ TfLiteStatus PrepareAbsRsqrt(TfLiteContext* context, TfLiteNode* node) {
     if (op_nameid == kAbsNameId && op_data->needs_rescale) {
       SetAbsOutputMultiplier(input_scale, output_scale, &op_data->multiplier,
                              &op_data->shift);
-    } else if (op_nameid == kRsrqtNameId) {
+    } else if (op_nameid == kRsqrtNameId) {
       SetRsqrtOutputMultiplier(input_scale, output_scale, &op_data->multiplier,
                                &op_data->shift);
     }
@@ -168,20 +169,18 @@ template <typename T>
 inline TfLiteStatus EvalImplQuantized(
     TfLiteContext* context, TfLiteNode* node,
     T func(TfLiteContext*, TfLiteNode*, T),
-    TfLiteStatus validate_input_func(TfLiteContext*, TfLiteNode*, T),
-    TfLiteType expected_type) {
+    TfLiteStatus validate_input_func(TfLiteContext*, TfLiteNode*, T)) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kElementwiseInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kElementwiseOutputTensor);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, expected_type);
   const size_t num_elements = ElementCount(*input->dims);
   const T* in_data = tflite::micro::GetTensorData<T>(input);
   T* out_data = tflite::micro::GetTensorData<T>(output);
   for (size_t i = 0; i < num_elements; ++i) {
-    if (validate_input_func) {
-      TF_LITE_ENSURE_OK(context,
-                        validate_input_func(context, node, in_data[i]));
+    if (validate_input_func != nullptr &&
+        validate_input_func(context, node, in_data[i]) != kTfLiteOk) {
+      return kTfLiteError;
     }
     out_data[i] = func(context, node, in_data[i]);
   }
@@ -195,20 +194,15 @@ inline T AbsHelper(T i) {
 
 template <typename T>
 inline TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node,
-                             T func(T), TfLiteStatus validate_input_func(T),
-                             TfLiteType expected_type) {
+                             T func(T)) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kElementwiseInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kElementwiseOutputTensor);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, expected_type);
   const size_t num_elements = ElementCount(*input->dims);
   const T* in_data = tflite::micro::GetTensorData<T>(input);
   T* out_data = tflite::micro::GetTensorData<T>(output);
   for (size_t i = 0; i < num_elements; ++i) {
-    if (validate_input_func) {
-      TF_LITE_ENSURE_OK(context, validate_input_func(in_data[i]));
-    }
     out_data[i] = func(in_data[i]);
   }
   return kTfLiteOk;
@@ -216,14 +210,12 @@ inline TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node,
 
 inline TfLiteStatus EvalNumeric(TfLiteContext* context, TfLiteNode* node,
                                 float float_func(float)) {
-  return EvalImpl<float>(context, node, float_func,
-                         /*validate_input_func=*/nullptr, kTfLiteFloat32);
+  return EvalImpl<float>(context, node, float_func);
 }
 
 inline TfLiteStatus EvalLogical(TfLiteContext* context, TfLiteNode* node,
                                 bool bool_func(bool)) {
-  return EvalImpl<bool>(context, node, bool_func,
-                        /*validate_input_func=*/nullptr, kTfLiteBool);
+  return EvalImpl<bool>(context, node, bool_func);
 }
 
 template <typename T>
@@ -255,7 +247,7 @@ inline T RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node, T i) {
       std::is_same<T, int8_t>::value ? INT8_MAX : INT16_MAX;
 
   const int32_t value = (i - op_data->input_offset);
-  const int32_t kShift = 20;  // Shift to keep value integer.
+  constexpr int32_t kShift = 20;  // Shift to keep value integer.
   if (value == 0) {
     // Assume that any value close to 0 represents the max output value.
     return static_cast<T>(kMax);
@@ -276,9 +268,9 @@ inline T RsqrtEvalQuantized(TfLiteContext* context, TfLiteNode* node, T i) {
 template <typename T>
 TfLiteStatus ValidateInputFunc(TfLiteContext* context, TfLiteNode* node, T i) {
   const auto* op_data = static_cast<const OpDataAbsRsqrt*>(node->user_data);
-
-  TF_LITE_ENSURE_MSG(context, i >= op_data->input_offset,
-                     "Rsqrt is only defined for positive values");
+  if (i < op_data->input_offset) {
+    return kTfLiteError;
+  }
   return kTfLiteOk;
 }
 
@@ -286,7 +278,9 @@ TfLiteStatus ValidateInputFunc(TfLiteContext* context, TfLiteNode* node, T i) {
 
 void* ElementWiseAbsRsqrtInit(TfLiteContext* context, const char* buffer,
                               size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataAbsRsqrt));
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(OpDataAbsRsqrt));
+  return new (data) OpDataAbsRsqrt();
 }
 
 TfLiteStatus ElementWiseNumericPrepare(TfLiteContext* context,
@@ -304,40 +298,32 @@ TfLiteStatus ElementWiseAbsPrepare(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus ElementWiseRsqrtPrepare(TfLiteContext* context, TfLiteNode* node) {
-  return PrepareAbsRsqrt<IsRsqrtSupportedType, kRsrqtNameId>(context, node);
+  return PrepareAbsRsqrt<IsRsqrtSupportedType, kRsqrtNameId>(context, node);
 }
 
 TfLiteStatus AbsEvalReference(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
   const auto* op_data = static_cast<const OpDataAbsRsqrt*>(node->user_data);
   TfLiteType type = op_data->input_type;
   TfLiteQuantizationType input_quantization_type =
       op_data->input_quantization_type;
-  TfLiteStatus eval_result;
 
   switch (type) {
     case kTfLiteFloat32:
-      eval_result = EvalNumeric(context, node, std::abs);
-      break;
+      return EvalNumeric(context, node, std::abs);
     case kTfLiteInt8:
-      eval_result =
-          EvalImplQuantized<int8_t>(context, node, AbsEvalQuantized,
-                                    /*validate_input_func=*/nullptr, type);
-      break;
+      return EvalImplQuantized<int8_t>(context, node, AbsEvalQuantized,
+                                       /*validate_input_func=*/nullptr);
     case kTfLiteInt16:
-      eval_result =
-          input_quantization_type == kTfLiteNoQuantization
-              ? EvalImpl<int16_t>(context, node, AbsHelper,
-                                  /*validate_input_func=*/nullptr, type)
-              : EvalImplQuantized<int16_t>(context, node, AbsEvalQuantized,
-                                           /*validate_input_func=*/nullptr,
-                                           type);
-      break;
+      return input_quantization_type == kTfLiteNoQuantization
+                 ? EvalImpl<int16_t>(context, node, AbsHelper)
+                 : EvalImplQuantized<int16_t>(context, node, AbsEvalQuantized,
+                                              /*validate_input_func=*/nullptr);
     default:
       MicroPrintf("Current data type %s is not supported.",
                   TfLiteTypeGetName(type));
       return kTfLiteError;
   }
-  return eval_result;
 }
 
 TfLiteStatus SinEvalReference(TfLiteContext* context, TfLiteNode* node) {
@@ -357,19 +343,19 @@ TfLiteStatus SqrtEvalReference(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus RsqrtEvalReference(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
   const auto* op_data = static_cast<const OpDataAbsRsqrt*>(node->user_data);
   TfLiteType type = op_data->input_type;
   switch (type) {
     case kTfLiteFloat32:
-      return EvalImpl<float>(
-          context, node, [](float f) { return 1.f / std::sqrt(f); },
-          /*validate_input_func=*/nullptr, type);
+      return EvalImpl<float>(context, node,
+                             [](float f) { return 1.f / std::sqrt(f); });
     case kTfLiteInt8:
       return EvalImplQuantized<int8_t>(context, node, RsqrtEvalQuantized,
-                                       ValidateInputFunc, type);
+                                       ValidateInputFunc);
     case kTfLiteInt16:
       return EvalImplQuantized<int16_t>(context, node, RsqrtEvalQuantized,
-                                        ValidateInputFunc, type);
+                                        ValidateInputFunc);
     default:
       MicroPrintf("Current data type %s is not supported.",
                   TfLiteTypeGetName(type));

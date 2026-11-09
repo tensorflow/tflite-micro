@@ -15,14 +15,13 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/elementwise.h"
 
-#include <cstddef>
 #include <cstdint>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
 #include "tensorflow/lite/micro/micro_common.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace micro {
@@ -30,18 +29,22 @@ namespace {
 
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 TfLiteStatus EvalLogicalNotHiFi(TfLiteContext* context, TfLiteNode* node) {
+  static_assert(sizeof(bool) == sizeof(int8_t),
+                "NNLib logicalnot kernel writes 1-byte boolean outputs.");
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kElementwiseInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kElementwiseOutputTensor);
-  const size_t num_elements = ElementCount(*input->dims);
+  const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
 
   const int8_t* input_data_ptr = tflite::micro::GetTensorData<int8_t>(input);
   int8_t* output_data_ptr = tflite::micro::GetTensorData<int8_t>(output);
 
   int err = xa_nn_elm_logicalnot_bool_bool(output_data_ptr, input_data_ptr,
-                                           num_elements);
-  TF_LITE_ENSURE(context, err == 0);
+                                           flat_size);
+  if (err != 0) {
+    return kTfLiteError;
+  }
   return kTfLiteOk;
 }
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
@@ -54,26 +57,30 @@ TfLiteStatus EvalNumericHiFi(TfLiteContext* context, TfLiteNode* node,
       tflite::micro::GetEvalInput(context, node, kElementwiseInputTensor);
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kElementwiseOutputTensor);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
-  const size_t num_elements = ElementCount(*input->dims);
+  const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
 
   const float* in_data = tflite::micro::GetTensorData<float>(input);
   float* out_data = tflite::micro::GetTensorData<float>(output);
 
-  int err = xa_func(out_data, in_data, num_elements);
-  TF_LITE_ENSURE(context, err == 0);
+  int err = xa_func(out_data, in_data, flat_size);
+  if (err != 0) {
+    return kTfLiteError;
+  }
   return kTfLiteOk;
 }
 #endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
 
 TfLiteStatus AbsEval(TfLiteContext* context, TfLiteNode* node) {
 #if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
+  TFLITE_DCHECK(node->user_data != nullptr);
   const auto* op_data = static_cast<const OpDataAbsRsqrt*>(node->user_data);
   if (op_data->input_type == kTfLiteFloat32) {
     return EvalNumericHiFi(context, node, xa_nn_elm_abs_f32_f32);
   }
-#endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
   return AbsEvalReference(context, node);
+#else
+  return AbsEvalReference(context, node);
+#endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
 }
 
 TfLiteStatus SinEval(TfLiteContext* context, TfLiteNode* node) {
@@ -110,12 +117,15 @@ TfLiteStatus SqrtEval(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus RsqrtEval(TfLiteContext* context, TfLiteNode* node) {
 #if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
+  TFLITE_DCHECK(node->user_data != nullptr);
   const auto* op_data = static_cast<const OpDataAbsRsqrt*>(node->user_data);
   if (op_data->input_type == kTfLiteFloat32) {
     return EvalNumericHiFi(context, node, xa_nn_elm_rsqrt_f32_f32);
   }
-#endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
   return RsqrtEvalReference(context, node);
+#else
+  return RsqrtEvalReference(context, node);
+#endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
 }
 
 TfLiteStatus SquareEval(TfLiteContext* context, TfLiteNode* node) {

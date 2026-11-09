@@ -377,4 +377,107 @@ TEST(ElementwiseTest, LogicalNot) {
                                        input, shape, golden, output_data);
 }
 
+TEST(ElementwiseTest, AbsMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {0.01f, -0.01f, 10.0f,  -10.0f,  0.0f,   -1.5f,
+                         2.5f,  -3.75f, 100.0f, -100.0f, 0.125f, -0.125f};
+  const float golden[] = {0.01f, 0.01f, 10.0f,  10.0f,  0.0f,   1.5f,
+                          2.5f,  3.75f, 100.0f, 100.0f, 0.125f, 0.125f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_ABS(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, SinMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {0.0f,  3.1415926f, -3.1415926f, 1.0f,  -1.0f,  0.5f,
+                         -0.5f, 1.5707963f, -1.5707963f, 0.25f, -0.25f, 2.0f};
+  const float golden[] = {0.0f,        0.0f,       0.0f,        0.8414709f,
+                          -0.8414709f, 0.4794255f, -0.4794255f, 1.0f,
+                          -1.0f,       0.2474039f, -0.2474039f, 0.9092974f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_SIN(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, CosMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {0.0f,  3.1415926f, -3.1415926f, 1.0f,  -1.0f,  0.5f,
+                         -0.5f, 1.5707963f, -1.5707963f, 0.25f, -0.25f, 2.0f};
+  const float golden[] = {1.0f,       -1.0f,      -1.0f,      0.5403023f,
+                          0.5403023f, 0.8775826f, 0.8775826f, 0.0f,
+                          0.0f,       0.9689124f, 0.9689124f, -0.4161468f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_COS(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, LogMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {1.0f, 2.7182818f, 0.5f,  2.0f, 4.0f,  0.25f,
+                         8.0f, 0.125f,     10.0f, 0.1f, 16.0f, 0.0625f};
+  const float golden[] = {0.0f,       1.0f,        -0.6931472f, 0.6931472f,
+                          1.3862944f, -1.3862944f, 2.0794415f,  -2.0794415f,
+                          2.3025851f, -2.3025851f, 2.7725887f,  -2.7725887f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_LOG(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, SqrtMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {0.0f,  1.0f,  2.0f,  4.0f,    9.0f,  16.0f,
+                         25.0f, 0.25f, 0.01f, 0.0625f, 36.0f, 49.0f};
+  const float golden[] = {0.0f, 1.0f, 1.4142135f, 2.0f,  3.0f, 4.0f,
+                          5.0f, 0.5f, 0.1f,       0.25f, 6.0f, 7.0f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_SQRT(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, RsqrtMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {1.0f,  2.0f,  4.0f,   9.0f,    16.0f, 25.0f,
+                         0.25f, 0.04f, 100.0f, 0.0625f, 64.0f, 400.0f};
+  const float golden[] = {1.0f, 0.7071068f, 0.5f, 0.3333333f, 0.25f,  0.2f,
+                          2.0f, 5.0f,       0.1f, 4.0f,       0.125f, 0.05f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_RSQRT(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, SquareMultiElement) {
+  constexpr int output_dims_count = 12;
+  int shape[] = {2, 3, 4};
+  const float input[] = {1.0f, 2.0f,  0.5f, -3.0f, 0.0f,  -0.25f,
+                         4.0f, -5.0f, 1.5f, -2.5f, 10.0f, -0.1f};
+  const float golden[] = {1.0f,  4.0f,  0.25f, 9.0f,  0.0f,   0.0625f,
+                          16.0f, 25.0f, 2.25f, 6.25f, 100.0f, 0.01f};
+  float output_data[output_dims_count];
+  tflite::testing::TestElementwiseFloat(tflite::Register_SQUARE(), shape, input,
+                                        shape, golden, output_data);
+}
+
+TEST(ElementwiseTest, LogicalNotMultiElement) {
+  constexpr int output_dims_count = 26;
+  int shape[] = {2, 2, 13};
+  const bool input[] = {true,  false, false, true,  true,  false, true,
+                        false, false, true,  false, true,  true,  false,
+                        false, false, true,  true,  false, true,  false,
+                        false, true,  false, true,  false};
+  const bool golden[] = {false, true,  true,  false, false, true,  false,
+                         true,  true,  false, true,  false, false, true,
+                         true,  true,  false, false, true,  false, true,
+                         true,  false, true,  false, true};
+  bool output_data[output_dims_count];
+  tflite::testing::TestElementwiseBool(tflite::Register_LOGICAL_NOT(), shape,
+                                       input, shape, golden, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

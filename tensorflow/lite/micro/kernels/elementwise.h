@@ -24,17 +24,17 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-extern const int kElementwiseInputTensor;
-extern const int kElementwiseOutputTensor;
+inline constexpr int kElementwiseInputTensor = 0;
+inline constexpr int kElementwiseOutputTensor = 0;
 
 struct OpDataAbsRsqrt {
-  int32_t multiplier;
-  int shift;
-  int input_offset;
-  int output_offset;
-  bool needs_rescale;
-  TfLiteQuantizationType input_quantization_type;
-  TfLiteType input_type;
+  int32_t multiplier = 0;
+  int shift = 0;
+  int input_offset = 0;
+  int output_offset = 0;
+  bool needs_rescale = false;
+  TfLiteQuantizationType input_quantization_type = kTfLiteNoQuantization;
+  TfLiteType input_type = kTfLiteNoType;
 };
 
 void* ElementWiseAbsRsqrtInit(TfLiteContext* context, const char* buffer,
