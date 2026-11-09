@@ -95,12 +95,24 @@ TEST(FloorDivTest, FloorDivTestBroadcastFloat) {
   int kDims2[] = {1, 1};
   constexpr float kInput1[] = {10.03, -9.9, -11.0, 7.0};
   constexpr float kInput2[] = {-3.3};
-  constexpr float kExpect[] = {-4.0, 2.0, 3.0, -3.0};
+  constexpr float kExpect[] = {-4.0, 3.0, 3.0, -3.0};
   constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
   float output_data[kOutputCount];
 
   tflite::testing::TestFloorDiv(kDims1, kInput1, kDims2, kInput2, kDims1,
                                 kExpect, output_data);
+}
+
+TEST(FloorDivTest, FloorDivTestFloat32BoundaryPrecision) {
+  int kDims[] = {1, 2};
+  constexpr float kInput1[] = {0.9f, -0.9f};
+  constexpr float kInput2[] = {0.1f, -0.1f};
+  // In IEEE float32 arithmetic, 0.9f / 0.1f == 9.0f (double gives 8.9999996).
+  constexpr float kExpect[] = {9.0f, 9.0f};
+  float output_data[2];
+
+  tflite::testing::TestFloorDiv(kDims, kInput1, kDims, kInput2, kDims, kExpect,
+                                output_data);
 }
 
 TF_LITE_MICRO_TESTS_MAIN

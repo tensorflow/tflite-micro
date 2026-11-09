@@ -16,7 +16,6 @@ limitations under the License.
 #define TENSORFLOW_LITE_MICRO_KERNELS_INTERNAL_REFERENCE_FLOOR_DIV_H_
 
 #include <cmath>
-#include <functional>
 
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 
@@ -26,8 +25,7 @@ namespace reference_ops {
 
 template <typename T>
 T FloorDiv(T input1, T input2) {
-  return std::floor(std::divides<double>()(static_cast<double>(input1),
-                                           static_cast<double>(input2)));
+  return std::floor(input1 / input2);
 }
 
 }  // namespace reference_ops
