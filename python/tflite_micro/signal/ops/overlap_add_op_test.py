@@ -450,9 +450,10 @@ class OverlapAddOpTest(tf.test.TestCase):
       self.evaluate(overlap_add_op.overlap_add(overlap_add_input, 129))
 
   def testInputRankTooLow(self):
-    overlap_add_input = np.zeros(122, dtype=np.int16)
-    with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
-      self.evaluate(overlap_add_op.overlap_add(overlap_add_input, 1))
+    for shape in (122, ()):
+      overlap_add_input = np.zeros(shape, dtype=np.int16)
+      with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
+        self.evaluate(overlap_add_op.overlap_add(overlap_add_input, 1))
 
   def testNonPositiveStepSize(self):
     overlap_add_input = np.zeros((1, 128), dtype=np.int16)
