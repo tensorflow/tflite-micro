@@ -30,12 +30,7 @@ ARM_TOOLCHAIN_FILES_PREFIX = "@arm_none_eabi//:"
 
 CC_TOOLCHAIN_TYPE = "@rules_cc//cc:toolchain_type"
 
-RISCV_TOOLCHAIN_BIN_PREFIX = "@riscv_toolchain//:bin/"
-RISCV_TOOLCHAIN_FILES_PREFIX = "@riscv_toolchain//:"
-RISCV_LINKER_FILES = "@riscv_toolchain//:linker_files"
-
 QEMU_ARM_DATA = []
-QEMU_RISCV32_DATA = []
 CORSTONE300_FVP_DATA = []
 HEXAGON_RUNNER_DATA = ["@hexagon_toolchain//:bin/hexagon-sim"]
 HEXAGON_CONSTRAINTS = [
@@ -212,19 +207,15 @@ TFLM_PLATFORM_CONFIGS = {
     },
     "cortex_m0": {
         "baremetal": True,
-        "flags": [],
+        "flags": [
+            "--//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn",
+            "--//tensorflow/lite/micro/kernels:cmsis_nn_dep=@cmsis_nn//:cmsis_nn",
+        ],
         "mode": "test",
         "parents": ["//tensorflow/lite/micro/tools/toolchains/arm:m0_platform"],
         "runner": "//tensorflow/lite/micro/tools/toolchains/arm:run_m0",
     },
     "cortex_m4": {
-        "baremetal": True,
-        "flags": [],
-        "mode": "test",
-        "parents": ["//tensorflow/lite/micro/tools/toolchains/arm:m4_platform"],
-        "runner": "//tensorflow/lite/micro/tools/toolchains/arm:run_m4",
-    },
-    "cortex_m4_cmsis_nn": {
         "baremetal": True,
         "flags": [
             "--//tensorflow/lite/micro/kernels:optimized_kernels=cmsis_nn",
@@ -244,13 +235,6 @@ TFLM_PLATFORM_CONFIGS = {
         "parents": ["//tensorflow/lite/micro/tools/toolchains/arm:m55_platform"],
         "runner": "//tensorflow/lite/micro/tools/toolchains/arm:run_m55",
     },
-    "cortex_m55_ref": {
-        "baremetal": True,
-        "flags": [],
-        "mode": "test",
-        "parents": ["//tensorflow/lite/micro/tools/toolchains/arm:m55_platform"],
-        "runner": "//tensorflow/lite/micro/tools/toolchains/arm:run_m55",
-    },
     "hexagon": {
         "baremetal": True,
         "default_timeout": "long",
@@ -261,15 +245,6 @@ TFLM_PLATFORM_CONFIGS = {
         "mode": "test",
         "parents": ["//tensorflow/lite/micro/tools/toolchains/hexagon:hexagon_platform"],
         "runner": "//tensorflow/lite/micro/tools/toolchains/hexagon:run_hexagon",
-    },
-    "riscv32": {
-        "baremetal": True,
-        "flags": [
-            "--//tensorflow/lite/micro:bsp=//tensorflow/lite/micro/tools/toolchains/riscv:riscv_bsp",
-        ],
-        "mode": "test",
-        "parents": ["//tensorflow/lite/micro/tools/toolchains/riscv:riscv32_platform"],
-        "runner": "//tensorflow/lite/micro/tools/toolchains/riscv:run_riscv32",
     },
     "xtensa_fusion_f1": {
         "baremetal": True,

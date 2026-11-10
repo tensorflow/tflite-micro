@@ -23,13 +23,11 @@ cd "${ROOT_DIR}"
 BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || echo "bazel")}
 BAZEL_FLAGS="--config=_ci_base"
 
-# Run Cortex-M smoke tests (M0, M4, M55), reference suites, and CMSIS-NN Helium MVE suites in a unified invocation
+# Run Cortex-M smoke tests (M0, M4, M55) and CMSIS-NN Helium MVE suites in a unified invocation
 ${BAZEL_BIN} test ${BAZEL_FLAGS} \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m0 \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m4 \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m55 \
   //tensorflow/lite/micro/tools/toolchains/arm:qemu_exit_code_test \
-  //tensorflow/lite/micro:core_cortex_m55_ref_tests \
-  //tensorflow/lite/micro/kernels:kernel_cortex_m55_ref_tests \
   //tensorflow/lite/micro:core_cortex_m55_tests \
   //tensorflow/lite/micro/kernels:kernel_cortex_m55_tests

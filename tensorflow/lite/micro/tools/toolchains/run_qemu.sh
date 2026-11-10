@@ -42,10 +42,6 @@ if [[ -z "${QEMU_ARCH:-}" || -z "${QEMU_CPU:-}" ]]; then
       : "${QEMU_ARCH:=arm}"
       : "${QEMU_CPU:=cortex-m55}"
       ;;
-    *riscv32*)
-      : "${QEMU_ARCH:=riscv32}"
-      : "${QEMU_CPU:=rv32}"
-      ;;
     *)
       echo "ERROR: Cannot infer QEMU architecture/CPU from runner '${SCRIPT_NAME}'. Set QEMU_ARCH and QEMU_CPU." >&2
       exit 2

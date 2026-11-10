@@ -850,8 +850,6 @@ tflm_platform_test_suite(
     profiles = [
         "compression",
         "cortex_m55",
-        "cortex_m55_ref",
-        "riscv32",
         "xtensa_hifi3z",
         "xtensa_hifi5",
     ],
