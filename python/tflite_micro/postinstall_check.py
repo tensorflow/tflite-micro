@@ -20,6 +20,7 @@
 # source tree.
 from tflite_micro import runtime
 from tflite_micro import compression
+from tflite_micro import model_editor
 
 import numpy as np
 
@@ -73,11 +74,25 @@ def compression_test():
   return True
 
 
+def model_editor_test():
+  """Test that the model editor reads and rebuilds a model."""
+  model_data = (
+    resources.files(__package__).joinpath("sine_float.tflite").read_bytes()
+  )
+  model = model_editor.read(model_data)
+  rebuilt = model_editor.read(bytes(model.build()))
+
+  names = [t.name for t in model.subgraphs[0].tensors]
+  rebuilt_names = [t.name for t in rebuilt.subgraphs[0].tensors]
+  return len(names) > 0 and names == rebuilt_names
+
+
 def passed():
   """Run all postinstall checks."""
   runtime_passed = runtime_test()
   compression_passed = compression_test()
-  return runtime_passed and compression_passed
+  model_editor_passed = model_editor_test()
+  return runtime_passed and compression_passed and model_editor_passed
 
 
 if __name__ == "__main__":

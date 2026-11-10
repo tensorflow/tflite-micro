@@ -27,4 +27,7 @@ from tflite_micro.python.tflite_micro._version import __version__
 # Provide a convenient alias for the compression module
 from tflite_micro.tensorflow.lite.micro import compression
 
-__all__ = ["runtime", "__version__", "compression"]
+# Provide a convenient alias for the model editor
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
+
+__all__ = ["runtime", "__version__", "compression", "model_editor"]

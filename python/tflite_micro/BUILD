@@ -177,6 +177,7 @@ py_package(
         ":runtime",
         ":version",
         "//tensorflow/lite/micro/compression",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
     ],
 )
