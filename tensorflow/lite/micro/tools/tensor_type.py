@@ -13,10 +13,10 @@
 # limitations under the License.
 """Single source of truth for TFLite TensorType mappings.
 
-Compression tooling reads tensor buffer bytes as numpy arrays, so it needs to
-know the element type. Only the TensorTypes with a clean numpy equivalent are
-mapped; anything else raises rather than silently guessing a type. Every
-TensorType has a name, for reports and error messages.
+Tools that read tensor buffer bytes as numpy arrays need to know the element
+type. Only the TensorTypes with a clean numpy equivalent are mapped; anything
+else raises rather than silently guessing a type. Every TensorType has a name,
+for reports and error messages.
 """
 
 import numpy as np

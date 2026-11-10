@@ -57,6 +57,27 @@ tflm_py_test(
     ],
 )
 
+tflm_py_library(
+    name = "tensor_type",
+    srcs = ["tensor_type.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tensorflow/lite/micro/python:schema_py",
+        "//third_party/py/numpy",
+    ],
+)
+
+tflm_py_test(
+    name = "tensor_type_test",
+    size = "small",
+    srcs = ["tensor_type_test.py"],
+    deps = [
+        ":tensor_type",
+        "//tensorflow/lite/micro/python:schema_py",
+        "//third_party/py/numpy",
+    ],
+)
+
 tflm_py_binary(
     name = "randomize_weights",
     srcs = ["randomize_weights.py"],

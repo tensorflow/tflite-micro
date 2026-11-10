@@ -142,8 +142,8 @@ tflm_py_library(
     srcs = ["verify.py"],
     deps = [
         ":model_editor",
-        ":tensor_type",
         "//python/tflite_micro:runtime",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )
@@ -275,31 +275,11 @@ tflm_py_test(
 )
 
 tflm_py_library(
-    name = "tensor_type",
-    srcs = ["tensor_type.py"],
-    deps = [
-        "//tensorflow/lite/micro/python:schema_py",
-        "//third_party/py/numpy",
-    ],
-)
-
-tflm_py_test(
-    name = "tensor_type_test",
-    size = "small",
-    srcs = ["tensor_type_test.py"],
-    deps = [
-        ":tensor_type",
-        "//tensorflow/lite/micro/python:schema_py",
-        "//third_party/py/numpy",
-    ],
-)
-
-tflm_py_library(
     name = "model_editor",
     srcs = ["model_editor.py"],
     deps = [
-        ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/flatbuffers:runtime_py",
         "//third_party/py/numpy",
     ],
@@ -480,8 +460,8 @@ tflm_py_library(
         ":lut",
         ":model_editor",
         ":spec",
-        ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )
@@ -523,8 +503,8 @@ tflm_py_library(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":metadata_py",
-        ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )
