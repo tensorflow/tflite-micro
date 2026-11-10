@@ -58,6 +58,29 @@ tflm_py_test(
 )
 
 tflm_py_library(
+    name = "model_editor",
+    srcs = ["model_editor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tensor_type",
+        "//tensorflow/lite/micro/python:schema_py",
+        "//third_party/flatbuffers:runtime_py",
+        "//third_party/py/numpy",
+    ],
+)
+
+tflm_py_test(
+    name = "model_editor_test",
+    size = "small",
+    srcs = ["model_editor_test.py"],
+    deps = [
+        ":model_editor",
+        "//tensorflow/lite/micro/python:schema_py",
+        "//third_party/py/numpy",
+    ],
+)
+
+tflm_py_library(
     name = "tensor_type",
     srcs = ["tensor_type.py"],
     visibility = ["//visibility:public"],

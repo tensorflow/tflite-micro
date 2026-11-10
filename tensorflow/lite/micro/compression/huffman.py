@@ -21,8 +21,8 @@ Supported tensor types (when implemented): INT8, INT16
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
 from tflite_micro.tensorflow.lite.micro.compression import decode
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 
 
 class HuffmanCompressor(compressor.Compressor):

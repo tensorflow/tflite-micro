@@ -24,7 +24,7 @@ import typing
 import numpy as np
 
 from tflite_micro.python.tflite_micro import runtime
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 from tflite_micro.tensorflow.lite.micro.tools import tensor_type
 
 _TRIALS = 5

@@ -132,7 +132,7 @@ tflm_py_test(
     }),
     deps = [
         ":runtime",
-        "//tensorflow/lite/micro/compression:model_editor",
+        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 

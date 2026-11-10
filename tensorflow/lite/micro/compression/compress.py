@@ -28,9 +28,9 @@ from tflite_micro.tensorflow.lite.micro.compression import constant_inputs
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
 from tflite_micro.tensorflow.lite.micro.compression import huffman
 from tflite_micro.tensorflow.lite.micro.compression import lut
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import pruning
 from tflite_micro.tensorflow.lite.micro.compression import spec
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 from tflite_micro.tensorflow.lite.micro.tools import (
   tflite_flatbuffer_align_wrapper,
 )

@@ -18,7 +18,7 @@ import os
 import unittest
 
 from tflite_micro.python.tflite_micro import runtime
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 
 _MODEL_PATH = os.path.join(os.path.dirname(__file__), "sine_float.tflite")
 
