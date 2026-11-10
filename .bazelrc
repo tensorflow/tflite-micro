@@ -112,14 +112,8 @@ test:cortex-m0 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m0
 build:cortex-m4 --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m4_test_platform
 test:cortex-m4 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m4
 
-build:cortex-m4-cmsis-nn --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m4_cmsis_nn_test_platform
-test:cortex-m4-cmsis-nn --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m4
-
-build:cortex-m55 --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m55_ref_test_platform
+build:cortex-m55 --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m55_test_platform
 test:cortex-m55 --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m55
-
-build:cortex-m55-cmsis-nn --platforms=//tensorflow/lite/micro/tools/toolchains:cortex_m55_test_platform
-test:cortex-m55-cmsis-nn --run_under=//tensorflow/lite/micro/tools/toolchains/arm:run_m55
 
 # Corstone-300 + Ethos-U55 FVP configurations
 build:corstone-env --test_env=PATH
@@ -128,10 +122,6 @@ build:corstone-env --test_env=FVP_BIN
 build:corstone-300-ethos-u --config=corstone-env
 build:corstone-300-ethos-u --platforms=//tensorflow/lite/micro/tools/toolchains:corstone300_test_platform
 test:corstone-300-ethos-u --run_under=//tensorflow/lite/micro/tools/toolchains/arm/corstonefvp:run_corstone300
-
-# Embedded RISC-V configurations
-build:riscv32 --platforms=//tensorflow/lite/micro/tools/toolchains:riscv32_test_platform
-test:riscv32 --run_under=//tensorflow/lite/micro/tools/toolchains/riscv:run_riscv32
 
 # Embedded Qualcomm Hexagon configurations
 build:hexagon-env --action_env=HEXAGON_SDK_ROOT
