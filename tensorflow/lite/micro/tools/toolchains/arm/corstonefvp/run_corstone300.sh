@@ -33,9 +33,11 @@ if [[ -z "${FVP_BIN:-}" ]]; then
       for cand in \
         "${root}"/*/bin/FVP_Corstone_SSE-300_Ethos-U55 \
         "${root}"/*/*/bin/FVP_Corstone_SSE-300_Ethos-U55 \
-        "${root}"/google3/*/corstonefvp/bin/FVP_Corstone_SSE-300_Ethos-U55; do
+        "${root}"/google3/third_party/unsupported_toolchains/fvp_corstone_300/bin/FVP_Corstone_SSE-300_Ethos-U55; do
         if [[ -s "${cand}" && -x "${cand}" ]]; then
-          FVP_BIN="$(readlink -f "${cand}")"
+          # Preserve the runfiles symlink path so sibling ../lib and ../plugins
+          # stay intact under content-addressed (CAS) test sandboxes.
+          FVP_BIN="${cand}"
           break 2
         fi
       done
@@ -62,21 +64,22 @@ for dir in "${PARENT_DIR}/lib" "${PARENT_DIR}/plugins"; do
     FVP_LD_PATH="${FVP_LD_PATH}:${dir}"
   fi
 done
-export LD_LIBRARY_PATH="${FVP_LD_PATH}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+FVP_LD_PATH="${FVP_LD_PATH}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 
-CMD_PREFIX=()
+FVP_CMD=()
 if [[ -x "/usr/grte/v5/lib64/ld-linux-x86-64.so.2" ]]; then
-  CMD_PREFIX=(
+  FVP_CMD+=(
     "/usr/grte/v5/lib64/ld-linux-x86-64.so.2"
     "--library-path"
-    "${LD_LIBRARY_PATH}:/usr/grte/v5/lib64:/lib64"
+    "${FVP_LD_PATH}:/usr/grte/v5/lib64:/lib64"
   )
 fi
+FVP_CMD+=("${FVP_BIN}")
 
 ETHOSU_NUM_MACS="${ETHOSU_NUM_MACS:-256}"
 if [[ -z "${FVP_TIMEOUT_SEC:-}" ]]; then
-  if [[ -n "${TEST_TIMEOUT:-}" && "${TEST_TIMEOUT}" -gt 15 ]]; then
-    FVP_TIMEOUT_SEC=$((TEST_TIMEOUT - 10))
+  if [[ -n "${TEST_TIMEOUT:-}" && "${TEST_TIMEOUT}" -gt 40 ]]; then
+    FVP_TIMEOUT_SEC=$((TEST_TIMEOUT - 30))
   else
     FVP_TIMEOUT_SEC=180
   fi
@@ -87,7 +90,8 @@ LOG_FILE="$(mktemp "${TEST_TMPDIR:-/tmp}/fvp_corstone300.XXXXXX.log")"
 trap 'rm -f "${LOG_FILE}"' EXIT
 
 set +e
-timeout -k 10 "${HOST_KILL_SEC}" "${CMD_PREFIX[@]}" "${FVP_BIN}" \
+timeout -k 10 "${HOST_KILL_SEC}" env "LD_LIBRARY_PATH=${FVP_LD_PATH}" \
+  "${FVP_CMD[@]}" \
   -C cpu0.CFGDTCMSZ=13 \
   -C cpu0.CFGITCMSZ=13 \
   -C cpu0.INITSVTOR=0x0 \
