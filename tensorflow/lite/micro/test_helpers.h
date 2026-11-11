@@ -32,13 +32,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/portable_type_to_tflitetype.h"
 
-#ifdef USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/micro/compression.h"
-#include "tensorflow/lite/micro/micro_log.h"
-
-#endif  // TENSORFLOW_LITE_MICRO_TEST_HELPERS_H_
-
 namespace tflite {
 namespace testing {
 
@@ -119,15 +112,6 @@ TfLiteStatus GetTestingOpResolver(TestingOpResolver& op_resolver);
 // Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
 // 1 layer of weights, 1 output Tensor, and 1 operator.
 const Model* GetSimpleMockModel();
-
-#ifdef USE_TFLM_COMPRESSION
-
-// Returns a simple example flatbuffer TensorFlow Lite model. Contains 1 input,
-// 1 layer of weights, 1 output Tensor, and 1 operator (BroadcastAddOp).  The
-// weights tensor is compressed.
-const Model* GetSimpleMockModelCompressed();
-
-#endif  // USE_TFLM_COMPRESSION
 
 // Returns a flatbuffer TensorFlow Lite model with more inputs, variable
 // tensors, and operators.
@@ -419,128 +403,6 @@ inline int ZeroPointFromMinMax(const float min, const float max) {
   return static_cast<int>(std::numeric_limits<T>::min()) +
          static_cast<int>(roundf(-min / ScaleFromMinMax<T>(min, max)));
 }
-
-#ifdef USE_TFLM_COMPRESSION
-
-template <typename T>
-struct TestCompressionInfo {
-  T* value_table;
-  size_t value_table_stride;
-  int bit_width;
-  CompressionScheme scheme;
-};
-
-template <typename T>
-struct TestCompressionQuantizedInfo : TestCompressionInfo<T> {
-  const uint8_t* compressed;
-  const float* data;
-  const int* dims_data;  // TfLiteIntArray
-  float* scales;         // TfLiteFloatArray (mutated in-place / computed)
-  int* zero_points;      // TfLiteIntArray (may be computed)
-};
-
-template <size_t NTENSORS, size_t NINPUTS = 2>
-class TestCompressedList {
- public:
-  template <typename T>
-  TfLiteStatus AddInput(const TestCompressionInfo<T>& tci,
-                        const TfLiteTensor& tensor, const size_t tensor_index) {
-    if (next_input_index_ >= NINPUTS) {
-      MicroPrintf("TestCompressedList: too many inputs, max %u", NINPUTS);
-      return kTfLiteError;
-    }
-    inputs_comp_data_[next_input_index_].data.lut_data =
-        &inputs_ltd_[next_input_index_];
-    inputs_comp_data_[next_input_index_].scheme = tci.scheme;
-    inputs_comp_data_[next_input_index_].data.lut_data->compressed_bit_width =
-        tci.bit_width;
-    inputs_comp_data_[next_input_index_].data.lut_data->value_table =
-        tci.value_table;
-    inputs_comp_data_[next_input_index_]
-        .data.lut_data->value_table_channel_stride = tci.value_table_stride;
-    inputs_comp_data_[next_input_index_]
-        .data.lut_data->is_per_channel_quantized =
-        IsPerChannelQuantized(tensor);
-    inputs_comp_data_[next_input_index_].data.lut_data->use_alternate_axis =
-        UsesAltAxis(tensor);
-    return SetCompressionData(tensor_index,
-                              inputs_comp_data_[next_input_index_++]);
-  }
-
-  const CompressedTensorList* GetCompressedTensorList() {
-    if (next_input_index_ == 0) {
-      return nullptr;
-    }
-
-    return &ctl_;
-  }
-
- private:
-  size_t next_input_index_ = 0;
-  LookupTableData inputs_ltd_[NINPUTS] = {};
-  CompressionTensorData inputs_comp_data_[NINPUTS] = {};
-  const CompressionTensorData* ctdp_[NTENSORS] = {};
-  const CompressedTensorList ctl_ = {ctdp_};
-
-  TfLiteStatus SetCompressionData(const size_t tensor_index,
-                                  const CompressionTensorData& cd) {
-    if (tensor_index >= NTENSORS) {
-      MicroPrintf("TestCompressedList: bad tensor index %u", tensor_index);
-      return kTfLiteError;
-    }
-    if (cd.data.lut_data->value_table == nullptr) {
-      MicroPrintf("TestCompressedList: null value_table pointer");
-      return kTfLiteError;
-    }
-    if (cd.data.lut_data->value_table_channel_stride == 0) {
-      MicroPrintf("TestCompressedList: value_table_channel_stride not set");
-      return kTfLiteError;
-    }
-    if (cd.scheme != CompressionScheme::kBinQuant) {
-      MicroPrintf("TestCompressedList: unsupported compression scheme");
-      return kTfLiteError;
-    }
-    if (ctdp_[tensor_index] != nullptr) {
-      MicroPrintf("TestCompressedList: tensor index %d already in use",
-                  tensor_index);
-      return kTfLiteError;
-    }
-
-    ctdp_[tensor_index] = &cd;
-    return kTfLiteOk;
-  }
-
-  bool IsPerChannelQuantized(const TfLiteTensor& tensor) {
-    if (tensor.quantization.type == kTfLiteAffineQuantization &&
-        tensor.quantization.params != nullptr) {
-      const TfLiteAffineQuantization* qp =
-          static_cast<const TfLiteAffineQuantization*>(
-              tensor.quantization.params);
-      if (qp->scale->size > 1) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  bool UsesAltAxis(const TfLiteTensor& tensor) {
-    if (tensor.quantization.type == kTfLiteAffineQuantization &&
-        tensor.quantization.params != nullptr) {
-      const TfLiteAffineQuantization* qp =
-          static_cast<const TfLiteAffineQuantization*>(
-              tensor.quantization.params);
-      if (qp->quantized_dimension != 0) {
-        TFLITE_DCHECK_EQ(qp->quantized_dimension, tensor.dims->size - 1);
-        return true;
-      }
-    }
-
-    return false;
-  }
-};
-
-#endif  // USE_TFLM_COMPRESSION
 
 }  // namespace testing
 }  // namespace tflite

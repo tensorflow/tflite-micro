@@ -37,33 +37,9 @@ TfLiteStatus XtensaEvalFullyConnectedQuantizedInt16(
     return kTfLiteError;
   }
 
-#ifdef USE_TFLM_COMPRESSION
-
-  MicroContext* micro_context = GetMicroContext(context);
-
-  const CompressionTensorData* weights_comp_td =
-      micro_context->GetTensorCompressionData(node,
-                                              kFullyConnectedWeightsTensor);
-  const CompressionTensorData* bias_comp_td =
-      micro_context->GetTensorCompressionData(node, kFullyConnectedBiasTensor);
-
-#endif  // USE_TFLM_COMPRESSION
-
   const int64_t* bias_data =
-#ifdef USE_TFLM_COMPRESSION
-      tflite::micro::GetOptionalTensorData<int64_t>(
-          micro_context, bias, bias_comp_td, data.bias_scratch_index);
-#else   // USE_TFLM_COMPRESSION
       tflite::micro::GetOptionalTensorData<int64_t>(bias);
-#endif  // USE_TFLM_COMPRESSION
-
-  const int8_t* filter_data =
-#ifdef USE_TFLM_COMPRESSION
-      tflite::micro::GetTensorData<int8_t>(
-          micro_context, filter, weights_comp_td, data.weights_scratch_index);
-#else   // USE_TFLM_COMPRESSION
-      tflite::micro::GetTensorData<int8_t>(filter);
-#endif  // USE_TFLM_COMPRESSION
+  const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(filter);
 
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   const RuntimeShape& output_shape = tflite::micro::GetTensorShape(output);

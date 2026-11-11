@@ -78,10 +78,6 @@ RecordedAllocation RecordingMicroAllocator::GetRecordedAllocation(
       return recorded_node_and_registration_array_data_;
     case RecordedAllocationType::kOpData:
       return recorded_op_data_;
-#ifdef USE_TFLM_COMPRESSION
-    case RecordedAllocationType::kCompressionData:
-      return recorded_compression_data_;
-#endif  // USE_TFLM_COMPRESSION
     default:
       break;
   }
@@ -118,13 +114,6 @@ void RecordingMicroAllocator::PrintAllocations() const {
                           "NodeAndRegistration structs");
   PrintRecordedAllocation(RecordedAllocationType::kOpData,
                           "Operator runtime data", "OpData structs");
-
-#ifdef USE_TFLM_COMPRESSION
-
-  PrintRecordedAllocation(RecordedAllocationType::kCompressionData,
-                          "Persistent compression data", "allocations");
-
-#endif  // USE_TFLM_COMPRESSION
 }
 
 void* RecordingMicroAllocator::AllocatePersistentBuffer(size_t bytes) {
@@ -240,21 +229,6 @@ TfLiteStatus RecordingMicroAllocator::PopulateTfLiteTensorFromFlatbuffer(
                         recorded_persistent_tflite_tensor_quantization_data_);
   return status;
 }
-
-#ifdef USE_TFLM_COMPRESSION
-
-TfLiteStatus RecordingMicroAllocator::AllocateCompressedTensorsList(
-    const Model* model, SubgraphAllocations* subgraph_allocations) {
-  RecordedAllocation allocations = SnapshotAllocationUsage();
-
-  TfLiteStatus status = MicroAllocator::AllocateCompressedTensorsList(
-      model, subgraph_allocations);
-
-  RecordAllocationUsage(allocations, recorded_compression_data_);
-  return status;
-}
-
-#endif  // USE_TFLM_COMPRESSION
 
 RecordedAllocation RecordingMicroAllocator::SnapshotAllocationUsage() const {
   return {/*requested_bytes=*/recording_memory_allocator_->GetRequestedBytes(),

@@ -190,10 +190,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/unpack_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/while_test.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/zeros_like_test.cc
 
-ifeq ($(ENABLE_COMPRESSION), yes)
-MICROLITE_KERNEL_SIMPLE_TEST_SRCS += $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_test.cc
-endif
-
 # Generate simple kernel test targets in a common way
 $(foreach TEST_TARGET,$(MICROLITE_KERNEL_SIMPLE_TEST_SRCS),\
 $(eval $(call microlite_test,kernel_$(notdir $(basename $(TEST_TARGET))),$(TEST_TARGET))))

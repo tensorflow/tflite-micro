@@ -222,14 +222,6 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   static Profiler profiler2;
   TfLiteStatus status;
 
-// use this to keep the application size stable regardless of whether
-// compression is being used
-#ifdef USE_TFLM_COMPRESSION
-  constexpr bool using_compression = true;
-#else   // USE_TFLM_COMPRESSION
-  constexpr bool using_compression = false;
-#endif  // USE_TFLM_COMPRESSION
-
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize];
 
   uint32_t event_handle = profiler.BeginEvent("tflite::GetModel");
@@ -270,13 +262,10 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
   profiler.EndEvent(event_handle);
 #endif  // USE_ALT_DECOMPRESSION_MEM
 
-  if (using_compression) {
-    MicroPrintf("profiler2 %p", &profiler2);
-    status = interpreter.SetAlternateProfiler(&profiler2);
-    if (status != kTfLiteOk) {
-      MicroPrintf("tflite::MicroInterpreter::SetAlternateProfiler failed");
-      return -1;
-    }
+  status = interpreter.SetAlternateProfiler(&profiler2);
+  if (status != kTfLiteOk) {
+    MicroPrintf("tflite::MicroInterpreter::SetAlternateProfiler failed");
+    return -1;
   }
 
   event_handle =
@@ -329,7 +318,7 @@ int Benchmark(const uint8_t* model_data, tflite::PrettyPrintType print_type) {
     }
     profiler.ClearEvents();
 
-    if (using_compression) {
+    if (profiler2.GetTotalTicks() > 0) {
       if (is_complete_inference) {
         profiler2.Log();
         MicroPrintf("");  // null MicroPrintf serves as a newline.

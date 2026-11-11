@@ -42,7 +42,6 @@ class PackerOp {
   static bool freed_;
 };
 
-// This op optionally supports compressed weights
 class BroadcastAddOp {
  public:
   static const TFLMRegistration* getRegistration();
@@ -50,13 +49,6 @@ class BroadcastAddOp {
   static void* Init(TfLiteContext* context, const char* buffer, size_t length);
   static TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node);
   static TfLiteStatus Invoke(TfLiteContext* context, TfLiteNode* node);
-
- private:
-#ifdef USE_TFLM_COMPRESSION
-
-  static int weight_scratch_index_;  // decompression scratch buffer index
-
-#endif  // USE_TFLM_COMPRESSION
 };
 
 }  // namespace testing

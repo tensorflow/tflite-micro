@@ -45,11 +45,6 @@ and a summary total.  While this profiling timing is output separately, the
 timing for decompression is also included in the normal inference profiling
 timing and summary total.
 
-To use the tool with a compressed model, the `make` variables must include:
-```
-USE_TFLM_COMPRESSION=1
-```
-
 The tensor decompression operation can occur with an alternate destination
 memory region.  This allows specialized memory to be used as the decompressed
 data destination.  The tool supports a single alternate decompression region.
@@ -58,12 +53,12 @@ Use the following `make` variables to specify an alternate decompression region:
 memory as mapped through a linker script.
 * `GENERIC_BENCHMARK_ALT_MEM_SIZE`: the alternate memory region size in bytes.
 
-Both `make` variables are required (along with `USE_TFLM_COMPRESSION=1`) for the
-tool to use the alternate decompression region.
+Both `make` variables are required for the tool to use the alternate
+decompression region.
 
 An example build and run command line for Xtensa with alternate decompression memory:
 ```
-make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=compressed.tflite TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_HiFi3z USE_TFLM_COMPRESSION=1 GENERIC_BENCHMARK_ALT_MEM_ATTR='__attribute__\(\(section\(\".specialized_memory_region\"\)\)\)' GENERIC_BENCHMARK_ALT_MEM_SIZE=`expr 64 \* 1024`
+make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=compressed.tflite TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_HiFi3z GENERIC_BENCHMARK_ALT_MEM_ATTR='__attribute__\(\(section\(\".specialized_memory_region\"\)\)\)' GENERIC_BENCHMARK_ALT_MEM_SIZE=`expr 64 \* 1024`
 ```
 
 For more information on model compression, please see the
@@ -86,18 +81,13 @@ make -f tensorflow/lite/micro/tools/make/Makefile BUILD_TYPE=default run_tflm_be
 
 ## Build and run for Xtensa
 Build and run with model compiled into tool:
-```make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=compressed.tflite TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_HiFi3z USE_TFLM_COMPRESSION=1 GENERIC_BENCHMARK_ALT_MEM_ATTR='__attribute__\(\(section\(\".specialized_memory_region\"\)\)\)' GENERIC_BENCHMARK_ALT_MEM_SIZE=`expr 64 \* 1024`
+```make -f tensorflow/lite/micro/tools/make/Makefile  BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=compressed.tflite TARGET=xtensa TARGET_ARCH=hifi3 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_HiFi3z GENERIC_BENCHMARK_ALT_MEM_ATTR='__attribute__\(\(section\(\".specialized_memory_region\"\)\)\)' GENERIC_BENCHMARK_ALT_MEM_SIZE=`expr 64 \* 1024`
 ```
 
 ### Vision P6
 Building and running benchmark on Vision P6:
 ```bash
 make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_VP6 BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=/tmp/keyword_scrambled.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 50 \* 1024`
-```
-
-Building and running benchmark on Vision P6 with compression enabled:
-```bash
-make -f tensorflow/lite/micro/tools/make/Makefile TARGET=xtensa TARGET_ARCH=vision_p6 OPTIMIZED_KERNEL_DIR=xtensa XTENSA_CORE=P29A_VP6 BUILD_TYPE=default run_tflm_benchmark -j$(nproc) GENERIC_BENCHMARK_MODEL_PATH=/tmp/keyword_scrambled.tflite GENERIC_BENCHMARK_ARENA_SIZE=`expr 50 \* 1024` USE_TFLM_COMPRESSION=1
 ```
 
 ## Build and run for Cortex-M using Corstone 300 simulator
