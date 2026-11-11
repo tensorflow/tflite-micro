@@ -21,16 +21,16 @@ import unittest
 from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import compressor
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite,
 )
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 
 
 def _build_test_model():
   """Build test model using model_editor API."""
-  from tflite_micro.tensorflow.lite.micro.compression.model_editor import (
+  from tflite_micro.tensorflow.lite.micro.tools.model_editor import (
     Model,
     Subgraph,
     Tensor,

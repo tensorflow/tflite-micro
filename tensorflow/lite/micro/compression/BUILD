@@ -96,9 +96,9 @@ tflm_py_library(
         ":decode_insert",
         ":huffman",
         ":lut",
-        ":model_editor",
         ":pruning",
         ":spec",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//tensorflow/lite/micro/tools:tflite_flatbuffer_align",
     ],
 )
@@ -130,9 +130,9 @@ tflm_py_test(
         ":compress_lib",
         ":compressor",
         ":decode_insert",
-        ":model_editor",
         ":spec",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -141,9 +141,9 @@ tflm_py_library(
     name = "verify",
     srcs = ["verify.py"],
     deps = [
-        ":model_editor",
-        ":tensor_type",
         "//python/tflite_micro:runtime",
+        "//tensorflow/lite/micro/tools:model_editor",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )
@@ -158,9 +158,9 @@ tflm_py_test(
         "noubsan",
     ],
     deps = [
-        ":model_editor",
         ":verify",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -178,11 +178,11 @@ tflm_py_test(
     deps = [
         ":compress_lib",
         ":decode_insert",
-        ":model_editor",
         ":spec",
         ":verify",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -227,11 +227,11 @@ tflm_py_test(
     deps = [
         ":compress_lib",
         ":decode_insert",
-        ":model_editor",
         ":spec",
         ":verify",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
         "//third_party/py/yaml",
     ],
@@ -275,48 +275,6 @@ tflm_py_test(
 )
 
 tflm_py_library(
-    name = "tensor_type",
-    srcs = ["tensor_type.py"],
-    deps = [
-        "//tensorflow/lite/micro/python:schema_py",
-        "//third_party/py/numpy",
-    ],
-)
-
-tflm_py_test(
-    name = "tensor_type_test",
-    size = "small",
-    srcs = ["tensor_type_test.py"],
-    deps = [
-        ":tensor_type",
-        "//tensorflow/lite/micro/python:schema_py",
-        "//third_party/py/numpy",
-    ],
-)
-
-tflm_py_library(
-    name = "model_editor",
-    srcs = ["model_editor.py"],
-    deps = [
-        ":tensor_type",
-        "//tensorflow/lite/micro/python:schema_py",
-        "//third_party/flatbuffers:runtime_py",
-        "//third_party/py/numpy",
-    ],
-)
-
-tflm_py_test(
-    name = "model_editor_test",
-    size = "small",
-    srcs = ["model_editor_test.py"],
-    deps = [
-        ":model_editor",
-        "//tensorflow/lite/micro/python:schema_py",
-        "//third_party/py/numpy",
-    ],
-)
-
-tflm_py_library(
     name = "decode",
     srcs = ["decode.py"],
 )
@@ -335,8 +293,8 @@ tflm_py_library(
     srcs = ["compressor.py"],
     deps = [
         ":decode",
-        ":model_editor",
         ":spec",
+        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 
@@ -344,8 +302,8 @@ tflm_py_library(
     name = "constant_inputs",
     srcs = ["constant_inputs.py"],
     deps = [
-        ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 
@@ -361,8 +319,8 @@ tflm_py_test(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":constant_inputs",
-        ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -373,8 +331,8 @@ tflm_py_library(
     deps = [
         ":compressor",
         ":decode",
-        ":model_editor",
         ":spec",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -392,9 +350,9 @@ tflm_py_test(
         ":compressor",
         ":decode",
         ":lut",
-        ":model_editor",
         ":spec",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -405,8 +363,8 @@ tflm_py_library(
     deps = [
         ":compressor",
         ":decode",
-        ":model_editor",
         ":spec",
+        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 
@@ -416,8 +374,8 @@ tflm_py_library(
     deps = [
         ":compressor",
         ":decode",
-        ":model_editor",
         ":spec",
+        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 
@@ -426,8 +384,8 @@ tflm_py_library(
     srcs = ["decode_insert.py"],
     deps = [
         ":compressor",
-        ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 
@@ -444,8 +402,8 @@ tflm_py_test(
         ":compressor",
         ":decode",
         ":decode_insert",
-        ":model_editor",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -462,10 +420,10 @@ tflm_py_test(
     deps = [
         ":decode_insert",
         ":lut",
-        ":model_editor",
         ":spec",
         "//python/tflite_micro:runtime",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -478,10 +436,10 @@ tflm_py_library(
         ":constant_inputs",
         ":decode",
         ":lut",
-        ":model_editor",
         ":spec",
-        ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )
@@ -507,10 +465,10 @@ tflm_py_test(
     deps = [
         ":compress_lib",
         ":lut",
-        ":model_editor",
         ":propose_spec_lib",
         ":spec",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:model_editor",
         "//third_party/py/numpy",
     ],
 )
@@ -523,8 +481,8 @@ tflm_py_library(
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":metadata_py",
-        ":tensor_type",
         "//tensorflow/lite/micro/python:schema_py",
+        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )

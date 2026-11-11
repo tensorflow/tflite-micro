@@ -27,12 +27,12 @@ import numpy as np
 from tflite_micro.python.tflite_micro import runtime
 from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import decode_insert
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
 from tflite_micro.tensorflow.lite.micro.compression import verify
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite,
 )
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 
 
 def _build_compressible_model(

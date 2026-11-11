@@ -27,10 +27,10 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from tflite_micro.tensorflow.lite.micro.compression import compressor
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite,
 )
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 
 # Custom operator name for DECODE
 DECODE_CUSTOM_OP_NAME = "TFLM_DECODE"

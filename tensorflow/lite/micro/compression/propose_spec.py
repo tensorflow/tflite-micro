@@ -41,12 +41,12 @@ from tflite_micro.tensorflow.lite.micro.compression import compress
 from tflite_micro.tensorflow.lite.micro.compression import constant_inputs
 from tflite_micro.tensorflow.lite.micro.compression import decode
 from tflite_micro.tensorflow.lite.micro.compression import lut
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.compression import spec
-from tflite_micro.tensorflow.lite.micro.compression import tensor_type
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite,
 )
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
+from tflite_micro.tensorflow.lite.micro.tools import tensor_type
 
 is_bazel = "BUILD_WORKING_DIRECTORY" in os.environ or "BAZEL_TEST" in os.environ
 

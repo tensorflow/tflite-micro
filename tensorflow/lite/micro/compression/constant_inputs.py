@@ -29,10 +29,10 @@ convolution filters on every other target.
 
 from dataclasses import dataclass
 
-from tflite_micro.tensorflow.lite.micro.compression import model_editor
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite,
 )
+from tflite_micro.tensorflow.lite.micro.tools import model_editor
 
 
 # Input names, keyed by (builtin operator, input position).

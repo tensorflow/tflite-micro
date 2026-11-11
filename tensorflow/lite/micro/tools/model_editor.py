@@ -21,10 +21,10 @@ from dataclasses import dataclass
 from typing import Optional, Union, List
 import numpy as np
 import flatbuffers
-from tflite_micro.tensorflow.lite.micro.compression import tensor_type
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite,
 )
+from tflite_micro.tensorflow.lite.micro.tools import tensor_type
 
 # The file identifier declared by schema.fbs, at bytes 4-7 of a
 # finished .tflite flatbuffer. Loaders such as the TfLite interpreter
