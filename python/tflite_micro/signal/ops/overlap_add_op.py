@@ -52,15 +52,17 @@ def overlap_add(input_tensor, frame_step, name="signal_overlap_add"):
     `[..., frames * frame_step]` containing the overlap-added output samples.
 
   Raises:
-    ValueError: If `input_tensor` has rank < 2 or `frame_step` exceeds the
-      innermost dimension of `input_tensor`.
+    ValueError: If `input_tensor` has rank < 2, its innermost dimension is
+      unknown, or `frame_step` exceeds its innermost dimension.
   """
   with tf.name_scope(name) as name:
     input_tensor = tf.convert_to_tensor(input_tensor)
     dim_list = input_tensor.shape.as_list()
     if len(dim_list) < 2:
       raise ValueError("Input tensor must have rank >= 2")
-    if dim_list[-1] is not None and frame_step > dim_list[-1]:
+    if dim_list[-1] is None:
+      raise ValueError("Innermost input dimension must be statically known")
+    if frame_step > dim_list[-1]:
       raise ValueError("Frame_step must not exceed innermost input dimension")
     return gen_overlap_add_op.signal_overlap_add(
       input_tensor, frame_step=frame_step, name=name

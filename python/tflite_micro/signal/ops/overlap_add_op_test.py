@@ -460,6 +460,17 @@ class OverlapAddOpTest(tf.test.TestCase):
     with self.assertRaises((tf.errors.InvalidArgumentError, ValueError)):
       self.evaluate(overlap_add_op.overlap_add(overlap_add_input, 0))
 
+  def testUnknownFrameSize(self):
+    func = tf.function(overlap_add_op.overlap_add)
+    for dtype in (tf.float32, tf.int16):
+      with self.subTest(dtype=dtype):
+        with self.assertRaisesRegex(
+          ValueError, "Innermost input dimension must be statically known"
+        ):
+          func.get_concrete_function(
+            tf.TensorSpec((1, 122, None), dtype=dtype), 1
+          )
+
 
 if __name__ == '__main__':
   tf.test.main()
