@@ -1356,4 +1356,27 @@ TEST(MicroAllocatorTest, TestMultiSubgraphNumScratchAllocations) {
             used_bytes + sizeof(tflite::ScratchBufferHandle) * 2);
 }
 
+TEST(MicroAllocatorTest, TestRejectLegacyCompressionMetadata) {
+  constexpr size_t arena_size = 1024;
+  uint8_t arena[arena_size];
+  tflite::MicroAllocator* allocator =
+      tflite::MicroAllocator::Create(arena, arena_size);
+  ASSERT_NE(nullptr, allocator);
+
+  const tflite::Model* legacy_compressed_model =
+      tflite::testing::GetModelWithMetadata("COMPRESSION_METADATA");
+  EXPECT_EQ(nullptr, allocator->StartModelAllocation(legacy_compressed_model));
+
+  // Unrelated metadata keys should still succeed on the same allocator.
+  const tflite::Model* other_metadata_model =
+      tflite::testing::GetModelWithMetadata("OTHER_METADATA");
+  tflite::SubgraphAllocations* subgraph_allocations =
+      allocator->StartModelAllocation(other_metadata_model);
+  ASSERT_NE(nullptr, subgraph_allocations);
+  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
+  EXPECT_EQ(kTfLiteOk, allocator->FinishModelAllocation(
+                           other_metadata_model, subgraph_allocations,
+                           &scratch_buffer_handles));
+}
+
 TF_LITE_MICRO_TESTS_MAIN

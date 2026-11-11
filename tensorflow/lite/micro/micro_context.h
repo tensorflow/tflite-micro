@@ -23,12 +23,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_graph.h"
 #include "tensorflow/lite/micro/micro_profiler_interface.h"
 
-#ifdef USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/micro/compression.h"
-
-#endif  // USE_TFLM_COMPRESSION
-
 namespace tflite {
 namespace micro {
 
@@ -100,30 +94,6 @@ class MicroContext {
   virtual void* external_context() = 0;
 
   virtual MicroGraph& graph() = 0;
-
-#ifdef USE_TFLM_COMPRESSION
-
-  // Available during Prepare & Eval. Returns false if tensor is not
-  // compressed.
-  virtual bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) = 0;
-
-  // Only available during Prepare. The kernel is responsible for storing the
-  // scratch buffer handle.
-  virtual int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
-                                                 int tensor_idx) = 0;
-
-  // Available during Prepare & Eval. Returns nullptr if tensor is not
-  // compressed.
-  virtual const CompressionTensorData* GetTensorCompressionData(
-      const TfLiteNode* node, int tensor_idx) = 0;
-
-  // Only available during Prepare & Eval. Returns nullptr on failure, otherwise
-  // returns a pointer to the buffer.
-  virtual void* DecompressTensorToBuffer(
-      const TfLiteEvalTensor& tensor,
-      const CompressionTensorData& compression_data, void* buffer);
-
-#endif  // USE_TFLM_COMPRESSION
 
   // Used for configuring alternate decompression memory
   struct AlternateMemoryRegion {

@@ -22,7 +22,6 @@ include("${PROJECT_SOURCE_DIR}/cmake/tflm_sources.cmake")
 
 # --- 1. Options & Validation --------------------------------------------------
 option(TFLM_ENABLE_SIGNAL "Build tflm::signal (requires KissFFT)" ${PROJECT_IS_TOP_LEVEL})
-option(TFLM_ENABLE_COMPRESSION "Enable TFLM weight compression support" OFF)
 option(TFLM_STRIP_ERROR_STRINGS "Define TF_LITE_STRIP_ERROR_STRINGS" OFF)
 option(TFLM_EXCLUDE_SYSTEM_IMPL "Exclude default debug_log/micro_time/system_setup" OFF)
 option(TFLM_REMOVE_VIRTUAL_DELETE "Define TFLM_REMOVE_VIRTUAL_DELETE" ${CMAKE_CROSSCOMPILING})
@@ -90,11 +89,6 @@ if(TFLM_CO_PROCESSOR)
     message(FATAL_ERROR
       "TFLM_CO_PROCESSOR='ethos_u' requires target 'ethosu_core_driver' or TFLM_BACKEND_TARGETS.")
   endif()
-endif()
-if(TFLM_ENABLE_COMPRESSION AND TFLM_OPTIMIZED_KERNELS
-   AND NOT TFLM_OPTIMIZED_KERNELS STREQUAL "xtensa")
-  message(FATAL_ERROR
-    "TFLM_ENABLE_COMPRESSION=ON requires reference kernels or TFLM_OPTIMIZED_KERNELS='xtensa'.")
 endif()
 if(TFLM_SYSTEM_TARGET
    AND NOT IS_DIRECTORY "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/${TFLM_SYSTEM_TARGET}")
@@ -330,7 +324,7 @@ _tflm_apply_common_compile_options(tflm_micro)
 if(TFLM_FLATC_EXECUTABLE)
   set(_fb_gen "${PROJECT_BINARY_DIR}/flatbuffers_gen")
   set(_fb_hdrs "")
-  foreach(_stem IN ITEMS schema/schema compression/metadata)
+  foreach(_stem IN ITEMS schema/schema)
     set(_fbs "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/${_stem}.fbs")
     set(_hdr "${_fb_gen}/tensorflow/lite/micro/${_stem}_generated.h")
     cmake_path(GET _hdr PARENT_PATH _dir)
@@ -356,9 +350,6 @@ endforeach()
 
 set(_pub_defs FLATBUFFERS_LOCALE_INDEPENDENT=0 FLATBUFFERS_PREFER_PRINTF=1 ${_tflm_backend_defs})
 set(_priv_defs KERNELS_OPTIMIZED_FOR_${TFLM_OPTIMIZE_KERNELS_FOR})
-if(TFLM_ENABLE_COMPRESSION)
-  list(APPEND _pub_defs USE_TFLM_COMPRESSION=1)
-endif()
 if(TFLM_STRIP_ERROR_STRINGS)
   list(APPEND _pub_defs TF_LITE_STRIP_ERROR_STRINGS)
 endif()

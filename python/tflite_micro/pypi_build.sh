@@ -109,20 +109,17 @@ docker run \
 
     # Build the wheel via bazel. The python_version flag selects the toolchain
     # whose headers the extension modules compile against, and must agree with
-    # the compatibility tag, which only labels the wheel. Enable compression
-    # support for the official package.
+    # the compatibility tag, which only labels the wheel.
     call_bazel build //python/tflite_micro:whl.dist \
         --compilation_mode=opt \
         --@rules_python//python/config_settings:python_version=$PY_VERSION \
-        --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
-        --//:with_compression=true
+        --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY
 
     # Test in the container environment. Use the same options as the build.
     call_bazel test //python/tflite_micro:whl_test \
             --compilation_mode=opt \
             --@rules_python//python/config_settings:python_version=$PY_VERSION \
-            --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY \
-            --//:with_compression=true
+            --//python/tflite_micro:compatibility_tag=\$PY_COMPATIBILITY
 EOF
 
 # Make the output directory tree writable so it can be removed easily by the

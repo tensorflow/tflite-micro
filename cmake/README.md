@@ -38,7 +38,7 @@ To run the full out-of-tree CI test suite (downloading dependencies into a tempo
 the repository stays clean):
 
 ```bash
-tensorflow/lite/micro/tools/ci_build/test_cmake.sh           # runs ci, compression_debug, core_only, interop
+tensorflow/lite/micro/tools/ci_build/test_cmake.sh           # runs ci, core_only, interop
 tensorflow/lite/micro/tools/ci_build/test_cmake.sh ci        # single mode
 ```
 
@@ -136,7 +136,6 @@ tflm_target_embed_assets(my_app PRIVATE models/keyword_model.tflite)
 | `TFLM_FLATBUFFERS_DIR` / `TFLM_KISSFFT_DIR` | `""` | Explicit local paths to FlatBuffers or KissFFT |
 | `TFLM_FLATC_EXECUTABLE` | `""` | Explicit `flatc` binary to regenerate `*_generated.h` when FlatBuffers `!= 25.9.23` |
 | `TFLM_ENABLE_SIGNAL` | `${PROJECT_IS_TOP_LEVEL}` | Build `tflm::signal` (requires local KissFFT >= 131.1.0 or target `tflm::kissfft`) |
-| `TFLM_ENABLE_COMPRESSION` | `OFF` | Enable LUT weight decompression (`reference` and `xtensa` kernels) |
 | `TFLM_STRIP_ERROR_STRINGS` | `OFF` | Define `TF_LITE_STRIP_ERROR_STRINGS` to reduce binary size |
 | `TFLM_EXCLUDE_SYSTEM_IMPL` | `OFF` | Omit default `debug_log`/`micro_time`/`system_setup` sources |
 | `TFLM_REMOVE_VIRTUAL_DELETE` | `${CMAKE_CROSSCOMPILING}` | Define `TFLM_REMOVE_VIRTUAL_DELETE` to omit virtual `operator delete` |

@@ -51,14 +51,6 @@ def tflm_defines():
     defines = []
 
     defines += select({
-        # Include code for the compression feature.
-        "//:with_compression_enabled": ["USE_TFLM_COMPRESSION=1"],
-
-        # By default, don't include code for the compression feature.
-        "//conditions:default": [],
-    })
-
-    defines += select({
         "//tensorflow/lite/micro/kernels:cmsis_nn_default": ["CMSIS_NN"],
         "//tensorflow/lite/micro/kernels:cmsis_nn_ethos_u_default": [
             "CMSIS_NN",

@@ -22,7 +22,6 @@ This test is tagged `manual` and requires a path to a directory containing
 
 Usage:
     bazel test //tensorflow/lite/micro/compression:proprietary_integration_test \
-        --//:with_compression \
         --test_arg=--models-dir=/path/to/models
 
 Required files:

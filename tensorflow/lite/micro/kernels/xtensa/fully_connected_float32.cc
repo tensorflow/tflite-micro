@@ -36,33 +36,8 @@ TfLiteStatus XtensaEvalFullyConnectedFloat32(
   const auto* params =
       static_cast<const TfLiteFullyConnectedParams*>(node->builtin_data);
 
-#ifdef USE_TFLM_COMPRESSION
-
-  MicroContext* micro_context = GetMicroContext(context);
-
-  const CompressionTensorData* weights_comp_td =
-      micro_context->GetTensorCompressionData(node,
-                                              kFullyConnectedWeightsTensor);
-  const CompressionTensorData* bias_comp_td =
-      micro_context->GetTensorCompressionData(node, kFullyConnectedBiasTensor);
-
-#endif  // USE_TFLM_COMPRESSION
-
-  const float* bias_data =
-#ifdef USE_TFLM_COMPRESSION
-      tflite::micro::GetOptionalTensorData<float>(
-          micro_context, bias, bias_comp_td, data.bias_scratch_index);
-#else   // USE_TFLM_COMPRESSION
-      tflite::micro::GetOptionalTensorData<float>(bias);
-#endif  // USE_TFLM_COMPRESSION
-
-  const float* filter_data =
-#ifdef USE_TFLM_COMPRESSION
-      tflite::micro::GetTensorData<float>(
-          micro_context, filter, weights_comp_td, data.weights_scratch_index);
-#else   // USE_TFLM_COMPRESSION
-      tflite::micro::GetTensorData<float>(filter);
-#endif  // USE_TFLM_COMPRESSION
+  const float* bias_data = tflite::micro::GetOptionalTensorData<float>(bias);
+  const float* filter_data = tflite::micro::GetTensorData<float>(filter);
 
 #if defined(INCLUDE_FLOAT_OPT) && \
     (defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ))

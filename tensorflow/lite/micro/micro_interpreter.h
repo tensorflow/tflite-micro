@@ -18,12 +18,6 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
-#ifdef USE_TFLM_COMPRESSION
-
-#include <initializer_list>
-
-#endif  // USE_TFLM_COMPRESSION
-
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/micro_allocator.h"

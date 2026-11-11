@@ -54,7 +54,6 @@ pybind_extension(
     # target = _runtime.so because pybind_extension() appends suffix
     srcs = [
         "_runtime.cc",
-        "compression_utils.h",
         "interpreter_wrapper.cc",
         "interpreter_wrapper.h",
         "numpy_utils.cc",
@@ -110,29 +109,6 @@ tflm_py_test(
         "//tensorflow/lite/micro/testing:generate_test_models_lib",
         "//third_party/py/numpy",
         "//third_party/tensorflow/lite/python:lite",
-    ],
-)
-
-tflm_py_test(
-    name = "test_compression_unsupported",
-    srcs = ["test_compression_unsupported.py"],
-    data = [
-        "sine_float.tflite",
-    ],
-    tags = [
-        "noasan",
-        "nomsan",  # Python doesn't like these symbols in _runtime.so
-        "noubsan",
-    ],
-    # Only compatible when compression is NOT enabled
-    target_compatible_with = select({
-        "//:with_compression_enabled": ["@platforms//:incompatible"],
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":runtime",
-        "//tensorflow/lite/micro/tools:model_editor",
     ],
 )
 

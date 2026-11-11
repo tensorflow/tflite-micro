@@ -153,30 +153,10 @@ TfLiteStatus ConvEvalHifiInt16(TfLiteContext* context, TfLiteNode* node,
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
 
-#ifdef USE_TFLM_COMPRESSION
-
-  MicroContext* micro_context = GetMicroContext(context);
-
-  const CompressionTensorData* weights_comp_td =
-      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
-  const CompressionTensorData* bias_comp_td =
-      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
-
-#endif  // USE_TFLM_COMPRESSION
-
   const int16_t* input_data = tflite::micro::GetTensorData<int16_t>(input);
-#ifdef USE_TFLM_COMPRESSION
-  const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(
-      micro_context, filter, weights_comp_td,
-      data.reference_op_data.weights_scratch_index);
-  const int64_t* bias_data = tflite::micro::GetOptionalTensorData<int64_t>(
-      micro_context, bias, bias_comp_td,
-      data.reference_op_data.bias_scratch_index);
-#else   // USE_TFLM_COMPRESSION
   const int8_t* filter_data = tflite::micro::GetTensorData<int8_t>(filter);
   const int64_t* bias_data =
       tflite::micro::GetOptionalTensorData<int64_t>(bias);
-#endif  // USE_TFLM_COMPRESSION
   int16_t* output_data = tflite::micro::GetTensorData<int16_t>(output);
 
   int output_data_format = 0;
@@ -271,26 +251,9 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
   const int output_height = output_shape.Dims(1);
   const int output_width = output_shape.Dims(2);
 
-#ifdef USE_TFLM_COMPRESSION
-
-  MicroContext* micro_context = GetMicroContext(context);
-
-  const CompressionTensorData* weights_comp_td =
-      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
-  const CompressionTensorData* bias_comp_td =
-      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
-
-#endif  // USE_TFLM_COMPRESSION
-
   const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
-#ifdef USE_TFLM_COMPRESSION
-  const int32_t* bias_data = tflite::micro::GetOptionalTensorData<int32_t>(
-      micro_context, bias, bias_comp_td,
-      data.reference_op_data.bias_scratch_index);
-#else   // USE_TFLM_COMPRESSION
   const int32_t* bias_data =
       tflite::micro::GetOptionalTensorData<int32_t>(bias);
-#endif  // USE_TFLM_COMPRESSION
   int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
 
   const int8_t* filter_data;
@@ -303,13 +266,7 @@ TfLiteStatus ConvEvalHifiInt8(TfLiteContext* context, TfLiteNode* node,
         tflite::micro::GetTensorShape(filter).FlatSize(), unpacked_filter_data);
     filter_data = unpacked_filter_data;
   } else {
-#ifdef USE_TFLM_COMPRESSION
-    filter_data = tflite::micro::GetTensorData<int8_t>(
-        micro_context, filter, weights_comp_td,
-        data.reference_op_data.weights_scratch_index);
-#else   // USE_TFLM_COMPRESSION
     filter_data = tflite::micro::GetTensorData<int8_t>(filter);
-#endif  // USE_TFLM_COMPRESSION
   }
 
   int output_data_format = 0;

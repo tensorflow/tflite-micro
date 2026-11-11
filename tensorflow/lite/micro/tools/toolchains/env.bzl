@@ -183,15 +183,6 @@ def tflm_hexagon_toolchains():
     )
 
 TFLM_PLATFORM_CONFIGS = {
-    "compression": {
-        "baremetal": False,
-        "flags": [
-            "--//:with_compression=true",
-        ],
-        "mode": "test",
-        "parents": ["@platforms//host"],
-        "runner": None,
-    },
     "corstone300": {
         "baremetal": True,
         "default_timeout": "long",
