@@ -42,6 +42,12 @@ MicroResourceVariables* MicroResourceVariables::Create(
 
 int MicroResourceVariables::CreateIdIfNoneFound(const char* container,
                                                 const char* shared_name) {
+  if (container == nullptr) {
+    container = "";
+  }
+  if (shared_name == nullptr) {
+    shared_name = "";
+  }
   int resource_id = FindId(container, shared_name);
   if (resource_id >= 0) {
     return resource_id;
@@ -105,7 +111,8 @@ TfLiteStatus MicroResourceVariables::Allocate(int id, TfLiteContext* context,
       int8_t zero_point = quantization_data->zero_point[0].data[0];
       variable.default_value = zero_point;
     }
-    // TODO(b/269669735): Explains why casting zero_point to int8 and memset.
+    // default_value is a single byte; only 1-byte quantized tensors carry a
+    // non-zero zero_point (b/269669735).
     memset(variable.resource_buffer, variable.default_value, variable.bytes);
   }
 
@@ -136,18 +143,26 @@ TfLiteStatus MicroResourceVariables::Assign(int id, size_t count_bytes,
 TfLiteStatus MicroResourceVariables::ResetAll() {
   for (int i = 0; i < num_resource_variables_; i++) {
     MicroResourceVariable variable = resource_variables_[i];
-    // TODO(b/269669735): Explains why casting zero_point to int8 and memset.
-    memset(variable.resource_buffer, variable.default_value, variable.bytes);
+    if (variable.resource_buffer != nullptr) {
+      // default_value is a single byte; only 1-byte quantized tensors carry a
+      // non-zero zero_point (b/269669735).
+      memset(variable.resource_buffer, variable.default_value, variable.bytes);
+    }
   }
   return kTfLiteOk;
 }
 
 int MicroResourceVariables::FindId(const char* container,
                                    const char* shared_name) {
+  if (container == nullptr) {
+    container = "";
+  }
+  if (shared_name == nullptr) {
+    shared_name = "";
+  }
   for (int i = 0; i < num_resource_variables_; i++) {
     // Some TFLite flatbuffers contain null container names to save space.
-    if ((container == nullptr ||
-         !strcmp(container, resource_variables_[i].container)) &&
+    if (!strcmp(container, resource_variables_[i].container) &&
         !strcmp(shared_name, resource_variables_[i].shared_name)) {
       return i;
     }

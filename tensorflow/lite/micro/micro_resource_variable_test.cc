@@ -185,6 +185,18 @@ TEST(MicroResourceVariableTest, CreateVariablesNullContainer) {
 
   EXPECT_EQ(id2, resource_variables->CreateIdIfNoneFound(nullptr, "var2"));
   EXPECT_EQ(id1, resource_variables->CreateIdIfNoneFound(nullptr, "var1"));
+
+  // Null container normalizes to "" (matching TFLite var_handle.cc), and
+  // non-null container lookup after a nullptr-container entry must not crash
+  // or match the empty-container entry.
+  EXPECT_EQ(id1, resource_variables->CreateIdIfNoneFound("", "var1"));
+  int id3 = resource_variables->CreateIdIfNoneFound("foo", "var1");
+  EXPECT_NE(id1, id3);
+  EXPECT_EQ(id1, resource_variables->CreateIdIfNoneFound(nullptr, "var1"));
+
+  // ResetAll before Allocate (resource_buffer == nullptr) must not trigger
+  // memset(nullptr, 0, 0) UB.
+  EXPECT_EQ(kTfLiteOk, resource_variables->ResetAll());
 }
 
 TF_LITE_MICRO_TESTS_MAIN
