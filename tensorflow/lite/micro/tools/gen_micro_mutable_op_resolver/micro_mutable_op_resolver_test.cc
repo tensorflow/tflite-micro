@@ -25,7 +25,7 @@ constexpr int kTensorArenaSize = 352 * 1024;
 #else
 constexpr int kTensorArenaSize = 136 * 1024;
 #endif  // defined(XTENSA) && defined(VISION_P6)
-uint8_t tensor_arena[kTensorArenaSize];
+alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 }  // namespace
 
 TEST(MicroMutableOpResolverTest, PersonDetectModel) {

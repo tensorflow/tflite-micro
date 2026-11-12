@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load(
     "//python:py_rules.bzl",
@@ -270,6 +271,12 @@ cc_binary(
         "//tensorflow/lite/micro/tools/benchmarking:op_resolver",
         "//third_party/flatbuffers",
     ],
+)
+
+build_test(
+    name = "layer_by_layer_output_tool_build_test",
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
+    targets = [":layer_by_layer_output_tool"],
 )
 
 tflm_py_binary(

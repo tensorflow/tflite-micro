@@ -823,17 +823,22 @@ CORE_FRAMEWORK_TEST_TARGETS = [
     "//signal/micro/kernels:pcan_test",
     "//signal/micro/kernels:stacker_test",
     "//signal/micro/kernels:window_test",
+    "//signal/src/kiss_fft_wrappers:kiss_fft_wrappers_test",
     "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator_test",
     "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator_test",
     "//tensorflow/lite/micro/arena_allocator:recording_simple_memory_allocator_test",
     "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator_test",
     "//tensorflow/lite/micro/examples/hello_world:hello_world_test",
+    "//tensorflow/lite/micro/examples/micro_speech:micro_speech_test",
+    "//tensorflow/lite/micro/examples/person_detection:detection_responder_test",
+    "//tensorflow/lite/micro/examples/person_detection:image_provider_test",
     "//tensorflow/lite/micro/memory_planner:greedy_memory_planner_test",
     "//tensorflow/lite/micro/memory_planner:linear_memory_planner_test",
     "//tensorflow/lite/micro/memory_planner:non_persistent_buffer_planner_shim_test",
     "//tensorflow/lite/micro/testing:test_all_op_resolver_test",
     "//tensorflow/lite/micro/testing:util_test",
     "//tensorflow/lite/micro/testing:util_v2_test",
+    "//tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:micro_mutable_op_resolver_test",
 ]
 
 test_suite(
@@ -849,12 +854,14 @@ tflm_platform_test_suite(
     },
     profiles = [
         "compression",
+        "cortex_m4",
         "cortex_m55",
         "xtensa_hifi3z",
         "xtensa_hifi5",
     ],
     smoke_profiles = [
         "corstone300",
+        "cortex_m0",
         "hexagon",
         "xtensa_fusion_f1",
         "xtensa_hifi3z",

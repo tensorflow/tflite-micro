@@ -67,6 +67,7 @@ def build_generated_headers(repo_root):
     "//tensorflow/lite/micro/benchmarks:keyword_scrambled_model_data",
     "//tensorflow/lite/micro/examples/person_detection:person_detect_model_data",
     "//tensorflow/lite/micro/examples/person_detection:simple_images_test_data",
+    "//tensorflow/lite/micro/models:generated_person_detect_model_hdr",
     "//tensorflow/lite/micro/models:person_detect_vela_model_data",
     "//tensorflow/lite/micro/tools/gen_micro_mutable_op_resolver:generate_person_detect_op_resolver_hdr",
   ]

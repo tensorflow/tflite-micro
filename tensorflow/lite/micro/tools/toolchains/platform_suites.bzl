@@ -280,6 +280,18 @@ def _rule_metadata(existing, curr_pkg, target_label):
         bool(rule_info.get("flaky")),
     )
 
+def _target_stem(curr_pkg, target_label, name_counts):
+    if target_label.package == curr_pkg or name_counts.get(target_label.name, 0) <= 1:
+        return target_label.name
+    pkg = target_label.package
+    if curr_pkg and pkg.startswith(curr_pkg + "/"):
+        rel_pkg = pkg[len(curr_pkg) + 1:]
+    elif pkg.startswith("third_party/tflite_micro/"):
+        rel_pkg = pkg[len("third_party/tflite_micro/"):]
+    else:
+        rel_pkg = pkg
+    return "%s_%s" % (rel_pkg.replace("/", "_"), target_label.name)
+
 def _tflm_platform_test_suite_macro_impl(
         name,
         visibility,
@@ -315,7 +327,18 @@ def _tflm_platform_test_suite_macro_impl(
             if prof:
                 extra_by_profile.setdefault(prof, []).append(target_label)
 
+    seen_labels = {}
+    for lbl in resolved_targets + list(smoke_targets or []):
+        seen_labels[lbl] = True
+    for extra_list in extra_by_profile.values():
+        for lbl in extra_list:
+            seen_labels[lbl] = True
+    name_counts = {}
+    for lbl in seen_labels:
+        name_counts[lbl.name] = name_counts.get(lbl.name, 0) + 1
+
     emitted = {}
+    wrapper_owners = {}
 
     for profile in profiles:
         cfg = TFLM_PLATFORM_CONFIGS.get(profile)
@@ -323,10 +346,21 @@ def _tflm_platform_test_suite_macro_impl(
             continue
         suite_tests = []
         for target_label in resolved_targets + extra_by_profile.get(profile, []):
-            wrapper_name = "%s_%s_%s" % (name, target_label.name, profile)
-            if wrapper_name in emitted:
-                wrapped = emitted[wrapper_name]
+            key = (target_label, profile)
+            if key in emitted:
+                wrapped = emitted[key]
             else:
+                wrapper_name = "%s_%s_%s" % (
+                    name,
+                    _target_stem(curr_pkg, target_label, name_counts),
+                    profile,
+                )
+                if wrapper_name in wrapper_owners:
+                    fail(
+                        "Wrapper name collision for %s between %s and %s" %
+                        (wrapper_name, wrapper_owners[wrapper_name], target_label),
+                    )
+                wrapper_owners[wrapper_name] = target_label
                 orig_tags, size, timeout, flaky = _rule_metadata(
                     existing,
                     curr_pkg,
@@ -342,7 +376,7 @@ def _tflm_platform_test_suite_macro_impl(
                     timeout = timeout,
                     visibility = visibility,
                 )
-                emitted[wrapper_name] = wrapped
+                emitted[key] = wrapped
             if wrapped:
                 suite_tests.append(wrapped)
         native.test_suite(
@@ -363,10 +397,21 @@ def _tflm_platform_test_suite_macro_impl(
                     smoke_list.append(extra_label)
             smoke_suite_tests = []
             for target_label in smoke_list:
-                wrapper_name = "%s_%s_%s" % (name, target_label.name, profile)
-                if wrapper_name in emitted:
-                    wrapped = emitted[wrapper_name]
+                key = (target_label, profile)
+                if key in emitted:
+                    wrapped = emitted[key]
                 else:
+                    wrapper_name = "%s_%s_%s" % (
+                        name,
+                        _target_stem(curr_pkg, target_label, name_counts),
+                        profile,
+                    )
+                    if wrapper_name in wrapper_owners:
+                        fail(
+                            "Wrapper name collision for %s between %s and %s" %
+                            (wrapper_name, wrapper_owners[wrapper_name], target_label),
+                        )
+                    wrapper_owners[wrapper_name] = target_label
                     orig_tags, size, timeout, flaky = _rule_metadata(
                         existing,
                         curr_pkg,
@@ -382,7 +427,7 @@ def _tflm_platform_test_suite_macro_impl(
                         timeout = timeout,
                         visibility = visibility,
                     )
-                    emitted[wrapper_name] = wrapped
+                    emitted[key] = wrapped
                 if wrapped:
                     smoke_suite_tests.append(wrapped)
             native.test_suite(

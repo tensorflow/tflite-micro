@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_binary",
@@ -47,4 +48,9 @@ tflm_cc_library(
 tflm_cc_binary(
     name = "tflm_benchmark",
     deps = [":generic_benchmark_lib"],
+)
+
+build_test(
+    name = "tflm_benchmark_build_test",
+    targets = [":tflm_benchmark"],
 )

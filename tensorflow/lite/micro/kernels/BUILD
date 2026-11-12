@@ -1734,9 +1734,13 @@ KERNEL_SMOKE_TEST_TARGETS = [
     ":add_test",
     ":conv_test",
     ":depthwise_conv_test",
+    ":fully_connected_test",
     ":mul_test",
     ":pooling_test",
     ":softmax_test",
+    ":svdf_test",
+    ":transpose_conv_test",
+    ":unidirectional_sequence_lstm_test",
 ]
 
 test_suite(
@@ -1756,6 +1760,7 @@ tflm_platform_test_suite(
     profiles = [
         "compression",
         "corstone300",
+        "cortex_m4",
         "cortex_m55",
         "hexagon",
         "xtensa_hifi3z",
@@ -1763,6 +1768,7 @@ tflm_platform_test_suite(
     ],
     smoke_profiles = [
         "corstone300",
+        "cortex_m0",
         "xtensa_fusion_f1",
         "xtensa_hifi3z",
         "xtensa_hifi5",

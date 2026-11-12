@@ -14,7 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 #
-# Unified user-mode QEMU test runner for Arm Cortex-M and RISC-V 32 targets.
+# Unified user-mode QEMU test runner for Arm Cortex-M targets.
 
 set -euo pipefail
 
