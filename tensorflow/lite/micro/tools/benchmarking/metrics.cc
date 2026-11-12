@@ -88,9 +88,6 @@ LogAllocationRecord GetLogAllocationRecord(
       tflite::RecordedAllocationType::kTfLiteTensorVariableBufferData,
       tflite::RecordedAllocationType::kNodeAndRegistrationArray,
       tflite::RecordedAllocationType::kOpData,
-#ifdef USE_TFLM_COMPRESSION
-      tflite::RecordedAllocationType::kCompressionData,
-#endif  // USE_TFLM_COMPRESSION
   };
   static_assert(std::extent<decltype(types)>::value == kAllocationTypes,
                 "kAllocationTypes mismatch");
@@ -102,9 +99,6 @@ LogAllocationRecord GetLogAllocationRecord(
       "Tensor variable buffer data",
       "Node and registration array",
       "Operation data",
-#ifdef USE_TFLM_COMPRESSION
-      "Compression data",
-#endif  // USE_TFLM_COMPRESSION
   };
   static_assert(std::extent<decltype(titles)>::value == kAllocationTypes,
                 "kAllocationTypes mismatch");

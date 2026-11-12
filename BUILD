@@ -1,4 +1,3 @@
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_license//rules:license.bzl", "license")
 load("@rules_python//python:defs.bzl", "py_library")
 
@@ -15,20 +14,6 @@ license(
 alias(
     name = "refresh_compile_commands",
     actual = "//tensorflow/lite/micro/tools:refresh_compile_commands",
-)
-
-bool_flag(
-    name = "with_compression",
-    build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "with_compression_enabled",
-    flag_values = {
-        ":with_compression": "True",
-    },
-    visibility = ["//visibility:public"],
 )
 
 licenses(["notice"])

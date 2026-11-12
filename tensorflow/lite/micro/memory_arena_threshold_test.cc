@@ -70,11 +70,7 @@ uint8_t test_conv_tensor_arena[kTestConvModelArenaSize];
 constexpr int kTestConvModelTensorCount = 15;
 constexpr int kTestConvModelNodeAndRegistrationCount = 7;
 
-#if defined(USE_TFLM_COMPRESSION)
-constexpr int kKeywordModelPersistentBufferDataSize = 920;
-#else
 constexpr int kKeywordModelPersistentBufferDataSize = 840;
-#endif
 
 // NOTE: These values are measured on x86-64:
 // TODO(b/158651472): Consider auditing these values on non-64 bit systems.

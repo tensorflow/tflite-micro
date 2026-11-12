@@ -32,13 +32,6 @@ constexpr int kOutputTensor = 0;
 
 struct OpData {
   ConcatenationParams params;
-
-#ifdef USE_TFLM_COMPRESSION
-
-  // scratch buffers for compressed tensors
-  int scratch_indices[kMaxInputNum];
-
-#endif  // USE_TFLM_COMPRESSION
 };
 
 // Handles negative axis index, coerces to positive index value.
@@ -78,21 +71,9 @@ template <typename T>
 inline void GetAllInputTensorData(const TfLiteContext* context,
                                   const TfLiteNode* node,
                                   const T* all_data[kMaxInputNum]) {
-#ifdef USE_TFLM_COMPRESSION
-  const OpData* data = static_cast<const OpData*>(node->user_data);
-  MicroContext* micro_context = GetMicroContext(context);
-#endif  // USE_TFLM_COMPRESSION
-
   for (int i = 0; i < node->inputs->size; ++i) {
     const TfLiteEvalTensor* t = tflite::micro::GetEvalInput(context, node, i);
-#ifdef USE_TFLM_COMPRESSION
-    const CompressionTensorData* comp_td =
-        micro_context->GetTensorCompressionData(node, i);
-    all_data[i] = tflite::micro::GetTensorData<T>(micro_context, t, comp_td,
-                                                  data->scratch_indices[i]);
-#else   // USE_TFLM_COMPRESSION
     all_data[i] = tflite::micro::GetTensorData<T>(t);
-#endif  // USE_TFLM_COMPRESSION
   }
 }
 
@@ -186,15 +167,6 @@ TfLiteStatus ConcatenationPrepare(TfLiteContext* context, TfLiteNode* node) {
       // Make sure that all Int16 inputs have a null zero-point.
       TF_LITE_ENSURE_EQ(context, input->params.zero_point, 0);
     }
-
-#ifdef USE_TFLM_COMPRESSION
-
-    // Compression scratch buffers.
-    // These will only be allocated if the tensor is compressed.
-    data->scratch_indices[i] =
-        micro_context->AllocateDecompressionScratchBuffer(node, i);
-
-#endif  // USE_TFLM_COMPRESSION
 
     micro_context->DeallocateTempTfLiteTensor(input);
   }

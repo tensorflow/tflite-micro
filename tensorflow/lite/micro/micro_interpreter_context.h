@@ -110,30 +110,6 @@ class MicroInterpreterContext : public MicroContext {
   // housekeeping in MicroInterpreterContext.
   void SetScratchBufferHandles(ScratchBufferHandle* scratch_buffer_handles);
 
-#ifdef USE_TFLM_COMPRESSION
-
-  // Available during Prepare & Eval. Returns false if tensor is not
-  // compressed.
-  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override;
-
-  // Only available during Prepare. The kernel is responsible for storing the
-  // scratch buffer handle.
-  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
-                                         int tensor_idx) override;
-
-  // Available during Prepare & Eval. Returns nullptr if tensor is not
-  // compressed.
-  const CompressionTensorData* GetTensorCompressionData(
-      const TfLiteNode* node, int tensor_idx) override;
-
-  // Only available during Prepare & Eval. Returns nullptr on failure, otherwise
-  // returns a pointer to the buffer.
-  void* DecompressTensorToBuffer(const TfLiteEvalTensor& tensor,
-                                 const CompressionTensorData& compression_data,
-                                 void* buffer) override;
-
-#endif  // USE_TFLM_COMPRESSION
-
   // Set the alternate decompression memory regions.
   // Can only be called during the MicroInterpreter kInit state.
   TfLiteStatus SetDecompressionMemory(const AlternateMemoryRegion* regions,

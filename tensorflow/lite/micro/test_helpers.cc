@@ -32,12 +32,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_utils.h"
 #include "tensorflow/lite/micro/test_helper_custom_ops.h"
 
-#ifdef USE_TFLM_COMPRESSION
-
-#include "tensorflow/lite/micro/compression/metadata_generated.h"
-
-#endif  // USE_TFLM_COMPRESSION
-
 // TODO(b/170464050): Use TFLM test only version of schema_utils.
 
 namespace tflite {
@@ -592,121 +586,6 @@ const Model* BuildSimpleMockModel() {
   const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
   return model;
 }
-
-#ifdef USE_TFLM_COMPRESSION
-
-const flatbuffers::span<uint8_t> BuildLutMetadata(
-    uint32_t tensor_index, uint32_t value_table_buffer_index,
-    uint32_t bit_width) {
-  using flatbuffers::Offset;
-  namespace compression = tflite::micro::compression;
-
-  static ModelBuilderInstance<128> builder_instance;
-  flatbuffers::FlatBufferBuilder* builder = &builder_instance.GetBuilder();
-  builder->Clear();
-
-  auto lut_tensor = compression::CreateLutTensor(
-      *builder, tensor_index, value_table_buffer_index, bit_width);
-  auto subgraph = compression::CreateSubgraph(
-      *builder, builder->CreateVector(&lut_tensor, 1));
-  constexpr uint32_t schema_version = 1;
-  auto metadata = compression::CreateMetadata(
-      *builder, schema_version, builder->CreateVector(&subgraph, 1));
-  compression::FinishMetadataBuffer(*builder, metadata);
-  return builder->GetBufferSpan();
-}
-
-const Model* BuildSimpleMockModelCompressed() {
-  using flatbuffers::Offset;
-  using flatbuffers::Vector;
-  using tflite::micro::compression::LutTensor;
-  constexpr uint32_t kEmptyBuffer = 0;
-  constexpr uint32_t kMetadataBuffer = 1;
-  constexpr uint32_t kWeightsBuffer = 2;
-  constexpr uint32_t kValueTableBuffer = 3;
-  // constexpr uint32_t kInputTensor = 0;
-  constexpr uint32_t kWeightsTensor = 1;
-  // constexpr uint32_t kOutputTensor = 2;
-  constexpr uint32_t kCompressedBitWidth = 4;
-
-  auto lut_tensors_span =
-      BuildLutMetadata(kWeightsTensor, kValueTableBuffer, kCompressedBitWidth);
-
-  static ModelBuilderInstance<1024> builder_instance;
-  flatbuffers::FlatBufferBuilder* builder = &builder_instance.GetBuilder();
-  builder->Clear();
-
-  // [1, 2, 3, 4, 5, -1, -2, -3, -4, -5, 1, 2, 3, 4, 5]
-  const std::initializer_list<uint8_t> weights_data = {0x01, 0x23, 0x45, 0x98,
-                                                       0x76, 0x01, 0x23, 0x40};
-  const std::initializer_list<int16_t> value_table_data = {1,  2,  3,  4,  5,
-                                                           -1, -5, -4, -3, -2};
-  auto value_table_offset = builder->CreateVector(value_table_data).o;
-  const std::initializer_list<Offset<Buffer>> buffers = {
-      CreateBuffer(*builder),
-      CreateBuffer(*builder, builder->CreateVector<uint8_t>(lut_tensors_span)),
-      CreateBuffer(*builder, builder->CreateVector(weights_data)),
-      CreateBuffer(*builder, Offset<Vector<uint8_t>>(value_table_offset)),
-  };
-
-  const std::initializer_list<int32_t> input_shape = {1};
-  const std::initializer_list<int32_t> weights_shape = {15};
-  const std::initializer_list<int32_t> output_shape = weights_shape;
-  const std::initializer_list<Offset<Tensor>> tensors = {
-      CreateTensor(*builder, builder->CreateVector(input_shape),
-                   TensorType_INT16, kEmptyBuffer,
-                   builder->CreateString("test_input_tensor"), 0, false),
-      CreateTensor(*builder, builder->CreateVector(weights_shape),
-                   TensorType_INT16, kWeightsBuffer,
-                   builder->CreateString("test_weight_tensor"), 0, false),
-      CreateTensor(*builder, builder->CreateVector(output_shape),
-                   TensorType_INT16, kEmptyBuffer,
-                   builder->CreateString("test_output_tensor"), 0, false),
-  };
-
-  const std::initializer_list<int32_t> subgraph_inputs = {0};
-  const std::initializer_list<int32_t> subgraph_outputs = {2};
-  const std::initializer_list<int32_t> operator_inputs = {0, 1};
-  const std::initializer_list<int32_t> operator_outputs = {2};
-  const std::initializer_list<Offset<Operator>> operators = {
-      CreateOperator(*builder, 0, builder->CreateVector(operator_inputs),
-                     builder->CreateVector(operator_outputs),
-                     BuiltinOptions_NONE),
-  };
-
-  const std::initializer_list<Offset<SubGraph>> subgraphs = {
-      CreateSubGraph(*builder, builder->CreateVector(tensors),
-                     builder->CreateVector(subgraph_inputs),
-                     builder->CreateVector(subgraph_outputs),
-                     builder->CreateVector(operators),
-                     builder->CreateString("test_subgraph")),
-  };
-
-  const std::initializer_list<Offset<OperatorCode>> operator_codes = {
-      CreateOperatorCodeDirect(*builder, /*deprecated_builtin_code=*/0,
-                               "broadcast_add_op",
-                               /*version=*/0, BuiltinOperator_CUSTOM),
-  };
-
-  const std::initializer_list<Offset<Metadata>> metadata = {
-      CreateMetadata(*builder,
-                     builder->CreateString(kCompressionMetadataString),
-                     kMetadataBuffer),
-  };
-
-  const Offset<Model> model_offset = CreateModel(
-      *builder, 0, builder->CreateVector(operator_codes),
-      builder->CreateVector(subgraphs), builder->CreateString("test_model"),
-      builder->CreateVector(buffers), 0, builder->CreateVector(metadata));
-
-  FinishModelBuffer(*builder, model_offset);
-  void* model_pointer = builder->GetBufferPointer();
-  const Model* model = flatbuffers::GetRoot<Model>(model_pointer);
-
-  return model;
-}
-
-#endif  // USE_TFLM_COMPRESSION
 
 const Model* BuildComplexMockModel() {
   using flatbuffers::Offset;
@@ -1853,18 +1732,6 @@ const Model* GetSimpleMockModel() {
   }
   return model;
 }
-
-#ifdef USE_TFLM_COMPRESSION
-
-const Model* GetSimpleMockModelCompressed() {
-  static Model* model = nullptr;
-  if (!model) {
-    model = const_cast<Model*>(BuildSimpleMockModelCompressed());
-  }
-  return model;
-}
-
-#endif  // USE_TFLM_COMPRESSION
 
 const Model* GetSimpleMultipleInputsModel() {
   static Model* model = nullptr;

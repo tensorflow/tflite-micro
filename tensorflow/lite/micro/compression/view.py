@@ -25,21 +25,15 @@
 # of the model, and pretty print the dictionary. Please extend as needed for
 # your use case.
 
-from dataclasses import dataclass
-from enum import Enum
 import numpy as np
 import os
 import pprint
 import sys
 import textwrap
 
-from tflite_micro.tensorflow.lite.micro.compression import (
-  metadata_py_generated as compression_schema,
-)
 from tflite_micro.tensorflow.lite.micro.python import (
   schema_py_generated as tflite_schema,
 )
-from tflite_micro.tensorflow.lite.micro.tools import tensor_type
 
 # Detect if running under Bazel by checking for BAZEL environment variables
 is_bazel = 'BUILD_WORKING_DIRECTORY' in os.environ or 'BAZEL_TEST' in os.environ
@@ -74,42 +68,6 @@ def main(argv):
     sys.exit(1)
 
   print_model(model_path)
-
-
-@dataclass
-class MetadataReader:
-  model: tflite_schema.ModelT
-  buffer_index: int
-  metadata: compression_schema.MetadataT
-
-  @classmethod
-  def build(cls, model: tflite_schema.ModelT):
-    if model.metadata is None:
-      return None
-
-    for item in model.metadata:
-      if _decode_name(item.name) == "COMPRESSION_METADATA":
-        buffer_index = item.buffer
-        buffer = model.buffers[buffer_index]
-        metadata = compression_schema.MetadataT.InitFromPackedBuf(
-          buffer.data, 0
-        )
-        if metadata.subgraphs is None:
-          raise ValueError("Invalid compression metadata")
-        return cls(model, buffer_index, metadata)
-    else:
-      return None
-
-  def unpack(self):
-    result = []
-    for index, subgraph in enumerate(self.metadata.subgraphs):
-      result.append(
-        {
-          "_index": index,
-          "lut_tensors": unpack_lut_metadata(subgraph.lutTensors),
-        }
-      )
-    return {"subgraphs": result}
 
 
 def unpack_operators(
@@ -150,62 +108,12 @@ def _decode_name(name):
     return str(name, encoding="utf-8")
 
 
-@dataclass
-class TensorCoordinates:
-  subgraph_ix: int
-  tensor_index: int
-
-
-class CompressionMethod(Enum):
-  LUT = "LUT"
-
-
 OPERATOR_NAMES = {
   code: name for name, code in tflite_schema.BuiltinOperator.__dict__.items()
 }
 
 
-class Codec:
-  def __init__(self, reader: MetadataReader, model: tflite_schema.ModelT):
-    self.reader = reader
-    self.model = model
-
-  def _tensor_metadata(self, tensor: TensorCoordinates):
-    subgraph = self.reader.metadata.subgraphs[tensor.subgraph_ix]
-    for metadata in subgraph.lutTensors:
-      if tensor.tensor_index == metadata.tensor:
-        return metadata
-    else:
-      return None
-
-  def list_compressions(
-    self, coordinates: TensorCoordinates
-  ) -> list[CompressionMethod]:
-    metadata = self._tensor_metadata(coordinates)
-    if metadata:
-      return [CompressionMethod.LUT]
-    else:
-      return []
-
-  def lookup_tables(self, coordinates: TensorCoordinates) -> np.ndarray:
-    metadata = self._tensor_metadata(coordinates)
-    if not metadata:
-      return np.array([])
-
-    model_subgraph = self.model.subgraphs[coordinates.subgraph_ix]
-    model_tensor = model_subgraph.tensors[coordinates.tensor_index]
-    value_buffer = self.model.buffers[metadata.valueBuffer]
-    values = np.frombuffer(
-      bytes(value_buffer.data), dtype=tensor_type.to_numpy(model_tensor.type)
-    )
-    values_per_table = 2**metadata.indexBitwidth
-    tables = len(values) // values_per_table
-    values = values.reshape((tables, values_per_table))
-
-    return values
-
-
-def unpack_tensors(tensors, subgraph_index: int, codec: Codec | None):
+def unpack_tensors(tensors):
   result = []
   for index, t in enumerate(tensors):
     d = {
@@ -230,30 +138,10 @@ def unpack_tensors(tensors, subgraph_index: int, codec: Codec | None):
       }
     result.append(d)
 
-    if codec is not None:
-      coordinates = TensorCoordinates(
-        subgraph_ix=subgraph_index, tensor_index=index
-      )
-      d |= unpack_compression(coordinates, codec)
-
   return result
 
 
-def unpack_compression(tensor: TensorCoordinates, codec: Codec) -> dict:
-  result = {}
-
-  compressions = codec.list_compressions(tensor)
-  if compressions:
-    result["_compressed"] = [c.name for c in compressions]
-    metadata = codec._tensor_metadata(tensor)
-    assert metadata is not None
-    result["_value_buffer"] = metadata.valueBuffer
-    result["_lookup_tables"] = codec.lookup_tables(tensor)
-
-  return result
-
-
-def unpack_subgraphs(model: tflite_schema.ModelT, codec: Codec | None):
+def unpack_subgraphs(model: tflite_schema.ModelT):
   result = []
   for index, s in enumerate(model.subgraphs):
     d = {
@@ -262,7 +150,7 @@ def unpack_subgraphs(model: tflite_schema.ModelT, codec: Codec | None):
       "_tensor_count": len(s.tensors),
       "name": _decode_name(s.name),
       "operators": unpack_operators(model, s.operators),
-      "tensors": unpack_tensors(s.tensors, subgraph_index=index, codec=codec),
+      "tensors": unpack_tensors(s.tensors),
     }
     result.append(d)
   return result
@@ -286,88 +174,25 @@ def unpack_opcodes(opcodes: list[tflite_schema.OperatorCodeT]) -> list:
 
 def unpack_metadata(model: tflite_schema.ModelT):
   entries = []
-  compression = MetadataReader.build(model)
 
   if model.metadata is None:
     return entries
 
   for m in model.metadata:
     d = {"name": _decode_name(m.name), "buffer": m.buffer}
-
-    if compression and compression.buffer_index == m.buffer:
-      d["_compression_metadata"] = compression.unpack()
-
     entries.append(d)
 
   return entries
 
 
-def unpack_lut_metadata(lut_tensors):
-  return [
-    {
-      "tensor": t.tensor,
-      "value_buffer": t.valueBuffer,
-      "index_bitwidth": t.indexBitwidth,
-    }
-    for t in sorted(lut_tensors, key=lambda x: x.tensor)
-  ]
-
-
-def find_lut_info_for_buffer(buffer_index, model, compression_data):
-  """Find LUT metadata for a given buffer index.
-
-  Returns a dict with tensor_index, subgraph_index, and index_bitwidth if the
-  buffer contains compressed indices, otherwise returns None.
-  """
-  if compression_data is None:
-    return None
-
-  for subgraph_idx, subgraph in enumerate(compression_data.metadata.subgraphs):
-    for lut_tensor in subgraph.lutTensors:
-      # Get the tensor to find which buffer contains the compressed indices
-      tensor = model.subgraphs[subgraph_idx].tensors[lut_tensor.tensor]
-      if tensor.buffer == buffer_index:
-        return {
-          "tensor_index": lut_tensor.tensor,
-          "subgraph_index": subgraph_idx,
-          "index_bitwidth": lut_tensor.indexBitwidth,
-        }
-  return None
-
-
-def unpack_buffers(model, compression_data):
+def unpack_buffers(model):
   buffers = []
   for index, buffer in enumerate(model.buffers):
     native = {
       "_buffer": index,
       "_bytes": len(buffer.data) if buffer.data is not None else 0,
+      "data": buffer.data,
     }
-
-    if compression_data is not None and index == compression_data.buffer_index:
-      native["_compression_metadata"] = True
-
-    native["data"] = buffer.data
-
-    # Check if this buffer contains compressed indices
-    lut_info = find_lut_info_for_buffer(index, model, compression_data)
-    if lut_info and buffer.data is not None:
-      # Decode the indices from the buffer
-      bitwidth = lut_info["index_bitwidth"]
-      bit_str = "".join(f"{b:08b}" for b in bytes(buffer.data))
-      indices = [
-        int(bit_str[i : i + bitwidth], 2)
-        for i in range(0, len(bit_str) - bitwidth + 1, bitwidth)
-      ]
-
-      # Convert indices to numpy array to match data field formatting
-      indices_array = np.array(indices, dtype=np.uint8)
-
-      native["_lut_indices"] = {
-        "tensor": lut_info["tensor_index"],
-        "bitwidth": bitwidth,
-        "indices": indices_array,
-      }
-
     buffers.append(native)
 
   return buffers
@@ -381,16 +206,14 @@ def create_dictionary(flatbuffer: memoryview) -> dict:
   the model.
   """
   model = tflite_schema.ModelT.InitFromPackedBuf(flatbuffer, 0)
-  compression_metadata = MetadataReader.build(model)
-  codec = Codec(compression_metadata, model) if compression_metadata else None
 
   output = {
     "description": model.description,
     "version": model.version,
     "operator_codes": unpack_opcodes(model.operatorCodes),
     "metadata": unpack_metadata(model),
-    "subgraphs": unpack_subgraphs(model, codec),
-    "buffers": unpack_buffers(model, compression_metadata),
+    "subgraphs": unpack_subgraphs(model),
+    "buffers": unpack_buffers(model),
   }
 
   return output

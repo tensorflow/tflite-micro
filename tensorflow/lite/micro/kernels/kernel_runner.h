@@ -36,12 +36,7 @@ class KernelRunner {
   KernelRunner(const TFLMRegistration& registration, TfLiteTensor* tensors,
                int tensors_size, TfLiteIntArray* inputs,
                TfLiteIntArray* outputs, const void* builtin_data,
-               TfLiteIntArray* intermediates = nullptr
-#ifdef USE_TFLM_COMPRESSION
-               ,
-               const CompressedTensorList* compressed_tensors = nullptr
-#endif  // USE_TFLM_COMPRESSION
-  );
+               TfLiteIntArray* intermediates = nullptr);
 
   // Calls init and prepare on the kernel (i.e. TFLMRegistration) struct.
   // Any exceptions will be DebugLog'd and returned as a status code.

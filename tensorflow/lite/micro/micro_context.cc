@@ -19,7 +19,6 @@ limitations under the License.
 #include <cstddef>
 
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/kernels/decompress.h"
 #include "tensorflow/lite/micro/memory_helpers.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -70,56 +69,6 @@ TfLiteTensor* MicroContext::AllocateTempIntermediateTensor(
   }
   return AllocateTempTfLiteTensor(tensor_index);
 }
-
-#ifdef USE_TFLM_COMPRESSION
-
-void* MicroContext::DecompressTensorToBuffer(
-    const TfLiteEvalTensor& tensor,
-    const CompressionTensorData& compression_data, void* buffer) {
-  TFLITE_DCHECK(compression_data.scheme == CompressionScheme::kBinQuant);
-  TFLITE_DCHECK(buffer != nullptr);
-  size_t count = ElementCount(*tensor.dims);
-  size_t num_channels = 1;
-
-  if (compression_data.data.lut_data->is_per_channel_quantized) {
-    const size_t channel_axis =
-        compression_data.data.lut_data->use_alternate_axis
-            ? tensor.dims->size - 1
-            : 0;
-    num_channels = tensor.dims->data[channel_axis];
-  }
-
-  DecompressionState ds(static_cast<uint8_t*>(tensor.data.data), count,
-                        compression_data, num_channels, GetAlternateProfiler());
-
-  switch (tensor.type) {
-    case kTfLiteBool: {
-      return ds.DecompressToBuffer<bool>(buffer);
-    } break;
-    case kTfLiteInt8: {
-      return ds.DecompressToBuffer<int8_t>(buffer);
-    } break;
-    case kTfLiteInt16: {
-      return ds.DecompressToBuffer<int16_t>(buffer);
-    } break;
-    case kTfLiteInt32: {
-      return ds.DecompressToBuffer<int32_t>(buffer);
-    } break;
-    case kTfLiteInt64: {
-      return ds.DecompressToBuffer<int64_t>(buffer);
-    } break;
-    case kTfLiteFloat32: {
-      return ds.DecompressToBuffer<float>(buffer);
-    } break;
-    default: {
-      MicroPrintf("Unsupported decompression tensor type %d", tensor.type);
-    } break;
-  }
-
-  return nullptr;
-}
-
-#endif  // USE_TFLM_COMPRESSION
 
 TfLiteStatus MicroContext::SetDecompressionMemory(
     const AlternateMemoryRegion* regions, size_t count) {

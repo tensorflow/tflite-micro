@@ -92,29 +92,6 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
-    name = "decompress",
-    srcs = [
-        "decompress.cc",
-        "decompress_common.cc",
-    ],
-    hdrs = [
-        "decompress.h",
-    ],
-    visibility = [
-        ":kernel_friends",
-        ":tflite_micro",
-    ],
-    deps = [
-        "//tensorflow/lite/micro:compression",
-        "//tensorflow/lite/micro:micro_common",
-        "//tensorflow/lite/micro:micro_compatibility",
-        "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro:micro_profiler",
-        "//tensorflow/lite/micro:portable_type_to_tflitetype",
-    ],
-)
-
-tflm_cc_library(
     name = "detection_postprocess_flexbuffers_generated_data",
     srcs = [
         "detection_postprocess_flexbuffers_generated_data.cc",
@@ -783,29 +760,6 @@ tflm_cc_test(
         "//tensorflow/lite/micro:debug_log",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:op_resolvers",
-        "//tensorflow/lite/micro:test_helpers",
-        "//tensorflow/lite/micro/testing:micro_test",
-    ],
-)
-
-tflm_cc_test(
-    name = "decompress_test",
-    srcs = [
-        "decompress_test.cc",
-    ],
-    tags = [
-        "nobuilder",
-        "notap",
-    ],
-    target_compatible_with = select({
-        "//:with_compression_enabled": [],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
-    deps = [
-        ":decompress",
-        "//tensorflow/lite/micro:micro_arena_constants",
-        "//tensorflow/lite/micro:micro_common",
-        "//tensorflow/lite/micro:micro_log",
         "//tensorflow/lite/micro:test_helpers",
         "//tensorflow/lite/micro/testing:micro_test",
     ],
@@ -1747,14 +1701,7 @@ test_suite(
 
 tflm_platform_test_suite(
     name = "kernel",
-    exclude_targets = [
-        ":decompress_test",
-    ],
-    extra_target_profiles = {
-        ":decompress_test": "compression",
-    },
     profiles = [
-        "compression",
         "corstone300",
         "cortex_m55",
         "hexagon",

@@ -1,6 +1,7 @@
 # TFLM Compression Support
 
-TFLM supports fixed width compression of const-tensors using lookup tables.
+TFLM supports fixed width compression of const-tensors using lookup tables and
+the `DECODE` custom operator.
 Const-tensors are typically those containing trained weights or biases, but can
 be any tensor where the values are fixed within the model and unchanging.
 
@@ -8,78 +9,31 @@ For a complete end-to-end tutorial demonstrating compression with weight cluster
 see the [MNIST Compression Tutorial](../tensorflow/lite/micro/compression/tutorial/mnist_compression_tutorial.ipynb).
 
 Const-tensors are compressed to fixed width bitstrings, and lookup tables are
-added to the model schema for each tensor.
+added to the model schema along with a `DECODE` operator node that decompresses
+tensors during inference.
 
-When accessing a compressed tensor, each kernel invokes a common decompression
-method.  Each set of fixed width bits in the tensor bitstring are used as
-indices into the tensor lookup table.  The results of the lookup table operations
-are placed into a scratch buffer representing the tensor decompressed data.
+When executing a `DECODE` operator node, each set of fixed width bits in the
+compressed tensor bitstring is used as an index into the tensor lookup table.
+The results of the lookup table operations are placed into the output tensor
+buffer (in either the interpreter arena or an alternate decompression memory
+region) for consumption by downstream operators.
 
 Decompression results in increased latency during inference.
-There will also be an increase in the size of non-persistent arena memory, due to
-the use of scratch buffers to temporarily hold the decompressed data.
+There will also be an increase in the size of non-persistent arena memory (unless
+alternate decompression memory is configured), due to the temporary buffers needed
+to hold the decompressed tensor data.
 
 # Supported Tensor Types
 
 * FLOAT32, INT8, INT16, INT32, INT64, BOOL
 
-# Supported Kernels
-
-* FULLY_CONNECTED
-* CONV_2D
-* DEPTHWISE_CONV
-* TRANSPOSE_CONV
-* CONCATENATION
-* ASSIGN_VARIABLE
-
-Per-channel quantized tensor support is available for:
-* CONV_2D
-* DEPTHWISE_CONV
-* TRANSPOSE_CONV
-* FULLY_CONNECTED
-
 # Supported Platforms
 
-* X86
-* XTENSA
-  * P6_VISION, HIFI_MINI, HIFI3, HIFI4, HIFI5
+* Portable reference implementation (all platforms)
+* XTENSA optimized implementations
+  * P6_VISION, HIFI3, HIFI4, HIFI5
 
-# Model and Metadata Schema for Compression
-
-Models that use compression will have a string key in their `Metadata` vector
-corresponding to `COMPRESSION_METADATA`.  The buffer indexed by such a `Metadata`
-entry will contain the compression schema.  The complete compression schema can
-be found [here](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/compression/metadata.fbs).
-
-For each tensor which is compressed, the following schema element is created:
-```
-table LutTensor {
-    // Look-Up-Table Tensor: a tensor representation where elements are
-    // compressed into indices into a table of values. The indices are unsigned
-    // integers, index_bitwidth-wide, in big-endian bit order, packed into the
-    // buffer identified by the corresponding tflite.Tensor's buffer field. The
-    // values are located in a newly-created buffer, encoded according to the
-    // tflite.Tensor.type. Tensors with multiple channels have distinct values
-    // tables for each channel, concatenated one after another in the buffer.
-    // An element's LUT index must be looked up in the value table for its
-    // channel.
-
-    tensor:int;            // index of the corresponding tflite.Tensor
-    value_buffer:uint;     // index of the buffer containing LUT values
-    index_bitwidth:uint8;  // bit-width of LUT indexes
-}
-```
-
-* `tensor`: the index of the tensor in the current subgraph.  This tensor will
-have had its buffer data replaced with a packed bitstring (see below),
-representing fixed width indices into the `value table`.
-* `value_buffer`: the index of a buffer added to the model.  This buffer contains
-the `value table` (see below) for the tensor, which is used to decompress the
-tensor.  The elements of the `value table` are of the same type (INT8, INT16, etc.)
-as the original (uncompressed) tensor.
-* `index_bitwidth`: the fixed width of each bit group (index) that represents an offset
-into the `value table`.  For per-channel quantized tensors, the index is an
-offset into the `value table` for a specific channel.
+# Compressed Tensor Representation
 
 ## Tensor Bitstrings
 
@@ -99,9 +53,6 @@ This bitstring represents the indices 7, 0, 3, 2 as offsets into the `value tabl
 Each offset is in the same units as the original (uncompressed) tensor.  So if
 the tensor is INT8, each offset represents a byte in the `value table`. If the
 tensor was FLOAT32, each offset would represent four bytes.
-
-While the compressed tensor data buffer will shrink in size, the tensor shape
-(dimensions) will remain the same as the uncompressed tensor.
 
 The indices in the bitstring are in the same order as the tensor's original data.
 Compression never reorders the tensor data, simplifying the decompression phase.
@@ -161,96 +112,12 @@ zero value at the end.
 
 # The MicroInterpreter and Tensor Decompression
 
-The model schema `Metadata` is first searched for the `COMPRESSION_METADATA` key.
-If found, the associated buffer is decoded using the [compression schema](https://github.com/tensorflow/tflite-micro/tree/main/tensorflow/lite/micro/compression/metadata.fbs).  For each `LutTensor` in the compression schema,
-a `LookupTableData` ([compression.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/compression.h))
-structure is instantiated.
+To run a compressed model, register the `DECODE` custom operator with your
+`MicroMutableOpResolver`:
 
 ```cpp
-struct LookupTableData {
-  static constexpr size_t kMaxBitWidth = 7;
-  static constexpr size_t kMaxValueTableChannelStride = 128;
-
-  const void* value_table;             // Pointer into FlatBuffer Values.
-  uint8_t value_table_channel_stride;  // elements per channel
-  uint8_t compressed_bit_width : 3;    // 1 to 7 bits
-  bool is_per_channel_quantized : 1;   // tensor is per-channel quantized
-  bool use_alternate_axis : 1;         // shape default channel:
-                                       // 0 = first, 1 = last
-  uint8_t reserved : 3;
-};
+op_resolver.AddCustom(tflite::kCustom_DECODE, tflite::Register_DECODE());
 ```
-
-* `value_table`: Pointer to the buffer memory containing the `value table`.
-Determined from the `LutTensor.value_buffer` and converted to a model schema
-buffer vector.
-* `value_table_channel_stride`: The number of elements (not bytes) between
-`value table` channels.  Only valid for per-channel quantized tensors.
-* `compressed_bit_width`: Number of bits for each `value table` index.
-Determined from `LutTensor.index_bitwidth`.
-* `is_per_channel_quantized`: Will be `true` for per-channel quantized
-tensors.  Determined by inspecting the tensor quantization scale vector size in
-the model schema.
-If the vector size is greater than 1 (one) then the tensor is assumed to be
-per-channel quantized.
-Default value is `false`.
-* `use_alternate_axis`: Arrangement of tensor data vs. channel number.
-See the quantized dimension section below for additional explanation.
-Only valid for per-channel quantized tensors.  Default value is `false`.
-
-## Quantized Dimension
-
-Each per-channel quantized tensor will have as part of its model schema quantization
-information, a `quantized_dimension` field.  This field specifies which dimension
-of the tensor shape along which the scale and zero-point are to be applied. This
-dimension within the shape is sometimes referred to as the `quantization axis`.
-
-The importance of the `quantization axis` is in how the
-tensor data is interpreted with respect to channel number.
-The tensor decompression methods use `LookupTableData.use_alternate_axis` to
-determine the correct `value table` channel for each tensor element.  When the
-`quantized_dimension` field is 0 (zero) then `use_alternate_axis` is `false`.
-If the `quantized_dimension` field is set to 3 (three) (ex. DEPTHWISE_CONV), then
-`use_alternate_axis` will be `true`.
-
-For a tensor with shape [4, 2, 2, 1] and `use_alternate_axis` equal to `false`,
-the tensor data is assumed to be arranged as follows:
-```
-element number:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-channel number:  0  0  0  0  1  1  1  1  2  2  2  2  3  3  3  3
-```
-
-For a tensor with shape [1, 2, 2, 4] and `use_alternate_axis` equal to `true`,
-the tensor data is assumed to be arranged as follows:
-```
-element number:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-channel number:  0  1  2  3  0  1  2  3  0  1  2  3  0  1  2  3
-```
-
-## Decompressing a Tensor
-
-Any kernel can have decompression support easily added.
-Tensor data is decompressed into the designated memory buffer, and is available
-for the lifetime of the memory buffer.
-
-Only the following methods are required to implement decompression within kernel code:
-
-* `MicroContext::AllocateDecompressionScratchBuffer` ([micro_context.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_context.h)):
-Allocates a scratch memory buffer within the `MicroInterpreter` to hold the
-decompressed tensor data.  The returned scratch memory handle must be retained
-(typically through kernel `OpData`) for use during the kernel inference operation.
-* `MicroContext::GetTensorCompressionData` ([micro_context.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_context.h)):
-Retrieves compressed tensor information (see [compression.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/compression.h)).
-* `tflite::micro::GetTensorData` ([kernel_util.h](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/kernels/kernel_util.h)):
-The four parameter version of this method will automatically decompress the
-tensor data into the supplied scratch memory buffer.  The lifetime of a scratch
-buffer is the same as the lifetime of the current kernel operator being processed.
-Each call to the four parameter version of this method will always result in a
-decompression operation being performed, if the tensor supplied is compressed.
-
-Please see the [TRANSPOSE_CONV](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/kernels/transpose_conv.cc)
-reference kernel code for an example of how to implement tensor decompression
-within a kernel.
 
 ### Alternate Decompression Memory
 
@@ -273,12 +140,11 @@ equal the lifetime of the `MicroInterpreter` instance.  The memory regions
 specified by the method parameter must not overlap, and each region is considered
 to be non-contiguous with all other regions.
 
-Specifying alternate decompression memory will cause `MicroContext::AllocateDecompressionScratchBuffer`
-and `tflite::micro::GetTensorData` (the four parameter version)
-to automatically attempt to allocate memory for the decompression destination
-buffer from available memory in one of the alternate memory regions.  If no
-alternate memory region of sufficient size is available, a scratch buffer will
-be allocated within the `MicroInterpreter` arena.
+Specifying alternate decompression memory will cause the `DECODE` operator
+(via `MicroContext::AllocateDecompressionMemory`) to attempt to allocate memory
+for the decompression destination buffer from available memory in one of the
+alternate memory regions.  If no alternate memory region of sufficient size is
+available, the output tensor buffer in the `MicroInterpreter` arena is used.
 
 # How to Compress a Model
 

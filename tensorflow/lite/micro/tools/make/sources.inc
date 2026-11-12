@@ -150,8 +150,6 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_huffman.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_lut.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
-$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv_common.cc \

@@ -50,14 +50,12 @@ if [[ ${USE_DOCKER} -eq 1 && ! -f /.dockerenv ]]; then
 fi
 
 TARGETS=(
-  "//tensorflow/lite/micro/compression:metadata_cc_srcs"
   "//tensorflow/lite/micro/schema:schema_fbs_srcs"
   "//tensorflow/lite/micro/tools:layer_by_layer_schema_srcs"
   "//tensorflow/lite/micro/python:schema_py_srcs"
 )
 
 FILES=(
-  "tensorflow/lite/micro/compression/metadata_generated.h"
   "tensorflow/lite/micro/schema/schema_generated.h"
   "tensorflow/lite/micro/tools/layer_by_layer_schema_generated.h"
   "tensorflow/lite/micro/python/schema_py_generated.py"

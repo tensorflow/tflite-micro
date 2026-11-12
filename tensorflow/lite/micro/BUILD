@@ -59,16 +59,6 @@ tflm_cc_library(
 )
 
 tflm_cc_library(
-    name = "compression",
-    hdrs = [
-        "compression.h",
-    ],
-    deps = [
-        ":micro_common",
-    ],
-)
-
-tflm_cc_library(
     # TODO(b/187093492): Rename to micro_interpreter.
     name = "micro_framework",
     srcs = [
@@ -104,7 +94,6 @@ tflm_cc_library(
         "micro_context.h",
     ],
     deps = [
-        ":compression",
         ":memory_helpers",
         ":micro_common",
         ":micro_compatibility",
@@ -114,7 +103,6 @@ tflm_cc_library(
         ":micro_profiler_interface",
         ":micro_utils",
         ":portable_type_to_tflitetype",
-        "//tensorflow/lite/micro/kernels:decompress",
     ],
 )
 
@@ -147,7 +135,6 @@ tflm_cc_library(
     ],
     hdrs = [
         "builtin_op_data.h",
-        "compression.h",
         "micro_common.h",
         "micro_context.h",
         "micro_graph.h",
@@ -242,7 +229,6 @@ tflm_cc_library(
         "micro_allocator.h",
     ],
     deps = [
-        ":compression",
         ":flatbuffer_conversions",
         ":flatbuffer_utils",
         ":memory_helpers",
@@ -254,7 +240,6 @@ tflm_cc_library(
         "//tensorflow/lite/micro/arena_allocator:non_persistent_arena_buffer_allocator",
         "//tensorflow/lite/micro/arena_allocator:persistent_arena_buffer_allocator",
         "//tensorflow/lite/micro/arena_allocator:simple_memory_allocator",
-        "//tensorflow/lite/micro/compression:metadata_cc",
         "//tensorflow/lite/micro/memory_planner:greedy_memory_planner",
         "//tensorflow/lite/micro/memory_planner:linear_memory_planner",
         "//tensorflow/lite/micro/memory_planner:micro_memory_planner",
@@ -307,7 +292,6 @@ tflm_cc_library(
         "test_helpers.h",
     ],
     deps = [
-        ":compression",
         ":memory_helpers",
         ":micro_arena_constants",
         ":micro_common",
@@ -316,7 +300,6 @@ tflm_cc_library(
         ":micro_utils",
         ":op_resolvers",
         ":portable_type_to_tflitetype",
-        "//tensorflow/lite/micro/compression:metadata_cc",
         "//tensorflow/lite/micro/kernels:kernel_util",
         "//tensorflow/lite/micro/kernels/internal:tensor",
         "//third_party/flatbuffers:runtime_cc",
@@ -844,11 +827,9 @@ test_suite(
 tflm_platform_test_suite(
     name = "core",
     extra_target_profiles = {
-        ":memory_arena_threshold_test": "compression",
         ":micro_time_test": "corstone300",
     },
     profiles = [
-        "compression",
         "cortex_m55",
         "xtensa_hifi3z",
         "xtensa_hifi5",

@@ -34,9 +34,6 @@ enum class RecordedAllocationType {
   kTfLiteTensorVariableBufferData,
   kNodeAndRegistrationArray,
   kOpData,
-#ifdef USE_TFLM_COMPRESSION
-  kCompressionData,
-#endif  // USE_TFLM_COMPRESSION
 
   kNumAllocationTypes,  // must be last
 };
@@ -99,13 +96,6 @@ class RecordingMicroAllocator : public MicroAllocator {
                                                   int subgraph_index,
                                                   bool allocate_temp) override;
 
-#ifdef USE_TFLM_COMPRESSION
-
-  TfLiteStatus AllocateCompressedTensorsList(
-      const Model* model, SubgraphAllocations* subgraph_allocations) override;
-
-#endif  // USE_TFLM_COMPRESSION
-
  private:
   RecordingMicroAllocator(RecordingSingleArenaBufferAllocator* memory_allocator,
                           MicroMemoryPlanner* memory_planner);
@@ -126,9 +116,6 @@ class RecordingMicroAllocator : public MicroAllocator {
   RecordedAllocation recorded_persistent_buffer_data_ = {};
   RecordedAllocation recorded_tflite_tensor_variable_buffer_data_ = {};
   RecordedAllocation recorded_node_and_registration_array_data_ = {};
-#ifdef USE_TFLM_COMPRESSION
-  RecordedAllocation recorded_compression_data_ = {};
-#endif  // USE_TFLM_COMPRESSION
 
   // TODO(b/187993291): Re-enable OpData allocating tracking.
   RecordedAllocation recorded_op_data_ = {};

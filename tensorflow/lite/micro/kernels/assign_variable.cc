@@ -34,19 +34,6 @@ namespace {
 constexpr int kInputVariableId = 0;
 constexpr int kInputValue = 1;
 
-#ifdef USE_TFLM_COMPRESSION
-
-struct OpData {
-  // scratch buffer for compressed input tensor
-  int scratch_index;
-};
-
-void* Init(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpData));
-}
-
-#endif  // USE_TFLM_COMPRESSION
-
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 0);
@@ -82,17 +69,6 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
                                           context, input_value));
   }
 
-#ifdef USE_TFLM_COMPRESSION
-
-  TFLITE_DCHECK(node->user_data != nullptr);
-  OpData* data = static_cast<OpData*>(node->user_data);
-  // Compression scratch buffers.
-  // These will only be allocated if the tensor is compressed.
-  data->scratch_index =
-      micro_context->AllocateDecompressionScratchBuffer(node, kInputValue);
-
-#endif  // USE_TFLM_COMPRESSION
-
   micro_context->DeallocateTempTfLiteTensor(input_value);
   return kTfLiteOk;
 }
@@ -117,15 +93,7 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
     return kTfLiteError;
   }
 
-#ifdef USE_TFLM_COMPRESSION
-  OpData* data = static_cast<OpData*>(node->user_data);
-  const CompressionTensorData* comp_td =
-      micro_context->GetTensorCompressionData(node, kInputValue);
-  const void* buffer = tflite::micro::GetTensorData<void>(
-      micro_context, input_value, comp_td, data->scratch_index);
-#else   // USE_TFLM_COMPRESSION
   const void* buffer = tflite::micro::GetTensorData<void>(input_value);
-#endif  // USE_TFLM_COMPRESSION
 
   TF_LITE_ENSURE_OK(context,
                     resources->Assign(input_id->data.i32[0],
@@ -135,17 +103,8 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
 }  // namespace.
 
-#ifdef USE_TFLM_COMPRESSION
-
-TFLMRegistration Register_ASSIGN_VARIABLE() {
-  return tflite::micro::RegisterOp(Init, Prepare, Eval);
-
-#else  // USE_TFLM_COMPRESSION
-
 TFLMRegistration Register_ASSIGN_VARIABLE() {
   return tflite::micro::RegisterOp(nullptr, Prepare, Eval);
-
-#endif  // USE_TFLM_COMPRESSION
 }
 
 }  // namespace micro

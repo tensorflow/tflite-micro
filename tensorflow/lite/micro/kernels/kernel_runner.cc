@@ -29,22 +29,12 @@ KernelRunner::KernelRunner(const TFLMRegistration& registration,
                            TfLiteTensor* tensors, int tensors_size,
                            TfLiteIntArray* inputs, TfLiteIntArray* outputs,
                            const void* builtin_data,
-                           TfLiteIntArray* intermediates
-#ifdef USE_TFLM_COMPRESSION
-                           ,
-                           const CompressedTensorList* compressed_tensors
-#endif  // USE_TFLM_COMPRESSION
-                           )
+                           TfLiteIntArray* intermediates)
     : registration_(registration),
       allocator_(SingleArenaBufferAllocator::Create(kKernelRunnerBuffer_,
                                                     kKernelRunnerBufferSize_)),
       mock_micro_graph_(allocator_),
-      fake_micro_context_(tensors, allocator_, &mock_micro_graph_
-#ifdef USE_TFLM_COMPRESSION
-                          ,
-                          compressed_tensors
-#endif  // USE_TFLM_COMPRESSION
-      ) {
+      fake_micro_context_(tensors, allocator_, &mock_micro_graph_) {
   // Prepare TfLiteContext:
   fake_micro_context_.InitTfLiteContext(&context_);
 
