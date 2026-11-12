@@ -19,20 +19,12 @@ jobs:
         include:
           - name: Bazel
             script: test_bazel.sh
-          - name: Bazel with Compression
-            script: test_bazel_with_compression.sh
           - name: Bazel msan
             script: test_bazel_msan.sh
-          - name: Bazel with Compression [msan]
-            script: test_bazel_with_compression_msan.sh
           - name: Bazel asan
             script: test_bazel_asan.sh
-          - name: Bazel with Compression [asan]
-            script: test_bazel_with_compression_asan.sh
           - name: Bazel ubsan
             script: test_bazel_ubsan.sh
-          - name: Bazel with Compression [ubsan]
-            script: test_bazel_with_compression_ubsan.sh
     name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

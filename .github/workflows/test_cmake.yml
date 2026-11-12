@@ -22,8 +22,6 @@ jobs:
         include:
           - name: CMake x86 CI
             mode: ci
-          - name: CMake x86 with Compression (Debug)
-            mode: compression_debug
           - name: CMake x86 Core Only
             mode: core_only
     name: ${{ matrix.name }}

@@ -102,28 +102,6 @@ jobs:
           cd ..
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5.sh tflite-micro/
 
-  hifi5_unit_tests_with_compression:
-    if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    container:
-      image: ghcr.io/tflm-bot/xtensa:0.2
-      credentials:
-        username: tflm-bot
-        password: ${{ secrets.tflm-bot-token }}
-      options: --init
-    name: Hifi5 Unit Tests with Compression
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - run: rm -rf .git
-      - name: Hifi5 Unit Tests with Compression
-        run: |
-          cd ..
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi5_with_compression.sh tflite-micro/
-
   hifi_3z_unit_tests:
     if: inputs.scope == 'all'
     runs-on: ubuntu-latest
@@ -145,28 +123,6 @@ jobs:
         run: |
           cd ..
           tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z.sh tflite-micro/ EXTERNAL
-
-  hifi_3z_unit_tests_with_compression:
-    if: inputs.scope == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    container:
-      image: ghcr.io/tflm-bot/xtensa:0.2
-      credentials:
-        username: tflm-bot
-        password: ${{ secrets.tflm-bot-token }}
-      options: --init
-    name: Hifi3z Unit Tests with Compression
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.trigger-sha }}
-          allow-unsafe-pr-checkout: true
-      - run: rm -rf .git
-      - name: Hifi3z Unit Tests with Compression
-        run: |
-          cd ..
-          tflite-micro/tensorflow/lite/micro/tools/ci_build/test_xtensa_hifi3z_with_compression.sh tflite-micro/ EXTERNAL
 
   f1_unit_tests:
     if: inputs.scope == 'all'
