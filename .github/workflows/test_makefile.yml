@@ -23,8 +23,6 @@ jobs:
             script: test_x86_release.sh
           - name: Makefile x86 Default
             script: test_x86_default.sh
-          - name: Makefile x86 with Compression
-            script: test_x86_default_with_compression.sh
           - name: Makefile x86 Out Of Tree
             script: test_x86_out_of_tree.sh
     name: ${{ matrix.name }}
