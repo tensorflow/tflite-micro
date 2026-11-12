@@ -91,7 +91,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/testing/micro_test_v2.h"
 
 constexpr size_t kTensorArenaSize = 1024 * 100;
-uint8_t tensor_arena[kTensorArenaSize];
+alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 bool print_log = false;
 
 namespace tflite {

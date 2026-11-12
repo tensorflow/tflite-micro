@@ -1,6 +1,7 @@
 # Description:
 #   TensorFlow Lite microcontroller benchmarks.
 
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "tflm_cc_binary",
@@ -108,5 +109,14 @@ tflm_cc_binary(
         "//tensorflow/lite/micro/examples/person_detection:person_detect_model_data",
         "//tensorflow/lite/micro/examples/person_detection:simple_images_test_data",
         "//tensorflow/lite/micro/kernels:micro_ops",
+    ],
+)
+
+build_test(
+    name = "benchmarks_build_test",
+    targets = [
+        ":keyword_benchmark",
+        ":keyword_benchmark_8bit",
+        ":person_detection_benchmark",
     ],
 )

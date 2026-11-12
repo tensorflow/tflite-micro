@@ -36,29 +36,31 @@ fi
 # Ensure Bazel server shuts down cleanly when run inside ephemeral containers
 trap '${BAZEL_BIN} shutdown >/dev/null 2>&1 || true' EXIT
 
-TARGETS=(
-  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_fusion_f1
-  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi3z
-  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi5
-  //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_vision_p6
-)
+TARGETS=()
 
 if [[ "${TARGET_CORE}" == "hifi5" || "${TARGET_CORE}" == "all" ]]; then
   TARGETS+=(
+    //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi5
     //tensorflow/lite/micro:core_xtensa_hifi5_smoke_tests
     //tensorflow/lite/micro/kernels:kernel_xtensa_hifi5_smoke_tests
+    //tensorflow/lite/micro/examples/person_detection:person_detection_test_xtensa_hifi5
+    //tensorflow/lite/micro/integration_tests/seanet:seanet_xtensa_hifi5_tests
   )
 fi
 
 if [[ "${TARGET_CORE}" == "hifi3z" || "${TARGET_CORE}" == "all" ]]; then
   TARGETS+=(
-    //tensorflow/lite/micro:core_xtensa_hifi3z_tests
-    //tensorflow/lite/micro/kernels:kernel_xtensa_hifi3z_tests
+    //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_hifi3z
+    //tensorflow/lite/micro:core_xtensa_hifi3z_smoke_tests
+    //tensorflow/lite/micro/kernels:kernel_xtensa_hifi3z_smoke_tests
+    //tensorflow/lite/micro/examples/person_detection:person_detection_test_xtensa_hifi3z
+    //tensorflow/lite/micro/integration_tests/seanet:seanet_xtensa_hifi3z_tests
   )
 fi
 
 if [[ "${TARGET_CORE}" == "fusion_f1" || "${TARGET_CORE}" == "all" ]]; then
   TARGETS+=(
+    //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_fusion_f1
     //tensorflow/lite/micro:core_xtensa_fusion_f1_smoke_tests
     //tensorflow/lite/micro/kernels:kernel_xtensa_fusion_f1_smoke_tests
   )
@@ -66,6 +68,7 @@ fi
 
 if [[ "${TARGET_CORE}" == "vision_p6" || "${TARGET_CORE}" == "all" ]]; then
   TARGETS+=(
+    //tensorflow/lite/micro/tools/toolchains/xtensa:smoke_test_xtensa_vision_p6
     //tensorflow/lite/micro:core_xtensa_vision_p6_smoke_tests
     //tensorflow/lite/micro/kernels:kernel_xtensa_vision_p6_smoke_tests
   )

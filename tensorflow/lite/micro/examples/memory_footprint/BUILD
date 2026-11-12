@@ -1,7 +1,8 @@
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
+    "tflm_cc_binary",
     "tflm_cc_library",
 )
 
@@ -32,7 +33,7 @@ tflm_cc_library(
     ],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "baseline_memory_footprint",
     srcs = ["baseline_memory_footprint.cc"],
     deps = [
@@ -41,7 +42,7 @@ cc_binary(
     ],
 )
 
-cc_binary(
+tflm_cc_binary(
     name = "interpreter_memory_footprint",
     srcs = ["interpreter_memory_footprint.cc"],
     deps = [
@@ -51,5 +52,13 @@ cc_binary(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
         "//tensorflow/lite/micro/benchmarks:micro_benchmark",
+    ],
+)
+
+build_test(
+    name = "memory_footprint_build_test",
+    targets = [
+        ":baseline_memory_footprint",
+        ":interpreter_memory_footprint",
     ],
 )

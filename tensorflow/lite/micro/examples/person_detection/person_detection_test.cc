@@ -29,7 +29,7 @@ constexpr int tensor_arena_size = 352 * 1024;
 #else
 constexpr int tensor_arena_size = 136 * 1024;
 #endif  // defined(XTENSA) && defined(VISION_P6)
-uint8_t tensor_arena[tensor_arena_size];
+alignas(16) uint8_t tensor_arena[tensor_arena_size];
 
 TEST(PersonDetectionTest, TestInvoke) {
   // Map the model into a usable data structure. This doesn't involve any

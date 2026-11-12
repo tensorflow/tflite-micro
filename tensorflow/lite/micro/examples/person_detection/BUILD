@@ -1,5 +1,6 @@
 # Description:
 #   TensorFlow Lite for Microcontrollers Vision Example.
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "generate_cc_arrays",
@@ -92,11 +93,20 @@ tflm_cc_test(
     ],
 )
 
-tflm_platform_target(
-    name = "person_detection_test_corstone300",
-    profile = "corstone300",
-    target = ":person_detection_test",
-)
+[
+    tflm_platform_target(
+        name = "person_detection_test_%s" % profile,
+        profile = profile,
+        target = ":person_detection_test",
+    )
+    for profile in [
+        "corstone300",
+        "cortex_m4",
+        "cortex_m55",
+        "xtensa_hifi3z",
+        "xtensa_hifi5",
+    ]
+]
 
 tflm_cc_library(
     name = "image_provider",
@@ -167,4 +177,9 @@ tflm_cc_binary(
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:system_setup",
     ],
+)
+
+build_test(
+    name = "person_detection_build_test",
+    targets = [":person_detection"],
 )

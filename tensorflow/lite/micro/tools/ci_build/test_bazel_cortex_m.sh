@@ -23,11 +23,20 @@ cd "${ROOT_DIR}"
 BAZEL_BIN=${BAZEL:-$(which bazelisk 2>/dev/null || which bazel 2>/dev/null || echo "bazel")}
 BAZEL_FLAGS="--config=_ci_base"
 
-# Run Cortex-M smoke tests (M0, M4, M55) and CMSIS-NN Helium MVE suites in a unified invocation
+# Run Cortex-M smoke tests (M0, M4, M55), Cortex-M4/M55 core & kernel suites,
+# person_detection, and SeaNet integration tests in a unified invocation
 ${BAZEL_BIN} test ${BAZEL_FLAGS} \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m0 \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m4 \
   //tensorflow/lite/micro/tools/toolchains/arm:smoke_test_cortex_m55 \
   //tensorflow/lite/micro/tools/toolchains/arm:qemu_exit_code_test \
+  //tensorflow/lite/micro:core_cortex_m0_smoke_tests \
+  //tensorflow/lite/micro/kernels:kernel_cortex_m0_smoke_tests \
+  //tensorflow/lite/micro:core_cortex_m4_tests \
+  //tensorflow/lite/micro/kernels:kernel_cortex_m4_tests \
+  //tensorflow/lite/micro/examples/person_detection:person_detection_test_cortex_m4 \
+  //tensorflow/lite/micro/integration_tests/seanet:seanet_cortex_m4_tests \
   //tensorflow/lite/micro:core_cortex_m55_tests \
-  //tensorflow/lite/micro/kernels:kernel_cortex_m55_tests
+  //tensorflow/lite/micro/kernels:kernel_cortex_m55_tests \
+  //tensorflow/lite/micro/examples/person_detection:person_detection_test_cortex_m55 \
+  //tensorflow/lite/micro/integration_tests/seanet:seanet_cortex_m55_tests
