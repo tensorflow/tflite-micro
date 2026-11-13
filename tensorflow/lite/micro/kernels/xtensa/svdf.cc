@@ -33,7 +33,7 @@ namespace tflite {
 namespace micro {
 namespace {
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteEvalTensor* input_tensor,
@@ -59,11 +59,11 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
 
   // Left shift the activation_state.
   int num_bytes = sizeof(*state_ptr) * (n_batch * n_filter * n_memory - 1);
-#if defined(HIFI5)
+#if defined(HIFI5) || defined(HIFI_IQ)
   memcpy(state_ptr, state_ptr + 1, num_bytes);
 #else
   xa_nn_memmove_16(state_ptr, state_ptr + 1, (num_bytes >> 1));
-#endif  // defined(HIFI5)
+#endif  // defined(HIFI5) || defined(HIFI_IQ)
 
   // Note: no need to clear the latest activation, matmul is not accumulative.
 
@@ -107,7 +107,7 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
   }
   return kTfLiteOk;
 }
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context != nullptr);
@@ -115,7 +115,7 @@ void* Init(TfLiteContext* context, const char* buffer, size_t length) {
 }
 
 TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   TFLITE_DCHECK(node->builtin_data != nullptr);
   const auto* params = static_cast<const TfLiteSVDFParams*>(node->builtin_data);
 
@@ -253,12 +253,11 @@ TfLiteStatus PrepareInt8(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 #else
   return PrepareSvdf(context, node);
-#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) ||
-        // defined(HIFI5)
+#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
-#if defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 
   MicroContext* micro_context = GetMicroContext(context);
   TfLiteTensor* input =
@@ -279,8 +278,7 @@ TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
   return status;
 #else
   return PrepareSvdf(context, node);
-#endif  // defined(HIFIMINI) || defined(HIFI3) || defined(HIFI4) ||
-        // defined(HIFI5)
+#endif
 }
 
 TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
@@ -309,7 +307,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   return EvalIntegerSvdfHifimini(context, node, input, weights_feature,
                                  weights_time, bias, params, activation_state,
                                  output, data);
-#elif defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#elif defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   return EvalIntegerSvdfHifi(context, node, input, weights_feature,
                              weights_time, bias, params, activation_state,
                              output, data);
@@ -317,7 +315,7 @@ TfLiteStatus EvalInt8(TfLiteContext* context, TfLiteNode* node) {
   EvalInt16SvdfReference(context, node, input, weights_feature, weights_time,
                          bias, params, activation_state, output, data);
   return kTfLiteOk;
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
 }
 
 TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
