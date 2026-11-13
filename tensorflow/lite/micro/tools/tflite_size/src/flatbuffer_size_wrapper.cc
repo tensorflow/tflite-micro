@@ -15,7 +15,9 @@ limitations under the License.
 
 #include "flatbuffer_size_wrapper.h"
 
-#include <pybind11/pybind11.h>
+#include <cstdlib>
+#include <cstring>
+#include <string>
 
 #include "flatbuffer_size.h"
 #include "tensorflow/lite/micro/schema/reflection/schema_generated.h"
@@ -38,3 +40,18 @@ std::string FlatbufferSizeWrapper::ConvertToJsonString(
 
 }  // namespace micro
 }  // namespace tflite
+
+extern "C" {
+
+char* TFLM_FlatbufferSizeConvertToJsonString(const char* in_flatbuffer) {
+  std::string output = tflite::FlatBufferSizeToJsonString(
+      reinterpret_cast<const uint8_t*>(in_flatbuffer),
+      tflite::ModelTypeTable());
+  char* result = static_cast<char*>(std::malloc(output.size() + 1));
+  std::memcpy(result, output.c_str(), output.size() + 1);
+  return result;
+}
+
+void TFLM_FlatbufferSizeFreeJsonString(char* str) { std::free(str); }
+
+}  // extern "C"
