@@ -311,6 +311,45 @@ void TestSoftmaxQuantized(int* input_dims_data, const float* input_data,
                          output_dims_count, tolerance);
 }
 
+// Runs an int8 softmax on one row of `depth` equal values and checks that
+// every output is `expected`.
+void TestSoftmaxInt8EqualValues(int depth, int8_t* input_data,
+                                int8_t* output_data, int8_t expected) {
+  int dims_data[] = {2, 1, depth};
+  TfLiteIntArray* dims = IntArrayFromInts(dims_data);
+  for (int i = 0; i < depth; ++i) {
+    input_data[i] = 0;
+    output_data[i] = 0;
+  }
+
+  constexpr int tensors_size = 2;
+  TfLiteTensor tensors[tensors_size] = {
+      CreateQuantizedTensor(input_data, dims, 0.1f, 0),
+      CreateQuantizedTensor(output_data, dims, output_scale_int8,
+                            output_zero_point_int8),
+  };
+
+  TfLiteSoftmaxParams builtin_data = {1.0f};
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = Register_SOFTMAX();
+  micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
+                             outputs_array, &builtin_data);
+
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  for (int i = 0; i < depth; ++i) {
+    EXPECT_EQ(expected, output_data[i]);
+    if (output_data[i] != expected) {
+      break;
+    }
+  }
+}
+
 }  // namespace
 }  // namespace testing
 }  // namespace tflite
@@ -320,6 +359,28 @@ TEST(SoftmaxTest, Softmax1DFloatShouldMatchGolden) {
   tflite::testing::TestSoftmaxFloat(
       tflite::testing::shape_1d, tflite::testing::input_data_1d,
       tflite::testing::shape_1d, tflite::testing::golden_1d, output_data);
+}
+
+// Rows of equal values, whose sum is 256 and more. Each output is 256 / depth
+// output steps: one step for 256 values and just above half a step for 511.
+TEST(SoftmaxTest, SoftmaxInt8WideRowOfEqualValues) {
+  constexpr int kMaxDepth = 1000;
+  static int8_t input_data[kMaxDepth];
+  static int8_t output_data[kMaxDepth];
+
+  tflite::testing::TestSoftmaxInt8EqualValues(256, input_data, output_data,
+                                              -127);
+  tflite::testing::TestSoftmaxInt8EqualValues(511, input_data, output_data,
+                                              -127);
+#if !defined(CMSIS_NN) && !defined(XTENSA)
+  // From 512 values, each output is half a step or less and the kernel has to
+  // divide by 2^32 and more. Only the reference kernel is checked here: the
+  // optimized kernels have their own code for this division.
+  tflite::testing::TestSoftmaxInt8EqualValues(512, input_data, output_data,
+                                              -128);
+  tflite::testing::TestSoftmaxInt8EqualValues(kMaxDepth, input_data,
+                                              output_data, -128);
+#endif  // !defined(CMSIS_NN) && !defined(XTENSA)
 }
 
 TEST(SoftmaxTest, Softmax1DQuantizedInt8ShouldMatchGolden) {
