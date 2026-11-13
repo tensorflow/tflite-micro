@@ -232,6 +232,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/sub_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/svdf_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/tanh_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/transpose_conv.cc \

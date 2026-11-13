@@ -272,4 +272,37 @@ TEST(LogisticTest, LogisticQuantizedInt16ShouldMatchGolden) {
       output_data, 16.0f);
 }
 
+TEST(LogisticTest, LogisticQuantizedInt8AsymmetricShouldMatchGolden) {
+  const float input_scale = 0.1f;
+  const int input_zero_point = 23;
+  int8_t input_quantized[tflite::testing::flat_size_basic];
+  int8_t golden_quantized[tflite::testing::flat_size_basic];
+  int8_t output_data[tflite::testing::flat_size_basic];
+
+  tflite::testing::TestLogisticQuantized<int8_t>(
+      tflite::testing::shape_basic, tflite::testing::input_data_basic,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::golden_basic, golden_quantized,
+      tflite::testing::shape_basic,
+      tflite::testing::quantized_output_scale_int8,
+      tflite::testing::quantized_output_zero_point_int8, output_data, 1.0f);
+}
+
+TEST(LogisticTest, LogisticQuantizedInt16PotScaleShouldMatchGolden) {
+  const float input_scale = 16.f / 65536.f;
+  const int input_zero_point = 0;
+  const float output_scale = 2.f / 65536.f;
+  const int output_zero_point = 0;
+  int16_t input_quantized[tflite::testing::flat_size_basic];
+  int16_t golden_quantized[tflite::testing::flat_size_basic];
+  int16_t output_data[tflite::testing::flat_size_basic];
+
+  tflite::testing::TestLogisticQuantized<int16_t>(
+      tflite::testing::shape_basic, tflite::testing::input_data_basic,
+      input_quantized, input_scale, input_zero_point,
+      tflite::testing::golden_basic, golden_quantized,
+      tflite::testing::shape_basic, output_scale, output_zero_point,
+      output_data, 16.0f);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

@@ -13,7 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/micro/kernels/logistic.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <new>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
@@ -21,10 +25,10 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/logistic.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/logistic.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -37,7 +41,13 @@ namespace micro {
 namespace {
 
 void* LogisticInit(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataLogistic));
+  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(OpDataLogistic));
+  if (data == nullptr) {
+    return nullptr;
+  }
+  return new (data) OpDataLogistic();
 }
 
 TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
@@ -47,7 +57,8 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kLogisticOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpDataLogistic* data = static_cast<OpDataLogistic*>(node->user_data);
+  const OpDataLogistic* data =
+      static_cast<const OpDataLogistic*>(node->user_data);
 
   if (input->type == kTfLiteFloat32) {
     switch (output->type) {
