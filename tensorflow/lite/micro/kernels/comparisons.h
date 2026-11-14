@@ -30,6 +30,7 @@ inline constexpr int kComparisonsOutputTensor = 0;
 
 struct OpDataComparisons {
   ComparisonParams params{};
+  bool is_quantized = false;
 };
 
 void* ComparisonsInit(TfLiteContext* context, const char* buffer,

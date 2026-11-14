@@ -73,7 +73,8 @@ void EvalComparisonWithScaling(const ComparisonParams& params,
   }
 }
 
-template <template <typename> class OpFn, bool kAllowBool, bool kAllowInt16>
+template <template <typename> class OpFn, bool kAllowBool,
+          bool kAllowInt16Quantized>
 TfLiteStatus EvalComparisonReference(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   const auto* data = static_cast<const OpDataComparisons*>(node->user_data);
@@ -122,7 +123,13 @@ TfLiteStatus EvalComparisonReference(TfLiteContext* context, TfLiteNode* node) {
           output_shape, output_data, requires_broadcast);
       return kTfLiteOk;
     case kTfLiteInt16:
-      if constexpr (kAllowInt16) {
+      if (!data->is_quantized) {
+        EvalComparisonNoScaling<int16_t, OpFn>(
+            data->params, input1_shape, input1, input2_shape, input2,
+            output_shape, output_data, requires_broadcast);
+        return kTfLiteOk;
+      }
+      if constexpr (kAllowInt16Quantized) {
         EvalComparisonWithScaling<int16_t, OpFn>(
             data->params, input1_shape, input1, input2_shape, input2,
             output_shape, output_data, requires_broadcast);
@@ -142,17 +149,13 @@ TfLiteStatus EvalComparisonReference(TfLiteContext* context, TfLiteNode* node) {
 
 void* ComparisonsInit(TfLiteContext* context, const char* buffer,
                       size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataComparisons));
-  if (data == nullptr) {
-    return nullptr;
-  }
   return new (data) OpDataComparisons();
 }
 
 TfLiteStatus ComparisonsPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
   auto* data = static_cast<OpDataComparisons*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -162,26 +165,25 @@ TfLiteStatus ComparisonsPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, input1 != nullptr);
   TfLiteTensor* input2 =
       micro_context->AllocateTempInputTensor(node, kComparisonsInputTensor2);
-  if (input2 == nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input1);
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE(context, input2 != nullptr);
 
-  if (input1->type == kTfLiteInt8 || input1->type == kTfLiteInt16) {
+  data->is_quantized = (input1->type == kTfLiteInt8) ||
+                       (input1->quantization.type != kTfLiteNoQuantization);
+
+  if (input1->type == kTfLiteInt8 ||
+      (input1->type == kTfLiteInt16 && data->is_quantized)) {
     const int32_t input1_offset = -input1->params.zero_point;
     const int32_t input2_offset = -input2->params.zero_point;
     constexpr int kLeftShift = 8;
 
     int32_t input1_multiplier;
     int input1_shift;
-    QuantizeMultiplierSmallerThanOneExp(
-        static_cast<double>(input1->params.scale), &input1_multiplier,
-        &input1_shift);
+    QuantizeMultiplier(static_cast<double>(input1->params.scale),
+                       &input1_multiplier, &input1_shift);
     int32_t input2_multiplier;
     int input2_shift;
-    QuantizeMultiplierSmallerThanOneExp(
-        static_cast<double>(input2->params.scale), &input2_multiplier,
-        &input2_shift);
+    QuantizeMultiplier(static_cast<double>(input2->params.scale),
+                       &input2_multiplier, &input2_shift);
 
     data->params.left_shift = kLeftShift;
     data->params.input1_offset = input1_offset;
@@ -200,37 +202,37 @@ TfLiteStatus ComparisonsPrepare(TfLiteContext* context, TfLiteNode* node) {
 
 TfLiteStatus EqualEvalReference(TfLiteContext* context, TfLiteNode* node) {
   return EvalComparisonReference<reference_ops::EqualFn, /*kAllowBool=*/true,
-                                 /*kAllowInt16=*/false>(context, node);
+                                 /*kAllowInt16Quantized=*/true>(context, node);
 }
 
 TfLiteStatus NotEqualEvalReference(TfLiteContext* context, TfLiteNode* node) {
   return EvalComparisonReference<reference_ops::NotEqualFn,
-                                 /*kAllowBool=*/true, /*kAllowInt16=*/false>(
-      context, node);
+                                 /*kAllowBool=*/true,
+                                 /*kAllowInt16Quantized=*/true>(context, node);
 }
 
 TfLiteStatus GreaterEvalReference(TfLiteContext* context, TfLiteNode* node) {
   return EvalComparisonReference<reference_ops::GreaterFn,
-                                 /*kAllowBool=*/false, /*kAllowInt16=*/true>(
-      context, node);
+                                 /*kAllowBool=*/false,
+                                 /*kAllowInt16Quantized=*/false>(context, node);
 }
 
 TfLiteStatus GreaterEqualEvalReference(TfLiteContext* context,
                                        TfLiteNode* node) {
   return EvalComparisonReference<reference_ops::GreaterEqualFn,
-                                 /*kAllowBool=*/false, /*kAllowInt16=*/false>(
-      context, node);
+                                 /*kAllowBool=*/false,
+                                 /*kAllowInt16Quantized=*/false>(context, node);
 }
 
 TfLiteStatus LessEvalReference(TfLiteContext* context, TfLiteNode* node) {
   return EvalComparisonReference<reference_ops::LessFn, /*kAllowBool=*/false,
-                                 /*kAllowInt16=*/false>(context, node);
+                                 /*kAllowInt16Quantized=*/false>(context, node);
 }
 
 TfLiteStatus LessEqualEvalReference(TfLiteContext* context, TfLiteNode* node) {
   return EvalComparisonReference<reference_ops::LessEqualFn,
-                                 /*kAllowBool=*/false, /*kAllowInt16=*/false>(
-      context, node);
+                                 /*kAllowBool=*/false,
+                                 /*kAllowInt16Quantized=*/false>(context, node);
 }
 
 }  // namespace micro

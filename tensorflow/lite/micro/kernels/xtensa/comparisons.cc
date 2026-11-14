@@ -74,10 +74,8 @@ TfLiteStatus EqualEval(TfLiteContext* context, TfLiteNode* node) {
     return EvalComparisonInt8NoBroadcastHiFi(context, node, input1, input2,
                                              xa_nn_elm_equal_asym8sxasym8s);
   }
-  return EqualEvalReference(context, node);
-#else   // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return EqualEvalReference(context, node);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return EqualEvalReference(context, node);
 }
 
 TfLiteStatus NotEqualEval(TfLiteContext* context, TfLiteNode* node) {
@@ -91,10 +89,8 @@ TfLiteStatus NotEqualEval(TfLiteContext* context, TfLiteNode* node) {
     return EvalComparisonInt8NoBroadcastHiFi(context, node, input1, input2,
                                              xa_nn_elm_notequal_asym8sxasym8s);
   }
-  return NotEqualEvalReference(context, node);
-#else   // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return NotEqualEvalReference(context, node);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return NotEqualEvalReference(context, node);
 }
 
 TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
@@ -108,10 +104,8 @@ TfLiteStatus GreaterEval(TfLiteContext* context, TfLiteNode* node) {
     return EvalComparisonInt8NoBroadcastHiFi(context, node, input1, input2,
                                              xa_nn_elm_greater_asym8sxasym8s);
   }
-  return GreaterEvalReference(context, node);
-#else   // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return GreaterEvalReference(context, node);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return GreaterEvalReference(context, node);
 }
 
 TfLiteStatus GreaterEqualEval(TfLiteContext* context, TfLiteNode* node) {
@@ -125,10 +119,8 @@ TfLiteStatus GreaterEqualEval(TfLiteContext* context, TfLiteNode* node) {
     return EvalComparisonInt8NoBroadcastHiFi(
         context, node, input1, input2, xa_nn_elm_greaterequal_asym8sxasym8s);
   }
-  return GreaterEqualEvalReference(context, node);
-#else   // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return GreaterEqualEvalReference(context, node);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return GreaterEqualEvalReference(context, node);
 }
 
 TfLiteStatus LessEval(TfLiteContext* context, TfLiteNode* node) {
@@ -142,10 +134,8 @@ TfLiteStatus LessEval(TfLiteContext* context, TfLiteNode* node) {
     return EvalComparisonInt8NoBroadcastHiFi(context, node, input1, input2,
                                              xa_nn_elm_less_asym8sxasym8s);
   }
-  return LessEvalReference(context, node);
-#else   // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return LessEvalReference(context, node);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return LessEvalReference(context, node);
 }
 
 TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
@@ -159,10 +149,8 @@ TfLiteStatus LessEqualEval(TfLiteContext* context, TfLiteNode* node) {
     return EvalComparisonInt8NoBroadcastHiFi(context, node, input1, input2,
                                              xa_nn_elm_lessequal_asym8sxasym8s);
   }
-  return LessEqualEvalReference(context, node);
-#else   // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return LessEqualEvalReference(context, node);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  return LessEqualEvalReference(context, node);
 }
 
 }  // namespace
