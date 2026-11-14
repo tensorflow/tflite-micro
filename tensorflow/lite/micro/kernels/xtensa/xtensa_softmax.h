@@ -15,32 +15,60 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_
 
+#include <cstdint>
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/softmax.h"
 #include "tensorflow/lite/micro/micro_common.h"
+#include "tensorflow/lite/micro/micro_context.h"
 
 namespace tflite {
 namespace micro {
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-struct XtensaSoftmaxOpData {
-  SoftmaxParams params;
-  int scratch_tensor_index;
-};
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+inline constexpr int kInt8SoftmaxLutSize = 256;
+inline constexpr int kInt8SoftmaxLutThreshold = 256;
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
+        // defined(HIFI_IQ)
 
-#if defined(VISION_P6)
 struct XtensaSoftmaxOpData {
-  SoftmaxParams params;
-  uint8_t* p_context;  // persistent lib context for this instance saved here
-  uint32_t context_size;
-};
+  SoftmaxParams params{};
+#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
+  int scratch_tensor_index = 0;
+  int32_t* softmax_lut = nullptr;
+#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
+        // defined(HIFI_IQ)
+#if defined(VISION_P6)
+  uint8_t* p_context =
+      nullptr;  // persistent lib context for this instance saved here
+  uint32_t context_size = 0;
 #endif  // defined(VISION_P6)
+};
 
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length);
 
 TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node);
+
+template <TfLiteType kInputType, TfLiteType kOutputType>
+TfLiteStatus XtensaPrepareSoftmaxTyped(TfLiteContext* context,
+                                       TfLiteNode* node) {
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
+  MicroContext* micro_context = GetMicroContext(context);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kSoftmaxInputTensor);
+  TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kSoftmaxOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kInputType);
+  TF_LITE_ENSURE_TYPES_EQ(context, output->type, kOutputType);
+  micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
+  return XtensaPrepareSoftmax(context, node);
+}
 
 TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
                                         TfLiteNode* node);
@@ -55,10 +83,7 @@ TfLiteStatus SoftmaxEvalVision(TfLiteContext* context, TfLiteNode* node,
 
 }  // namespace micro
 
-#if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(VISION_P6)
 using micro::XtensaSoftmaxOpData;
-#endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
-        // defined(VISION_P6)
 }  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_MICRO_KERNELS_XTENSA_XTENSA_SOFTMAX_H_

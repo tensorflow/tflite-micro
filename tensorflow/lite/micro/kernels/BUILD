@@ -1488,6 +1488,7 @@ tflm_cc_test(
     ],
     deps = [
         ":kernel_runner",
+        ":micro_ops",
         "//tensorflow/lite/micro:micro_common",
         "//tensorflow/lite/micro:op_resolvers",
         "//tensorflow/lite/micro:test_helpers",

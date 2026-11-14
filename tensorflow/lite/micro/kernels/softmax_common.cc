@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <new>
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
@@ -138,7 +140,9 @@ TfLiteStatus CalculateSoftmaxParams(TfLiteContext* context,
 }
 
 void* SoftmaxInit(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(SoftmaxParams));
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(SoftmaxParams));
+  return new (data) SoftmaxParams();
 }
 
 TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node) {
@@ -146,10 +150,12 @@ TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node) {
 
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kSoftmaxInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
   TF_LITE_ENSURE(context, NumDimensions(input) >= 1);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kSoftmaxOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
 
   TF_LITE_ENSURE(context, node->user_data != nullptr);
