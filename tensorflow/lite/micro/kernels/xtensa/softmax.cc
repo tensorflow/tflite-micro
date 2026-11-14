@@ -103,16 +103,15 @@ TfLiteStatus EvalHifiInt16(const XtensaSoftmaxOpData& op_data,
 TfLiteStatus EvalInt8Impl(TfLiteContext* context, TfLiteNode* node,
                           const TfLiteEvalTensor* input,
                           TfLiteEvalTensor* output) {
+  const auto& op_data =
+      *static_cast<const XtensaSoftmaxOpData*>(node->user_data);
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return EvalHifiInt8(*static_cast<const XtensaSoftmaxOpData*>(node->user_data),
-                      input, output, context);
+  return EvalHifiInt8(op_data, input, output, context);
 #elif defined(VISION_P6)
-  return SoftmaxEvalVision(
-      context, node, *static_cast<const XtensaSoftmaxOpData*>(node->user_data),
-      input, output);
+  return SoftmaxEvalVision(context, node, op_data, input, output);
 #else
   tflite::micro::reference_ops::Softmax(
-      XtensaGetSoftmaxParams(node), tflite::micro::GetTensorShape(input),
+      op_data.params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<int8_t>(input),
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int8_t>(output));
@@ -124,12 +123,13 @@ TfLiteStatus EvalInt8Impl(TfLiteContext* context, TfLiteNode* node,
 TfLiteStatus EvalInt16Impl(const TfLiteNode* node,
                            const TfLiteEvalTensor* input,
                            TfLiteEvalTensor* output) {
+  const auto& op_data =
+      *static_cast<const XtensaSoftmaxOpData*>(node->user_data);
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return EvalHifiInt16(
-      *static_cast<const XtensaSoftmaxOpData*>(node->user_data), input, output);
+  return EvalHifiInt16(op_data, input, output);
 #else
   tflite::micro::reference_ops::SoftmaxInt16(
-      XtensaGetSoftmaxParams(node), tflite::micro::GetTensorShape(input),
+      op_data.params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<int16_t>(input),
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int16_t>(output));
@@ -140,8 +140,10 @@ TfLiteStatus EvalInt16Impl(const TfLiteNode* node,
 TfLiteStatus EvalFloat32Impl(const TfLiteNode* node,
                              const TfLiteEvalTensor* input,
                              TfLiteEvalTensor* output) {
+  const auto& op_data =
+      *static_cast<const XtensaSoftmaxOpData*>(node->user_data);
   tflite::micro::reference_ops::Softmax(
-      XtensaGetSoftmaxParams(node), tflite::micro::GetTensorShape(input),
+      op_data.params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<float>(input),
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<float>(output));

@@ -138,38 +138,23 @@ TfLiteStatus XtensaPrepareSoftmax(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kSoftmaxInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  if (NumDimensions(input) < 1) {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE(context, NumDimensions(input) >= 1);
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kSoftmaxOutputTensor);
-  if (output == nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE(context, output != nullptr);
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
 
-  if (node->user_data == nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    micro_context->DeallocateTempTfLiteTensor(output);
-    return kTfLiteError;
-  }
   auto* data = static_cast<XtensaSoftmaxOpData*>(node->user_data);
   auto* params = static_cast<TfLiteSoftmaxParams*>(node->builtin_data);
-  TfLiteStatus status =
-      CalculateSoftmaxParams(context, input, output, params, &data->params);
+  TF_LITE_ENSURE_OK(context, CalculateSoftmaxParams(context, input, output,
+                                                    params, &data->params));
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  if (status == kTfLiteOk) {
-    status = PrepareHifi(context, input, output, data);
-  }
+  TF_LITE_ENSURE_OK(context, PrepareHifi(context, input, output, data));
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
         // defined(HIFI_IQ)
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
-  if (status != kTfLiteOk) {
-    return status;
-  }
 
 #if defined(VISION_P6)
   TF_LITE_ENSURE_OK(context, SoftmaxPrepareVision(context, node));
@@ -184,13 +169,14 @@ TfLiteStatus XtensaEvalSoftmaxInt8Int16(TfLiteContext* context,
   TfLiteEvalTensor* output =
       tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
   TFLITE_DCHECK(node->user_data != nullptr);
+  const auto& op_data =
+      *static_cast<const XtensaSoftmaxOpData*>(node->user_data);
 
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  return EvalHifi(*static_cast<const XtensaSoftmaxOpData*>(node->user_data),
-                  input, output, context);
+  return EvalHifi(op_data, input, output, context);
 #else
   tflite::micro::reference_ops::Softmax(
-      XtensaGetSoftmaxParams(node), tflite::micro::GetTensorShape(input),
+      op_data.params, tflite::micro::GetTensorShape(input),
       tflite::micro::GetTensorData<int8_t>(input),
       tflite::micro::GetTensorShape(output),
       tflite::micro::GetTensorData<int16_t>(output));

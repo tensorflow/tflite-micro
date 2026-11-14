@@ -46,10 +46,6 @@ struct XtensaSoftmaxOpData {
 #endif  // defined(VISION_P6)
 };
 
-inline const SoftmaxParams& XtensaGetSoftmaxParams(const TfLiteNode* node) {
-  return static_cast<const XtensaSoftmaxOpData*>(node->user_data)->params;
-}
-
 void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
                         size_t length);
 
