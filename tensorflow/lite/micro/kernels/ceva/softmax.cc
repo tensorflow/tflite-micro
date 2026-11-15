@@ -160,6 +160,31 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 }
 }  // namespace
 
+void* SoftmaxBackendInit(TfLiteContext* context, const char* buffer,
+                         size_t length) {
+  return SoftmaxInit(context, buffer, length);
+}
+
+TfLiteStatus SoftmaxBackendPrepare(TfLiteContext* context, TfLiteNode* node) {
+  return SoftmaxPrepare(context, node);
+}
+
+TfLiteStatus SoftmaxEvalFloat32(TfLiteContext* context, TfLiteNode* node) {
+  return Eval(context, node);
+}
+
+TfLiteStatus SoftmaxEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  return Eval(context, node);
+}
+
+TfLiteStatus SoftmaxEvalInt8To16(TfLiteContext* context, TfLiteNode* node) {
+  return Eval(context, node);
+}
+
+TfLiteStatus SoftmaxEvalInt16(TfLiteContext* context, TfLiteNode* node) {
+  return Eval(context, node);
+}
+
 TFLMRegistration Register_SOFTMAX() {
   return tflite::micro::RegisterOp(SoftmaxInit, SoftmaxPrepare, Eval);
 }

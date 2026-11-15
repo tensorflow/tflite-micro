@@ -20,6 +20,7 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/internal/types.h"
+#include "tensorflow/lite/micro/kernels/op_dispatcher.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
@@ -87,10 +88,73 @@ void* ConvInit(TfLiteContext* context, const char* buffer, size_t length);
 
 TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node);
 
+// Backend contract for CONV_2D:
+// Every CONV_2D backend implementation (reference, cmsis_nn, xtensa, arc_mli,
+// ceva, etc.) must define these 6 entry points in `namespace tflite::micro`:
+//   - ConvBackendInit: allocates backend-specific OpData
+//   - ConvBackendPrepare: shared Prepare across all CONV_2D type variants
+//   - ConvEvalFloat32: Eval for (input=float32, filter=float32)
+//   - ConvEvalInt8: Eval for (input=int8, filter=int8)
+//   - ConvEvalInt16x8: Eval for (input=int16, filter=int8)
+//   - ConvEvalInt8x4: Eval for (input=int8, filter=int4)
+// Splitting only the per-type Eval functions (while sharing Prepare) allows
+// single-type registrations (`AddConv2D<conv::Int8>()`) to garbage-collect
+// unused Eval implementations under `--function-sections` + `--gc-sections`.
+void* ConvBackendInit(TfLiteContext* context, const char* buffer,
+                      size_t length);
+TfLiteStatus ConvBackendPrepare(TfLiteContext* context, TfLiteNode* node);
+
+TfLiteStatus ConvEvalFloat32(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus ConvEvalInt8(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus ConvEvalInt16x8(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus ConvEvalInt8x4(TfLiteContext* context, TfLiteNode* node);
+
+// Type signatures for CONV_2D: (InputType, WeightType).
+namespace conv {
+using Float32 = OpSig<kTfLiteFloat32, kTfLiteFloat32>;
+using Int8 = OpSig<kTfLiteInt8, kTfLiteInt8>;
+using Int16x8 = OpSig<kTfLiteInt16, kTfLiteInt8>;
+using Int8x4 = OpSig<kTfLiteInt8, kTfLiteInt4>;
+}  // namespace conv
+
+struct Conv2DOp {
+  static constexpr size_t kKeyArity = 2;
+  static constexpr auto Init = &ConvBackendInit;
+  static constexpr auto Prepare = &ConvBackendPrepare;
+  static bool Key(TfLiteContext* context, const TfLiteNode* node,
+                  TfLiteType (&key)[2]);
+};
+
+template <>
+struct OpVariant<Conv2DOp, conv::Float32> {
+  static constexpr auto Eval = &ConvEvalFloat32;
+};
+
+template <>
+struct OpVariant<Conv2DOp, conv::Int8> {
+  static constexpr auto Eval = &ConvEvalInt8;
+};
+
+template <>
+struct OpVariant<Conv2DOp, conv::Int16x8> {
+  static constexpr auto Eval = &ConvEvalInt16x8;
+};
+
+template <>
+struct OpVariant<Conv2DOp, conv::Int8x4> {
+  static constexpr auto Eval = &ConvEvalInt8x4;
+};
+
 // This is the most generic TFLMRegistration. The actual supported types
 // may still be target dependent. The only requirement is that every
 // implementation (reference or optimized) must define this function.
 TFLMRegistration Register_CONV_2D();
+
+// Template overload for typed op registration of one or more OpSigs.
+template <typename Sig1, typename... MoreSigs>
+TFLMRegistration Register_CONV_2D() {
+  return OpDispatcher<Conv2DOp, Sig1, MoreSigs...>::GetRegistration();
+}
 
 #if defined(XTENSA)
 // Returns a TFLMRegistration struct for kernel variant that only supports
@@ -100,7 +164,7 @@ TFLMRegistration Register_CONV_2D_INT8REF();
 
 #else
 inline TFLMRegistration Register_CONV_2D_INT8REF() {
-  return Register_CONV_2D();
+  return Register_CONV_2D<conv::Int8>();
 }
 #endif  // defined(XTENSA)
 
@@ -110,7 +174,9 @@ inline TFLMRegistration Register_CONV_2D_INT8REF() {
 // implementations.
 TFLMRegistration Register_CONV_2D_INT4();
 #else
-inline TFLMRegistration Register_CONV_2D_INT4() { return Register_CONV_2D(); }
+inline TFLMRegistration Register_CONV_2D_INT4() {
+  return Register_CONV_2D<conv::Int8x4>();
+}
 #endif  // defined(CMSIS_NN)
 
 #if defined(CMSIS_NN) || defined(XTENSA)
@@ -125,14 +191,27 @@ TFLMRegistration Register_CONV_2D_INT8();
 TFLMRegistration Register_CONV_2D_INT16();
 
 #else
-inline TFLMRegistration Register_CONV_2D_INT8() { return Register_CONV_2D(); }
+inline TFLMRegistration Register_CONV_2D_INT8() {
+  return Register_CONV_2D<conv::Int8>();
+}
 
-inline TFLMRegistration Register_CONV_2D_INT16() { return Register_CONV_2D(); }
+inline TFLMRegistration Register_CONV_2D_INT16() {
+  return Register_CONV_2D<conv::Int16x8>();
+}
 #endif  // defined(CMSIS_NN) || defined(XTENSA)
 
 }  // namespace micro
 
+namespace conv = micro::conv;
+
 using micro::CalculateOpDataConv;
+using micro::Conv2DOp;
+using micro::ConvBackendInit;
+using micro::ConvBackendPrepare;
+using micro::ConvEvalFloat32;
+using micro::ConvEvalInt16x8;
+using micro::ConvEvalInt8;
+using micro::ConvEvalInt8x4;
 using micro::ConvInit;
 using micro::ConvParamsFloat;
 using micro::ConvParamsQuantized;

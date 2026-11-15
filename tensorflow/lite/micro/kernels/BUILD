@@ -374,6 +374,7 @@ tflm_kernel_cc_library(
         "maximum_minimum.h",
         "micro_ops.h",
         "mul.h",
+        "op_dispatcher.h",
         "pad.h",
         "pooling.h",
         "prelu.h",
@@ -1907,3 +1908,4 @@ config_setting(
     },
     visibility = ["//visibility:public"],
 )
+

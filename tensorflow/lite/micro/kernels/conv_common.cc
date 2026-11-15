@@ -74,6 +74,12 @@ void* ConvInit(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(OpDataConv));
 }
 
+bool Conv2DOp::Key(TfLiteContext* context, const TfLiteNode* node,
+                   TfLiteType (&key)[2]) {
+  return GetEvalInputType(context, node, kConvInputTensor, &key[0]) &&
+         GetEvalInputType(context, node, kConvWeightsTensor, &key[1]);
+}
+
 TfLiteStatus CalculateOpDataConv(TfLiteContext* context, TfLiteNode* node,
                                  const TfLiteConvParams& params, int width,
                                  int height, int filter_width,

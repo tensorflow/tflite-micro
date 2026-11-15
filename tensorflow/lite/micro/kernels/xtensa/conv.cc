@@ -30,15 +30,22 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-namespace {
 
-TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+void* ConvBackendInit(TfLiteContext* context, const char* buffer,
+                      size_t length) {
+  return ConvInitXtensa(context, buffer, length);
+}
+
+TfLiteStatus ConvBackendPrepare(TfLiteContext* context, TfLiteNode* node) {
+  return ConvPrepareXtensa(context, node);
+}
+
+TfLiteStatus ConvEvalFloat32(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kConvInputTensor);
-
   const auto& params =
       *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
   const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
@@ -50,90 +57,144 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* bias =
       tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
 
-  switch (input->type) {
-    case kTfLiteFloat32: {
 #ifdef USE_TFLM_COMPRESSION
-
-      MicroContext* micro_context = GetMicroContext(context);
-
-      const CompressionTensorData* weights_comp_td =
-          micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
-      const CompressionTensorData* bias_comp_td =
-          micro_context->GetTensorCompressionData(node, kConvBiasTensor);
-
+  MicroContext* micro_context = GetMicroContext(context);
+  const CompressionTensorData* weights_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvWeightsTensor);
+  const CompressionTensorData* bias_comp_td =
+      micro_context->GetTensorCompressionData(node, kConvBiasTensor);
 #endif  // USE_TFLM_COMPRESSION
-      tflite::micro::reference_ops::Conv(
-          ConvParamsFloat(params, op_data.reference_op_data),
-          tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<float>(input),
-          tflite::micro::GetTensorShape(filter),
+  tflite::micro::reference_ops::Conv(
+      ConvParamsFloat(params, op_data.reference_op_data),
+      tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<float>(input),
+      tflite::micro::GetTensorShape(filter),
 #ifdef USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorData<float>(
-              micro_context, filter, weights_comp_td,
-              op_data.reference_op_data.weights_scratch_index),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetOptionalTensorData<float>(
-              micro_context, bias, bias_comp_td,
-              op_data.reference_op_data.bias_scratch_index),
+      tflite::micro::GetTensorData<float>(
+          micro_context, filter, weights_comp_td,
+          op_data.reference_op_data.weights_scratch_index),
+      tflite::micro::GetTensorShape(bias),
+      tflite::micro::GetOptionalTensorData<float>(
+          micro_context, bias, bias_comp_td,
+          op_data.reference_op_data.bias_scratch_index),
 #else   // USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorData<float>(filter),
-          tflite::micro::GetTensorShape(bias),
-          tflite::micro::GetOptionalTensorData<float>(bias),
+      tflite::micro::GetTensorData<float>(filter),
+      tflite::micro::GetTensorShape(bias),
+      tflite::micro::GetOptionalTensorData<float>(bias),
 #endif  // USE_TFLM_COMPRESSION
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<float>(output), RuntimeShape(), nullptr);
-      break;
-    }
-    case kTfLiteInt8: {
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<float>(output), RuntimeShape(), nullptr);
+  return kTfLiteOk;
+}
+
+TfLiteStatus ConvEvalInt8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-      if (params.dilation_width_factor == 1 &&
-          params.dilation_height_factor == 1) {
-        return ConvEvalHifiInt8(context, node, params, op_data, input, filter,
-                                bias, output);
-      } else {
-        return ConvReferenceEvalInt8(context, node);
-      }
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
+  const auto& params =
+      *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
+  const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+  const TfLiteEvalTensor* filter =
+      tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+  const TfLiteEvalTensor* bias =
+      tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
+
+  if (params.dilation_width_factor == 1 && params.dilation_height_factor == 1) {
+    return ConvEvalHifiInt8(context, node, params, op_data, input, filter, bias,
+                            output);
+  } else {
+    return ConvReferenceEvalInt8(context, node);
+  }
 #elif defined(VISION_P6)
-      // At this time the optimized implementation is failing the unit tests in
-      // ways that are not entirely clear why. For now, we have identified some
-      // of the problem cases and are manually inserting a reference fallback.
-      // See http://b/270720625 for more details.
-      if (op_data.is_per_channel_quantized ||
-          input->dims->data[1] != input->dims->data[2]) {
-        return ConvReferenceEvalInt8(context, node);
-      } else {
-        return ConvEvalVision(context, node, params, op_data, input, filter,
-                              bias, output);
-      }
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
+  const auto& params =
+      *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
+  const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+  const TfLiteEvalTensor* filter =
+      tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+  const TfLiteEvalTensor* bias =
+      tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
+
+  // At this time the optimized implementation is failing the unit tests in
+  // ways that are not entirely clear why. For now, we have identified some
+  // of the problem cases and are manually inserting a reference fallback.
+  // See http://b/270720625 for more details.
+  if (op_data.is_per_channel_quantized ||
+      input->dims->data[1] != input->dims->data[2]) {
+    return ConvReferenceEvalInt8(context, node);
+  } else {
+    return ConvEvalVision(context, node, params, op_data, input, filter, bias,
+                          output);
+  }
 #else
-      return ConvReferenceEvalInt8(context, node);
+  return ConvReferenceEvalInt8(context, node);
 #endif
-    }
-    case kTfLiteInt16: {
+}
+
+TfLiteStatus ConvEvalInt8x4(TfLiteContext* context, TfLiteNode* node) {
+  return ConvEvalInt8(context, node);
+}
+
+TfLiteStatus ConvEvalInt16x8(TfLiteContext* context, TfLiteNode* node) {
+  TFLITE_DCHECK(node->user_data != nullptr);
+  TFLITE_DCHECK(node->builtin_data != nullptr);
+
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
-      // Note that int32 bias is not widely supported and might be risky (e.g.
-      // http://b/262003750). As such, while we have a fallback to the reference
-      // implementation, production use-cases should only have int64 bias.
-      const bool requires_int32_accum =
-          (bias != nullptr && bias->type == kTfLiteInt32) ||
-          (bias == nullptr && params.quantized_bias_type == kTfLiteInt32);
-      if (requires_int32_accum) {
-        return ConvReferenceEvalInt16(context, node);
-      } else {
-        return ConvEvalHifiInt16(context, node, params, op_data, input, filter,
-                                 bias, output);
-      }
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
+  const auto& params =
+      *(reinterpret_cast<TfLiteConvParams*>(node->builtin_data));
+  const auto& op_data = *(reinterpret_cast<XtensaConvOpData*>(node->user_data));
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kConvOutputTensor);
+  const TfLiteEvalTensor* filter =
+      tflite::micro::GetEvalInput(context, node, kConvWeightsTensor);
+  const TfLiteEvalTensor* bias =
+      tflite::micro::GetEvalInput(context, node, kConvBiasTensor);
+
+  // Note that int32 bias is not widely supported and might be risky (e.g.
+  // http://b/262003750). As such, while we have a fallback to the reference
+  // implementation, production use-cases should only have int64 bias.
+  const bool requires_int32_accum =
+      (bias != nullptr && bias->type == kTfLiteInt32) ||
+      (bias == nullptr && params.quantized_bias_type == kTfLiteInt32);
+  if (requires_int32_accum) {
+    return ConvReferenceEvalInt16(context, node);
+  } else {
+    return ConvEvalHifiInt16(context, node, params, op_data, input, filter,
+                             bias, output);
+  }
 #else
-      return ConvReferenceEvalInt16(context, node);
+  return ConvReferenceEvalInt16(context, node);
 #endif
-    }
+}
+
+namespace {
+
+TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kConvInputTensor);
+
+  switch (input->type) {
+    case kTfLiteFloat32:
+      return ConvEvalFloat32(context, node);
+    case kTfLiteInt8:
+      return ConvEvalInt8(context, node);
+    case kTfLiteInt16:
+      return ConvEvalInt16x8(context, node);
     default:
       MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
                   input->type);
       return kTfLiteError;
   }
-
-  return kTfLiteOk;
 }
 
 }  // namespace

@@ -141,6 +141,12 @@ void* SoftmaxInit(TfLiteContext* context, const char* buffer, size_t length) {
   return context->AllocatePersistentBuffer(context, sizeof(SoftmaxParams));
 }
 
+bool SoftmaxOp::Key(TfLiteContext* context, const TfLiteNode* node,
+                    TfLiteType (&key)[2]) {
+  return GetEvalInputType(context, node, 0, &key[0]) &&
+         GetEvalOutputType(context, node, 0, &key[1]);
+}
+
 TfLiteStatus SoftmaxPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
