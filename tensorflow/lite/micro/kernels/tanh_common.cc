@@ -19,6 +19,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/tanh.h"
+#include "tensorflow/lite/micro/kernels/internal/reference/tanh.h"
+#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/tanh.h"
 #include "tensorflow/lite/micro/micro_common.h"
@@ -124,24 +127,47 @@ TfLiteStatus CalculateArithmeticOpDataTanh(TfLiteContext* context,
   TF_LITE_ENSURE(context, input != nullptr);
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kTanhOutputTensor);
-  if (output == nullptr) {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    return kTfLiteError;
-  }
+  TF_LITE_ENSURE(context, output != nullptr);
 
-  TfLiteStatus status =
-      CalculateArithmeticOpDataTanhImpl(context, input, output, data);
+  TF_LITE_ENSURE_OK(
+      context, CalculateArithmeticOpDataTanhImpl(context, input, output, data));
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
-  return status;
+  return kTfLiteOk;
 }
 
-TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  OpDataTanh* data = static_cast<OpDataTanh*>(node->user_data);
+template <>
+void TanhEvalReference<float>(const OpDataTanh& /*data*/,
+                              const TfLiteEvalTensor* input,
+                              TfLiteEvalTensor* output) {
+  reference_ops::Tanh(tflite::micro::GetTensorShape(input),
+                      tflite::micro::GetTensorData<float>(input),
+                      tflite::micro::GetTensorShape(output),
+                      tflite::micro::GetTensorData<float>(output));
+}
 
-  return CalculateArithmeticOpDataTanh(context, node, data);
+template <>
+void TanhEvalReference<int16_t>(const OpDataTanh& data,
+                                const TfLiteEvalTensor* input,
+                                TfLiteEvalTensor* output) {
+  reference_integer_ops::Tanh(data.input_multiplier, data.input_left_shift,
+                              tflite::micro::GetTensorShape(input),
+                              tflite::micro::GetTensorData<int16_t>(input),
+                              tflite::micro::GetTensorShape(output),
+                              tflite::micro::GetTensorData<int16_t>(output));
+}
+
+template <>
+void TanhEvalReference<int8_t>(const OpDataTanh& data,
+                               const TfLiteEvalTensor* input,
+                               TfLiteEvalTensor* output) {
+  reference_integer_ops::Tanh(data.input_zero_point, data.input_range_radius,
+                              data.input_multiplier, data.input_left_shift,
+                              tflite::micro::GetTensorShape(input),
+                              tflite::micro::GetTensorData<int8_t>(input),
+                              tflite::micro::GetTensorShape(output),
+                              tflite::micro::GetTensorData<int8_t>(output));
 }
 
 }  // namespace micro

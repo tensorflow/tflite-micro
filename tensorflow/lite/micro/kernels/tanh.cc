@@ -20,9 +20,6 @@ limitations under the License.
 #include <new>
 
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/tanh.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/tanh.h"
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -32,12 +29,15 @@ namespace micro {
 namespace {
 
 void* TanhInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
   void* data = context->AllocatePersistentBuffer(context, sizeof(OpDataTanh));
-  if (data == nullptr) {
-    return nullptr;
-  }
   return new (data) OpDataTanh();
+}
+
+TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
+  OpDataTanh* data = static_cast<OpDataTanh*>(node->user_data);
+
+  return CalculateArithmeticOpDataTanh(context, node, data);
 }
 
 TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
@@ -51,28 +51,15 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      reference_ops::Tanh(tflite::micro::GetTensorShape(input),
-                          tflite::micro::GetTensorData<float>(input),
-                          tflite::micro::GetTensorShape(output),
-                          tflite::micro::GetTensorData<float>(output));
+      TanhEvalReference<float>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt16: {
-      reference_integer_ops::Tanh(
-          data.input_multiplier, data.input_left_shift,
-          tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<int16_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int16_t>(output));
+      TanhEvalReference<int16_t>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      reference_integer_ops::Tanh(
-          data.input_zero_point, data.input_range_radius, data.input_multiplier,
-          data.input_left_shift, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<int8_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int8_t>(output));
+      TanhEvalReference<int8_t>(data, input, output);
       return kTfLiteOk;
     }
     default: {

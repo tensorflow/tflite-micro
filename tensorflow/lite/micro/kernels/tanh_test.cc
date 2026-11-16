@@ -348,7 +348,7 @@ TEST(TanhTest, TestTanhInt16PotScale) {
   tflite::testing::TestTanhQuantized<int16_t>(
       input_shape, tanh_input_vec_fp, input_quantized, input_scale,
       input_zero_point, tanh_output_vec_fp, expected_output_quantized,
-      output_shape, output_scale, output_zero_point, output_quantized, 16);
+      output_shape, output_scale, output_zero_point, output_quantized, 4);
 }
 
 TF_LITE_MICRO_TESTS_MAIN

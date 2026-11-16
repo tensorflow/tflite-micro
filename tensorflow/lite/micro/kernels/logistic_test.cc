@@ -302,7 +302,7 @@ TEST(LogisticTest, LogisticQuantizedInt16PotScaleShouldMatchGolden) {
       input_quantized, input_scale, input_zero_point,
       tflite::testing::golden_basic, golden_quantized,
       tflite::testing::shape_basic, output_scale, output_zero_point,
-      output_data, 16.0f);
+      output_data, 1.0f);
 }
 
 TF_LITE_MICRO_TESTS_MAIN

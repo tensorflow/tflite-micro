@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_LOGISTIC_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_LOGISTIC_H_
 
+#include <cstddef>
 #include <cstdint>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
@@ -28,17 +29,25 @@ inline constexpr int kLogisticInputTensor = 0;
 inline constexpr int kLogisticOutputTensor = 0;
 
 struct OpDataLogistic {
-  int32_t input_zero_point = 0;
-  int32_t input_range_radius = 0;
-  int32_t input_multiplier = 0;
-  int input_left_shift = 0;
+  int32_t input_zero_point;
+  int32_t input_range_radius;
+  int32_t input_multiplier;
+  int input_left_shift;
 };
 
 TfLiteStatus CalculateArithmeticOpDataLogistic(TfLiteContext* context,
                                                TfLiteNode* node,
                                                OpDataLogistic* data);
 
-TfLiteStatus LogisticPrepare(TfLiteContext* context, TfLiteNode* node);
+void* LogisticInitReference(TfLiteContext* context, const char* buffer,
+                            size_t length);
+
+TfLiteStatus LogisticPrepareReference(TfLiteContext* context, TfLiteNode* node);
+
+template <typename T>
+void LogisticEvalReference(const OpDataLogistic& data,
+                           const TfLiteEvalTensor* input,
+                           TfLiteEvalTensor* output);
 
 }  // namespace micro
 using micro::kLogisticInputTensor;

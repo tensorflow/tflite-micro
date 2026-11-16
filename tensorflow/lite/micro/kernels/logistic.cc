@@ -15,14 +15,9 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/logistic.h"
 
-#include <cstddef>
 #include <cstdint>
-#include <new>
 
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/logistic.h"
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -30,16 +25,6 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 namespace {
-
-void* LogisticInit(TfLiteContext* context, const char* buffer, size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
-  void* data =
-      context->AllocatePersistentBuffer(context, sizeof(OpDataLogistic));
-  if (data == nullptr) {
-    return nullptr;
-  }
-  return new (data) OpDataLogistic();
-}
 
 TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
@@ -53,26 +38,15 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      reference_ops::Logistic(tflite::micro::GetTensorShape(input),
-                              tflite::micro::GetTensorData<float>(input),
-                              tflite::micro::GetTensorShape(output),
-                              tflite::micro::GetTensorData<float>(output));
+      LogisticEvalReference<float>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt16: {
-      reference_integer_ops::Logistic(
-          data.input_multiplier, data.input_left_shift,
-          NumElements(input->dims),
-          tflite::micro::GetTensorData<int16_t>(input),
-          tflite::micro::GetTensorData<int16_t>(output));
+      LogisticEvalReference<int16_t>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      reference_integer_ops::Logistic(
-          data.input_zero_point, data.input_range_radius, data.input_multiplier,
-          data.input_left_shift, NumElements(input->dims),
-          tflite::micro::GetTensorData<int8_t>(input),
-          tflite::micro::GetTensorData<int8_t>(output));
+      LogisticEvalReference<int8_t>(data, input, output);
       return kTfLiteOk;
     }
     default: {
@@ -89,7 +63,8 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_LOGISTIC() {
-  return tflite::micro::RegisterOp(LogisticInit, LogisticPrepare, LogisticEval);
+  return tflite::micro::RegisterOp(LogisticInitReference,
+                                   LogisticPrepareReference, LogisticEval);
 }
 }  // namespace micro
 }  // namespace tflite

@@ -21,8 +21,6 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/tanh.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/tanh.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/kernels/xtensa/xtensa.h"
@@ -46,24 +44,19 @@ inline constexpr int kInt8LutEntries = 256;
 struct OpDataTanhXtensa {
   OpDataTanh reference_op_data;
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  int8_t* tanh_lut = nullptr;
+  int8_t* tanh_lut;
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
         // defined(HIFI_IQ)
 };
 
-void* XtensaTanhInit(TfLiteContext* context, const char* buffer,
-                     size_t length) {
-  TFLITE_DCHECK(context->AllocatePersistentBuffer != nullptr);
+void* TanhInit(TfLiteContext* context, const char* buffer, size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataTanhXtensa));
-  if (data == nullptr) {
-    return nullptr;
-  }
   return new (data) OpDataTanhXtensa();
 }
 
-TfLiteStatus XtensaTanhPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
+TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
   OpDataTanhXtensa* data = static_cast<OpDataTanhXtensa*>(node->user_data);
 
   TF_LITE_ENSURE_OK(context, CalculateArithmeticOpDataTanh(
@@ -92,10 +85,7 @@ TfLiteStatus XtensaTanhPrepare(TfLiteContext* context, TfLiteNode* node) {
   }
 #endif  // defined(USE_HIFI_ACT_TIE) && ...
 
-  const TfLiteType input_type = input->type;
-  micro_context->DeallocateTempTfLiteTensor(input);
-
-  if (input_type == kTfLiteInt8) {
+  if (input->type == kTfLiteInt8) {
     data->tanh_lut = static_cast<int8_t*>(context->AllocatePersistentBuffer(
         context, kInt8LutEntries * sizeof(int8_t)));
     TF_LITE_ENSURE(context, data->tanh_lut != nullptr);
@@ -107,9 +97,9 @@ TfLiteStatus XtensaTanhPrepare(TfLiteContext* context, TfLiteNode* node) {
                                    data->reference_op_data.input_multiplier,
                                    data->reference_op_data.input_left_shift),
         0);
-  } else {
-    data->tanh_lut = nullptr;
   }
+
+  micro_context->DeallocateTempTfLiteTensor(input);
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
         // defined(HIFI_IQ)
 
@@ -129,10 +119,7 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      reference_ops::Tanh(tflite::micro::GetTensorShape(input),
-                          tflite::micro::GetTensorData<float>(input),
-                          tflite::micro::GetTensorShape(output),
-                          tflite::micro::GetTensorData<float>(output));
+      TanhEvalReference<float>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt16: {
@@ -146,18 +133,12 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteError;
       }
 #else
-      reference_integer_ops::Tanh(
-          data.input_multiplier, data.input_left_shift,
-          tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<int16_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int16_t>(output));
+      TanhEvalReference<int16_t>(data, input, output);
 #endif  // defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-      TFLITE_DCHECK(xtensa_data.tanh_lut != nullptr);
       const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
       int err = xa_nn_vec_apply_lut_asym8s_asym8s(
           tflite::micro::GetTensorData<int8_t>(output),
@@ -167,12 +148,7 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
         return kTfLiteError;
       }
 #else
-      reference_integer_ops::Tanh(
-          data.input_zero_point, data.input_range_radius, data.input_multiplier,
-          data.input_left_shift, tflite::micro::GetTensorShape(input),
-          tflite::micro::GetTensorData<int8_t>(input),
-          tflite::micro::GetTensorShape(output),
-          tflite::micro::GetTensorData<int8_t>(output));
+      TanhEvalReference<int8_t>(data, input, output);
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
         // defined(HIFI_IQ)
       return kTfLiteOk;
@@ -189,7 +165,7 @@ TfLiteStatus TanhEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_TANH() {
-  return tflite::micro::RegisterOp(XtensaTanhInit, XtensaTanhPrepare, TanhEval);
+  return tflite::micro::RegisterOp(TanhInit, TanhPrepare, TanhEval);
 }
 
 }  // namespace micro

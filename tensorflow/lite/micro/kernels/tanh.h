@@ -28,16 +28,18 @@ inline constexpr int kTanhInputTensor = 0;
 inline constexpr int kTanhOutputTensor = 0;
 
 struct OpDataTanh {
-  int32_t input_zero_point = 0;
-  int32_t input_range_radius = 0;
-  int32_t input_multiplier = 0;
-  int input_left_shift = 0;
+  int32_t input_zero_point;
+  int32_t input_range_radius;
+  int32_t input_multiplier;
+  int input_left_shift;
 };
 
 TfLiteStatus CalculateArithmeticOpDataTanh(TfLiteContext* context,
                                            TfLiteNode* node, OpDataTanh* data);
 
-TfLiteStatus TanhPrepare(TfLiteContext* context, TfLiteNode* node);
+template <typename T>
+void TanhEvalReference(const OpDataTanh& data, const TfLiteEvalTensor* input,
+                       TfLiteEvalTensor* output);
 
 }  // namespace micro
 using micro::kTanhInputTensor;
