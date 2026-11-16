@@ -138,6 +138,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/call_once.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/cast.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ceil.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ceil_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/circular_buffer.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/circular_buffer_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/comparisons.cc \
@@ -168,6 +169,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/exp.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/expand_dims.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fill.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/floor.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/floor_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/floor_div.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/floor_mod.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/fully_connected.cc \
@@ -213,6 +215,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_bilinear.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/resize_nearest_neighbor.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/reverse.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/slice.cc \

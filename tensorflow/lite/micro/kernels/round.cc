@@ -13,9 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/internal/reference/round.h"
+#include "tensorflow/lite/micro/kernels/round.h"
 
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
@@ -23,46 +22,16 @@ namespace tflite {
 namespace micro {
 namespace {
 
-constexpr int kInputTensor = 0;
-constexpr int kOutputTensor = 0;
-
-TfLiteStatus RoundPrepare(TfLiteContext* context, TfLiteNode* node) {
-  MicroContext* micro_context = GetMicroContext(context);
-
-  TfLiteTensor* input =
-      micro_context->AllocateTempInputTensor(node, kInputTensor);
-  TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* output =
-      micro_context->AllocateTempOutputTensor(node, kOutputTensor);
-  TF_LITE_ENSURE(context, output != nullptr);
-  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
-  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
-  TF_LITE_ENSURE_TYPES_EQ(context, output->type, input->type);
-  TF_LITE_ENSURE_EQ(context, output->bytes, input->bytes);
-  TF_LITE_ENSURE_EQ(context, output->dims->size, input->dims->size);
-  for (int i = 0; i < output->dims->size; ++i) {
-    TF_LITE_ENSURE_EQ(context, output->dims->data[i], input->dims->data[i]);
-  }
-
-  micro_context->DeallocateTempTfLiteTensor(input);
-  micro_context->DeallocateTempTfLiteTensor(output);
-  return kTfLiteOk;
-}
-
 TfLiteStatus RoundEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kRoundInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kRoundOutputTensor);
 
-  reference_ops::Round(tflite::micro::GetTensorShape(input),
-                       tflite::micro::GetTensorData<float>(input),
-                       tflite::micro::GetTensorShape(output),
-                       tflite::micro::GetTensorData<float>(output));
-
+  RoundEvalReference(input, output);
   return kTfLiteOk;
 }
+
 }  // namespace
 
 TFLMRegistration Register_ROUND() {

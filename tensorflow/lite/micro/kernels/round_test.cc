@@ -74,4 +74,19 @@ TEST(RoundTest, MultiDims) {
   tflite::testing::TestRound(input_dims, input_data, golden, output_data);
 }
 
+TEST(RoundTest, MultiElementVector) {
+  constexpr int kSize = 19;
+  int input_dims[] = {2, 1, kSize};
+  const float input_data[kSize] = {
+      -4.5f, -3.5f, -2.5f, -1.5f, -0.5f, 0.0f, 0.5f,  1.5f,  2.5f,  3.5f,
+      4.5f,  5.5f,  -2.3f, -2.7f, 2.3f,  2.7f, 10.5f, 11.5f, -7.2f,
+  };
+  const float golden[kSize] = {
+      -4.0f, -4.0f, -2.0f, -2.0f, 0.0f, 0.0f, 0.0f,  2.0f,  2.0f,  4.0f,
+      4.0f,  6.0f,  -2.0f, -3.0f, 2.0f, 3.0f, 10.0f, 12.0f, -7.0f,
+  };
+  float output_data[kSize];
+  tflite::testing::TestRound(input_dims, input_data, golden, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

@@ -77,4 +77,19 @@ TEST(CeilTest, MultiDims) {
   tflite::testing::TestCeil(input_dims, input_values, golden, output_data);
 }
 
+TEST(CeilTest, MultiElementVector) {
+  constexpr int kSize = 19;
+  float output_data[kSize];
+  int input_dims[] = {2, 1, kSize};
+  const float input_values[kSize] = {
+      -10.9f, -5.1f, -2.5f, -1.0f, -0.9f, -0.1f, 0.0f,  0.1f, 0.5f,   0.9f,
+      1.0f,   1.1f,  2.5f,  3.9f,  7.01f, 12.3f, -3.2f, 4.8f, -0.01f,
+  };
+  const float golden[kSize] = {
+      -10.0f, -5.0f, -2.0f, -1.0f, 0.0f, 0.0f,  0.0f,  1.0f, 1.0f, 1.0f,
+      1.0f,   2.0f,  3.0f,  4.0f,  8.0f, 13.0f, -3.0f, 5.0f, 0.0f,
+  };
+  tflite::testing::TestCeil(input_dims, input_values, golden, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN
