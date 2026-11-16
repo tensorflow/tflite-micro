@@ -370,4 +370,93 @@ TEST(ActivationsTest, SimpleRelu6TestInt16) {
                                   output_zero_point, output_data);
 }
 
+TEST(ActivationsTest, ReluMultiElementFloat) {
+  constexpr int kElementsCount = 21;
+  int input_shape[] = {2, 3, 7};
+  const float input_data[kElementsCount] = {
+      -10.0f, -5.5f, -1.0f, -0.25f, 0.0f,  0.25f, 1.0f,
+      2.5f,   5.0f,  10.0f, -3.0f,  4.0f,  -0.5f, 0.5f,
+      -8.0f,  8.0f,  -2.0f, 2.0f,   -0.1f, 0.1f,  7.5f,
+  };
+  const float golden[kElementsCount] = {
+      0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.25f, 1.0f, 2.5f, 5.0f, 10.0f, 0.0f,
+      4.0f, 0.0f, 0.5f, 0.0f, 8.0f, 0.0f,  2.0f, 0.0f, 0.1f, 7.5f,
+  };
+  int output_shape[] = {2, 3, 7};
+  float output_data[kElementsCount];
+  tflite::testing::TestReluFloat(input_shape, input_data, output_shape, golden,
+                                 output_data);
+}
+
+TEST(ActivationsTest, ReluMultiElementInt8Asymmetric) {
+  constexpr int kElementsCount = 21;
+  int input_shape[] = {2, 3, 7};
+  const float input_data[kElementsCount] = {
+      -8.0f, -4.0f, -1.5f, -0.25f, 0.0f, 0.25f, 0.5f, 1.0f,  2.0f,  3.5f,  5.0f,
+      7.5f,  10.0f, 12.0f, -6.0f,  6.0f, -2.5f, 2.5f, -0.5f, 1.25f, 15.0f,
+  };
+  const float golden[kElementsCount] = {
+      0.0f, 0.0f,  0.0f,  0.0f, 0.0f, 0.25f, 0.5f, 1.0f, 2.0f,  3.5f,  5.0f,
+      7.5f, 10.0f, 12.0f, 0.0f, 6.0f, 0.0f,  2.5f, 0.0f, 1.25f, 15.0f,
+  };
+  int8_t input_quantized[kElementsCount];
+  int output_shape[] = {2, 3, 7};
+  int8_t golden_quantized[kElementsCount];
+  int8_t output_data[kElementsCount];
+
+  const float input_scale = 0.25f;
+  const int input_zero_point = -10;
+  const float output_scale = 0.125f;
+  const int output_zero_point = -128;
+
+  tflite::testing::TestReluInt8(input_shape, input_data, input_quantized,
+                                input_scale, input_zero_point, golden,
+                                golden_quantized, output_shape, output_scale,
+                                output_zero_point, output_data);
+}
+
+TEST(ActivationsTest, Relu6MultiElementFloat) {
+  constexpr int kElementsCount = 21;
+  int input_shape[] = {2, 3, 7};
+  const float input_data[kElementsCount] = {
+      -8.0f, -3.5f, -0.1f, 0.0f, 0.5f, 1.5f,  3.0f, 4.5f, 5.9f, 6.0f, 6.1f,
+      8.0f,  12.0f, -1.0f, 2.0f, 7.0f, -5.0f, 5.0f, 0.0f, 6.0f, 9.5f,
+  };
+  const float golden[kElementsCount] = {
+      0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 1.5f, 3.0f, 4.5f, 5.9f, 6.0f, 6.0f,
+      6.0f, 6.0f, 0.0f, 2.0f, 6.0f, 0.0f, 5.0f, 0.0f, 6.0f, 6.0f,
+  };
+  int output_shape[] = {2, 3, 7};
+  float output_data[kElementsCount];
+  tflite::testing::TestRelu6Float(input_shape, input_data, output_shape, golden,
+                                  output_data);
+}
+
+TEST(ActivationsTest, Relu6MultiElementInt8) {
+  constexpr int kElementsCount = 21;
+  int input_shape[] = {2, 3, 7};
+  const float input_data[kElementsCount] = {
+      -8.0f, -3.5f, -0.5f, 0.0f, 0.5f, 1.5f,  3.0f, 4.5f, 5.5f, 6.0f, 6.5f,
+      8.0f,  10.0f, -1.0f, 2.0f, 7.0f, -5.0f, 5.0f, 0.0f, 6.0f, 9.5f,
+  };
+  const float golden[kElementsCount] = {
+      0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 1.5f, 3.0f, 4.5f, 5.5f, 6.0f, 6.0f,
+      6.0f, 6.0f, 0.0f, 2.0f, 6.0f, 0.0f, 5.0f, 0.0f, 6.0f, 6.0f,
+  };
+  int8_t input_quantized[kElementsCount];
+  int output_shape[] = {2, 3, 7};
+  int8_t golden_quantized[kElementsCount];
+  int8_t output_data[kElementsCount];
+
+  const float input_scale = 0.125f;
+  const int input_zero_point = -20;
+  const float output_scale = 0.125f;
+  const int output_zero_point = -20;
+
+  tflite::testing::TestRelu6Int8(input_shape, input_data, input_quantized,
+                                 input_scale, input_zero_point, golden,
+                                 golden_quantized, output_shape, output_scale,
+                                 output_zero_point, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN
