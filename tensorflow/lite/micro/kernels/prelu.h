@@ -16,11 +16,18 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_PRELU_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_PRELU_H_
 
+#include <cstddef>
+
 #include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace micro {
+
+inline constexpr int kPreluInputTensor = 0;
+inline constexpr int kPreluAlphaTensor = 1;
+inline constexpr int kPreluOutputTensor = 0;
+
 TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
                                   const TfLiteTensor* alpha,
                                   TfLiteTensor* output, PreluParams* params);
@@ -32,7 +39,19 @@ void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
                                const RuntimeShape& unextended_output_shape,
                                float* output_data);
 
-TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node);
+void* PreluInitReference(TfLiteContext* context, const char* buffer,
+                         size_t length);
+
+TfLiteStatus PreparePreluParameters(TfLiteContext* context, TfLiteNode* node,
+                                    PreluParams* params);
+
+TfLiteStatus PreluPrepareReference(TfLiteContext* context, TfLiteNode* node);
+
+template <typename T>
+void PreluEvalReference(const PreluParams& params,
+                        const TfLiteEvalTensor* input,
+                        const TfLiteEvalTensor* alpha,
+                        TfLiteEvalTensor* output);
 
 }  // namespace micro
 }  // namespace tflite
