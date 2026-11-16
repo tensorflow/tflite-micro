@@ -35,9 +35,9 @@ TfLiteStatus NegEval(TfLiteContext* context, TfLiteNode* node) {
     case kTfLiteFloat32: {
 #if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
       const int flat_size = tflite::micro::GetTensorShape(input).FlatSize();
-      int err = xa_nn_elm_neg_f32_f32(tflite::micro::GetTensorData<float>(output),
-                                      tflite::micro::GetTensorData<float>(input),
-                                      flat_size);
+      int err = xa_nn_elm_neg_f32_f32(
+          tflite::micro::GetTensorData<float>(output),
+          tflite::micro::GetTensorData<float>(input), flat_size);
       if (err != 0) {
         return kTfLiteError;
       }
