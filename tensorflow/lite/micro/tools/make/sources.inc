@@ -195,6 +195,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mirror_pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/mul_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/neg.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/neg_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pack.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/pad_common.cc \
