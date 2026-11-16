@@ -33,16 +33,15 @@ inline constexpr int kInt8SoftmaxLutThreshold = 256;
         // defined(HIFI_IQ)
 
 struct XtensaSoftmaxOpData {
-  SoftmaxParams params{};
+  SoftmaxParams params;
 #if defined(HIFI3) || defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
-  int scratch_tensor_index = 0;
-  int32_t* softmax_lut = nullptr;
+  int scratch_tensor_index;
+  int32_t* softmax_lut;
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5) ||
         // defined(HIFI_IQ)
 #if defined(VISION_P6)
-  uint8_t* p_context =
-      nullptr;  // persistent lib context for this instance saved here
-  uint32_t context_size = 0;
+  uint8_t* p_context;  // persistent lib context for this instance saved here
+  uint32_t context_size;
 #endif  // defined(VISION_P6)
 };
 
