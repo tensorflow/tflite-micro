@@ -16,15 +16,26 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_HARD_SWISH_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_HARD_SWISH_H_
 
+#include <cstddef>
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
+#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
 namespace tflite {
 namespace micro {
-extern const int kHardSwishInputTensor;
-extern const int kHardSwishOutputTensor;
+
+inline constexpr int kHardSwishInputTensor = 0;
+inline constexpr int kHardSwishOutputTensor = 0;
+
+void* HardSwishInit(TfLiteContext* context, const char* buffer, size_t length);
 
 TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node);
+
+template <typename T>
+void HardSwishEvalReference(const HardSwishParams& params,
+                            const TfLiteEvalTensor* input,
+                            TfLiteEvalTensor* output);
 
 }  // namespace micro
 }  // namespace tflite

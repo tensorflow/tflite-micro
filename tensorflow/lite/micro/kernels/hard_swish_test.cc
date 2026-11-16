@@ -284,4 +284,75 @@ TEST(HardSwishTest, SimpleHardSwishTestInt8) {
   }
 }
 
+TEST(HardSwishTest, HardSwishTestInt8AsymmetricDeterministic) {
+  constexpr int kSize = 21;
+  constexpr float kInputMin = -6.0f;
+  constexpr float kInputMax = 6.0f;
+  constexpr float kOutputMin = -0.5f;
+  constexpr float kOutputMax = 6.0f;
+
+  float input_values[kSize] = {
+      -6.0f, -4.5f, -3.5f, -3.0f, -2.5f, -2.0f, -1.5f,
+      -1.0f, -0.5f, -0.1f, 0.0f,  0.1f,  0.5f,  1.0f,
+      1.5f,  2.0f,  2.5f,  3.0f,  3.5f,  4.5f,  6.0f,
+  };
+  float expected_values[kSize] = {0.0f};
+  for (int i = 0; i < kSize; ++i) {
+    const float in = input_values[i];
+    const float ref = in * std::clamp(in + 3.0f, 0.0f, 6.0f) * (1.0f / 6.0f);
+    expected_values[i] = std::clamp(ref, kOutputMin, kOutputMax);
+  }
+
+  const float input_scale =
+      tflite::testing::ScaleFromMinMax<int8_t>(kInputMin, kInputMax);
+  const int input_zero_point =
+      tflite::testing::ZeroPointFromMinMax<int8_t>(kInputMin, kInputMax);
+  const float output_scale =
+      tflite::testing::ScaleFromMinMax<int8_t>(kOutputMin, kOutputMax);
+  const int output_zero_point =
+      tflite::testing::ZeroPointFromMinMax<int8_t>(kOutputMin, kOutputMax);
+  const float tolerance =
+      std::max(kInputMax - kInputMin, kOutputMax - kOutputMin) *
+      (1.5f / 256.0f);
+
+  int input_dims_data[] = {2, 3, 7};
+  int output_dims_data[] = {2, 3, 7};
+  TfLiteIntArray* input_dims =
+      tflite::testing::IntArrayFromInts(input_dims_data);
+  TfLiteIntArray* output_dims =
+      tflite::testing::IntArrayFromInts(output_dims_data);
+
+  int8_t input_quantized[kSize] = {0};
+  int8_t output_quantized[kSize] = {0};
+  float dequantized_output[kSize] = {0.0f};
+
+  TfLiteTensor tensors[2] = {
+      tflite::testing::CreateQuantizedTensor(input_values, input_quantized,
+                                             input_dims, input_scale,
+                                             input_zero_point),
+      tflite::testing::CreateQuantizedTensor(output_quantized, output_dims,
+                                             output_scale, output_zero_point),
+  };
+
+  int inputs_array_data[] = {1, 0};
+  TfLiteIntArray* inputs_array =
+      tflite::testing::IntArrayFromInts(inputs_array_data);
+  int outputs_array_data[] = {1, 1};
+  TfLiteIntArray* outputs_array =
+      tflite::testing::IntArrayFromInts(outputs_array_data);
+
+  const TFLMRegistration registration = tflite::Register_HARD_SWISH();
+  tflite::micro::KernelRunner runner(registration, tensors, 2, inputs_array,
+                                     outputs_array, /*builtin_data=*/nullptr);
+
+  EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
+  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+
+  tflite::Dequantize<int8_t>(output_quantized, kSize, output_scale,
+                             output_zero_point, dequantized_output);
+  for (int i = 0; i < kSize; ++i) {
+    EXPECT_NEAR(expected_values[i], dequantized_output[i], tolerance);
+  }
+}
+
 TF_LITE_MICRO_TESTS_MAIN

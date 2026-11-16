@@ -13,6 +13,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstddef>
+#include <cstdint>
+#include <new>
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/hard_swish.h"
@@ -27,13 +31,17 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-const int kHardSwishInputTensor = 0;
-const int kHardSwishOutputTensor = 0;
+
+void* HardSwishInit(TfLiteContext* context, const char* buffer, size_t length) {
+  void* data =
+      context->AllocatePersistentBuffer(context, sizeof(HardSwishParams));
+  return new (data) HardSwishParams();
+}
 
 TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
   MicroContext* micro_context = GetMicroContext(context);
 
-  TFLITE_DCHECK(node->user_data != nullptr);
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
@@ -43,6 +51,9 @@ TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kHardSwishOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context, HaveSameShapes(input, output));
 
   if (input->type == kTfLiteInt8) {
     HardSwishParams* params = static_cast<HardSwishParams*>(node->user_data);
@@ -80,6 +91,28 @@ TfLiteStatus HardSwishPrepare(TfLiteContext* context, TfLiteNode* node) {
   micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
+}
+
+template <>
+void HardSwishEvalReference<float>(const HardSwishParams& params,
+                                   const TfLiteEvalTensor* input,
+                                   TfLiteEvalTensor* output) {
+  tflite::micro::reference_ops::HardSwish<float>(
+      tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<float>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<float>(output));
+}
+
+template <>
+void HardSwishEvalReference<int8_t>(const HardSwishParams& params,
+                                    const TfLiteEvalTensor* input,
+                                    TfLiteEvalTensor* output) {
+  tflite::micro::reference_ops::HardSwish<int8_t>(
+      params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int8_t>(input),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int8_t>(output));
 }
 
 }  // namespace micro
