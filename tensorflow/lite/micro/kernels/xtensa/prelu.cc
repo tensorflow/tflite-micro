@@ -92,8 +92,8 @@ TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE(context, node->user_data != nullptr);
   OpDataPreluXtensa* data = static_cast<OpDataPreluXtensa*>(node->user_data);
 
-  TF_LITE_ENSURE_OK(context, PreparePreluParameters(context, node,
-                                                    &data->reference_op_data));
+  TF_LITE_ENSURE_OK(
+      context, PreparePreluParameters(context, node, &data->reference_op_data));
 
 #if defined(HIFI4) || defined(HIFI5) || defined(HIFI_IQ)
   data->requires_alpha_broadcast = false;
@@ -158,10 +158,9 @@ TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node) {
   }
 
   if (!MatchesExtents(data->alpha_dims, data->output_dims, max_dims)) {
-    TF_LITE_ENSURE_OK(
-        context, context->RequestScratchBufferInArena(
-                     context, flat_size * sizeof(int8_t),
-                     &data->scratch_tensor_index));
+    TF_LITE_ENSURE_OK(context, context->RequestScratchBufferInArena(
+                                   context, flat_size * sizeof(int8_t),
+                                   &data->scratch_tensor_index));
     data->broadcast_dims = max_dims;
     data->requires_alpha_broadcast = true;
   }
@@ -196,9 +195,9 @@ TfLiteStatus PreluEval(TfLiteContext* context, TfLiteNode* node) {
       if (xtensa_data.use_nnlib) {
         const int8_t* alpha_data = tflite::micro::GetTensorData<int8_t>(alpha);
         if (xtensa_data.requires_alpha_broadcast) {
-          int8_t* alpha_broadcasted = static_cast<int8_t*>(
-              context->GetScratchBuffer(context,
-                                        xtensa_data.scratch_tensor_index));
+          int8_t* alpha_broadcasted =
+              static_cast<int8_t*>(context->GetScratchBuffer(
+                  context, xtensa_data.scratch_tensor_index));
           if (alpha_broadcasted == nullptr) {
             return kTfLiteError;
           }
