@@ -40,6 +40,9 @@ struct CMSISNNSoftmaxParams {
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(CMSISNNSoftmaxParams));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) CMSISNNSoftmaxParams();
 }
 

@@ -127,6 +127,9 @@ void* XtensaInitSoftmax(TfLiteContext* context, const char* buffer,
 #endif  // defined(VISION_P6)
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(XtensaSoftmaxOpData));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) XtensaSoftmaxOpData();
 }
 
