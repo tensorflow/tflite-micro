@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include "tensorflow/lite/micro/kernels/softmax.h"
+
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/kernels/kernel_runner.h"
 #include "tensorflow/lite/micro/micro_common.h"
@@ -242,9 +244,10 @@ const float golden_4d[] = {
     0.268866557, 0.000033181, 0.730855076, 0.000000011, 0.000245175};
 
 template <typename T>
-void ValidateSoftmaxGoldens(TfLiteTensor* tensors, const int tensor_count,
-                            T* output_data, const T* expected_output,
-                            int output_dims_count, float tolerance) {
+void ValidateSoftmaxGoldens(
+    TfLiteTensor* tensors, const int tensor_count, T* output_data,
+    const T* expected_output, int output_dims_count, float tolerance,
+    TFLMRegistration registration = Register_SOFTMAX()) {
   TfLiteSoftmaxParams builtin_data = {1.0f};
 
   int inputs_array_data[] = {1, 0};
@@ -252,7 +255,6 @@ void ValidateSoftmaxGoldens(TfLiteTensor* tensors, const int tensor_count,
   int outputs_array_data[] = {1, 1};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TFLMRegistration registration = Register_SOFTMAX();
   micro::KernelRunner runner(registration, tensors, tensor_count, inputs_array,
                              outputs_array, &builtin_data);
 
@@ -266,7 +268,8 @@ void ValidateSoftmaxGoldens(TfLiteTensor* tensors, const int tensor_count,
 
 void TestSoftmaxFloat(int* input_dims_data, const float* input_data,
                       int* output_dims_data, const float* expected_output_data,
-                      float* output_data) {
+                      float* output_data,
+                      TFLMRegistration registration = Register_SOFTMAX()) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
@@ -280,7 +283,8 @@ void TestSoftmaxFloat(int* input_dims_data, const float* input_data,
   };
 
   ValidateSoftmaxGoldens(tensors, tensors_size, output_data,
-                         expected_output_data, output_dims_count, 1e-5);
+                         expected_output_data, output_dims_count, 1e-5,
+                         registration);
 }
 
 template <typename inputT, typename outputT>
@@ -289,7 +293,8 @@ void TestSoftmaxQuantized(int* input_dims_data, const float* input_data,
                           int input_zero_point, int* output_dims_data,
                           const float* golden, outputT* golden_quantized,
                           float output_scale, int output_zero_point,
-                          outputT* output_data, float tolerance = 1.0) {
+                          outputT* output_data, float tolerance = 1.0,
+                          TFLMRegistration registration = Register_SOFTMAX()) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int output_dims_count = ElementCount(*output_dims);
@@ -308,7 +313,7 @@ void TestSoftmaxQuantized(int* input_dims_data, const float* input_data,
            output_zero_point);
 
   ValidateSoftmaxGoldens(tensors, tensors_size, output_data, golden_quantized,
-                         output_dims_count, tolerance);
+                         output_dims_count, tolerance, registration);
 }
 
 }  // namespace
@@ -479,6 +484,104 @@ TEST(SoftmaxTest, Softmax2DQuantizedInt8InputInt16OutputShouldMatchGolden) {
       input_quantized, input_scale, input_zero_point, tflite::testing::shape_2d,
       tflite::testing::golden_2d, golden_quantized, output_scale,
       output_zero_point, output_data);
+}
+
+TEST(SoftmaxTest, SoftmaxLargeQuantizedInt8ShouldMatchGolden) {
+  constexpr int kOuterSize = 12;
+  constexpr int kRepeatsPerRow = 5;
+  constexpr int kBaseDepth = 5;
+  constexpr int kDepth = kBaseDepth * kRepeatsPerRow;  // 25
+  constexpr int kFlatSize = kOuterSize * kDepth;       // 300 > 256
+  int shape[] = {2, kOuterSize, kDepth};
+
+  float input_data[kFlatSize];
+  float golden_data[kFlatSize];
+  for (int r = 0; r < kOuterSize; ++r) {
+    const int src_offset = (r % 2) * kBaseDepth;
+    for (int rep = 0; rep < kRepeatsPerRow; ++rep) {
+      for (int c = 0; c < kBaseDepth; ++c) {
+        const int idx = r * kDepth + rep * kBaseDepth + c;
+        input_data[idx] = tflite::testing::input_data_2d[src_offset + c];
+        golden_data[idx] =
+            tflite::testing::golden_2d[src_offset + c] / kRepeatsPerRow;
+      }
+    }
+  }
+
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+  int8_t input_quantized[kFlatSize];
+  int8_t golden_quantized[kFlatSize];
+  int8_t output_data[kFlatSize];
+
+  tflite::testing::TestSoftmaxQuantized(
+      shape, input_data, input_quantized, input_scale, input_zero_point, shape,
+      golden_data, golden_quantized, tflite::testing::output_scale_int8,
+      tflite::testing::output_zero_point_int8, output_data, 1.0f,
+      tflite::Register_SOFTMAX());
+
+  tflite::testing::TestSoftmaxQuantized(
+      shape, input_data, input_quantized, input_scale, input_zero_point, shape,
+      golden_data, golden_quantized, tflite::testing::output_scale_int8,
+      tflite::testing::output_zero_point_int8, output_data, 1.0f,
+      tflite::Register_SOFTMAX_INT8());
+}
+
+TEST(SoftmaxTest, SoftmaxSpecializedFloat32ShouldMatchGolden) {
+  float output_data[tflite::testing::flat_size_4d];
+  tflite::testing::TestSoftmaxFloat(
+      tflite::testing::shape_4d, tflite::testing::input_data_4d,
+      tflite::testing::shape_4d, tflite::testing::golden_4d, output_data,
+      tflite::Register_SOFTMAX_FLOAT32());
+}
+
+TEST(SoftmaxTest, SoftmaxSpecializedInt8ShouldMatchGolden) {
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+
+  int8_t input_quantized[tflite::testing::flat_size_4d];
+  int8_t golden_quantized[tflite::testing::flat_size_4d];
+  int8_t output_data[tflite::testing::flat_size_4d];
+  tflite::testing::TestSoftmaxQuantized(
+      tflite::testing::shape_4d, tflite::testing::input_data_4d,
+      input_quantized, input_scale, input_zero_point, tflite::testing::shape_4d,
+      tflite::testing::golden_4d, golden_quantized,
+      tflite::testing::output_scale_int8,
+      tflite::testing::output_zero_point_int8, output_data, 1.0f,
+      tflite::Register_SOFTMAX_INT8());
+}
+
+TEST(SoftmaxTest, SoftmaxSpecializedInt16ShouldMatchGolden) {
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+
+  int16_t input_quantized[tflite::testing::flat_size_4d];
+  int16_t golden_quantized[tflite::testing::flat_size_4d];
+  int16_t output_data[tflite::testing::flat_size_4d];
+  tflite::testing::TestSoftmaxQuantized(
+      tflite::testing::shape_4d, tflite::testing::input_data_4d,
+      input_quantized, input_scale, input_zero_point, tflite::testing::shape_4d,
+      tflite::testing::golden_4d, golden_quantized,
+      tflite::testing::output_scale_int16,
+      tflite::testing::output_zero_point_int16, output_data,
+      tflite::testing::tolerance_int16, tflite::Register_SOFTMAX_INT16());
+}
+
+TEST(SoftmaxTest, SoftmaxSpecializedInt8Int16ShouldMatchGolden) {
+  const float input_scale = 0.1f;
+  const int input_zero_point = 0;
+  const float output_scale = 1.0f / 65536.0f;
+  const int output_zero_point = -32768;
+
+  int8_t input_quantized[tflite::testing::flat_size_2d];
+  int16_t golden_quantized[tflite::testing::flat_size_2d];
+  int16_t output_data[tflite::testing::flat_size_2d];
+  tflite::testing::TestSoftmaxQuantized(
+      tflite::testing::shape_2d, tflite::testing::input_data_2d,
+      input_quantized, input_scale, input_zero_point, tflite::testing::shape_2d,
+      tflite::testing::golden_2d, golden_quantized, output_scale,
+      output_zero_point, output_data, 1.0f,
+      tflite::Register_SOFTMAX_INT8_INT16());
 }
 
 TF_LITE_MICRO_TESTS_MAIN

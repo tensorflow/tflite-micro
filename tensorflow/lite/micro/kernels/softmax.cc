@@ -55,11 +55,14 @@ void SoftmaxQuantized(const TfLiteEvalTensor* input, TfLiteEvalTensor* output,
 }
 
 TfLiteStatus SoftmaxEval(TfLiteContext* context, TfLiteNode* node) {
-  const TfLiteEvalTensor* input = tflite::micro::GetEvalInput(context, node, 0);
-  TfLiteEvalTensor* output = tflite::micro::GetEvalOutput(context, node, 0);
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kSoftmaxInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kSoftmaxOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  SoftmaxParams op_data = *static_cast<SoftmaxParams*>(node->user_data);
+  const SoftmaxParams& op_data =
+      *static_cast<const SoftmaxParams*>(node->user_data);
 
   switch (input->type) {
     case kTfLiteFloat32: {

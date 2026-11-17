@@ -21,6 +21,10 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+
+inline constexpr int kSoftmaxInputTensor = 0;
+inline constexpr int kSoftmaxOutputTensor = 0;
+
 void* SoftmaxInit(TfLiteContext* context, const char* buffer, size_t length);
 
 // Common helper function to SoftmaxPrepare.
@@ -47,7 +51,7 @@ inline TFLMRegistration Register_SOFTMAX_INT8_INT16() {
 }
 #endif
 
-#if defined(CMSIS_NN)
+#if defined(CMSIS_NN) || defined(XTENSA)
 // Returns a TFLMRegistration struct for kernel variant that only supports
 // int8 input/output and uses the latency optimized implementations.
 TFLMRegistration Register_SOFTMAX_INT8();
@@ -62,8 +66,21 @@ inline TFLMRegistration Register_SOFTMAX_INT8() { return Register_SOFTMAX(); }
 inline TFLMRegistration Register_SOFTMAX_INT16() { return Register_SOFTMAX(); }
 #endif
 
+#if defined(XTENSA)
+// Returns a TFLMRegistration struct for kernel variant that only supports
+// float32 input/output.
+TFLMRegistration Register_SOFTMAX_FLOAT32();
+#else
+inline TFLMRegistration Register_SOFTMAX_FLOAT32() {
+  return Register_SOFTMAX();
+}
+#endif
+
 }  // namespace micro
+using micro::kSoftmaxInputTensor;
+using micro::kSoftmaxOutputTensor;
 using micro::Register_SOFTMAX;
+using micro::Register_SOFTMAX_FLOAT32;
 using micro::Register_SOFTMAX_INT16;
 using micro::Register_SOFTMAX_INT8;
 using micro::Register_SOFTMAX_INT8_INT16;

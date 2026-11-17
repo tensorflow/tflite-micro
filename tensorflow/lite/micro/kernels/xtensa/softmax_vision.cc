@@ -36,9 +36,11 @@ TfLiteStatus SoftmaxPrepareVision(TfLiteContext* context, TfLiteNode* node) {
       reinterpret_cast<XtensaSoftmaxOpData*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kSoftmaxOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kSoftmaxInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
 
   uint32_t context_size = 0;
