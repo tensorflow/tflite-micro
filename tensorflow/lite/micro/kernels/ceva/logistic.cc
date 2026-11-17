@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/internal/reference/integer_ops/logistic.h"
+#include "tensorflow/lite/micro/kernels/logistic.h"
+
+#include <cstdint>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
@@ -21,10 +23,8 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/ceva/ceva_tflm_lib.h"
 #include "tensorflow/lite/micro/kernels/internal/common.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/micro/kernels/internal/reference/logistic.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
-#include "tensorflow/lite/micro/kernels/logistic.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
 
@@ -36,10 +36,6 @@ namespace tflite {
 namespace micro {
 namespace {
 
-void* LogisticInit(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(OpDataLogistic));
-}
-
 TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
       tflite::micro::GetEvalInput(context, node, kLogisticInputTensor);
@@ -47,92 +43,67 @@ TfLiteStatus LogisticEval(TfLiteContext* context, TfLiteNode* node) {
       tflite::micro::GetEvalOutput(context, node, kLogisticOutputTensor);
 
   TFLITE_DCHECK(node->user_data != nullptr);
-  OpDataLogistic* data = static_cast<OpDataLogistic*>(node->user_data);
+  const OpDataLogistic* data =
+      static_cast<const OpDataLogistic*>(node->user_data);
 
   if (input->type == kTfLiteFloat32) {
-    switch (output->type) {
-      case kTfLiteFloat32: {
 #if defined(CEVA_BX1) || defined(CEVA_SP500)
-
-        const float* input_data = tflite::micro::GetTensorData<float>(input);
-        float* output_data = tflite::micro::GetTensorData<float>(output);
-        const int flat_size =
-            MatchingFlatSize(tflite::micro::GetTensorShape(input),
-                             tflite::micro::GetTensorShape(output));
+    const float* input_data = tflite::micro::GetTensorData<float>(input);
+    float* output_data = tflite::micro::GetTensorData<float>(output);
+    const int flat_size =
+        MatchingFlatSize(tflite::micro::GetTensorShape(input),
+                         tflite::micro::GetTensorShape(output));
 #ifdef MCPS_MEASUREMENT
-        MCPS_START_ONE;
+    MCPS_START_ONE;
 #endif
-        CEVA_TFLM_Logistic_float32(input_data, output_data, flat_size);
+    CEVA_TFLM_Logistic_float32(input_data, output_data, flat_size);
 #ifdef MCPS_MEASUREMENT
-        MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_float32 loop = %d",
-                      flat_size);
+    MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_float32 loop = %d",
+                  flat_size);
 #endif
-
 #else
-        reference_ops::Logistic(tflite::micro::GetTensorShape(input),
-                                tflite::micro::GetTensorData<float>(input),
-                                tflite::micro::GetTensorShape(output),
-                                tflite::micro::GetTensorData<float>(output));
+    LogisticEvalReference<float>(*data, input, output);
 #endif  // ceva platform
-        return kTfLiteOk;
-      }
-      default:
-        MicroPrintf("Input %s, output %s not supported.",
-                    TfLiteTypeGetName(input->type),
-                    TfLiteTypeGetName(output->type));
-        return kTfLiteError;
-    }
+    return kTfLiteOk;
   } else if (input->type == kTfLiteInt8) {
-    switch (output->type) {
-      case kTfLiteInt8: {
 #if defined(CEVA_BX1) || defined(CEVA_SP500)
-        int32_t input_zero_point = data->input_zero_point;
-        int32_t input_range_radius = data->input_range_radius;
-        int32_t input_multiplier = data->input_multiplier;
-        int32_t input_left_shift = data->input_left_shift;
-        int32_t input_size = NumElements(input->dims);
-        const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
-        int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
+    int32_t input_zero_point = data->input_zero_point;
+    int32_t input_range_radius = data->input_range_radius;
+    int32_t input_multiplier = data->input_multiplier;
+    int32_t input_left_shift = data->input_left_shift;
+    int32_t input_size = NumElements(input->dims);
+    const int8_t* input_data = tflite::micro::GetTensorData<int8_t>(input);
+    int8_t* output_data = tflite::micro::GetTensorData<int8_t>(output);
 
 #ifdef MCPS_MEASUREMENT
-        MCPS_START_ONE;
+    MCPS_START_ONE;
 #endif
-        CEVA_TFLM_Logistic_Int8(input_zero_point, input_range_radius,
-                                input_multiplier, input_left_shift, input_size,
-                                input_data, output_data);
+    CEVA_TFLM_Logistic_Int8(input_zero_point, input_range_radius,
+                            input_multiplier, input_left_shift, input_size,
+                            input_data, output_data);
 #ifdef MCPS_MEASUREMENT
-        MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_Int8 loop = %d",
-                      input_size);
+    MCPS_STOP_ONE("Test params:CEVA_TFLM_Logistic_Int8 loop = %d", input_size);
 #endif
 #else
-        reference_integer_ops::Logistic(
-            data->input_zero_point, data->input_range_radius,
-            data->input_multiplier, data->input_left_shift,
-            NumElements(input->dims),
-            tflite::micro::GetTensorData<int8_t>(input),
-            tflite::micro::GetTensorData<int8_t>(output));
+    LogisticEvalReference<int8_t>(*data, input, output);
 #endif  // ceva platform
-        return kTfLiteOk;
-      }
-      default:
-        MicroPrintf("Input %s, output %s not supported.",
-                    TfLiteTypeGetName(input->type),
-                    TfLiteTypeGetName(output->type));
-        return kTfLiteError;
-    }
+    return kTfLiteOk;
+  } else if (input->type == kTfLiteInt16) {
+    LogisticEvalReference<int16_t>(*data, input, output);
+    return kTfLiteOk;
   } else {
     MicroPrintf("Input %s, output %s not supported.",
                 TfLiteTypeGetName(input->type),
                 TfLiteTypeGetName(output->type));
     return kTfLiteError;
   }
-  return kTfLiteOk;
 }
 
 }  // namespace
 
 TFLMRegistration Register_LOGISTIC() {
-  return tflite::micro::RegisterOp(LogisticInit, LogisticPrepare, LogisticEval);
+  return tflite::micro::RegisterOp(LogisticInitReference,
+                                   LogisticPrepareReference, LogisticEval);
 }
 }  // namespace micro
 }  // namespace tflite
