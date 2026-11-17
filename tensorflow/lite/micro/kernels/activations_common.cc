@@ -84,6 +84,9 @@ void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
 
 void* ReluInit(TfLiteContext* context, const char* buffer, size_t length) {
   void* data = context->AllocatePersistentBuffer(context, sizeof(ReluOpData));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) ReluOpData();
 }
 
@@ -150,6 +153,9 @@ void ReluEvalReference<int16_t>(const ReluOpData& data,
 
 void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length) {
   void* data = context->AllocatePersistentBuffer(context, sizeof(Relu6OpData));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) Relu6OpData();
 }
 
