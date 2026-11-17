@@ -52,6 +52,9 @@ struct OpDataTanhXtensa {
 void* TanhInit(TfLiteContext* context, const char* buffer, size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataTanhXtensa));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) OpDataTanhXtensa();
 }
 

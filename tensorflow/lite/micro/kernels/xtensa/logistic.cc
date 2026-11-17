@@ -52,6 +52,9 @@ struct OpDataLogisticXtensa {
 void* LogisticInit(TfLiteContext* context, const char* buffer, size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataLogisticXtensa));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) OpDataLogisticXtensa();
 }
 

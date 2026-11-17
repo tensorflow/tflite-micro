@@ -140,6 +140,9 @@ void* LogisticInitReference(TfLiteContext* context, const char* buffer,
                             size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataLogistic));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) OpDataLogistic();
 }
 
