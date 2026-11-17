@@ -141,6 +141,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/ceil.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/circular_buffer.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/circular_buffer_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/comparisons.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/comparisons_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/concatenation.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/conv_common.cc \

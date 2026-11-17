@@ -30,7 +30,8 @@ constexpr int outputs_size = 1;
 constexpr int tensors_size = inputs_size + outputs_size;
 
 void TestComparison(const TFLMRegistration& registration, TfLiteTensor* tensors,
-                    bool* expected_output_data, bool* output_data) {
+                    bool* expected_output_data, bool* output_data,
+                    TfLiteStatus expected_invoke_status = kTfLiteOk) {
   const int output_dims_count = ElementCount(*tensors[inputs_size].dims);
 
   int inputs_array_data[] = {2, 0, 1};
@@ -42,10 +43,12 @@ void TestComparison(const TFLMRegistration& registration, TfLiteTensor* tensors,
                              outputs_array, /*builtin_data=*/nullptr);
 
   EXPECT_EQ(kTfLiteOk, runner.InitAndPrepare());
-  EXPECT_EQ(kTfLiteOk, runner.Invoke());
+  EXPECT_EQ(expected_invoke_status, runner.Invoke());
 
-  for (int i = 0; i < output_dims_count; ++i) {
-    EXPECT_EQ(expected_output_data[i], output_data[i]);
+  if (expected_invoke_status == kTfLiteOk) {
+    for (int i = 0; i < output_dims_count; ++i) {
+      EXPECT_EQ(expected_output_data[i], output_data[i]);
+    }
   }
 }
 
@@ -85,9 +88,10 @@ void TestComparisonBool(const TFLMRegistration& registration,
   TestComparison(registration, tensors, expected_output_data, output_data);
 }
 
+template <typename T>
 void TestComparisonInt(const TFLMRegistration& registration,
-                       int* input1_dims_data, int32_t* input1_data,
-                       int* input2_dims_data, int32_t* input2_data,
+                       int* input1_dims_data, T* input1_data,
+                       int* input2_dims_data, T* input2_data,
                        bool* expected_output_data, int* output_dims_data,
                        bool* output_data) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
@@ -126,14 +130,13 @@ void TestComparisonQuantizedInt8(const TFLMRegistration& registration,
   TestComparison(registration, tensors, expected_output_data, output_data);
 }
 
-void TestComparisonQuantizedInt16(const TFLMRegistration& registration,
-                                  int* input1_dims_data, float* input1_data,
-                                  int16_t* input1_quantized, float input1_scale,
-                                  int input1_zero_point, int* input2_dims_data,
-                                  float* input2_data, int16_t* input2_quantized,
-                                  float input2_scale, int input2_zero_point,
-                                  bool* expected_output_data,
-                                  int* output_dims_data, bool* output_data) {
+void TestComparisonQuantizedInt16(
+    const TFLMRegistration& registration, int* input1_dims_data,
+    float* input1_data, int16_t* input1_quantized, float input1_scale,
+    int input1_zero_point, int* input2_dims_data, float* input2_data,
+    int16_t* input2_quantized, float input2_scale, int input2_zero_point,
+    bool* expected_output_data, int* output_dims_data, bool* output_data,
+    TfLiteStatus expected_invoke_status = kTfLiteOk) {
   TfLiteIntArray* input1_dims = IntArrayFromInts(input1_dims_data);
   TfLiteIntArray* input2_dims = IntArrayFromInts(input2_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
@@ -146,7 +149,32 @@ void TestComparisonQuantizedInt16(const TFLMRegistration& registration,
       CreateTensor(output_data, output_dims),
   };
 
-  TestComparison(registration, tensors, expected_output_data, output_data);
+  TestComparison(registration, tensors, expected_output_data, output_data,
+                 expected_invoke_status);
+}
+
+void TestQuantizedInt8NoBroadcast20Elements(
+    const TFLMRegistration& registration, bool* expected_output) {
+  // 20 elements ({1, 2, 5, 2}) exercises both 16-wide SIMD and 4-element
+  // remainder paths on vectorized backends.
+  int dims[] = {4, 1, 2, 5, 2};
+  float input1_data[] = {1,   -9, 7,  3, 0,  -15, 12, -4, 5, 20,
+                         -20, 8,  -1, 0, 14, -7,  2,  -3, 6, 10};
+  float input2_data[] = {-1,  2, 7,  5, 0,  -10, 12, -6, 8, 15,
+                         -20, 9, -1, 1, 10, -7,  4,  -5, 6, 9};
+
+  const float input1_scale = 0.5f;
+  const int input1_zero_point = -5;
+  const float input2_scale = 0.25f;
+  const int input2_zero_point = 5;
+  int8_t input1_quantized[20];
+  int8_t input2_quantized[20];
+  bool output_data[20];
+
+  TestComparisonQuantizedInt8(
+      registration, dims, input1_data, input1_quantized, input1_scale,
+      input1_zero_point, dims, input2_data, input2_quantized, input2_scale,
+      input2_zero_point, expected_output, dims, output_data);
 }
 
 }  // namespace
@@ -677,7 +705,7 @@ TEST(ComparisonsTest, GreaterQuantizedInt8WithBroadcast) {
   }
 }
 
-TEST(ComparisonsTest, GreaterQuantizedInt16WithBroadcast) {
+TEST(ComparisonsTest, GreaterInt16WithBroadcast) {
   const int num_shapes = 4;
   const int max_shape_size = 5;
   int test_shapes[num_shapes][max_shape_size] = {
@@ -686,24 +714,37 @@ TEST(ComparisonsTest, GreaterQuantizedInt16WithBroadcast) {
   for (int i = 0; i < num_shapes; ++i) {
     int* input1_dim = test_shapes[i];
     int input2_dim[] = {1, 1};
-    float input1_data[] = {20, -2, -71, 8, 11, 20};
-    float input2_data[] = {8};
+    int16_t input1_data[] = {20, -2, -71, 8, 11, 20};
+    int16_t input2_data[] = {8};
 
     bool expected_data[] = {true, false, false, false, true, true};
     int* expected_dim = input1_dim;
 
-    const float input1_scale = 0.5;
-    const int input1_zero_point = -9;
-    int16_t input1_quantized[6];
-    int16_t input2_quantized[6];
-
     bool output_data[6];
-    tflite::testing::TestComparisonQuantizedInt16(
-        tflite::Register_GREATER(), input1_dim, input1_data, input1_quantized,
-        input1_scale, input1_zero_point, input2_dim, input2_data,
-        input2_quantized, input1_scale, input1_zero_point, expected_data,
-        expected_dim, output_data);
+    tflite::testing::TestComparisonInt(
+        tflite::Register_GREATER(), input1_dim, input1_data, input2_dim,
+        input2_data, expected_data, expected_dim, output_data);
   }
+}
+
+TEST(ComparisonsTest, GreaterQuantizedInt16Unsupported) {
+  int input1_dim[] = {2, 2, 3};
+  int input2_dim[] = {1, 1};
+  float input1_data[] = {20, -2, -71, 8, 11, 20};
+  float input2_data[] = {8};
+  bool expected_data[] = {true, false, false, false, true, true};
+
+  const float input_scale = 0.5f;
+  const int input_zero_point = 0;
+  int16_t input1_quantized[6];
+  int16_t input2_quantized[1];
+  bool output_data[6];
+
+  tflite::testing::TestComparisonQuantizedInt16(
+      tflite::Register_GREATER(), input1_dim, input1_data, input1_quantized,
+      input_scale, input_zero_point, input2_dim, input2_data, input2_quantized,
+      input_scale, input_zero_point, expected_data, input1_dim, output_data,
+      kTfLiteError);
 }
 
 TEST(ComparisonsTest, GreaterEqualQuantizedInt8WithBroadcast) {
@@ -791,6 +832,118 @@ TEST(ComparisonsTest, LessEqualQuantizedInt8WithBroadcast) {
         input2_data, input2_quantized, input1_scale, input1_zero_point,
         expected_data, expected_dim, output_data);
   }
+}
+
+TEST(ComparisonsTest, EqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {false, false, true,  false, true,  false, true,
+                     false, false, false, true,  false, true,  false,
+                     false, true,  false, false, true,  false};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, NotEqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {true, true,  false, true,  false, true,  false,
+                     true, true,  true,  false, true,  false, true,
+                     true, false, true,  true,  false, true};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_NOT_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, GreaterQuantizedInt8NoBroadcast) {
+  bool expected[] = {true, false, false, false, false, false, false,
+                     true, false, true,  false, false, false, false,
+                     true, false, false, true,  false, true};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_GREATER(), expected);
+}
+
+TEST(ComparisonsTest, GreaterEqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {true, false, true,  false, true,  false, true,
+                     true, false, true,  true,  false, true,  false,
+                     true, true,  false, true,  true,  true};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_GREATER_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, LessQuantizedInt8NoBroadcast) {
+  bool expected[] = {false, true,  false, true,  false, true,  false,
+                     false, true,  false, false, true,  false, true,
+                     false, false, true,  false, false, false};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_LESS(), expected);
+}
+
+TEST(ComparisonsTest, LessEqualQuantizedInt8NoBroadcast) {
+  bool expected[] = {false, true, true,  true,  true, true, true,
+                     false, true, false, true,  true, true, true,
+                     false, true, true,  false, true, false};
+  tflite::testing::TestQuantizedInt8NoBroadcast20Elements(
+      tflite::Register_LESS_EQUAL(), expected);
+}
+
+TEST(ComparisonsTest, EqualInt16) {
+  int dims[] = {4, 1, 1, 1, 4};
+  int16_t input1_data[] = {-100, 0, 1234, -32768};
+  int16_t input2_data[] = {-100, 1, 1234, 32767};
+  bool expected[] = {true, false, true, false};
+  bool output_data[4];
+
+  tflite::testing::TestComparisonInt(tflite::Register_EQUAL(), dims,
+                                     input1_data, dims, input2_data, expected,
+                                     dims, output_data);
+}
+
+TEST(ComparisonsTest, NotEqualInt16) {
+  int dims[] = {4, 1, 1, 1, 4};
+  int16_t input1_data[] = {-100, 0, 1234, -32768};
+  int16_t input2_data[] = {-100, 1, 1234, 32767};
+  bool expected[] = {false, true, false, true};
+  bool output_data[4];
+
+  tflite::testing::TestComparisonInt(tflite::Register_NOT_EQUAL(), dims,
+                                     input1_data, dims, input2_data, expected,
+                                     dims, output_data);
+}
+
+TEST(ComparisonsTest, EqualQuantizedInt16WithBroadcast) {
+  int input1_dim[] = {3, 1, 2, 3};
+  int input2_dim[] = {1, 3};
+  float input1_data[] = {1.0f, -2.0f, 3.5f, -1.0f, 2.0f, 0.0f};
+  float input2_data[] = {1.0f, 2.0f, 0.0f};
+  bool expected[] = {true, false, false, false, true, true};
+
+  const float input1_scale = 0.5f;
+  const float input2_scale = 0.25f;
+  int16_t input1_quantized[6];
+  int16_t input2_quantized[3];
+  bool output_data[6];
+
+  tflite::testing::TestComparisonQuantizedInt16(
+      tflite::Register_EQUAL(), input1_dim, input1_data, input1_quantized,
+      input1_scale, /*input1_zero_point=*/0, input2_dim, input2_data,
+      input2_quantized, input2_scale, /*input2_zero_point=*/0, expected,
+      input1_dim, output_data);
+}
+
+TEST(ComparisonsTest, NotEqualQuantizedInt16WithBroadcast) {
+  int input1_dim[] = {3, 1, 2, 3};
+  int input2_dim[] = {1, 3};
+  float input1_data[] = {1.0f, -2.0f, 3.5f, -1.0f, 2.0f, 0.0f};
+  float input2_data[] = {1.0f, 2.0f, 0.0f};
+  bool expected[] = {false, true, true, true, false, false};
+
+  const float input1_scale = 0.5f;
+  const float input2_scale = 0.25f;
+  int16_t input1_quantized[6];
+  int16_t input2_quantized[3];
+  bool output_data[6];
+
+  tflite::testing::TestComparisonQuantizedInt16(
+      tflite::Register_NOT_EQUAL(), input1_dim, input1_data, input1_quantized,
+      input1_scale, /*input1_zero_point=*/0, input2_dim, input2_data,
+      input2_quantized, input2_scale, /*input2_zero_point=*/0, expected,
+      input1_dim, output_data);
 }
 
 TF_LITE_MICRO_TESTS_MAIN
