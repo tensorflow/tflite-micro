@@ -85,6 +85,9 @@ struct OpDataPreluXtensa {
 void* PreluInit(TfLiteContext* context, const char* buffer, size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataPreluXtensa));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) OpDataPreluXtensa();
 }
 

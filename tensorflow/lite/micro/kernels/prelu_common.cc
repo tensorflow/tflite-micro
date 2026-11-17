@@ -86,6 +86,9 @@ void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
 void* PreluInitReference(TfLiteContext* context, const char* buffer,
                          size_t length) {
   void* data = context->AllocatePersistentBuffer(context, sizeof(PreluParams));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) PreluParams();
 }
 
