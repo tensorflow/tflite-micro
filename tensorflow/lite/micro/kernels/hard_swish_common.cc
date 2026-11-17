@@ -35,6 +35,9 @@ namespace micro {
 void* HardSwishInit(TfLiteContext* context, const char* buffer, size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(HardSwishParams));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) HardSwishParams();
 }
 
