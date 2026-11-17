@@ -133,6 +133,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/basic_classifier.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_matmul_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/batch_to_space_nd_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_args.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/broadcast_to.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/call_once.cc \
@@ -153,6 +154,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decode_state_prune.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/decompress_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depth_to_space_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/depthwise_conv_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/dequantize.cc \
@@ -219,6 +221,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/slice.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/softmax.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/softmax_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_batch_nd_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_depth.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/split_v.cc \

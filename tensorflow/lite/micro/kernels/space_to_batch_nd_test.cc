@@ -170,4 +170,23 @@ TEST(SpaceToBatchNdTest, SpaceToBatchPaddingInt8NonZeroZeroPoint) {
                 output_dims, golden, golden_quantized, 1.0f, -128, output));
 }
 
+TEST(SpaceToBatchNdTest, SpaceToBatch3DPaddingInt8) {
+  int input_dims[] = {3, 1, 4, 2};
+  const float input[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  int block_shape_dims[] = {1, 1};
+  const int32_t block_shape[] = {2};
+  int paddings_dims[] = {2, 1, 2};
+  const int32_t paddings[] = {1, 1};
+  int output_dims[] = {3, 2, 3, 2};
+  const float golden[] = {0, 0, 3, 4, 7, 8, 1, 2, 5, 6, 0, 0};
+  int8_t input_quantized[8];
+  int8_t golden_quantized[12];
+  int8_t output[12];
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestSpaceToBatchNdQuantized(
+                input_dims, input, input_quantized, 1.0f, -128,
+                block_shape_dims, block_shape, paddings_dims, paddings,
+                output_dims, golden, golden_quantized, 1.0f, -128, output));
+}
+
 TF_LITE_MICRO_TESTS_MAIN
