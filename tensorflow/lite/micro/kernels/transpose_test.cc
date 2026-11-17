@@ -62,13 +62,13 @@ void RunTestPermutation(int num_dims, const int32_t* shape,
 template <typename T>
 TfLiteStatus InvokeTranspose(TfLiteTensor* tensors, int tensors_size,
                              T* output_data, int output_length,
-                             TransposeParams* params) {
+                             TransposeParams* params,
+                             TFLMRegistration registration) {
   int inputs_array_data[] = {2, 0, 1};
   TfLiteIntArray* inputs_array = IntArrayFromInts(inputs_array_data);
   int outputs_array_data[] = {1, 2};
   TfLiteIntArray* outputs_array = IntArrayFromInts(outputs_array_data);
 
-  const TFLMRegistration registration = Register_TRANSPOSE();
   micro::KernelRunner runner(registration, tensors, tensors_size, inputs_array,
                              outputs_array, reinterpret_cast<void*>(params));
 
@@ -85,9 +85,10 @@ TfLiteStatus ValidateTranspose(TfLiteTensor* tensors, int tensors_size,
                                const T* expected_output_data, T* output_data,
                                int output_length,
                                tflite::micro::TransposeParams* params,
+                               TFLMRegistration registration,
                                float tolerance = 1e-5) {
   TfLiteStatus status = InvokeTranspose(tensors, tensors_size, output_data,
-                                        output_length, params);
+                                        output_length, params, registration);
   if (status != kTfLiteOk) {
     return status;
   }
@@ -101,7 +102,8 @@ TfLiteStatus ValidateTranspose(TfLiteTensor* tensors, int tensors_size,
 template <typename T>
 void TestTranspose(int* input_dims_data, T* input_data, int* output_dims_data,
                    const T* expected_output_data, T* output_data,
-                   TransposeParams* params) {
+                   TransposeParams* params,
+                   TFLMRegistration registration = Register_TRANSPOSE()) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* output_dims = IntArrayFromInts(output_dims_data);
   const int input_size = ElementCount(*input_dims);
@@ -127,9 +129,10 @@ void TestTranspose(int* input_dims_data, T* input_data, int* output_dims_data,
   // perm must be a const tensor
   tensors[kTransposePermTensor].allocation_type = kTfLiteMmapRo;
 
-  EXPECT_EQ(kTfLiteOk,
-            ValidateTranspose(tensors, tensors_size, expected_output_data,
-                              output_data, output_dims_count, params));
+  EXPECT_EQ(
+      kTfLiteOk,
+      ValidateTranspose(tensors, tensors_size, expected_output_data,
+                        output_data, output_dims_count, params, registration));
 }
 
 }  // namespace
@@ -686,5 +689,89 @@ TEST(TransposeTest, Complex5DTestWithReorder) {
   tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
                                  expected_output_data, output_data, &params);
 }
+
+TEST(TransposeTest, Complex4DInt8TestWithReorder) {
+  int32_t shape[] = {2, 3, 4, 5};
+  int32_t perms[] = {2, 0, 1, 3};
+  int8_t input_data[120];
+  int8_t expected_output_data[120];
+  tflite::testing::RunTestPermutation(4, shape, perms, input_data,
+                                      expected_output_data);
+  int input_dims_data[] = {4, 2, 3, 4, 5};
+  int output_dims_data[] = {4, 2, 3, 4, 5};
+  int8_t output_data[120];
+  tflite::micro::TransposeParams params = {4, {2, 0, 1, 3}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
+TEST(TransposeTest, Complex4DRegisterTransposeInt8) {
+  int32_t shape[] = {2, 3, 4, 5};
+  int32_t perms[] = {2, 0, 1, 3};
+  int8_t input_data[120];
+  int8_t expected_output_data[120];
+  tflite::testing::RunTestPermutation(4, shape, perms, input_data,
+                                      expected_output_data);
+  int input_dims_data[] = {4, 2, 3, 4, 5};
+  int output_dims_data[] = {4, 2, 3, 4, 5};
+  int8_t output_data[120];
+  tflite::micro::TransposeParams params = {4, {2, 0, 1, 3}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params,
+                                 tflite::Register_TRANSPOSE_INT8());
+}
+
+TEST(TransposeTest, Complex4DInt16TestWithReorder) {
+  int32_t shape[] = {2, 3, 4, 5};
+  int32_t perms[] = {2, 0, 1, 3};
+  int16_t input_data[120];
+  int16_t expected_output_data[120];
+  tflite::testing::RunTestPermutation(4, shape, perms, input_data,
+                                      expected_output_data);
+  int input_dims_data[] = {4, 2, 3, 4, 5};
+  int output_dims_data[] = {4, 2, 3, 4, 5};
+  int16_t output_data[120];
+  tflite::micro::TransposeParams params = {4, {2, 0, 1, 3}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
+TEST(TransposeTest, Complex5DInt16TestWithReorder) {
+  int32_t shape[] = {2, 3, 2, 2, 5};
+  int32_t perms[] = {2, 0, 1, 4, 3};
+  int16_t input_data[120];
+  int16_t expected_output_data[120];
+  tflite::testing::RunTestPermutation(5, shape, perms, input_data,
+                                      expected_output_data);
+  int input_dims_data[] = {5, 2, 3, 2, 2, 5};
+  int output_dims_data[] = {5, 2, 3, 2, 2, 5};
+  int16_t output_data[120];
+  tflite::micro::TransposeParams params = {5, {2, 0, 1, 4, 3}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+
+#if !defined(CMSIS_NN)
+// CMSIS-NN arm_transpose_s8 only supports up to 4D tensors.
+TEST(TransposeTest, Complex5DInt8TestWithReorder) {
+  int32_t shape[] = {2, 3, 2, 2, 5};
+  int32_t perms[] = {2, 0, 1, 4, 3};
+  int8_t input_data[120];
+  int8_t expected_output_data[120];
+  tflite::testing::RunTestPermutation(5, shape, perms, input_data,
+                                      expected_output_data);
+  int input_dims_data[] = {5, 2, 3, 2, 2, 5};
+  int output_dims_data[] = {5, 2, 3, 2, 2, 5};
+  int8_t output_data[120];
+  tflite::micro::TransposeParams params = {5, {2, 0, 1, 4, 3}};
+
+  tflite::testing::TestTranspose(input_dims_data, input_data, output_dims_data,
+                                 expected_output_data, output_data, &params);
+}
+#endif  // !defined(CMSIS_NN)
 
 TF_LITE_MICRO_TESTS_MAIN
