@@ -280,6 +280,9 @@ void* ElementWiseAbsRsqrtInit(TfLiteContext* context, const char* buffer,
                               size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataAbsRsqrt));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) OpDataAbsRsqrt();
 }
 
