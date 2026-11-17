@@ -578,4 +578,40 @@ TEST(ConcatenationTest, TwoInputsQuantizedInt8FiveDimensions) {
       output_zero_point, output_data);
 }
 
+TEST(ConcatenationTest, TwoInputsInt32) {
+  int input1_shape[] = {3, 2, 1, 2};
+  const int32_t input1_value[] = {10, 20, 30, 40};
+  int input2_shape[] = {3, 2, 2, 2};
+  const int32_t input2_value[] = {50, 60, 70, 80, 90, 100, 110, 120};
+  const int32_t expected_output[] = {10, 20, 50, 60,  70,  80,
+                                     30, 40, 90, 100, 110, 120};
+
+  int output_shape[] = {3, 2, 3, 2};
+  int32_t output_data[12];
+  tflite::testing::TestConcatenateTwoInputs(
+      input1_shape, input1_value, input2_shape, input2_value,
+      /*axis=*/1, output_shape, output_data);
+  for (int i = 0; i < 12; ++i) {
+    EXPECT_EQ(expected_output[i], output_data[i]);
+  }
+}
+
+TEST(ConcatenationTest, TwoInputsInt64TrailingAxis) {
+  int input1_shape[] = {3, 2, 1, 2};
+  const int64_t input1_value[] = {100, 200, 300, 400};
+  int input2_shape[] = {3, 2, 1, 3};
+  const int64_t input2_value[] = {500, 600, 700, 800, 900, 1000};
+  const int64_t expected_output[] = {100, 200, 500, 600, 700,
+                                     300, 400, 800, 900, 1000};
+
+  int output_shape[] = {3, 2, 1, 5};
+  int64_t output_data[10];
+  tflite::testing::TestConcatenateTwoInputs(
+      input1_shape, input1_value, input2_shape, input2_value,
+      /*axis=*/2, output_shape, output_data);
+  for (int i = 0; i < 10; ++i) {
+    EXPECT_EQ(expected_output[i], output_data[i]);
+  }
+}
+
 TF_LITE_MICRO_TESTS_MAIN
