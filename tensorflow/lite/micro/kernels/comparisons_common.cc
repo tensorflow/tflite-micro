@@ -151,6 +151,9 @@ void* ComparisonsInit(TfLiteContext* context, const char* buffer,
                       size_t length) {
   void* data =
       context->AllocatePersistentBuffer(context, sizeof(OpDataComparisons));
+  if (data == nullptr) {
+    return nullptr;
+  }
   return new (data) OpDataComparisons();
 }
 
