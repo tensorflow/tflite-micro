@@ -115,7 +115,7 @@ class MicroInterpreterGraph : public MicroGraph {
   int current_subgraph_index_;
   uint32_t current_operator_index_;
   MicroResourceVariables* resource_variables_;
-  MicroProfilerInterface* profiler_ = nullptr;
+  [[maybe_unused]] MicroProfilerInterface* profiler_ = nullptr;
   const flatbuffers::Vector<flatbuffers::Offset<SubGraph>>* subgraphs_ =
       nullptr;  // Initialized as nullptr to prevent any possible issues
                 // related to accessing uninitialized memory.
