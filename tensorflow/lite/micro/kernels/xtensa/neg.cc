@@ -57,7 +57,7 @@ TfLiteStatus NegEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_NEG() {
-  return tflite::micro::RegisterOp(nullptr, NegPrepare, NegEval);
+  return tflite::micro::RegisterOp(nullptr, NegPrepareReference, NegEval);
 }
 
 }  // namespace micro

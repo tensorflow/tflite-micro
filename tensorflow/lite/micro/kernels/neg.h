@@ -24,7 +24,7 @@ namespace micro {
 inline constexpr int kNegInputTensor = 0;
 inline constexpr int kNegOutputTensor = 0;
 
-TfLiteStatus NegPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus NegPrepareReference(TfLiteContext* context, TfLiteNode* node);
 
 template <typename T>
 void NegEvalReference(const TfLiteEvalTensor* input, TfLiteEvalTensor* output);
