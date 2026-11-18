@@ -35,7 +35,7 @@ TfLiteStatus CeilEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_CEIL() {
-  return tflite::micro::RegisterOp(nullptr, CeilPrepare, CeilEval);
+  return tflite::micro::RegisterOp(nullptr, CeilPrepareReference, CeilEval);
 }
 
 }  // namespace micro

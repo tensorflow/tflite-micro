@@ -23,7 +23,7 @@ limitations under the License.
 namespace tflite {
 namespace micro {
 
-TfLiteStatus RoundPrepare(TfLiteContext* context, TfLiteNode* node) {
+TfLiteStatus RoundPrepareReference(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 

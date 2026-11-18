@@ -48,7 +48,7 @@ TfLiteStatus RoundEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_ROUND() {
-  return tflite::micro::RegisterOp(nullptr, RoundPrepare, RoundEval);
+  return tflite::micro::RegisterOp(nullptr, RoundPrepareReference, RoundEval);
 }
 
 }  // namespace micro

@@ -48,7 +48,7 @@ TfLiteStatus FloorEval(TfLiteContext* context, TfLiteNode* node) {
 }  // namespace
 
 TFLMRegistration Register_FLOOR() {
-  return tflite::micro::RegisterOp(nullptr, FloorPrepare, FloorEval);
+  return tflite::micro::RegisterOp(nullptr, FloorPrepareReference, FloorEval);
 }
 
 }  // namespace micro

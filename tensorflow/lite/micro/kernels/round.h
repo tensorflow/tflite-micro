@@ -24,7 +24,7 @@ namespace micro {
 inline constexpr int kRoundInputTensor = 0;
 inline constexpr int kRoundOutputTensor = 0;
 
-TfLiteStatus RoundPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus RoundPrepareReference(TfLiteContext* context, TfLiteNode* node);
 
 void RoundEvalReference(const TfLiteEvalTensor* input,
                         TfLiteEvalTensor* output);

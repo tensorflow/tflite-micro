@@ -24,7 +24,7 @@ namespace micro {
 inline constexpr int kCeilInputTensor = 0;
 inline constexpr int kCeilOutputTensor = 0;
 
-TfLiteStatus CeilPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus CeilPrepareReference(TfLiteContext* context, TfLiteNode* node);
 
 void CeilEvalReference(const TfLiteEvalTensor* input, TfLiteEvalTensor* output);
 

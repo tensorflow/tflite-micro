@@ -24,7 +24,7 @@ namespace micro {
 inline constexpr int kFloorInputTensor = 0;
 inline constexpr int kFloorOutputTensor = 0;
 
-TfLiteStatus FloorPrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus FloorPrepareReference(TfLiteContext* context, TfLiteNode* node);
 
 void FloorEvalReference(const TfLiteEvalTensor* input,
                         TfLiteEvalTensor* output);
