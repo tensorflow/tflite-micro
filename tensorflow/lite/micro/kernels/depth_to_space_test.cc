@@ -302,4 +302,26 @@ TEST(DepthToSpaceTest, DepthToSpaceOpModelInt8_1111_1) {
       output_data);
 }
 
+TEST(DepthToSpaceTest, DepthToSpaceMultiBatchInt8) {
+  int kInputDims[] = {4, 2, 2, 2, 4};
+  constexpr float kInput[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                              12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                              23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
+  int kExpectDims[] = {4, 2, 4, 4, 1};
+  constexpr float kExpect[] = {1,  2,  5,  6,  3,  4,  7,  8,  9,  10, 13,
+                               14, 11, 12, 15, 16, 17, 18, 21, 22, 19, 20,
+                               23, 24, 25, 26, 29, 30, 27, 28, 31, 32};
+  constexpr int kOutputCount = std::extent<decltype(kExpect)>::value;
+  float output_data[kOutputCount];
+  tflite::testing::DepthToSpaceTestParams params;
+  params.block_size = 2;
+  tflite::testing::TestQuantParams<int8_t, kOutputCount> quant_params = {};
+  quant_params.data_min = 0.0;
+  quant_params.data_max = 33.0;
+
+  tflite::testing::TestDepthToSpaceQuantized<int8_t, kOutputCount>(
+      params, &quant_params, kInputDims, kInput, kExpectDims, kExpect,
+      output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

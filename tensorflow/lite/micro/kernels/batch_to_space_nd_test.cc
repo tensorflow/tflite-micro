@@ -149,4 +149,23 @@ TEST(BatchToSpaceNdTest, BatchToSpaceBasicInt8) {
           tflite::testing::basic_golden, golden_quantized, 1.0f, 0, output));
 }
 
+TEST(BatchToSpaceNdTest, BatchToSpace3DCropsInt8) {
+  int input_dims[] = {3, 2, 3, 2};
+  const float input[] = {0, 0, 3, 4, 7, 8, 1, 2, 5, 6, 0, 0};
+  int block_shape_dims[] = {1, 1};
+  const int32_t block_shape[] = {2};
+  int crops_dims[] = {2, 1, 2};
+  const int32_t crops[] = {1, 1};
+  int output_dims[] = {3, 1, 4, 2};
+  const float golden[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  int8_t input_quantized[12];
+  int8_t golden_quantized[8];
+  int8_t output[8];
+  EXPECT_EQ(kTfLiteOk,
+            tflite::testing::TestBatchToSpaceNdQuantized(
+                input_dims, input, input_quantized, 1.0f, -128,
+                block_shape_dims, block_shape, crops_dims, crops, output_dims,
+                golden, golden_quantized, 1.0f, -128, output));
+}
+
 TF_LITE_MICRO_TESTS_MAIN
