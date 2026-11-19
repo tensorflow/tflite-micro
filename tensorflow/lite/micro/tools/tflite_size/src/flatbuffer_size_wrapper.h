@@ -15,8 +15,6 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_TOOLS_TFLITE_SIZE_SRC_FLATBUFFER_SIZE_WRAPPER_H_
 #define TENSORFLOW_LITE_MICRO_TOOLS_TFLITE_SIZE_SRC_FLATBUFFER_SIZE_WRAPPER_H_
 
-#include <Python.h>
-
 #include <string>
 
 namespace tflite {
@@ -35,4 +33,10 @@ class FlatbufferSizeWrapper {
 using micro::FlatbufferSizeWrapper;
 
 }  // namespace tflite
+
+extern "C" {
+char* TFLM_FlatbufferSizeConvertToJsonString(const char* in_flatbuffer);
+void TFLM_FlatbufferSizeFreeJsonString(char* str);
+}
+
 #endif  // TENSORFLOW_LITE_MICRO_TOOLS_TFLITE_SIZE_SRC_FLATBUFFER_SIZE_WRAPPER_H_
