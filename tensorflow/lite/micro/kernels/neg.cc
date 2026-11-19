@@ -13,9 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/internal/reference/neg.h"
+#include "tensorflow/lite/micro/kernels/neg.h"
 
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -24,34 +23,29 @@ namespace tflite {
 namespace micro {
 namespace {
 
-constexpr int kInputTensor = 0;
-constexpr int kOutputTensor = 0;
-
 TfLiteStatus NegEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
+      tflite::micro::GetEvalInput(context, node, kNegInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
+      tflite::micro::GetEvalOutput(context, node, kNegOutputTensor);
   switch (input->type) {
     // TODO(wangtz): handle for kTfLiteInt8
-    case kTfLiteFloat32:
-      reference_ops::Negate(tflite::micro::GetTensorShape(input),
-                            tflite::micro::GetTensorData<float>(input),
-                            tflite::micro::GetTensorShape(output),
-                            tflite::micro::GetTensorData<float>(output));
-      break;
-    default:
+    case kTfLiteFloat32: {
+      NegEvalReference<float>(input, output);
+      return kTfLiteOk;
+    }
+    default: {
       MicroPrintf("Type %s (%d) not supported.", TfLiteTypeGetName(input->type),
                   input->type);
       return kTfLiteError;
+    }
   }
-  return kTfLiteOk;
 }
 
 }  // namespace
 
 TFLMRegistration Register_NEG() {
-  return tflite::micro::RegisterOp(nullptr, nullptr, NegEval);
+  return tflite::micro::RegisterOp(nullptr, NegPrepareReference, NegEval);
 }
 
 }  // namespace micro

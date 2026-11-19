@@ -78,4 +78,22 @@ TEST(NegTest, NegOpFloat) {
   tflite::testing::TestNegFloat(dims, input_data, golden, dims, output_data);
 }
 
+TEST(NegTest, NegOpMultiElementFloat) {
+  constexpr int kSize = 19;
+  int dims[] = {2, 1, kSize};
+  const float input_data[kSize] = {
+      -100.5f, -12.25f, -3.5f,  -1.0f,  -0.125f, 0.0f,  0.125f,
+      1.0f,    3.5f,    12.25f, 100.5f, -7.0f,   8.75f, -0.5f,
+      0.5f,    -42.0f,  42.0f,  -9.25f, 6.5f,
+  };
+  const float golden[kSize] = {
+      100.5f, 12.25f, 3.5f,    1.0f,    0.125f, -0.0f,  -0.125f,
+      -1.0f,  -3.5f,  -12.25f, -100.5f, 7.0f,   -8.75f, 0.5f,
+      -0.5f,  42.0f,  -42.0f,  9.25f,   -6.5f,
+  };
+  float output_data[kSize];
+
+  tflite::testing::TestNegFloat(dims, input_data, golden, dims, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN
