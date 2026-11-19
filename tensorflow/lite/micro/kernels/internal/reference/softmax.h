@@ -115,8 +115,13 @@ inline void Softmax(const SoftmaxParams& params,
     FixedPoint0 shifted_scale = FixedPoint0::FromRaw(GetReciprocal(
         sum_of_exps.raw(), kAccumulationIntegerBits, &num_bits_over_unit));
 
+    // With an 8-bit output, the exponent passes 31 when the sum of the row
+    // reaches 512, e.g. for 512 values at the row maximum. The product below
+    // is less than 2^31, so every output of such a row is less than half an
+    // output step and rounds to 0.
     const int exponent = num_bits_over_unit + 31 - (sizeof(OutputT) * 8);
-    TFLITE_CHECK(0 <= exponent && exponent <= 31);
+    TFLITE_CHECK(0 <= exponent);
+    const bool rounds_to_zero = exponent > 31;
 
     for (int c = 0; c < depth; ++c) {
       int32_t input_diff =
@@ -130,7 +135,9 @@ inline void Softmax(const SoftmaxParams& params,
 
         FixedPoint0 exp_in_0 = exp_on_negative_values(scaled_diff_f8);
         int32_t unsat_output =
-            RoundingDivideByPOT((shifted_scale * exp_in_0).raw(), exponent);
+            rounds_to_zero ? 0
+                           : RoundingDivideByPOT(
+                                 (shifted_scale * exp_in_0).raw(), exponent);
 
         const int32_t shifted_output =
             unsat_output +
