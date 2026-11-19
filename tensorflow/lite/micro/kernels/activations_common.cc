@@ -14,7 +14,10 @@ limitations under the License.
 ==============================================================================*/
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
+#include <limits>
+#include <new>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
@@ -29,8 +32,6 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-const int kActivationsInputTensor = 0;
-const int kActivationsOutputTensor = 0;
 
 template <typename T>
 void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
@@ -39,9 +40,6 @@ void CalculateReluOpData(const TfLiteTensor* input, TfLiteTensor* output,
   float act_max = std::numeric_limits<float>::infinity();
   double real_multiplier = static_cast<double>(input->params.scale) /
                            static_cast<double>(output->params.scale);
-
-  const RuntimeShape input_shape = GetTensorShape(input);
-  const RuntimeShape output_shape = GetTensorShape(output);
 
   QuantizeMultiplier(real_multiplier, &data->params.output_multiplier,
                      &data->params.output_shift);
@@ -84,8 +82,18 @@ void Relu6Float(const RuntimeShape& input_shape, const float* input_data,
   }
 }
 
+void* ReluInit(TfLiteContext* context, const char* buffer, size_t length) {
+  void* data = context->AllocatePersistentBuffer(context, sizeof(ReluOpData));
+  if (data == nullptr) {
+    return nullptr;
+  }
+  return new (data) ReluOpData();
+}
+
 TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   ReluOpData* data = static_cast<ReluOpData*>(node->user_data);
 
   MicroContext* micro_context = GetMicroContext(context);
@@ -95,6 +103,9 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* output =
       micro_context->AllocateTempOutputTensor(node, kActivationsOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context, HaveSameShapes(input, output));
 
   if (input->type == kTfLiteInt8) {
     CalculateReluOpData<int8_t>(input, output, data);
@@ -110,8 +121,48 @@ TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node) {
   return kTfLiteOk;
 }
 
+template <>
+void ReluEvalReference<float>(const ReluOpData& data,
+                              const TfLiteEvalTensor* input,
+                              TfLiteEvalTensor* output) {
+  ReluFloat(tflite::micro::GetTensorShape(input),
+            tflite::micro::GetTensorData<float>(input),
+            tflite::micro::GetTensorShape(output),
+            tflite::micro::GetTensorData<float>(output));
+}
+
+template <>
+void ReluEvalReference<int8_t>(const ReluOpData& data,
+                               const TfLiteEvalTensor* input,
+                               TfLiteEvalTensor* output) {
+  ReluQuantized<int8_t>(data, tflite::micro::GetTensorShape(input),
+                        tflite::micro::GetTensorShape(output),
+                        tflite::micro::GetTensorData<int8_t>(input),
+                        tflite::micro::GetTensorData<int8_t>(output));
+}
+
+template <>
+void ReluEvalReference<int16_t>(const ReluOpData& data,
+                                const TfLiteEvalTensor* input,
+                                TfLiteEvalTensor* output) {
+  ReluQuantized<int16_t>(data, tflite::micro::GetTensorShape(input),
+                         tflite::micro::GetTensorShape(output),
+                         tflite::micro::GetTensorData<int16_t>(input),
+                         tflite::micro::GetTensorData<int16_t>(output));
+}
+
+void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length) {
+  void* data = context->AllocatePersistentBuffer(context, sizeof(Relu6OpData));
+  if (data == nullptr) {
+    return nullptr;
+  }
+  return new (data) Relu6OpData();
+}
+
 TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 1);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
   Relu6OpData* data = static_cast<Relu6OpData*>(node->user_data);
 
@@ -119,22 +170,63 @@ TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node) {
   TfLiteTensor* input =
       micro_context->AllocateTempInputTensor(node, kActivationsInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kActivationsOutputTensor);
+  TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  TF_LITE_ENSURE(context, HaveSameShapes(input, output));
 
   if (input->type == kTfLiteInt8) {
     data->zero = input->params.zero_point;
     data->six = FloatToQuantizedType<int8_t>(6.0f, input->params.scale,
                                              input->params.zero_point);
+    TF_LITE_ENSURE(context, data->zero >= INT8_MIN && data->zero <= INT8_MAX);
     TF_LITE_ENSURE(context, data->six >= INT8_MIN && data->six <= INT8_MAX);
   } else if (input->type == kTfLiteInt16) {
     data->zero = input->params.zero_point;
     data->six = FloatToQuantizedType<int16_t>(6.0f, input->params.scale,
                                               input->params.zero_point);
+    TF_LITE_ENSURE(context, data->zero >= INT16_MIN && data->zero <= INT16_MAX);
     TF_LITE_ENSURE(context, data->six >= INT16_MIN && data->six <= INT16_MAX);
   }
 
   micro_context->DeallocateTempTfLiteTensor(input);
+  micro_context->DeallocateTempTfLiteTensor(output);
 
   return kTfLiteOk;
+}
+
+template <>
+void Relu6EvalReference<float>(const Relu6OpData& data,
+                               const TfLiteEvalTensor* input,
+                               TfLiteEvalTensor* output) {
+  Relu6Float(tflite::micro::GetTensorShape(input),
+             tflite::micro::GetTensorData<float>(input),
+             tflite::micro::GetTensorShape(output),
+             tflite::micro::GetTensorData<float>(output));
+}
+
+template <>
+void Relu6EvalReference<int8_t>(const Relu6OpData& data,
+                                const TfLiteEvalTensor* input,
+                                TfLiteEvalTensor* output) {
+  Relu6Quantized<int8_t>(data.zero, data.six,
+                         tflite::micro::GetTensorShape(input),
+                         tflite::micro::GetTensorData<int8_t>(input),
+                         tflite::micro::GetTensorShape(output),
+                         tflite::micro::GetTensorData<int8_t>(output));
+}
+
+template <>
+void Relu6EvalReference<int16_t>(const Relu6OpData& data,
+                                 const TfLiteEvalTensor* input,
+                                 TfLiteEvalTensor* output) {
+  Relu6Quantized<int16_t>(data.zero, data.six,
+                          tflite::micro::GetTensorShape(input),
+                          tflite::micro::GetTensorData<int16_t>(input),
+                          tflite::micro::GetTensorShape(output),
+                          tflite::micro::GetTensorData<int16_t>(output));
 }
 
 }  // namespace micro
