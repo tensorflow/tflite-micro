@@ -21,9 +21,9 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-constexpr int kTransposeInputTensor = 0;
-constexpr int kTransposePermTensor = 1;
-constexpr int kTransposeOutputTensor = 0;
+inline constexpr int kTransposeInputTensor = 0;
+inline constexpr int kTransposePermTensor = 1;
+inline constexpr int kTransposeOutputTensor = 0;
 
 struct TransposeContext {
   TransposeContext(TfLiteContext* context, TfLiteNode* node) {
@@ -34,9 +34,15 @@ struct TransposeContext {
         micro_context->AllocateTempOutputTensor(node, kTransposeOutputTensor);
   }
   ~TransposeContext() {
-    micro_context->DeallocateTempTfLiteTensor(input);
-    micro_context->DeallocateTempTfLiteTensor(perm);
-    micro_context->DeallocateTempTfLiteTensor(output);
+    if (input != nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(input);
+    }
+    if (perm != nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(perm);
+    }
+    if (output != nullptr) {
+      micro_context->DeallocateTempTfLiteTensor(output);
+    }
   }
   MicroContext* micro_context;
   TfLiteTensor* input;
@@ -45,9 +51,10 @@ struct TransposeContext {
 };
 
 TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node);
+TfLiteStatus TransposeEvalReference(TfLiteContext* context, TfLiteNode* node);
 TFLMRegistration Register_TRANSPOSE();
 
-#if defined(CMSIS_NN)
+#if defined(CMSIS_NN) || defined(XTENSA)
 TFLMRegistration Register_TRANSPOSE_INT8();
 #else
 inline TFLMRegistration Register_TRANSPOSE_INT8() {
