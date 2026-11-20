@@ -26,10 +26,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_profiler.h"
 
-#ifdef USE_TFLM_COMPRESSION
-
-#endif  // USE_TFLM_COMPRESSION
-
 namespace tflite {
 namespace micro {
 namespace {
@@ -157,9 +153,6 @@ TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
                       current_operator_index_, prepare_status);
           return kTfLiteError;
         }
-#ifdef USE_TFLM_COMPRESSION
-        GetMicroContext(context_)->ResetDecompressionMemoryAllocations();
-#endif  // USE_TFLM_COMPRESSION
       }
 
       const int dynamic_tensor_index = CheckDynamicTensors(
@@ -274,9 +267,6 @@ TfLiteStatus MicroInterpreterGraph::InvokeSubgraph(int subgraph_idx) {
 
     TFLITE_DCHECK(registration->invoke);
     invoke_status = registration->invoke(context_, node);
-#ifdef USE_TFLM_COMPRESSION
-    GetMicroContext(context_)->ResetDecompressionMemoryAllocations();
-#endif  // USE_TFLM_COMPRESSION
 
     // All TfLiteTensor structs used in the kernel are allocated from temp
     // memory in the allocator. This creates a chain of allocations in the

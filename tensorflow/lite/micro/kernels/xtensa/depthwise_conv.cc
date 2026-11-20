@@ -93,16 +93,6 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
   TfLiteEvalTensor filter_int8 = tflite::micro::MakeUnpackedInt4Tensor(
       context, op_data.reference_op_data.filter_buffer_index, filter);
 
-#ifdef USE_TFLM_COMPRESSION
-  [[maybe_unused]] MicroContext* micro_context = GetMicroContext(context);
-
-  [[maybe_unused]] const CompressionTensorData* filter_comp_td =
-      micro_context->GetTensorCompressionData(node,
-                                              kDepthwiseConvWeightsTensor);
-  [[maybe_unused]] const CompressionTensorData* bias_comp_td =
-      micro_context->GetTensorCompressionData(node, kDepthwiseConvBiasTensor);
-#endif  // USE_TFLM_COMPRESSION
-
   switch (input->type) {  // Already know in/out types are same.
     case kTfLiteInt8: {
       switch (filter_int8.type) {
@@ -121,19 +111,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int8_t>(input),
               tflite::micro::GetTensorShape(filter),
-#ifdef USE_TFLM_COMPRESSION
-              tflite::micro::GetTensorData<int8_t>(
-                  micro_context, &filter_int8, filter_comp_td,
-                  op_data.reference_op_data.weights_scratch_index),
-              tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int32_t>(
-                  micro_context, bias, bias_comp_td,
-                  op_data.reference_op_data.bias_scratch_index),
-#else   // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorData<int8_t>(&filter_int8),
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int32_t>(bias),
-#endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int8_t>(output));
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
@@ -160,19 +140,9 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
               tflite::micro::GetTensorShape(input),
               tflite::micro::GetTensorData<int16_t>(input),
               tflite::micro::GetTensorShape(filter),
-#ifdef USE_TFLM_COMPRESSION
-              tflite::micro::GetTensorData<int8_t>(
-                  micro_context, &filter_int8, filter_comp_td,
-                  op_data.reference_op_data.weights_scratch_index),
-              tflite::micro::GetTensorShape(bias),
-              tflite::micro::GetOptionalTensorData<int64_t>(
-                  micro_context, bias, bias_comp_td,
-                  op_data.reference_op_data.bias_scratch_index),
-#else   // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorData<int8_t>(&filter_int8),
               tflite::micro::GetTensorShape(bias),
               tflite::micro::GetOptionalTensorData<int64_t>(bias),
-#endif  // USE_TFLM_COMPRESSION
               tflite::micro::GetTensorShape(output),
               tflite::micro::GetTensorData<int16_t>(output));
 #endif  // defined(HIFI5)

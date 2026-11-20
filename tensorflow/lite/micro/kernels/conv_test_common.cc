@@ -40,13 +40,7 @@ void TestConvFloat(int* input_dims_data, const float* input_data,
                    int* bias_dims_data, const float* bias_data,
                    int* output_dims_data, const float* expected_output_data,
                    TfLiteConvParams* conv_params, TFLMRegistration registration,
-                   float* output_data
-#ifdef USE_TFLM_COMPRESSION
-                   ,
-                   const TestCompressionInfo<const float>* filter_comp_info,
-                   const TestCompressionInfo<const float>* bias_comp_info
-#endif  // USE_TFLM_COMPRESSION
-) {
+                   float* output_data) {
   TfLiteIntArray* input_dims = IntArrayFromInts(input_dims_data);
   TfLiteIntArray* filter_dims = IntArrayFromInts(filter_dims_data);
   TfLiteIntArray* bias_dims = IntArrayFromInts(bias_dims_data);
@@ -63,12 +57,8 @@ void TestConvFloat(int* input_dims_data, const float* input_data,
   };
 
   ValidateConvGoldens(tensors, tensors_size, expected_output_data,
-                      output_dims_count, conv_params, registration, output_data
-#ifdef USE_TFLM_COMPRESSION
-                      ,
-                      1e-5f, filter_comp_info, bias_comp_info
-#endif  // USE_TFLM_COMPRESSION
-  );
+                      output_dims_count, conv_params, registration,
+                      output_data);
 }
 
 template <typename T, typename BiasT>

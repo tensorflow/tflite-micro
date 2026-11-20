@@ -207,23 +207,6 @@ TfLiteStatus ConvPrepare(TfLiteContext* context, TfLiteNode* node) {
                                          &data->filter_buffer_index);
   }
 
-#ifdef USE_TFLM_COMPRESSION
-
-  // Compression scratch buffers.
-  // These will only be allocated if the tensor is compressed.
-  if (micro_context->IsTensorCompressed(node, kConvWeightsTensor) &&
-      filter->type == kTfLiteInt4) {
-    MicroPrintf("Compression not supported with INT4 tensors");
-    return kTfLiteError;
-  }
-  data->weights_scratch_index =
-      micro_context->AllocateDecompressionScratchBuffer(node,
-                                                        kConvWeightsTensor);
-  data->bias_scratch_index =
-      micro_context->AllocateDecompressionScratchBuffer(node, kConvBiasTensor);
-
-#endif  // USE_TFLM_COMPRESSION
-
   micro_context->DeallocateTempTfLiteTensor(filter);
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(output);
