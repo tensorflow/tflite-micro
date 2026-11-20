@@ -142,10 +142,10 @@ void TestStridedSliceQuantized(int* input_shape, int* begin_shape,
 }  // namespace tflite
 
 TEST(StridedSliceTest, UnsupportedInputSize) {
-  int input_shape[] = {5, 2, 2, 2, 2, 2};
-  int begin_shape[] = {1, 5};
-  int end_shape[] = {1, 5};
-  int strides_shape[] = {1, 5};
+  int input_shape[] = {6, 2, 2, 2, 2, 2, 2};
+  int begin_shape[] = {1, 6};
+  int end_shape[] = {1, 6};
+  int strides_shape[] = {1, 6};
   int output_shape[] = {0};
   float input_data[] = {0.0f};
   int32_t begin_data[] = {0};
@@ -160,6 +160,98 @@ TEST(StridedSliceTest, UnsupportedInputSize) {
       input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
       input_data, begin_data, end_data, strides_data, output_shape, output_data,
       golden, true);
+}
+
+TEST(StridedSliceTest, In5D) {
+  int input_shape[] = {5, 2, 2, 2, 2, 2};
+  int begin_shape[] = {1, 5};
+  int end_shape[] = {1, 5};
+  int strides_shape[] = {1, 5};
+  int output_shape[] = {5, 1, 2, 1, 2, 1};
+  float input_data[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                        12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                        23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
+  int32_t begin_data[] = {1, 0, 1, 0, 1};
+  int32_t end_data[] = {2, 2, 2, 2, 2};
+  int32_t strides_data[] = {1, 1, 1, 1, 1};
+  float golden[] = {22, 24, 30, 32};
+  float output_data[4];
+
+  TfLiteStridedSliceParams builtin_data = {};
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TEST(StridedSliceTest, In5D_NegativeStrideAndStride2) {
+  int input_shape[] = {5, 1, 1, 2, 2, 3};
+  int begin_shape[] = {1, 5};
+  int end_shape[] = {1, 5};
+  int strides_shape[] = {1, 5};
+  int output_shape[] = {5, 1, 1, 2, 2, 2};
+  float input_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  int32_t begin_data[] = {0, 0, -1, 0, 0};
+  int32_t end_data[] = {1, 1, 0, 2, 3};
+  int32_t strides_data[] = {1, 1, -1, 1, 2};
+  float golden[] = {7, 9, 10, 12, 1, 3, 4, 6};
+  float output_data[8];
+
+  TfLiteStridedSliceParams builtin_data = {};
+  builtin_data.end_mask = 4;
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TEST(StridedSliceTest, In5D_ShrinkAxis) {
+  int input_shape[] = {5, 2, 1, 2, 1, 3};
+  int begin_shape[] = {1, 5};
+  int end_shape[] = {1, 5};
+  int strides_shape[] = {1, 5};
+  int output_shape[] = {3, 1, 2, 2};
+  float input_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  int32_t begin_data[] = {1, 0, 0, 0, 1};
+  int32_t end_data[] = {2, 1, 2, 1, 3};
+  int32_t strides_data[] = {1, 1, 1, 1, 1};
+  float golden[] = {8, 9, 11, 12};
+  float output_data[4];
+
+  TfLiteStridedSliceParams builtin_data = {};
+  builtin_data.shrink_axis_mask = 9;
+
+  tflite::testing::TestStridedSliceFloat(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
+}
+
+TEST(StridedSliceTest, In5D_BeginEndMaskInt8) {
+  int input_shape[] = {5, 2, 2, 2, 2, 2};
+  int begin_shape[] = {1, 5};
+  int end_shape[] = {1, 5};
+  int strides_shape[] = {1, 5};
+  int output_shape[] = {5, 1, 1, 2, 1, 1};
+  int8_t input_data[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                         23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
+  int32_t begin_data[] = {1, 1, 0, 1, 0};
+  int32_t end_data[] = {1, 1, 2, 2, 1};
+  int32_t strides_data[] = {1, 1, 1, 1, 1};
+  int8_t golden[] = {11, 15};
+  int8_t output_data[2];
+
+  TfLiteStridedSliceParams builtin_data = {};
+  builtin_data.begin_mask = 1;
+  builtin_data.end_mask = 2;
+
+  tflite::testing::TestStridedSliceQuantized(
+      input_shape, begin_shape, end_shape, strides_shape, &builtin_data,
+      input_data, begin_data, end_data, strides_data, output_shape, output_data,
+      golden, false);
 }
 
 TEST(StridedSliceTest, In1D) {
