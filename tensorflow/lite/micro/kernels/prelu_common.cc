@@ -27,6 +27,7 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+namespace {
 
 TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
                                   const TfLiteTensor* alpha,
@@ -50,6 +51,11 @@ TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
   return kTfLiteOk;
 }
 
+// TODO(rameshkunasi): Benchmark whether this custom 4D broadcast loop (which
+// inlines the PReLU ternary per element) is faster than
+// reference_ops::BroadcastBinaryFunction4DSlow (which delegates to
+// BroadcastBinaryOpSimple loop fusion via a function pointer) or can be
+// replaced by it.
 void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
                                const float* input1_data,
                                const RuntimeShape& unextended_input2_shape,
@@ -82,6 +88,8 @@ void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
     }
   }
 }
+
+}  // namespace
 
 void* PreluInitReference(TfLiteContext* context, const char* buffer,
                          size_t length) {

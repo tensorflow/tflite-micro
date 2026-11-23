@@ -28,17 +28,6 @@ inline constexpr int kPreluInputTensor = 0;
 inline constexpr int kPreluAlphaTensor = 1;
 inline constexpr int kPreluOutputTensor = 0;
 
-TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
-                                  const TfLiteTensor* alpha,
-                                  TfLiteTensor* output, PreluParams* params);
-
-void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
-                               const float* input1_data,
-                               const RuntimeShape& unextended_input2_shape,
-                               const float* input2_data,
-                               const RuntimeShape& unextended_output_shape,
-                               float* output_data);
-
 void* PreluInitReference(TfLiteContext* context, const char* buffer,
                          size_t length);
 
