@@ -16,6 +16,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/kernels/svdf.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
 #include "tensorflow/lite/micro/compatibility.h"
@@ -108,6 +109,71 @@ TfLiteStatus EvalIntegerSvdfHifi(TfLiteContext* context, TfLiteNode* node,
   return kTfLiteOk;
 }
 #endif  // defined(HIFI3) || defined(HIFI4) || defined(HIFI5)
+
+#if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
+TfLiteStatus EvalFloatSvdfHifi(
+    TfLiteContext* context, TfLiteNode* node, const TfLiteEvalTensor* input,
+    const TfLiteEvalTensor* weights_feature,
+    const TfLiteEvalTensor* weights_time, const TfLiteEvalTensor* bias,
+    const TfLiteSVDFParams* params, int scratch_tensor_index,
+    TfLiteEvalTensor* activation_state, TfLiteEvalTensor* output) {
+  const int rank = params->rank;
+  const int batch_size = input->dims->data[0];
+  const int input_size = input->dims->data[1];
+  const int num_filters = weights_feature->dims->data[0];
+  const int num_units = num_filters / rank;
+  const int memory_size = weights_time->dims->data[1];
+
+  const float* weights_feature_ptr =
+      tflite::micro::GetTensorData<float>(weights_feature);
+  const float* weights_time_ptr =
+      tflite::micro::GetTensorData<float>(weights_time);
+  const float* bias_ptr = tflite::micro::GetOptionalTensorData<float>(bias);
+  const float* input_ptr = tflite::micro::GetTensorData<float>(input);
+  float* state_ptr = tflite::micro::GetTensorData<float>(activation_state);
+  float* scratch_ptr = static_cast<float*>(
+      context->GetScratchBuffer(context, scratch_tensor_index));
+  float* output_ptr = tflite::micro::GetTensorData<float>(output);
+
+  // Left shift activation_state by 1 float.
+  const int state_shift_count = batch_size * num_filters * memory_size - 1;
+  if (state_shift_count > 0) {
+    memmove(state_ptr, state_ptr + 1, sizeof(float) * state_shift_count);
+  }
+
+  // Feature matmul + scatter into newest memory slot + time dot product.
+  for (int b = 0; b < batch_size; ++b) {
+    float* scratch_batch = scratch_ptr + b * num_filters;
+    TF_LITE_ENSURE_EQ(
+        context,
+        xa_nn_matXvec_f32xf32_f32(scratch_batch, weights_feature_ptr, nullptr,
+                                  input_ptr + b * input_size, nullptr, nullptr,
+                                  num_filters, input_size, 0, input_size, 0),
+        0);
+    float* state_batch = state_ptr + b * num_filters * memory_size;
+    float* newest = state_batch + (memory_size - 1);
+    for (int f = 0; f < num_filters; ++f) {
+      newest[f * memory_size] = scratch_batch[f];
+    }
+    TF_LITE_ENSURE_EQ(
+        context,
+        xa_nn_dot_prod_f32xf32_f32(scratch_batch, weights_time_ptr, state_batch,
+                                   memory_size, num_filters),
+        0);
+
+    float* out_batch = output_ptr + b * num_units;
+    for (int u = 0; u < num_units; ++u) {
+      float acc = bias_ptr != nullptr ? bias_ptr[u] : 0.0f;
+      for (int r = 0; r < rank; ++r) {
+        acc += scratch_batch[u * rank + r];
+      }
+      out_batch[u] =
+          tflite::ops::micro::ActivationValFloat(params->activation, acc);
+    }
+  }
+  return kTfLiteOk;
+}
+#endif  // defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
 
 void* Init(TfLiteContext* context, const char* buffer, size_t length) {
   TFLITE_DCHECK(context != nullptr);
@@ -344,9 +410,15 @@ TfLiteStatus Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (weights_feature->type) {
     case kTfLiteFloat32: {
+#if defined(INCLUDE_FLOAT_OPT) && (defined(HIFI4) || defined(HIFI5))
+      return EvalFloatSvdfHifi(
+          context, node, input, weights_feature, weights_time, bias, params,
+          data.scratch_tensor_index, activation_state, output);
+#else
       EvalFloatSvdfReference(
           context, node, input, weights_feature, weights_time, bias, params,
           data.scratch_tensor_index, activation_state, output);
+#endif
       break;
     }
 
