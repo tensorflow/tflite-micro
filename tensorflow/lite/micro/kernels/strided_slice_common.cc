@@ -60,9 +60,9 @@ struct StridedSliceContext {
   int dims;
 };
 
-// This Op only supports 1-4D cases and since we use the reference 4D
-// implementation, the 1-3D tensors are mapped to 4D.
-const int kMaxDim = 4;
+// This Op supports 1-5D cases. The reference implementation is 5D, so lower
+// rank tensors are mapped to 5D.
+const int kMaxDim = 5;
 
 tflite::micro::StridedSliceParams BuildStridedSliceParams(
     StridedSliceContext* op_context) {
@@ -138,7 +138,7 @@ TfLiteStatus StridedSlicePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
   StridedSliceContext op_context(context, node);
   TF_LITE_ENSURE_MSG(context, op_context.dims <= kMaxDim,
-                     "input dim should not exceed 4");
+                     "input dim should not exceed 5");
   TF_LITE_ENSURE_MSG(context, IsConstantTensor(op_context.begin),
                      "Non-constant >begin< tensor is not supported");
   TF_LITE_ENSURE_MSG(context, IsConstantTensor(op_context.end),
