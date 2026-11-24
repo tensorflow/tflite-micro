@@ -186,4 +186,102 @@ TEST(PreluTest, QuantizedInt16PreluActivationsOpTest) {
       zero_point, golden, scale_input_output, zero_point, output_shape,
       output_data_q, output_data_f);
 }
+
+TEST(PreluTest, QuantizedInt8SameShapeMultiElementTest) {
+  constexpr int kDimsCount = 24;
+  int input_shape[] = {3, 2, 3, 4};
+  int alpha_shape[] = {3, 2, 3, 4};
+  int output_shape[] = {3, 2, 3, 4};
+  const float input_values[kDimsCount] = {
+      -0.75f, -0.5f,  -0.25f, -0.125f, 0.0f,   0.125f, 0.25f, 0.5f,
+      -0.5f,  -0.25f, 0.375f, -0.75f,  0.25f,  -0.5f,  0.0f,  0.5f,
+      -0.25f, -0.5f,  0.125f, -0.125f, 0.375f, -0.75f, 0.25f, -0.25f,
+  };
+  const float alpha_values[kDimsCount] = {
+      0.5f,  0.25f, -0.5f,  0.0f,   0.5f,  -0.25f, 0.25f, 0.5f,
+      -0.5f, 0.5f,  -0.5f,  -0.25f, 0.25f, 0.0f,   0.5f,  -0.5f,
+      0.25f, 0.5f,  -0.25f, -0.5f,  0.5f,  0.25f,  0.0f,  -0.25f,
+  };
+  float golden[kDimsCount];
+  for (int i = 0; i < kDimsCount; ++i) {
+    golden[i] = input_values[i] >= 0.0f ? input_values[i]
+                                        : input_values[i] * alpha_values[i];
+  }
+
+  int8_t input_quantized[kDimsCount];
+  int8_t alpha_quantized[kDimsCount];
+  int8_t output_data_q[kDimsCount];
+  float output_data_f[kDimsCount];
+
+  tflite::testing::TestPreluQuantized<int8_t, int8_t>(
+      input_shape, input_values, input_quantized, /*input_scale=*/1.0f / 128.0f,
+      /*input_zero_point=*/-16, alpha_shape, alpha_values, alpha_quantized,
+      /*alpha_scale=*/1.0f / 128.0f, /*alpha_zero_point=*/12, golden,
+      /*output_scale=*/1.0f / 256.0f, /*output_zero_point=*/-32, output_shape,
+      output_data_q, output_data_f);
+}
+
+TEST(PreluTest, QuantizedInt8AlphaBroadcastMultiElementTest) {
+  constexpr int kDimsCount = 24;
+  constexpr int kAlphaCount = 4;
+  int input_shape[] = {3, 3, 2, 4};
+  int alpha_shape[] = {1, 4};
+  int output_shape[] = {3, 3, 2, 4};
+  const float input_values[kDimsCount] = {
+      -0.75f, -0.5f,  -0.25f, -0.125f, 0.0f,   0.125f, 0.25f, 0.5f,
+      -0.5f,  -0.25f, 0.375f, -0.75f,  0.25f,  -0.5f,  0.0f,  0.5f,
+      -0.25f, -0.5f,  0.125f, -0.125f, 0.375f, -0.75f, 0.25f, -0.25f,
+  };
+  const float alpha_values[kAlphaCount] = {0.5f, -0.25f, 0.0f, 0.25f};
+  float golden[kDimsCount];
+  for (int i = 0; i < kDimsCount; ++i) {
+    const float alpha = alpha_values[i % kAlphaCount];
+    golden[i] =
+        input_values[i] >= 0.0f ? input_values[i] : input_values[i] * alpha;
+  }
+
+  int8_t input_quantized[kDimsCount];
+  int8_t alpha_quantized[kAlphaCount];
+  int8_t output_data_q[kDimsCount];
+  float output_data_f[kDimsCount];
+
+  tflite::testing::TestPreluQuantized<int8_t, int8_t>(
+      input_shape, input_values, input_quantized, /*input_scale=*/1.0f / 128.0f,
+      /*input_zero_point=*/-16, alpha_shape, alpha_values, alpha_quantized,
+      /*alpha_scale=*/1.0f / 128.0f, /*alpha_zero_point=*/12, golden,
+      /*output_scale=*/1.0f / 256.0f, /*output_zero_point=*/-32, output_shape,
+      output_data_q, output_data_f);
+}
+
+TEST(PreluTest, QuantizedInt8InputBroadcastFallbackTest) {
+  constexpr int kInputCount = 4;
+  constexpr int kDimsCount = 24;
+  int input_shape[] = {3, 1, 1, 4};
+  int alpha_shape[] = {3, 2, 3, 4};
+  int output_shape[] = {3, 2, 3, 4};
+  const float input_values[kInputCount] = {-0.5f, -0.25f, 0.0f, 0.25f};
+  const float alpha_values[kDimsCount] = {
+      0.5f,  0.25f, -0.5f,  0.0f,   0.5f,  -0.25f, 0.25f, 0.5f,
+      -0.5f, 0.5f,  -0.5f,  -0.25f, 0.25f, 0.0f,   0.5f,  -0.5f,
+      0.25f, 0.5f,  -0.25f, -0.5f,  0.5f,  0.25f,  0.0f,  -0.25f,
+  };
+  float golden[kDimsCount];
+  for (int i = 0; i < kDimsCount; ++i) {
+    const float in = input_values[i % kInputCount];
+    golden[i] = in >= 0.0f ? in : in * alpha_values[i];
+  }
+
+  int8_t input_quantized[kInputCount];
+  int8_t alpha_quantized[kDimsCount];
+  int8_t output_data_q[kDimsCount];
+  float output_data_f[kDimsCount];
+
+  tflite::testing::TestPreluQuantized<int8_t, int8_t>(
+      input_shape, input_values, input_quantized, /*input_scale=*/1.0f / 128.0f,
+      /*input_zero_point=*/-16, alpha_shape, alpha_values, alpha_quantized,
+      /*alpha_scale=*/1.0f / 128.0f, /*alpha_zero_point=*/12, golden,
+      /*output_scale=*/1.0f / 256.0f, /*output_zero_point=*/-32, output_shape,
+      output_data_q, output_data_f);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

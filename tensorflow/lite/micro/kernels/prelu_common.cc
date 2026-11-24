@@ -13,8 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <cstddef>
 #include <cstdint>
+#include <new>
 
+#include "tensorflow/lite/micro/compatibility.h"
 #include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
 #include "tensorflow/lite/micro/kernels/internal/reference/prelu.h"
 #include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
@@ -24,6 +27,8 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
+namespace {
+
 TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
                                   const TfLiteTensor* alpha,
                                   TfLiteTensor* output, PreluParams* params) {
@@ -46,6 +51,11 @@ TfLiteStatus CalculatePreluParams(const TfLiteTensor* input,
   return kTfLiteOk;
 }
 
+// TODO(rameshkunasi): Benchmark whether this custom 4D broadcast loop (which
+// inlines the PReLU ternary per element) is faster than
+// reference_ops::BroadcastBinaryFunction4DSlow (which delegates to
+// BroadcastBinaryOpSimple loop fusion via a function pointer) or can be
+// replaced by it.
 void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
                                const float* input1_data,
                                const RuntimeShape& unextended_input2_shape,
@@ -79,31 +89,96 @@ void BroadcastPrelu4DSlowFloat(const RuntimeShape& unextended_input1_shape,
   }
 }
 
-TfLiteStatus PreluPrepare(TfLiteContext* context, TfLiteNode* node) {
-  TFLITE_DCHECK(node->user_data != nullptr);
-  PreluParams* params = static_cast<PreluParams*>(node->user_data);
+}  // namespace
+
+void* PreluInitReference(TfLiteContext* context, const char* buffer,
+                         size_t length) {
+  void* data = context->AllocatePersistentBuffer(context, sizeof(PreluParams));
+  if (data == nullptr) {
+    return nullptr;
+  }
+  return new (data) PreluParams();
+}
+
+TfLiteStatus PreparePreluParameters(TfLiteContext* context, TfLiteNode* node,
+                                    PreluParams* params) {
+  TF_LITE_ENSURE(context, params != nullptr);
+  TF_LITE_ENSURE_EQ(context, NumInputs(node), 2);
+  TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
   MicroContext* micro_context = GetMicroContext(context);
 
-  TfLiteTensor* input = micro_context->AllocateTempInputTensor(node, 0);
+  TfLiteTensor* input =
+      micro_context->AllocateTempInputTensor(node, kPreluInputTensor);
   TF_LITE_ENSURE(context, input != nullptr);
-  TfLiteTensor* alpha = micro_context->AllocateTempInputTensor(node, 1);
+  TfLiteTensor* alpha =
+      micro_context->AllocateTempInputTensor(node, kPreluAlphaTensor);
   TF_LITE_ENSURE(context, alpha != nullptr);
-  TfLiteTensor* output = micro_context->AllocateTempOutputTensor(node, 0);
+  TfLiteTensor* output =
+      micro_context->AllocateTempOutputTensor(node, kPreluOutputTensor);
   TF_LITE_ENSURE(context, output != nullptr);
+
+  TF_LITE_ENSURE_TYPES_EQ(context, input->type, output->type);
+  if (output->type == kTfLiteFloat32) {
+    TF_LITE_ENSURE_TYPES_EQ(context, alpha->type, kTfLiteFloat32);
+  } else if (output->type == kTfLiteInt8 || output->type == kTfLiteInt16) {
+    TF_LITE_ENSURE_TYPES_EQ(context, alpha->type, kTfLiteInt8);
+  }
 
   TF_LITE_ENSURE_OK(context,
                     CalculatePreluParams(input, alpha, output, params));
-
-  if (output->type == kTfLiteInt16) {
-    // Make sure alpha type is Int8 when Output is Int16
-    TF_LITE_ENSURE(context, alpha->type == kTfLiteInt8);
-  }
 
   micro_context->DeallocateTempTfLiteTensor(input);
   micro_context->DeallocateTempTfLiteTensor(alpha);
   micro_context->DeallocateTempTfLiteTensor(output);
   return kTfLiteOk;
+}
+
+TfLiteStatus PreluPrepareReference(TfLiteContext* context, TfLiteNode* node) {
+  TF_LITE_ENSURE(context, node->user_data != nullptr);
+  PreluParams* params = static_cast<PreluParams*>(node->user_data);
+  return PreparePreluParameters(context, node, params);
+}
+
+template <>
+void PreluEvalReference<float>(const PreluParams& params,
+                               const TfLiteEvalTensor* input,
+                               const TfLiteEvalTensor* alpha,
+                               TfLiteEvalTensor* output) {
+  BroadcastPrelu4DSlowFloat(tflite::micro::GetTensorShape(input),
+                            tflite::micro::GetTensorData<float>(input),
+                            tflite::micro::GetTensorShape(alpha),
+                            tflite::micro::GetTensorData<float>(alpha),
+                            tflite::micro::GetTensorShape(output),
+                            tflite::micro::GetTensorData<float>(output));
+}
+
+template <>
+void PreluEvalReference<int8_t>(const PreluParams& params,
+                                const TfLiteEvalTensor* input,
+                                const TfLiteEvalTensor* alpha,
+                                TfLiteEvalTensor* output) {
+  reference_ops::BroadcastPrelu4DSlow(
+      params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int8_t>(input),
+      tflite::micro::GetTensorShape(alpha),
+      tflite::micro::GetTensorData<int8_t>(alpha),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int8_t>(output));
+}
+
+template <>
+void PreluEvalReference<int16_t>(const PreluParams& params,
+                                 const TfLiteEvalTensor* input,
+                                 const TfLiteEvalTensor* alpha,
+                                 TfLiteEvalTensor* output) {
+  reference_ops::BroadcastPrelu4DSlow(
+      params, tflite::micro::GetTensorShape(input),
+      tflite::micro::GetTensorData<int16_t>(input),
+      tflite::micro::GetTensorShape(alpha),
+      tflite::micro::GetTensorData<int8_t>(alpha),
+      tflite::micro::GetTensorShape(output),
+      tflite::micro::GetTensorData<int16_t>(output));
 }
 
 }  // namespace micro
