@@ -372,6 +372,42 @@ TEST(DivTest, QuantizedDivOpTestBroadcast) {
                                               kTfLiteActNone, &params);
 }
 
+TEST(DivTest, QuantizedDivShiftBounds) {
+  auto check = [](const int8_t (&in1)[4], float s1, int zp1, int8_t div_val,
+                  float s2, float sout, int zp_out, const int8_t (&expect)[4]) {
+    int dims[] = {2, 1, 4};
+    int scalar_dims[] = {1, 1};
+    const int8_t in2_elem[] = {div_val, div_val, div_val, div_val};
+    const int8_t in2_scalar[] = {div_val};
+    for (bool broadcast : {false, true}) {
+      int8_t out[4] = {};
+      TfLiteTensor tensors[] = {
+          tflite::testing::CreateQuantizedTensor(
+              in1, tflite::testing::IntArrayFromInts(dims), s1, zp1),
+          tflite::testing::CreateQuantizedTensor(
+              broadcast ? in2_scalar : in2_elem,
+              tflite::testing::IntArrayFromInts(broadcast ? scalar_dims : dims),
+              s2, 0),
+          tflite::testing::CreateQuantizedTensor(
+              out, tflite::testing::IntArrayFromInts(dims), sout, zp_out),
+      };
+      tflite::testing::ExecuteDivTest(tensors, 3, kTfLiteActNone);
+      for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(expect[i], out[i]);
+      }
+    }
+  };
+
+  check({0, -1, 1, -2}, 1.0f / 16.0f, 0, -2, 1.0f / 16.0f, 1.0f / 16.0f, 0,
+        {0, 8, -8, 16});
+  check({0, -1, -2, 3}, 1.0f, 0, 1, 1.0f, 2.5f, 0, {0, 0, -1, 1});
+  check({0, -1, -2, 3}, 1.0f, 0, 1, 1.0f, 5.0f, 0, {0, 0, 0, 1});
+  check({0, 1, -100, 100}, 1000.0f, 0, 1, 1e-5f, 1.0f, 0, {0, 127, -128, 127});
+  // 1 / (3 * 1.98682155e-8) = 2^24 -> output_shift = 24, total_shift = 0.
+  check({0, -128, 127, -1}, 1.0f, 0, 1, 3.0f, 1.98682155e-8f, -128,
+        {-128, -128, 127, -128});
+}
+
 TEST(DivTest, IntegerDivOpTestNoActivation) {
   int kDims[] = {4, 1, 2, 2, 1};
   constexpr int32_t kInput1[] = {-2, 2, -15, 8};
