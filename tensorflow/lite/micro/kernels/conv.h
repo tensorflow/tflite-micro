@@ -50,14 +50,6 @@ struct OpDataConv {
   // A buffer used to store unpacked filter values. This is used if the source
   // tensor is of n-bit precision that cannot be easily processed by kernels.
   int filter_buffer_index;
-
-#ifdef USE_TFLM_COMPRESSION
-
-  // scratch buffers for compressed tensors
-  int weights_scratch_index;
-  int bias_scratch_index;
-
-#endif  // USE_TFLM_COMPRESSION
 };
 
 extern const int kConvInputTensor;

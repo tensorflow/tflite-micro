@@ -7,16 +7,6 @@ load(
 load(
     "//tensorflow/lite/micro:build_def.bzl",
     "INCOMPATIBLE_WITH_WINDOWS",
-    "tflm_cc_test",
-)
-load(
-    "//tensorflow/lite/micro/tools/toolchains:platform_suites.bzl",
-    "tflm_platform_target",
-)
-load(
-    "//third_party/flatbuffers:build_defs.bzl",
-    "flatbuffer_cc_library",
-    "flatbuffer_py_library",
 )
 load("view_tests.bzl", "generate_view_tests")
 
@@ -34,54 +24,6 @@ tflm_py_library(
         ":compress_lib",
         ":spec",
         ":spec_builder",
-    ],
-)
-
-flatbuffer_cc_library(
-    # Generates the header-only library "metadata_generated.h", used to read
-    # the metadata flatbuffer.
-    name = "metadata_cc",
-    srcs = ["metadata.fbs"],
-)
-
-tflm_cc_test(
-    name = "metadata_test_cc",
-    size = "small",
-    srcs = ["metadata_test.cc"],
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        ":metadata_cc",
-        "//tensorflow/lite/micro:hexdump",
-        "//tensorflow/lite/micro:micro_log",
-        "//tensorflow/lite/micro:span",
-        "//tensorflow/lite/micro/testing:micro_test",
-        "//third_party/flatbuffers:runtime_cc",
-    ],
-)
-
-tflm_platform_target(
-    name = "metadata_test_cc_compression",
-    size = "small",
-    profile = "compression",
-    target = ":metadata_test_cc",
-)
-
-flatbuffer_py_library(
-    # Generates the Python module "metadata_py_generated", used to read the
-    # metadata flatbuffer.
-    name = "metadata_py",
-    srcs = ["metadata.fbs"],
-)
-
-tflm_py_test(
-    name = "metadata_test_py",
-    size = "small",
-    srcs = ["metadata_test.py"],
-    main = "metadata_test.py",
-    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
-    deps = [
-        "metadata_py",
-        "//third_party/flatbuffers:runtime_py",
     ],
 )
 
@@ -220,10 +162,7 @@ tflm_py_test(
         "notap",
         "noubsan",
     ],
-    target_compatible_with = select({
-        "//:with_compression_enabled": [],
-        "//conditions:default": ["@platforms//:incompatible"],
-    }),
+    target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
         ":compress_lib",
         ":decode_insert",
@@ -480,9 +419,7 @@ tflm_py_library(
     ],
     target_compatible_with = INCOMPATIBLE_WITH_WINDOWS,
     deps = [
-        ":metadata_py",
         "//tensorflow/lite/micro/python:schema_py",
-        "//tensorflow/lite/micro/tools:tensor_type",
         "//third_party/py/numpy",
     ],
 )

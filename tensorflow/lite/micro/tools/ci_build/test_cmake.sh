@@ -18,7 +18,7 @@
 # ecosystem interop checks in an out-of-tree temporary directory.
 #
 # Usage:
-#   tensorflow/lite/micro/tools/ci_build/test_cmake.sh [all|ci|compression_debug|core_only|interop]
+#   tensorflow/lite/micro/tools/ci_build/test_cmake.sh [all|ci|core_only|interop]
 
 set -euo pipefail
 
@@ -143,14 +143,6 @@ run_ci() {
   run_cmake_preset ci "${build_dir}" -DTFLM_DEPS_DIR="${DEPS_DIR}"
   verify_install_and_consumers "${build_dir}" TFLM_DEPS_DIR "${DEPS_DIR}" ON RelWithDebInfo
   run_interop_checks
-}
-
-run_compression_debug() {
-  ensure_full_deps
-  local build_dir="${WORK_DIR}/build-compression-debug"
-  run_cmake_preset debug "${build_dir}" -DTFLM_DEPS_DIR="${DEPS_DIR}" -DTFLM_ENABLE_COMPRESSION=ON
-  readable_run ctest --test-dir "${build_dir}" \
-    --output-on-failure --no-tests=error -R "^tflm_kernel_decompress_test$"
 }
 
 run_core_only() {
@@ -317,16 +309,14 @@ EOF
 
 case "${MODE}" in
   ci) run_ci ;;
-  compression_debug|compression) run_compression_debug ;;
   core_only|core-only) run_core_only ;;
   interop) run_interop_checks ;;
   all)
     run_ci
-    run_compression_debug
     run_core_only
     ;;
   *)
-    echo "Unknown mode '${MODE}'. Expected: all, ci, compression_debug, core_only, or interop." >&2
+    echo "Unknown mode '${MODE}'. Expected: all, ci, core_only, or interop." >&2
     exit 2
     ;;
 esac

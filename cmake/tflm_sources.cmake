@@ -80,7 +80,6 @@ file(GLOB TFLM_MICRO_PUBLIC_HDRS CONFIGURE_DEPENDS
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/*.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/arena_allocator/*.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/c/*.h"
-  "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/compression/*.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/*.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/internal/*.h"
   "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/kernels/internal/reference/*.h"
@@ -117,10 +116,6 @@ function(_tflm_add_unit_tests)
       set(_assets "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/models/keyword_scrambled.tflite")
     elseif(_stem STREQUAL "ethos_u_test")
       set(_assets "${PROJECT_SOURCE_DIR}/tensorflow/lite/micro/models/person_detect_vela.tflite")
-    elseif(_stem STREQUAL "decompress_test")
-      if(NOT TFLM_ENABLE_COMPRESSION)
-        continue()
-      endif()
     elseif(_stem STREQUAL "kiss_fft_wrappers_test")
       list(APPEND _deps tflm::kissfft)
     endif()

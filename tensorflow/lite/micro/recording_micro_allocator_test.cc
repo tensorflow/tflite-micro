@@ -287,66 +287,6 @@ TEST(RecordingMicroAllocatorTest, TestMultiSubgraphModel) {
             num_tensors * TF_LITE_EVAL_TENSOR_STRUCT_SIZE);
 }
 
-#ifdef USE_TFLM_COMPRESSION
-
-TEST(RecordingMicroAllocatorTest, TestCompressedModel) {
-  tflite::ScratchBufferHandle* scratch_buffer_handles = nullptr;
-  tflite::testing::TestingOpResolver ops_resolver;
-  const tflite::Model* model = tflite::testing::GetSimpleMockModelCompressed();
-  const int arena_size = 2048;
-
-  uint8_t arena[arena_size];
-
-  tflite::RecordingMicroAllocator* micro_allocator =
-      tflite::RecordingMicroAllocator::Create(arena, arena_size);
-  EXPECT_NE(micro_allocator, nullptr);
-
-  tflite::SubgraphAllocations* subgraph_allocations =
-      micro_allocator->StartModelAllocation(model);
-  EXPECT_NE(nullptr, subgraph_allocations);
-
-  TfLiteStatus status = micro_allocator->FinishModelAllocation(
-      model, subgraph_allocations, &scratch_buffer_handles);
-  ASSERT_EQ(status, kTfLiteOk);
-
-  micro_allocator->PrintAllocations();
-
-  size_t count_compression_allocations = 0;
-  size_t size_compression_allocations = 0;
-  for (size_t subgraph_idx = 0; subgraph_idx < model->subgraphs()->size();
-       subgraph_idx++) {
-    const tflite::CompressionTensorData** ctl =
-        subgraph_allocations[subgraph_idx].compressed.tensors;
-    if (ctl == nullptr) {
-      continue;
-    }
-    const tflite::SubGraph* subgraph = model->subgraphs()->Get(subgraph_idx);
-    const size_t num_tensors = subgraph->tensors()->size();
-    for (size_t i = 0; i < num_tensors; i++) {
-      if (ctl[i] != nullptr) {
-        count_compression_allocations++;
-        size_compression_allocations += sizeof(tflite::CompressionTensorData);
-        count_compression_allocations++;
-        size_compression_allocations += sizeof(tflite::LookupTableData);
-      }
-    }
-    // Add the CompressionTensorData array
-    count_compression_allocations++;
-    size_compression_allocations +=
-        num_tensors * sizeof(tflite::CompressionTensorData*);
-  }
-
-  tflite::RecordedAllocation recorded_allocation =
-      micro_allocator->GetRecordedAllocation(
-          tflite::RecordedAllocationType::kCompressionData);
-
-  EXPECT_EQ(recorded_allocation.count, count_compression_allocations);
-  EXPECT_EQ(recorded_allocation.requested_bytes, size_compression_allocations);
-  EXPECT_GE(recorded_allocation.used_bytes, size_compression_allocations);
-}
-
-#endif  // USE_TFLM_COMPRESSION
-
 // TODO(b/158124094): Find a way to audit OpData allocations on
 // cross-architectures.
 

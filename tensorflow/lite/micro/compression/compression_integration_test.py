@@ -16,8 +16,6 @@
 These tests verify that compressed models produce correct inference results
 when run through the TFLM Python interpreter. Tests compress models and
 compare outputs against uncompressed originals.
-
-These tests only run when compression is enabled (--//:with_compression).
 """
 
 import os

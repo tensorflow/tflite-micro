@@ -53,19 +53,6 @@ class MockMicroContext : public MicroContext {
   }
   void* external_context() override { return nullptr; }
   MicroGraph& graph() override { return *graph_; }
-#ifdef USE_TFLM_COMPRESSION
-  bool IsTensorCompressed(const TfLiteNode* node, int tensor_idx) override {
-    return false;
-  }
-  int AllocateDecompressionScratchBuffer(const TfLiteNode* node,
-                                         int tensor_idx) override {
-    return -1;
-  }
-  const CompressionTensorData* GetTensorCompressionData(
-      const TfLiteNode* node, int tensor_idx) override {
-    return nullptr;
-  }
-#endif  // USE_TFLM_COMPRESSION
 
  private:
   MicroGraph* graph_ = nullptr;
