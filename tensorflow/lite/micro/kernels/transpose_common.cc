@@ -27,6 +27,9 @@ TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 
   TransposeContext op_context(context, node);
+  TF_LITE_ENSURE(context, op_context.input != nullptr);
+  TF_LITE_ENSURE(context, op_context.perm != nullptr);
+  TF_LITE_ENSURE(context, op_context.output != nullptr);
 
   // Ensure validity of input tensor.
   TF_LITE_ENSURE_MSG(context, NumDimensions(op_context.input) <= 5,
@@ -45,6 +48,54 @@ TfLiteStatus TransposePrepare(TfLiteContext* context, TfLiteNode* node) {
   for (int idx = 0; idx < dims; ++idx) {
     TF_LITE_ENSURE_MSG(context, (perm_data[idx] >= 0 && perm_data[idx] < dims),
                        "Transpose op permutations array is out of bounds.");
+  }
+
+  return kTfLiteOk;
+}
+
+TfLiteStatus TransposeEvalReference(TfLiteContext* context, TfLiteNode* node) {
+  const TfLiteEvalTensor* perm_tensor =
+      tflite::micro::GetEvalInput(context, node, kTransposePermTensor);
+  const int32_t* perm_data = tflite::micro::GetTensorData<int32_t>(perm_tensor);
+  const int size = perm_tensor->dims->data[0];
+  TransposeParams params;
+  params.perm_count = size;
+  for (int i = 0; i < size; ++i) {
+    params.perm[i] = perm_data[i];
+  }
+
+  // Transpose kernel only does rearranging values not numeric evaluations
+  // on each cell. It's safe to implement per size of scalar type and this
+  // trick keeps the total code size in a reasonable range.
+  const TfLiteEvalTensor* input =
+      tflite::micro::GetEvalInput(context, node, kTransposeInputTensor);
+  TfLiteEvalTensor* output =
+      tflite::micro::GetEvalOutput(context, node, kTransposeOutputTensor);
+  switch (input->type) {
+    case kTfLiteFloat32:
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<float>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<float>(output));
+      break;
+    case kTfLiteInt8:
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<int8_t>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<int8_t>(output));
+      break;
+    case kTfLiteInt16:
+      reference_ops::Transpose(params, tflite::micro::GetTensorShape(input),
+                               tflite::micro::GetTensorData<int16_t>(input),
+                               tflite::micro::GetTensorShape(output),
+                               tflite::micro::GetTensorData<int16_t>(output));
+      break;
+    default:
+      MicroPrintf(
+          "Type %s is currently not supported by Transpose. "
+          "Only float32, int8 and int16 are supported",
+          TfLiteTypeGetName(input->type));
+      return kTfLiteError;
   }
 
   return kTfLiteOk;
