@@ -15,24 +15,16 @@ limitations under the License.
 
 #include "tensorflow/lite/micro/kernels/activations.h"
 
-#include "tensorflow/lite/micro/builtin_op_data.h"
+#include <cstdint>
+
 #include "tensorflow/lite/micro/compatibility.h"
-#include "tensorflow/lite/micro/kernels/internal/common.h"
-#include "tensorflow/lite/micro/kernels/internal/quantization_util.h"
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
-#include "tensorflow/lite/micro/kernels/internal/types.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 #include "tensorflow/lite/micro/micro_log.h"
-#include "tensorflow/lite/micro/micro_utils.h"
 
 namespace tflite {
 namespace micro {
 namespace {
-
-void* ReluInit(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(ReluOpData));
-}
 
 TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
@@ -45,25 +37,15 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      ReluFloat(tflite::micro::GetTensorShape(input),
-                tflite::micro::GetTensorData<float>(input),
-                tflite::micro::GetTensorShape(output),
-                tflite::micro::GetTensorData<float>(output));
-
+      ReluEvalReference<float>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      ReluQuantized<int8_t>(data, tflite::micro::GetTensorShape(input),
-                            tflite::micro::GetTensorShape(output),
-                            tflite::micro::GetTensorData<int8_t>(input),
-                            tflite::micro::GetTensorData<int8_t>(output));
+      ReluEvalReference<int8_t>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt16: {
-      ReluQuantized<int16_t>(data, tflite::micro::GetTensorShape(input),
-                             tflite::micro::GetTensorShape(output),
-                             tflite::micro::GetTensorData<int16_t>(input),
-                             tflite::micro::GetTensorData<int16_t>(output));
+      ReluEvalReference<int16_t>(data, input, output);
       return kTfLiteOk;
     }
     default: {
@@ -74,13 +56,8 @@ TfLiteStatus ReluEval(TfLiteContext* context, TfLiteNode* node) {
   }
 }
 
-void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length) {
-  return context->AllocatePersistentBuffer(context, sizeof(Relu6OpData));
-}
-
 TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
   TFLITE_DCHECK(node->user_data != nullptr);
-
   const Relu6OpData& data = *(static_cast<const Relu6OpData*>(node->user_data));
 
   const TfLiteEvalTensor* input =
@@ -90,27 +67,15 @@ TfLiteStatus Relu6Eval(TfLiteContext* context, TfLiteNode* node) {
 
   switch (input->type) {
     case kTfLiteFloat32: {
-      Relu6Float(tflite::micro::GetTensorShape(input),
-                 tflite::micro::GetTensorData<float>(input),
-                 tflite::micro::GetTensorShape(output),
-                 tflite::micro::GetTensorData<float>(output));
-
+      Relu6EvalReference<float>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt8: {
-      Relu6Quantized<int8_t>(data.zero, data.six,
-                             tflite::micro::GetTensorShape(input),
-                             tflite::micro::GetTensorData<int8_t>(input),
-                             tflite::micro::GetTensorShape(output),
-                             tflite::micro::GetTensorData<int8_t>(output));
+      Relu6EvalReference<int8_t>(data, input, output);
       return kTfLiteOk;
     }
     case kTfLiteInt16: {
-      Relu6Quantized<int16_t>(data.zero, data.six,
-                              tflite::micro::GetTensorShape(input),
-                              tflite::micro::GetTensorData<int16_t>(input),
-                              tflite::micro::GetTensorShape(output),
-                              tflite::micro::GetTensorData<int16_t>(output));
+      Relu6EvalReference<int16_t>(data, input, output);
       return kTfLiteOk;
     }
     default: {

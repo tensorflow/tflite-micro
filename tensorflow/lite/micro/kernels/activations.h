@@ -16,6 +16,7 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_KERNELS_ACTIVATIONS_H_
 #define TENSORFLOW_LITE_MICRO_KERNELS_ACTIVATIONS_H_
 
+#include <cstddef>
 #include <cstdint>
 
 #include "tensorflow/lite/micro/builtin_op_data.h"
@@ -25,8 +26,9 @@ limitations under the License.
 
 namespace tflite {
 namespace micro {
-extern const int kActivationsInputTensor;
-extern const int kActivationsOutputTensor;
+
+inline constexpr int kActivationsInputTensor = 0;
+inline constexpr int kActivationsOutputTensor = 0;
 
 struct ReluOpData {
   ReluParams params;
@@ -77,9 +79,21 @@ void Relu6Quantized(T lower, T upper, const RuntimeShape& input_shape,
   }
 }
 
+void* ReluInit(TfLiteContext* context, const char* buffer, size_t length);
+
 TfLiteStatus ReluPrepare(TfLiteContext* context, TfLiteNode* node);
 
+template <typename T>
+void ReluEvalReference(const ReluOpData& data, const TfLiteEvalTensor* input,
+                       TfLiteEvalTensor* output);
+
+void* Relu6Init(TfLiteContext* context, const char* buffer, size_t length);
+
 TfLiteStatus Relu6Prepare(TfLiteContext* context, TfLiteNode* node);
+
+template <typename T>
+void Relu6EvalReference(const Relu6OpData& data, const TfLiteEvalTensor* input,
+                        TfLiteEvalTensor* output);
 
 }  // namespace micro
 
