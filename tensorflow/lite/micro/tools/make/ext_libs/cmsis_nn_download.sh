@@ -38,9 +38,9 @@ source ${TENSORFLOW_ROOT}tensorflow/lite/micro/tools/make/bash_helpers.sh
 DOWNLOADS_DIR=${1}
 DOWNLOADED_CMSIS_NN_PATH=${DOWNLOADS_DIR}/cmsis_nn
 
-ZIP_PREFIX_NN="ece8aa0df4bee4fc928c294e18059071649c88bb"
+ZIP_PREFIX_NN="773c0ca2cb7ea7f04199837dbbfcbc042594f1e8"
 CMSIS_NN_URL="https://github.com/ARM-software/CMSIS-NN/archive/${ZIP_PREFIX_NN}.zip"
-CMSIS_NN_MD5="05b6e15db6ea31bc842b3f54cdf428ab"
+CMSIS_NN_MD5="6fcc0d406b9b38f0019fe33bd4cc82cf"
 
 should_download=$(check_should_download ${DOWNLOADS_DIR})
 
