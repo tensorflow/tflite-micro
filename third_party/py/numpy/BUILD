@@ -21,8 +21,3 @@ alias(
     name = "numpy",
     actual = requirement("numpy"),
 )
-
-alias(
-    name = "headers",
-    actual = "@tflm_pip_deps//numpy:cc_headers",
-)
