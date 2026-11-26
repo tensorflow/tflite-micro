@@ -335,4 +335,72 @@ TEST(SliceTest, SliceBool) {
                              output_shape, expected_output_data, output_data);
 }
 
+TEST(SliceTest, Slice4DInnerAxisInt8) {
+  int input_shape[] = {4, 2, 2, 2, 4};
+  int8_t input_values[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                           12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                           23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
+  int begin_shape[] = {1, 4};
+  int32_t begin_values[] = {0, 1, 0, 1};
+  int size_shape[] = {1, 4};
+  int32_t size_values[] = {2, 1, 2, 2};
+  int output_shape[] = {4, 2, 1, 2, 2};
+  int8_t expected_output_data[] = {10, 11, 14, 15, 26, 27, 30, 31};
+  int8_t output_data[8];
+
+  tflite::testing::TestSlice(input_shape, input_values, begin_shape,
+                             begin_values, size_shape, size_values,
+                             output_shape, expected_output_data, output_data);
+}
+
+TEST(SliceTest, Slice4DInnerAxisInt16) {
+  int input_shape[] = {4, 2, 2, 2, 4};
+  int16_t input_values[] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                            12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+                            23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
+  int begin_shape[] = {1, 4};
+  int32_t begin_values[] = {0, 1, 0, 1};
+  int size_shape[] = {1, 4};
+  int32_t size_values[] = {2, 1, 2, 2};
+  int output_shape[] = {4, 2, 1, 2, 2};
+  int16_t expected_output_data[] = {10, 11, 14, 15, 26, 27, 30, 31};
+  int16_t output_data[8];
+
+  tflite::testing::TestSlice(input_shape, input_values, begin_shape,
+                             begin_values, size_shape, size_values,
+                             output_shape, expected_output_data, output_data);
+}
+
+TEST(SliceTest, In5DInt8) {
+  int input_shape[] = {5, 5, 1, 1, 1, 2};
+  int8_t input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int begin_shape[] = {1, 5};
+  int32_t begin_values[] = {1, 0, 0, 0, 0};
+  int size_shape[] = {1, 5};
+  int32_t size_values[] = {3, 1, 1, 1, 2};
+  int output_shape[] = {5, 3, 1, 1, 1, 2};
+  int8_t expected_output_data[] = {3, 4, 5, 6, 7, 8};
+  int8_t output_data[6];
+
+  tflite::testing::TestSlice(input_shape, input_values, begin_shape,
+                             begin_values, size_shape, size_values,
+                             output_shape, expected_output_data, output_data);
+}
+
+TEST(SliceTest, In5DInt16) {
+  int input_shape[] = {5, 5, 1, 1, 1, 2};
+  int16_t input_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int begin_shape[] = {1, 5};
+  int32_t begin_values[] = {1, 0, 0, 0, 0};
+  int size_shape[] = {1, 5};
+  int32_t size_values[] = {3, 1, 1, 1, 2};
+  int output_shape[] = {5, 3, 1, 1, 1, 2};
+  int16_t expected_output_data[] = {3, 4, 5, 6, 7, 8};
+  int16_t output_data[6];
+
+  tflite::testing::TestSlice(input_shape, input_values, begin_shape,
+                             begin_values, size_shape, size_values,
+                             output_shape, expected_output_data, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

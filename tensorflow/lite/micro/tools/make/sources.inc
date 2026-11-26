@@ -218,6 +218,7 @@ $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/round.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/select.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/shape.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/slice.cc \
+$(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/slice_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/softmax.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/softmax_common.cc \
 $(TENSORFLOW_ROOT)tensorflow/lite/micro/kernels/space_to_batch_nd.cc \
