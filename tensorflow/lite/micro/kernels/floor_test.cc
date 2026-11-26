@@ -76,4 +76,19 @@ TEST(FloorTest, FloorOpMultiDimFloat32) {
   tflite::testing::TestFloor(dims, input, golden, dims, output_data);
 }
 
+TEST(FloorTest, FloorOpMultiElementVectorFloat32) {
+  constexpr int kSize = 19;
+  int dims[] = {2, 1, kSize};
+  const float input[kSize] = {
+      -10.9f, -5.1f, -2.5f, -1.0f, -0.9f, -0.1f, 0.0f,  0.1f, 0.5f,   0.9f,
+      1.0f,   1.1f,  2.5f,  3.9f,  7.01f, 12.3f, -3.2f, 4.8f, -0.01f,
+  };
+  const float golden[kSize] = {
+      -11.0f, -6.0f, -3.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,  0.0f,
+      1.0f,   1.0f,  2.0f,  3.0f,  7.0f,  12.0f, -4.0f, 4.0f, -1.0f,
+  };
+  float output_data[kSize];
+  tflite::testing::TestFloor(dims, input, golden, dims, output_data);
+}
+
 TF_LITE_MICRO_TESTS_MAIN

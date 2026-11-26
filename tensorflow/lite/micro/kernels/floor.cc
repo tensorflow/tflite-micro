@@ -13,9 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensorflow/lite/micro/kernels/internal/reference/floor.h"
+#include "tensorflow/lite/micro/kernels/floor.h"
 
-#include "tensorflow/lite/micro/kernels/internal/tensor_ctypes.h"
 #include "tensorflow/lite/micro/kernels/kernel_util.h"
 #include "tensorflow/lite/micro/micro_common.h"
 
@@ -23,26 +22,20 @@ namespace tflite {
 namespace micro {
 namespace {
 
-constexpr int kInputTensor = 0;
-constexpr int kOutputTensor = 0;
-
 TfLiteStatus FloorEval(TfLiteContext* context, TfLiteNode* node) {
   const TfLiteEvalTensor* input =
-      tflite::micro::GetEvalInput(context, node, kInputTensor);
-  TF_LITE_ENSURE_TYPES_EQ(context, input->type, kTfLiteFloat32);
+      tflite::micro::GetEvalInput(context, node, kFloorInputTensor);
   TfLiteEvalTensor* output =
-      tflite::micro::GetEvalOutput(context, node, kOutputTensor);
-  reference_ops::Floor(tflite::micro::GetTensorShape(input),
-                       tflite::micro::GetTensorData<float>(input),
-                       tflite::micro::GetTensorShape(output),
-                       tflite::micro::GetTensorData<float>(output));
+      tflite::micro::GetEvalOutput(context, node, kFloorOutputTensor);
+
+  FloorEvalReference(input, output);
   return kTfLiteOk;
 }
 
 }  // namespace
 
 TFLMRegistration Register_FLOOR() {
-  return tflite::micro::RegisterOp(nullptr, nullptr, FloorEval);
+  return tflite::micro::RegisterOp(nullptr, FloorPrepareReference, FloorEval);
 }
 
 }  // namespace micro
